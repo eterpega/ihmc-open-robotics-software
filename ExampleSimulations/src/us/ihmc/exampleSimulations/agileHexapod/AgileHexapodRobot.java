@@ -130,6 +130,8 @@ public class AgileHexapodRobot extends Robot
    private static final int
       LEFT = 0, RIGHT = 1;
 
+   AgileHexapodController controller;
+
    public AgileHexapodRobot()
    {
       super("AgileHexapod");
@@ -159,7 +161,6 @@ public class AgileHexapodRobot extends Robot
       buildLeg(RIGHT, "hip5_z", "hip5_x", "knee5", "gc_foot5", new Vector3d(PX5, PY5, PZ5));
       buildLeg(RIGHT, "hip6_z", "hip6_x", "knee6", "gc_foot6", new Vector3d(PX6, PY6, PZ6));
 
-
       // Pendulum:
       PinJoint pend1 = new PinJoint("pend1", new Vector3d(), this, Axis.Y);
       Link pinLink = pinLink();
@@ -175,13 +176,13 @@ public class AgileHexapodRobot extends Robot
       pend2.addGroundContactPoint(pend_end);
 
       // Set controller and ground contact model:
-      
+
       YoVariableRegistry groundRegistry = new YoVariableRegistry("Ground");
-      
+
       // GroundContactModel groundModel = new LinearGroundContactModel(this, 2000.0, 100.0, 50.0, 50.0, groundRegistry);
       GroundContactModel groundModel = new CollisionGroundContactModel(this, 0.2, 0.7, groundRegistry);
       this.addYoVariableRegistry(groundRegistry);
-      
+
       GroundProfile3D profile = null;
 
       double xMin = -20.0, xMax = 20.0, yMin = -20.0, yMax = 20.0;
@@ -205,11 +206,11 @@ public class AgileHexapodRobot extends Robot
          profile = new BumpyGroundProfile(x_amp1, x_freq1, x_amp2, x_freq2, y_amp1, y_freq1, y_amp2, y_freq2, xMin, xMax, yMin, yMax);
       }
 
-
       groundModel.setGroundProfile3D(profile);
       this.setGroundContactModel(groundModel);
 
-      this.setController(new AgileHexapodController(this, profile.getHeightMapIfAvailable(), "agileHexapodController"));
+      controller = new AgileHexapodController(this, profile.getHeightMapIfAvailable(), "agileHexapodController");
+      this.setController(controller);
    }
 
    private void buildLeg(int side, String hipzName, String hipxName, String kneeName, String footName, Vector3d legOffset)
@@ -291,9 +292,6 @@ public class AgileHexapodRobot extends Robot
       return ret;
    }
 
-
-
-
    private Link pinLink()
    {
       Link ret = new Link("pin");
@@ -309,8 +307,6 @@ public class AgileHexapodRobot extends Robot
 
       return ret;
    }
-
-
 
    private Link thighLink()
    {
@@ -350,7 +346,6 @@ public class AgileHexapodRobot extends Robot
       return ret;
    }
 
-
    private Link rodLink()
    {
       Link ret = new Link("rod");
@@ -368,7 +363,8 @@ public class AgileHexapodRobot extends Robot
       return ret;
    }
 
-
-
-
+   public void resetInitialConfiguration()
+   {
+      controller.resetInitialConfiguration();
+   }
 }

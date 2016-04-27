@@ -5,6 +5,8 @@ import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
 import us.ihmc.simulationconstructionset.robotController.RobotController;
 
+import javax.vecmath.Vector3d;
+
 public class AgileHexapodController extends AgileHexapodControllerBase implements RobotController
 {
    private HeightMap profile;
@@ -1045,6 +1047,35 @@ public class AgileHexapodController extends AgileHexapodControllerBase implement
       q_pitch.set(-0.0283481);
       qd_pitch.set(0.0);*/
 
+   }
+
+   public void resetInitialConfiguration()
+   {
+      initVars();
+      q_yaw.set(0.0);
+      q_pitch.set(0.0);
+      q_roll.set(0.0);
+      virtualBodyForces = new VirtualBodyForces(rob, this);
+
+      tau_hip1_z.set(0.0);
+      tau_hip1_x.set(0.0);
+      tau_hip1_z.set(0.0);
+      tau_knee1.set(0.0);
+      tau_hip2_x.set(0.0);
+      tau_hip2_z.set(0.0);
+      tau_knee2.set(0.0);
+      tau_hip3_x.set(0.0);
+      tau_hip3_z.set(0.0);
+      tau_knee3.set(0.0);
+      tau_hip4_x.set(0.0);
+      tau_hip4_z.set(0.0);
+      tau_knee4.set(0.0);
+      tau_hip5_x.set(0.0);
+      tau_hip5_z.set(0.0);
+      tau_knee5.set(0.0);
+      tau_hip6_x.set(0.0);
+      tau_hip6_z.set(0.0);
+      tau_knee6.set(0.0);
    }
 
    public YoVariableRegistry getYoVariableRegistry()
