@@ -7,6 +7,7 @@ import javax.vecmath.Matrix3d;
 import javax.vecmath.Quat4d;
 import javax.vecmath.Vector3d;
 
+import us.ihmc.robotics.MathTools;
 import us.ihmc.simulationconstructionset.FloatingJoint;
 import us.ihmc.simulationconstructionset.GroundContactPoint;
 import us.ihmc.simulationconstructionset.GroundContactPointGroup;
@@ -213,12 +214,12 @@ public class FloatJointPhysics extends JointPhysics<FloatingJoint>
 
       // R0_i.transform(a_hat_world_top);  //+++JEP w and wd should be in joint coords, not world coords.  Only x,y,z in world coords.
       R0_i.transform(a_hat_world_bot);
-      owner.qdd_x.set(a_hat_world_bot.x);
-      owner.qdd_y.set(a_hat_world_bot.y);
-      owner.qdd_z.set(a_hat_world_bot.z);
-      owner.qdd_wx.set(a_hat_world_top.x);
-      owner.qdd_wy.set(a_hat_world_top.y);
-      owner.qdd_wz.set(a_hat_world_top.z);
+      owner.qdd_x.set(MathTools.clipToMinMax(a_hat_world_bot.x, 10000.0));
+      owner.qdd_y.set(MathTools.clipToMinMax(a_hat_world_bot.y, 10000.0));
+      owner.qdd_z.set(MathTools.clipToMinMax(a_hat_world_bot.z, 10000.0));
+      owner.qdd_wx.set(MathTools.clipToMinMax(a_hat_world_top.x, 10000.0));
+      owner.qdd_wy.set(MathTools.clipToMinMax(a_hat_world_top.y, 10000.0));
+      owner.qdd_wz.set(MathTools.clipToMinMax(a_hat_world_top.z, 10000.0));
       jointDependentRecordK(passNumber);
 
       /*

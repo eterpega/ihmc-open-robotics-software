@@ -209,6 +209,7 @@ public class PinJointPhysics extends JointPhysics<PinJoint>
     */
    protected void jointDependentFeatherstonePassFour(double Q, int passNumber)
    {
+      Q = MathTools.clipToMinMax(Q, 10000.0);
       owner.qdd.set(Q);
       k_qdd[passNumber] = Q;
       k_qd[passNumber] = owner.qd.getDoubleValue();
