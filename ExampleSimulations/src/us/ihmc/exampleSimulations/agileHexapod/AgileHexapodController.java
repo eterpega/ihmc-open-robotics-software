@@ -1056,6 +1056,34 @@ public class AgileHexapodController extends AgileHexapodControllerBase implement
       q_pitch.set(0.0);
       q_roll.set(0.0);
       virtualBodyForces = new VirtualBodyForces(rob, this);
+      
+      qdd_x.set(0.0);
+      qdd_y.set(0.0);
+      qdd_z.set(0.0);
+      qdd_wx.set(0.0);
+      qdd_wy.set(0.0);
+      qdd_wz.set(0.0);
+      qdd_hip1_z.set(0.0);
+      qdd_hip1_x.set(0.0);
+      qdd_hip2_z.set(0.0);
+      qdd_hip2_x.set(0.0);
+      qdd_hip3_z.set(0.0);
+      qdd_hip3_x.set(0.0);
+      qdd_hip4_z.set(0.0);
+      qdd_hip4_x.set(0.0);
+      qdd_hip5_z.set(0.0);
+      qdd_hip5_x.set(0.0);
+      qdd_hip6_z.set(0.0);
+      qdd_hip6_x.set(0.0);
+      qdd_knee1.set(0.0);
+      qdd_knee2.set(0.0);
+      qdd_knee3.set(0.0);
+      qdd_knee4.set(0.0);
+      qdd_knee5.set(0.0);
+      qdd_knee6.set(0.0);
+      qdd_pend1.set(0.0);
+      qdd_pend2.set(0.0);
+     
 
       tau_hip1_z.set(0.0);
       tau_hip1_x.set(0.0);
@@ -1076,6 +1104,8 @@ public class AgileHexapodController extends AgileHexapodControllerBase implement
       tau_hip6_x.set(0.0);
       tau_hip6_z.set(0.0);
       tau_knee6.set(0.0);
+      
+      System.out.println("Reseting hexapod to zero");
    }
 
    public YoVariableRegistry getYoVariableRegistry()
@@ -1095,5 +1125,10 @@ public class AgileHexapodController extends AgileHexapodControllerBase implement
    public String getDescription()
    {
       return getName();
+   }
+   
+   public double getqdd()
+   {
+      return qdd_wz.getDoubleValue();
    }
 }
