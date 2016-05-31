@@ -132,6 +132,7 @@ public class QuadrupedForceControllerManager implements QuadrupedControllerManag
       QuadrupedController standPrepController = new QuadrupedForceBasedStandPrepController(runtimeEnvironment, controllerToolbox);
       QuadrupedController standReadyController = new QuadrupedForceBasedStandReadyController(runtimeEnvironment, controllerToolbox);
       QuadrupedController standController = new QuadrupedDcmBasedStandController(runtimeEnvironment, controllerToolbox, inputProvider);
+      QuadrupedController standController_Sean = new QuadrupedDcmBasedStandController_Sean(runtimeEnvironment, controllerToolbox, inputProvider);
       QuadrupedController stepController = new QuadrupedDcmBasedStepController(runtimeEnvironment, controllerToolbox, inputProvider, timedStepProvider);
       QuadrupedController trotController = new QuadrupedDcmBasedTrotController(runtimeEnvironment, controllerToolbox, inputProvider);
       QuadrupedController paceController = new QuadrupedDcmBasedPaceController(runtimeEnvironment, controllerToolbox, inputProvider);
@@ -144,6 +145,7 @@ public class QuadrupedForceControllerManager implements QuadrupedControllerManag
       builder.addState(QuadrupedForceControllerState.STAND_PREP, standPrepController);
       builder.addState(QuadrupedForceControllerState.STAND_READY, standReadyController);
       builder.addState(QuadrupedForceControllerState.STAND, standController);
+      builder.addState(QuadrupedForceControllerState.STAND_SEAN, standController_Sean);
       builder.addState(QuadrupedForceControllerState.STEP, stepController);
       builder.addState(QuadrupedForceControllerState.TROT, trotController);
       builder.addState(QuadrupedForceControllerState.PACE, paceController);
@@ -164,6 +166,8 @@ public class QuadrupedForceControllerManager implements QuadrupedControllerManag
       builder.addTransition(QuadrupedForceControllerRequestedEvent.class, QuadrupedForceControllerRequestedEvent.REQUEST_TROT, QuadrupedForceControllerState.STAND, QuadrupedForceControllerState.TROT);
       builder.addTransition(QuadrupedForceControllerRequestedEvent.class, QuadrupedForceControllerRequestedEvent.REQUEST_PACE, QuadrupedForceControllerState.STAND, QuadrupedForceControllerState.PACE);
       builder.addTransition(QuadrupedForceControllerRequestedEvent.class, QuadrupedForceControllerRequestedEvent.REQUEST_XGAIT, QuadrupedForceControllerState.STAND, QuadrupedForceControllerState.XGAIT);
+
+      builder.addTransition(QuadrupedForceControllerRequestedEvent.class, QuadrupedForceControllerRequestedEvent.REQUEST_STAND_SEAN, QuadrupedForceControllerState.STAND_READY, QuadrupedForceControllerState.STAND_SEAN);
 
       // Transitions from controllers back to stand prep.
       builder.addTransition(QuadrupedForceControllerRequestedEvent.class, QuadrupedForceControllerRequestedEvent.REQUEST_STAND_PREP, QuadrupedForceControllerState.STAND, QuadrupedForceControllerState.STAND_PREP);
