@@ -4,4 +4,5 @@ public enum ControllerEvent
 {
    DONE,
    FAIL,
+   FALL
 }
