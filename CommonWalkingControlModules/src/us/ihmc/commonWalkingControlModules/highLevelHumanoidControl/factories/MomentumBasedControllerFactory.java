@@ -42,6 +42,7 @@ import us.ihmc.humanoidRobotics.frames.HumanoidReferenceFrames;
 import us.ihmc.humanoidRobotics.model.CenterOfPressureDataHolder;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.robotics.dataStructures.variable.EnumYoVariable;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
@@ -82,6 +83,9 @@ public class MomentumBasedControllerFactory implements CloseableAndDisposable
    private final HighLevelState initialBehavior;
    private final WholeBodyControllerCoreMode initialControllerCoreMode;
 
+   private final EnumYoVariable<WholeBodyControllerCoreMode> requestedControllerCoreMode = new EnumYoVariable<WholeBodyControllerCoreMode>("requestedControllerCoreMode", registry,
+         WholeBodyControllerCoreMode.class, true);
+
    private HighLevelHumanoidControllerToolbox momentumBasedController = null;
 
    private boolean isListeningToHighLevelStatePackets = true;
@@ -117,6 +121,7 @@ public class MomentumBasedControllerFactory implements CloseableAndDisposable
       this.contactableBodiesFactory = contactableBodiesFactory;
       this.initialBehavior = initialBehavior;
       this.initialControllerCoreMode = initialControllerCoreMode;
+      requestedControllerCoreMode.set(initialControllerCoreMode);
 
       this.walkingControllerParameters = walkingControllerParameters;
 
@@ -277,8 +282,8 @@ public class MomentumBasedControllerFactory implements CloseableAndDisposable
 
       /////////////////////////////////////////////////////////////////////////////////////////////
       // Setup the WalkingHighLevelHumanoidController /////////////////////////////////////////////
-      walkingBehavior = new WalkingHighLevelHumanoidController(commandInputManager, statusOutputManager, managerFactory, walkingControllerParameters,
-            momentumBasedController);
+      walkingBehavior = new WalkingHighLevelHumanoidController(commandInputManager, statusOutputManager, requestedControllerCoreMode, managerFactory,
+            walkingControllerParameters, momentumBasedController);
       highLevelBehaviors.add(walkingBehavior);
 
       /////////////////////////////////////////////////////////////////////////////////////////////
@@ -303,7 +308,7 @@ public class MomentumBasedControllerFactory implements CloseableAndDisposable
       // This is the "highest level" controller that enables switching between
       // the different controllers (walking, multi-contact, driving, etc.)
       highLevelHumanoidControllerManager = new HighLevelHumanoidControllerManager(commandInputManager, statusOutputManager, controllerCore, initialBehavior,
-            initialControllerCoreMode, highLevelBehaviors, momentumBasedController, centerOfPressureDataHolderForEstimator, controllerCoreOutput);
+            highLevelBehaviors, momentumBasedController, centerOfPressureDataHolderForEstimator, controllerCoreOutput);
       highLevelHumanoidControllerManager.setFallbackControllerForFailure(HighLevelState.DO_NOTHING_BEHAVIOR);
       highLevelHumanoidControllerManager.addYoVariableRegistry(registry);
       highLevelHumanoidControllerManager.setListenToHighLevelStatePackets(isListeningToHighLevelStatePackets);

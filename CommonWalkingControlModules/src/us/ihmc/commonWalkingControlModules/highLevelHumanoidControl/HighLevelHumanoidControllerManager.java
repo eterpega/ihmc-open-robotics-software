@@ -43,8 +43,6 @@ public class HighLevelHumanoidControllerManager implements RobotController
 
    private final EnumYoVariable<HighLevelState> requestedHighLevelState = new EnumYoVariable<HighLevelState>("requestedHighLevelState", registry,
          HighLevelState.class, true);
-   private final EnumYoVariable<WholeBodyControllerCoreMode> requestedControllerCoreMode = new EnumYoVariable<WholeBodyControllerCoreMode>("requestedControllerCoreMode", registry,
-         WholeBodyControllerCoreMode.class, true);
 
    private final BooleanYoVariable isListeningToHighLevelStateMessage = new BooleanYoVariable("isListeningToHighLevelStateMessage", registry);
 
@@ -59,9 +57,9 @@ public class HighLevelHumanoidControllerManager implements RobotController
    private final HighLevelStateChangeStatusMessage highLevelStateChangeStatusMessage = new HighLevelStateChangeStatusMessage();
 
    public HighLevelHumanoidControllerManager(CommandInputManager commandInputManager, StatusMessageOutputManager statusMessageOutputManager,
-         WholeBodyControllerCore controllerCore, HighLevelState initialBehavior, WholeBodyControllerCoreMode initialControllerCoreMode,
-         ArrayList<HighLevelBehavior> highLevelBehaviors, HighLevelHumanoidControllerToolbox momentumBasedController,
-         CenterOfPressureDataHolder centerOfPressureDataHolderForEstimator, ControllerCoreOutputReadOnly controllerCoreOutput)
+         WholeBodyControllerCore controllerCore, HighLevelState initialBehavior, ArrayList<HighLevelBehavior> highLevelBehaviors,
+         HighLevelHumanoidControllerToolbox momentumBasedController, CenterOfPressureDataHolder centerOfPressureDataHolderForEstimator,
+         ControllerCoreOutputReadOnly controllerCoreOutput)
    {
       this.commandInputManager = commandInputManager;
       this.statusMessageOutputManager = statusMessageOutputManager;
@@ -71,7 +69,6 @@ public class HighLevelHumanoidControllerManager implements RobotController
 
       this.stateMachine = setUpStateMachine(highLevelBehaviors, yoTime, registry);
       requestedHighLevelState.set(initialBehavior);
-      requestedControllerCoreMode.set(initialControllerCoreMode);
 
       isListeningToHighLevelStateMessage.set(true);
 

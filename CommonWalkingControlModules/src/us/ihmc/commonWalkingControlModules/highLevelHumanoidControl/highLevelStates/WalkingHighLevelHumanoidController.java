@@ -47,6 +47,7 @@ import us.ihmc.humanoidRobotics.communication.packets.dataobjects.HighLevelState
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
 import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.robotics.dataStructures.variable.EnumYoVariable;
 import us.ihmc.robotics.geometry.FramePoint2d;
 import us.ihmc.robotics.geometry.FrameVector;
 import us.ihmc.robotics.geometry.FrameVector2d;
@@ -93,6 +94,8 @@ public class WalkingHighLevelHumanoidController extends HighLevelBehavior
 
    private final GenericStateMachine<WalkingStateEnum, WalkingState> stateMachine;
 
+   private final EnumYoVariable<WholeBodyControllerCoreMode> requestedControllerCoreMode;
+
    private final WalkingMessageHandler walkingMessageHandler;
    private final BooleanYoVariable abortWalkingRequested = new BooleanYoVariable("requestAbortWalking", registry);
 
@@ -115,14 +118,16 @@ public class WalkingHighLevelHumanoidController extends HighLevelBehavior
    private ControllerCoreOutputReadOnly controllerCoreOutput;
 
    public WalkingHighLevelHumanoidController(CommandInputManager commandInputManager, StatusMessageOutputManager statusOutputManager,
-         HighLevelControlManagerFactory managerFactory, WalkingControllerParameters walkingControllerParameters,
-         HighLevelHumanoidControllerToolbox momentumBasedController)
+         EnumYoVariable<WholeBodyControllerCoreMode> requestedControllerCoreMode, HighLevelControlManagerFactory managerFactory,
+         WalkingControllerParameters walkingControllerParameters, HighLevelHumanoidControllerToolbox momentumBasedController)
    {
       super(controllerState);
 
       this.managerFactory = managerFactory;
 
       this.yoGraphicsListRegistry = momentumBasedController.getDynamicGraphicObjectsListRegistry();
+      this.requestedControllerCoreMode = requestedControllerCoreMode;
+      controllerCoreCommand.setControllerCoreMode(requestedControllerCoreMode.getEnumValue());
 
       // Getting parameters from the momentumBasedController
       this.momentumBasedController = momentumBasedController;
