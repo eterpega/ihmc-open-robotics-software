@@ -8,6 +8,7 @@ import java.util.Collections;
 import us.ihmc.commonWalkingControlModules.configurations.ArmControllerParameters;
 import us.ihmc.commonWalkingControlModules.configurations.CapturePointPlannerParameters;
 import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParameters;
+import us.ihmc.commonWalkingControlModules.controllerCore.WholeBodyControllerCoreMode;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.ContactableBodiesFactory;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.MomentumBasedControllerFactory;
 import us.ihmc.communication.configuration.NetworkParameters;
@@ -164,13 +165,15 @@ public class GazeboControllerFactory
       final HighLevelState initialBehavior;
       CapturePointPlannerParameters capturePointPlannerParameters = robotModel.getCapturePointPlannerParameters();
       initialBehavior = HighLevelState.WALKING; // HERE!!
+      final WholeBodyControllerCoreMode initialCnotrollerCoreMode = WholeBodyControllerCoreMode.INVERSE_DYNAMICS;
 
       SideDependentList<String> feetContactSensorNames = sensorInformation.getFeetContactSensorNames();
       SideDependentList<String> feetForceSensorNames = sensorInformation.getFeetForceSensorNames();
       SideDependentList<String> wristForceSensorNames = sensorInformation.getWristForceSensorNames();
 
       MomentumBasedControllerFactory controllerFactory = new MomentumBasedControllerFactory(contactableBodiesFactory, feetForceSensorNames,
-            feetContactSensorNames, wristForceSensorNames, walkingControllerParameters, armControllerParameters, capturePointPlannerParameters, initialBehavior);
+            feetContactSensorNames, wristForceSensorNames, walkingControllerParameters, armControllerParameters, capturePointPlannerParameters, initialBehavior,
+            initialCnotrollerCoreMode);
       controllerFactory.createControllerNetworkSubscriber(new PeriodicNonRealtimeThreadScheduler("CapturabilityBasedStatusProducer"), packetCommunicator);
 
 //      controllerFactory.addHighLevelBehaviorFactory(new JointPositionControllerFactory(true));

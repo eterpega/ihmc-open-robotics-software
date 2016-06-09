@@ -12,6 +12,7 @@ import us.ihmc.SdfLoader.visualizer.RobotVisualizer;
 import us.ihmc.commonWalkingControlModules.configurations.ArmControllerParameters;
 import us.ihmc.commonWalkingControlModules.configurations.CapturePointPlannerParameters;
 import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParameters;
+import us.ihmc.commonWalkingControlModules.controllerCore.WholeBodyControllerCoreMode;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.ContactableBodiesFactory;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.MomentumBasedControllerFactory;
 import us.ihmc.communication.PacketRouter;
@@ -342,6 +343,7 @@ public abstract class IHMCROSAPIPacketTest implements MultiRobotTestInterface
       CapturePointPlannerParameters capturePointPlannerParameters = robotModel.getCapturePointPlannerParameters();
       final HighLevelState initialBehavior;
       initialBehavior = HighLevelState.DO_NOTHING_BEHAVIOR; // HERE!!
+      final WholeBodyControllerCoreMode initialControllerCoreMode = WholeBodyControllerCoreMode.INVERSE_DYNAMICS;
 
       DRCRobotSensorInformation sensorInformation = robotModel.getSensorInformation();
       SideDependentList<String> feetForceSensorNames = sensorInformation.getFeetForceSensorNames();
@@ -349,7 +351,7 @@ public abstract class IHMCROSAPIPacketTest implements MultiRobotTestInterface
       SideDependentList<String> wristForceSensorNames = sensorInformation.getWristForceSensorNames();
       MomentumBasedControllerFactory controllerFactory = new MomentumBasedControllerFactory(contactableBodiesFactory, feetForceSensorNames,
             feetContactSensorNames, wristForceSensorNames, walkingControllerParameters, armControllerParameters, capturePointPlannerParameters,
-            initialBehavior);
+            initialBehavior, initialControllerCoreMode);
 
       controllerFactory.createControllerNetworkSubscriber(new PeriodicNonRealtimeThreadScheduler("CapturabilityBasedStatusProducer"), packetCommunicator);
 

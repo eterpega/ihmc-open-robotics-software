@@ -10,6 +10,7 @@ import us.ihmc.SdfLoader.SDFHumanoidRobot;
 import us.ihmc.commonWalkingControlModules.configurations.ArmControllerParameters;
 import us.ihmc.commonWalkingControlModules.configurations.CapturePointPlannerParameters;
 import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParameters;
+import us.ihmc.commonWalkingControlModules.controllerCore.WholeBodyControllerCoreMode;
 import us.ihmc.commonWalkingControlModules.corruptors.FullRobotModelCorruptor;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.ContactableBodiesFactory;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.MomentumBasedControllerFactory;
@@ -61,7 +62,7 @@ public class HumanoidDiagnosticsWhenHangingSimulation
       SideDependentList<String> wristForceSensorNames = sensorInformation.getWristForceSensorNames();
       MomentumBasedControllerFactory momentumBasedControllerFactory = new MomentumBasedControllerFactory(contactableBodiesFactory, footSensorNames,
             feetContactSensorNames, wristForceSensorNames, walkingControllerParameters, armControllerParameters, capturePointPlannerParameters,
-            HighLevelState.DO_NOTHING_BEHAVIOR);
+            HighLevelState.DO_NOTHING_BEHAVIOR, WholeBodyControllerCoreMode.INVERSE_DYNAMICS);
       DiagnosticsWhenHangingControllerFactory diagnosticsWhenHangingControllerFactory = new DiagnosticsWhenHangingControllerFactory(humanoidJointPoseList, useArms, robotIsHanging, null);
       diagnosticsWhenHangingControllerFactory.setTransitionRequested(true);
       momentumBasedControllerFactory.addHighLevelBehaviorFactory(diagnosticsWhenHangingControllerFactory);

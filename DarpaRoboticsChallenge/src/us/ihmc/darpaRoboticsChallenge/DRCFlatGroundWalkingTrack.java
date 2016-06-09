@@ -4,6 +4,7 @@ import us.ihmc.SdfLoader.SDFHumanoidRobot;
 import us.ihmc.commonWalkingControlModules.configurations.ArmControllerParameters;
 import us.ihmc.commonWalkingControlModules.configurations.CapturePointPlannerParameters;
 import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParameters;
+import us.ihmc.commonWalkingControlModules.controllerCore.WholeBodyControllerCoreMode;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.ContactableBodiesFactory;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.MomentumBasedControllerFactory;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.WalkingProvider;
@@ -54,7 +55,7 @@ public class DRCFlatGroundWalkingTrack
 
       MomentumBasedControllerFactory controllerFactory = new MomentumBasedControllerFactory(contactableBodiesFactory, feetForceSensorNames,
             feetContactSensorNames, wristForceSensorNames, walkingControllerParameters, armControllerParameters, capturePointPlannerParameters,
-            HighLevelState.WALKING);
+            HighLevelState.WALKING, WholeBodyControllerCoreMode.INVERSE_DYNAMICS);
 
       
       HeightMap heightMapForFootstepZ = null;

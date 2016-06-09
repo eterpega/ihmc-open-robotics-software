@@ -13,6 +13,7 @@ import us.ihmc.acsell.hardware.AcsellSetup;
 import us.ihmc.commonWalkingControlModules.configurations.ArmControllerParameters;
 import us.ihmc.commonWalkingControlModules.configurations.CapturePointPlannerParameters;
 import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParameters;
+import us.ihmc.commonWalkingControlModules.controllerCore.WholeBodyControllerCoreMode;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.ContactableBodiesFactory;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.MomentumBasedControllerFactory;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.WalkingProvider;
@@ -169,6 +170,7 @@ public class StepprControllerFactory
       ContactableBodiesFactory contactableBodiesFactory = robotModel.getContactPointParameters().getContactableBodiesFactory();
 
       final HighLevelState initialBehavior = HighLevelState.DO_NOTHING_BEHAVIOR; // HERE!!
+      final WholeBodyControllerCoreMode initialControllerCoreMode = WholeBodyControllerCoreMode.INVERSE_DYNAMICS;
       WalkingControllerParameters walkingControllerParamaters = robotModel.getWalkingControllerParameters();
       ArmControllerParameters armControllerParamaters = robotModel.getArmControllerParameters();
       CapturePointPlannerParameters capturePointPlannerParameters = robotModel.getCapturePointPlannerParameters();
@@ -176,9 +178,9 @@ public class StepprControllerFactory
       SideDependentList<String> feetContactSensorNames = sensorInformation.getFeetContactSensorNames();
       SideDependentList<String> feetForceSensorNames = sensorInformation.getFeetForceSensorNames();
       SideDependentList<String> wristForceSensorNames = sensorInformation.getWristForceSensorNames();
-      MomentumBasedControllerFactory controllerFactory = new MomentumBasedControllerFactory(contactableBodiesFactory,
-            feetForceSensorNames, feetContactSensorNames, wristForceSensorNames ,
-            walkingControllerParamaters, armControllerParamaters, capturePointPlannerParameters, initialBehavior);
+      MomentumBasedControllerFactory controllerFactory = new MomentumBasedControllerFactory(contactableBodiesFactory, feetForceSensorNames,
+            feetContactSensorNames, wristForceSensorNames , walkingControllerParamaters, armControllerParamaters, capturePointPlannerParameters, initialBehavior,
+            initialControllerCoreMode);
 
       HumanoidJointPoseList humanoidJointPoseList = new HumanoidJointPoseList();
       humanoidJointPoseList.createPoseSettersJustLegs();

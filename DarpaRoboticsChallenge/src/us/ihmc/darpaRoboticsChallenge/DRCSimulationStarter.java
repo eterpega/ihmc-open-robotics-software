@@ -13,6 +13,7 @@ import us.ihmc.SdfLoader.SDFHumanoidRobot;
 import us.ihmc.commonWalkingControlModules.configurations.ArmControllerParameters;
 import us.ihmc.commonWalkingControlModules.configurations.CapturePointPlannerParameters;
 import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParameters;
+import us.ihmc.commonWalkingControlModules.controllerCore.WholeBodyControllerCoreMode;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.ContactableBodiesFactory;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.HighLevelBehaviorFactory;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.MomentumBasedControllerFactory;
@@ -380,7 +381,7 @@ public class DRCSimulationStarter implements AbstractSimulationStarter
       SideDependentList<String> wristForceSensorNames = sensorInformation.getWristForceSensorNames();
 
       controllerFactory = new MomentumBasedControllerFactory(contactableBodiesFactory, feetForceSensorNames, feetContactSensorNames, wristForceSensorNames,
-            walkingControllerParameters, armControllerParameters, capturePointPlannerParameters, HighLevelState.WALKING);
+            walkingControllerParameters, armControllerParameters, capturePointPlannerParameters, HighLevelState.WALKING, WholeBodyControllerCoreMode.INVERSE_DYNAMICS);
       controllerFactory.attachControllerFailureListeners(controllerFailureListeners);
       if (setupControllerNetworkSubscriber)
          controllerFactory.createControllerNetworkSubscriber(new PeriodicNonRealtimeThreadScheduler("CapturabilityBasedStatusProducer"), controllerPacketCommunicator);

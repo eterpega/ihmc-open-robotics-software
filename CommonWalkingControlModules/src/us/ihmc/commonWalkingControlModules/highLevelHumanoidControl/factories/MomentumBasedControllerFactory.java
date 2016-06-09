@@ -13,6 +13,7 @@ import us.ihmc.commonWalkingControlModules.controllerAPI.input.ControllerNetwork
 import us.ihmc.commonWalkingControlModules.controllerAPI.input.userDesired.UserDesiredControllerCommandGenerators;
 import us.ihmc.commonWalkingControlModules.controllerCore.WholeBodyControlCoreToolbox;
 import us.ihmc.commonWalkingControlModules.controllerCore.WholeBodyControllerCore;
+import us.ihmc.commonWalkingControlModules.controllerCore.WholeBodyControllerCoreMode;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.ControllerCoreOutputReadOnly;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.feedbackController.FeedbackControlCommandList;
 import us.ihmc.commonWalkingControlModules.controllers.Updatable;
@@ -79,6 +80,7 @@ public class MomentumBasedControllerFactory implements CloseableAndDisposable
    private final WalkingControllerParameters walkingControllerParameters;
 
    private final HighLevelState initialBehavior;
+   private final WholeBodyControllerCoreMode initialControllerCoreMode;
 
    private HighLevelHumanoidControllerToolbox momentumBasedController = null;
 
@@ -106,13 +108,15 @@ public class MomentumBasedControllerFactory implements CloseableAndDisposable
 
    public MomentumBasedControllerFactory(ContactableBodiesFactory contactableBodiesFactory, SideDependentList<String> footForceSensorNames,
          SideDependentList<String> footContactSensorNames, SideDependentList<String> wristSensorNames, WalkingControllerParameters walkingControllerParameters,
-         ArmControllerParameters armControllerParameters, CapturePointPlannerParameters capturePointPlannerParameters, HighLevelState initialBehavior)
+         ArmControllerParameters armControllerParameters, CapturePointPlannerParameters capturePointPlannerParameters, HighLevelState initialBehavior,
+         WholeBodyControllerCoreMode initialControllerCoreMode)
    {
       this.footSensorNames = footForceSensorNames;
       this.footContactSensorNames = footContactSensorNames;
       this.wristSensorNames = wristSensorNames;
       this.contactableBodiesFactory = contactableBodiesFactory;
       this.initialBehavior = initialBehavior;
+      this.initialControllerCoreMode = initialControllerCoreMode;
 
       this.walkingControllerParameters = walkingControllerParameters;
 
@@ -299,7 +303,7 @@ public class MomentumBasedControllerFactory implements CloseableAndDisposable
       // This is the "highest level" controller that enables switching between
       // the different controllers (walking, multi-contact, driving, etc.)
       highLevelHumanoidControllerManager = new HighLevelHumanoidControllerManager(commandInputManager, statusOutputManager, controllerCore, initialBehavior,
-            highLevelBehaviors, momentumBasedController, centerOfPressureDataHolderForEstimator, controllerCoreOutput);
+            initialControllerCoreMode, highLevelBehaviors, momentumBasedController, centerOfPressureDataHolderForEstimator, controllerCoreOutput);
       highLevelHumanoidControllerManager.setFallbackControllerForFailure(HighLevelState.DO_NOTHING_BEHAVIOR);
       highLevelHumanoidControllerManager.addYoVariableRegistry(registry);
       highLevelHumanoidControllerManager.setListenToHighLevelStatePackets(isListeningToHighLevelStatePackets);
