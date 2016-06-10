@@ -176,7 +176,7 @@ public class QuadrupedDcmBasedStandController_Sean implements QuadrupedControlle
       dcmPositionControllerSetpoints.getDcmPosition().scale(1.0 / dcmPositionController.getNaturalFrequency());
       dcmPositionControllerSetpoints.getDcmPosition().add(inputProvider.getComPositionInput());
       dcmPositionControllerSetpoints.getDcmVelocity().setToZero(supportFrame);
-      dcmPositionController.compute(taskSpaceControllerCommands.getComForce(), dcmPositionControllerSetpoints, dcmPositionEstimate);
+//      dcmPositionController.compute(taskSpaceControllerCommands.getComForce(), dcmPositionControllerSetpoints, dcmPositionEstimate);
       taskSpaceControllerCommands.getComForce().changeFrame(supportFrame);
 
       // update desired com position and velocity
@@ -203,29 +203,7 @@ public class QuadrupedDcmBasedStandController_Sean implements QuadrupedControlle
       // update joint setpoints
       taskSpaceController.compute(taskSpaceControllerSettings, taskSpaceControllerCommands);
    }
-   private int isFallDetected(double time)
-   {
-      return (time > 10.0) ? 1:0;
-   }
-   private int isFallDetected(double comInput, double minZ, double maxZ){
-      return (comInput < minZ || comInput > maxZ) ? 1:0;
-   }
-   private void safelyGoHome(){
-      for (int i = 0; i < fullRobotModel.getOneDoFJoints().length; i++)
-      {
-         OneDoFJoint joint = fullRobotModel.getOneDoFJoints()[i];
-         MinimumJerkTrajectory trajectory = trajectories.get(i);
 
-         trajectory.computeTrajectory(timeInFallTrajectory);
-//         joint.setqDesired(trajectory.getPosition());
-
-         //PDController
-         pdController.setProportionalGain(1000);
-         pdController.setDerivativeGain(20);
-         double tau = pdController.compute(joint.getQ(), trajectory.getPosition(),joint.getQd(), trajectory.getVelocity());
-         joint.setTau(tau);
-      }
-   }
    @Override public ControllerEvent process()
    {
       double currentTime = robotTimestamp.getDoubleValue();
@@ -233,32 +211,7 @@ public class QuadrupedDcmBasedStandController_Sean implements QuadrupedControlle
 
       dcmPositionController.setComHeight(inputProvider.getComPositionInput().getZ());
       updateEstimates();
-      fallDetector.set(isFallDetected(inputProvider.getComPositionInput().getZ(), .45, .65));
-
-      if(initialFallDetected){
-         timeInFallTrajectory += controlDT;
-         safelyGoHome();
-      }else{
-         if(fallDetector.getIntegerValue() == 0){
-            updateSetpoints();
-         }else{
-            initialFallDetected = true;
-            for (int i = 0; i < fullRobotModel.getOneDoFJoints().length; i++)
-            {
-               OneDoFJoint joint = fullRobotModel.getOneDoFJoints()[i];
-               QuadrupedJointName jointId = fullRobotModel.getNameForOneDoFJoint(joint);
-               // Start the trajectory from the current pos/vel/acc.
-               MinimumJerkTrajectory trajectory = trajectories.get(i);
-               trajectory.setMoveParameters( joint.getQ(),
-                                             joint.getQd(),
-                                             joint.getQdd(),
-                                             homePositions.get(i),0.0, 0.0, //deisred q, qd, qdd
-                                             fallTrajectoryTime.get());
-            }
-         }
-      }
-
-
+      updateSetpoints();
 
       return null;
    }

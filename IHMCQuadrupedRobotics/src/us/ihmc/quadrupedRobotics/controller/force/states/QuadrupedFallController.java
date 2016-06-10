@@ -36,10 +36,10 @@ public class QuadrupedFallController implements QuadrupedController
    // parameters
    private final ParameterFactory parameterFactory = ParameterFactory.createWithRegistry(getClass(), registry);
    private final DoubleParameter hipPitchHomeParameter = parameterFactory.createDouble("hipPitchHome", 1);
-   private final DoubleParameter hipRollHomeParameter = parameterFactory.createDouble("hipRollHome", 0.3);
+   private final DoubleParameter hipRollHomeParameter = parameterFactory.createDouble("hipRollHome", 0.5);
    private final DoubleParameter kneePitchHomeParameter = parameterFactory.createDouble("kneePitchHome", -2.2);
-   private final DoubleParameter fallTrajectoryTotalTime = parameterFactory.createDouble("fallTrajectoryTotalTime", 1.0);
-   private final DoubleParameter fallPGain = parameterFactory.createDouble("fallPGain", 300);
+   private final DoubleParameter fallTrajectoryTotalTime = parameterFactory.createDouble("fallTrajectoryTotalTime", .5);
+   private final DoubleParameter fallPGain = parameterFactory.createDouble("fallPGain", 200);
    private final DoubleParameter fallDGain = parameterFactory.createDouble("fallDGain", 2);
 
    // fall detection trajectories
