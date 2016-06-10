@@ -6,7 +6,7 @@ import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParam
 import us.ihmc.commonWalkingControlModules.controlModules.foot.FootControlModule.ConstraintType;
 import us.ihmc.commonWalkingControlModules.trajectories.PushRecoveryTrajectoryGenerator;
 import us.ihmc.commonWalkingControlModules.trajectories.SoftTouchdownPositionTrajectoryGenerator;
-import us.ihmc.commonWalkingControlModules.trajectories.TwoWaypointPositionTrajectoryGenerator;
+import us.ihmc.commonWalkingControlModules.trajectories.TwoWaypointSwingTrajectoryGenerator;
 import us.ihmc.humanoidRobotics.footstep.Footstep;
 import us.ihmc.robotics.MathTools;
 import us.ihmc.robotics.controllers.YoSE3PIDGainsInterface;
@@ -45,6 +45,13 @@ public class SwingState extends AbstractUnconstrainedState
 
    private final BooleanYoVariable replanTrajectory;
    private final YoVariableDoubleProvider swingTimeRemaining;
+
+   private final TwoWaypointSwingTrajectoryGenerator swingTrajectoryGenerator;
+   private final VectorProvider touchdownVelocityProvider;
+   private final FramePoint initialPosition = new FramePoint();
+   private final FrameVector initialVelocity = new FrameVector();
+   private final FramePoint finalPosition = new FramePoint();
+   private final FrameVector finalVelocity = new FrameVector();
 
    private final PositionTrajectoryGenerator positionTrajectoryGenerator, pushRecoveryPositionTrajectoryGenerator;
    private final VelocityConstrainedOrientationTrajectoryGenerator orientationTrajectoryGenerator;
@@ -104,8 +111,6 @@ public class SwingState extends AbstractUnconstrainedState
 
       YoGraphicsListRegistry yoGraphicsListRegistry = momentumBasedController.getDynamicGraphicObjectsListRegistry();
 
-      PositionTrajectoryGenerator swingTrajectoryGenerator;
-
       PositionTrajectoryGenerator touchdownTrajectoryGenerator = new SoftTouchdownPositionTrajectoryGenerator(namePrefix + "Touchdown", worldFrame,
             finalConfigurationProvider, touchdownVelocityProvider, touchdownAccelerationProvider, swingTimeProvider, registry);
 
@@ -115,9 +120,11 @@ public class SwingState extends AbstractUnconstrainedState
          maxSwingHeightFromStanceFoot = walkingControllerParameters.getMaxSwingHeightFromStanceFoot();
       else
          maxSwingHeightFromStanceFoot = 0.0;
-      swingTrajectoryGenerator = new TwoWaypointPositionTrajectoryGenerator(namePrefix + "Swing", worldFrame, swingTimeProvider, initialConfigurationProvider,
-            initialVelocityProvider, stanceConfigurationProvider, finalConfigurationProvider, touchdownVelocityProvider, trajectoryParametersProvider, registry,
-            yoGraphicsListRegistry, maxSwingHeightFromStanceFoot, visualizeSwingTrajectory);
+//      PositionTrajectoryGenerator swingTrajectoryGenerator = new TwoWaypointPositionTrajectoryGenerator(namePrefix + "Swing", worldFrame, swingTimeProvider, initialConfigurationProvider,
+//            initialVelocityProvider, stanceConfigurationProvider, finalConfigurationProvider, touchdownVelocityProvider, trajectoryParametersProvider, registry,
+//            yoGraphicsListRegistry, maxSwingHeightFromStanceFoot, visualizeSwingTrajectory);
+      swingTrajectoryGenerator = new TwoWaypointSwingTrajectoryGenerator(namePrefix + "Swing", worldFrame, registry, yoGraphicsListRegistry);
+      this.touchdownVelocityProvider = touchdownVelocityProvider;
 
       pushRecoveryPositionTrajectoryGenerator = setupPushRecoveryTrajectoryGenerator(swingTimeProvider, registry, namePrefix,
             pushRecoveryPositionTrajectoryGenerators, yoGraphicsListRegistry, swingTrajectoryGenerator, touchdownTrajectoryGenerator);
@@ -174,6 +181,16 @@ public class SwingState extends AbstractUnconstrainedState
       }
 
       orientationTrajectoryGenerator.setTrajectoryTime(swingTimeProvider.getValue());
+
+      initialConfigurationProvider.getPosition(initialPosition);
+      initialVelocityProvider.get(initialVelocity);
+      finalConfigurationProvider.getPosition(finalPosition);
+      touchdownVelocityProvider.get(finalVelocity);
+
+      swingTrajectoryGenerator.setTrajectoryType(trajectoryParametersProvider.getTrajectoryParameters().getTrajectoryType());
+      swingTrajectoryGenerator.setStepTime(swingTimeProvider.getValue());
+      swingTrajectoryGenerator.setInitialConditions(initialPosition, initialVelocity);
+      swingTrajectoryGenerator.setFinalConditions(finalPosition, finalVelocity);
 
       positionTrajectoryGenerator.initialize();
       orientationTrajectoryGenerator.initialize();
@@ -309,5 +326,6 @@ public class SwingState extends AbstractUnconstrainedState
       hasInitialAngularConfigurationBeenProvided.set(false);
       swingTimeSpeedUpFactor.set(Double.NaN);
       currentTimeWithSwingSpeedUp.set(Double.NaN);
+      swingTrajectoryGenerator.informDone();
    }
 }
