@@ -5,6 +5,7 @@ import us.ihmc.SdfLoader.partNames.ArmJointName;
 import us.ihmc.SdfLoader.partNames.LegJointName;
 import us.ihmc.SdfLoader.partNames.NeckJointName;
 import us.ihmc.commonWalkingControlModules.bipedSupportPolygons.YoPlaneContactState;
+import us.ihmc.commonWalkingControlModules.configurations.ArmControllerParameters;
 import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParameters;
 import us.ihmc.commonWalkingControlModules.controlModules.ChestOrientationManager;
 import us.ihmc.commonWalkingControlModules.controlModules.PelvisOrientationManager;
@@ -90,6 +91,7 @@ public class WalkingHighLevelHumanoidController extends HighLevelBehavior
    private final FullHumanoidRobotModel fullRobotModel;
    private final HighLevelHumanoidControllerToolbox momentumBasedController;
    private final WalkingControllerParameters walkingControllerParameters;
+   private final ArmControllerParameters armControllerParameters;
 
    private final SideDependentList<? extends ContactablePlaneBody> feet;
 
@@ -125,7 +127,8 @@ public class WalkingHighLevelHumanoidController extends HighLevelBehavior
 
    public WalkingHighLevelHumanoidController(CommandInputManager commandInputManager, StatusMessageOutputManager statusOutputManager,
          EnumYoVariable<WholeBodyControllerCoreMode> requestedControllerCoreMode, HighLevelControlManagerFactory managerFactory,
-         WalkingControllerParameters walkingControllerParameters, HighLevelHumanoidControllerToolbox momentumBasedController)
+         WalkingControllerParameters walkingControllerParameters, ArmControllerParameters armControllerParameters,
+         HighLevelHumanoidControllerToolbox momentumBasedController)
    {
       super(controllerState);
 
@@ -151,6 +154,7 @@ public class WalkingHighLevelHumanoidController extends HighLevelBehavior
       this.feetManager = managerFactory.getOrCreateFeetManager();
 
       this.walkingControllerParameters = walkingControllerParameters;
+      this.armControllerParameters = armControllerParameters;
 
       balanceManager = managerFactory.getOrCreateBalanceManager();
       comHeightManager = managerFactory.getOrCreateCenterOfMassHeightManager();
@@ -631,9 +635,15 @@ public class WalkingHighLevelHumanoidController extends HighLevelBehavior
       if (!previousControllerCoreMode.getEnumValue().equals(requestedControllerCoreMode.getEnumValue()))
       {
          if (requestedControllerCoreMode.getEnumValue().equals(WholeBodyControllerCoreMode.INVERSE_DYNAMICS))
+         {
             walkingControllerParameters.useInverseDynamicsControlCore();
+            armControllerParameters.useInverseDynamicsControlCore();
+         }
          else if (requestedControllerCoreMode.getEnumValue().equals(WholeBodyControllerCoreMode.VIRTUAL_MODEL))
+         {
             walkingControllerParameters.useVirtualModelControlCore();
+            armControllerParameters.useVirtualModelControlCore();
+         }
       }
    }
 

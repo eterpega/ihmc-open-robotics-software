@@ -79,6 +79,7 @@ public class MomentumBasedControllerFactory implements CloseableAndDisposable
    private ConcurrentLinkedQueue<Command<?, ?>> controllerCommands;
 
    private final WalkingControllerParameters walkingControllerParameters;
+   private final ArmControllerParameters armControllerParameters;
 
    private final HighLevelState initialBehavior;
    private final WholeBodyControllerCoreMode initialControllerCoreMode;
@@ -124,6 +125,7 @@ public class MomentumBasedControllerFactory implements CloseableAndDisposable
       requestedControllerCoreMode.set(initialControllerCoreMode);
 
       this.walkingControllerParameters = walkingControllerParameters;
+      this.armControllerParameters = armControllerParameters;
 
       commandInputManager = new CommandInputManager(ControllerAPIDefinition.getControllerSupportedCommands());
       statusOutputManager = new StatusMessageOutputManager(ControllerAPIDefinition.getControllerSupportedStatusMessages());
@@ -283,7 +285,7 @@ public class MomentumBasedControllerFactory implements CloseableAndDisposable
       /////////////////////////////////////////////////////////////////////////////////////////////
       // Setup the WalkingHighLevelHumanoidController /////////////////////////////////////////////
       walkingBehavior = new WalkingHighLevelHumanoidController(commandInputManager, statusOutputManager, requestedControllerCoreMode, managerFactory,
-            walkingControllerParameters, momentumBasedController);
+            walkingControllerParameters, armControllerParameters, momentumBasedController);
       highLevelBehaviors.add(walkingBehavior);
 
       /////////////////////////////////////////////////////////////////////////////////////////////

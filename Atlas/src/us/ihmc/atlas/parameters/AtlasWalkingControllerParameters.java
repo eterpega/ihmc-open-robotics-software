@@ -1072,7 +1072,7 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
 
    private void useCoMHeightVMCCore(boolean realRobot)
    {
-      double kp = 40.0;
+      double kp = 500.0;
       double zeta = realRobot ? 0.4 : 0.8;
       double maxAcceleration = 0.5 * 9.81;
       double maxJerk = maxAcceleration / 0.05;
@@ -1212,7 +1212,7 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
 
    private void usePelvisOrientationVMCCore(boolean realRobot)
    {
-      double kpXY = 250.0;
+      double kpXY = 500.0;
       double kpZ = 150.0;
       double zeta = realRobot ? 0.5 : 0.8;
       double maxAccel = realRobot ? 12.0 : 36.0;

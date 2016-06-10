@@ -35,4 +35,12 @@ public class NoArmsArmControllerParameters extends ArmControllerParameters
    {
       return new LinkedHashMap<OneDoFJoint, Double>();
    }
+
+   @Override
+   public void useInverseDynamicsControlCore()
+   {}
+
+   @Override
+   public void useVirtualModelControlCore()
+   {}
 }

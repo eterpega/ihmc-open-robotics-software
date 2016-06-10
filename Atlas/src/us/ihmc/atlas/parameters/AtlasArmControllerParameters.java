@@ -24,6 +24,9 @@ public class AtlasArmControllerParameters extends ArmControllerParameters
    private final boolean runningOnRealRobot;
    private final DRCRobotJointMap jointMap;
 
+   private YoSymmetricSE3PIDGains taskspaceGains;
+   private YoIndependentSE3PIDGains taskspaceGainsForLoadBearing;
+
    public AtlasArmControllerParameters(boolean runningOnRealRobot, DRCRobotJointMap jointMap)
    {
       this.runningOnRealRobot = runningOnRealRobot;
@@ -56,45 +59,21 @@ public class AtlasArmControllerParameters extends ArmControllerParameters
    @Override
    public YoSE3PIDGainsInterface createTaskspaceControlGains(YoVariableRegistry registry)
    {
-      YoSymmetricSE3PIDGains taskspaceControlGains = new YoSymmetricSE3PIDGains("ArmTaskspace", registry);
+      taskspaceGains = new YoSymmetricSE3PIDGains("ArmTaskspace", registry);
 
-      double kp = runningOnRealRobot ? 40.0 :100.0;
-      // When doing position control, the damping here seems to result into some kind of spring.
-      double zeta = runningOnRealRobot ? 0.0 : 1.0;
-      double ki = 0.0;
-      double maxIntegralError = 0.0;
-      double maxAccel = runningOnRealRobot ? 10.0 : Double.POSITIVE_INFINITY;
-      double maxJerk = runningOnRealRobot ? 100.0 : Double.POSITIVE_INFINITY;
+      useTaskspaceInverseDynamicsCore();
 
-      taskspaceControlGains.setProportionalGain(kp);
-      taskspaceControlGains.setDampingRatio(zeta);
-      taskspaceControlGains.setIntegralGain(ki);
-      taskspaceControlGains.setMaximumIntegralError(maxIntegralError);
-      taskspaceControlGains.setMaximumAcceleration(maxAccel);
-      taskspaceControlGains.setMaximumJerk(maxJerk);
-      taskspaceControlGains.createDerivativeGainUpdater(true);
-
-      return taskspaceControlGains;
+      return taskspaceGains;
    }
 
    @Override
    public YoSE3PIDGainsInterface createTaskspaceControlGainsForLoadBearing(YoVariableRegistry registry)
    {
-      YoIndependentSE3PIDGains taskspaceControlGains = new YoIndependentSE3PIDGains("ArmLoadBearing", registry);
-      taskspaceControlGains.reset();
+      taskspaceGainsForLoadBearing = new YoIndependentSE3PIDGains("ArmLoadBearing", registry);
 
-      double kp = 100.0;
-      double zeta = runningOnRealRobot ? 0.6 : 1.0;
-      double kd = GainCalculator.computeDerivativeGain(kp, zeta);
-      double maxAccel = runningOnRealRobot ? 10.0 : Double.POSITIVE_INFINITY;
-      double maxJerk = runningOnRealRobot ? 100.0 : Double.POSITIVE_INFINITY;
+      useTaskspaceForLoadBearingInverseDynamicsCore();
 
-      taskspaceControlGains.setOrientationProportionalGains(0.0, 0.0, 0.0);
-      taskspaceControlGains.setOrientationDerivativeGains(kd, kd, kd);
-      taskspaceControlGains.setOrientationMaxAccelerationAndJerk(maxAccel, maxJerk);
-      taskspaceControlGains.setPositionMaxAccelerationAndJerk(maxAccel, maxJerk);
-
-      return taskspaceControlGains;
+      return taskspaceGainsForLoadBearing;
    }
 
    /** {@inheritDoc} */
@@ -248,5 +227,91 @@ public class AtlasArmControllerParameters extends ArmControllerParameters
       jointPositions.put(fullRobotModel.getArmJoint(robotSide, ArmJointName.SECOND_WRIST_PITCH), 0.15);
 
       return jointPositions;
+   }
+
+   @Override
+   public void useInverseDynamicsControlCore()
+   {
+      useTaskspaceInverseDynamicsCore();
+      if (taskspaceGainsForLoadBearing != null)
+         useTaskspaceForLoadBearingInverseDynamicsCore();
+   }
+
+   @Override
+   public void useVirtualModelControlCore()
+   {
+      useTaskspaceVMCCore();
+      if (taskspaceGainsForLoadBearing != null)
+         useTaskspaceForLoadBearingVMCCore();
+   }
+
+   private void useTaskspaceInverseDynamicsCore()
+   {
+      double kp = runningOnRealRobot ? 40.0 : 100.0;
+      // When doing position control, the damping here seems to result into some kind of spring.
+      double zeta = runningOnRealRobot ? 0.0 : 1.0;
+      double ki = 0.0;
+      double maxIntegralError = 0.0;
+      double maxAccel = runningOnRealRobot ? 10.0 : Double.POSITIVE_INFINITY;
+      double maxJerk = runningOnRealRobot ? 100.0 : Double.POSITIVE_INFINITY;
+
+      taskspaceGains.setProportionalGain(kp);
+      taskspaceGains.setDampingRatio(zeta);
+      taskspaceGains.setIntegralGain(ki);
+      taskspaceGains.setMaximumIntegralError(maxIntegralError);
+      taskspaceGains.setMaximumAcceleration(maxAccel);
+      taskspaceGains.setMaximumJerk(maxJerk);
+      taskspaceGains.createDerivativeGainUpdater(true);
+   }
+
+   private void useTaskspaceForLoadBearingInverseDynamicsCore()
+   {
+      taskspaceGainsForLoadBearing.reset();
+
+      double kp = 100.0;
+      double zeta = runningOnRealRobot ? 0.6 : 1.0;
+      double kd = GainCalculator.computeDerivativeGain(kp, zeta);
+      double maxAccel = runningOnRealRobot ? 10.0 : Double.POSITIVE_INFINITY;
+      double maxJerk = runningOnRealRobot ? 100.0 : Double.POSITIVE_INFINITY;
+
+      taskspaceGainsForLoadBearing.setOrientationProportionalGains(0.0, 0.0, 0.0);
+      taskspaceGainsForLoadBearing.setOrientationDerivativeGains(kd, kd, kd);
+      taskspaceGainsForLoadBearing.setOrientationMaxAccelerationAndJerk(maxAccel, maxJerk);
+      taskspaceGainsForLoadBearing.setPositionMaxAccelerationAndJerk(maxAccel, maxJerk);
+   }
+
+   private void useTaskspaceVMCCore()
+   {
+      double kp = runningOnRealRobot ? 400.0 : 1000.0;
+      // When doing position control, the damping here seems to result into some kind of spring.
+      double zeta = runningOnRealRobot ? 0.0 : 1.0;
+      double ki = 0.0;
+      double maxIntegralError = 0.0;
+      double maxAccel = runningOnRealRobot ? 10.0 : Double.POSITIVE_INFINITY;
+      double maxJerk = runningOnRealRobot ? 100.0 : Double.POSITIVE_INFINITY;
+
+      taskspaceGains.setProportionalGain(kp);
+      taskspaceGains.setDampingRatio(zeta);
+      taskspaceGains.setIntegralGain(ki);
+      taskspaceGains.setMaximumIntegralError(maxIntegralError);
+      taskspaceGains.setMaximumAcceleration(maxAccel);
+      taskspaceGains.setMaximumJerk(maxJerk);
+      taskspaceGains.createDerivativeGainUpdater(true);
+   }
+
+   private void useTaskspaceForLoadBearingVMCCore()
+   {
+      taskspaceGainsForLoadBearing.reset();
+
+      double kp = 1000.0;
+      double zeta = runningOnRealRobot ? 0.6 : 1.0;
+      double kd = GainCalculator.computeDerivativeGain(kp, zeta);
+      double maxAccel = runningOnRealRobot ? 10.0 : Double.POSITIVE_INFINITY;
+      double maxJerk = runningOnRealRobot ? 100.0 : Double.POSITIVE_INFINITY;
+
+      taskspaceGainsForLoadBearing.setOrientationProportionalGains(0.0, 0.0, 0.0);
+      taskspaceGainsForLoadBearing.setOrientationDerivativeGains(kd, kd, kd);
+      taskspaceGainsForLoadBearing.setOrientationMaxAccelerationAndJerk(maxAccel, maxJerk);
+      taskspaceGainsForLoadBearing.setPositionMaxAccelerationAndJerk(maxAccel, maxJerk);
    }
 }

@@ -80,4 +80,8 @@ public abstract class ArmControllerParameters
    }
 
    public abstract Map<OneDoFJoint, Double> getDefaultArmJointPositions(FullHumanoidRobotModel fullRobotModel, RobotSide robotSide);
+
+   public abstract void useInverseDynamicsControlCore();
+
+   public abstract void useVirtualModelControlCore();
 }

@@ -115,4 +115,12 @@ public class ValkyrieArmControllerParameters extends ArmControllerParameters
 
       return jointPositions;
    }
+
+   @Override
+   public void useInverseDynamicsControlCore()
+   {}
+
+   @Override
+   public void useVirtualModelControlCore()
+   {}
 }
