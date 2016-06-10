@@ -51,6 +51,16 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
 
    private final AtlasJointMap jointMap;
 
+   private YoPDGains comHeightGains;
+   private YoPDGains pelvisICPBasedXYControlGains;
+   private ICPControlGains icpControlGains;
+   private YoFootSE3Gains swingFootGains;
+   private YoFootSE3Gains holdPositionFootGains;
+   private YoFootSE3Gains toeOffFootGains;
+   private YoFootSE3Gains edgeTouchdownFootGains;
+   private YoFootOrientationGains pelvisOrientationGains;
+   private YoFootOrientationGains chestOrientationGains;
+
    private ExplorationParameters explorationParameters = null;
 
    public AtlasWalkingControllerParameters(AtlasJointMap jointMap)
@@ -416,39 +426,22 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
    @Override
    public ICPControlGains createICPControlGains(YoVariableRegistry registry)
    {
-      ICPControlGains gains = new ICPControlGains("", registry);
+      icpControlGains = new ICPControlGains("", registry);
 
-      double kpParallel = 2.5;
-      double kpOrthogonal = 1.5;
-      double ki = 0.0;
-      double kiBleedOff = 0.0;
+      useICPInverseDynamicsCore();
 
-      gains.setKpParallelToMotion(kpParallel);
-      gains.setKpOrthogonalToMotion(kpOrthogonal);
-      gains.setKi(ki);
-      gains.setKiBleedOff(kiBleedOff);
-
-      return gains;
+      return icpControlGains;
    }
 
    @Override
    public YoPDGains createCoMHeightControlGains(YoVariableRegistry registry)
    {
-      YoPDGains gains = new YoPDGains("CoMHeight", registry);
+      comHeightGains = new YoPDGains("CoMHeight", registry);
       boolean realRobot = target == DRCRobotModel.RobotTarget.REAL_ROBOT;
 
-      double kp = 40.0;
-      double zeta = realRobot ? 0.4 : 0.8;
-      double maxAcceleration = 0.5 * 9.81;
-      double maxJerk = maxAcceleration / 0.05;
+      useCoMHeightInverseDynamicsCore(realRobot);
 
-      gains.setKp(kp);
-      gains.setZeta(zeta);
-      gains.setMaximumAcceleration(maxAcceleration);
-      gains.setMaximumJerk(maxJerk);
-      gains.createDerivativeGainUpdater(true);
-
-      return gains;
+      return comHeightGains;
    }
 
    @Override
@@ -460,34 +453,23 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
    @Override
    public YoPDGains createPelvisICPBasedXYControlGains(YoVariableRegistry registry)
    {
-      YoPDGains gains = new YoPDGains("PelvisXY", registry);
+      pelvisICPBasedXYControlGains = new YoPDGains("PelvisXY", registry);
       boolean realRobot = target == DRCRobotModel.RobotTarget.REAL_ROBOT;
 
-      gains.setKp(4.0);
-      gains.setKd(realRobot ? 0.5 : 1.2);
+      usePelvisICPBasedXYControlInverseDynamicsCore(realRobot);
 
-      return gains;
+      return pelvisICPBasedXYControlGains;
    }
 
    @Override
    public YoOrientationPIDGainsInterface createPelvisOrientationControlGains(YoVariableRegistry registry)
    {
-      YoFootOrientationGains gains = new YoFootOrientationGains("PelvisOrientation", registry);
+      pelvisOrientationGains = new YoFootOrientationGains("PelvisOrientation", registry);
       boolean realRobot = target == DRCRobotModel.RobotTarget.REAL_ROBOT;
 
-      double kpXY = 80.0;
-      double kpZ = 40.0;
-      double zeta = realRobot ? 0.5 : 0.8;
-      double maxAccel = realRobot ? 12.0 : 36.0;
-      double maxJerk = realRobot ? 180.0 : 540.0;
+      usePelvisOrientationInverseDynamicsCore(realRobot);
 
-      gains.setProportionalGains(kpXY, kpZ);
-      gains.setDampingRatio(zeta);
-      gains.setMaximumAcceleration(maxAccel);
-      gains.setMaximumJerk(maxJerk);
-      gains.createDerivativeGainUpdater(true);
-
-      return gains;
+      return pelvisOrientationGains;
    }
 
    @Override
@@ -565,144 +547,56 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
    @Override
    public YoOrientationPIDGainsInterface createChestControlGains(YoVariableRegistry registry)
    {
-      YoFootOrientationGains gains = new YoFootOrientationGains("ChestOrientation", registry);
+      chestOrientationGains = new YoFootOrientationGains("ChestOrientation", registry);
       boolean realRobot = target == DRCRobotModel.RobotTarget.REAL_ROBOT;
 
-      double kpXY = 40.0; //80.0;
-      double kpZ = 40.0; //80.0;
-      double zetaXY = realRobot ? 0.5 : 0.8;
-      double zetaZ = realRobot ? 0.22 : 0.8;
-      double maxAccel = realRobot ? 6.0 : 36.0;
-      double maxJerk = realRobot ? 60.0 : 540.0;
-      double maxProportionalError = 10.0 * Math.PI/180.0;
+      useChestInverseDynamicsCore(realRobot);
 
-      gains.setProportionalGains(kpXY, kpZ);
-      gains.setDampingRatios(zetaXY, zetaZ);
-      gains.setMaximumAcceleration(maxAccel);
-      gains.setMaximumJerk(maxJerk);
-      gains.setMaxProportionalError(maxProportionalError);
-      gains.createDerivativeGainUpdater(true);
-
-      return gains;
+      return chestOrientationGains;
    }
 
    @Override
    public YoSE3PIDGainsInterface createSwingFootControlGains(YoVariableRegistry registry)
    {
-      YoFootSE3Gains gains = new YoFootSE3Gains("SwingFoot", registry);
+      swingFootGains = new YoFootSE3Gains("SwingFoot", registry);
       boolean realRobot = target == DRCRobotModel.RobotTarget.REAL_ROBOT;
 
-      double kpXY = 150.0;
-      double kpZ = 200.0;
-      double zetaXYZ = realRobot ? 0.7 : 0.7;
+      useSwingFootInverseDynamicsCore(realRobot);
 
-      double kpXYOrientation = 200.0;
-      double kpZOrientation = 200.0;
-      double zetaOrientation = 0.7;
-
-      // Reduce maxPositionAcceleration from 30 to 6 to prevent too high acceleration when hitting joint limits.
-      double maxPositionAcceleration = realRobot ? 6.0 : Double.POSITIVE_INFINITY;
-//      double maxPositionAcceleration = realRobot ? 30.0 : Double.POSITIVE_INFINITY;
-      double maxPositionJerk = realRobot ? 150.0 : Double.POSITIVE_INFINITY;
-      double maxOrientationAcceleration = realRobot ? 100.0 : Double.POSITIVE_INFINITY;
-      double maxOrientationJerk = realRobot ? 1500.0 : Double.POSITIVE_INFINITY;
-
-      gains.setPositionProportionalGains(kpXY, kpZ);
-      gains.setPositionDampingRatio(zetaXYZ);
-      gains.setPositionMaxAccelerationAndJerk(maxPositionAcceleration, maxPositionJerk);
-      gains.setOrientationProportionalGains(kpXYOrientation, kpZOrientation);
-      gains.setOrientationDampingRatio(zetaOrientation);
-      gains.setOrientationMaxAccelerationAndJerk(maxOrientationAcceleration, maxOrientationJerk);
-      gains.createDerivativeGainUpdater(true);
-
-      return gains;
+      return swingFootGains;
    }
 
    @Override
    public YoSE3PIDGainsInterface createHoldPositionFootControlGains(YoVariableRegistry registry)
    {
-      YoFootSE3Gains gains = new YoFootSE3Gains("HoldFoot", registry);
+      holdPositionFootGains = new YoFootSE3Gains("HoldFoot", registry);
       boolean realRobot = target == DRCRobotModel.RobotTarget.REAL_ROBOT;
 
-      double kpXY = 0.0; //100.0;
-      double kpZ = 0.0;
-      double zetaXYZ = realRobot ? 0.2 : 1.0;
-      double kpXYOrientation = realRobot ? 100.0 : 200.0;
-      double kpZOrientation = realRobot ? 100.0 : 200.0;
-      double zetaOrientation = realRobot ? 0.2 : 1.0;
-      // Reduce maxPositionAcceleration from 10 to 6 to prevent too high acceleration when hitting joint limits.
-      double maxLinearAcceleration = realRobot ? 6.0 : Double.POSITIVE_INFINITY;
-//      double maxLinearAcceleration = realRobot ? 10.0 : Double.POSITIVE_INFINITY;
-      double maxLinearJerk = realRobot ? 150.0 : Double.POSITIVE_INFINITY;
-      double maxAngularAcceleration = realRobot ? 100.0 : Double.POSITIVE_INFINITY;
-      double maxAngularJerk = realRobot ? 1500.0 : Double.POSITIVE_INFINITY;
+      useHoldPositionInverseDynamicsCore(realRobot);
 
-      gains.setPositionProportionalGains(kpXY, kpZ);
-      gains.setPositionDampingRatio(zetaXYZ);
-      gains.setPositionMaxAccelerationAndJerk(maxLinearAcceleration, maxLinearJerk);
-      gains.setOrientationProportionalGains(kpXYOrientation, kpZOrientation);
-      gains.setOrientationDampingRatio(zetaOrientation);
-      gains.setOrientationMaxAccelerationAndJerk(maxAngularAcceleration, maxAngularJerk);
-      gains.createDerivativeGainUpdater(true);
-
-      return gains;
+      return holdPositionFootGains;
    }
 
    @Override
    public YoSE3PIDGainsInterface createToeOffFootControlGains(YoVariableRegistry registry)
    {
-      YoFootSE3Gains gains = new YoFootSE3Gains("ToeOffFoot", registry);
+      toeOffFootGains = new YoFootSE3Gains("ToeOffFoot", registry);
       boolean realRobot = target == DRCRobotModel.RobotTarget.REAL_ROBOT;
 
-      double kpXY = 100.0;
-      double kpZ = 0.0;
-      double zetaXYZ = realRobot ? 0.4 : 0.4;
-      double kpXYOrientation = realRobot ? 200.0 : 200.0;
-      double kpZOrientation = realRobot ? 200.0 : 200.0;
-      double zetaOrientation = realRobot ? 0.4 : 0.4;
-      // Reduce maxPositionAcceleration from 10 to 6 to prevent too high acceleration when hitting joint limits.
-      double maxLinearAcceleration = realRobot ? 6.0 : Double.POSITIVE_INFINITY;
-//      double maxLinearAcceleration = realRobot ? 10.0 : Double.POSITIVE_INFINITY;
-      double maxLinearJerk = realRobot ? 150.0 : Double.POSITIVE_INFINITY;
-      double maxAngularAcceleration = realRobot ? 100.0 : Double.POSITIVE_INFINITY;
-      double maxAngularJerk = realRobot ? 1500.0 : Double.POSITIVE_INFINITY;
+      useToeOffInverseDynamicsCore(realRobot);
 
-      gains.setPositionProportionalGains(kpXY, kpZ);
-      gains.setPositionDampingRatio(zetaXYZ);
-      gains.setPositionMaxAccelerationAndJerk(maxLinearAcceleration, maxLinearJerk);
-      gains.setOrientationProportionalGains(kpXYOrientation, kpZOrientation);
-      gains.setOrientationDampingRatio(zetaOrientation);
-      gains.setOrientationMaxAccelerationAndJerk(maxAngularAcceleration, maxAngularJerk);
-      gains.createDerivativeGainUpdater(true);
-
-      return gains;
+      return toeOffFootGains;
    }
 
    @Override
    public YoSE3PIDGainsInterface createEdgeTouchdownFootControlGains(YoVariableRegistry registry)
    {
-      YoFootSE3Gains gains = new YoFootSE3Gains("EdgeTouchdownFoot", registry);
+      edgeTouchdownFootGains = new YoFootSE3Gains("EdgeTouchdownFoot", registry);
       boolean realRobot = target == DRCRobotModel.RobotTarget.REAL_ROBOT;
 
-      double kp = 0.0;
-      double zetaXYZ = 0.0;
-      double kpXYOrientation = realRobot ? 40.0 : 300.0;
-      double kpZOrientation = realRobot ? 40.0 : 300.0;
-      double zetaOrientation = 0.4;
-      double maxLinearAcceleration = realRobot ? 10.0 : Double.POSITIVE_INFINITY;
-      double maxLinearJerk = realRobot ? 150.0 : Double.POSITIVE_INFINITY;
-      double maxAngularAcceleration = realRobot ? 100.0 : Double.POSITIVE_INFINITY;
-      double maxAngularJerk = realRobot ? 1500.0 : Double.POSITIVE_INFINITY;
+      useEdgeTouchdownInverseDynamicsCore(realRobot);
 
-      gains.setPositionProportionalGains(kp, kp);
-      gains.setPositionDampingRatio(zetaXYZ);
-      gains.setPositionMaxAccelerationAndJerk(maxLinearAcceleration, maxLinearJerk);
-      gains.setOrientationProportionalGains(kpXYOrientation, kpZOrientation);
-      gains.setOrientationDampingRatio(zetaOrientation);
-      gains.setOrientationMaxAccelerationAndJerk(maxAngularAcceleration, maxAngularJerk);
-      gains.createDerivativeGainUpdater(true);
-
-      return gains;
+      return edgeTouchdownFootGains;
    }
 
    @Override
@@ -986,12 +880,354 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
    @Override
    public void useInverseDynamicsControlCore()
    {
-      // once another mode is implemented, use this to change the default gains for inverse dynamics
+      boolean realRobot = target == DRCRobotModel.RobotTarget.REAL_ROBOT;
+
+      useCoMHeightInverseDynamicsCore(realRobot);
+      useChestInverseDynamicsCore(realRobot);
+      useSwingFootInverseDynamicsCore(realRobot);
+      useHoldPositionInverseDynamicsCore(realRobot);
+      useToeOffInverseDynamicsCore(realRobot);
+      useEdgeTouchdownInverseDynamicsCore(realRobot);
+      useICPInverseDynamicsCore();
+      usePelvisOrientationInverseDynamicsCore(realRobot);
+      usePelvisICPBasedXYControlInverseDynamicsCore(realRobot);
    }
 
    @Override
    public void useVirtualModelControlCore()
    {
-      // once another mode is implemented, use this to change the default gains for virtual model control
+      boolean realRobot = target == DRCRobotModel.RobotTarget.REAL_ROBOT;
+
+      useCoMHeightVMCCore(realRobot);
+      useChestVMCCore(realRobot);
+      useSwingFootVMCCore(realRobot);
+      useHoldPositionVMCCore(realRobot);
+      useToeOffVMCCore(realRobot);
+      useEdgeTouchdownVMCCore(realRobot);
+      useICPVMCCore();
+      usePelvisOrientationVMCCore(realRobot);
+      usePelvisICPBasedXYControlVMCCore(realRobot);
+   }
+
+   private void useCoMHeightInverseDynamicsCore(boolean realRobot)
+   {
+      double kp = 40.0;
+      double zeta = realRobot ? 0.4 : 0.8;
+      double maxAcceleration = 0.5 * 9.81;
+      double maxJerk = maxAcceleration / 0.05;
+
+      comHeightGains.setKp(kp);
+      comHeightGains.setZeta(zeta);
+      comHeightGains.setMaximumAcceleration(maxAcceleration);
+      comHeightGains.setMaximumJerk(maxJerk);
+      comHeightGains.createDerivativeGainUpdater(true);
+   }
+
+   private void useICPInverseDynamicsCore()
+   {
+      double kpParallel = 2.5;
+      double kpOrthogonal = 1.5;
+      double ki = 0.0;
+      double kiBleedOff = 0.0;
+
+      icpControlGains.setKpParallelToMotion(kpParallel);
+      icpControlGains.setKpOrthogonalToMotion(kpOrthogonal);
+      icpControlGains.setKi(ki);
+      icpControlGains.setKiBleedOff(kiBleedOff);
+   }
+
+   private void usePelvisOrientationInverseDynamicsCore(boolean realRobot)
+   {
+      double kpXY = 80.0;
+      double kpZ = 40.0;
+      double zeta = realRobot ? 0.5 : 0.8;
+      double maxAccel = realRobot ? 12.0 : 36.0;
+      double maxJerk = realRobot ? 180.0 : 540.0;
+
+      pelvisOrientationGains.setProportionalGains(kpXY, kpZ);
+      pelvisOrientationGains.setDampingRatio(zeta);
+      pelvisOrientationGains.setMaximumAcceleration(maxAccel);
+      pelvisOrientationGains.setMaximumJerk(maxJerk);
+      pelvisOrientationGains.createDerivativeGainUpdater(true);
+   }
+
+   private void usePelvisICPBasedXYControlInverseDynamicsCore(boolean realRobot)
+   {
+      pelvisICPBasedXYControlGains.setKp(4.0);
+      pelvisICPBasedXYControlGains.setKd(realRobot ? 0.5 : 1.2);
+   }
+
+   private void useChestInverseDynamicsCore(boolean realRobot)
+   {
+      double kpXY = 40.0; //80.0;
+      double kpZ = 40.0; //80.0;
+      double zetaXY = realRobot ? 0.5 : 0.8;
+      double zetaZ = realRobot ? 0.22 : 0.8;
+      double maxAccel = realRobot ? 6.0 : 36.0;
+      double maxJerk = realRobot ? 60.0 : 540.0;
+      double maxProportionalError = 10.0 * Math.PI / 180.0;
+
+      chestOrientationGains.setProportionalGains(kpXY, kpZ);
+      chestOrientationGains.setDampingRatios(zetaXY, zetaZ);
+      chestOrientationGains.setMaximumAcceleration(maxAccel);
+      chestOrientationGains.setMaximumJerk(maxJerk);
+      chestOrientationGains.setMaxProportionalError(maxProportionalError);
+      chestOrientationGains.createDerivativeGainUpdater(true);
+   }
+
+   private void useSwingFootInverseDynamicsCore(boolean realRobot)
+   {
+      double kpXY = 150.0;
+      double kpZ = 200.0;
+      double zetaXYZ = realRobot ? 0.7 : 0.7;
+
+      double kpXYOrientation = 200.0;
+      double kpZOrientation = 200.0;
+      double zetaOrientation = 0.7;
+
+      // Reduce maxPositionAcceleration from 30 to 6 to prevent too high acceleration when hitting joint limits.
+      double maxPositionAcceleration = realRobot ? 6.0 : Double.POSITIVE_INFINITY;
+      //      double maxPositionAcceleration = realRobot ? 30.0 : Double.POSITIVE_INFINITY;
+      double maxPositionJerk = realRobot ? 150.0 : Double.POSITIVE_INFINITY;
+      double maxOrientationAcceleration = realRobot ? 100.0 : Double.POSITIVE_INFINITY;
+      double maxOrientationJerk = realRobot ? 1500.0 : Double.POSITIVE_INFINITY;
+
+      swingFootGains.setPositionProportionalGains(kpXY, kpZ);
+      swingFootGains.setPositionDampingRatio(zetaXYZ);
+      swingFootGains.setPositionMaxAccelerationAndJerk(maxPositionAcceleration, maxPositionJerk);
+      swingFootGains.setOrientationProportionalGains(kpXYOrientation, kpZOrientation);
+      swingFootGains.setOrientationDampingRatio(zetaOrientation);
+      swingFootGains.setOrientationMaxAccelerationAndJerk(maxOrientationAcceleration, maxOrientationJerk);
+      swingFootGains.createDerivativeGainUpdater(true);
+   }
+
+   private void useHoldPositionInverseDynamicsCore(boolean realRobot)
+   {
+      double kpXY = 0.0; //100.0;
+      double kpZ = 0.0;
+      double zetaXYZ = realRobot ? 0.2 : 1.0;
+      double kpXYOrientation = realRobot ? 100.0 : 200.0;
+      double kpZOrientation = realRobot ? 100.0 : 200.0;
+      double zetaOrientation = realRobot ? 0.2 : 1.0;
+      // Reduce maxPositionAcceleration from 10 to 6 to prevent too high acceleration when hitting joint limits.
+      double maxLinearAcceleration = realRobot ? 6.0 : Double.POSITIVE_INFINITY;
+      //      double maxLinearAcceleration = realRobot ? 10.0 : Double.POSITIVE_INFINITY;
+      double maxLinearJerk = realRobot ? 150.0 : Double.POSITIVE_INFINITY;
+      double maxAngularAcceleration = realRobot ? 100.0 : Double.POSITIVE_INFINITY;
+      double maxAngularJerk = realRobot ? 1500.0 : Double.POSITIVE_INFINITY;
+
+      holdPositionFootGains.setPositionProportionalGains(kpXY, kpZ);
+      holdPositionFootGains.setPositionDampingRatio(zetaXYZ);
+      holdPositionFootGains.setPositionMaxAccelerationAndJerk(maxLinearAcceleration, maxLinearJerk);
+      holdPositionFootGains.setOrientationProportionalGains(kpXYOrientation, kpZOrientation);
+      holdPositionFootGains.setOrientationDampingRatio(zetaOrientation);
+      holdPositionFootGains.setOrientationMaxAccelerationAndJerk(maxAngularAcceleration, maxAngularJerk);
+      holdPositionFootGains.createDerivativeGainUpdater(true);
+   }
+
+   private void useToeOffInverseDynamicsCore(boolean realRobot)
+   {
+      double kpXY = 100.0;
+      double kpZ = 0.0;
+      double zetaXYZ = realRobot ? 0.4 : 0.4;
+      double kpXYOrientation = realRobot ? 200.0 : 200.0;
+      double kpZOrientation = realRobot ? 200.0 : 200.0;
+      double zetaOrientation = realRobot ? 0.4 : 0.4;
+      // Reduce maxPositionAcceleration from 10 to 6 to prevent too high acceleration when hitting joint limits.
+      double maxLinearAcceleration = realRobot ? 6.0 : Double.POSITIVE_INFINITY;
+      //      double maxLinearAcceleration = realRobot ? 10.0 : Double.POSITIVE_INFINITY;
+      double maxLinearJerk = realRobot ? 150.0 : Double.POSITIVE_INFINITY;
+      double maxAngularAcceleration = realRobot ? 100.0 : Double.POSITIVE_INFINITY;
+      double maxAngularJerk = realRobot ? 1500.0 : Double.POSITIVE_INFINITY;
+
+      toeOffFootGains.setPositionProportionalGains(kpXY, kpZ);
+      toeOffFootGains.setPositionDampingRatio(zetaXYZ);
+      toeOffFootGains.setPositionMaxAccelerationAndJerk(maxLinearAcceleration, maxLinearJerk);
+      toeOffFootGains.setOrientationProportionalGains(kpXYOrientation, kpZOrientation);
+      toeOffFootGains.setOrientationDampingRatio(zetaOrientation);
+      toeOffFootGains.setOrientationMaxAccelerationAndJerk(maxAngularAcceleration, maxAngularJerk);
+      toeOffFootGains.createDerivativeGainUpdater(true);
+   }
+
+   private void useEdgeTouchdownInverseDynamicsCore(boolean realRobot)
+   {
+      double kp = 0.0;
+      double zetaXYZ = 0.0;
+      double kpXYOrientation = realRobot ? 40.0 : 300.0;
+      double kpZOrientation = realRobot ? 40.0 : 300.0;
+      double zetaOrientation = 0.4;
+      double maxLinearAcceleration = realRobot ? 10.0 : Double.POSITIVE_INFINITY;
+      double maxLinearJerk = realRobot ? 150.0 : Double.POSITIVE_INFINITY;
+      double maxAngularAcceleration = realRobot ? 100.0 : Double.POSITIVE_INFINITY;
+      double maxAngularJerk = realRobot ? 1500.0 : Double.POSITIVE_INFINITY;
+
+      edgeTouchdownFootGains.setPositionProportionalGains(kp, kp);
+      edgeTouchdownFootGains.setPositionDampingRatio(zetaXYZ);
+      edgeTouchdownFootGains.setPositionMaxAccelerationAndJerk(maxLinearAcceleration, maxLinearJerk);
+      edgeTouchdownFootGains.setOrientationProportionalGains(kpXYOrientation, kpZOrientation);
+      edgeTouchdownFootGains.setOrientationDampingRatio(zetaOrientation);
+      edgeTouchdownFootGains.setOrientationMaxAccelerationAndJerk(maxAngularAcceleration, maxAngularJerk);
+      edgeTouchdownFootGains.createDerivativeGainUpdater(true);
+   }
+
+   private void useCoMHeightVMCCore(boolean realRobot)
+   {
+      double kp = 40.0;
+      double zeta = realRobot ? 0.4 : 0.8;
+      double maxAcceleration = 0.5 * 9.81;
+      double maxJerk = maxAcceleration / 0.05;
+
+      comHeightGains.setKp(kp);
+      comHeightGains.setZeta(zeta);
+      comHeightGains.setMaximumAcceleration(maxAcceleration);
+      comHeightGains.setMaximumJerk(maxJerk);
+      comHeightGains.createDerivativeGainUpdater(true);
+   }
+
+   private void useChestVMCCore(boolean realRobot)
+   {
+      double kpXY = 40.0; //80.0;
+      double kpZ = 40.0; //80.0;
+      double zetaXY = realRobot ? 0.5 : 0.8;
+      double zetaZ = realRobot ? 0.22 : 0.8;
+      double maxAccel = realRobot ? 6.0 : 36.0;
+      double maxJerk = realRobot ? 60.0 : 540.0;
+      double maxProportionalError = 10.0 * Math.PI / 180.0;
+
+      chestOrientationGains.setProportionalGains(kpXY, kpZ);
+      chestOrientationGains.setDampingRatios(zetaXY, zetaZ);
+      chestOrientationGains.setMaximumAcceleration(maxAccel);
+      chestOrientationGains.setMaximumJerk(maxJerk);
+      chestOrientationGains.setMaxProportionalError(maxProportionalError);
+      chestOrientationGains.createDerivativeGainUpdater(true);
+   }
+
+   private void useSwingFootVMCCore(boolean realRobot)
+   {
+      double kpXY = 1000.0;
+      double kpZ = 1200.0;
+      double zetaXYZ = realRobot ? 0.7 : 0.7;
+
+      double kpXYOrientation = 100.0;
+      double kpZOrientation = 100.0;
+      double zetaOrientation = 0.7;
+
+      // Reduce maxPositionAcceleration from 30 to 6 to prevent too high acceleration when hitting joint limits.
+      double maxPositionAcceleration = realRobot ? 6.0 : Double.POSITIVE_INFINITY;
+      //      double maxPositionAcceleration = realRobot ? 30.0 : Double.POSITIVE_INFINITY;
+      double maxPositionJerk = realRobot ? 150.0 : Double.POSITIVE_INFINITY;
+      double maxOrientationAcceleration = realRobot ? 100.0 : Double.POSITIVE_INFINITY;
+      double maxOrientationJerk = realRobot ? 1500.0 : Double.POSITIVE_INFINITY;
+
+      swingFootGains.setPositionProportionalGains(kpXY, kpZ);
+      swingFootGains.setPositionDampingRatio(zetaXYZ);
+      swingFootGains.setPositionMaxAccelerationAndJerk(maxPositionAcceleration, maxPositionJerk);
+      swingFootGains.setOrientationProportionalGains(kpXYOrientation, kpZOrientation);
+      swingFootGains.setOrientationDampingRatio(zetaOrientation);
+      swingFootGains.setOrientationMaxAccelerationAndJerk(maxOrientationAcceleration, maxOrientationJerk);
+      swingFootGains.createDerivativeGainUpdater(true);
+   }
+
+   private void useHoldPositionVMCCore(boolean realRobot)
+   {
+      double kpXY = 0.0; //100.0;
+      double kpZ = 0.0;
+      double zetaXYZ = realRobot ? 0.2 : 1.0;
+      double kpXYOrientation = realRobot ? 100.0 : 200.0;
+      double kpZOrientation = realRobot ? 100.0 : 200.0;
+      double zetaOrientation = realRobot ? 0.2 : 1.0;
+      // Reduce maxPositionAcceleration from 10 to 6 to prevent too high acceleration when hitting joint limits.
+      double maxLinearAcceleration = realRobot ? 6.0 : Double.POSITIVE_INFINITY;
+      //      double maxLinearAcceleration = realRobot ? 10.0 : Double.POSITIVE_INFINITY;
+      double maxLinearJerk = realRobot ? 150.0 : Double.POSITIVE_INFINITY;
+      double maxAngularAcceleration = realRobot ? 100.0 : Double.POSITIVE_INFINITY;
+      double maxAngularJerk = realRobot ? 1500.0 : Double.POSITIVE_INFINITY;
+
+      holdPositionFootGains.setPositionProportionalGains(kpXY, kpZ);
+      holdPositionFootGains.setPositionDampingRatio(zetaXYZ);
+      holdPositionFootGains.setPositionMaxAccelerationAndJerk(maxLinearAcceleration, maxLinearJerk);
+      holdPositionFootGains.setOrientationProportionalGains(kpXYOrientation, kpZOrientation);
+      holdPositionFootGains.setOrientationDampingRatio(zetaOrientation);
+      holdPositionFootGains.setOrientationMaxAccelerationAndJerk(maxAngularAcceleration, maxAngularJerk);
+      holdPositionFootGains.createDerivativeGainUpdater(true);
+   }
+
+   private void useToeOffVMCCore(boolean realRobot)
+   {
+      double kpXY = 100.0;
+      double kpZ = 0.0;
+      double zetaXYZ = realRobot ? 0.4 : 0.4;
+      double kpXYOrientation = realRobot ? 200.0 : 200.0;
+      double kpZOrientation = realRobot ? 200.0 : 200.0;
+      double zetaOrientation = realRobot ? 0.4 : 0.4;
+      // Reduce maxPositionAcceleration from 10 to 6 to prevent too high acceleration when hitting joint limits.
+      double maxLinearAcceleration = realRobot ? 6.0 : Double.POSITIVE_INFINITY;
+      //      double maxLinearAcceleration = realRobot ? 10.0 : Double.POSITIVE_INFINITY;
+      double maxLinearJerk = realRobot ? 150.0 : Double.POSITIVE_INFINITY;
+      double maxAngularAcceleration = realRobot ? 100.0 : Double.POSITIVE_INFINITY;
+      double maxAngularJerk = realRobot ? 1500.0 : Double.POSITIVE_INFINITY;
+
+      toeOffFootGains.setPositionProportionalGains(kpXY, kpZ);
+      toeOffFootGains.setPositionDampingRatio(zetaXYZ);
+      toeOffFootGains.setPositionMaxAccelerationAndJerk(maxLinearAcceleration, maxLinearJerk);
+      toeOffFootGains.setOrientationProportionalGains(kpXYOrientation, kpZOrientation);
+      toeOffFootGains.setOrientationDampingRatio(zetaOrientation);
+      toeOffFootGains.setOrientationMaxAccelerationAndJerk(maxAngularAcceleration, maxAngularJerk);
+      toeOffFootGains.createDerivativeGainUpdater(true);
+   }
+
+   private void useEdgeTouchdownVMCCore(boolean realRobot)
+   {
+      double kp = 0.0;
+      double zetaXYZ = 0.0;
+      double kpXYOrientation = realRobot ? 40.0 : 300.0;
+      double kpZOrientation = realRobot ? 40.0 : 300.0;
+      double zetaOrientation = 0.4;
+      double maxLinearAcceleration = realRobot ? 10.0 : Double.POSITIVE_INFINITY;
+      double maxLinearJerk = realRobot ? 150.0 : Double.POSITIVE_INFINITY;
+      double maxAngularAcceleration = realRobot ? 100.0 : Double.POSITIVE_INFINITY;
+      double maxAngularJerk = realRobot ? 1500.0 : Double.POSITIVE_INFINITY;
+
+      edgeTouchdownFootGains.setPositionProportionalGains(kp, kp);
+      edgeTouchdownFootGains.setPositionDampingRatio(zetaXYZ);
+      edgeTouchdownFootGains.setPositionMaxAccelerationAndJerk(maxLinearAcceleration, maxLinearJerk);
+      edgeTouchdownFootGains.setOrientationProportionalGains(kpXYOrientation, kpZOrientation);
+      edgeTouchdownFootGains.setOrientationDampingRatio(zetaOrientation);
+      edgeTouchdownFootGains.setOrientationMaxAccelerationAndJerk(maxAngularAcceleration, maxAngularJerk);
+      edgeTouchdownFootGains.createDerivativeGainUpdater(true);
+   }
+
+   private void useICPVMCCore()
+   {
+      double kpParallel = 5.0;
+      double kpOrthogonal = 3.0;
+      double ki = 0.0;
+      double kiBleedOff = 0.0;
+
+      icpControlGains.setKpParallelToMotion(kpParallel);
+      icpControlGains.setKpOrthogonalToMotion(kpOrthogonal);
+      icpControlGains.setKi(ki);
+      icpControlGains.setKiBleedOff(kiBleedOff);
+   }
+
+   private void usePelvisOrientationVMCCore(boolean realRobot)
+   {
+      double kpXY = 250.0;
+      double kpZ = 150.0;
+      double zeta = realRobot ? 0.5 : 0.8;
+      double maxAccel = realRobot ? 12.0 : 36.0;
+      double maxJerk = realRobot ? 180.0 : 540.0;
+
+      pelvisOrientationGains.setProportionalGains(kpXY, kpZ);
+      pelvisOrientationGains.setDampingRatio(zeta);
+      pelvisOrientationGains.setMaximumAcceleration(maxAccel);
+      pelvisOrientationGains.setMaximumJerk(maxJerk);
+      pelvisOrientationGains.createDerivativeGainUpdater(true);
+   }
+
+   private void usePelvisICPBasedXYControlVMCCore(boolean realRobot)
+   {
+      pelvisICPBasedXYControlGains.setKp(4.0);
+      pelvisICPBasedXYControlGains.setKd(realRobot ? 0.5 : 1.2);
    }
 }
