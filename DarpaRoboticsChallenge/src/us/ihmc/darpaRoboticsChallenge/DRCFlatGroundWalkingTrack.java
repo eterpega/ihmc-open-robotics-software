@@ -55,7 +55,7 @@ public class DRCFlatGroundWalkingTrack
 
       MomentumBasedControllerFactory controllerFactory = new MomentumBasedControllerFactory(contactableBodiesFactory, feetForceSensorNames,
             feetContactSensorNames, wristForceSensorNames, walkingControllerParameters, armControllerParameters, capturePointPlannerParameters,
-            HighLevelState.WALKING, WholeBodyControllerCoreMode.INVERSE_DYNAMICS);
+            HighLevelState.WALKING, WholeBodyControllerCoreMode.VIRTUAL_MODEL);
 
       
       HeightMap heightMapForFootstepZ = null;

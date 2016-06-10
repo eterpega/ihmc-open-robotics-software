@@ -435,7 +435,10 @@ public class WalkingHighLevelHumanoidController extends HighLevelBehavior
 
       if (manipulationControlModule != null)
       {
-         manipulationControlModule.holdCurrentArmConfiguration();
+         if (requestedControllerCoreMode.getEnumValue().equals(WholeBodyControllerCoreMode.INVERSE_DYNAMICS))
+            manipulationControlModule.holdCurrentArmConfiguration();
+         else if (requestedControllerCoreMode.getEnumValue().equals(WholeBodyControllerCoreMode.VIRTUAL_MODEL))
+            manipulationControlModule.holdCurrentArmConfiguration(false);
       }
       chestOrientationManager.holdCurrentOrientation();
 
@@ -684,7 +687,7 @@ public class WalkingHighLevelHumanoidController extends HighLevelBehavior
       else if (requestedControllerCoreMode.getEnumValue().equals(WholeBodyControllerCoreMode.VIRTUAL_MODEL))
       {
          controllerCoreCommand.setControllerCoreMode(requestedControllerCoreMode.getEnumValue());
-         controllerCoreCommand.addInverseDynamicsCommand(privilegedConfigurationCommand);
+         //controllerCoreCommand.addInverseDynamicsCommand(privilegedConfigurationCommand);
 
          if (!previousControllerCoreMode.getEnumValue().equals(requestedControllerCoreMode.getEnumValue()))
             controllerCoreCommand.addVirtualModelControlCommand(controlledBodiesCommand);

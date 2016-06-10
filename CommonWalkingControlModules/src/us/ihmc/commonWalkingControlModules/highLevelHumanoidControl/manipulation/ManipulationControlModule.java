@@ -256,12 +256,25 @@ public class ManipulationControlModule
       }
    }
 
+   public void holdCurrentArmConfiguration(boolean holdArmInJointSpace)
+   {
+      for (RobotSide robotSide : RobotSide.values)
+      {
+         holdArmCurrentConfiguration(robotSide, holdArmInJointSpace);
+      }
+   }
+
    private void holdArmCurrentConfiguration(RobotSide robotSide)
+   {
+      holdArmCurrentConfiguration(robotSide, HOLD_POSE_IN_JOINT_SPACE);
+   }
+
+   private void holdArmCurrentConfiguration(RobotSide robotSide, boolean holdPoseInJointSpace)
    {
       HandControlModule handControlModule = handControlModules.get(robotSide);
       if (handControlModule.isControllingPoseInWorld())
       {
-         if (HOLD_POSE_IN_JOINT_SPACE)
+         if (holdPoseInJointSpace)
             handControlModule.holdPositionInJointspace();
          else
             handControlModule.holdPositionInChest();

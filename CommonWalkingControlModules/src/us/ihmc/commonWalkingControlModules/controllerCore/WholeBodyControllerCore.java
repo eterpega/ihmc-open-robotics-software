@@ -39,7 +39,6 @@ public class WholeBodyControllerCore
    public WholeBodyControllerCore(WholeBodyControlCoreToolbox toolbox, FeedbackControlCommandList allPossibleCommands,
          YoVariableRegistry parentRegistry)
    {
-
       feedbackController = new WholeBodyFeedbackController(toolbox, allPossibleCommands, registry);
       inverseDynamicsSolver = new WholeBodyInverseDynamicsSolver(toolbox, registry);
       inverseKinematicsSolver = new WholeBodyInverseKinematicsSolver(toolbox, registry);

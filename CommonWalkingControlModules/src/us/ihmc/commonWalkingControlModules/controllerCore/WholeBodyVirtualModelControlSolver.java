@@ -283,7 +283,7 @@ public class WholeBodyVirtualModelControlSolver
             submitVirtualModelControlCommandList((InverseDynamicsCommandList) command);
             break;
          default:
-            throw new RuntimeException("The command type: " + command.getCommandType() + " is not handled by the Jacobian Transpose solver mode.");
+            PrintTools.warn(this.getClass(), "The command type: " + command.getCommandType() + " is not handled by the Virtual Model solver mode.");
          }
       }
    }
