@@ -8,6 +8,5 @@ public enum QuadrupedForceControllerRequestedEvent
    REQUEST_PACE,
    REQUEST_TROT,
    REQUEST_XGAIT,
-   REQUEST_STAND_SEAN,
    REQUEST_FALL
 }
