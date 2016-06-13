@@ -148,7 +148,7 @@ public class QuadrupedForceControllerManager implements QuadrupedControllerManag
       QuadrupedController standController = new QuadrupedDcmBasedStandController(runtimeEnvironment, controllerToolbox, inputProvider);
       QuadrupedController stepController = new QuadrupedDcmBasedStepController(runtimeEnvironment, controllerToolbox, inputProvider, timedStepProvider);
       QuadrupedController xGaitController = new QuadrupedDcmBasedXGaitController(runtimeEnvironment, controllerToolbox, inputProvider, xGaitSettingsProvider);
-      QuadrupedController fall = new QuadrupedFallController(runtimeEnvironment);
+      QuadrupedController fall = new QuadrupedForceBasedGeneralFallController(runtimeEnvironment, controllerToolbox);
 
       FiniteStateMachineBuilder<QuadrupedForceControllerState, ControllerEvent> builder = new FiniteStateMachineBuilder<>(
             QuadrupedForceControllerState.class, ControllerEvent.class, "forceControllerState", registry);

@@ -23,8 +23,8 @@ public class QuadrupedFallDetector
       taskSpaceEstimates = new QuadrupedTaskSpaceEstimator.Estimates();
       registry = registryInput;
       parameterFactory = ParameterFactory.createWithRegistry(getClass(), registry);
-      maxPitchInRad = parameterFactory.createDouble("maxPitchInRad", .3);
-      maxRollInRad = parameterFactory.createDouble("maxRollInRad", .3);
+      maxPitchInRad = parameterFactory.createDouble("maxPitchInRad", .1);
+      maxRollInRad = parameterFactory.createDouble("maxRollInRad", .1);
    }
 
    public boolean detect(){

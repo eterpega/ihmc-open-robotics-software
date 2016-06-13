@@ -10,6 +10,7 @@ import us.ihmc.quadrupedRobotics.params.ParameterFactory;
 import us.ihmc.robotics.controllers.PDController;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.robotics.dataStructures.variable.IntegerYoVariable;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
 import us.ihmc.robotics.trajectories.MinimumJerkTrajectory;
 
@@ -42,6 +43,8 @@ public class QuadrupedFallController implements QuadrupedController
    private final DoubleYoVariable derivativeGain;
    private final List<Double> homePositions;
 
+   private final IntegerYoVariable fallBehavior;
+
    public QuadrupedFallController(QuadrupedRuntimeEnvironment runtimeEnvironment)
    {
       this.robotTimestamp = runtimeEnvironment.getRobotTimestamp();
@@ -62,11 +65,12 @@ public class QuadrupedFallController implements QuadrupedController
                   hipPitchHomeParameter.get(), kneePitchHomeParameter.get(), hipRollHomeParameter.get(), -hipPitchHomeParameter.get(),
                   -kneePitchHomeParameter.get(), -hipRollHomeParameter.get(), -hipPitchHomeParameter.get(), -kneePitchHomeParameter.get(), 0.0, 0.0, 0.0, 0.0,
                   0.0));
+      fallBehavior = new  IntegerYoVariable("fallBehavior",registry);
       // frames
       runtimeEnvironment.getParentRegistry().addChild(registry);
    }
 
-   @Override public ControllerEvent process()
+   private void goToHomePosition()
    {
       timeInFallTrajectory += controlDT;
       fullRobotModel.updateFrames();
@@ -81,7 +85,11 @@ public class QuadrupedFallController implements QuadrupedController
          double tau = pdController.compute(joint.getQ(), trajectory.getPosition(), joint.getQd(), trajectory.getVelocity());
          joint.setTau(tau);
       }
+   }
 
+   @Override public ControllerEvent process()
+   {
+      goToHomePosition();
       return null;
    }
 
@@ -91,8 +99,7 @@ public class QuadrupedFallController implements QuadrupedController
       {
          OneDoFJoint joint = fullRobotModel.getOneDoFJoints()[i];
          // Start the trajectory from the current pos/vel/acc.
-         MinimumJerkTrajectory trajectory = trajectories.get(i);
-         trajectory.setMoveParameters(joint.getQ(), joint.getQd(), joint.getQdd(), homePositions.get(i), 0.0, 0.0, //deisred q, qd, qdd
+         trajectories.get(i).setMoveParameters(joint.getQ(), joint.getQd(), joint.getQdd(), homePositions.get(i), 0.0, 0.0, //deisred q, qd, qdd
                fallTrajectoryTotalTime.get());
       }
       timeInFallTrajectory = 0.0;
