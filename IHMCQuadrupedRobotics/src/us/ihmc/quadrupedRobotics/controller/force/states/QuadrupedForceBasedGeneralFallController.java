@@ -29,15 +29,25 @@ public class QuadrupedForceBasedGeneralFallController implements QuadrupedContro
    private final YoVariableRegistry registry = new YoVariableRegistry(QuadrupedForceBasedGeneralFallController.class.getSimpleName());
 
    private final ParameterFactory parameterFactory = ParameterFactory.createWithRegistry(getClass(), registry);
-   private final DoubleParameter trajectoryTimeParameter = parameterFactory.createDouble("trajectoryTime", 2.0);
+   private final DoubleParameter trajectoryTimeParameter = parameterFactory.createDouble("trajectoryTime", 3.0);
    private final DoubleParameter jointDampingParameter = parameterFactory.createDouble("jointDamping", 15.0);
    private final DoubleParameter stanceLengthParameter = parameterFactory.createDouble("stanceLength", 1.0);
    private final DoubleParameter stanceWidthParameter = parameterFactory.createDouble("stanceWidth", 0.8);
    private final DoubleParameter stanceHeightParameter = parameterFactory.createDouble("stanceHeight", 0.40);
    private final DoubleParameter stanceXOffsetParameter = parameterFactory.createDouble("stanceXOffset", 0.05);
    private final DoubleParameter stanceYOffsetParameter = parameterFactory.createDouble("stanceYOffset", 0.0);
-   private final DoubleArrayParameter solePositionProportionalGainsParameter = parameterFactory.createDoubleArray("solePositionProportionalGains", 1000, 1000, 1000);
-   private final DoubleArrayParameter solePositionDerivativeGainsParameter = parameterFactory.createDoubleArray("solePositionDerivativeGains", 10, 10, 10);
+
+   private final DoubleParameter stanceLengthSitParameter = parameterFactory.createDouble("stanceLengthSit", .8);
+   private final DoubleParameter stanceWidthSitParameter = parameterFactory.createDouble("stanceWidthSit", 0.4);
+   private final DoubleParameter stanceHeightFrontSitParameter = parameterFactory.createDouble("stanceHeightFrontSit", 0.70);
+   private final DoubleParameter stanceHeightHindSitParameter = parameterFactory.createDouble("stanceHeightHindSit", 0.18);
+   private final DoubleParameter stanceXOffsetSitParameter = parameterFactory.createDouble("stanceXOffsetSit", -.1);
+   private final DoubleParameter stanceYOffsetSitParameter = parameterFactory.createDouble("stanceYOffsetSit", 0.0);
+
+//   private final DoubleArrayParameter solePositionProportionalGainsParameter = parameterFactory.createDoubleArray("solePositionProportionalGains", 1000, 1000, 1000);
+//   private final DoubleArrayParameter solePositionDerivativeGainsParameter = parameterFactory.createDoubleArray("solePositionDerivativeGains", 10, 10, 10);
+   private final DoubleArrayParameter solePositionProportionalGainsParameter = parameterFactory.createDoubleArray("solePositionProportionalGains", 10000, 10000, 10000);
+   private final DoubleArrayParameter solePositionDerivativeGainsParameter = parameterFactory.createDoubleArray("solePositionDerivativeGains", 100, 100, 100);
    private final DoubleArrayParameter solePositionIntegralGainsParameter = parameterFactory.createDoubleArray("solePositionIntegralGains", 0, 0, 0);
    private final DoubleParameter solePositionMaxIntegralErrorParameter = parameterFactory.createDouble("solePositionMaxIntegralError", 0);
 
@@ -61,7 +71,7 @@ public class QuadrupedForceBasedGeneralFallController implements QuadrupedContro
    private final QuadrupedTaskSpaceController taskSpaceController;
 
    public enum fallBehaviors{
-      FREEZE, GO_HOME_Z, GO_HOME_XYZ
+      FREEZE, GO_HOME_Z, GO_HOME_XYZ, SIT
    }
    private final EnumYoVariable<fallBehaviors> fallBehavior = EnumYoVariable.create("fallBehaviors", fallBehaviors.class, registry);
 
@@ -144,6 +154,16 @@ public class QuadrupedForceBasedGeneralFallController implements QuadrupedContro
          break;
       case GO_HOME_Z:
          finalSolePosition.add(taskSpaceEstimates.getSolePosition(quadrant).getX(),taskSpaceEstimates.getSolePosition(quadrant).getY(),-stanceHeightParameter.get());
+         break;
+      case SIT:
+         finalSolePosition.add(quadrant.getEnd().negateIfHindEnd(stanceLengthSitParameter.get() / 2.0), 0.0, 0.0);
+         finalSolePosition.add(0.0, quadrant.getSide().negateIfRightSide(stanceWidthSitParameter.get() / 2.0), 0.0);
+         if(quadrant.isQuadrantInFront()){
+            finalSolePosition.add(stanceXOffsetSitParameter.get(), stanceYOffsetSitParameter.get(), -stanceHeightFrontSitParameter.get());
+         }
+         else{
+            finalSolePosition.add(stanceXOffsetSitParameter.get(), stanceYOffsetSitParameter.get(), -stanceHeightHindSitParameter.get());
+         }
          break;
       default:
          finalSolePosition.add(taskSpaceEstimates.getSolePosition(quadrant).getX(),taskSpaceEstimates.getSolePosition(quadrant).getY(),taskSpaceEstimates.getSolePosition(quadrant).getZ());

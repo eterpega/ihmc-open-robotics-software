@@ -30,8 +30,8 @@ public class QuadrupedFallDetector
       fallDetectionType = EnumYoVariable.create("fallDetectionTypes", fallDetectionTypes.class, registry);
       fallDetectionType.set(fallDetectionTypes.ROLL_AND_PITCH_TILT);
       parameterFactory = ParameterFactory.createWithRegistry(getClass(), registry);
-      maxPitchInRad = parameterFactory.createDouble("maxPitchInRad", .4);
-      maxRollInRad = parameterFactory.createDouble("maxRollInRad", .4);
+      maxPitchInRad = parameterFactory.createDouble("maxPitchInRad", .5);
+      maxRollInRad = parameterFactory.createDouble("maxRollInRad", .5);
    }
 
    public boolean detect(){

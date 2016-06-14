@@ -26,11 +26,15 @@ public class QuadrupedFallController implements QuadrupedController
    // parameters
    private final ParameterFactory parameterFactory = ParameterFactory.createWithRegistry(getClass(), registry);
    private final DoubleParameter hipPitchHomeParameter = parameterFactory.createDouble("hipPitchHome", 1);
-   private final DoubleParameter hipRollHomeParameter = parameterFactory.createDouble("hipRollHome", 0.5);
+   private final DoubleParameter hipRollHomeParameter = parameterFactory.createDouble("hipRollHome", 0.4);
    private final DoubleParameter kneePitchHomeParameter = parameterFactory.createDouble("kneePitchHome", -2.2);
-   private final DoubleParameter fallTrajectoryTotalTime = parameterFactory.createDouble("fallTrajectoryTotalTime", .5);
-   private final DoubleParameter fallPGain = parameterFactory.createDouble("fallPGain", 200);
-   private final DoubleParameter fallDGain = parameterFactory.createDouble("fallDGain", 2);
+
+   private final DoubleParameter kneePitchFrontSitParameter = parameterFactory.createDouble("kneePitchFrontSit", -1.1);
+   private final DoubleParameter kneePitchHindSitParameter = parameterFactory.createDouble("kneePitchHindSit", -2.2);
+
+   private final DoubleParameter fallTrajectoryTotalTime = parameterFactory.createDouble("fallTrajectoryTotalTime", 1);
+   private final DoubleParameter fallPGain = parameterFactory.createDouble("fallPGain", 1000);
+   private final DoubleParameter fallDGain = parameterFactory.createDouble("fallDGain", 10);
 
    // fall detection trajectories
    private final List<MinimumJerkTrajectory> trajectories;
@@ -42,6 +46,7 @@ public class QuadrupedFallController implements QuadrupedController
    private final DoubleYoVariable proportionalGain;
    private final DoubleYoVariable derivativeGain;
    private final List<Double> homePositions;
+   private final List<Double> sitPositions;
 
    private final IntegerYoVariable fallBehavior;
 
@@ -60,12 +65,10 @@ public class QuadrupedFallController implements QuadrupedController
       proportionalGain = new DoubleYoVariable("fallPGain", registry);
       derivativeGain = new DoubleYoVariable("fallDGain", registry);
       pdController = new PDController(proportionalGain, derivativeGain, "fallPDController", registry);
-      homePositions = new ArrayList<>(
-            Arrays.asList(hipRollHomeParameter.get(), hipPitchHomeParameter.get(), kneePitchHomeParameter.get(), -hipRollHomeParameter.get(),
-                  hipPitchHomeParameter.get(), kneePitchHomeParameter.get(), hipRollHomeParameter.get(), -hipPitchHomeParameter.get(),
-                  -kneePitchHomeParameter.get(), -hipRollHomeParameter.get(), -hipPitchHomeParameter.get(), -kneePitchHomeParameter.get(), 0.0, 0.0, 0.0, 0.0,
-                  0.0));
+
       fallBehavior = new  IntegerYoVariable("fallBehavior",registry);
+      homePositions = new ArrayList<>();
+      sitPositions = new ArrayList<>();
       // frames
       runtimeEnvironment.getParentRegistry().addChild(registry);
    }
@@ -95,11 +98,25 @@ public class QuadrupedFallController implements QuadrupedController
 
    @Override public void onEntry()
    {
+      homePositions.clear();
+      homePositions.addAll(Arrays.asList(hipRollHomeParameter.get(), hipPitchHomeParameter.get(), kneePitchHomeParameter.get(),
+            -hipRollHomeParameter.get(), hipPitchHomeParameter.get(), kneePitchHomeParameter.get(),
+            hipRollHomeParameter.get(), -hipPitchHomeParameter.get(), -kneePitchHomeParameter.get(),
+            -hipRollHomeParameter.get(), -hipPitchHomeParameter.get(), -kneePitchHomeParameter.get(),
+            0.0, 0.0, 0.0, 0.0, 0.0));
+      sitPositions.clear();
+      sitPositions.addAll(Arrays.asList(hipRollHomeParameter.get(),-.5*kneePitchHindSitParameter.get(), kneePitchFrontSitParameter.get(),
+            -hipRollHomeParameter.get(), -.5*kneePitchHindSitParameter.get(), kneePitchFrontSitParameter.get(),
+            hipRollHomeParameter.get(), .5*kneePitchHindSitParameter.get(), -kneePitchHindSitParameter.get(),
+            -hipRollHomeParameter.get(), .5*kneePitchHindSitParameter.get(), -kneePitchHindSitParameter.get(),
+            0.0, 0.0, 0.0, 0.0, 0.0));
       for (int i = 0; i < fullRobotModel.getOneDoFJoints().length; i++)
       {
          OneDoFJoint joint = fullRobotModel.getOneDoFJoints()[i];
          // Start the trajectory from the current pos/vel/acc.
-         trajectories.get(i).setMoveParameters(joint.getQ(), joint.getQd(), joint.getQdd(), homePositions.get(i), 0.0, 0.0, //deisred q, qd, qdd
+//         trajectories.get(i).setMoveParameters(joint.getQ(), joint.getQd(), joint.getQdd(), homePositions.get(i), 0.0, 0.0, //deisred q, qd, qdd
+//               fallTrajectoryTotalTime.get());
+         trajectories.get(i).setMoveParameters(joint.getQ(), joint.getQd(), joint.getQdd(), sitPositions.get(i), 0.0, 0.0, //deisred q, qd, qdd
                fallTrajectoryTotalTime.get());
       }
       timeInFallTrajectory = 0.0;
