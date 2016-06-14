@@ -4,6 +4,7 @@ import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedTaskSpaceEsti
 import us.ihmc.quadrupedRobotics.params.DoubleParameter;
 import us.ihmc.quadrupedRobotics.params.ParameterFactory;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
+import us.ihmc.robotics.dataStructures.variable.EnumYoVariable;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 
 public class QuadrupedFallDetector
@@ -16,15 +17,21 @@ public class QuadrupedFallDetector
    private final DoubleParameter maxRollInRad;
    private final QuadrupedTaskSpaceEstimator.Estimates taskSpaceEstimates;
    private final QuadrupedTaskSpaceEstimator taskSpaceEstimator;
+   public enum fallDetectionTypes{
+      ROLL_TILT, PITCH_TILT, ROLL_AND_PITCH_TILT
+   }
+   private final EnumYoVariable<fallDetectionTypes> fallDetectionType;
 
    public QuadrupedFallDetector(YoVariableRegistry registryInput, QuadrupedTaskSpaceEstimator taskSpaceEstimatorInput)
    {
       taskSpaceEstimator = taskSpaceEstimatorInput;
       taskSpaceEstimates = new QuadrupedTaskSpaceEstimator.Estimates();
       registry = registryInput;
+      fallDetectionType = EnumYoVariable.create("fallDetectionTypes", fallDetectionTypes.class, registry);
+      fallDetectionType.set(fallDetectionTypes.ROLL_AND_PITCH_TILT);
       parameterFactory = ParameterFactory.createWithRegistry(getClass(), registry);
-      maxPitchInRad = parameterFactory.createDouble("maxPitchInRad", .1);
-      maxRollInRad = parameterFactory.createDouble("maxRollInRad", .1);
+      maxPitchInRad = parameterFactory.createDouble("maxPitchInRad", .4);
+      maxRollInRad = parameterFactory.createDouble("maxRollInRad", .4);
    }
 
    public boolean detect(){
@@ -36,13 +43,17 @@ public class QuadrupedFallDetector
       // update task space estimates
       taskSpaceEstimator.compute(taskSpaceEstimates);
       taskSpaceEstimates.getBodyOrientation().changeFrame(ReferenceFrame.getWorldFrame());
-      if (Math.abs(taskSpaceEstimates.getBodyOrientation().getPitch()) > maxPitchInRad.get())
-      {
-         return true;
+      if(fallDetectionType.getEnumValue() == fallDetectionTypes.PITCH_TILT || fallDetectionType.getEnumValue() == fallDetectionTypes.ROLL_AND_PITCH_TILT){
+         if (Math.abs(taskSpaceEstimates.getBodyOrientation().getPitch()) > maxPitchInRad.get())
+         {
+            return true;
+         }
       }
-      if (Math.abs(taskSpaceEstimates.getBodyOrientation().getRoll()) > maxRollInRad.get())
-      {
-         return true;
+      if(fallDetectionType.getEnumValue() == fallDetectionTypes.ROLL_TILT || fallDetectionType.getEnumValue() == fallDetectionTypes.ROLL_AND_PITCH_TILT){
+         if (Math.abs(taskSpaceEstimates.getBodyOrientation().getRoll()) > maxRollInRad.get())
+         {
+            return true;
+         }
       }
       return false;
    }

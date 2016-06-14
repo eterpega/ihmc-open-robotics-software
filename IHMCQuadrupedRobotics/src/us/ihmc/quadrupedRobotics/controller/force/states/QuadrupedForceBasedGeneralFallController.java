@@ -32,7 +32,7 @@ public class QuadrupedForceBasedGeneralFallController implements QuadrupedContro
    private final DoubleParameter trajectoryTimeParameter = parameterFactory.createDouble("trajectoryTime", 2.0);
    private final DoubleParameter jointDampingParameter = parameterFactory.createDouble("jointDamping", 15.0);
    private final DoubleParameter stanceLengthParameter = parameterFactory.createDouble("stanceLength", 1.0);
-   private final DoubleParameter stanceWidthParameter = parameterFactory.createDouble("stanceWidth", 0.7);
+   private final DoubleParameter stanceWidthParameter = parameterFactory.createDouble("stanceWidth", 0.8);
    private final DoubleParameter stanceHeightParameter = parameterFactory.createDouble("stanceHeight", 0.40);
    private final DoubleParameter stanceXOffsetParameter = parameterFactory.createDouble("stanceXOffset", 0.05);
    private final DoubleParameter stanceYOffsetParameter = parameterFactory.createDouble("stanceYOffset", 0.0);
