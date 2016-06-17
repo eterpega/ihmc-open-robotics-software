@@ -11,5 +11,6 @@ public enum QuadrupedForceControllerState
    TROT,
    PACE,
    XGAIT,
-   FALL
+   FALL,
+   JOINT_POSE
 }
