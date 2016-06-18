@@ -11,13 +11,9 @@ import us.ihmc.quadrupedRobotics.model.QuadrupedRuntimeEnvironment;
 import us.ihmc.quadrupedRobotics.params.ParameterFactory;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.quadrupedRobotics.providers.QuadrupedCartesianWaypointInputProvider;
-import us.ihmc.robotics.geometry.FramePoint;
-import us.ihmc.robotics.geometry.FrameVector;
+import us.ihmc.quadrupedRobotics.providers.QuadrupedSoleWaypointInputProvider;
 import us.ihmc.robotics.math.trajectories.waypoints.MultipleWaypointsPositionTrajectoryGenerator;
 import us.ihmc.robotics.robotSide.RobotQuadrant;
-
-import java.util.ArrayList;
 
 public class QuadrupedForceBasedCartesianController implements QuadrupedController
 {
@@ -51,10 +47,10 @@ public class QuadrupedForceBasedCartesianController implements QuadrupedControll
    private final QuadrupedTaskSpaceController.Commands taskSpaceControllerCommands;
    private final QuadrupedTaskSpaceController.Settings taskSpaceControllerSettings;
    private final QuadrupedTaskSpaceController taskSpaceController;
-   private final QuadrupedCartesianWaypointInputProvider inputProvider;
+   private final QuadrupedSoleWaypointInputProvider inputProvider;
 
    public QuadrupedForceBasedCartesianController(QuadrupedRuntimeEnvironment environment, QuadrupedForceControllerToolbox controllerToolbox,
-         QuadrupedCartesianWaypointInputProvider inputProvider)
+         QuadrupedSoleWaypointInputProvider inputProvider)
    {
       this.inputProvider = inputProvider;
       this.robotTime = environment.getRobotTimestamp();
