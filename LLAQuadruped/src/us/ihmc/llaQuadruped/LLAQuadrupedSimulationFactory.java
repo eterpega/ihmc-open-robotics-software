@@ -24,45 +24,36 @@ import us.ihmc.stateEstimation.humanoid.kinematicsBasedStateEstimation.DRCKinema
 public class LLAQuadrupedSimulationFactory
 {
    private static final QuadrupedControlMode CONTROL_MODE = QuadrupedControlMode.FORCE;
-   
+   private final QuadrupedGroundContactModelType groundContactModelType = QuadrupedGroundContactModelType.FLAT;
    private static final double SIMULATION_DT = 0.00006;
    private static final double SIMULATION_GRAVITY = -9.81;
    private static final int RECORD_FREQUENCY = (int) (0.01 / SIMULATION_DT);
    
-   private final QuadrupedGroundContactModelType groundContactModelType = QuadrupedGroundContactModelType.FLAT;
-   
-   // Factories
-   QuadrupedControllerManagerFactory controllerManagerFactory = new QuadrupedControllerManagerFactory();
-   QuadrupedSimulationFactory simulationFactory = new QuadrupedSimulationFactory();
-   
-   // First stage
+   // Parameters
    private LLAQuadrupedModelFactory modelFactory;
+   private LLAQuadrupedPhysicalProperties physicalProperties;
+   private LLAQuadrupedStandPrepParameters standPrepParameters;
+   private LLAQuadrupedGroundContactParameters groundContactParameters;
+   private LLAQuadrupedNetClassList netClassList;
+   private RobotController headController;
+   private SimulationConstructionSetParameters scsParameters;
    private SDFRobot sdfRobot;
    private SDFFullQuadrupedRobotModel fullRobotModel;
    private YoVariableRegistry robotYoVariableRegistry;
    private YoGraphicsListRegistry yoGraphicsListRegistry;
    private YoGraphicsListRegistry yoGraphicsListRegistryForDetachedOverhead;
-   private LLAQuadrupedPhysicalProperties physicalProperties;
-   private RobotController headController;
-   private DRCKinematicsBasedStateEstimator stateEstimator;
-   private LLAQuadrupedStandPrepParameters standPrepParameters;
-   private LLAQuadrupedGroundContactParameters groundContactParameters;
-   private SimulationConstructionSetParameters scsParameters;
-   private LLAQuadrupedNetClassList netClassList;
-   
-   // Second stage
    private QuadrupedReferenceFrames referenceFrames;
+   private DRCKinematicsBasedStateEstimator stateEstimator;
    private SDFPerfectSimulatedOutputWriter sdfPerfectSimulatedOutputWriter;
-   
-   // Third stage
    private SDFQuadrupedPerfectSimulatedSensor sdfQuadrupedPerfectSimulatedSensor;
    
-   // Sixth stage
-   private QuadrupedControllerManager controllerManager;
+   // Factories
+   QuadrupedControllerManagerFactory controllerManagerFactory = new QuadrupedControllerManagerFactory();
+   QuadrupedSimulationFactory simulationFactory = new QuadrupedSimulationFactory();
    
-   // Ninth stage
+   // Products
+   private QuadrupedControllerManager controllerManager;
    private SimulationConstructionSet scs;
-
 
    private void createSimulationParameters() throws IOException
    {
@@ -100,8 +91,9 @@ public class LLAQuadrupedSimulationFactory
       controllerManagerFactory.setTimestampYoVariable(sdfRobot.getYoTime());
       controllerManagerFactory.setYoGraphicsListRegistry(yoGraphicsListRegistry);
       controllerManagerFactory.setYoGraphicsListRegistryForDetachedOverhead(yoGraphicsListRegistryForDetachedOverhead);
+      controllerManagerFactory.setControlMode(CONTROL_MODE);
 
-      controllerManager = controllerManagerFactory.createControllerManager(CONTROL_MODE);
+      controllerManager = controllerManagerFactory.createControllerManager();
    }
    
    private void createSCS()
