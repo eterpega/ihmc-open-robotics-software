@@ -7,9 +7,9 @@ import us.ihmc.quadrupedRobotics.params.DoubleArrayParameter;
 import us.ihmc.quadrupedRobotics.params.DoubleParameter;
 import us.ihmc.quadrupedRobotics.params.ParameterFactory;
 import us.ihmc.quadrupedRobotics.planning.ContactState;
-import us.ihmc.quadrupedRobotics.planning.QuadrupedStepCrossoverProjection;
 import us.ihmc.quadrupedRobotics.planning.QuadrupedTimedStep;
-import us.ihmc.quadrupedRobotics.planning.trajectory.ThreeDoFSwingFootTrajectory;
+import us.ihmc.quadrupedRobotics.planning.trajectory.AdjustableThreeDoFSwingFootTrajectory;
+import us.ihmc.quadrupedRobotics.planning.trajectory.DefaultThreeDoFSwingFootTrajectory;
 import us.ihmc.quadrupedRobotics.planning.trajectory.ThreeDoFWaypointSwingFootTrajectory;
 import us.ihmc.quadrupedRobotics.state.FiniteStateMachine;
 import us.ihmc.quadrupedRobotics.state.FiniteStateMachineBuilder;
@@ -322,19 +322,19 @@ public class QuadrupedTimedStepController
 
    private class SwingState implements FiniteStateMachineState<StepEvent>
    {
-      RobotQuadrant robotQuadrant;
-      private final ThreeDoFSwingFootTrajectory swingTrajectory;
-      private final ThreeDoFWaypointSwingFootTrajectory waypointSwingTrajectory;
+      private final RobotQuadrant robotQuadrant;
       private final FramePoint goalPosition;
-      private boolean usingWaypoints;
+
+      private final DefaultThreeDoFSwingFootTrajectory defaultSwingTrajectory;
+      private final ThreeDoFWaypointSwingFootTrajectory waypointSwingTrajectory;
+      private AdjustableThreeDoFSwingFootTrajectory activeSwingTrajectory;
 
       public SwingState(RobotQuadrant robotQuadrant)
       {
          this.robotQuadrant = robotQuadrant;
          this.goalPosition = new FramePoint();
-         this.swingTrajectory =  new ThreeDoFSwingFootTrajectory();
+         this.defaultSwingTrajectory =  new DefaultThreeDoFSwingFootTrajectory();
          this.waypointSwingTrajectory = new ThreeDoFWaypointSwingFootTrajectory(robotQuadrant.getCamelCaseName() + "WaypointSwingTrajectory", registry);
-         this.usingWaypoints = false;
       }
 
       @Override
@@ -348,15 +348,16 @@ public class QuadrupedTimedStepController
          FramePoint solePosition = solePositionEstimate.get(robotQuadrant);
          solePosition.changeFrame(goalPosition.getReferenceFrame());
 
-         if (timedStep.getWaypointCount() == 0)
+         // use waypoint swing trajectory if waypoints are provided
+         if (timedStep.getWaypointCount() > 0)
          {
-            swingTrajectory.initializeTrajectory(solePosition, goalPosition, groundClearance, timeInterval);
-            usingWaypoints = false;
+            waypointSwingTrajectory.initializeTrajectory(solePosition, timedStep.getWaypoints(), timedStep.getWaypointCount(), goalPosition, timeInterval);
+            activeSwingTrajectory = waypointSwingTrajectory;
          }
          else
          {
-            waypointSwingTrajectory.initializeTrajectory(solePosition, timedStep.getWaypoints(), timedStep.getWaypointCount(), goalPosition, timeInterval);
-            usingWaypoints = true;
+            defaultSwingTrajectory.initializeTrajectory(solePosition, goalPosition, groundClearance, timeInterval);
+            activeSwingTrajectory = defaultSwingTrajectory;
          }
 
          // initialize contact state and feedback gains
@@ -379,26 +380,11 @@ public class QuadrupedTimedStepController
          // compute swing trajectory
          if (touchDownTime - currentTime > minimumStepAdjustmentTimeParameter.get())
          {
-            if (usingWaypoints)
-            {
-               waypointSwingTrajectory.adjustTrajectory(goalPosition, currentTime);
-            }
-            else
-            {
-               swingTrajectory.adjustTrajectory(goalPosition, currentTime);
-            }
+            activeSwingTrajectory.adjustTrajectory(goalPosition, currentTime);
          }
 
-         if (usingWaypoints)
-         {
-            waypointSwingTrajectory.computeTrajectory(currentTime);
-            waypointSwingTrajectory.getPosition(solePositionControllerSetpoints.getSolePosition(robotQuadrant));
-         }
-         else
-         {
-            swingTrajectory.computeTrajectory(currentTime);
-            swingTrajectory.getPosition(solePositionControllerSetpoints.getSolePosition(robotQuadrant));
-         }
+         activeSwingTrajectory.computeTrajectory(currentTime);
+         activeSwingTrajectory.getPosition(solePositionControllerSetpoints.getSolePosition(robotQuadrant));
 
          // trigger touch down event
          if (currentTime >= touchDownTime)
@@ -417,6 +403,7 @@ public class QuadrupedTimedStepController
       @Override
       public void onExit()
       {
+         activeSwingTrajectory = null;
       }
    }
 }

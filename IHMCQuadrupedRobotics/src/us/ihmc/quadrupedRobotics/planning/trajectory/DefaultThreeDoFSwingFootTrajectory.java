@@ -8,9 +8,9 @@ import us.ihmc.robotics.trajectories.MinimumJerkTrajectory;
 
 public class DefaultThreeDoFSwingFootTrajectory extends AdjustableThreeDoFSwingFootTrajectory
 {
-   final private MinimumJerkTrajectory xTrajectory;
-   final private MinimumJerkTrajectory yTrajectory;
-   final private ParabolicTrajectory zTrajectory;
+   private final MinimumJerkTrajectory xTrajectory;
+   private final MinimumJerkTrajectory yTrajectory;
+   private final ParabolicTrajectory zTrajectory;
    private boolean initialized;
 
    public DefaultThreeDoFSwingFootTrajectory()
@@ -33,7 +33,7 @@ public class DefaultThreeDoFSwingFootTrajectory extends AdjustableThreeDoFSwingF
 
    public void initializeTrajectory(FramePoint initialPosition, FramePoint finalPosition, double groundClearance, double startTime, double endTime)
    {
-      super.initializeAdjustmentTrajectory(startTime, endTime);
+      super.initializeAdjustmentTrajectory(initialPosition, finalPosition, startTime, endTime);
 
       double midwayPositionZ = groundClearance + Math.max(initialPosition.getZ(), finalPosition.getZ());
       xTrajectory.setMoveParameters(initialPosition.getX(), 0, 0, finalPosition.getX(), 0, 0, timeInterval.getDuration());
@@ -54,9 +54,7 @@ public class DefaultThreeDoFSwingFootTrajectory extends AdjustableThreeDoFSwingF
       yTrajectory.computeTrajectory(currentTime - timeInterval.getStartTime());
       zTrajectory.computeTrajectory(currentTime - timeInterval.getStartTime());
 
-      xTrajectoryAdjustment.computeTrajectory(currentTime - timeIntervalOfAdjustment.getStartTime());
-      yTrajectoryAdjustment.computeTrajectory(currentTime - timeIntervalOfAdjustment.getStartTime());
-      zTrajectoryAdjustment.computeTrajectory(currentTime - timeIntervalOfAdjustment.getStartTime());
+      computeAdjustment(currentTime);
 
       position.setX(xTrajectory.getPosition() + xTrajectoryAdjustment.getPosition());
       position.setY(yTrajectory.getPosition() + yTrajectoryAdjustment.getPosition());

@@ -12,7 +12,7 @@ import us.ihmc.robotics.robotSide.RobotQuadrant;
 
 public class QuadrupedTimedStep extends QuadrupedStep
 {
-   public static final int MAX_WAYPOINTS = 5;
+   public static final int MAX_WAYPOINTS = 10;
 
    /**
     * The relative time interval of the swing phase (with respect to the start of the previous swing phase).
@@ -25,14 +25,7 @@ public class QuadrupedTimedStep extends QuadrupedStep
 
    public QuadrupedTimedStep()
    {
-      super();
-      this.timeInterval = new TimeInterval(0.5, 1.0);
-      this.waypoints = new ArrayList<>(MAX_WAYPOINTS);
-      for(int i = 0; i < MAX_WAYPOINTS; i++)
-      {
-         this.waypoints.add(new QuadrupedStepWaypoint(0.0, new Point3d(0.0, 0.0, 0.0), new Vector3d(0.0, 0.0, 0.0)));
-      }
-      this.waypointCount = 0;
+      this(RobotQuadrant.FRONT_RIGHT, new Point3d(0.0, 0.0, 0.0), 0.0, new TimeInterval(0.5, 1.0));
    }
 
    public QuadrupedTimedStep(RobotQuadrant robotQuadrant, FramePoint goalPosition, double groundClearance, TimeInterval timeInterval)
@@ -89,11 +82,7 @@ public class QuadrupedTimedStep extends QuadrupedStep
       super(quadrupedTimedStep);
       this.timeInterval = new TimeInterval(quadrupedTimedStep.timeInterval);
       this.waypoints = new ArrayList<>(MAX_WAYPOINTS);
-      for(int i = 0; i < MAX_WAYPOINTS; i++)
-      {
-         this.waypoints.add(new QuadrupedStepWaypoint(0.0, new Point3d(0.0, 0.0, 0.0), new Vector3d(0.0, 0.0, 0.0)));
-      }
-      this.waypointCount = 0;
+      this.set(quadrupedTimedStep);
    }
 
    public void set(QuadrupedTimedStep quadrupedTimedStep)
@@ -149,7 +138,7 @@ public class QuadrupedTimedStep extends QuadrupedStep
    public void addWaypoint(QuadrupedStepWaypoint waypoint)
    {
       if (waypointCount + 1 > MAX_WAYPOINTS)
-         throw new IndexOutOfBoundsException("too many waypoints: " + waypointCount + 1);
+         throw new IndexOutOfBoundsException("too many waypoints: " + (waypointCount + 1));
 
       waypoints.get(waypointCount).set(waypoint);
       waypointCount++;
