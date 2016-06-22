@@ -2,14 +2,16 @@ package us.ihmc.llaQuadruped;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.util.Collection;
 
 import javax.xml.bind.JAXBException;
 
 import us.ihmc.SdfLoader.*;
+import us.ihmc.SdfLoader.partNames.QuadrupedJointName;
 import us.ihmc.quadrupedRobotics.model.QuadrupedModelFactory;
 import us.ihmc.tools.io.printing.PrintTools;
 
-public class LLAQuadrupedModelFactory extends QuadrupedModelFactory implements SDFFullQuadrupedRobotModelFactory
+public class LLAQuadrupedModelFactory extends QuadrupedModelFactory
 {
    private final LLAQuadrupedSDFParameters sdfParameters = new LLAQuadrupedSDFParameters();
    private final GeneralizedSDFRobotModel generalizedSDFRobotModel;
@@ -40,11 +42,6 @@ public class LLAQuadrupedModelFactory extends QuadrupedModelFactory implements S
       }
    }
    
-   public LLAQuadrupedJointNameMap getJointNameMap()
-   {
-      return jointMap;
-   }
-   
    @Override
    public GeneralizedSDFRobotModel getGeneralizedRobotModel()
    {
@@ -72,5 +69,17 @@ public class LLAQuadrupedModelFactory extends QuadrupedModelFactory implements S
       SDFFullQuadrupedRobotModel sdfFullRobotMdoel = new SDFFullQuadrupedRobotModel(rootLink, jointMap, sensorLinksToTrack);
 
       return sdfFullRobotMdoel;
+   }
+
+   @Override
+   public Collection<QuadrupedJointName> getQuadrupedJointNames()
+   {
+      return jointMap.getQuadrupedJointNames();
+   }
+   
+   @Override
+   public String getSDFNameForJointName(QuadrupedJointName quadrupedJointName)
+   {
+      return jointMap.getSDFNameForJointName(quadrupedJointName);
    }
 }
