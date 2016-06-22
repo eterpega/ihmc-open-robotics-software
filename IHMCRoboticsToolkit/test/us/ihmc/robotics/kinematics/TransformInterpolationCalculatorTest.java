@@ -67,18 +67,18 @@ public class TransformInterpolationCalculatorTest
       RigidBodyTransform t3 =  new RigidBodyTransform();
       transformInterpolationCalculator.computeInterpolation(t1, t2, t3, 0.0);
       Vector3d interpolatedVector = new Vector3d();
-      t3.get(interpolatedVector);
+      t3.getTranslation(interpolatedVector);
       assertTrue(vector1.epsilonEquals(interpolatedVector, 1e-8));
 
       transformInterpolationCalculator.computeInterpolation(t1, t2, t3, 1.0);
       interpolatedVector = new Vector3d();
-      t3.get(interpolatedVector);
+      t3.getTranslation(interpolatedVector);
       assertTrue(vector2.epsilonEquals(interpolatedVector, 1e-8));
 
       double alpha = 0.25;
       transformInterpolationCalculator.computeInterpolation(t1, t2, t3, alpha);
       interpolatedVector = new Vector3d();
-      t3.get(interpolatedVector);
+      t3.getTranslation(interpolatedVector);
 
       Vector3d expectedVector = new Vector3d();
       expectedVector.scaleAdd((1- alpha), vector1, expectedVector);
@@ -107,8 +107,8 @@ public class TransformInterpolationCalculatorTest
       pitch2 = 0.0;
       roll2 = 0.0;
 
-      t1.setEuler(new Vector3d(roll1, pitch1, yaw1));
-      t2.setEuler(new Vector3d(roll2, pitch2, yaw2));
+      t1.setRotationEulerAndZeroTranslation(new Vector3d(roll1, pitch1, yaw1));
+      t2.setRotationEulerAndZeroTranslation(new Vector3d(roll2, pitch2, yaw2));
 
       alpha = 0.0;
       transformInterpolationCalculator.computeInterpolation(t1, t2, t3, alpha);
@@ -132,8 +132,8 @@ public class TransformInterpolationCalculatorTest
       pitch2 = 0.0;
       roll2 = 0.0;
 
-      t1.setEuler(new Vector3d(roll1, pitch1, yaw1));
-      t2.setEuler(new Vector3d(roll2, pitch2, yaw2));
+      t1.setRotationEulerAndZeroTranslation(new Vector3d(roll1, pitch1, yaw1));
+      t2.setRotationEulerAndZeroTranslation(new Vector3d(roll2, pitch2, yaw2));
 
       alpha = 0.0;
       transformInterpolationCalculator.computeInterpolation(t1, t2, t3, alpha);
@@ -170,8 +170,8 @@ public class TransformInterpolationCalculatorTest
       pitch2 = 0.0;
       roll2 = 1.0;
 
-      t1.setEuler(new Vector3d(roll1, pitch1, yaw1));
-      t2.setEuler(new Vector3d(roll2, pitch2, yaw2));
+      t1.setRotationEulerAndZeroTranslation(new Vector3d(roll1, pitch1, yaw1));
+      t2.setRotationEulerAndZeroTranslation(new Vector3d(roll2, pitch2, yaw2));
 
       alpha = 0.0;
       transformInterpolationCalculator.computeInterpolation(t1, t2, t3, alpha);
@@ -208,8 +208,8 @@ public class TransformInterpolationCalculatorTest
       pitch2 = 1.0;
       roll2 = 0.0;
 
-      t1.setEuler(new Vector3d(roll1, pitch1, yaw1));
-      t2.setEuler(new Vector3d(roll2, pitch2, yaw2));
+      t1.setRotationEulerAndZeroTranslation(new Vector3d(roll1, pitch1, yaw1));
+      t2.setRotationEulerAndZeroTranslation(new Vector3d(roll2, pitch2, yaw2));
 
       alpha = 0.0;
       transformInterpolationCalculator.computeInterpolation(t1, t2, t3, alpha);
@@ -250,8 +250,8 @@ public class TransformInterpolationCalculatorTest
       pitch2 = 0.0;
       roll2 = 0.0;
 
-      t1.setEuler(new Vector3d(roll1, pitch1, yaw1));
-      t2.setEuler(new Vector3d(roll2, pitch2, yaw2));
+      t1.setRotationEulerAndZeroTranslation(new Vector3d(roll1, pitch1, yaw1));
+      t2.setRotationEulerAndZeroTranslation(new Vector3d(roll2, pitch2, yaw2));
 
       alpha = 0.0;
       transformInterpolationCalculator.computeInterpolation(t1, t2, t3, alpha);
@@ -280,8 +280,8 @@ public class TransformInterpolationCalculatorTest
       pitch2 = 0.0;
       roll2 = 0.0;
 
-      t1.setEuler(new Vector3d(roll1, pitch1, yaw1));
-      t2.setEuler(new Vector3d(roll2, pitch2, yaw2));
+      t1.setRotationEulerAndZeroTranslation(new Vector3d(roll1, pitch1, yaw1));
+      t2.setRotationEulerAndZeroTranslation(new Vector3d(roll2, pitch2, yaw2));
 
       alpha = 0.0;
       transformInterpolationCalculator.computeInterpolation(t1, t2, t3, alpha);
@@ -323,8 +323,8 @@ public class TransformInterpolationCalculatorTest
       pitch2 = -1.0;
       roll2 = 1.6;
 
-      t1.setEuler(new Vector3d(roll1, pitch1, yaw1));
-      t2.setEuler(new Vector3d(roll2, pitch2, yaw2));
+      t1.setRotationEulerAndZeroTranslation(new Vector3d(roll1, pitch1, yaw1));
+      t2.setRotationEulerAndZeroTranslation(new Vector3d(roll2, pitch2, yaw2));
 
       AxisAngle4d axist1 = new AxisAngle4d();
       Matrix3d maxtrixt1 = new Matrix3d();
