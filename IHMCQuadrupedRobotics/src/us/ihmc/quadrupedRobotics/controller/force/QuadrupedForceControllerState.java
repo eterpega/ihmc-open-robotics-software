@@ -12,5 +12,6 @@ public enum QuadrupedForceControllerState
    PACE,
    XGAIT,
    FALL,
-   JOINT_POSE
+   JOINT_POSE,
+   CARTESIAN_TRAJECTORY
 }

@@ -9,11 +9,16 @@ import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedTaskSpaceEsti
 import us.ihmc.quadrupedRobotics.estimator.referenceFrames.QuadrupedReferenceFrames;
 import us.ihmc.quadrupedRobotics.model.QuadrupedRuntimeEnvironment;
 import us.ihmc.quadrupedRobotics.params.ParameterFactory;
+import us.ihmc.quadrupedRobotics.planning.ContactState;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
 import us.ihmc.quadrupedRobotics.providers.QuadrupedSoleWaypointInputProvider;
 import us.ihmc.robotics.math.trajectories.waypoints.MultipleWaypointsPositionTrajectoryGenerator;
 import us.ihmc.robotics.robotSide.RobotQuadrant;
+import us.ihmc.robotics.robotSide.QuadrantDependentList;
+import us.ihmc.quadrupedRobotics.params.DoubleParameter;
+import us.ihmc.quadrupedRobotics.params.DoubleArrayParameter;
+
 
 public class QuadrupedForceBasedCartesianController implements QuadrupedController
 {
@@ -22,21 +27,16 @@ public class QuadrupedForceBasedCartesianController implements QuadrupedControll
    private final QuadrupedReferenceFrames referenceFrames;
 
    private final ParameterFactory parameterFactory = ParameterFactory.createWithRegistry(getClass(), registry);
-   MultipleWaypointsPositionTrajectoryGenerator waypointsPositionTrajectoryGenerator;
+   QuadrantDependentList<MultipleWaypointsPositionTrajectoryGenerator> quadrupedWaypointsPositionTrajectoryGenerator;
 
-   //   private final DoubleParameter trajectoryTimeParameter = parameterFactory.createDouble("trajectoryTime", 3.0);
-   //   private final DoubleParameter jointDampingParameter = parameterFactory.createDouble("jointDamping", 15.0);
-   //
-   //   private final DoubleArrayParameter solePositionProportionalGainsParameter = parameterFactory.createDoubleArray("solePositionProportionalGains", 10000, 10000, 10000);
-   //   private final DoubleArrayParameter solePositionDerivativeGainsParameter = parameterFactory.createDoubleArray("solePositionDerivativeGains", 100, 100, 100);
-   //   private final DoubleArrayParameter solePositionIntegralGainsParameter = parameterFactory.createDoubleArray("solePositionIntegralGains", 0, 0, 0);
-   //   private final DoubleParameter solePositionMaxIntegralErrorParameter = parameterFactory.createDouble("solePositionMaxIntegralError", 0);
-   //
-   //   // Sole trajectories
-   //   private final TimeInterval trajectoryTimeInterval = new TimeInterval();
-   //   private final FramePoint finalSolePosition = new FramePoint();
-   //   private final QuadrantDependentList<ThreeDoFMinimumJerkTrajectory> solePositionTrajectories = new QuadrantDependentList<>();
-   //
+   private final DoubleParameter trajectoryTimeParameter = parameterFactory.createDouble("trajectoryTime", 3.0);
+   private final DoubleParameter jointDampingParameter = parameterFactory.createDouble("jointDamping", 15.0);
+
+   private final DoubleArrayParameter solePositionProportionalGainsParameter = parameterFactory.createDoubleArray("solePositionProportionalGains", 10000, 10000, 10000);
+   private final DoubleArrayParameter solePositionDerivativeGainsParameter = parameterFactory.createDoubleArray("solePositionDerivativeGains", 100, 100, 100);
+   private final DoubleArrayParameter solePositionIntegralGainsParameter = parameterFactory.createDoubleArray("solePositionIntegralGains", 0, 0, 0);
+   private final DoubleParameter solePositionMaxIntegralErrorParameter = parameterFactory.createDouble("solePositionMaxIntegralError", 0);
+
    //   // Feedback controller
    private final QuadrupedSolePositionController solePositionController;
    private final QuadrupedSolePositionController.Setpoints solePositionControllerSetpoints;
@@ -55,17 +55,19 @@ public class QuadrupedForceBasedCartesianController implements QuadrupedControll
       this.inputProvider = inputProvider;
       this.robotTime = environment.getRobotTimestamp();
       this.referenceFrames = controllerToolbox.getReferenceFrames();
-      waypointsPositionTrajectoryGenerator = new MultipleWaypointsPositionTrajectoryGenerator("leftFront", referenceFrames.getBodyFrame(), registry);
-      for (int i = 0; i < inputProvider.getNumberOfWaypoints(); i++)
+      quadrupedWaypointsPositionTrajectoryGenerator = new QuadrantDependentList<>();
+      for (RobotQuadrant quadrant : RobotQuadrant.values)
       {
-         waypointsPositionTrajectoryGenerator
-               .appendWaypoint(inputProvider.getTimeAtWayPoint(i), inputProvider.getWaypointPosition(i), inputProvider.getWaypointVelocity(i));
+         //Todo: is this how we initialize the waypoints within each quadrant
+         quadrupedWaypointsPositionTrajectoryGenerator.set(quadrant, new MultipleWaypointsPositionTrajectoryGenerator(quadrant.getCamelCaseName(),
+               referenceFrames.getBodyFrame(), registry));
+         quadrupedWaypointsPositionTrajectoryGenerator.get(quadrant).initialize(); // ?do we initialize before appending?
       }
       // Feedback controller
       solePositionController = controllerToolbox.getSolePositionController();
       solePositionControllerSetpoints = new QuadrupedSolePositionController.Setpoints();
 
-      //      // Task space controller
+      // Task space controller
       taskSpaceEstimates = new QuadrupedTaskSpaceEstimator.Estimates();
       taskSpaceEstimator = controllerToolbox.getTaskSpaceEstimator();
       taskSpaceControllerCommands = new QuadrupedTaskSpaceController.Commands();
@@ -77,7 +79,34 @@ public class QuadrupedForceBasedCartesianController implements QuadrupedControll
    @Override public void onEntry()
    {
       updateEstimates();
-      waypointsPositionTrajectoryGenerator.initialize(); // ?do we initialize before appending?
+      quadrupedWaypointsPositionTrajectoryGenerator.clear();
+      for (RobotQuadrant quadrant : RobotQuadrant.values)
+      {
+         for (int i = 0; i < inputProvider.getNumberOfWaypoints(); i++)
+         {
+            quadrupedWaypointsPositionTrajectoryGenerator.get(quadrant)
+                  .appendWaypoint(inputProvider.getTimeAtWayPoint(quadrant, i), inputProvider.getWaypointPosition(quadrant, i),
+                        inputProvider.getWaypointVelocity(quadrant, i));
+         }
+      }
+      //Copy Pasted from stand prep
+      solePositionControllerSetpoints.initialize(taskSpaceEstimates);
+      for (RobotQuadrant quadrant : RobotQuadrant.values)
+      {
+         solePositionController.getGains(quadrant).setProportionalGains(solePositionProportionalGainsParameter.get());
+         solePositionController.getGains(quadrant).setIntegralGains(solePositionIntegralGainsParameter.get(), solePositionMaxIntegralErrorParameter.get());
+         solePositionController.getGains(quadrant).setDerivativeGains(solePositionDerivativeGainsParameter.get());
+      }
+      solePositionController.reset();
+
+      // Initialize task space controller
+      taskSpaceControllerSettings.initialize();
+      taskSpaceControllerSettings.getVirtualModelControllerSettings().setJointDamping(jointDampingParameter.get());
+      for (RobotQuadrant robotQuadrant : RobotQuadrant.values)
+      {
+         taskSpaceControllerSettings.setContactState(robotQuadrant, ContactState.NO_CONTACT);
+      }
+      taskSpaceController.reset();
    }
 
    @Override public ControllerEvent process()
@@ -85,7 +114,7 @@ public class QuadrupedForceBasedCartesianController implements QuadrupedControll
       updateEstimates();
       updateSetpoints();
 
-      return waypointsPositionTrajectoryGenerator.isDone() ? ControllerEvent.DONE : null;
+      return quadrupedWaypointsPositionTrajectoryGenerator.get(RobotQuadrant.FRONT_LEFT).isDone() ? ControllerEvent.DONE : null;
    }
 
    private void updateEstimates()
@@ -96,29 +125,31 @@ public class QuadrupedForceBasedCartesianController implements QuadrupedControll
    private void updateSetpoints()
    {
       double currentTime = robotTime.getDoubleValue(); //do we have to subtract start time?
-      waypointsPositionTrajectoryGenerator.compute(currentTime);
-      //query motion generator given current time stamp
+
       for (RobotQuadrant quadrant : RobotQuadrant.values)
       {
-         //Todo: make waypoints come in a quadrant manner
-         waypointsPositionTrajectoryGenerator.getPosition(solePositionControllerSetpoints.getSolePosition(quadrant));
-         waypointsPositionTrajectoryGenerator.getVelocity(solePositionControllerSetpoints.getSoleLinearVelocity(quadrant));
+         quadrupedWaypointsPositionTrajectoryGenerator.get(quadrant).compute(currentTime);
+         //query motion generator given current time stamp
+         quadrupedWaypointsPositionTrajectoryGenerator.get(quadrant).getPosition(solePositionControllerSetpoints.getSolePosition(quadrant));
+         quadrupedWaypointsPositionTrajectoryGenerator.get(quadrant).getVelocity(solePositionControllerSetpoints.getSoleLinearVelocity(quadrant));
       }
       solePositionController.compute(taskSpaceControllerCommands.getSoleForce(), solePositionControllerSetpoints, taskSpaceEstimates);
       taskSpaceController.compute(taskSpaceControllerSettings, taskSpaceControllerCommands);
    }
+
    private void updateGains()
    {
-//      for (RobotQuadrant quadrant : RobotQuadrant.values)
-//      {
-//         solePositionController.getGains(quadrant).setProportionalGains(solePositionProportionalGainsParameter.get());
-//         solePositionController.getGains(quadrant).setIntegralGains(solePositionIntegralGainsParameter.get(), solePositionMaxIntegralErrorParameter.get());
-//         solePositionController.getGains(quadrant).setDerivativeGains(solePositionDerivativeGainsParameter.get());
-//      }
-//      taskSpaceControllerSettings.getVirtualModelControllerSettings().setJointDamping(jointDampingParameter.get());
-//      taskSpaceControllerSettings.getVirtualModelControllerSettings().setJointPositionLimitDamping(jointPositionLimitDampingParameter.get());
-//      taskSpaceControllerSettings.getVirtualModelControllerSettings().setJointPositionLimitStiffness(jointPositionLimitStiffnessParameter.get());
+            for (RobotQuadrant quadrant : RobotQuadrant.values)
+            {
+               solePositionController.getGains(quadrant).setProportionalGains(solePositionProportionalGainsParameter.get());
+               solePositionController.getGains(quadrant).setIntegralGains(solePositionIntegralGainsParameter.get(), solePositionMaxIntegralErrorParameter.get());
+               solePositionController.getGains(quadrant).setDerivativeGains(solePositionDerivativeGainsParameter.get());
+            }
+            taskSpaceControllerSettings.getVirtualModelControllerSettings().setJointDamping(jointDampingParameter.get());
+//            taskSpaceControllerSettings.getVirtualModelControllerSettings().setJointPositionLimitDamping(jointPositionLimitDampingParameter.get());
+//            taskSpaceControllerSettings.getVirtualModelControllerSettings().setJointPositionLimitStiffness(jointPositionLimitStiffnessParameter.get());
    }
+
    @Override public void onExit()
    {
    }
