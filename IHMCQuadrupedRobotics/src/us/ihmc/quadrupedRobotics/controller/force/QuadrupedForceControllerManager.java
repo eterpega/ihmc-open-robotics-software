@@ -14,10 +14,7 @@ import us.ihmc.quadrupedRobotics.params.BooleanParameter;
 import us.ihmc.quadrupedRobotics.params.ParameterFactory;
 import us.ihmc.quadrupedRobotics.params.ParameterPacketListener;
 import us.ihmc.quadrupedRobotics.planning.ContactState;
-import us.ihmc.quadrupedRobotics.providers.QuadrupedControllerInputProvider;
-import us.ihmc.quadrupedRobotics.providers.QuadrupedControllerInputProviderInterface;
-import us.ihmc.quadrupedRobotics.providers.QuadrupedTimedStepInputProvider;
-import us.ihmc.quadrupedRobotics.providers.QuadrupedXGaitSettingsProvider;
+import us.ihmc.quadrupedRobotics.providers.*;
 import us.ihmc.quadrupedRobotics.state.FiniteStateMachine;
 import us.ihmc.quadrupedRobotics.state.FiniteStateMachineBuilder;
 import us.ihmc.quadrupedRobotics.state.FiniteStateMachineYoVariableTrigger;
@@ -43,6 +40,7 @@ public class QuadrupedForceControllerManager implements QuadrupedControllerManag
    private final QuadrupedControllerInputProviderInterface inputProvider;
    private final QuadrupedTimedStepInputProvider timedStepProvider;
    private final QuadrupedXGaitSettingsProvider xGaitSettingsProvider;
+   private final QuadrupedSoleWaypointInputProvider soleWaypointInputProvider;
 
    private final FiniteStateMachine<QuadrupedForceControllerState, ControllerEvent> stateMachine;
    private final FiniteStateMachineYoVariableTrigger<QuadrupedForceControllerRequestedEvent> userEventTrigger;
@@ -59,7 +57,7 @@ public class QuadrupedForceControllerManager implements QuadrupedControllerManag
       inputProvider = new QuadrupedControllerInputProvider(runtimeEnvironment.getGlobalDataProducer(), registry);
       timedStepProvider = new QuadrupedTimedStepInputProvider(runtimeEnvironment.getGlobalDataProducer(), registry);
       xGaitSettingsProvider = new QuadrupedXGaitSettingsProvider(runtimeEnvironment.getGlobalDataProducer(), registry);
-
+      soleWaypointInputProvider = new QuadrupedSoleWaypointInputProvider(runtimeEnvironment.getGlobalDataProducer(), registry);
       GlobalDataProducer globalDataProducer = runtimeEnvironment.getGlobalDataProducer();
       
       if (globalDataProducer != null)
@@ -114,10 +112,10 @@ public class QuadrupedForceControllerManager implements QuadrupedControllerManag
          }
       }
 
-      if (fallDetector.detect())
-      {
-         this.stateMachine.trigger(QuadrupedForceControllerRequestedEvent.class,QuadrupedForceControllerRequestedEvent.REQUEST_FALL);
-      }
+//      if (fallDetector.detect())
+//      {
+//         this.stateMachine.trigger(QuadrupedForceControllerRequestedEvent.class,QuadrupedForceControllerRequestedEvent.REQUEST_FALL);
+//      }
    }
 
    @Override
@@ -156,6 +154,7 @@ public class QuadrupedForceControllerManager implements QuadrupedControllerManag
       QuadrupedController xGaitController = new QuadrupedMpcBasedXGaitController(runtimeEnvironment, controllerToolbox, inputProvider, xGaitSettingsProvider);
       QuadrupedController cartesianFallController = new QuadrupedForceBasedCartesianFallController(runtimeEnvironment, controllerToolbox);
       QuadrupedController jointSpacePoseController = new QuadrupedJointSpacePoseController(runtimeEnvironment);
+      QuadrupedController cartesianSoleController = new QuadrupedForceBasedCartesianController(runtimeEnvironment, controllerToolbox, soleWaypointInputProvider);
 
       FiniteStateMachineBuilder<QuadrupedForceControllerState, ControllerEvent> builder = new FiniteStateMachineBuilder<>(
             QuadrupedForceControllerState.class, ControllerEvent.class, "forceControllerState", registry);
@@ -169,6 +168,7 @@ public class QuadrupedForceControllerManager implements QuadrupedControllerManag
       builder.addState(QuadrupedForceControllerState.XGAIT, xGaitController);
       builder.addState(QuadrupedForceControllerState.FALL, cartesianFallController);
       builder.addState(QuadrupedForceControllerState.JOINT_POSE, jointSpacePoseController);
+      builder.addState(QuadrupedForceControllerState.CARTESIAN_SOLE, cartesianSoleController);
 
       // Add automatic transitions that lead into the stand state.
       if (bypassDoNothingStateParameter.get())
@@ -199,6 +199,9 @@ public class QuadrupedForceControllerManager implements QuadrupedControllerManag
 
       builder.addTransition(QuadrupedForceControllerRequestedEvent.class, QuadrupedForceControllerRequestedEvent.REQUEST_JOINT_POSE, QuadrupedForceControllerState.STAND, QuadrupedForceControllerState.JOINT_POSE);
       builder.addTransition(QuadrupedForceControllerRequestedEvent.class, QuadrupedForceControllerRequestedEvent.REQUEST_STAND, QuadrupedForceControllerState.JOINT_POSE, QuadrupedForceControllerState.STAND);
+
+      builder.addTransition(QuadrupedForceControllerRequestedEvent.class, QuadrupedForceControllerRequestedEvent.REQUEST_CARTESIAN_SOLE, QuadrupedForceControllerState.STAND, QuadrupedForceControllerState.CARTESIAN_SOLE);
+      builder.addTransition(QuadrupedForceControllerRequestedEvent.class, QuadrupedForceControllerRequestedEvent.REQUEST_STAND, QuadrupedForceControllerState.CARTESIAN_SOLE, QuadrupedForceControllerState.STAND);
 
       // Transitions from controllers back to stand prep.
       builder.addTransition(QuadrupedForceControllerRequestedEvent.class, QuadrupedForceControllerRequestedEvent.REQUEST_STAND_PREP, QuadrupedForceControllerState.DO_NOTHING, QuadrupedForceControllerState.STAND_PREP);

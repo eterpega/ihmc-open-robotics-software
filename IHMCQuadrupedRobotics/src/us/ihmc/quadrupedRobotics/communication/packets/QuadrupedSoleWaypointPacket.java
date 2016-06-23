@@ -71,17 +71,17 @@ public class QuadrupedSoleWaypointPacket extends Packet<QuadrupedSoleWaypointPac
       return output;
    }
 
-   public boolean epsilonEqualsQuadrantDoubleList(QuadrantDependentList<ArrayList<Double>> quadrantSoleDoubleList, double epsilon)
+   public boolean epsilonEqualsQuadrantDoubleList(QuadrantDependentList<ArrayList<Double>> quadrupedSoleWaypoint, double epsilon)
    {
       boolean output = true;
       for (RobotQuadrant quadrant : RobotQuadrant.values)
       {
-         if(this.quadrupedSoleWaypoint.quadrantSoleTimingList.get(quadrant).size() != quadrantSoleDoubleList.get(quadrant).size()){
+         if(this.quadrupedSoleWaypoint.quadrantSoleTimingList.get(quadrant).size() != quadrupedSoleWaypoint.get(quadrant).size()){
             return false;
          }
          for (int i = 0; i < this.quadrupedSoleWaypoint.quadrantSoleTimingList.get(quadrant).size(); i++)
          {
-            output &= DoubleMath.fuzzyEquals(this.quadrupedSoleWaypoint.quadrantSoleTimingList.get(quadrant).get(i), quadrantSoleDoubleList.get(quadrant).get(i), epsilon);
+            output &= DoubleMath.fuzzyEquals(this.quadrupedSoleWaypoint.quadrantSoleTimingList.get(quadrant).get(i), quadrupedSoleWaypoint.get(quadrant).get(i), epsilon);
          }
       }
       return output;
