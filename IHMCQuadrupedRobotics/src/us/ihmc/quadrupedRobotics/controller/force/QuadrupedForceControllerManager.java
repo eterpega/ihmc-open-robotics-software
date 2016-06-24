@@ -201,6 +201,7 @@ public class QuadrupedForceControllerManager implements QuadrupedControllerManag
       builder.addTransition(QuadrupedForceControllerRequestedEvent.class, QuadrupedForceControllerRequestedEvent.REQUEST_STAND, QuadrupedForceControllerState.JOINT_POSE, QuadrupedForceControllerState.STAND);
 
       builder.addTransition(QuadrupedForceControllerRequestedEvent.class, QuadrupedForceControllerRequestedEvent.REQUEST_CARTESIAN_SOLE, QuadrupedForceControllerState.STAND, QuadrupedForceControllerState.CARTESIAN_SOLE);
+      builder.addTransition(ControllerEvent.DONE, QuadrupedForceControllerState.CARTESIAN_SOLE, QuadrupedForceControllerState.STAND);
       builder.addTransition(QuadrupedForceControllerRequestedEvent.class, QuadrupedForceControllerRequestedEvent.REQUEST_STAND, QuadrupedForceControllerState.CARTESIAN_SOLE, QuadrupedForceControllerState.STAND);
 
       // Transitions from controllers back to stand prep.

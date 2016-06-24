@@ -55,6 +55,7 @@ public class QuadrupedForceBasedCartesianController implements QuadrupedControll
    private final QuadrupedTaskSpaceController taskSpaceController;
    private final QuadrupedSoleWaypointInputProvider soleWaypointInputProvider;
    private Double taskStartTime;
+   private Double currentTime;
    public QuadrupedForceBasedCartesianController(QuadrupedRuntimeEnvironment environment, QuadrupedForceControllerToolbox controllerToolbox,
          QuadrupedSoleWaypointInputProvider inputProvider)
    {
@@ -127,7 +128,7 @@ public class QuadrupedForceBasedCartesianController implements QuadrupedControll
       updateEstimates();
       updateSetpoints();
 
-      return quadrupedWaypointsPositionTrajectoryGenerator.get(RobotQuadrant.FRONT_LEFT).isDone() ? ControllerEvent.DONE : null;
+      return (currentTime > quadrupedWaypointsPositionTrajectoryGenerator.get(RobotQuadrant.FRONT_LEFT).getLastWaypointTime())? ControllerEvent.DONE : null;
    }
 
    private void updateEstimates()
@@ -137,7 +138,7 @@ public class QuadrupedForceBasedCartesianController implements QuadrupedControll
 
    private void updateSetpoints()
    {
-      double currentTime = robotTime.getDoubleValue()-taskStartTime; //do we have to subtract start time?
+      currentTime = robotTime.getDoubleValue()-taskStartTime; //do we have to subtract start time?
       if (soleWaypointInputProvider.get().quadrantSoleTimingList.get(RobotQuadrant.FRONT_LEFT) == null)
       {
          System.out.print("NULL PACKET UPDATE!\n");
