@@ -122,9 +122,9 @@ public class QuadrupedForceBasedCartesianController implements QuadrupedControll
          Point3d startPoint = taskSpaceEstimates.getSolePosition(quadrant).getPoint();
          positionWaypoints.clear();
          positionWaypoints.add(new Point3d(startPoint.getX(), startPoint.getY(), startPoint.getZ()));
-         positionWaypoints.add(new Point3d(startPoint.getX(), startPoint.getY(), startPoint.getZ() + .1));
+         positionWaypoints.add(new Point3d(startPoint.getX(), startPoint.getY(), startPoint.getZ() + .10));
          positionWaypoints.add(new Point3d(startPoint.getX(), startPoint.getY(), startPoint.getZ()));
-         positionWaypoints.add(new Point3d(startPoint.getX(), startPoint.getY(), startPoint.getZ() + .1));
+         positionWaypoints.add(new Point3d(startPoint.getX(), startPoint.getY(), startPoint.getZ() + -.10));
          positionWaypoints.add(new Point3d(startPoint.getX(), startPoint.getY(), startPoint.getZ()));
          velocityWaypoints.clear();
          velocityWaypoints.add(new Vector3d(0, 0, 0));
