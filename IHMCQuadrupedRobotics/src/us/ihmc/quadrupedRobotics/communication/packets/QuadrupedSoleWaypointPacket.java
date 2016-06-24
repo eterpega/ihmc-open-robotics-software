@@ -22,7 +22,11 @@ public class QuadrupedSoleWaypointPacket extends Packet<QuadrupedSoleWaypointPac
    {
       this.quadrupedSoleWaypoint = new QuadrupedSoleWaypoint();
    }
-
+   public QuadrupedSoleWaypointPacket(QuadrupedSoleWaypoint quadrupedSoleWaypoint)
+   {
+      this.quadrupedSoleWaypoint = new QuadrupedSoleWaypoint();
+      this.quadrupedSoleWaypoint.set(quadrupedSoleWaypoint);
+   }
    public QuadrupedSoleWaypointPacket(QuadrantDependentList<ArrayList<Point3d>> quadrantSolePositionList,
          QuadrantDependentList<ArrayList<Vector3d>> quadrantSoleVelocityList, QuadrantDependentList<ArrayList<Double>> quadrantSoleTimingList)
    {

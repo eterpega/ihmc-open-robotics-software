@@ -1,6 +1,9 @@
 package us.ihmc.quadrupedRobotics.planning;
 
+import com.jme3.scene.shape.Quad;
 import us.ihmc.robotics.robotSide.QuadrantDependentList;
+import us.ihmc.robotics.robotSide.RobotQuadrant;
+
 import javax.vecmath.Point3d;
 import javax.vecmath.Vector3d;
 import java.util.ArrayList;
@@ -21,62 +24,61 @@ public class QuadrupedSoleWaypoint
       quadrantSoleTimingList = new QuadrantDependentList<>();
    }
 
-   public QuadrupedSoleWaypoint(QuadrantDependentList<ArrayList<Point3d>> quadrantSolePositionList,
-         QuadrantDependentList<ArrayList<Vector3d>> quadrantSoleVelocityList, QuadrantDependentList<ArrayList<Double>> quadrantSoleTimingList)
+   public QuadrupedSoleWaypoint(QuadrupedSoleWaypoint other)
    {
-      this(); //not sure if this is correct
+      this(other.quadrantSolePositionList, other.quadrantSoleVelocityList, other.quadrantSoleTimingList);
+   }
+
+   public QuadrupedSoleWaypoint(QuadrantDependentList<ArrayList<Point3d>> quadrantSolePositionList_input,
+         QuadrantDependentList<ArrayList<Vector3d>> quadrantSoleVelocityList_input, QuadrantDependentList<ArrayList<Double>> quadrantSoleTimingList_input)
+   {
+      QuadrantDependentList<ArrayList<Point3d>> quadrantSolePositionList = new QuadrantDependentList<>();
+      QuadrantDependentList<ArrayList<Vector3d>> quadrantSoleVelocityList = new QuadrantDependentList<>();
+      QuadrantDependentList<ArrayList<Double>> quadrantSoleTimingList = new QuadrantDependentList<>();
+      for (RobotQuadrant quadrant : RobotQuadrant.values())
+      {
+         if(quadrantSolePositionList_input.get(quadrant) != null){
+            ArrayList<Point3d> pointList = new ArrayList<>();
+            ArrayList<Vector3d> vectorList = new ArrayList<>();
+            ArrayList<Double> doubleList = new ArrayList<>();
+            for (int i = 0; i < quadrantSoleTimingList_input.get(quadrant).size(); ++i)
+            {
+               pointList.add(new Point3d(quadrantSolePositionList_input.get(quadrant).get(i)));
+               vectorList.add(new Vector3d(quadrantSoleVelocityList_input.get(quadrant).get(i)));
+               doubleList.add(new Double(quadrantSoleTimingList_input.get(quadrant).get(i)));
+            }
+            quadrantSolePositionList.set(quadrant, pointList);
+            quadrantSoleVelocityList.set(quadrant, vectorList);
+            quadrantSoleTimingList.set(quadrant, doubleList);
+         }
+      }
       this.quadrantSolePositionList = quadrantSolePositionList;
       this.quadrantSoleVelocityList = quadrantSoleVelocityList;
       this.quadrantSoleTimingList = quadrantSoleTimingList;
    }
-
-
-// For now I simply make everything public. I can add getters and setters later if needed.
-
-//   //Getters
-//   public QuadrantDependentList<ArrayList<Point3d>> getQuadrantPositionList(RobotQuadrant key)
-//   {
-//      return quadrantSolePositionList;
-//   }
-//
-//   public QuadrantDependentList<ArrayList<Vector3d>> getQuadrantVelocityList(RobotQuadrant key)
-//   {
-//      return quadrantSoleVelocityList;
-//   }
-//
-//   public QuadrantDependentList<ArrayList<Double>> getQuadrantTimingList(RobotQuadrant key)
-//   {
-//      return quadrantSoleTimingList;
-//   }
-//
-//   public ArrayList<Point3d> getPositionList(RobotQuadrant key)
-//   {
-//      return quadrantSolePositionList.get(key);
-//   }
-//
-//   public ArrayList<Vector3d> getVelocityList(RobotQuadrant key)
-//   {
-//      return quadrantSoleVelocityList.get(key);
-//   }
-//
-//   public ArrayList<Double> getTimingList(RobotQuadrant key)
-//   {
-//      return quadrantSoleTimingList.get(key);
-//   }
-//
-//   //Setters
-//   public void setQuadrantPositionList(QuadrantDependentList<ArrayList<Point3d>> input)
-//   {
-//      this.quadrantSolePositionList = input;
-//   }
-//
-//   public void setQuadrantVelocityList(QuadrantDependentList<ArrayList<Vector3d>> input)
-//   {
-//      this.quadrantSoleVelocityList = input;
-//   }
-//
-//   public void setQuadrantTimingList(QuadrantDependentList<ArrayList<Double>> input)
-//   {
-//      this.quadrantSoleTimingList = input;
-//   }
+   public void set(QuadrupedSoleWaypoint other){
+      QuadrantDependentList<ArrayList<Point3d>> quadrantSolePositionList = new QuadrantDependentList<>();
+      QuadrantDependentList<ArrayList<Vector3d>> quadrantSoleVelocityList = new QuadrantDependentList<>();
+      QuadrantDependentList<ArrayList<Double>> quadrantSoleTimingList = new QuadrantDependentList<>();
+      for (RobotQuadrant quadrant : RobotQuadrant.values())
+      {
+         if(other.quadrantSolePositionList.get(quadrant) != null){
+            ArrayList<Point3d> pointList = new ArrayList<>();
+            ArrayList<Vector3d> vectorList = new ArrayList<>();
+            ArrayList<Double> doubleList = new ArrayList<>();
+            for (int i = 0; i < other.quadrantSoleTimingList.get(quadrant).size(); ++i)
+            {
+               pointList.add(new Point3d(other.quadrantSolePositionList.get(quadrant).get(i)));
+               vectorList.add(new Vector3d(other.quadrantSoleVelocityList.get(quadrant).get(i)));
+               doubleList.add(new Double(other.quadrantSoleTimingList.get(quadrant).get(i)));
+            }
+            quadrantSolePositionList.set(quadrant, pointList);
+            quadrantSoleVelocityList.set(quadrant, vectorList);
+            quadrantSoleTimingList.set(quadrant, doubleList);
+         }
+      }
+      this.quadrantSolePositionList = quadrantSolePositionList;
+      this.quadrantSoleVelocityList = quadrantSoleVelocityList;
+      this.quadrantSoleTimingList = quadrantSoleTimingList;
+   }
 }
