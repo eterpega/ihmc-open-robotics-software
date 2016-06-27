@@ -26,16 +26,35 @@ public class QuadrupedSoleWaypoint
 
    public QuadrupedSoleWaypoint(QuadrupedSoleWaypoint other)
    {
-      set(other);
+      this(other.quadrantSolePositionList, other.quadrantSoleVelocityList, other.quadrantSoleTimingList);
    }
+
    public QuadrupedSoleWaypoint(QuadrantDependentList<ArrayList<Point3d>> quadrantSolePositionList_input,
-                  QuadrantDependentList<ArrayList<Vector3d>> quadrantSoleVelocityList_input, QuadrantDependentList<ArrayList<Double>> quadrantSoleTimingList_input)
+         QuadrantDependentList<ArrayList<Vector3d>> quadrantSoleVelocityList_input, QuadrantDependentList<ArrayList<Double>> quadrantSoleTimingList_input)
    {
-      QuadrupedSoleWaypoint other = new QuadrupedSoleWaypoint();
-      other.quadrantSolePositionList = quadrantSolePositionList_input;
-      other.quadrantSoleVelocityList = quadrantSoleVelocityList_input;
-      other.quadrantSoleTimingList = quadrantSoleTimingList_input;
-      set(other);
+      QuadrantDependentList<ArrayList<Point3d>> quadrantSolePositionList = new QuadrantDependentList<>();
+      QuadrantDependentList<ArrayList<Vector3d>> quadrantSoleVelocityList = new QuadrantDependentList<>();
+      QuadrantDependentList<ArrayList<Double>> quadrantSoleTimingList = new QuadrantDependentList<>();
+      for (RobotQuadrant quadrant : RobotQuadrant.values())
+      {
+         if(quadrantSolePositionList_input.get(quadrant) != null){
+            ArrayList<Point3d> pointList = new ArrayList<>();
+            ArrayList<Vector3d> vectorList = new ArrayList<>();
+            ArrayList<Double> doubleList = new ArrayList<>();
+            for (int i = 0; i < quadrantSoleTimingList_input.get(quadrant).size(); ++i)
+            {
+               pointList.add(new Point3d(quadrantSolePositionList_input.get(quadrant).get(i)));
+               vectorList.add(new Vector3d(quadrantSoleVelocityList_input.get(quadrant).get(i)));
+               doubleList.add(new Double(quadrantSoleTimingList_input.get(quadrant).get(i)));
+            }
+            quadrantSolePositionList.set(quadrant, pointList);
+            quadrantSoleVelocityList.set(quadrant, vectorList);
+            quadrantSoleTimingList.set(quadrant, doubleList);
+         }
+      }
+      this.quadrantSolePositionList = quadrantSolePositionList;
+      this.quadrantSoleVelocityList = quadrantSoleVelocityList;
+      this.quadrantSoleTimingList = quadrantSoleTimingList;
    }
    public void set(QuadrupedSoleWaypoint other){
       QuadrantDependentList<ArrayList<Point3d>> quadrantSolePositionList = new QuadrantDependentList<>();
