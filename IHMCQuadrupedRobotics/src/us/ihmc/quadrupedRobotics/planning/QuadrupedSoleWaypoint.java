@@ -81,4 +81,34 @@ public class QuadrupedSoleWaypoint
       this.quadrantSoleVelocityList = quadrantSoleVelocityList;
       this.quadrantSoleTimingList = quadrantSoleTimingList;
    }
+
+   public QuadrantDependentList<ArrayList<Point3d>> getQuadrantSolePositionList()
+   {
+      return quadrantSolePositionList;
+   }
+
+   public QuadrantDependentList<ArrayList<Vector3d>> getQuadrantSoleVelocityList()
+   {
+      return quadrantSoleVelocityList;
+   }
+
+   public QuadrantDependentList<ArrayList<Double>> getQuadrantSoleTimingList()
+   {
+      return quadrantSoleTimingList;
+   }
+
+   public void setQuadrantSolePositionList(QuadrantDependentList<ArrayList<Point3d>> quadrantSolePositionList)
+   {
+      this.quadrantSolePositionList = quadrantSolePositionList;
+   }
+
+   public void setQuadrantSoleVelocityList(QuadrantDependentList<ArrayList<Vector3d>> quadrantSoleVelocityList)
+   {
+      this.quadrantSoleVelocityList = quadrantSoleVelocityList;
+   }
+
+   public void setQuadrantSoleTimingList(QuadrantDependentList<ArrayList<Double>> quadrantSoleTimingList)
+   {
+      this.quadrantSoleTimingList = quadrantSoleTimingList;
+   }
 }

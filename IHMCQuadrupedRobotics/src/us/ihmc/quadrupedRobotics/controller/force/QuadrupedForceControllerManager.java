@@ -79,7 +79,7 @@ public class QuadrupedForceControllerManager implements QuadrupedControllerManag
       this.stateMachine = buildStateMachine(runtimeEnvironment, inputProvider);
       this.userEventTrigger = new FiniteStateMachineYoVariableTrigger<>(stateMachine, "userTrigger", registry, QuadrupedForceControllerRequestedEvent.class);
       this.runtimeEnvironment = runtimeEnvironment;
-      fallDetector = new QuadrupedFallDetector(registry, controllerToolbox.getTaskSpaceEstimator());
+      fallDetector = new QuadrupedFallDetector(registry, controllerToolbox);
    }
 
    @Override
@@ -112,10 +112,10 @@ public class QuadrupedForceControllerManager implements QuadrupedControllerManag
          }
       }
 
-//      if (fallDetector.detect())
-//      {
-//         this.stateMachine.trigger(QuadrupedForceControllerRequestedEvent.class,QuadrupedForceControllerRequestedEvent.REQUEST_FALL);
-//      }
+      if (fallDetector.detect())
+      {
+         this.stateMachine.trigger(QuadrupedForceControllerRequestedEvent.class,QuadrupedForceControllerRequestedEvent.REQUEST_FALL);
+      }
    }
 
    @Override

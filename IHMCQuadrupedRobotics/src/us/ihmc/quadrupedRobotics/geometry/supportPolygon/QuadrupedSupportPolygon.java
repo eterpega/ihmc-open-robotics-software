@@ -865,7 +865,66 @@ public class QuadrupedSupportPolygon implements Serializable
          return closestDistance;
       }
    }
-   
+
+   /**
+    * Returns the distance the given (x,y) value is outside the polygon.  This is defined
+    * as the minimum distance from the point to each line segment on the polygon.
+    * If the point is inside the polygon, the distance will be zero.
+    * This test ignores Z values for the polygon.
+    *
+    * @param point Point2d
+    * @return boolean
+    */
+
+   public double getDistanceOutside2d(FramePoint2d point)
+   {
+      return getDistanceOutside2d(point.getX(), point.getY());
+   }
+   public double getDistanceOutside2d(FramePoint point)
+   {
+      return getDistanceOutside2d(point.getX(), point.getY());
+   }
+
+   private double getDistanceOutside2d(double x, double y)
+   {
+      if (size() == 1)
+      {
+         FramePoint footstep = getFootstep(getFirstSupportingQuadrant());
+         return GeometryTools.distanceBetweenPoints(x, y, footstep.getX(), footstep.getY());
+      }
+      else if (size() == 2)
+      {
+         FramePoint pointOne = getFootstep(getFirstSupportingQuadrant());
+         FramePoint pointTwo = getFootstep(getLastSupportingQuadrant());
+         return Math.abs(GeometryTools.distanceFromPointToLine(x, y, pointOne.getX(), pointOne.getY(), pointTwo.getX(), pointTwo.getY()));
+      }
+      else
+      {
+         double closestDistance = Double.POSITIVE_INFINITY;
+         if(isInside(x,y)){
+            closestDistance = 0;
+         }else{
+            for (RobotQuadrant robotQuadrant : getSupportingQuadrantsInOrder())
+            {
+               FramePoint pointOne = getFootstep(robotQuadrant);
+               FramePoint pointTwo = getFootstep(getNextClockwiseSupportingQuadrant(robotQuadrant));
+
+               double distance = Math.abs(getDistanceToSideOfSegment(x, y, pointOne, pointTwo));
+               if (distance < closestDistance)
+               {
+                  closestDistance = distance;
+               }
+            }
+         }
+         if(closestDistance <= 0 ){
+            return -getDistanceInside2d(x,y);
+         }else{
+            return closestDistance;
+         }
+      }
+   }
+
+
    private double getDistanceToSideOfSegment(double x, double y, FramePoint pointOne, FramePoint pointTwo)
    {
       double x1 = pointOne.getX();
