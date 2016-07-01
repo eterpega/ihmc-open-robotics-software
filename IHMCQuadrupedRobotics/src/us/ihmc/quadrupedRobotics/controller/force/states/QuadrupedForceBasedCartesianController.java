@@ -1,5 +1,6 @@
 package us.ihmc.quadrupedRobotics.controller.force.states;
 
+import us.ihmc.quadrupedRobotics.communication.packets.QuadrupedSoleWaypointPacket;
 import us.ihmc.quadrupedRobotics.controller.ControllerEvent;
 import us.ihmc.quadrupedRobotics.controller.QuadrupedController;
 import us.ihmc.quadrupedRobotics.controller.force.QuadrupedForceControllerToolbox;
@@ -34,6 +35,7 @@ public class QuadrupedForceBasedCartesianController implements QuadrupedControll
    private final ParameterFactory parameterFactory = ParameterFactory.createWithRegistry(getClass(), registry);
 
    private final QuadrupedSoleWaypointInputProvider soleWaypointInputProvider;
+   private final QuadrupedSoleWaypointPacket previousPacket;
    QuadrantDependentList<MultipleWaypointsPositionTrajectoryGenerator> quadrupedWaypointsPositionTrajectoryGenerator;
 
    private final DoubleParameter jointDampingParameter = parameterFactory.createDouble("jointDamping", 15.0);
@@ -77,9 +79,8 @@ public class QuadrupedForceBasedCartesianController implements QuadrupedControll
                quadrant.getCamelCaseName() + "SoleTrajectory", referenceFrames.getBodyFrame(), registry);
          quadrupedWaypointsPositionTrajectoryGenerator.set(quadrant, tempWaypointGenerator);
       }
-
+      previousPacket = new QuadrupedSoleWaypointPacket();
       environment.getParentRegistry().addChild(registry);
-
    }
 
    @Override public void onEntry()
@@ -99,29 +100,37 @@ public class QuadrupedForceBasedCartesianController implements QuadrupedControll
       taskSpaceControllerSettings.initialize();
       taskSpaceControllerSettings.getVirtualModelControllerSettings().setJointDamping(jointDampingParameter.get());
       taskSpaceController.reset();
-
-      for (RobotQuadrant quadrant : RobotQuadrant.values)
-      {
-         quadrupedWaypointsPositionTrajectoryGenerator.get(quadrant).clear();
-         for (int i = 0; i < soleWaypointInputProvider.get().quadrantSoleTimingList.get(quadrant).size(); i++)
-         {
-            quadrupedWaypointsPositionTrajectoryGenerator.get(quadrant)
-                  .appendWaypoint(soleWaypointInputProvider.get().quadrantSoleTimingList.get(quadrant).get(i),
-                        soleWaypointInputProvider.get().quadrantSolePositionList.get(quadrant).get(i),
-                        soleWaypointInputProvider.get().quadrantSoleVelocityList.get(quadrant).get(i));
-         }
-         quadrupedWaypointsPositionTrajectoryGenerator.get(quadrant).initialize();
-      }
+      updateTrajectoryFromInput();
    }
 
    @Override public ControllerEvent process()
    {
       updateEstimates();
+      if(!soleWaypointInputProvider.getPacket().epsilonEquals(previousPacket,.000001)){
+         updateTrajectoryFromInput();
+      }
       updateSetpoints();
-
+      previousPacket.set(soleWaypointInputProvider.get());
       return (currentTime > quadrupedWaypointsPositionTrajectoryGenerator.get(RobotQuadrant.FRONT_LEFT).getLastWaypointTime())? ControllerEvent.DONE : null;
    }
+   private void updateTrajectoryFromInput(){
+      if(!soleWaypointInputProvider.get().hasNull())
+      {
+         for (RobotQuadrant quadrant : RobotQuadrant.values)
+         {
+            quadrupedWaypointsPositionTrajectoryGenerator.get(quadrant).clear();
+            for (int i = 0; i < soleWaypointInputProvider.get().quadrantSoleTimingList.get(quadrant).size(); ++i)
+            {
+               quadrupedWaypointsPositionTrajectoryGenerator.get(quadrant).appendWaypoint(soleWaypointInputProvider.get().quadrantSoleTimingList.get(quadrant).get(i),
+                     soleWaypointInputProvider.get().quadrantSolePositionList.get(quadrant).get(i),
+                     soleWaypointInputProvider.get().quadrantSoleVelocityList.get(quadrant).get(i));
+            }
+            quadrupedWaypointsPositionTrajectoryGenerator.get(quadrant).initialize();
 
+         }
+
+      }
+   }
    private void updateEstimates()
    {
       taskSpaceEstimator.compute(taskSpaceEstimates);
@@ -136,9 +145,11 @@ public class QuadrupedForceBasedCartesianController implements QuadrupedControll
          //query motion generator given current time stamp
          quadrupedWaypointsPositionTrajectoryGenerator.get(quadrant).getPosition(solePositionControllerSetpoints.getSolePosition(quadrant));
          quadrupedWaypointsPositionTrajectoryGenerator.get(quadrant).getVelocity(solePositionControllerSetpoints.getSoleLinearVelocity(quadrant));
+
       }
       solePositionController.compute(taskSpaceControllerCommands.getSoleForce(), solePositionControllerSetpoints, taskSpaceEstimates);
       taskSpaceController.compute(taskSpaceControllerSettings, taskSpaceControllerCommands);
+
    }
 
    private void updateGains()

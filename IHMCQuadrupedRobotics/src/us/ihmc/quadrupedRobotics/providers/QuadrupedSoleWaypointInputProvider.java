@@ -30,9 +30,13 @@ public class QuadrupedSoleWaypointInputProvider
          });
       }
    }
-
+   public QuadrupedSoleWaypointPacket getPacket()
+   {
+      return quadrupedSoleWaypointPacket.get();
+   }
    public QuadrupedSoleWaypoint get()
    {
       return quadrupedSoleWaypointPacket.get().get();
    }
+
 }

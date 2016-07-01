@@ -111,4 +111,32 @@ public class QuadrupedSoleWaypoint
    {
       this.quadrantSoleTimingList = quadrantSoleTimingList;
    }
+   public boolean hasNull(){
+      for(RobotQuadrant quadrant: RobotQuadrant.values()){
+         if(this.quadrantSolePositionList.get(quadrant) == null){
+            return true;
+         }
+         if(this.quadrantSoleVelocityList.get(quadrant) == null){
+            return true;
+         }
+         if(this.quadrantSoleTimingList.get(quadrant) == null){
+            return true;
+         }
+      }
+      return false;
+   }
+   public boolean isNull(){
+      for(RobotQuadrant quadrant: RobotQuadrant.values()){
+         if(this.quadrantSolePositionList.get(quadrant) != null){
+            return false;
+         }
+         if(this.quadrantSoleVelocityList.get(quadrant) != null){
+            return false;
+         }
+         if(this.quadrantSoleTimingList.get(quadrant) != null){
+            return false;
+         }
+      }
+      return true;
+   }
 }

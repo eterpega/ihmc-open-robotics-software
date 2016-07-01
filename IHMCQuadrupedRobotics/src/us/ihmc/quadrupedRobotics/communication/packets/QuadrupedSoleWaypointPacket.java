@@ -36,11 +36,19 @@ public class QuadrupedSoleWaypointPacket extends Packet<QuadrupedSoleWaypointPac
    //Todo: Check epsilon equals logic
    @Override public boolean epsilonEquals(QuadrupedSoleWaypointPacket other, double epsilon)
    {
-      boolean output = true;
-      output &= epsilonEqualsQuadrantPointList(other.quadrupedSoleWaypoint.quadrantSolePositionList, epsilon);
-      output &= epsilonEqualsQuadrantVectorList(other.quadrupedSoleWaypoint.quadrantSoleVelocityList, epsilon);
-      output &= epsilonEqualsQuadrantDoubleList(other.quadrupedSoleWaypoint.quadrantSoleTimingList, epsilon);
-      return output;
+      if(other.get().hasNull() || this.get().hasNull()){
+         if(other.get().isNull() && this.get().isNull()){
+            return true;
+         }else{
+            return false;
+         }
+      }else{
+         boolean output = true;
+         output &= epsilonEqualsQuadrantPointList(other.quadrupedSoleWaypoint.quadrantSolePositionList, epsilon);
+         output &= epsilonEqualsQuadrantVectorList(other.quadrupedSoleWaypoint.quadrantSoleVelocityList, epsilon);
+         output &= epsilonEqualsQuadrantDoubleList(other.quadrupedSoleWaypoint.quadrantSoleTimingList, epsilon);
+         return output;
+      }
    }
 
    public boolean epsilonEqualsQuadrantPointList(QuadrantDependentList<ArrayList<Point3d>> quadrantSolePointList, double epsilon)
@@ -93,4 +101,8 @@ public class QuadrupedSoleWaypointPacket extends Packet<QuadrupedSoleWaypointPac
 
    public QuadrupedSoleWaypoint get() {return quadrupedSoleWaypoint;}
 
+   public void set(QuadrupedSoleWaypoint quadrupedSoleWaypoint)
+   {
+      this.quadrupedSoleWaypoint = quadrupedSoleWaypoint;
+   }
 }
