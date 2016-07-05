@@ -58,7 +58,44 @@ public class LowLevelJointData implements LowLevelJointDataReadOnly
       if (!peekResetIntegratorsRequest())
          resetIntegrators.set(other.peekResetIntegratorsRequest());
    }
-   
+
+   /**
+    * Adds the desired values in other to this. Will throw an exception
+    * if the control mode is different.
+    */
+   public void add(LowLevelJointDataReadOnly other)
+   {
+      if (hasControlMode() && other.hasControlMode())
+         if (getControlMode() != other.getControlMode())
+            throwDifferentControModeException();
+
+      if (!hasControlMode())
+         setControlMode(other.getControlMode());
+
+      if (!hasDesiredTorque())
+         desiredTorque.set(other.getDesiredTorque());
+      else if (other.hasDesiredTorque())
+         desiredTorque.addAndGet(other.getDesiredTorque());
+
+      if (!hasDesiredPosition())
+         desiredPosition.set(other.getDesiredPosition());
+      else if (other.hasDesiredPosition())
+         desiredPosition.addAndGet(other.getDesiredPosition());
+
+      if (!hasDesiredVelocity())
+         desiredVelocity.set(other.getDesiredVelocity());
+      else if (other.hasDesiredVelocity())
+         desiredVelocity.addAndGet(other.getDesiredVelocity());
+
+      if (!hasDesiredAcceleration())
+         desiredAcceleration.set(other.getDesiredAcceleration());
+      else if (other.hasDesiredAcceleration())
+         desiredAcceleration.addAndGet(other.getDesiredAcceleration());
+
+      if (!peekResetIntegratorsRequest())
+         resetIntegrators.set(other.peekResetIntegratorsRequest());
+   }
+
    public void setDesiredsFromOneDoFJoint(OneDoFJoint jointToExtractDesiredsFrom)
    {
       setDesiredTorque(jointToExtractDesiredsFrom.getTau());
@@ -168,6 +205,11 @@ public class LowLevelJointData implements LowLevelJointDataReadOnly
    public boolean peekResetIntegratorsRequest()
    {
       return resetIntegrators.get();
+   }
+
+   static void throwDifferentControModeException()
+   {
+      throw new RuntimeException("Tried to add desireds for different control modes.");
    }
 
    @Override

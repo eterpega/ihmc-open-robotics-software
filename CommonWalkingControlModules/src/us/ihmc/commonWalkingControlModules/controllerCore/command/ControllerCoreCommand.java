@@ -17,6 +17,7 @@ public class ControllerCoreCommand implements ControllerCoreCommandInterface
    private final FeedbackControlCommandList feedbackControlCommandList;
    private final InverseKinematicsCommandList inverseKinematicsCommandList;
    private final LowLevelOneDoFJointDesiredDataHolder lowLevelOneDoFJointDesiredDataHolder;
+   private final LowLevelOneDoFJointDesiredDataHolder lowLevelOneDoFJointDesiredDataToAdd;
    private WholeBodyControllerCoreMode controllerCoreMode;
 
    public ControllerCoreCommand(WholeBodyControllerCoreMode controllerCoreMode)
@@ -28,6 +29,7 @@ public class ControllerCoreCommand implements ControllerCoreCommandInterface
       feedbackControlCommandList = new FeedbackControlCommandList();
       inverseKinematicsCommandList = new InverseKinematicsCommandList();
       lowLevelOneDoFJointDesiredDataHolder = new LowLevelOneDoFJointDesiredDataHolder();
+      lowLevelOneDoFJointDesiredDataToAdd = new LowLevelOneDoFJointDesiredDataHolder();
    }
 
    public void clear()
@@ -36,6 +38,7 @@ public class ControllerCoreCommand implements ControllerCoreCommandInterface
       feedbackControlCommandList.clear();
       inverseKinematicsCommandList.clear();
       lowLevelOneDoFJointDesiredDataHolder.clear();
+      lowLevelOneDoFJointDesiredDataToAdd.clear();
    }
 
    public void addInverseDynamicsCommand(InverseDynamicsCommand<?> inverseDynamicsCommand)
@@ -66,6 +69,12 @@ public class ControllerCoreCommand implements ControllerCoreCommandInterface
    {
       if (lowLevelJointData != null)
          lowLevelOneDoFJointDesiredDataHolder.completeWith(lowLevelJointData);
+   }
+
+   public void addLowLevelJointData(LowLevelOneDoFJointDesiredDataHolderReadOnly lowLevelJointDataToAdd)
+   {
+      if (lowLevelJointDataToAdd != null)
+         lowLevelOneDoFJointDesiredDataToAdd.add(lowLevelJointDataToAdd);
    }
 
    public void setControllerCoreMode(WholeBodyControllerCoreMode controllerCoreMode)
@@ -107,6 +116,12 @@ public class ControllerCoreCommand implements ControllerCoreCommandInterface
       return lowLevelOneDoFJointDesiredDataHolder;
    }
 
+   @Override
+   public LowLevelOneDoFJointDesiredDataHolder getLowLevelOneDoFJointDesiredDataToAdd()
+   {
+      return lowLevelOneDoFJointDesiredDataToAdd;
+   }
+
    public void set(ControllerCoreCommand other)
    {
       controllerCoreMode = other.controllerCoreMode;
@@ -114,6 +129,7 @@ public class ControllerCoreCommand implements ControllerCoreCommandInterface
       feedbackControlCommandList.set(other.feedbackControlCommandList);
       inverseKinematicsCommandList.set(other.inverseKinematicsCommandList);
       lowLevelOneDoFJointDesiredDataHolder.overwriteWith(lowLevelOneDoFJointDesiredDataHolder);
+      lowLevelOneDoFJointDesiredDataToAdd.overwriteWith(other.lowLevelOneDoFJointDesiredDataToAdd);
    }
 
    @Override

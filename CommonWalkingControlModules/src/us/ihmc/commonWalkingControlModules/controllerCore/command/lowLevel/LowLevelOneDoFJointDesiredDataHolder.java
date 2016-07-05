@@ -289,6 +289,34 @@ public class LowLevelOneDoFJointDesiredDataHolder implements LowLevelOneDoFJoint
       }
    }
 
+   /**
+    * Adds the desired values in other to the desired values in this. If the control mode
+    * of a joint is not the same this method will throw an exception.
+    */
+   public void add(LowLevelOneDoFJointDesiredDataHolderReadOnly other)
+   {
+      if (other == null)
+         return;
+
+      for (int i = 0; i < other.getNumberOfJointsWithLowLevelData(); i++)
+      {
+         OneDoFJoint joint = other.getOneDoFJoint(i);
+         String jointName = joint.getName();
+
+         LowLevelJointData lowLevelJointData = lowLevelJointDataMap.get(jointName);
+         LowLevelJointDataReadOnly otherLowLevelJointData = other.getLowLevelJointData(joint);
+
+         if (lowLevelJointData != null)
+         {
+            lowLevelJointData.add(otherLowLevelJointData);
+         }
+         else
+         {
+            registerLowLevelJointDataUnsafe(joint, otherLowLevelJointData);
+         }
+      }
+   }
+
    @Override
    public LowLevelJointControlMode getJointControlMode(OneDoFJoint joint)
    {

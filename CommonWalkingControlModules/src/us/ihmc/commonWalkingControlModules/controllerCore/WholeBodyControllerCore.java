@@ -33,6 +33,7 @@ public class WholeBodyControllerCore
    private final ControllerCoreOutput controllerCoreOutput;
    private final YoRootJointDesiredConfigurationData yoRootJointDesiredConfigurationData;
    private final YoLowLevelOneDoFJointDesiredDataHolder yoLowLevelOneDoFJointDesiredDataHolder;
+   private final LowLevelOneDoFJointDesiredDataHolder lowLevelOneDoFJointDesiredDataToAdd = new LowLevelOneDoFJointDesiredDataHolder();
 
    private OneDoFJoint[] controlledOneDoFJoints;
 
@@ -63,6 +64,7 @@ public class WholeBodyControllerCore
       inverseKinematicsSolver.reset();
       virtualModelControlSolver.reset();
       yoLowLevelOneDoFJointDesiredDataHolder.clear();
+      lowLevelOneDoFJointDesiredDataToAdd.clear();
    }
 
    public void reset()
@@ -72,6 +74,7 @@ public class WholeBodyControllerCore
       inverseKinematicsSolver.reset();
       virtualModelControlSolver.clear();
       yoLowLevelOneDoFJointDesiredDataHolder.clear();
+      lowLevelOneDoFJointDesiredDataToAdd.clear();
    }
 
    public void submitControllerCoreCommand(ControllerCoreCommand controllerCoreCommand)
@@ -100,6 +103,7 @@ public class WholeBodyControllerCore
       }
 
       yoLowLevelOneDoFJointDesiredDataHolder.overwriteWith(controllerCoreCommand.getLowLevelOneDoFJointDesiredDataHolder());
+      lowLevelOneDoFJointDesiredDataToAdd.overwriteWith(controllerCoreCommand.getLowLevelOneDoFJointDesiredDataToAdd());
       yoRootJointDesiredConfigurationData.clear();
 
       controllerCoreCommand.clear();
@@ -125,6 +129,7 @@ public class WholeBodyControllerCore
          throw new RuntimeException("The controller core mode: " + currentMode.getEnumValue() + " is not handled.");
       }
 
+      yoLowLevelOneDoFJointDesiredDataHolder.add(lowLevelOneDoFJointDesiredDataToAdd);
       parseLowLevelDataInOneDoFJoints();
 
       controllerCoreOutput.setRootJointDesiredConfigurationData(yoRootJointDesiredConfigurationData);

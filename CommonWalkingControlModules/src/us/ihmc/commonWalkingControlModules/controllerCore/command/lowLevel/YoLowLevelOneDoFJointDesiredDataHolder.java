@@ -174,6 +174,25 @@ public class YoLowLevelOneDoFJointDesiredDataHolder implements LowLevelOneDoFJoi
       }
    }
 
+   /**
+    * Adds the desired values in other to the desired values in this. If the control mode
+    * of a joint is not the same this method will throw an exception.
+    */
+   public void add(LowLevelOneDoFJointDesiredDataHolderReadOnly other)
+   {
+      for (int i = 0; i < other.getNumberOfJointsWithLowLevelData(); i++)
+      {
+         OneDoFJoint joint = other.getOneDoFJoint(i);
+         YoLowLevelJointData lowLevelJointData = lowLevelJointDataMap.get(joint.getName());
+
+         if (lowLevelJointData == null)
+            throwJointNotRegisteredException(joint);
+
+         LowLevelJointDataReadOnly otherLowLevelJointData = other.getLowLevelJointData(joint);
+         lowLevelJointData.add(otherLowLevelJointData);
+      }
+   }
+
    public void insertDesiredTorquesIntoOneDoFJoints(OneDoFJoint[] oneDoFJoints)
    {
       for (int i = 0; i < oneDoFJoints.length; i++)

@@ -1,5 +1,7 @@
 package us.ihmc.commonWalkingControlModules.controllerCore.command.lowLevel;
 
+import static us.ihmc.commonWalkingControlModules.controllerCore.command.lowLevel.LowLevelJointData.throwDifferentControModeException;
+
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
 import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
@@ -68,7 +70,44 @@ public class YoLowLevelJointData implements LowLevelJointDataReadOnly
       if (!peekResetIntegratorsRequest())
          resetIntegrators.set(other.peekResetIntegratorsRequest());
    }
-   
+
+   /**
+    * Adds the desired values in other to this. Will throw an exception
+    * if the control mode is different.
+    */
+   public void add(LowLevelJointDataReadOnly other)
+   {
+      if (hasControlMode() && other.hasControlMode())
+         if (getControlMode() != other.getControlMode())
+            throwDifferentControModeException();
+
+      if (!hasControlMode())
+         setControlMode(other.getControlMode());
+
+      if (!hasDesiredTorque())
+         desiredTorque.set(other.getDesiredTorque());
+      else if (other.hasDesiredTorque())
+         desiredTorque.add(other.getDesiredTorque());
+
+      if (!hasDesiredPosition())
+         desiredPosition.set(other.getDesiredPosition());
+      else if (other.hasDesiredPosition())
+         desiredPosition.add(other.getDesiredPosition());
+
+      if (!hasDesiredVelocity())
+         desiredVelocity.set(other.getDesiredVelocity());
+      else if (other.hasDesiredVelocity())
+         desiredVelocity.add(other.getDesiredVelocity());
+
+      if (!hasDesiredAcceleration())
+         desiredAcceleration.set(other.getDesiredAcceleration());
+      else if (other.hasDesiredAcceleration())
+         desiredAcceleration.add(other.getDesiredAcceleration());
+
+      if (!peekResetIntegratorsRequest())
+         resetIntegrators.set(other.peekResetIntegratorsRequest());
+   }
+
    public void setDesiredsFromOneDoFJoint(OneDoFJoint jointToExtractDesiredsFrom)
    {
       setDesiredTorque(jointToExtractDesiredsFrom.getTau());
