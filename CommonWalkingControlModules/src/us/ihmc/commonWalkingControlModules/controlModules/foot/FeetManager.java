@@ -8,6 +8,7 @@ import us.ihmc.commonWalkingControlModules.controlModules.foot.FootControlModule
 import us.ihmc.commonWalkingControlModules.controllerCore.command.feedbackController.FeedbackControlCommand;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.feedbackController.FeedbackControlCommandList;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.InverseDynamicsCommand;
+import us.ihmc.commonWalkingControlModules.controllerCore.command.lowLevel.LowLevelOneDoFJointDesiredDataHolderReadOnly;
 import us.ihmc.commonWalkingControlModules.momentumBasedController.HighLevelHumanoidControllerToolbox;
 import us.ihmc.commonWalkingControlModules.sensors.footSwitch.FootSwitchInterface;
 import us.ihmc.commonWalkingControlModules.trajectories.CoMHeightTimeDerivativesData;
@@ -337,6 +338,11 @@ public class FeetManager
    public FeedbackControlCommand<?> getFeedbackControlCommand(RobotSide robotSide)
    {
       return footControlModules.get(robotSide).getFeedbackControlCommand();
+   }
+
+   public LowLevelOneDoFJointDesiredDataHolderReadOnly getLowLevelJointDataToAdd(RobotSide robotSide)
+   {
+      return footControlModules.get(robotSide).getLowLevelJointDataToAdd();
    }
 
    public FeedbackControlCommandList createFeedbackControlTemplate()

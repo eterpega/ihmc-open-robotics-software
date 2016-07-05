@@ -611,6 +611,7 @@ public class WalkingHighLevelHumanoidController extends HighLevelBehavior
       {
          controllerCoreCommand.addFeedbackControlCommand(feetManager.getFeedbackControlCommand(robotSide));
          controllerCoreCommand.addInverseDynamicsCommand(feetManager.getInverseDynamicsCommand(robotSide));
+         controllerCoreCommand.addLowLevelJointData(feetManager.getLowLevelJointDataToAdd(robotSide));
 
          YoPlaneContactState contactState = momentumBasedController.getContactState(feet.get(robotSide));
          PlaneContactStateCommand planeContactStateCommand = planeContactStateCommandPool.add();

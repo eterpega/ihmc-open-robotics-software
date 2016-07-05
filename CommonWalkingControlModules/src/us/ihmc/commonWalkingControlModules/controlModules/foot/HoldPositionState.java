@@ -5,7 +5,6 @@ import javax.vecmath.Quat4d;
 import javax.vecmath.Vector3d;
 
 import us.ihmc.commonWalkingControlModules.bipedSupportPolygons.YoPlaneContactState;
-import us.ihmc.commonWalkingControlModules.controlModules.foot.FootControlModule.ConstraintType;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.SolverWeightLevels;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.feedbackController.FeedbackControlCommand;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.feedbackController.SpatialFeedbackControlCommand;
@@ -32,7 +31,7 @@ import us.ihmc.simulationconstructionset.yoUtilities.graphics.YoGraphicPosition;
 import us.ihmc.simulationconstructionset.yoUtilities.graphics.YoGraphicPosition.GraphicType;
 import us.ihmc.simulationconstructionset.yoUtilities.graphics.YoGraphicsListRegistry;
 
-public class HoldPositionState extends AbstractFootControlState
+public class HoldPositionState extends HoldPositionAbstractState
 {
    // During the partial foothold walking this command was split up to control the roll and pitch of
    // the foot separately using only the ankle joints.
@@ -93,7 +92,7 @@ public class HoldPositionState extends AbstractFootControlState
    public HoldPositionState(FootControlHelper footControlHelper, PartialFootholdControlModule partialFootholdControlModule,
          YoSE3PIDGainsInterface gains, YoVariableRegistry registry)
    {
-      super(ConstraintType.HOLD_POSITION, footControlHelper, registry);
+      super(footControlHelper, registry);
       this.gains = gains;
 
       soleFrame = contactableFoot.getSoleFrame();

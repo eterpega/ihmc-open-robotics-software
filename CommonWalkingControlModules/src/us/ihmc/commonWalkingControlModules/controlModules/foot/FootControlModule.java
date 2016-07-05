@@ -11,6 +11,7 @@ import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParam
 import us.ihmc.commonWalkingControlModules.controllerCore.command.feedbackController.FeedbackControlCommand;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.feedbackController.FeedbackControlCommandList;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.InverseDynamicsCommand;
+import us.ihmc.commonWalkingControlModules.controllerCore.command.lowLevel.LowLevelOneDoFJointDesiredDataHolderReadOnly;
 import us.ihmc.commonWalkingControlModules.desiredFootStep.DesiredFootstepCalculatorTools;
 import us.ihmc.commonWalkingControlModules.momentumBasedController.HighLevelHumanoidControllerToolbox;
 import us.ihmc.commonWalkingControlModules.sensors.footSwitch.FootSwitchInterface;
@@ -39,6 +40,8 @@ import us.ihmc.tools.io.printing.PrintTools;
 
 public class FootControlModule
 {
+   private static final boolean holdPositionBypassingQP = true;
+
    private final YoVariableRegistry registry;
    private final ContactablePlaneBody contactableFoot;
 
@@ -62,7 +65,7 @@ public class FootControlModule
    /** For testing purpose only. */
    private final BooleanYoVariable alwaysHoldPosition;
 
-   private final HoldPositionState holdPositionState;
+   private final HoldPositionAbstractState holdPositionState;
    private final SwingState swingState;
    private final MoveViaWaypointsState moveViaWaypointsState;
    private final OnToesState onToesState;
@@ -137,7 +140,10 @@ public class FootControlModule
          exploreFootPolygonState = null;
       }
 
-      holdPositionState = new HoldPositionState(footControlHelper, holdPositionFootControlGains, registry);
+      if (holdPositionBypassingQP)
+         holdPositionState = new HoldPositionBypassQPState(footControlHelper, registry, supportState);
+      else
+         holdPositionState = new HoldPositionState(footControlHelper, holdPositionFootControlGains, registry);
       states.add(holdPositionState);
 
       swingState = new SwingState(footControlHelper, touchdownVelocityProvider, touchdownAccelerationProvider, swingFootControlGains, registry);
@@ -449,6 +455,11 @@ public class FootControlModule
    public FeedbackControlCommand<?> getFeedbackControlCommand()
    {
       return stateMachine.getCurrentState().getFeedbackControlCommand();
+   }
+
+   public LowLevelOneDoFJointDesiredDataHolderReadOnly getLowLevelJointDataToAdd()
+   {
+      return stateMachine.getCurrentState().getLowLevelJointDataToAdd();
    }
 
    public FeedbackControlCommandList createFeedbackControlTemplate()
