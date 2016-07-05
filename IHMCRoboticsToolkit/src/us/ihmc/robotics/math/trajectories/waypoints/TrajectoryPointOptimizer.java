@@ -27,7 +27,7 @@ public class TrajectoryPointOptimizer
    private static final double regularizationWeight = 1E-10;
    private static final double epsilon = 1E-7;
 
-   private static final double initialTimeGain = 0.001;
+   private static final double initialTimeGain = 0.002;
    private static final double costEpsilon = 0.1;
 
    private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
@@ -128,6 +128,7 @@ public class TrajectoryPointOptimizer
    public void compute()
    {
       long startTime = System.nanoTime();
+      timeGain.set(initialTimeGain);
 
       int intervals = nWaypoints.getIntegerValue() + 1;
       this.intervals.set(intervals);
@@ -189,7 +190,7 @@ public class TrajectoryPointOptimizer
 
          if (newCost > cost)
          {
-            timeGain.mul(0.5);
+            timeGain.set(timeGain.getDoubleValue() * 0.5);
             intervalTimes.set(saveIntervalTimes);
          }
          else
@@ -271,12 +272,12 @@ public class TrajectoryPointOptimizer
       A.reshape(constraints, problemSize.getIntegerValue());
       b.reshape(constraints, 1);
       CommonOps.fill(A, 0.0);
-      CommonOps.fill(b, 0.0);
 
       int dimensionConstraints = constraints / dimensions;
       int subProblemSize = problemSize.getIntegerValue() / dimensions;
       Ad.reshape(dimensionConstraints, subProblemSize);
       bd.reshape(dimensionConstraints, 1);
+      CommonOps.fill(Ad, 0.0);
 
       for (int d = 0; d < dimensions; d++)
       {
@@ -372,7 +373,6 @@ public class TrajectoryPointOptimizer
          {
             CommonOps.insert(AdLine, Ad, line, subProblemSize - order.getCoefficients());
             bd.set(line, 0.0);
-            line++;
          }
 
          int rowOffset = d * dimensionConstraints;

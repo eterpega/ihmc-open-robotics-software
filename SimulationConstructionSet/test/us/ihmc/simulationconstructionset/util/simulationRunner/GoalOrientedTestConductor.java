@@ -1,4 +1,4 @@
-package us.ihmc.quadrupedRobotics;
+package us.ihmc.simulationconstructionset.util.simulationRunner;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,10 +9,12 @@ import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
 import us.ihmc.robotics.dataStructures.variable.YoVariable;
 import us.ihmc.robotics.testing.YoVariableTestGoal;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
+import us.ihmc.simulationconstructionset.bambooTools.BambooTools;
+import us.ihmc.simulationconstructionset.bambooTools.SimulationTestingParameters;
 import us.ihmc.tools.io.printing.PrintTools;
 import us.ihmc.tools.thread.ThreadTools;
 
-public class QuadrupedTestConductor implements VariableChangedListener
+public class GoalOrientedTestConductor implements VariableChangedListener
 {
    private final SimulationConstructionSet scs;
    
@@ -28,9 +30,9 @@ public class QuadrupedTestConductor implements VariableChangedListener
    private List<YoVariableTestGoal> waypointGoalsNotMet = new ArrayList<>();
    private List<YoVariableTestGoal> terminalGoalsNotMeeting = new ArrayList<>();
    
-   private AssertionFailedError assertionFailedError = null;
+   private String assertionFailedMessage = null;
    
-   public QuadrupedTestConductor(SimulationConstructionSet scs)
+   public GoalOrientedTestConductor(SimulationConstructionSet scs)
    {
       this.scs = scs;
       
@@ -92,9 +94,8 @@ public class QuadrupedTestConductor implements VariableChangedListener
       StringBuffer message = new StringBuffer();
       for (YoVariableTestGoal goal : terminalGoals)
       {
-         message.append("Terminal goal met: ");
+         message.append("\nTerminal goal met: ");
          goal.getYoVariable().getNameAndValueString(message);
-         message.append("\n");
       }
       PrintTools.info(this, message.toString());
    }
@@ -105,24 +106,21 @@ public class QuadrupedTestConductor implements VariableChangedListener
       
       for (YoVariableTestGoal goal : sustainGoalsNotMeeting)
       {
-         message.append("Goal not sustained: ");
+         message.append("\nGoal not sustained: ");
          goal.getYoVariable().getNameAndValueString(message);
-         message.append("\n");
       }
       for (YoVariableTestGoal goal : waypointGoalsNotMet)
       {
-         message.append("Waypoint not met: ");
+         message.append("\nWaypoint not met: ");
          goal.getYoVariable().getNameAndValueString(message);
-         message.append("\n");
       }
       for (YoVariableTestGoal goal : terminalGoalsNotMeeting)
       {
-         message.append("Terminal goal not met: ");
+         message.append("\nTerminal goal not met: ");
          goal.getYoVariable().getNameAndValueString(message);
-         message.append("\n");
       }
       
-      assertionFailedError = new AssertionFailedError(message.toString());
+      assertionFailedMessage = message.toString();
    }
    
    private void stop()
@@ -137,7 +135,7 @@ public class QuadrupedTestConductor implements VariableChangedListener
    
    public void simulate() throws AssertionFailedError
    {
-      assertionFailedError = null;
+      assertionFailedMessage = null;
       yoTime.addVariableChangedListener(this);
       
       scs.simulate();
@@ -147,14 +145,20 @@ public class QuadrupedTestConductor implements VariableChangedListener
          ThreadTools.sleep(100);
       }
       
-      if (assertionFailedError != null)
+      if (assertionFailedMessage != null)
       {
-         throw assertionFailedError;
+         throw new AssertionFailedError(assertionFailedMessage);
       }
    }
 
-   public void destroy()
+   public void concludeTesting(SimulationTestingParameters simulationTestingParameters)
    {
+      if (simulationTestingParameters.getCreateSCSVideos())
+      {
+         BambooTools.createVideoAndDataWithDateTimeClassMethodAndShareOnSharedDriveIfAvailable(scs.getRobots()[0].getName(), scs, 1);
+      }
+      
+      ThreadTools.sleep(200);
       scs.closeAndDispose();
    }
    
