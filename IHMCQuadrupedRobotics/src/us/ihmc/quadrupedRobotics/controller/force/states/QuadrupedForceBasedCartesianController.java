@@ -106,11 +106,7 @@ public class QuadrupedForceBasedCartesianController implements QuadrupedControll
    @Override public ControllerEvent process()
    {
       updateEstimates();
-      if(!soleWaypointInputProvider.getPacket().epsilonEquals(previousPacket,.000001)){
-         updateTrajectoryFromInput();
-      }
       updateSetpoints();
-      previousPacket.set(soleWaypointInputProvider.get());
       return (currentTime > quadrupedWaypointsPositionTrajectoryGenerator.get(RobotQuadrant.FRONT_LEFT).getLastWaypointTime())? ControllerEvent.DONE : null;
    }
    private void updateTrajectoryFromInput(){
@@ -126,7 +122,6 @@ public class QuadrupedForceBasedCartesianController implements QuadrupedControll
                      soleWaypointInputProvider.get().quadrantSoleVelocityList.get(quadrant).get(i));
             }
             quadrupedWaypointsPositionTrajectoryGenerator.get(quadrant).initialize();
-
          }
 
       }
