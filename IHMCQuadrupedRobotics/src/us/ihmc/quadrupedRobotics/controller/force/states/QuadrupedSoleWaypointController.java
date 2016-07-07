@@ -51,7 +51,6 @@ public class QuadrupedSoleWaypointController implements QuadrupedController
    private final QuadrupedTaskSpaceController.Settings taskSpaceControllerSettings;
    private final QuadrupedTaskSpaceController taskSpaceController;
 
-
    private final QuadrupedReferenceFrames referenceFrames;
    private double taskStartTime;
 
@@ -104,12 +103,10 @@ public class QuadrupedSoleWaypointController implements QuadrupedController
          for (RobotQuadrant quadrant : RobotQuadrant.values)
          {
             quadrupedWaypointsPositionTrajectoryGenerator.get(quadrant).clear();
-            for (int i = 0; i < soleWaypointInputProvider.get().quadrantSoleTimingList.get(quadrant).size(); ++i)
+            for (int i = 0; i < soleWaypointInputProvider.get().size(quadrant); ++i)
             {
-               quadrupedWaypointsPositionTrajectoryGenerator.get(quadrant)
-                     .appendWaypoint(soleWaypointInputProvider.get().quadrantSoleTimingList.get(quadrant).get(i),
-                           soleWaypointInputProvider.get().quadrantSolePositionList.get(quadrant).get(i),
-                           soleWaypointInputProvider.get().quadrantSoleVelocityList.get(quadrant).get(i));
+               quadrupedWaypointsPositionTrajectoryGenerator.get(quadrant).appendWaypoint(soleWaypointInputProvider.get().get(quadrant).get(i).getTime(),
+                     soleWaypointInputProvider.get().get(quadrant).get(i).getPosition(), soleWaypointInputProvider.get().get(quadrant).get(i).getVelocity());
             }
             quadrupedWaypointsPositionTrajectoryGenerator.get(quadrant).initialize();
          }
