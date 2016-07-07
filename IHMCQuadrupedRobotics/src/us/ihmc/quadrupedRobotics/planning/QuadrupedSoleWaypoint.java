@@ -1,16 +1,13 @@
 package us.ihmc.quadrupedRobotics.planning;
 
-import com.jme3.scene.shape.Quad;
+import com.google.common.math.DoubleMath;
+import us.ihmc.quadrupedRobotics.communication.packets.QuadrupedSoleWaypointPacket;
 import us.ihmc.robotics.robotSide.QuadrantDependentList;
 import us.ihmc.robotics.robotSide.RobotQuadrant;
-
 import javax.vecmath.Point3d;
 import javax.vecmath.Vector3d;
 import java.util.ArrayList;
 
-/**
- * Created by seanmason on 6/23/16.
- */
 public class QuadrupedSoleWaypoint
 {
    public QuadrantDependentList<ArrayList<Point3d>> quadrantSolePositionList;
@@ -125,6 +122,8 @@ public class QuadrupedSoleWaypoint
       }
       return false;
    }
+
+   //todo: remove this
    public boolean isNull(){
       for(RobotQuadrant quadrant: RobotQuadrant.values()){
          if(this.quadrantSolePositionList.get(quadrant) != null){
@@ -138,5 +137,10 @@ public class QuadrupedSoleWaypoint
          }
       }
       return true;
+   }
+
+   //todo: flesh this out
+   public boolean isValid(){
+      return !hasNull();
    }
 }

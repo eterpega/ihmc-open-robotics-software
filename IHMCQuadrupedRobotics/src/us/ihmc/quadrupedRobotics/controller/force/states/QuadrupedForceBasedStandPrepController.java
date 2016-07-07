@@ -125,7 +125,6 @@ public class QuadrupedForceBasedStandPrepController implements QuadrupedControll
       updateGains();
       updateEstimates();
       updateSetpoints();
-
       return isMotionExpired() ? ControllerEvent.DONE : null;
    }
 
@@ -172,10 +171,8 @@ public class QuadrupedForceBasedStandPrepController implements QuadrupedControll
    private void computeFinalSolePosition(RobotQuadrant quadrant, FramePoint finalSolePosition)
    {
       finalSolePosition.setToZero(referenceFrames.getBodyFrame());
-
       finalSolePosition.add(quadrant.getEnd().negateIfHindEnd(stanceLengthParameter.get() / 2.0), 0.0, 0.0);
       finalSolePosition.add(0.0, quadrant.getSide().negateIfRightSide(stanceWidthParameter.get() / 2.0), 0.0);
-
       finalSolePosition.add(stanceXOffsetParameter.get(), stanceYOffsetParameter.get(), -stanceHeightParameter.get());
    }
 

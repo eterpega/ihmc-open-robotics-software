@@ -9,10 +9,6 @@ import javax.vecmath.Point3d;
 import javax.vecmath.Vector3d;
 import java.util.ArrayList;
 
-/**
- * Created by seanmason on 6/20/16.
- */
-
 public class QuadrupedSoleWaypointPacket extends Packet<QuadrupedSoleWaypointPacket>
 {
 

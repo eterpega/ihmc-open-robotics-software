@@ -7,10 +7,6 @@ import us.ihmc.quadrupedRobotics.planning.QuadrupedSoleWaypoint;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 import java.util.concurrent.atomic.AtomicReference;
 
-/**
- * Created by seanmason on 6/17/16.
- */
-
 public class QuadrupedSoleWaypointInputProvider
 {
    private final AtomicReference<QuadrupedSoleWaypointPacket> quadrupedSoleWaypointPacket;
