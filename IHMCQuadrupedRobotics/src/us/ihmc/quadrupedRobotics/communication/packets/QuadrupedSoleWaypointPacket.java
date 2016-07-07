@@ -1,14 +1,7 @@
 package us.ihmc.quadrupedRobotics.communication.packets;
 
-import com.google.common.math.DoubleMath;
 import us.ihmc.communication.packets.Packet;
-import us.ihmc.robotics.robotSide.QuadrantDependentList;
-import us.ihmc.robotics.robotSide.RobotQuadrant;
 import us.ihmc.quadrupedRobotics.planning.QuadrupedSoleWaypoints;
-
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector3d;
-import java.util.ArrayList;
 
 public class QuadrupedSoleWaypointPacket extends Packet<QuadrupedSoleWaypointPacket>
 {

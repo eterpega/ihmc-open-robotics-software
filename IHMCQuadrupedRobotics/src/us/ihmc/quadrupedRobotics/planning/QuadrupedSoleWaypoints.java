@@ -8,9 +8,11 @@ import java.util.ArrayList;
 public class QuadrupedSoleWaypoints extends QuadrantDependentList<ArrayList<SoleWaypoint>>
 {
 
-   public QuadrupedSoleWaypoints(){
+   public QuadrupedSoleWaypoints()
+   {
       super();
    }
+
    public QuadrupedSoleWaypoints(QuadrupedSoleWaypoints other)
    {
       set(other);
@@ -42,7 +44,8 @@ public class QuadrupedSoleWaypoints extends QuadrantDependentList<ArrayList<Sole
          }
          for (int i = 0; i < size(quadrant); ++i)
          {
-            if (!this.get(quadrant).get(i).epsilonEquals(other.get(quadrant).get(i), epsilon));
+            if (!this.get(quadrant).get(i).epsilonEquals(other.get(quadrant).get(i), epsilon))
+               ;
             {
                return false;
             }

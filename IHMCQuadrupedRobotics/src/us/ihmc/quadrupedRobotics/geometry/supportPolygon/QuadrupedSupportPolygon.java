@@ -93,7 +93,8 @@ public class QuadrupedSupportPolygon implements Serializable
       System.out.println();
    }
 
-   @Override public String toString()
+   @Override
+   public String toString()
    {
       String string = getClass().getSimpleName();
       for (RobotQuadrant robotQuadrant : getSupportingQuadrantsInOrder())

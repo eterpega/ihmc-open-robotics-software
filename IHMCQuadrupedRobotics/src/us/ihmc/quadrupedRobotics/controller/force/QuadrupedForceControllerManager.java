@@ -57,7 +57,7 @@ public class QuadrupedForceControllerManager implements QuadrupedControllerManag
       xGaitSettingsProvider = new QuadrupedXGaitSettingsProvider(runtimeEnvironment.getGlobalDataProducer(), registry);
       soleWaypointInputProvider = new QuadrupedSoleWaypointInputProvider(runtimeEnvironment.getGlobalDataProducer(), registry);
       GlobalDataProducer globalDataProducer = runtimeEnvironment.getGlobalDataProducer();
-      
+
       if (globalDataProducer != null)
       {
          globalDataProducer.attachListener(QuadrupedForceControllerEventPacket.class, new PacketConsumer<QuadrupedForceControllerEventPacket>()
@@ -71,7 +71,6 @@ public class QuadrupedForceControllerManager implements QuadrupedControllerManag
 
          ParameterPacketListener parameterPacketListener = new ParameterPacketListener(globalDataProducer);
       }
-
 
       this.controllerToolbox = new QuadrupedForceControllerToolbox(runtimeEnvironment, physicalProperties, registry);
       this.stateMachine = buildStateMachine(runtimeEnvironment, inputProvider);
@@ -111,7 +110,7 @@ public class QuadrupedForceControllerManager implements QuadrupedControllerManag
 
       if (controllerToolbox.getFallDetector().detect())
       {
-         this.stateMachine.trigger(QuadrupedForceControllerRequestedEvent.class,QuadrupedForceControllerRequestedEvent.REQUEST_FALL);
+         this.stateMachine.trigger(QuadrupedForceControllerRequestedEvent.class, QuadrupedForceControllerRequestedEvent.REQUEST_FALL);
       }
    }
 
@@ -139,7 +138,8 @@ public class QuadrupedForceControllerManager implements QuadrupedControllerManag
       return motionStatusHolder;
    }
 
-   private FiniteStateMachine<QuadrupedForceControllerState, ControllerEvent> buildStateMachine(QuadrupedRuntimeEnvironment runtimeEnvironment, QuadrupedControllerInputProviderInterface inputProvider)
+   private FiniteStateMachine<QuadrupedForceControllerState, ControllerEvent> buildStateMachine(QuadrupedRuntimeEnvironment runtimeEnvironment,
+         QuadrupedControllerInputProviderInterface inputProvider)
    {
       // Initialize controllers.
       QuadrupedController jointInitializationController = new QuadrupedForceBasedJointInitializationController(runtimeEnvironment);
@@ -152,8 +152,8 @@ public class QuadrupedForceControllerManager implements QuadrupedControllerManag
       QuadrupedController cartesianFallController = new QuadrupedFallController(runtimeEnvironment, controllerToolbox);
       QuadrupedController cartesianSoleController = new QuadrupedSoleWaypointController(runtimeEnvironment, controllerToolbox, soleWaypointInputProvider);
 
-      FiniteStateMachineBuilder<QuadrupedForceControllerState, ControllerEvent> builder = new FiniteStateMachineBuilder<>(
-            QuadrupedForceControllerState.class, ControllerEvent.class, "forceControllerState", registry);
+      FiniteStateMachineBuilder<QuadrupedForceControllerState, ControllerEvent> builder = new FiniteStateMachineBuilder<>(QuadrupedForceControllerState.class,
+            ControllerEvent.class, "forceControllerState", registry);
 
       builder.addState(QuadrupedForceControllerState.JOINT_INITIALIZATION, jointInitializationController);
       builder.addState(QuadrupedForceControllerState.DO_NOTHING, doNothingController);
@@ -178,28 +178,42 @@ public class QuadrupedForceControllerManager implements QuadrupedControllerManag
       builder.addTransition(ControllerEvent.DONE, QuadrupedForceControllerState.STEP, QuadrupedForceControllerState.STAND);
 
       // Manually triggered events to transition to main controllers.
-      builder.addTransition(QuadrupedForceControllerRequestedEvent.class, QuadrupedForceControllerRequestedEvent.REQUEST_STAND, QuadrupedForceControllerState.STAND_READY, QuadrupedForceControllerState.STAND);
-      builder.addTransition(QuadrupedForceControllerRequestedEvent.class, QuadrupedForceControllerRequestedEvent.REQUEST_STAND, QuadrupedForceControllerState.STEP, QuadrupedForceControllerState.STAND);
-      builder.addTransition(QuadrupedForceControllerRequestedEvent.class, QuadrupedForceControllerRequestedEvent.REQUEST_STAND, QuadrupedForceControllerState.XGAIT, QuadrupedForceControllerState.STAND);
-      builder.addTransition(QuadrupedForceControllerRequestedEvent.class, QuadrupedForceControllerRequestedEvent.REQUEST_STEP, QuadrupedForceControllerState.STAND, QuadrupedForceControllerState.STEP);
-      builder.addTransition(QuadrupedForceControllerRequestedEvent.class, QuadrupedForceControllerRequestedEvent.REQUEST_XGAIT, QuadrupedForceControllerState.STAND, QuadrupedForceControllerState.XGAIT);
+      builder.addTransition(QuadrupedForceControllerRequestedEvent.class, QuadrupedForceControllerRequestedEvent.REQUEST_STAND,
+            QuadrupedForceControllerState.STAND_READY, QuadrupedForceControllerState.STAND);
+      builder.addTransition(QuadrupedForceControllerRequestedEvent.class, QuadrupedForceControllerRequestedEvent.REQUEST_STAND,
+            QuadrupedForceControllerState.STEP, QuadrupedForceControllerState.STAND);
+      builder.addTransition(QuadrupedForceControllerRequestedEvent.class, QuadrupedForceControllerRequestedEvent.REQUEST_STAND,
+            QuadrupedForceControllerState.XGAIT, QuadrupedForceControllerState.STAND);
+      builder.addTransition(QuadrupedForceControllerRequestedEvent.class, QuadrupedForceControllerRequestedEvent.REQUEST_STEP,
+            QuadrupedForceControllerState.STAND, QuadrupedForceControllerState.STEP);
+      builder.addTransition(QuadrupedForceControllerRequestedEvent.class, QuadrupedForceControllerRequestedEvent.REQUEST_XGAIT,
+            QuadrupedForceControllerState.STAND, QuadrupedForceControllerState.XGAIT);
 
       //Fall triggered events
-      builder.addTransition(QuadrupedForceControllerRequestedEvent.class, QuadrupedForceControllerRequestedEvent.REQUEST_FALL, QuadrupedForceControllerState.STAND, QuadrupedForceControllerState.FALL);
-      builder.addTransition(QuadrupedForceControllerRequestedEvent.class, QuadrupedForceControllerRequestedEvent.REQUEST_FALL, QuadrupedForceControllerState.STEP, QuadrupedForceControllerState.FALL);
-      builder.addTransition(QuadrupedForceControllerRequestedEvent.class, QuadrupedForceControllerRequestedEvent.REQUEST_FALL, QuadrupedForceControllerState.XGAIT, QuadrupedForceControllerState.FALL);
-      builder.addTransition(QuadrupedForceControllerRequestedEvent.class, QuadrupedForceControllerRequestedEvent.REQUEST_STAND, QuadrupedForceControllerState.FALL, QuadrupedForceControllerState.STAND);
+      builder.addTransition(QuadrupedForceControllerRequestedEvent.class, QuadrupedForceControllerRequestedEvent.REQUEST_FALL,
+            QuadrupedForceControllerState.STAND, QuadrupedForceControllerState.FALL);
+      builder.addTransition(QuadrupedForceControllerRequestedEvent.class, QuadrupedForceControllerRequestedEvent.REQUEST_FALL,
+            QuadrupedForceControllerState.STEP, QuadrupedForceControllerState.FALL);
+      builder.addTransition(QuadrupedForceControllerRequestedEvent.class, QuadrupedForceControllerRequestedEvent.REQUEST_FALL,
+            QuadrupedForceControllerState.XGAIT, QuadrupedForceControllerState.FALL);
+      builder.addTransition(QuadrupedForceControllerRequestedEvent.class, QuadrupedForceControllerRequestedEvent.REQUEST_STAND,
+            QuadrupedForceControllerState.FALL, QuadrupedForceControllerState.STAND);
 
       //SoleWaypoint events
-      builder.addTransition(QuadrupedForceControllerRequestedEvent.class, QuadrupedForceControllerRequestedEvent.REQUEST_SOLE_WAYPOINTS, QuadrupedForceControllerState.STAND, QuadrupedForceControllerState.SOLE_WAYPOINTS);
-      builder.addTransition(QuadrupedForceControllerRequestedEvent.class, QuadrupedForceControllerRequestedEvent.REQUEST_SOLE_WAYPOINTS, QuadrupedForceControllerState.STEP, QuadrupedForceControllerState.SOLE_WAYPOINTS);
+      builder.addTransition(QuadrupedForceControllerRequestedEvent.class, QuadrupedForceControllerRequestedEvent.REQUEST_SOLE_WAYPOINTS,
+            QuadrupedForceControllerState.STAND, QuadrupedForceControllerState.SOLE_WAYPOINTS);
+      builder.addTransition(QuadrupedForceControllerRequestedEvent.class, QuadrupedForceControllerRequestedEvent.REQUEST_SOLE_WAYPOINTS,
+            QuadrupedForceControllerState.STEP, QuadrupedForceControllerState.SOLE_WAYPOINTS);
       builder.addTransition(ControllerEvent.DONE, QuadrupedForceControllerState.SOLE_WAYPOINTS, QuadrupedForceControllerState.STAND_READY);
 
-      builder.addTransition(QuadrupedForceControllerRequestedEvent.class, QuadrupedForceControllerRequestedEvent.REQUEST_STAND, QuadrupedForceControllerState.SOLE_WAYPOINTS, QuadrupedForceControllerState.STAND);
+      builder.addTransition(QuadrupedForceControllerRequestedEvent.class, QuadrupedForceControllerRequestedEvent.REQUEST_STAND,
+            QuadrupedForceControllerState.SOLE_WAYPOINTS, QuadrupedForceControllerState.STAND);
 
       // Transitions from controllers back to stand prep.
-      builder.addTransition(QuadrupedForceControllerRequestedEvent.class, QuadrupedForceControllerRequestedEvent.REQUEST_STAND_PREP, QuadrupedForceControllerState.DO_NOTHING, QuadrupedForceControllerState.STAND_PREP);
-      builder.addTransition(QuadrupedForceControllerRequestedEvent.class, QuadrupedForceControllerRequestedEvent.REQUEST_STAND_PREP, QuadrupedForceControllerState.STAND, QuadrupedForceControllerState.STAND_PREP);
+      builder.addTransition(QuadrupedForceControllerRequestedEvent.class, QuadrupedForceControllerRequestedEvent.REQUEST_STAND_PREP,
+            QuadrupedForceControllerState.DO_NOTHING, QuadrupedForceControllerState.STAND_PREP);
+      builder.addTransition(QuadrupedForceControllerRequestedEvent.class, QuadrupedForceControllerRequestedEvent.REQUEST_STAND_PREP,
+            QuadrupedForceControllerState.STAND, QuadrupedForceControllerState.STAND_PREP);
 
       return builder.build(QuadrupedForceControllerState.JOINT_INITIALIZATION);
    }

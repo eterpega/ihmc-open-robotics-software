@@ -5,6 +5,7 @@ import us.ihmc.communication.streamingData.GlobalDataProducer;
 import us.ihmc.quadrupedRobotics.communication.packets.*;
 import us.ihmc.quadrupedRobotics.planning.QuadrupedSoleWaypoints;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
+
 import java.util.concurrent.atomic.AtomicReference;
 
 public class QuadrupedSoleWaypointInputProvider
@@ -19,17 +20,15 @@ public class QuadrupedSoleWaypointInputProvider
       {
          globalDataProducer.attachListener(QuadrupedSoleWaypointPacket.class, new PacketConsumer<QuadrupedSoleWaypointPacket>()
          {
-            @Override public void receivedPacket(QuadrupedSoleWaypointPacket packet)
+            @Override
+            public void receivedPacket(QuadrupedSoleWaypointPacket packet)
             {
                quadrupedSoleWaypointPacket.set(packet);
             }
          });
       }
    }
-   public QuadrupedSoleWaypointPacket getPacket()
-   {
-      return quadrupedSoleWaypointPacket.get();
-   }
+
    public QuadrupedSoleWaypoints get()
    {
       return quadrupedSoleWaypointPacket.get().get();

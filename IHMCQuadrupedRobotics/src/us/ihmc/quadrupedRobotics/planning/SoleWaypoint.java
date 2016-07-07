@@ -1,7 +1,6 @@
 package us.ihmc.quadrupedRobotics.planning;
 
 import com.google.common.math.DoubleMath;
-
 import javax.vecmath.Point3d;
 import javax.vecmath.Vector3d;
 
@@ -27,7 +26,7 @@ public class SoleWaypoint
 
    public SoleWaypoint(Point3d position, Vector3d velocity, Double time)
    {
-      set(position,velocity,time);
+      set(position, velocity, time);
    }
 
    public Point3d getPosition()
@@ -45,7 +44,8 @@ public class SoleWaypoint
       return time;
    }
 
-   public void set(Point3d position, Vector3d velocity, Double time){
+   public void set(Point3d position, Vector3d velocity, Double time)
+   {
       this.position = position;
       this.velocity = velocity;
       this.time = time;
