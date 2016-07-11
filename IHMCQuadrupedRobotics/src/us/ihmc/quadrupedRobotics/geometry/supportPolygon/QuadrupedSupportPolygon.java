@@ -848,13 +848,14 @@ public class QuadrupedSupportPolygon implements Serializable
    /**
     * Returns the distance the given (x,y) value is outside the polygon.  This is defined
     * as the minimum distance from the point to each line segment on the polygon.
-    * If the point is inside the polygon, the distance will be the negative of the distance
-    * to the closest point inside the support polygon. This test ignores Z values for the polygon.
+    * If the point is inside the polygon, the distance will be the negative of the minimum distance
+    * from the point to each line segment on the polygon (i.e. -getDistanceInside2d). This test ignores Z values for the polygon.
     *
     * @param point Point2d
     * @return boolean
     */
 
+   //todo: write test
    public double getDistanceOutside2d(FramePoint2d point)
    {
       return getDistanceOutside2d(point.getX(), point.getY());

@@ -100,14 +100,10 @@ public class QuadrupedSoleWaypointController implements QuadrupedController
          taskSpaceControllerSettings.setContactState(robotQuadrant, ContactState.NO_CONTACT);
       }
       taskSpaceController.reset();
-      if (soleWaypointInputProvider.get().isValid())
+      taskFailedParameter.set(soleWaypointInputProvider.get().isValid());
+      if (!taskFailedParameter.get())
       {
          createSoleWaypointTrajectory(soleWaypointInputProvider);
-         taskFailedParameter.set(false);
-      }
-      else
-      {
-         taskFailedParameter.set(true);
       }
    }
 
