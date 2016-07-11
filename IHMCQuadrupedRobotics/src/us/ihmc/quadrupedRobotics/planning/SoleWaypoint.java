@@ -1,6 +1,7 @@
 package us.ihmc.quadrupedRobotics.planning;
 
 import com.google.common.math.DoubleMath;
+
 import javax.vecmath.Point3d;
 import javax.vecmath.Vector3d;
 

@@ -8,6 +8,7 @@ import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedTaskSpaceCont
 import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedTaskSpaceEstimator;
 import us.ihmc.quadrupedRobotics.estimator.referenceFrames.QuadrupedReferenceFrames;
 import us.ihmc.quadrupedRobotics.model.QuadrupedRuntimeEnvironment;
+import us.ihmc.quadrupedRobotics.params.BooleanParameter;
 import us.ihmc.quadrupedRobotics.params.ParameterFactory;
 import us.ihmc.quadrupedRobotics.planning.ContactState;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
@@ -35,6 +36,7 @@ public class QuadrupedSoleWaypointController implements QuadrupedController
    private final DoubleArrayParameter solePositionDerivativeGainsParameter = parameterFactory.createDoubleArray("solePositionDerivativeGains", 100, 100, 100);
    private final DoubleArrayParameter solePositionIntegralGainsParameter = parameterFactory.createDoubleArray("solePositionIntegralGains", 0, 0, 0);
    private final DoubleParameter solePositionMaxIntegralErrorParameter = parameterFactory.createDouble("solePositionMaxIntegralError", 0);
+   private final BooleanParameter taskFailedParameter = parameterFactory.createBoolean("taskFailed", false);
 
    // SoleWaypoint variables
    private QuadrupedSoleWaypointInputProvider soleWaypointInputProvider;
@@ -98,10 +100,41 @@ public class QuadrupedSoleWaypointController implements QuadrupedController
          taskSpaceControllerSettings.setContactState(robotQuadrant, ContactState.NO_CONTACT);
       }
       taskSpaceController.reset();
-      createSoleWaypointTrajectory(soleWaypointInputProvider);
+      if (soleWaypointInputProvider.get().isValid())
+      {
+         createSoleWaypointTrajectory(soleWaypointInputProvider);
+         taskFailedParameter.set(false);
+      }
+      else
+      {
+         taskFailedParameter.set(true);
+      }
    }
 
-   public  void createSoleWaypointTrajectory(QuadrupedSoleWaypointInputProvider soleWaypointInputProvider){
+   @Override
+   public ControllerEvent process()
+   {
+      updateGains();
+      updateEstimates();
+      updateSetpoints();
+      if (taskFailedParameter.get())
+      {
+         return ControllerEvent.FAIL;
+      }
+      else
+      {
+         return (robotTime.getDoubleValue() - taskStartTime > quadrupedWaypointsPositionTrajectoryGenerator.get(RobotQuadrant.FRONT_LEFT)
+               .getLastWaypointTime()) ? ControllerEvent.DONE : null;
+      }
+   }
+
+   @Override
+   public void onExit()
+   {
+   }
+
+   public void createSoleWaypointTrajectory(QuadrupedSoleWaypointInputProvider soleWaypointInputProvider)
+   {
       if (soleWaypointInputProvider.get().isValid())
       {
          for (RobotQuadrant quadrant : RobotQuadrant.values)
@@ -115,16 +148,6 @@ public class QuadrupedSoleWaypointController implements QuadrupedController
             quadrupedWaypointsPositionTrajectoryGenerator.get(quadrant).initialize();
          }
       }
-   }
-   @Override
-   public ControllerEvent process()
-   {
-      updateGains();
-      updateEstimates();
-      updateSetpoints();
-      return (robotTime.getDoubleValue() - taskStartTime > quadrupedWaypointsPositionTrajectoryGenerator.get(RobotQuadrant.FRONT_LEFT).getLastWaypointTime()) ?
-            ControllerEvent.DONE :
-            null;
    }
 
    protected void updateEstimates()
@@ -159,11 +182,6 @@ public class QuadrupedSoleWaypointController implements QuadrupedController
       taskSpaceControllerSettings.getVirtualModelControllerSettings().setJointDamping(jointDampingParameter.get());
       taskSpaceControllerSettings.getVirtualModelControllerSettings().setJointPositionLimitDamping(jointPositionLimitDampingParameter.get());
       taskSpaceControllerSettings.getVirtualModelControllerSettings().setJointPositionLimitStiffness(jointPositionLimitStiffnessParameter.get());
-   }
-
-   @Override
-   public void onExit()
-   {
    }
 
    public QuadrupedTaskSpaceEstimator.Estimates getTaskSpaceEstimates()

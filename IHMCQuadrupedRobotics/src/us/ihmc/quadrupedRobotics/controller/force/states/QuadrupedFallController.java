@@ -87,8 +87,4 @@ public class QuadrupedFallController extends QuadrupedSoleWaypointController
       }
    }
 
-   @Override
-   public void onExit()
-   {
-   }
 }
