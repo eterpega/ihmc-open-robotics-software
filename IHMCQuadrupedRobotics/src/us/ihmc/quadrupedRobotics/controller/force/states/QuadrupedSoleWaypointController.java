@@ -22,7 +22,7 @@ import us.ihmc.quadrupedRobotics.params.DoubleArrayParameter;
 public class QuadrupedSoleWaypointController implements QuadrupedController
 {
    // Yo variables
-   private final YoVariableRegistry registry = new YoVariableRegistry(QuadrupedSoleWaypointController.class.getSimpleName());
+   private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
    private final DoubleYoVariable robotTime;
 
    // Parameters
@@ -37,7 +37,7 @@ public class QuadrupedSoleWaypointController implements QuadrupedController
    private final DoubleParameter solePositionMaxIntegralErrorParameter = parameterFactory.createDouble("solePositionMaxIntegralError", 0);
 
    // SoleWaypoint variables
-   private final QuadrupedSoleWaypointInputProvider soleWaypointInputProvider;
+   private QuadrupedSoleWaypointInputProvider soleWaypointInputProvider;
    QuadrantDependentList<MultipleWaypointsPositionTrajectoryGenerator> quadrupedWaypointsPositionTrajectoryGenerator;
 
    // Feedback controller
@@ -98,6 +98,10 @@ public class QuadrupedSoleWaypointController implements QuadrupedController
          taskSpaceControllerSettings.setContactState(robotQuadrant, ContactState.NO_CONTACT);
       }
       taskSpaceController.reset();
+      createSoleWaypointTrajectory(soleWaypointInputProvider);
+   }
+
+   public  void createSoleWaypointTrajectory(QuadrupedSoleWaypointInputProvider soleWaypointInputProvider){
       if (soleWaypointInputProvider.get().isValid())
       {
          for (RobotQuadrant quadrant : RobotQuadrant.values)
@@ -112,7 +116,6 @@ public class QuadrupedSoleWaypointController implements QuadrupedController
          }
       }
    }
-
    @Override
    public ControllerEvent process()
    {
@@ -124,7 +127,7 @@ public class QuadrupedSoleWaypointController implements QuadrupedController
             null;
    }
 
-   private void updateEstimates()
+   protected void updateEstimates()
    {
       taskSpaceEstimator.compute(taskSpaceEstimates);
    }
@@ -161,5 +164,20 @@ public class QuadrupedSoleWaypointController implements QuadrupedController
    @Override
    public void onExit()
    {
+   }
+
+   public QuadrupedTaskSpaceEstimator.Estimates getTaskSpaceEstimates()
+   {
+      return taskSpaceEstimates;
+   }
+
+   public QuadrupedSoleWaypointInputProvider getSoleWaypointInputProvider()
+   {
+      return soleWaypointInputProvider;
+   }
+
+   public QuadrupedReferenceFrames getReferenceFrames()
+   {
+      return referenceFrames;
    }
 }
