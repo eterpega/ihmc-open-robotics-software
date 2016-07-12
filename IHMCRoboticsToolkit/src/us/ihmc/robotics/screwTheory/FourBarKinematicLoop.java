@@ -18,6 +18,11 @@ import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import java.util.ArrayList;
 import java.util.Collections;
 
+/**
+ * 
+ * Closed loop kinematic chain formed by 3 passive revolute joint and one master joint that contains a four bar jacobian solver as an inner class
+ *
+ */
 public class FourBarKinematicLoop
 {
    /*
@@ -520,6 +525,10 @@ public class FourBarKinematicLoop
       jacobianToPack.set(columnJacobian);
    }
 
+   
+   /******************************************************************/
+   /******************************************************************/
+   
    private class FourBarKinematicLoopJacobianSolver
    {
       private final GeometricJacobian geometricJacobian;
