@@ -35,8 +35,7 @@ public class FourBarKinematicLoop
     *            | /    \ |
     *            |/      \|
     *            D--------C
-    *            
-    * Note: zero configuration corresponds to vertical links. Positive angles clockwise.             
+    *                   
     */
 
    private static final boolean DEBUG = false;
@@ -65,7 +64,7 @@ public class FourBarKinematicLoop
     * @param passiveJointB
     * @param passiveJointC
     * @param passiveJointD
-    * @param jointDInJointABeforeFrame The position in A's frame to which D is rigidly attached
+    * @param positionOfJointDInFrameBeforeJointA The position in A's frame to which D is rigidly attached
     * @param recomputeJointLimits
     *
     * <dt><b>Precondition:</b><dd>
@@ -73,15 +72,17 @@ public class FourBarKinematicLoop
     * Additionally, the cartesian positions of masterJointA, passiveJointB, passiveJointC and jointDInJointABeforeFrame must form a convex quadrilateral when their joint angles are 0
     *
     */
-   public FourBarKinematicLoop(String name, RevoluteJoint masterJointA, PassiveRevoluteJoint passiveJointB, PassiveRevoluteJoint passiveJointC,
-         PassiveRevoluteJoint passiveJointD, Vector3d jointDInJointABeforeFrame, boolean recomputeJointLimits)
+   
+   public FourBarKinematicLoop(String name, RevoluteJoint masterJointA, 
+         PassiveRevoluteJoint passiveJointB, PassiveRevoluteJoint passiveJointC, PassiveRevoluteJoint passiveJointD, 
+         Vector3d positionOfJointDInFrameBeforeJointA, boolean recomputeJointLimits)
    {
       this.name = name;
       this.masterJointA = masterJointA;
       this.passiveJointB = passiveJointB;
       this.passiveJointC = passiveJointC;
       this.passiveJointD = passiveJointD;
-      this.jointDInJointABeforeFrame = new Vector3d(jointDInJointABeforeFrame);
+      this.jointDInJointABeforeFrame = new Vector3d(positionOfJointDInFrameBeforeJointA);
 
       // Rotation axis
       FrameVector masterJointAxis = masterJointA.getJointAxis();
