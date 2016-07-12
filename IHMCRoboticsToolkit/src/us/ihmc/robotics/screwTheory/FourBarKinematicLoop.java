@@ -49,7 +49,7 @@ public class FourBarKinematicLoop
    private final String name;
    private final RevoluteJoint masterJointA;
    private final PassiveRevoluteJoint passiveJointB, passiveJointC, passiveJointD, fourBarOutputJoint;
-   private final Vector3d jointDInJointABeforeFrame;
+   private final Vector3d positionOfJointDInFrameBeforeJointA;
 
    private final FourBarCalculatorWithDerivatives fourBarCalculator;
 
@@ -87,7 +87,7 @@ public class FourBarKinematicLoop
       this.passiveJointB = passiveJointB;
       this.passiveJointC = passiveJointC;
       this.passiveJointD = passiveJointD;
-      this.jointDInJointABeforeFrame = new Vector3d(positionOfJointDInFrameBeforeJointA);
+      this.positionOfJointDInFrameBeforeJointA = new Vector3d(positionOfJointDInFrameBeforeJointA);
 
       // Rotation axis
       FrameVector masterJointAxis = masterJointA.getJointAxis();
@@ -178,7 +178,7 @@ public class FourBarKinematicLoop
       FramePoint jointBPosition = new FramePoint(passiveJointB.getFrameAfterJoint());
       FramePoint jointCPosition = new FramePoint(passiveJointC.getFrameAfterJoint());
       FramePoint jointDZeroAnglePosition = new FramePoint(passiveJointD.getFrameAfterJoint());
-      FramePoint jointDClosedLoopPosition = new FramePoint(masterJointA.getFrameBeforeJoint(), jointDInJointABeforeFrame);
+      FramePoint jointDClosedLoopPosition = new FramePoint(masterJointA.getFrameBeforeJoint(), positionOfJointDInFrameBeforeJointA);
 
       jointBPosition.changeFrame(frameBeforeFourBarWithZAlongJointAxis);
       jointCPosition.changeFrame(frameBeforeFourBarWithZAlongJointAxis);
@@ -209,7 +209,7 @@ public class FourBarKinematicLoop
 
       if (DEBUG)
       {
-         System.out.println("\njointDInJointABeforeFrame = " + jointDInJointABeforeFrame + "\n");
+         System.out.println("\njointDInJointABeforeFrame = " + positionOfJointDInFrameBeforeJointA + "\n");
          System.out.println("\njointDClosedLoopPosition = " + jointDClosedLoopPosition + "\n");
          System.out.println("\nJoint to joint vectors debugging:\n");
          System.out.println("vector ab = " + vectorAB);
