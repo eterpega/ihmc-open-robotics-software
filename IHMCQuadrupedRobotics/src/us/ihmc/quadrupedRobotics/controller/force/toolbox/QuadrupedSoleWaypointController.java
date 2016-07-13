@@ -1,26 +1,20 @@
-package us.ihmc.quadrupedRobotics.controller.force.states;
+package us.ihmc.quadrupedRobotics.controller.force.toolbox;
 
-import us.ihmc.quadrupedRobotics.controller.ControllerEvent;
-import us.ihmc.quadrupedRobotics.controller.QuadrupedController;
-import us.ihmc.quadrupedRobotics.controller.force.QuadrupedForceControllerToolbox;
-import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedSolePositionController;
-import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedTaskSpaceController;
-import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedTaskSpaceEstimator;
 import us.ihmc.quadrupedRobotics.estimator.referenceFrames.QuadrupedReferenceFrames;
 import us.ihmc.quadrupedRobotics.model.QuadrupedRuntimeEnvironment;
 import us.ihmc.quadrupedRobotics.params.BooleanParameter;
 import us.ihmc.quadrupedRobotics.params.ParameterFactory;
 import us.ihmc.quadrupedRobotics.planning.ContactState;
+import us.ihmc.quadrupedRobotics.planning.QuadrupedSoleWaypointList;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.quadrupedRobotics.providers.QuadrupedSoleWaypointInputProvider;
 import us.ihmc.robotics.math.trajectories.waypoints.MultipleWaypointsPositionTrajectoryGenerator;
 import us.ihmc.robotics.robotSide.RobotQuadrant;
 import us.ihmc.robotics.robotSide.QuadrantDependentList;
 import us.ihmc.quadrupedRobotics.params.DoubleParameter;
 import us.ihmc.quadrupedRobotics.params.DoubleArrayParameter;
 
-public class QuadrupedSoleWaypointController implements QuadrupedController
+public class QuadrupedSoleWaypointController
 {
    // Yo variables
    private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
@@ -39,7 +33,6 @@ public class QuadrupedSoleWaypointController implements QuadrupedController
    private final BooleanParameter taskFailedParameter = parameterFactory.createBoolean("taskFailed", false);
 
    // SoleWaypoint variables
-   private QuadrupedSoleWaypointInputProvider soleWaypointInputProvider;
    QuadrantDependentList<MultipleWaypointsPositionTrajectoryGenerator> quadrupedWaypointsPositionTrajectoryGenerator;
 
    // Feedback controller
@@ -52,28 +45,29 @@ public class QuadrupedSoleWaypointController implements QuadrupedController
    private final QuadrupedTaskSpaceController.Commands taskSpaceControllerCommands;
    private final QuadrupedTaskSpaceController.Settings taskSpaceControllerSettings;
    private final QuadrupedTaskSpaceController taskSpaceController;
-
+   private QuadrupedSoleWaypointList quadrupedSoleWaypointList;
    private final QuadrupedReferenceFrames referenceFrames;
    private double taskStartTime;
 
-   public QuadrupedSoleWaypointController(QuadrupedRuntimeEnvironment environment, QuadrupedForceControllerToolbox controllerToolbox,
-         QuadrupedSoleWaypointInputProvider inputProvider)
+   public QuadrupedSoleWaypointController(QuadrupedRuntimeEnvironment environment, QuadrupedReferenceFrames referenceFrames,
+         QuadrupedSolePositionController solePositionController, QuadrupedTaskSpaceEstimator taskSpaceEstimator,
+         QuadrupedTaskSpaceController taskSpaceController)
    {
-      soleWaypointInputProvider = inputProvider;
+      this.quadrupedSoleWaypointList = new QuadrupedSoleWaypointList();
       robotTime = environment.getRobotTimestamp();
-      referenceFrames = controllerToolbox.getReferenceFrames();
+      this.referenceFrames = referenceFrames;
       quadrupedWaypointsPositionTrajectoryGenerator = new QuadrantDependentList<>();
 
       // Feedback controller
-      solePositionController = controllerToolbox.getSolePositionController();
+      this.solePositionController = solePositionController;
       solePositionControllerSetpoints = new QuadrupedSolePositionController.Setpoints();
 
       // Task space controller
       taskSpaceEstimates = new QuadrupedTaskSpaceEstimator.Estimates();
-      taskSpaceEstimator = controllerToolbox.getTaskSpaceEstimator();
+      this.taskSpaceEstimator = taskSpaceEstimator;
       taskSpaceControllerCommands = new QuadrupedTaskSpaceController.Commands();
       taskSpaceControllerSettings = new QuadrupedTaskSpaceController.Settings();
-      taskSpaceController = controllerToolbox.getTaskSpaceController();
+      this.taskSpaceController = taskSpaceController;
 
       // Create waypoint trajectory for each quadrant
       for (RobotQuadrant quadrant : RobotQuadrant.values)
@@ -85,11 +79,11 @@ public class QuadrupedSoleWaypointController implements QuadrupedController
       environment.getParentRegistry().addChild(registry);
    }
 
-   @Override
-   public void onEntry()
+   public void initialize(QuadrupedSoleWaypointList quadrupedSoleWaypointList)
    {
+      this.quadrupedSoleWaypointList = quadrupedSoleWaypointList;
       updateEstimates();
-      taskStartTime = robotTime.getDoubleValue();
+      updateGains();
       solePositionControllerSetpoints.initialize(taskSpaceEstimates);
       solePositionController.reset();
 
@@ -100,53 +94,32 @@ public class QuadrupedSoleWaypointController implements QuadrupedController
          taskSpaceControllerSettings.setContactState(robotQuadrant, ContactState.NO_CONTACT);
       }
       taskSpaceController.reset();
-      taskFailedParameter.set(!soleWaypointInputProvider.get().isValid());
-      if (!taskFailedParameter.get())
-      {
-         createSoleWaypointTrajectory(soleWaypointInputProvider);
-      }
+      createSoleWaypointTrajectory();
+      taskStartTime = robotTime.getDoubleValue();
    }
 
-   @Override
-   public ControllerEvent process()
+   public void compute()
    {
       updateGains();
-      updateEstimates();
       updateSetpoints();
-      if (taskFailedParameter.get())
-      {
-         return ControllerEvent.FAIL;
-      }
-      else
-      {
-         return (robotTime.getDoubleValue() - taskStartTime > quadrupedWaypointsPositionTrajectoryGenerator.get(RobotQuadrant.FRONT_LEFT)
-               .getLastWaypointTime()) ? ControllerEvent.DONE : null;
-      }
    }
 
-   @Override
-   public void onExit()
+   public void createSoleWaypointTrajectory()
    {
-   }
-
-   public void createSoleWaypointTrajectory(QuadrupedSoleWaypointInputProvider soleWaypointInputProvider)
-   {
-      if (soleWaypointInputProvider.get().isValid())
+      for (RobotQuadrant quadrant : RobotQuadrant.values)
       {
-         for (RobotQuadrant quadrant : RobotQuadrant.values)
+         quadrupedWaypointsPositionTrajectoryGenerator.get(quadrant).clear();
+         for (int i = 0; i < quadrupedSoleWaypointList.size(quadrant); ++i)
          {
-            quadrupedWaypointsPositionTrajectoryGenerator.get(quadrant).clear();
-            for (int i = 0; i < soleWaypointInputProvider.get().size(quadrant); ++i)
-            {
-               quadrupedWaypointsPositionTrajectoryGenerator.get(quadrant).appendWaypoint(soleWaypointInputProvider.get().get(quadrant).get(i).getTime(),
-                     soleWaypointInputProvider.get().get(quadrant).get(i).getPosition(), soleWaypointInputProvider.get().get(quadrant).get(i).getVelocity());
-            }
-            quadrupedWaypointsPositionTrajectoryGenerator.get(quadrant).initialize();
+            quadrupedWaypointsPositionTrajectoryGenerator.get(quadrant)
+                  .appendWaypoint(quadrupedSoleWaypointList.get(quadrant).get(i).getTime(), quadrupedSoleWaypointList.get(quadrant).get(i).getPosition(),
+                        quadrupedSoleWaypointList.get(quadrant).get(i).getVelocity());
          }
+         quadrupedWaypointsPositionTrajectoryGenerator.get(quadrant).initialize();
       }
    }
 
-   protected void updateEstimates()
+   private void updateEstimates()
    {
       taskSpaceEstimator.compute(taskSpaceEstimates);
    }
@@ -178,20 +151,5 @@ public class QuadrupedSoleWaypointController implements QuadrupedController
       taskSpaceControllerSettings.getVirtualModelControllerSettings().setJointDamping(jointDampingParameter.get());
       taskSpaceControllerSettings.getVirtualModelControllerSettings().setJointPositionLimitDamping(jointPositionLimitDampingParameter.get());
       taskSpaceControllerSettings.getVirtualModelControllerSettings().setJointPositionLimitStiffness(jointPositionLimitStiffnessParameter.get());
-   }
-
-   public QuadrupedTaskSpaceEstimator.Estimates getTaskSpaceEstimates()
-   {
-      return taskSpaceEstimates;
-   }
-
-   public QuadrupedSoleWaypointInputProvider getSoleWaypointInputProvider()
-   {
-      return soleWaypointInputProvider;
-   }
-
-   public QuadrupedReferenceFrames getReferenceFrames()
-   {
-      return referenceFrames;
    }
 }

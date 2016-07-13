@@ -1,7 +1,6 @@
 package us.ihmc.quadrupedRobotics.planning;
 
-import com.google.common.math.DoubleMath;
-
+import us.ihmc.robotics.MathTools;
 import javax.vecmath.Point3d;
 import javax.vecmath.Vector3d;
 
@@ -9,24 +8,25 @@ public class SoleWaypoint
 {
    private Point3d position;
    private Vector3d velocity;
-   private Double time;
+   private double time;
 
    public SoleWaypoint()
    {
       position = new Point3d(0, 0, 0);
       velocity = new Vector3d(0, 0, 0);
-      time = new Double(0);
+      time = 0.0;
    }
 
    public SoleWaypoint(SoleWaypoint other)
    {
       this.position = new Point3d(other.position);
       this.velocity = new Vector3d(other.velocity);
-      this.time = new Double(other.time);
+      this.time = other.time;
    }
 
-   public SoleWaypoint(Point3d position, Vector3d velocity, Double time)
+   public SoleWaypoint(Point3d position, Vector3d velocity, double time)
    {
+      this();
       set(position, velocity, time);
    }
 
@@ -40,41 +40,46 @@ public class SoleWaypoint
       return velocity;
    }
 
-   public Double getTime()
+   public void getPosition(Point3d position)
+   {
+      position.set(this.position);
+   }
+
+   public void getVelocity(Vector3d velocity)
+   {
+      velocity.set(this.velocity);
+   }
+
+   public double getTime()
    {
       return time;
    }
 
    public void set(Point3d position, Vector3d velocity, Double time)
    {
-      this.position = position;
-      this.velocity = velocity;
+      this.position.set(position);
+      this.velocity.set(velocity);
       this.time = time;
    }
 
    public void setPosition(Point3d position)
    {
-      this.position = position;
+      this.position.set(position);
    }
 
    public void setVelocity(Vector3d velocity)
    {
-      this.velocity = velocity;
+      this.velocity.set(velocity);
    }
 
-   public void setTime(Double time)
+   public void setTime(double time)
    {
       this.time = time;
    }
 
    public boolean epsilonEquals(SoleWaypoint other, double epsilon)
    {
-      return position.epsilonEquals(other.position, epsilon) || velocity.epsilonEquals(other.velocity, epsilon) || DoubleMath
-            .fuzzyEquals(time, other.time, epsilon);
-   }
-
-   public boolean hasNull()
-   {
-      return (position == null || velocity == null || time == null);
+      return position.epsilonEquals(other.position, epsilon) || velocity.epsilonEquals(other.velocity, epsilon) || MathTools
+            .epsilonEquals(time, other.time, epsilon);
    }
 }

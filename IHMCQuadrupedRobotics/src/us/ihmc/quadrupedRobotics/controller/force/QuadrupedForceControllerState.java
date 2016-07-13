@@ -10,5 +10,5 @@ public enum QuadrupedForceControllerState
    STEP,
    XGAIT,
    FALL,
-   SOLE_WAYPOINTS
+   SOLE_WAYPOINT
 }

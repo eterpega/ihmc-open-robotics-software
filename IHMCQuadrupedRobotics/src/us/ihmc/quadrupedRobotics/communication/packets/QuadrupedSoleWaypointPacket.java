@@ -1,36 +1,30 @@
 package us.ihmc.quadrupedRobotics.communication.packets;
 
 import us.ihmc.communication.packets.Packet;
-import us.ihmc.quadrupedRobotics.planning.QuadrupedSoleWaypoints;
+import us.ihmc.quadrupedRobotics.planning.QuadrupedSoleWaypointList;
 
 public class QuadrupedSoleWaypointPacket extends Packet<QuadrupedSoleWaypointPacket>
 {
-
-   private QuadrupedSoleWaypoints quadrupedSoleWaypoints;
+   private QuadrupedSoleWaypointList quadrupedSoleWaypointList;
 
    public QuadrupedSoleWaypointPacket()
    {
-      this.quadrupedSoleWaypoints = new QuadrupedSoleWaypoints();
+      this.quadrupedSoleWaypointList = new QuadrupedSoleWaypointList();
    }
 
-   public QuadrupedSoleWaypointPacket(QuadrupedSoleWaypoints quadrupedSoleWaypoints)
+   public QuadrupedSoleWaypointPacket(QuadrupedSoleWaypointList quadrupedSoleWaypointList)
    {
-      this.quadrupedSoleWaypoints = new QuadrupedSoleWaypoints(quadrupedSoleWaypoints);
+      this.quadrupedSoleWaypointList = new QuadrupedSoleWaypointList(quadrupedSoleWaypointList);
    }
 
    @Override
    public boolean epsilonEquals(QuadrupedSoleWaypointPacket other, double epsilon)
    {
-      return quadrupedSoleWaypoints.epsilonEquals(other.quadrupedSoleWaypoints, epsilon);
+      return quadrupedSoleWaypointList.epsilonEquals(other.quadrupedSoleWaypointList, epsilon);
    }
 
-   public QuadrupedSoleWaypoints get()
+   public QuadrupedSoleWaypointList get()
    {
-      return quadrupedSoleWaypoints;
-   }
-
-   public void set(QuadrupedSoleWaypoints quadrupedSoleWaypoints)
-   {
-      this.quadrupedSoleWaypoints = quadrupedSoleWaypoints;
+      return quadrupedSoleWaypointList;
    }
 }

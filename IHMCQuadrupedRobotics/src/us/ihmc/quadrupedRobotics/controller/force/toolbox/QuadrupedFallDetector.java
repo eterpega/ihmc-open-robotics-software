@@ -13,14 +13,12 @@ import us.ihmc.robotics.robotSide.RobotQuadrant;
 public class QuadrupedFallDetector
 {
    private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
-   // Yo Variables
-   private final DoubleYoVariable yoDcmDistanceOutsideSupportPolygon;
 
    // Parameters
    private final ParameterFactory parameterFactory = ParameterFactory.createWithRegistry(getClass(), registry);
    private final DoubleParameter maxPitchInRad = parameterFactory.createDouble("maxPitchInRad", .5);
    private final DoubleParameter maxRollInRad = parameterFactory.createDouble("maxRollInRad", .5);
-   private final DoubleParameter dcmOutsideSupportThreshold = parameterFactory.createDouble("DcmDistanceOutsideSupportPolygonSupportThreshold", .15);
+   private final DoubleParameter dcmOutsideSupportThreshold = parameterFactory.createDouble("dcmDistanceOutsideSupportPolygonSupportThreshold", .15);
 
    //Estimation Variables
    private final QuadrupedTaskSpaceEstimator.Estimates taskSpaceEstimates;
@@ -29,22 +27,25 @@ public class QuadrupedFallDetector
    private final DivergentComponentOfMotionEstimator dcmPositionEstimator;
    private final QuadrupedSupportPolygon supportPolygon;
 
-   public enum fallDetectionTypes
+   // Yo Variables
+   private final DoubleYoVariable yoDcmDistanceOutsideSupportPolygon = new DoubleYoVariable("dcmDistanceOutsideSupportPolygon", registry);
+
+   private enum FallDetectionType
    {
       NONE, ROLL_LIMIT, PITCH_LIMIT, PITCH_AND_ROLL_LIMIT, DCM_OUTSIDE_SUPPORT_POLYGON_LIMIT, ALL
    }
-   private final EnumYoVariable<fallDetectionTypes> fallDetectionType;
 
-   public QuadrupedFallDetector(QuadrupedTaskSpaceEstimator taskSpaceEstimator, DivergentComponentOfMotionEstimator dcmPositionEstimator, YoVariableRegistry parentRegistry)
+   private final EnumYoVariable<FallDetectionType> fallDetectionType = EnumYoVariable.create("fallDetectionType", FallDetectionType.class, registry);
+
+   public QuadrupedFallDetector(QuadrupedTaskSpaceEstimator taskSpaceEstimator, DivergentComponentOfMotionEstimator dcmPositionEstimator,
+         YoVariableRegistry parentRegistry)
    {
       this.taskSpaceEstimator = taskSpaceEstimator;
       taskSpaceEstimates = new QuadrupedTaskSpaceEstimator.Estimates();
       dcmPositionEstimate = new FramePoint();
       this.dcmPositionEstimator = dcmPositionEstimator;
-      fallDetectionType = EnumYoVariable.create("fallDetectionTypes", fallDetectionTypes.class, registry);
-      fallDetectionType.set(fallDetectionTypes.NONE);
+      fallDetectionType.set(FallDetectionType.NONE);
       supportPolygon = new QuadrupedSupportPolygon(taskSpaceEstimates.getSolePosition());
-      yoDcmDistanceOutsideSupportPolygon = new DoubleYoVariable("DcmDistanceOutsideSupportPolygon", registry);
       parentRegistry.addChild(registry);
    }
 
@@ -60,9 +61,9 @@ public class QuadrupedFallDetector
       case PITCH_LIMIT:
          return detectPitchLimitFailure();
       case PITCH_AND_ROLL_LIMIT:
-         return detectPitchAndRollLimitFailure();
+         return detectPitchLimitFailure() || detectRollLimitFailure();
       case ALL:
-         return detectDcmDistanceOutsideSupportPolygonLimitFailure() || detectPitchAndRollLimitFailure();
+         return detectDcmDistanceOutsideSupportPolygonLimitFailure() || detectPitchLimitFailure() || detectRollLimitFailure();
       default:
          return false;
       }
@@ -77,11 +78,6 @@ public class QuadrupedFallDetector
          taskSpaceEstimates.getSolePosition(quadrant).changeFrame(ReferenceFrame.getWorldFrame());
          supportPolygon.setFootstep(quadrant, taskSpaceEstimates.getSolePosition(quadrant));
       }
-   }
-
-   private boolean detectPitchAndRollLimitFailure()
-   {
-      return detectPitchLimitFailure() || detectRollLimitFailure();
    }
 
    private boolean detectPitchLimitFailure()
