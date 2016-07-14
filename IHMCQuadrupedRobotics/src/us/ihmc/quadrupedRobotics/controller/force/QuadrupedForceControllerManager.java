@@ -167,7 +167,8 @@ public class QuadrupedForceControllerManager implements QuadrupedControllerManag
       final QuadrupedMpcBasedXGaitController xGaitController = new QuadrupedMpcBasedXGaitController(runtimeEnvironment, controllerToolbox, inputProvider,
             xGaitSettingsProvider);
       final QuadrupedController fallController = new QuadrupedForceBasedFallController(runtimeEnvironment, controllerToolbox);
-      final QuadrupedController soleWaypointController = new QuadrupedForceBasedSoleWaypointUsingInputController(runtimeEnvironment, controllerToolbox, soleWaypointInputProvider);
+      final QuadrupedController soleWaypointController = new QuadrupedForceBasedSoleWaypointController(runtimeEnvironment, controllerToolbox,
+            soleWaypointInputProvider);
 
       FiniteStateMachineBuilder<QuadrupedForceControllerState, ControllerEvent> builder = new FiniteStateMachineBuilder<>(QuadrupedForceControllerState.class,
             ControllerEvent.class, "forceControllerState", registry);

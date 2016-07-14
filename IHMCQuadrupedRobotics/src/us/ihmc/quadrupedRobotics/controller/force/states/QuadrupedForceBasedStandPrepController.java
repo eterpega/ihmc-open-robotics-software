@@ -76,14 +76,14 @@ public class QuadrupedForceBasedStandPrepController implements QuadrupedControll
       solePositionSetpoint = new FramePoint();
       for (RobotQuadrant quadrant : RobotQuadrant.values)
       {
-         quadrupedSoleWaypointList.get(quadrant).add( new SoleWaypoint());
-         quadrupedSoleWaypointList.get(quadrant).add( new SoleWaypoint());
+         quadrupedSoleWaypointList.get(quadrant).add(new SoleWaypoint());
+         quadrupedSoleWaypointList.get(quadrant).add(new SoleWaypoint());
       }
       zeroVelocity = new Vector3d(0, 0, 0);
       taskSpaceControllerCommands = new QuadrupedTaskSpaceController.Commands();
       taskSpaceControllerSettings = new QuadrupedTaskSpaceController.Settings();
       this.taskSpaceController = controllerToolbox.getTaskSpaceController();
-      yoPositionControllerGains = new YoEuclideanPositionGains("positionControllerGains",registry);
+      yoPositionControllerGains = new YoEuclideanPositionGains("positionControllerGains", registry);
 
       // Calculate the robot length
       FramePoint frontLeftHipRollFrame = new FramePoint();
