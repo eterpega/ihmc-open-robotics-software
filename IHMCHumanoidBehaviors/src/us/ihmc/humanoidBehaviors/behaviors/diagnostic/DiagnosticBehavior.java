@@ -1539,7 +1539,7 @@ public class DiagnosticBehavior extends BehaviorInterface
       pipeLine.requestNewStage();
 
       //back to normal stance
-      submitChestHomeCommand(true);
+      submitDesiredChestOrientation(true, 0.0, 0.0, 0.0);
       submitPelvisHomeCommand(true);
       pipeLine.requestNewStage();
 
@@ -1553,7 +1553,10 @@ public class DiagnosticBehavior extends BehaviorInterface
       submitHandPose(robotSide.getOppositeSide(), desiredUpperArmOrientation, -0.1, null, mirrorOrientationForRightSide);
       pipeLine.requestNewStage();
 
-      submitArmGoHomeCommand(true);
+      desiredUpperArmOrientation.setYawPitchRoll(-0.4, -0.2, -1.2);
+      submitHandPose(robotSide, desiredUpperArmOrientation, -1.5, null, false);
+      desiredUpperArmOrientation.setYawPitchRoll(0.4, -0.2, 1.2);
+      submitHandPose(robotSide.getOppositeSide(), desiredUpperArmOrientation, -1.5, null, false);
       pipeLine.requestNewStage();
 
       //square up the feet

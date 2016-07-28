@@ -11,7 +11,7 @@ public class ArmTrajectoryTask extends BehaviorTask
 
    public ArmTrajectoryTask(ArmTrajectoryMessage armTrajectoryMessage, ArmTrajectoryBehavior armTrajectoryBehavior, DoubleYoVariable yoTime, double sleepTime)
    {
-      super(armTrajectoryBehavior, yoTime, sleepTime);
+      super(armTrajectoryBehavior, yoTime, 0.0);
       this.armTrajectoryBehavior = armTrajectoryBehavior;
       this.armTrajectoryMessage = armTrajectoryMessage;
    }

@@ -52,7 +52,7 @@ public abstract class BehaviorTask implements Task
    @Override
    public boolean isDone()
    {
-      boolean sleepTimeAchieved = yoTime.getDoubleValue() > behaviorDoneTime + sleepTime;
+      boolean sleepTimeAchieved = yoTime.getDoubleValue() >= behaviorDoneTime + sleepTime;
       return behavior.isDone() && sleepTimeAchieved;
    }
 
