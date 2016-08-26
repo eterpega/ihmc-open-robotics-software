@@ -9,13 +9,12 @@ import org.junit.Test;
 
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.stateMachines.State;
-import us.ihmc.robotics.stateMachines.StateMachine;
+import us.ihmc.tools.testing.MutationTestingTools;
 import us.ihmc.tools.testing.TestPlanAnnotations.DeployableTestMethod;
 
 public class StateMachineTest
 {
-   private static final double EPSILON = 1e8;
+   private static final double EPSILON = 1e-7;
    private static final boolean VERBOSE = false;
    private final double INTO = 0.0;
    private final double ACTION = 0.1;
@@ -23,7 +22,7 @@ public class StateMachineTest
    private final int MAX_NUMBER_OF_CALLS = 2;
 
 	@DeployableTestMethod(estimatedDuration = 0.0)
-	@Test(timeout = 30000)
+	@Test//(timeout = 30000)
    public void testStateTransition()
    {
       ArrayList<Double> listOfActions = new ArrayList<Double>();
@@ -62,7 +61,7 @@ public class StateMachineTest
       int currentState;
       boolean didTransitionInto = false;
       boolean didAction = false;
-      boolean didTransitionOutOf = false;
+      boolean didTransitionOutOf = true;
       boolean initialized = false;
       int previousState = 0;
 
@@ -73,6 +72,7 @@ public class StateMachineTest
          if (!initialized)
          {
             previousState = currentState;
+            initialized = true;
          }
 
          if (previousState != currentState)
@@ -80,8 +80,10 @@ public class StateMachineTest
             // check to make sure that it is a next state
             assertEquals(currentState, previousState + 1, EPSILON);
 
-            assert (didTransitionOutOf);
+            assertTrue (didTransitionOutOf);
             didTransitionOutOf = false;
+            previousState = currentState;
+
          }
 
          double actionCode = value.doubleValue() - Math.floor(value.doubleValue());
@@ -98,9 +100,9 @@ public class StateMachineTest
          }
          else
          {
-            assertTrue(Math.abs(actionCode - ACTION) < EPSILON || Math.abs(actionCode - OUT_OF) < EPSILON);
+            assertTrue("actionCode = " + actionCode + ", ACTION = " + ACTION + ", OUT_OF = " + OUT_OF, Math.abs(actionCode - ACTION) < EPSILON || Math.abs(actionCode - OUT_OF) < EPSILON);
 
-            if (actionCode == OUT_OF)
+            if (Math.abs(actionCode - OUT_OF) < EPSILON)
             {
                didTransitionInto = false;
                didAction = false;
@@ -119,7 +121,6 @@ public class StateMachineTest
       private final int stateID;
       private ArrayList<Double> listOfActions;
 
-      //    private final StateMachine stateMachine;
       private int callCounter = 1;
 
       public SimpleState(States stateEnum, int stateID, ArrayList<Double> listOfActions)
@@ -156,5 +157,13 @@ public class StateMachineTest
    private enum States
    {
       ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX
+   }
+
+
+   public static void main(String[] args)
+   {
+      String targetTests = StateMachineTest.class.getName();
+      String targetClassesInSamePackage = MutationTestingTools.createClassSelectorStringFromTargetString(targetTests);
+      MutationTestingTools.doPITMutationTestAndOpenResult(targetTests, targetClassesInSamePackage);
    }
 }
