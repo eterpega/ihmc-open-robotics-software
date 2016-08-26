@@ -152,7 +152,7 @@ public class HighLevelHumanoidControllerToolbox
    private final YoFramePoint2d yoCenterOfPressure = new YoFramePoint2d("CenterOfPressure", worldFrame, registry);
 
    private final CenterOfMassDataHolderReadOnly centerOfMassDataHolder;
-
+   
    public HighLevelHumanoidControllerToolbox(FullHumanoidRobotModel fullRobotModel, GeometricJacobianHolder robotJacobianHolder,
          CommonHumanoidReferenceFrames referenceFrames, SideDependentList<FootSwitchInterface> footSwitches,
          CenterOfMassDataHolderReadOnly centerOfMassDataHolder,
@@ -367,9 +367,9 @@ public class HighLevelHumanoidControllerToolbox
       momentumCalculator = new MomentumCalculator(twistCalculator, ScrewTools.computeSubtreeSuccessors(fullRobotModel.getElevator()));
       yoAngularMomentum = new YoFrameVector("AngularMomentum", centerOfMassFrame, registry);
       DoubleYoVariable alpha = new DoubleYoVariable("filteredAngularMomentumAlpha", registry);
-      alpha.set(0.95); // switch to break frequency and move to walking parameters
+      alpha.set(0.95);
       filteredYoAngularMomentum = AlphaFilteredYoFrameVector.createAlphaFilteredYoFrameVector("filteredAngularMomentum", "", registry, alpha, yoAngularMomentum);
-      momentumGain.set(0.0);
+      momentumGain.set(0.5);
    }
 
    public static InverseDynamicsJoint[] computeJointsToOptimizeFor(FullHumanoidRobotModel fullRobotModel, InverseDynamicsJoint... jointsToRemove)
@@ -471,7 +471,7 @@ public class HighLevelHumanoidControllerToolbox
    private void computeCapturePoint()
    {
       centerOfMassPosition.setToZero(centerOfMassFrame);
-
+      
       if (centerOfMassDataHolder != null)
       {
          centerOfMassDataHolder.getCenterOfMassVelocity(centerOfMassVelocity);

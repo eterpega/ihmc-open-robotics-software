@@ -100,9 +100,9 @@ public class MomentumRecoveryControlModule
       distanceToShrinkSafeAreaIfRecoveringDS.set(defaultDistanceToShrinkSafeAreaIfRecoveringDS);
       maxIcpError.set(defaultMaxIcpError);
 
-      allowUpperBodyMomentumInSingleSupport.set(false);
-      allowUpperBodyMomentumInDoubleSupport.set(false);
-      allowUsingHighMomentumWeight.set(false);
+      allowUpperBodyMomentumInSingleSupport.set(true);
+      allowUpperBodyMomentumInDoubleSupport.set(true);
+      allowUsingHighMomentumWeight.set(true);
       maxDistanceCMPSupport.set(maxAllowedDistanceCMPSupport);
 
       parentRegistry.addChild(registry);
