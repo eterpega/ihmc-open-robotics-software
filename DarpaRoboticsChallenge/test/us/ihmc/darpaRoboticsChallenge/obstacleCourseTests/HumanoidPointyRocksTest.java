@@ -229,6 +229,8 @@ public abstract class HumanoidPointyRocksTest implements MultiRobotTestInterface
       enablePartialFootholdDetectionAndResponse(drcSimulationTestHelper, 1.5, 0.0, defaultChickenPercentage);
       BooleanYoVariable doFootExplorationInTransferToStanding = (BooleanYoVariable) drcSimulationTestHelper.getYoVariable("doFootExplorationInTransferToStanding");
       doFootExplorationInTransferToStanding.set(false);
+      DoubleYoVariable momentumGain = (DoubleYoVariable) drcSimulationTestHelper.getYoVariable("momentumGain");
+      momentumGain.set(0.5);
 
       BooleanYoVariable l_swingSpeedup = (BooleanYoVariable) drcSimulationTestHelper.getYoVariable("leftFootIsSwingSpeedUpEnabled");
       BooleanYoVariable r_swingSpeedup = (BooleanYoVariable) drcSimulationTestHelper.getYoVariable("rightFootIsSwingSpeedUpEnabled");
@@ -277,7 +279,7 @@ public abstract class HumanoidPointyRocksTest implements MultiRobotTestInterface
       success = success && drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(8.0);
 
       Point3d center = new Point3d(0.0, 0.15, 0.8);
-      Vector3d plusMinusVector = new Vector3d(0.2, 0.2, 0.2);
+      Vector3d plusMinusVector = new Vector3d(0.1, 0.1, 0.1);
       BoundingBox3d boundingBox = BoundingBox3d.createUsingCenterAndPlusMinusVector(center, plusMinusVector);
       drcSimulationTestHelper.assertRobotsRootJointIsInBoundingBox(boundingBox);
 
