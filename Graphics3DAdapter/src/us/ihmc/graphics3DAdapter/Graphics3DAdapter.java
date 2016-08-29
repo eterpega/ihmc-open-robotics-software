@@ -3,15 +3,12 @@ package us.ihmc.graphics3DAdapter;
 import java.awt.GraphicsDevice;
 import java.net.URL;
 
-import javax.vecmath.Color3f;
-
-
-
 import us.ihmc.graphics3DAdapter.camera.ViewportAdapter;
 import us.ihmc.graphics3DAdapter.graphics.appearances.AppearanceDefinition;
 import us.ihmc.graphics3DAdapter.input.SelectedListener;
 import us.ihmc.graphics3DAdapter.structure.Graphics3DNode;
 import us.ihmc.robotics.lidar.LidarScanParameters;
+import us.ihmc.tools.color.Color3f;
 import us.ihmc.tools.inputDevices.keyboard.KeyListener;
 import us.ihmc.tools.inputDevices.mouse.MouseListener;
 import us.ihmc.tools.inputDevices.mouse3DJoystick.Mouse3DListener;

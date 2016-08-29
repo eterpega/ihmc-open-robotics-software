@@ -44,7 +44,6 @@ import javax.swing.JSplitPane;
 import javax.swing.JTextField;
 import javax.swing.JWindow;
 import javax.swing.SwingUtilities;
-import javax.vecmath.Color3f;
 
 import us.ihmc.graphics3DAdapter.Graphics3DAdapter;
 import us.ihmc.graphics3DAdapter.Graphics3DBackgroundScaleMode;
@@ -118,6 +117,7 @@ import us.ihmc.simulationconstructionset.yoUtilities.graphics.YoGraphic;
 import us.ihmc.simulationconstructionset.yoUtilities.graphics.YoGraphicsList;
 import us.ihmc.simulationconstructionset.yoUtilities.graphics.YoGraphicsListRegistry;
 import us.ihmc.tools.TimestampProvider;
+import us.ihmc.tools.color.Color3f;
 import us.ihmc.tools.gui.GraphicsUpdatable;
 import us.ihmc.tools.thread.CloseableAndDisposableRegistry;
 

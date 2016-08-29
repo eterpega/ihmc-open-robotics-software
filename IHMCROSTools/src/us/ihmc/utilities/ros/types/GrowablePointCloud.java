@@ -3,10 +3,11 @@ package us.ihmc.utilities.ros.types;
 import java.awt.Color;
 import java.util.ArrayList;
 
-import javax.vecmath.Color3f;
 import javax.vecmath.Point3d;
 
 import org.apache.commons.lang3.ArrayUtils;
+
+import us.ihmc.tools.color.Color3f;
 
 public class GrowablePointCloud
 {

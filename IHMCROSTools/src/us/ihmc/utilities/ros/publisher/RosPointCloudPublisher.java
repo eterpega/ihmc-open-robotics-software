@@ -1,6 +1,5 @@
 package us.ihmc.utilities.ros.publisher;
 
-import javax.vecmath.Color3f;
 import javax.vecmath.Point3d;
 
 import org.jboss.netty.buffer.ChannelBuffer;
@@ -8,6 +7,7 @@ import org.jboss.netty.buffer.LittleEndianHeapChannelBuffer;
 import org.ros.message.Time;
 
 import sensor_msgs.PointCloud2;
+import us.ihmc.tools.color.Color3f;
 import us.ihmc.utilities.ros.types.PointType;
 
 public class RosPointCloudPublisher extends RosTopicPublisher<PointCloud2>

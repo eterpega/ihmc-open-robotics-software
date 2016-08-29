@@ -4,7 +4,7 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.Random;
 
-import javax.vecmath.Color3f;
+import us.ihmc.tools.color.Color3f;
 
 
 //http://www.wdvl.com/Graphics/Colour/  has some of the color names I'm using...

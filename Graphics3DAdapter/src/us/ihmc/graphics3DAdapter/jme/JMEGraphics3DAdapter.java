@@ -3,10 +3,9 @@ package us.ihmc.graphics3DAdapter.jme;
 import java.awt.GraphicsDevice;
 import java.net.URL;
 
-import javax.vecmath.Color3f;
-
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
+
 import us.ihmc.graphics3DAdapter.ContextManager;
 import us.ihmc.graphics3DAdapter.GPULidarListener;
 import us.ihmc.graphics3DAdapter.Graphics3DAdapter;
@@ -19,6 +18,7 @@ import us.ihmc.graphics3DAdapter.jme.JMERenderer.RenderType;
 import us.ihmc.graphics3DAdapter.jme.lidar.JMEGPULidar;
 import us.ihmc.graphics3DAdapter.structure.Graphics3DNode;
 import us.ihmc.robotics.lidar.LidarScanParameters;
+import us.ihmc.tools.color.Color3f;
 import us.ihmc.tools.inputDevices.keyboard.KeyListener;
 import us.ihmc.tools.inputDevices.mouse.MouseListener;
 import us.ihmc.tools.inputDevices.mouse3DJoystick.Mouse3DListener;

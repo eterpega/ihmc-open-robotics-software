@@ -2,8 +2,9 @@ package us.ihmc.simulationconstructionset.gui;
 
 import java.util.StringTokenizer;
 
-import javax.vecmath.Color3f;
 import javax.vecmath.Matrix3d;
+
+import us.ihmc.tools.color.Color3f;
 
 public class XMLReaderUtility
 {

@@ -9,15 +9,15 @@ import java.net.URISyntaxException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import javax.vecmath.Color3f;
 import javax.vecmath.Point3d;
 
 import org.junit.Test;
 
 import sensor_msgs.PointCloud2;
-import us.ihmc.tools.testing.TestPlanTarget;
+import us.ihmc.tools.color.Color3f;
 import us.ihmc.tools.testing.TestPlanAnnotations.DeployableTestClass;
 import us.ihmc.tools.testing.TestPlanAnnotations.DeployableTestMethod;
+import us.ihmc.tools.testing.TestPlanTarget;
 import us.ihmc.utilities.ros.publisher.RosPointCloudPublisher;
 import us.ihmc.utilities.ros.subscriber.RosPointCloudSubscriber;
 import us.ihmc.utilities.ros.types.PointType;

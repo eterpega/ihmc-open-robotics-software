@@ -26,7 +26,6 @@ import java.util.logging.Logger;
 
 import javax.swing.JComponent;
 import javax.swing.RepaintManager;
-import javax.vecmath.Color3f;
 
 import org.jmonkeyengine.scene.plugins.ogre.MaterialLoader;
 
@@ -60,7 +59,11 @@ import com.jme3.util.SkyFactory.EnvMapType;
 import jme3dae.ColladaLoader;
 import jme3dae.collada14.ColladaDocumentV14;
 import jme3dae.materials.FXBumpMaterialGenerator;
-import us.ihmc.graphics3DAdapter.*;
+import us.ihmc.graphics3DAdapter.GPULidarListener;
+import us.ihmc.graphics3DAdapter.Graphics3DAdapter;
+import us.ihmc.graphics3DAdapter.Graphics3DBackgroundScaleMode;
+import us.ihmc.graphics3DAdapter.HeightMap;
+import us.ihmc.graphics3DAdapter.Updatable;
 import us.ihmc.graphics3DAdapter.camera.ViewportAdapter;
 import us.ihmc.graphics3DAdapter.graphics.appearances.AppearanceDefinition;
 import us.ihmc.graphics3DAdapter.input.SelectedListener;
@@ -80,6 +83,7 @@ import us.ihmc.graphics3DAdapter.structure.Graphics3DNode;
 import us.ihmc.graphics3DAdapter.structure.Graphics3DNodeType;
 import us.ihmc.robotics.lidar.LidarScanParameters;
 import us.ihmc.tools.FormattingTools;
+import us.ihmc.tools.color.Color3f;
 import us.ihmc.tools.inputDevices.keyboard.KeyListener;
 import us.ihmc.tools.inputDevices.keyboard.KeyListenerHolder;
 import us.ihmc.tools.inputDevices.mouse.MouseListener;
