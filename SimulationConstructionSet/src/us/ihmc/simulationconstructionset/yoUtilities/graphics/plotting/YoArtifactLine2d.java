@@ -3,23 +3,23 @@ package us.ihmc.simulationconstructionset.yoUtilities.graphics.plotting;
 import java.awt.BasicStroke;
 import java.awt.Color;
 
-import us.ihmc.graphics3DAdapter.graphics.appearances.AppearanceDefinition;
 import us.ihmc.plotting.Graphics2DAdapter;
-import us.ihmc.plotting.PlotterGraphics;
+import us.ihmc.robotics.geometry.Line2d;
 import us.ihmc.robotics.math.frames.YoFrameLine2d;
 
 public class YoArtifactLine2d extends YoArtifact
 {
+   private static final BasicStroke STROKE = new BasicStroke(2);
+   
    private final YoFrameLine2d yoFrameLine2d;
-   private final PlotterGraphics plotterGraphics = new PlotterGraphics();
    private final Color color;
-
-   private static final int pixels = 2;
-   private static final BasicStroke stroke = new BasicStroke(pixels);
-
+   
+   private final Line2d tempLine = new Line2d();
+   
    public YoArtifactLine2d(String name, YoFrameLine2d yoFrameLine2d, Color color)
    {
-      super(name,  yoFrameLine2d.getYoX0(), yoFrameLine2d.getYoY0(), yoFrameLine2d.getYoVx(), yoFrameLine2d.getYoVy());
+      super(name, new double[0], color,
+            yoFrameLine2d.getYoPointX(), yoFrameLine2d.getYoPointY(), yoFrameLine2d.getYoVectorX(), yoFrameLine2d.getYoVectorY());
       this.yoFrameLine2d = yoFrameLine2d;
       this.color = color;
    }
@@ -30,62 +30,30 @@ public class YoArtifactLine2d extends YoArtifact
       if (isVisible)
       {
          graphics.setColor(color);
-         if (stroke != null)
-            graphics.setStroke(stroke);
+         graphics.setStroke(STROKE);
 
-         double x0 = yoFrameLine2d.getX0();
-         double y0 = yoFrameLine2d.getY0();
-         double vx = yoFrameLine2d.getVx();
-         double vy = yoFrameLine2d.getVy();
-
-         plotterGraphics.setCenter(Xcenter, Ycenter);
-         plotterGraphics.setScale(scaleFactor);
-
-         plotterGraphics.drawLineGivenStartAndVector(graphics, x0, y0, vx, vy);
+         yoFrameLine2d.getFrameLine2d().get(tempLine);
+         graphics.drawLine(tempLine);
       }
    }
 
    @Override
-   public void drawLegend(Graphics2DAdapter graphics, int Xcenter, int Ycenter, double scaleFactor)
+   public void drawLegend(Graphics2DAdapter graphics, int centerX, int centerY, double scaleFactor)
    {
       graphics.setColor(color);
+      graphics.setStroke(STROKE);
 
-      //    int pixels = 2;
-      if (stroke != null)
-         graphics.setStroke(stroke);
-
-      //      plotterGraphics.setCenter(Xcenter, Ycenter);
-      //      plotterGraphics.setScale(scaleFactor);
-      //      plotterGraphics.drawLineSegment(graphics, 0.0, 0.0, 0.1, 0.0);
-      graphics.drawLineSegment(-20 + Xcenter, -5 + Ycenter, 20 + Xcenter, 5 + Ycenter);
+      graphics.drawLineSegment(-20 + centerX, -5 + centerY, 20 + centerX, 5 + centerY);
    }
 
    @Override
-   public void drawHistory(Graphics2DAdapter graphics2d, int Xcenter, int Ycenter, double scaleFactor)
-   {
-      throw new RuntimeException("Not implemented!");
-   }
-
-   @Override
-   public void takeHistorySnapshot()
+   public void drawHistory(Graphics2DAdapter graphics2d, int centerX, int centerY, double scaleFactor)
    {
       throw new RuntimeException("Not implemented!");
    }
 
    @Override
    public RemoteGraphicType getRemoteGraphicType()
-   {
-      return null;
-   }
-
-   @Override
-   public double[] getConstants()
-   {
-      return null;
-   }
-
-   @Override
-   public AppearanceDefinition getAppearance()
    {
       return null;
    }

@@ -162,6 +162,8 @@ public class YoFrameLineSegment2d extends AbstractReferenceFrameHolder
 
    public void getFirstEndPoint(Point2d firstEndpointToPack)
    {
+      putYoValuesIntoFrameLineSegment();
+      
       frameLineSegment.getFirstEndpoint(firstEndpointToPack);
    }
 
@@ -259,6 +261,11 @@ public class YoFrameLineSegment2d extends AbstractReferenceFrameHolder
       putYoValuesIntoFrameLineSegment();
 
       return frameLineSegment.pointBetweenEndPointsGivenParameter(parameter);
+   }
+   
+   public boolean areEndpointsTheSame()
+   {
+      return LineSegment2d.areEndpointsTheSame(getFirstEndpointX(), getFirstEndpointY(), getSecondEndpointX(), getSecondEndpointY());
    }
 
    public void setToNaN()
