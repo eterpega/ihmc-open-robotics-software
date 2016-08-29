@@ -7,7 +7,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-import javax.vecmath.Color3f;
 import javax.vecmath.Vector3d;
 import javax.xml.bind.JAXBException;
 
@@ -31,6 +30,7 @@ import us.ihmc.simulationconstructionset.util.ground.CombinedTerrainObject3D;
 import us.ihmc.simulationconstructionset.util.ground.CylinderTerrainObject;
 import us.ihmc.simulationconstructionset.util.ground.RotatableBoxTerrainObject;
 import us.ihmc.simulationconstructionset.util.ground.TerrainObject3D;
+import us.ihmc.tools.color.Color3f;
 
 public class SDFEnvironment implements CommonAvatarEnvironmentInterface
 {

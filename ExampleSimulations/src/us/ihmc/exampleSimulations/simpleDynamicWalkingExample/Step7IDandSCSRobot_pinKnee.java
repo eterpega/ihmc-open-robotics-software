@@ -293,7 +293,7 @@ public class Step7IDandSCSRobot_pinKnee extends Robot
          yoFootPositions.put(robotSide, yoFootPosition);
               
          // Visualize feet location on plotter panel
-         YoArtifactPosition footPositionArtifact = new YoArtifactPosition(sidePrefix + " Foot", yoFootPosition.getYoX(), yoFootPosition.getYoY(), GraphicType.SOLID_BALL, YoAppearance.Green().getColor().get(), 0.009);
+         YoArtifactPosition footPositionArtifact = new YoArtifactPosition(sidePrefix + " Foot", yoFootPosition.getYoX(), yoFootPosition.getYoY(), GraphicType.SOLID_BALL, YoAppearance.Green().getAwtColor(), 0.009);
          artifactList.add(footPositionArtifact);
          
          // Visualize feel location on SCS
@@ -310,9 +310,9 @@ public class Step7IDandSCSRobot_pinKnee extends Robot
 //      yoGraphicsList.add(bodyFrameViz);
 
       // Visualize CoM, CP and CoP on plotter panel
-      YoArtifactPosition centerOfMassArtifact = new YoArtifactPosition("Center of Mass", yoCoM.getYoX(), yoCoM.getYoY(), GraphicType.SOLID_BALL, YoAppearance.Black().getColor().get(), 0.009);
-      YoArtifactPosition capturePointArtifact = new YoArtifactPosition("Capture Point", yoICP.getYoX(), yoICP.getYoY(), GraphicType.SOLID_BALL, YoAppearance.Blue().getColor().get(), 0.009);
-      YoArtifactPosition centerOfPressureArtifact = new YoArtifactPosition("Center of Pressure", yoCoP.getYoX(), yoCoP.getYoY(), GraphicType.SOLID_BALL, YoAppearance.Red().getColor().get(), 0.009);
+      YoArtifactPosition centerOfMassArtifact = new YoArtifactPosition("Center of Mass", yoCoM.getYoX(), yoCoM.getYoY(), GraphicType.SOLID_BALL, YoAppearance.Black().getAwtColor(), 0.009);
+      YoArtifactPosition capturePointArtifact = new YoArtifactPosition("Capture Point", yoICP.getYoX(), yoICP.getYoY(), GraphicType.SOLID_BALL, YoAppearance.Blue().getAwtColor(), 0.009);
+      YoArtifactPosition centerOfPressureArtifact = new YoArtifactPosition("Center of Pressure", yoCoP.getYoX(), yoCoP.getYoY(), GraphicType.SOLID_BALL, YoAppearance.Red().getAwtColor(), 0.009);
       artifactList.add(centerOfMassArtifact);
       artifactList.add(capturePointArtifact);
       artifactList.add(centerOfPressureArtifact);

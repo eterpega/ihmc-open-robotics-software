@@ -11,10 +11,11 @@ import java.util.Random;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.vecmath.Color3f;
 import javax.vecmath.Point3d;
 import javax.vecmath.Quat4d;
 import javax.vecmath.Vector3d;
+
+import org.apache.commons.lang3.tuple.ImmutableTriple;
 
 import us.ihmc.graphics3DAdapter.Graphics3DAdapter;
 import us.ihmc.graphics3DAdapter.camera.ClassicCameraController;
@@ -28,12 +29,11 @@ import us.ihmc.graphics3DAdapter.graphics.instructions.Graphics3DInstruction;
 import us.ihmc.graphics3DAdapter.input.SelectedListener;
 import us.ihmc.graphics3DAdapter.structure.Graphics3DNode;
 import us.ihmc.graphics3DAdapter.structure.Graphics3DNodeType;
+import us.ihmc.robotics.geometry.Transform3d;
+import us.ihmc.robotics.geometry.shapes.Sphere3d;
+import us.ihmc.tools.color.Color3f;
 import us.ihmc.tools.inputDevices.keyboard.ModifierKeyInterface;
 import us.ihmc.tools.thread.ThreadTools;
-import org.apache.commons.lang3.tuple.ImmutableTriple;
-
-import us.ihmc.robotics.geometry.shapes.Sphere3d;
-import us.ihmc.robotics.geometry.Transform3d;
 
 public class GraphicsDemoTools
 {

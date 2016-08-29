@@ -2,7 +2,6 @@ package us.ihmc.simulationconstructionset.yoUtilities.graphics;
 
 import java.awt.Color;
 
-import javax.vecmath.Color3f;
 import javax.vecmath.Matrix3d;
 import javax.vecmath.Point3d;
 import javax.vecmath.Vector3d;
@@ -20,6 +19,7 @@ import us.ihmc.robotics.math.frames.YoFramePoint;
 import us.ihmc.robotics.math.frames.YoFrameVector;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.simulationconstructionset.yoUtilities.graphics.plotting.YoArtifactLineSegment2d;
+import us.ihmc.tools.color.Color3f;
 
 public class YoGraphicVector extends YoGraphic implements RemoteYoGraphic
 {

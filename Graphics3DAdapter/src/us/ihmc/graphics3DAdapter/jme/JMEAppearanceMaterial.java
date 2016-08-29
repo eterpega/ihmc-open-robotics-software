@@ -6,9 +6,8 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 
-import javax.vecmath.Color3f;
-
 import org.apache.commons.lang3.SystemUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 
 import com.jme3.material.Material;
 import com.jme3.material.MaterialList;
@@ -30,11 +29,9 @@ import us.ihmc.graphics3DAdapter.graphics.appearances.YoAppearanceMaterial;
 import us.ihmc.graphics3DAdapter.graphics.appearances.YoAppearanceRGBColor;
 import us.ihmc.graphics3DAdapter.graphics.appearances.YoAppearanceTexture;
 import us.ihmc.graphics3DAdapter.jme.util.JMEDataTypeUtils;
-
-import org.apache.commons.lang3.tuple.ImmutablePair;
-
 import us.ihmc.robotics.geometry.BoundingBox3d;
 import us.ihmc.tools.ClassLoaderTools;
+import us.ihmc.tools.color.Color3f;
 import us.ihmc.tools.io.files.FileTools;
 
 public class JMEAppearanceMaterial

@@ -3,7 +3,6 @@ package us.ihmc.graphics3DAdapter.jme.util;
 import java.awt.Color;
 import java.util.List;
 
-import javax.vecmath.Color3f;
 import javax.vecmath.Point3d;
 import javax.vecmath.Quat4d;
 import javax.vecmath.Quat4f;
@@ -12,16 +11,17 @@ import javax.vecmath.Tuple3d;
 import javax.vecmath.Tuple3f;
 import javax.vecmath.Vector3d;
 
-import us.ihmc.robotics.geometry.FramePose;
-import us.ihmc.robotics.geometry.Ray3d;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
-
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Ray;
 import com.jme3.math.Transform;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
+
+import us.ihmc.robotics.geometry.FramePose;
+import us.ihmc.robotics.geometry.Ray3d;
+import us.ihmc.robotics.geometry.RigidBodyTransform;
+import us.ihmc.tools.color.Color3f;
 
 public class JMEDataTypeUtils
 {

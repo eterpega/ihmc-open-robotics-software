@@ -142,8 +142,8 @@ public class Step7WalkingController implements RobotController
    public void initializeVizualizers()
    {
       // 2D CoP and ICP visualizer
-      YoArtifactPosition desiredCoPArtifact = new YoArtifactPosition("DesiredCoP", yoDesiredCoP.getYoX(), yoDesiredCoP.getYoY(), GraphicType.BALL_WITH_ROTATED_CROSS, YoAppearance.Red().getColor().get(), 0.01);
-      YoArtifactPosition desiredICPArtifact = new YoArtifactPosition("DesiredICP", yoDesiredICP.getYoX(), yoDesiredICP.getYoY(), GraphicType.BALL_WITH_ROTATED_CROSS, YoAppearance.Blue().getColor().get(), 0.01);
+      YoArtifactPosition desiredCoPArtifact = new YoArtifactPosition("DesiredCoP", yoDesiredCoP.getYoX(), yoDesiredCoP.getYoY(), GraphicType.BALL_WITH_ROTATED_CROSS, YoAppearance.Red().getAwtColor(), 0.01);
+      YoArtifactPosition desiredICPArtifact = new YoArtifactPosition("DesiredICP", yoDesiredICP.getYoX(), yoDesiredICP.getYoY(), GraphicType.BALL_WITH_ROTATED_CROSS, YoAppearance.Blue().getAwtColor(), 0.01);
       artifactList.add(desiredCoPArtifact);
       artifactList.add(desiredICPArtifact);
 

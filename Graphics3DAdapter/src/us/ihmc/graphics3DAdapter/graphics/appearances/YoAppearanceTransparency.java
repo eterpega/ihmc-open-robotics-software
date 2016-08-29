@@ -1,8 +1,8 @@
 package us.ihmc.graphics3DAdapter.graphics.appearances;
 
-import javax.vecmath.Color3f;
-
 import org.apache.commons.lang3.NotImplementedException;
+
+import us.ihmc.tools.color.Color3f;
 
 public abstract class YoAppearanceTransparency implements AppearanceDefinition
 {

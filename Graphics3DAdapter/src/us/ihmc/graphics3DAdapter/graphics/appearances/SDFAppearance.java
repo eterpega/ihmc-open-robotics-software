@@ -4,9 +4,9 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.vecmath.Color3f;
-
 import org.apache.commons.lang3.NotImplementedException;
+
+import us.ihmc.tools.color.Color3f;
 
 
 public class SDFAppearance extends YoAppearanceTransparency

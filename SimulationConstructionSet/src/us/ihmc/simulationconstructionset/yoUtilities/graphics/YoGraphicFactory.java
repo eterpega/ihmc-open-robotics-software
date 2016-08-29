@@ -76,18 +76,18 @@ public class YoGraphicFactory
 
       case POSITION_ARTIFACT:
          return new YoArtifactPosition(name, (DoubleYoVariable) vars[0], (DoubleYoVariable) vars[1],
-               YoGraphicPosition.GraphicType.values()[(int) (double) consts[1]], appearance.getColor().get(), consts[0]);
+               YoGraphicPosition.GraphicType.values()[(int) (double) consts[1]], appearance.getAwtColor(), consts[0]);
 
       case CIRCLE_ARTIFACT:
          return new YoArtifactOval(name, (DoubleYoVariable) vars[0], (DoubleYoVariable) vars[1],
-               (DoubleYoVariable) vars[2], appearance.getColor().get());
+               (DoubleYoVariable) vars[2], appearance.getAwtColor());
 
       case LINE_SEGMENT_2D_ARTIFACT:
          
          YoFrameLineSegment2d segment = new YoFrameLineSegment2d((DoubleYoVariable) vars[0], (DoubleYoVariable) vars[1], (DoubleYoVariable) vars[2], (DoubleYoVariable) vars[3],
                ReferenceFrame.getWorldFrame());
          
-         return new YoArtifactLineSegment2d(name, segment, appearance.getColor().get());
+         return new YoArtifactLineSegment2d(name, segment, appearance.getAwtColor());
 
       case POLYGON_ARTIFACT:
       {
@@ -102,7 +102,7 @@ public class YoGraphicFactory
 
          YoFrameConvexPolygon2d convexPolygon2d = new YoFrameConvexPolygon2d(yoFramePoints, yoNumVertices, referenceFrame);
 
-         return new YoArtifactPolygon(name, convexPolygon2d, appearance.getColor().get(), consts[0] > 0);
+         return new YoArtifactPolygon(name, convexPolygon2d, appearance.getAwtColor(), consts[0] > 0);
       }
 
       default:

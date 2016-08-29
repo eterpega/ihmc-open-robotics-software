@@ -2,12 +2,12 @@ package us.ihmc.simulationconstructionset.util.environments;
 
 import java.awt.Color;
 
-import javax.vecmath.Color3f;
 import javax.vecmath.Vector3d;
 
 import us.ihmc.graphics3DAdapter.graphics.appearances.YoAppearanceMaterial;
-import us.ihmc.simulationconstructionset.util.ground.CombinedTerrainObject3D;
 import us.ihmc.robotics.geometry.RigidBodyTransform;
+import us.ihmc.simulationconstructionset.util.ground.CombinedTerrainObject3D;
+import us.ihmc.tools.color.Color3f;
 
 public class SimpleCombinedTerrainObjectsEnvironment extends CombinedTerrainObject3D
 {

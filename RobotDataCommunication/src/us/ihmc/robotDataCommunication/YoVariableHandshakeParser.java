@@ -6,8 +6,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
-import javax.vecmath.Color3f;
-
 import com.google.protobuf.InvalidProtocolBufferException;
 
 import us.ihmc.graphics3DAdapter.graphics.appearances.AppearanceDefinition;
@@ -34,6 +32,7 @@ import us.ihmc.simulationconstructionset.yoUtilities.graphics.YoGraphicFactory;
 import us.ihmc.simulationconstructionset.yoUtilities.graphics.YoGraphicsList;
 import us.ihmc.simulationconstructionset.yoUtilities.graphics.YoGraphicsListRegistry;
 import us.ihmc.simulationconstructionset.yoUtilities.graphics.plotting.ArtifactList;
+import us.ihmc.tools.color.Color3f;
 import us.ihmc.tools.io.printing.PrintTools;
 
 public class YoVariableHandshakeParser
