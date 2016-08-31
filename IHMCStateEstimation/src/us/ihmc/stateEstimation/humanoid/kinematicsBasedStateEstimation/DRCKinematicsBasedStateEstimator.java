@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.vecmath.Quat4d;
 import javax.vecmath.Tuple3d;
@@ -25,6 +26,7 @@ import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FrameVector;
 import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.robotics.screwTheory.TwistCalculator;
+import us.ihmc.robotics.sensors.CenterOfMassDataHolder;
 import us.ihmc.robotics.sensors.FootSwitchInterface;
 import us.ihmc.robotics.sensors.ForceSensorDataHolder;
 import us.ihmc.robotics.sensors.ForceSensorDataHolderReadOnly;
@@ -49,6 +51,7 @@ public class DRCKinematicsBasedStateEstimator implements DRCStateEstimatorInterf
    private final String name = getClass().getSimpleName();
    private final YoVariableRegistry registry = new YoVariableRegistry(name);
    private final DoubleYoVariable yoTime = new DoubleYoVariable("t_stateEstimator", registry);
+   private final AtomicReference<StateEstimatorMode> atomicOperationMode = new AtomicReference<>(null);
    private final EnumYoVariable<StateEstimatorMode> operatingMode = new EnumYoVariable<>("stateEstimatorOperatingMode", registry, StateEstimatorMode.class, false);
 
    private final FusedIMUSensor fusedIMUSensor;
@@ -75,7 +78,8 @@ public class DRCKinematicsBasedStateEstimator implements DRCStateEstimatorInterf
    private final BooleanYoVariable reinitializeStateEstimator = new BooleanYoVariable("reinitializeStateEstimator", registry);
 
    public DRCKinematicsBasedStateEstimator(FullInverseDynamicsStructure inverseDynamicsStructure, StateEstimatorParameters stateEstimatorParameters,
-         SensorOutputMapReadOnly sensorOutputMapReadOnly, ForceSensorDataHolder forceSensorDataHolderToUpdate, String[] imuSensorsToUseInStateEstimator,
+         SensorOutputMapReadOnly sensorOutputMapReadOnly, ForceSensorDataHolder forceSensorDataHolderToUpdate,
+         CenterOfMassDataHolder estimatorCenterOfMassDataHolderToUpdate, String[] imuSensorsToUseInStateEstimator,
          double gravitationalAcceleration, Map<RigidBody, FootSwitchInterface> footSwitches,
          CenterOfPressureDataHolder centerOfPressureDataHolderFromController, RobotMotionStatusHolder robotMotionStatusFromController,
          Map<RigidBody, ? extends ContactablePlaneBody> feet, YoGraphicsListRegistry yoGraphicsListRegistry)
@@ -138,7 +142,9 @@ public class DRCKinematicsBasedStateEstimator implements DRCStateEstimatorInterf
          pelvisRotationalStateUpdater = null;
       }
 
-      pelvisLinearStateUpdater = new PelvisLinearStateUpdater(inverseDynamicsStructure, imusToUse, imuBiasStateEstimator, footSwitches, centerOfPressureDataHolderFromController, feet, gravitationalAcceleration, yoTime,
+      pelvisLinearStateUpdater = new PelvisLinearStateUpdater(inverseDynamicsStructure, imusToUse, imuBiasStateEstimator, footSwitches,
+            estimatorCenterOfMassDataHolderToUpdate,
+            centerOfPressureDataHolderFromController, feet, gravitationalAcceleration, yoTime,
             stateEstimatorParameters, yoGraphicsListRegistry, registry);
 
 
@@ -160,6 +166,11 @@ public class DRCKinematicsBasedStateEstimator implements DRCStateEstimatorInterf
 
       if (visualizeMeasurementFrames)
          setupDynamicGraphicObjects(yoGraphicsListRegistry, imusToDisplay);
+
+      if (stateEstimatorParameters.requestFrozenModeAtStart())
+         operatingMode.set(StateEstimatorMode.FROZEN);
+      else
+         operatingMode.set(StateEstimatorMode.NORMAL);
    }
 
    private void setupDynamicGraphicObjects(YoGraphicsListRegistry yoGraphicsListRegistry, List<? extends IMUSensorReadOnly> imuProcessedOutputs)
@@ -184,12 +195,13 @@ public class DRCKinematicsBasedStateEstimator implements DRCStateEstimatorInterf
       if (fusedIMUSensor != null)
          fusedIMUSensor.update();
 
-      operatingMode.set(StateEstimatorMode.NORMAL);
-
       jointStateUpdater.initialize();
       if (pelvisRotationalStateUpdater != null)
       {
-         pelvisRotationalStateUpdater.initialize();
+         if (operatingMode.getEnumValue() == StateEstimatorMode.FROZEN)
+            pelvisRotationalStateUpdater.initializeForFrozenState();
+         else
+            pelvisRotationalStateUpdater.initialize();
       }
       if(forceSensorStateUpdater != null)
       {
@@ -217,6 +229,9 @@ public class DRCKinematicsBasedStateEstimator implements DRCStateEstimatorInterf
       {
          operatingMode.set(stateEstimatorModeSubscriber.getRequestedOperatingMode());
       }
+
+      if (atomicOperationMode.get() != null)
+         operatingMode.set(atomicOperationMode.getAndSet(null));
 
       jointStateUpdater.updateJointState();
 
@@ -408,8 +423,8 @@ public class DRCKinematicsBasedStateEstimator implements DRCStateEstimatorInterf
       return forceSensorStateUpdater;
    }
 
-   public void setHeadIMUSubscriber(HeadIMUSubscriber headIMUSubscriber)
+   public void requestStateEstimatorMode(StateEstimatorMode stateEstimatorMode)
    {
-      jointStateUpdater.addHeadIMUSubscriber(headIMUSubscriber);
+      atomicOperationMode.set(stateEstimatorMode);
    }
 }

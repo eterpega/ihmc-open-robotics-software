@@ -15,6 +15,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 
 import us.ihmc.SdfLoader.partNames.ArmJointName;
 import us.ihmc.SdfLoader.partNames.LegJointName;
+import us.ihmc.SdfLoader.partNames.SpineJointName;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
 import us.ihmc.robotics.robotSide.RobotSide;
@@ -26,13 +27,15 @@ import us.ihmc.sensorProcessing.stateEstimation.FootSwitchType;
 import us.ihmc.sensorProcessing.stateEstimation.StateEstimatorParameters;
 import us.ihmc.wholeBodyController.DRCRobotJointMap;
 
-public class AtlasStateEstimatorParameters implements StateEstimatorParameters
+public class AtlasStateEstimatorParameters extends StateEstimatorParameters
 {
    private final boolean runningOnRealRobot;
 
    private final double estimatorDT;
 
    private final double jointVelocitySlopTimeForBacklashCompensation;
+   private static final double backXBacklashSlopTime = 0.03;
+   private static final double backXAlphaFilterBreakFrequency = 16.0;
 
    private final double defaultFilterBreakFrequency;
    private final double defaultFilterBreakFrequencyArm;
@@ -84,6 +87,15 @@ public class AtlasStateEstimatorParameters implements StateEstimatorParameters
       YoVariableRegistry registry = sensorProcessing.getYoVariableRegistry();
 
       String[] armJointNames = createArmJointNames();
+
+      String[] backXName = new String[] {jointMap.getSpineJointName(SpineJointName.SPINE_ROLL)};
+      String[] armAndBackJoints = new String[armJointNames.length + backXName.length];
+      System.arraycopy(armJointNames, 0, armAndBackJoints, 0, armJointNames.length);
+      System.arraycopy(backXName, 0, armAndBackJoints, armJointNames.length, backXName.length);
+      DoubleYoVariable backXFilter = sensorProcessing.createAlphaFilter("backXAlphaFilter", backXAlphaFilterBreakFrequency);
+      DoubleYoVariable backXSlopTime = new DoubleYoVariable("backXSlopTime", registry);
+      backXSlopTime.set(backXBacklashSlopTime);
+
       DoubleYoVariable jointVelocityAlphaFilter = sensorProcessing.createAlphaFilter("jointVelocityAlphaFilter", defaultFilterBreakFrequency);
       DoubleYoVariable wristForceAlphaFilter = sensorProcessing.createAlphaFilter("wristForceAlphaFilter", defaultFilterBreakFrequency);
       DoubleYoVariable jointVelocitySlopTime = new DoubleYoVariable("jointBacklashSlopTime", registry);
@@ -105,7 +117,8 @@ public class AtlasStateEstimatorParameters implements StateEstimatorParameters
          sensorProcessing.addJointPositionElasticyCompensatorWithJointsToIgnore(jointPositionStiffness, maxDeflection, false, armJointNames);
       }
 
-      sensorProcessing.computeJointVelocityWithBacklashCompensatorWithJointsToIgnore(jointVelocityAlphaFilter, jointVelocitySlopTime, false, armJointNames);
+      sensorProcessing.computeJointVelocityWithBacklashCompensatorWithJointsToIgnore(jointVelocityAlphaFilter, jointVelocitySlopTime, false, armAndBackJoints);
+      sensorProcessing.computeJointVelocityWithBacklashCompensatorOnlyForSpecifiedJoints(backXFilter, backXSlopTime, false, backXName);
       sensorProcessing.addSensorAlphaFilterWithSensorsToIgnore(jointVelocityAlphaFilter, false, JOINT_VELOCITY, armJointNames);
 
       sensorProcessing.computeJointVelocityWithBacklashCompensatorOnlyForSpecifiedJoints(armJointVelocityAlphaFilter1, armJointVelocitySlopTime, false, armJointNames);
@@ -180,7 +193,7 @@ public class AtlasStateEstimatorParameters implements StateEstimatorParameters
    @Override
    public boolean enableIMUBiasCompensation()
    {
-      return false;
+      return true;
    }
 
    @Override
@@ -274,12 +287,6 @@ public class AtlasStateEstimatorParameters implements StateEstimatorParameters
    }
 
    @Override
-   public boolean createFusedIMUSensor()
-   {
-      return false;
-   }
-
-   @Override
    public double getContactThresholdForce()
    {
       return 120.0;
@@ -349,7 +356,25 @@ public class AtlasStateEstimatorParameters implements StateEstimatorParameters
    }
 
    @Override
+   public boolean requestFrozenModeAtStart()
+   {
+      return runningOnRealRobot;
+   }
+
+   @Override
    public boolean getPelvisLinearStateUpdaterTrustImuWhenNoFeetAreInContact()
+   {
+      return false;
+   }
+
+   @Override
+   public double getCenterOfMassVelocityFusingFrequency()
+   {
+      return 5.0;
+   }
+
+   @Override
+   public boolean useGroundReactionForcesToComputeCenterOfMassVelocity()
    {
       return false;
    }

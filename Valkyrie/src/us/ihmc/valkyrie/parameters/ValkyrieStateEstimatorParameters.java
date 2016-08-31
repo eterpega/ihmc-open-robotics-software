@@ -26,7 +26,7 @@ import us.ihmc.sensorProcessing.simulatedSensors.SensorNoiseParameters;
 import us.ihmc.sensorProcessing.stateEstimation.FootSwitchType;
 import us.ihmc.sensorProcessing.stateEstimation.StateEstimatorParameters;
 
-public class ValkyrieStateEstimatorParameters implements StateEstimatorParameters
+public class ValkyrieStateEstimatorParameters extends StateEstimatorParameters
 {
    private final boolean runningOnRealRobot;
 
@@ -308,12 +308,6 @@ public class ValkyrieStateEstimatorParameters implements StateEstimatorParameter
    }
 
    @Override
-   public boolean createFusedIMUSensor()
-   {
-      return false;
-   }
-
-   @Override
    public double getContactThresholdForce()
    {
       return 120.0;
@@ -386,6 +380,18 @@ public class ValkyrieStateEstimatorParameters implements StateEstimatorParameter
 
    @Override
    public boolean getPelvisLinearStateUpdaterTrustImuWhenNoFeetAreInContact()
+   {
+      return false;
+   }
+   
+   @Override
+   public double getCenterOfMassVelocityFusingFrequency()
+   {
+      return 0.4261;
+   }
+
+   @Override
+   public boolean useGroundReactionForcesToComputeCenterOfMassVelocity()
    {
       return false;
    }

@@ -1,7 +1,7 @@
 <GraphGroup>
 	<Cols>2</Cols>
 	<Graph>
-		<Variables>root.Skippy.t</Variables>
+		<Variables>root.Skippy.SkippyController.tauHipJointX,root.Skippy.SkippyController.tauHipJointY,root.Skippy.SkippyController.tauHipJointZ</Variables>
 		<GraphConfiguration>
 			<Name>config1</Name>
 			<ScalingMethod>1</ScalingMethod>
@@ -13,7 +13,7 @@
 		</GraphConfig>
 	</Graph>
 	<Graph>
-		<Variables>root.Skippy.SkippyController.angleToCoMYZPlane</Variables>
+		<Variables>root.Skippy.SkippyController.tauShoulderJointX,root.Skippy.SkippyController.tauShoulderJointY,root.Skippy.SkippyController.tauShoulderJointZ</Variables>
 		<GraphConfiguration>
 			<Name>config2</Name>
 			<ScalingMethod>1</ScalingMethod>
@@ -25,7 +25,7 @@
 		</GraphConfig>
 	</Graph>
 	<Graph>
-		<Variables>root.Skippy.SkippyController.angularVelocityToCoMYZPlane</Variables>
+		<Variables>root.Skippy.SkippyController.tauOnHipJointAxisX,root.Skippy.SkippyController.tauOnHipJointAxisY,root.Skippy.SkippyController.tauOnHipJointAxisZ</Variables>
 		<GraphConfiguration>
 			<Name>config3</Name>
 			<ScalingMethod>1</ScalingMethod>
@@ -37,7 +37,7 @@
 		</GraphConfig>
 	</Graph>
 	<Graph>
-		<Variables>root.Skippy.tau_hip</Variables>
+		<Variables>root.Skippy.SkippyController.tauOnShoulderJointAxisX,root.Skippy.SkippyController.tauOnShoulderJointAxisY,root.Skippy.SkippyController.tauOnShoulderJointAxisZ</Variables>
 		<GraphConfiguration>
 			<Name>config4</Name>
 			<ScalingMethod>1</ScalingMethod>
@@ -48,8 +48,24 @@
 			<MinScaling>0.0</MinScaling>
 		</GraphConfig>
 	</Graph>
+</GraphGroup>
+<Entry Boxes Tab Pane>
+</Entry Boxes Tab Pane>
+
+<Number of ViewPorts>1</Number of ViewPorts>
+ <Main Viewport> 
+<Visible> true</Visible>
+</Main Viewport>
+
+<Graph Array Window Size>1</Graph Array Window Size>
+<Graph Array Window1>
+<ScreenID>1</ScreenID>
+<WindowLocation>-1928.0, 85.0</WindowLocation>
+<WindowSize>1936.0, 1176.0</WindowSize>
+<GraphGroup>
+	<Cols>1</Cols>
 	<Graph>
-		<Variables>root.Skippy.q_hip,root.Skippy.SkippyController.q_d_hip</Variables>
+		<Variables>root.Skippy.SkippyController.tauOnCoMX,root.Skippy.SkippyController.tauOnCoMY,root.Skippy.SkippyController.tauOnCoMZ,root.Skippy.gc_foot_fs</Variables>
 		<GraphConfiguration>
 			<Name>config5</Name>
 			<ScalingMethod>1</ScalingMethod>
@@ -61,7 +77,7 @@
 		</GraphConfig>
 	</Graph>
 	<Graph>
-		<Variables>root.Skippy.qd_hip</Variables>
+		<Variables>root.Skippy.SkippyController.getCMPFromIcpX,root.Skippy.SkippyController.getCMPFromIcpY,root.Skippy.SkippyController.getCMPFromIcpZ</Variables>
 		<GraphConfiguration>
 			<Name>config6</Name>
 			<ScalingMethod>1</ScalingMethod>
@@ -73,115 +89,9 @@
 		</GraphConfig>
 	</Graph>
 	<Graph>
-		<Variables>root.Skippy.q_shoulder</Variables>
+		<Variables>root.Skippy.SkippyController.getCMPFromDefinitionX,root.Skippy.SkippyController.getCMPFromDefinitionY,root.Skippy.SkippyController.getCMPFromDefinitionZ</Variables>
 		<GraphConfiguration>
 			<Name>config7</Name>
-			<ScalingMethod>1</ScalingMethod>
-			<PlotType>100</PlotType>
-			<ShowBaseLines>true</ShowBaseLines>
-			<BaseLines>0.0,</BaseLines>
-			<MaxScaling>1.0</MaxScaling>
-			<MinScaling>0.0</MinScaling>
-		</GraphConfig>
-	</Graph>
-	<Graph>
-		<Variables>root.Skippy.qd_shoulder</Variables>
-		<GraphConfiguration>
-			<Name>config8</Name>
-			<ScalingMethod>1</ScalingMethod>
-			<PlotType>100</PlotType>
-			<ShowBaseLines>true</ShowBaseLines>
-			<BaseLines>0.0,</BaseLines>
-			<MaxScaling>1.0</MaxScaling>
-			<MinScaling>0.0</MinScaling>
-		</GraphConfig>
-	</Graph>
-</GraphGroup>
-<Entry Boxes Tab Pane>
-<EntryBoxTab>
-<Title>
-Tab0
-</Title>
-<Entry Boxes>root.Skippy.SkippyController.k1,root.Skippy.SkippyController.k2,root.Skippy.SkippyController.k3,root.Skippy.SkippyController.k4,root.Skippy.SkippyController.q_d_hip,root.Skippy.q_hip,root.Skippy.SkippyController.q_d_shoulder,root.Skippy.q_shoulder</Entry Boxes>
-</EntryBoxTab>
-</Entry Boxes Tab Pane>
-
-<Number of ViewPorts>1</Number of ViewPorts>
- <Main Viewport> 
-<Visible> true</Visible>
-</Main Viewport>
-
-<Graph Array Window Size>1</Graph Array Window Size>
-<Graph Array Window1>
-<ScreenID>1</ScreenID>
-<WindowLocation>3832.0, -8.0</WindowLocation>
-<WindowSize>1936.0, 1176.0</WindowSize>
-<GraphGroup>
-	<Cols>1</Cols>
-	<Graph>
-		<Variables>root.Skippy.SkippyController.angleToCoMYZPlane,root.Skippy.SkippyController.angleToCoMXZPlane</Variables>
-		<GraphConfiguration>
-			<Name>config9</Name>
-			<ScalingMethod>1</ScalingMethod>
-			<PlotType>100</PlotType>
-			<ShowBaseLines>true</ShowBaseLines>
-			<BaseLines>0.0,</BaseLines>
-			<MaxScaling>1.0</MaxScaling>
-			<MinScaling>0.0</MinScaling>
-		</GraphConfig>
-	</Graph>
-	<Graph>
-		<Variables>root.Skippy.SkippyController.angularVelocityToCoMYZPlane,root.Skippy.SkippyController.angularVelocityToCoMXZPlane</Variables>
-		<GraphConfiguration>
-			<Name>config10</Name>
-			<ScalingMethod>1</ScalingMethod>
-			<PlotType>100</PlotType>
-			<ShowBaseLines>true</ShowBaseLines>
-			<BaseLines>0.0,</BaseLines>
-			<MaxScaling>1.0</MaxScaling>
-			<MinScaling>0.0</MinScaling>
-		</GraphConfig>
-	</Graph>
-	<Graph>
-		<Variables>root.Skippy.SkippyController.centerOfMassY</Variables>
-		<GraphConfiguration>
-			<Name>config11</Name>
-			<ScalingMethod>1</ScalingMethod>
-			<PlotType>100</PlotType>
-			<ShowBaseLines>true</ShowBaseLines>
-			<BaseLines>0.0,</BaseLines>
-			<MaxScaling>1.0</MaxScaling>
-			<MinScaling>0.0</MinScaling>
-		</GraphConfig>
-	</Graph>
-	<Graph>
-		<Variables>root.Skippy.SkippyController.centerOfMassZ</Variables>
-		<GraphConfiguration>
-			<Name>config12</Name>
-			<ScalingMethod>1</ScalingMethod>
-			<PlotType>100</PlotType>
-			<ShowBaseLines>true</ShowBaseLines>
-			<BaseLines>0.0,</BaseLines>
-			<MaxScaling>1.0</MaxScaling>
-			<MinScaling>0.0</MinScaling>
-		</GraphConfig>
-	</Graph>
-	<Graph>
-		<Variables>root.Skippy.tau_hip</Variables>
-		<GraphConfiguration>
-			<Name>config13</Name>
-			<ScalingMethod>1</ScalingMethod>
-			<PlotType>100</PlotType>
-			<ShowBaseLines>true</ShowBaseLines>
-			<BaseLines>0.0,</BaseLines>
-			<MaxScaling>1.0</MaxScaling>
-			<MinScaling>0.0</MinScaling>
-		</GraphConfig>
-	</Graph>
-	<Graph>
-		<Variables>root.Skippy.q_foot_X,root.Skippy.q_foot_Y</Variables>
-		<GraphConfiguration>
-			<Name>config14</Name>
 			<ScalingMethod>1</ScalingMethod>
 			<PlotType>100</PlotType>
 			<ShowBaseLines>true</ShowBaseLines>
@@ -195,14 +105,14 @@ Tab0
 
 <Extra Panels>
 <Main Viewport>
-
+Plotter,
 </Main Viewport></Extra Panels>
 
 <Current View>Normal View</Current View>
  <Canvas 1> 
- <Camera X>-11.78759016444696</Camera X>
- <Camera Y>16.730951457872212</Camera Y>
- <Camera Z>3.1967139336658494</Camera Z>
+ <Camera X>40.0</Camera X>
+ <Camera Y>0.0</Camera Y>
+ <Camera Z>0.2</Camera Z>
  <Dolly data> 
  <Position X>2.0</Position X>
  <Position Y>12.0</Position Y>

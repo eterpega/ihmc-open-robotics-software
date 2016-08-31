@@ -14,12 +14,12 @@ import us.ihmc.commonWalkingControlModules.controllerCore.WholeBodyControllerCor
 import us.ihmc.commonWalkingControlModules.controllerCore.command.ControllerCoreCommand;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.ControllerCoreOutputReadOnly;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.PlaneContactStateCommand;
+import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics.JointLimitEnforcementMethodCommand;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics.PrivilegedConfigurationCommand;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics.PrivilegedConfigurationCommand.PrivilegedConfigurationOption;
 import us.ihmc.commonWalkingControlModules.desiredFootStep.WalkingMessageHandler;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.HighLevelControlManagerFactory;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.highLevelStates.walkingController.WalkingCommandConsumer;
-import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.highLevelStates.walkingController.stateTransitionConditions.DoneWithStateCondition;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.highLevelStates.walkingController.stateTransitionConditions.DoubSuppToSingSuppCond4DistRecov;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.highLevelStates.walkingController.stateTransitionConditions.SingleSupportToTransferToCondition;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.highLevelStates.walkingController.stateTransitionConditions.StartFlamingoCondition;
@@ -40,6 +40,8 @@ import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.manipulation
 import us.ihmc.commonWalkingControlModules.instantaneousCapturePoint.BalanceManager;
 import us.ihmc.commonWalkingControlModules.instantaneousCapturePoint.CenterOfMassHeightManager;
 import us.ihmc.commonWalkingControlModules.momentumBasedController.HighLevelHumanoidControllerToolbox;
+import us.ihmc.commonWalkingControlModules.momentumBasedController.optimization.JointLimitEnforcement;
+import us.ihmc.commonWalkingControlModules.momentumBasedController.optimization.JointLimitParameters;
 import us.ihmc.communication.controllerAPI.CommandInputManager;
 import us.ihmc.communication.controllerAPI.StatusMessageOutputManager;
 import us.ihmc.humanoidRobotics.bipedSupportPolygons.ContactablePlaneBody;
@@ -55,6 +57,8 @@ import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
 import us.ihmc.robotics.screwTheory.RigidBody;
+import us.ihmc.robotics.screwTheory.ScrewTools;
+import us.ihmc.robotics.stateMachines.DoneWithFinishableStateTransitionCondition;
 import us.ihmc.robotics.stateMachines.GenericStateMachine;
 import us.ihmc.robotics.stateMachines.State;
 import us.ihmc.robotics.stateMachines.StateChangedListener;
@@ -109,6 +113,9 @@ public class WalkingHighLevelHumanoidController extends HighLevelBehavior
    private final CommandInputManager commandInputManager;
    private final StatusMessageOutputManager statusOutputManager;
    private final WalkingCommandConsumer commandConsumer;
+
+   private final JointLimitEnforcementMethodCommand jointLimitEnforcementMethodCommand = new JointLimitEnforcementMethodCommand();
+   private final BooleanYoVariable limitCommandSent = new BooleanYoVariable("limitCommandSent", registry);
 
    private final PrivilegedConfigurationCommand privilegedConfigurationCommand = new PrivilegedConfigurationCommand();
    private final ControllerCoreCommand controllerCoreCommand = new ControllerCoreCommand(WholeBodyControllerCoreMode.INVERSE_DYNAMICS);
@@ -167,6 +174,12 @@ public class WalkingHighLevelHumanoidController extends HighLevelBehavior
       double coPErrorThreshold = walkingControllerParameters.getCoPErrorThresholdForHighCoPDamping();
       boolean enableHighCoPDamping = highCoPDampingDuration > 0.0 && !Double.isInfinite(coPErrorThreshold);
       momentumBasedController.setHighCoPDampingParameters(enableHighCoPDamping, highCoPDampingDuration, coPErrorThreshold);
+
+      JointLimitParameters limitParameters = new JointLimitParameters();
+      String[] jointNamesRestrictiveLimits = walkingControllerParameters.getJointsWithRestrictiveLimits(limitParameters);
+      OneDoFJoint[] jointsWithRestrictiveLimit = ScrewTools.filterJoints(ScrewTools.findJointsWithNames(allOneDoFjoints, jointNamesRestrictiveLimits), OneDoFJoint.class);
+      for (OneDoFJoint joint : jointsWithRestrictiveLimit)
+         jointLimitEnforcementMethodCommand.addLimitEnforcementMethod(joint, JointLimitEnforcement.RESTRICTIVE, limitParameters);
    }
 
    private void setupStateMachine()
@@ -217,9 +230,7 @@ public class WalkingHighLevelHumanoidController extends HighLevelBehavior
 
       // Encapsulate toStandingTransition to make sure it is not used afterwards
       {
-         DoneWithStateCondition toStandingDoneCondition = new DoneWithStateCondition(toStandingState);
-         StateTransition<WalkingStateEnum> toStandingTransition = new StateTransition<>(WalkingStateEnum.STANDING, toStandingDoneCondition);
-         toStandingState.addStateTransition(toStandingTransition);
+         toStandingState.addDoneWithStateTransition(WalkingStateEnum.STANDING);
       }
 
       // Setup start/stop walking conditions
@@ -254,9 +265,7 @@ public class WalkingHighLevelHumanoidController extends HighLevelBehavior
          SingleSupportState singleSupportState = walkingSingleSupportStates.get(robotSide);
          WalkingStateEnum singleSupportStateEnum = singleSupportState.getStateEnum();
 
-         DoneWithStateCondition doneWithTransferCondition = new DoneWithStateCondition(transferState);
-         StateTransition<WalkingStateEnum> toSingleSupport = new StateTransition<WalkingStateEnum>(singleSupportStateEnum, doneWithTransferCondition);
-         transferState.addStateTransition(toSingleSupport);
+         transferState.addDoneWithStateTransition(singleSupportStateEnum);
       }
 
       // Setup walking single support to transfer conditions
@@ -313,9 +322,7 @@ public class WalkingHighLevelHumanoidController extends HighLevelBehavior
 
          WalkingStateEnum singleSupportStateEnum = singleSupportState.getStateEnum();
 
-         DoneWithStateCondition doneWithTransferCondition = new DoneWithStateCondition(transferState);
-         StateTransition<WalkingStateEnum> toSingleSupport = new StateTransition<WalkingStateEnum>(singleSupportStateEnum, doneWithTransferCondition);
-         transferState.addStateTransition(toSingleSupport);
+         transferState.addDoneWithStateTransition(singleSupportStateEnum);
       }
 
       // Setup the abort condition from all states to the toStandingState
@@ -604,6 +611,11 @@ public class WalkingHighLevelHumanoidController extends HighLevelBehavior
       planeContactStateCommandPool.clear();
 
       controllerCoreCommand.addInverseDynamicsCommand(privilegedConfigurationCommand);
+      if (!limitCommandSent.getBooleanValue())
+      {
+         controllerCoreCommand.addInverseDynamicsCommand(jointLimitEnforcementMethodCommand);
+         limitCommandSent.set(true);
+      }
 
       boolean isHighCoPDampingNeeded = momentumBasedController.estimateIfHighCoPDampingNeeded(footDesiredCoPs);
 

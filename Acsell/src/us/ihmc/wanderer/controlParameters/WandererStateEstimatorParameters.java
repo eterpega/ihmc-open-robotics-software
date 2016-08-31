@@ -15,7 +15,7 @@ import us.ihmc.sensorProcessing.stateEstimation.FootSwitchType;
 import us.ihmc.sensorProcessing.stateEstimation.StateEstimatorParameters;
 import us.ihmc.wanderer.hardware.WandererJoint;
 
-public class WandererStateEstimatorParameters implements StateEstimatorParameters
+public class WandererStateEstimatorParameters extends StateEstimatorParameters
 {
    private final boolean runningOnRealRobot;
 
@@ -219,12 +219,6 @@ public class WandererStateEstimatorParameters implements StateEstimatorParameter
    }
 
    @Override
-   public boolean createFusedIMUSensor()
-   {
-      return false;
-   }
-
-   @Override
    public double getContactThresholdForce()
    {
       return 120.0;
@@ -296,6 +290,18 @@ public class WandererStateEstimatorParameters implements StateEstimatorParameter
 
    @Override
    public boolean getPelvisLinearStateUpdaterTrustImuWhenNoFeetAreInContact()
+   {
+      return false;
+   }
+   
+   @Override
+   public double getCenterOfMassVelocityFusingFrequency()
+   {
+      return 0.4261;
+   }
+
+   @Override
+   public boolean useGroundReactionForcesToComputeCenterOfMassVelocity()
    {
       return false;
    }

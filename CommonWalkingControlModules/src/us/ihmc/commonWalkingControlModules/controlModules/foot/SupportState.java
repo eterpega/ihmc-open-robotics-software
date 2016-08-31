@@ -1,6 +1,5 @@
 package us.ihmc.commonWalkingControlModules.controlModules.foot;
 
-import javax.vecmath.Quat4d;
 import javax.vecmath.Vector3d;
 
 import org.ejml.data.DenseMatrix64F;
@@ -12,6 +11,7 @@ import us.ihmc.commonWalkingControlModules.controllerCore.command.SolverWeightLe
 import us.ihmc.commonWalkingControlModules.controllerCore.command.feedbackController.FeedbackControlCommand;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.feedbackController.SpatialFeedbackControlCommand;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.InverseDynamicsCommand;
+import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.InverseDynamicsCommandList;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.SpatialAccelerationCommand;
 import us.ihmc.robotics.controllers.YoSE3PIDGainsInterface;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
@@ -22,8 +22,8 @@ import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FramePoint2d;
 import us.ihmc.robotics.geometry.FramePose;
 import us.ihmc.robotics.geometry.FrameVector;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
 import us.ihmc.robotics.linearAlgebra.MatrixTools;
+import us.ihmc.robotics.referenceFrames.PoseReferenceFrame;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.screwTheory.Twist;
 import us.ihmc.robotics.sensors.FootSwitchInterface;
@@ -31,15 +31,13 @@ import us.ihmc.simulationconstructionset.yoUtilities.graphics.YoGraphicReference
 import us.ihmc.simulationconstructionset.yoUtilities.graphics.YoGraphicsListRegistry;
 
 /**
- * This foot state will determine which degrees of freedom should be controlled and which should be
- * left unconstrained and holds the position of the ones that are free.
+ * This is the active foot state when the foot is in flat support. Usually the command to the QP
+ * should be a zero acceleration command. When the foot is barely loaded or the CoP gets close
+ * to the edges of the foot polygon some of the directions start becoming feedback controlled. E.g.
+ * when barely loaded x and y position as well as foot yaw are controlled to remain constant.
  *
- * E.g. when barely loaded the x, y, and yaw coordinates of the foot should be controlled, while
- * z, roll, and pitch should be unconstrained. If the CoP is close to and edge of the foot polygon
- * rotation towards the outside of the edge should be controlled while other DoFs should be free.
- *
- * This is a combination of the original HoldPositionState and the FullyConstrainedState with smart
- * choice of selection matrices.
+ * The state also contains the ability to shift the CoP around within the foothold in case the
+ * support area needs to be explored.
  */
 public class SupportState extends AbstractFootControlState
 {
@@ -55,14 +53,14 @@ public class SupportState extends AbstractFootControlState
 
    private final FootSwitchInterface footSwitch;
 
-   private final ControlFrame controlFrame;
-   private final ControlFrame desiredSoleFrame;
+   private final PoseReferenceFrame controlFrame;
+   private final PoseReferenceFrame desiredSoleFrame;
    private final YoGraphicReferenceFrame frameViz;
 
    private final SpatialAccelerationCommand spatialAccelerationCommand = new SpatialAccelerationCommand();
    private final SpatialFeedbackControlCommand spatialFeedbackControlCommand = new SpatialFeedbackControlCommand();
-   private final DenseMatrix64F accelerationSelectionMatrix = new DenseMatrix64F(1, 1);
-   private final DenseMatrix64F feedbackSelectionMatrix = new DenseMatrix64F(1, 1);
+   private final DenseMatrix64F accelerationSelectionMatrix = new DenseMatrix64F(dofs, dofs);
+   private final DenseMatrix64F feedbackSelectionMatrix = new DenseMatrix64F(dofs, dofs);
 
    private final FramePoint2d cop2d = new FramePoint2d();
    private final FramePoint framePosition = new FramePoint();
@@ -73,9 +71,24 @@ public class SupportState extends AbstractFootControlState
    private final FramePoint2d cop = new FramePoint2d();
    private final FramePoint2d desiredCoP = new FramePoint2d();
 
+   private final FramePoint footPosition = new FramePoint();
+   private final FrameOrientation footOrientation = new FrameOrientation();
+
    // For testing:
    private final BooleanYoVariable assumeCopOnEdge;
    private final BooleanYoVariable assumeFootBarelyLoaded;
+   private final BooleanYoVariable neverHoldRotation;
+
+   // For line contact walking and balancing:
+   private final BooleanYoVariable holdFootOrientationFlat;
+
+   // For foothold exploration:
+   private final ExplorationHelper explorationHelper;
+   private final PartialFootholdControlModule partialFootholdControlModule;
+   private final BooleanYoVariable requestFootholdExploration;
+   private final DoubleYoVariable recoverTime;
+   private final DoubleYoVariable timeBeforeExploring;
+   private final InverseDynamicsCommandList inverseDymamicsCommandsList = new InverseDynamicsCommandList();
 
    public SupportState(FootControlHelper footControlHelper, YoSE3PIDGainsInterface holdPositionGains, YoVariableRegistry parentRegistry)
    {
@@ -85,8 +98,8 @@ public class SupportState extends AbstractFootControlState
       parentRegistry.addChild(registry);
 
       footSwitch = footControlHelper.getMomentumBasedController().getFootSwitches().get(robotSide);
-      controlFrame = new ControlFrame(prefix + "HoldPositionFrame", contactableFoot.getSoleFrame());
-      desiredSoleFrame = new ControlFrame(prefix + "DesiredSoleFrame", worldFrame);
+      controlFrame = new PoseReferenceFrame(prefix + "HoldPositionFrame", contactableFoot.getSoleFrame());
+      desiredSoleFrame = new PoseReferenceFrame(prefix + "DesiredSoleFrame", worldFrame);
 
       footBarelyLoaded = new BooleanYoVariable(prefix + "BarelyLoaded", registry);
       copOnEdge = new BooleanYoVariable(prefix + "CopOnEdge", registry);
@@ -107,6 +120,23 @@ public class SupportState extends AbstractFootControlState
 
       assumeCopOnEdge = new BooleanYoVariable(prefix + "AssumeCopOnEdge", registry);
       assumeFootBarelyLoaded = new BooleanYoVariable(prefix + "AssumeFootBarelyLoaded", registry);
+      neverHoldRotation = new BooleanYoVariable(prefix + "NeverHoldRotation", registry);
+      holdFootOrientationFlat = new BooleanYoVariable(prefix + "HoldFlatOrientation", registry);
+
+      explorationHelper = new ExplorationHelper(contactableFoot, footControlHelper, prefix, registry);
+      partialFootholdControlModule = footControlHelper.getPartialFootholdControlModule();
+      requestFootholdExploration = new BooleanYoVariable(prefix + "RequestFootholdExploration", registry);
+      ExplorationParameters explorationParameters = footControlHelper.getWalkingControllerParameters().getOrCreateExplorationParameters(registry);
+      if (explorationParameters != null)
+      {
+         recoverTime = explorationParameters.getRecoverTime();
+         timeBeforeExploring = explorationParameters.getTimeBeforeExploring();
+      }
+      else
+      {
+         recoverTime = new DoubleYoVariable(prefix + "RecoverTime", registry);
+         timeBeforeExploring = new DoubleYoVariable(prefix + "TimeBeforeExploring", registry);
+      }
 
       YoGraphicsListRegistry graphicsListRegistry = footControlHelper.getMomentumBasedController().getDynamicGraphicObjectsListRegistry();
       frameViz = new YoGraphicReferenceFrame(controlFrame, registry, 0.2);
@@ -135,23 +165,37 @@ public class SupportState extends AbstractFootControlState
       super.doTransitionOutOfAction();
       footBarelyLoaded.set(false);
       copOnEdge.set(false);
+      frameViz.hide();
+      explorationHelper.stopExploring();
    }
 
    @Override
    public void doSpecificAction()
    {
       // handle partial foothold detection
-      PartialFootholdControlModule partialFootholdControlModule = footControlHelper.getPartialFootholdControlModule();
-      if (partialFootholdControlModule != null)
+      boolean recoverTimeHasPassed = getTimeInCurrentState() > recoverTime.getDoubleValue();
+      boolean contactStateHasChanged = false;
+      if (partialFootholdControlModule != null && recoverTimeHasPassed)
       {
          footSwitch.computeAndPackCoP(cop);
          momentumBasedController.getDesiredCenterOfPressure(contactableFoot, desiredCoP);
          partialFootholdControlModule.compute(desiredCoP, cop);
          YoPlaneContactState contactState = momentumBasedController.getContactState(contactableFoot);
-         boolean contactStateHasChanged = partialFootholdControlModule.applyShrunkPolygon(contactState);
+         contactStateHasChanged = partialFootholdControlModule.applyShrunkPolygon(contactState);
          if (contactStateHasChanged)
             contactState.notifyContactStateHasChanged();
       }
+
+      // foothold exploration
+      boolean timeBeforeExploringHasPassed = getTimeInCurrentState() > timeBeforeExploring.getDoubleValue();
+      if (requestFootholdExploration.getBooleanValue() && timeBeforeExploringHasPassed)
+      {
+         explorationHelper.startExploring();
+         requestFootholdExploration.set(false);
+      }
+      if (partialFootholdControlModule != null && !timeBeforeExploringHasPassed)
+         partialFootholdControlModule.clearCoPGrid();
+      explorationHelper.compute(getTimeInCurrentState(), contactStateHasChanged);
 
       // determine foot state
       copOnEdge.set(footControlHelper.isCoPOnEdge());
@@ -161,6 +205,8 @@ public class SupportState extends AbstractFootControlState
          copOnEdge.set(true);
       if (assumeFootBarelyLoaded.getBooleanValue())
          footBarelyLoaded.set(true);
+      if (neverHoldRotation.getBooleanValue())
+         copOnEdge.set(false);
 
       updateHoldPositionSetpoints();
 
@@ -170,8 +216,7 @@ public class SupportState extends AbstractFootControlState
          cop2d.setToZero(contactableFoot.getSoleFrame());
       framePosition.setXYIncludingFrame(cop2d);
       frameOrientation.setToZero(contactableFoot.getSoleFrame());
-      controlFrame.setTransformToParent(framePosition, frameOrientation);
-      controlFrame.update();
+      controlFrame.setPoseAndUpdate(framePosition, frameOrientation);
 
       // assemble acceleration command
       footAcceleration.setToZero(controlFrame, rootBody.getBodyFixedFrame(), controlFrame);
@@ -191,9 +236,9 @@ public class SupportState extends AbstractFootControlState
       spatialFeedbackControlCommand.set(desiredOrientation, desiredAngularVelocity, desiredAngularAcceleration);
 
       // set selection matrices
-      accelerationSelectionMatrix.reshape(6, 6);
+      accelerationSelectionMatrix.reshape(dofs, dofs);
       CommonOps.setIdentity(accelerationSelectionMatrix);
-      feedbackSelectionMatrix.reshape(6, 6);
+      feedbackSelectionMatrix.reshape(dofs, dofs);
       CommonOps.setIdentity(feedbackSelectionMatrix);
 
       for (int i = 0; i < dofs; i++)
@@ -221,7 +266,7 @@ public class SupportState extends AbstractFootControlState
 
       spatialAccelerationCommand.setSelectionMatrix(accelerationSelectionMatrix);
       spatialFeedbackControlCommand.setSelectionMatrix(feedbackSelectionMatrix);
-      if (accelerationSelectionMatrix.getNumRows() + feedbackSelectionMatrix.getNumRows() != 6)
+      if (accelerationSelectionMatrix.getNumRows() + feedbackSelectionMatrix.getNumRows() != dofs)
          throw new RuntimeException("Trying to control too much or too little.");
 
       // update visualization
@@ -230,25 +275,54 @@ public class SupportState extends AbstractFootControlState
 
    private void updateHoldPositionSetpoints()
    {
-      if (!footBarelyLoaded.getBooleanValue())
+      footPosition.setToZero(contactableFoot.getSoleFrame());
+      footOrientation.setToZero(contactableFoot.getSoleFrame());
+      footPosition.changeFrame(worldFrame);
+      footOrientation.changeFrame(worldFrame);
+
+      desiredPosition.checkReferenceFrameMatch(footPosition);
+      desiredOrientation.checkReferenceFrameMatch(footOrientation);
+
+      if (footBarelyLoaded.getBooleanValue() && copOnEdge.getBooleanValue())
       {
-         desiredPosition.setToZero(contactableFoot.getSoleFrame());
-         desiredPosition.changeFrame(worldFrame);
+         desiredPosition.setZ(footPosition.getZ());
       }
-      if (!copOnEdge.getBooleanValue())
+      else if (footBarelyLoaded.getBooleanValue())
       {
-         desiredOrientation.setToZero(contactableFoot.getSoleFrame());
-         desiredOrientation.changeFrame(worldFrame);
+         desiredPosition.setZ(footPosition.getZ());
+         desiredOrientation.setYawPitchRoll(desiredOrientation.getYaw(), footOrientation.getPitch(), footOrientation.getRoll());
+      }
+      else if (copOnEdge.getBooleanValue())
+      {
+         desiredPosition.set(footPosition);
+         desiredOrientation.setYawPitchRoll(footOrientation.getYaw(), desiredOrientation.getPitch(), desiredOrientation.getRoll());
+      }
+      else
+      {
+         desiredPosition.set(footPosition);
+         desiredOrientation.set(footOrientation);
       }
 
-      desiredSoleFrame.setTransformToParent(desiredPosition, desiredOrientation);
-      desiredSoleFrame.update();
+      if (holdFootOrientationFlat.getBooleanValue())
+         desiredOrientation.setYawPitchRoll(desiredOrientation.getYaw(), 0.0, 0.0);
+
+      desiredSoleFrame.setPoseAndUpdate(desiredPosition, desiredOrientation);
+   }
+
+   public void requestFootholdExploration()
+   {
+      requestFootholdExploration.set(true);
+      if (partialFootholdControlModule != null)
+         partialFootholdControlModule.turnOnCropping();
    }
 
    @Override
    public InverseDynamicsCommand<?> getInverseDynamicsCommand()
    {
-      return spatialAccelerationCommand;
+      inverseDymamicsCommandsList.clear();
+      inverseDymamicsCommandsList.addCommand(spatialAccelerationCommand);
+      inverseDymamicsCommandsList.addCommand(explorationHelper.getCommand());
+      return inverseDymamicsCommandsList;
    }
 
    @Override
@@ -267,32 +341,6 @@ public class SupportState extends AbstractFootControlState
    {
       spatialAccelerationCommand.setWeights(angular, linear);
       spatialFeedbackControlCommand.setWeightsForSolver(angular, linear);
-   }
-
-   private class ControlFrame extends ReferenceFrame
-   {
-      private static final long serialVersionUID = 648565974908207845L;
-      private final Quat4d localQuaternion = new Quat4d();
-      private final Vector3d localTranslation = new Vector3d();
-
-      public ControlFrame(String frameName, ReferenceFrame parentFrame)
-      {
-         super(frameName, parentFrame, false, false, false);
-      }
-
-      public void setTransformToParent(FramePoint framePosition, FrameOrientation frameOrientation)
-      {
-         parentFrame.checkReferenceFrameMatch(framePosition.getReferenceFrame());
-         parentFrame.checkReferenceFrameMatch(frameOrientation.getReferenceFrame());
-         frameOrientation.getQuaternion(localQuaternion);
-         framePosition.get(localTranslation);
-      }
-
-      @Override
-      protected void updateTransformToParent(RigidBodyTransform transformToParent)
-      {
-         transformToParent.set(localQuaternion, localTranslation);
-      }
    }
 
 }

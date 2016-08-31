@@ -3,6 +3,7 @@ package us.ihmc.plotting;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -19,6 +20,9 @@ import java.util.HashMap;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+
+import us.ihmc.plotting.artifact.Artifact;
+import us.ihmc.plotting.artifact.ArtifactsChangedListener;
 
 public class PlotterShowHideMenu extends JPanel implements ArtifactsChangedListener
 {
@@ -54,8 +58,8 @@ public class PlotterShowHideMenu extends JPanel implements ArtifactsChangedListe
          @Override
          public int compare(Artifact o1, Artifact o2)
          {
-            String o1Str = o1.getLabel() + o1.getName();
-            String o2Str = o2.getLabel() + o2.getName();
+            String o1Str = o1.getLabel() + o1.getID();
+            String o2Str = o2.getLabel() + o2.getID();
             return o1Str.compareTo(o2Str);
          }
       });
@@ -98,7 +102,7 @@ public class PlotterShowHideMenu extends JPanel implements ArtifactsChangedListe
             this.add(labelCheckBox);
          }
 
-         String name = artifact.getName();
+         String name = artifact.getID();
          artifactList.put(name, artifact);
 
          final JCheckBox checkBox = new JCheckBox(name);
@@ -111,7 +115,7 @@ public class PlotterShowHideMenu extends JPanel implements ArtifactsChangedListe
                String name = checkBox.getText();
                boolean visible = checkBox.isSelected();
                artifactList.get(name).setVisible(visible);
-               plotter.repaint();
+               plotter.update();
             }
          });
          boxesForLabel.add(checkBox);
@@ -154,12 +158,11 @@ public class PlotterShowHideMenu extends JPanel implements ArtifactsChangedListe
       @Override
       protected void paintComponent(Graphics g)
       {
+         plotter.getGraphics2DAdapter().setGraphics2d((Graphics2D) g);
+         
          super.paintComponent(g);
 
-//         double size = 0.7 * Math.min(this.getWidth(), this.getHeight());
-//         double scale = size / artifact.getScale();
-         double scale = 500.0;
-         artifact.drawLegend(g, this.getWidth()/2, this.getHeight()/2, scale);
+         artifact.drawLegend(plotter.getGraphics2DAdapter(), this.getWidth()/2, this.getHeight()/2);
       }
    }
 

@@ -3,7 +3,7 @@ package us.ihmc.sensorProcessing.stateEstimation;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import us.ihmc.robotics.robotSide.SideDependentList;
 
-public interface StateEstimatorParameters extends SensorProcessingConfiguration
+public abstract class StateEstimatorParameters implements SensorProcessingConfiguration
 {
    public abstract boolean isRunningOnRealRobot();
    
@@ -28,6 +28,11 @@ public interface StateEstimatorParameters extends SensorProcessingConfiguration
 
    public abstract boolean requestFootForceSensorCalibrationAtStart();
 
+   public boolean requestFrozenModeAtStart()
+   {
+      return false;
+   }
+
    public abstract SideDependentList<String> getFootForceSensorNames();
 
    // Parameters related to the kinematics based state estimator
@@ -47,6 +52,7 @@ public interface StateEstimatorParameters extends SensorProcessingConfiguration
 
    public abstract double getPelvisPositionFusingFrequency();
    public abstract double getPelvisLinearVelocityFusingFrequency();
+   public abstract double getCenterOfMassVelocityFusingFrequency();
    public abstract double getPelvisVelocityBacklashSlopTime();
    
    public abstract double getDelayTimeForTrustingFoot();
@@ -56,8 +62,11 @@ public interface StateEstimatorParameters extends SensorProcessingConfiguration
    public abstract boolean useTwistForPelvisLinearStateEstimation();
 
    public abstract double getPelvisLinearVelocityAlphaNewTwist();
-   
-   public abstract boolean createFusedIMUSensor();
+
+   public boolean createFusedIMUSensor()
+   {
+      return false;
+   }
 
    public abstract double getContactThresholdForce();
 
@@ -68,4 +77,6 @@ public interface StateEstimatorParameters extends SensorProcessingConfiguration
    public abstract FootSwitchType getFootSwitchType();
 
    public abstract boolean getPelvisLinearStateUpdaterTrustImuWhenNoFeetAreInContact();
+   
+   public abstract boolean useGroundReactionForcesToComputeCenterOfMassVelocity();
 }

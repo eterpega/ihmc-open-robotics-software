@@ -37,13 +37,13 @@ public class FormattingTools
 
    public static double roundToSignificantFigures(double number, int significantFigures)
    {
-      if (number == 0)
+      if (Math.abs(number) < 1e-10)
       {
          return 0;
       }
 
-      final double d = Math.ceil(Math.log10(number < 0 ? -number : number));
-      final int power = significantFigures - (int) d;
+      final double log10 = Math.ceil(Math.log10(Math.abs(number)));
+      final int power = significantFigures - (int) log10;
 
       final double magnitude = Math.pow(10, power);
       final long shifted = Math.round(number * magnitude);

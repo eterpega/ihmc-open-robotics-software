@@ -8,7 +8,7 @@ import us.ihmc.sensorProcessing.simulatedSensors.SensorNoiseParameters;
 import us.ihmc.sensorProcessing.stateEstimation.FootSwitchType;
 import us.ihmc.sensorProcessing.stateEstimation.StateEstimatorParameters;
 
-public class LLAQuadrupedStateEstimatorParameters implements StateEstimatorParameters
+public class LLAQuadrupedStateEstimatorParameters extends StateEstimatorParameters
 {
    @Override
    public void configureSensorProcessing(SensorProcessing sensorProcessing)
@@ -190,12 +190,6 @@ public class LLAQuadrupedStateEstimatorParameters implements StateEstimatorParam
    }
 
    @Override
-   public boolean createFusedIMUSensor()
-   {
-      return false;
-   }
-
-   @Override
    public double getContactThresholdForce()
    {
       return 0;
@@ -221,6 +215,18 @@ public class LLAQuadrupedStateEstimatorParameters implements StateEstimatorParam
 
    @Override
    public boolean getPelvisLinearStateUpdaterTrustImuWhenNoFeetAreInContact()
+   {
+      return false;
+   }
+   
+   @Override
+   public double getCenterOfMassVelocityFusingFrequency()
+   {
+      return 0.4261;
+   }
+
+   @Override
+   public boolean useGroundReactionForcesToComputeCenterOfMassVelocity()
    {
       return false;
    }

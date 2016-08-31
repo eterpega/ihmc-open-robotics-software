@@ -18,7 +18,7 @@ import us.ihmc.sensorProcessing.stateEstimation.FootSwitchType;
 import us.ihmc.sensorProcessing.stateEstimation.StateEstimatorParameters;
 import us.ihmc.steppr.hardware.StepprJoint;
 
-public class BonoStateEstimatorParameters implements StateEstimatorParameters
+public class BonoStateEstimatorParameters extends StateEstimatorParameters
 {
    private final boolean runningOnRealRobot;
 
@@ -218,12 +218,6 @@ public class BonoStateEstimatorParameters implements StateEstimatorParameters
    }
 
    @Override
-   public boolean createFusedIMUSensor()
-   {
-      return false;
-   }
-
-   @Override
    public double getContactThresholdForce()
    {
       return 120.0;
@@ -296,6 +290,18 @@ public class BonoStateEstimatorParameters implements StateEstimatorParameters
 
    @Override
    public boolean getPelvisLinearStateUpdaterTrustImuWhenNoFeetAreInContact()
+   {
+      return false;
+   }
+   
+   @Override
+   public double getCenterOfMassVelocityFusingFrequency()
+   {
+      return 0.4261;
+   }
+
+   @Override
+   public boolean useGroundReactionForcesToComputeCenterOfMassVelocity()
    {
       return false;
    }

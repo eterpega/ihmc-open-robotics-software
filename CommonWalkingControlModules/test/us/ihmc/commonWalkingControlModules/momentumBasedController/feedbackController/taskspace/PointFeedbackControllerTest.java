@@ -22,6 +22,7 @@ import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamic
 import us.ihmc.commonWalkingControlModules.inverseKinematics.RobotJointVelocityAccelerationIntegrator;
 import us.ihmc.commonWalkingControlModules.momentumBasedController.GeometricJacobianHolder;
 import us.ihmc.commonWalkingControlModules.momentumBasedController.optimization.JointIndexHandler;
+import us.ihmc.commonWalkingControlModules.momentumBasedController.optimization.MomentumOptimizationSettings;
 import us.ihmc.commonWalkingControlModules.momentumBasedController.optimization.MotionQPInput;
 import us.ihmc.commonWalkingControlModules.momentumBasedController.optimization.MotionQPInputCalculator;
 import us.ihmc.convexOptimization.quadraticProgram.SimpleEfficientActiveSetQPSolver;
@@ -80,7 +81,8 @@ public class PointFeedbackControllerTest
       InverseDynamicsJoint[] jointsToOptimizeFor = ScrewTools.computeSupportAndSubtreeJoints(elevator);
       double controlDT = 0.004;
 
-      WholeBodyControlCoreToolbox toolbox = new WholeBodyControlCoreToolbox(null, null, jointsToOptimizeFor, null, null, controlDT, 0.0, geometricJacobianHolder,
+      MomentumOptimizationSettings momentumOptimizationSettings = new MomentumOptimizationSettings();
+      WholeBodyControlCoreToolbox toolbox = new WholeBodyControlCoreToolbox(null, null, jointsToOptimizeFor, momentumOptimizationSettings, null, controlDT, 0.0, geometricJacobianHolder,
             twistCalculator, null, null, registry);
       FeedbackControllerToolbox feedbackControllerToolbox = new FeedbackControllerToolbox(registry);
       PointFeedbackController pointFeedbackController = new PointFeedbackController(endEffector, toolbox, feedbackControllerToolbox, registry);
@@ -101,7 +103,7 @@ public class PointFeedbackControllerTest
       DenseMatrix64F jInverse = new DenseMatrix64F(numberOfDoFs, 6);
       JointIndexHandler jointIndexHandler = toolbox.getJointIndexHandler();
       MotionQPInputCalculator motionQPInputCalculator = new MotionQPInputCalculator(centerOfMassFrame, geometricJacobianHolder, twistCalculator,
-            jointIndexHandler, 0.0, registry);
+            jointIndexHandler, registry);
       DenseMatrix64F jointAccelerations = new DenseMatrix64F(numberOfDoFs, 1);
       RobotJointVelocityAccelerationIntegrator integrator = new RobotJointVelocityAccelerationIntegrator(controlDT);
 
@@ -174,8 +176,9 @@ public class PointFeedbackControllerTest
       twistCalculator.compute();
       InverseDynamicsJoint[] jointsToOptimizeFor = ScrewTools.computeSupportAndSubtreeJoints(elevator);
       double controlDT = 0.004;
-
-      WholeBodyControlCoreToolbox toolbox = new WholeBodyControlCoreToolbox(null, null, jointsToOptimizeFor, null, null, controlDT, 0.0, geometricJacobianHolder,
+      
+      MomentumOptimizationSettings momentumOptimizationSettings = new MomentumOptimizationSettings();
+      WholeBodyControlCoreToolbox toolbox = new WholeBodyControlCoreToolbox(null, null, jointsToOptimizeFor, momentumOptimizationSettings, null, controlDT, 0.0, geometricJacobianHolder,
             twistCalculator, null, null, registry);
       FeedbackControllerToolbox feedbackControllerToolbox = new FeedbackControllerToolbox(registry);
       PointFeedbackController pointFeedbackController = new PointFeedbackController(endEffector, toolbox, feedbackControllerToolbox, registry);
@@ -196,7 +199,7 @@ public class PointFeedbackControllerTest
       DenseMatrix64F jInverse = new DenseMatrix64F(numberOfDoFs, 6);
       JointIndexHandler jointIndexHandler = toolbox.getJointIndexHandler();
       MotionQPInputCalculator motionQPInputCalculator = new MotionQPInputCalculator(centerOfMassFrame, geometricJacobianHolder, twistCalculator,
-            jointIndexHandler, 0.0, registry);
+            jointIndexHandler, registry);
       DenseMatrix64F jointAccelerations = new DenseMatrix64F(numberOfDoFs, 1);
       DenseMatrix64F jointAccelerationsFromJerryQP = new DenseMatrix64F(numberOfDoFs, 1);
       DenseMatrix64F jointAccelerationsFromQPOASES = new DenseMatrix64F(numberOfDoFs, 1);
