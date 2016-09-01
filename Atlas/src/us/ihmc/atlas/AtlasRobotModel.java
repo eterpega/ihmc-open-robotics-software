@@ -655,11 +655,6 @@ public class AtlasRobotModel implements DRCRobotModel, SDFDescriptionMutator
    {
       if(this.jointMap.getModelName().equals(model.getName()))
       {
-         if(sensor.getType().equals("imu") && sensor.getName().equals("imu_sensor"))
-         {
-            sensor.setName("imu_sensor_at_pelvis_frame");
-         }
-
          if(sensor.getType().equals("gpu_ray") && sensor.getName().equals("head_hokuyo_sensor"))
          {
             sensor.getRay().getScan().getHorizontal().setSamples("720");
