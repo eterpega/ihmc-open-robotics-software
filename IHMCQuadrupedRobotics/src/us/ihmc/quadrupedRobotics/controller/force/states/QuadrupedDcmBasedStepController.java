@@ -10,15 +10,12 @@ import us.ihmc.quadrupedRobotics.model.QuadrupedRuntimeEnvironment;
 import us.ihmc.quadrupedRobotics.params.DoubleArrayParameter;
 import us.ihmc.quadrupedRobotics.params.DoubleParameter;
 import us.ihmc.quadrupedRobotics.params.ParameterFactory;
-import us.ihmc.quadrupedRobotics.planning.ContactState;
-import us.ihmc.quadrupedRobotics.planning.QuadrupedStepCrossoverProjection;
-import us.ihmc.quadrupedRobotics.planning.QuadrupedTimedStep;
-import us.ihmc.quadrupedRobotics.planning.QuadrupedTimedStepPressurePlanner;
+import us.ihmc.quadrupedRobotics.planning.*;
 import us.ihmc.quadrupedRobotics.planning.stepStream.QuadrupedStepStream;
 import us.ihmc.quadrupedRobotics.planning.trajectory.PiecewiseReverseDcmTrajectory;
 import us.ihmc.quadrupedRobotics.planning.trajectory.ThreeDoFMinimumJerkTrajectory;
 import us.ihmc.quadrupedRobotics.providers.QuadrupedPostureInputProviderInterface;
-import us.ihmc.quadrupedRobotics.util.PreallocatedQueue;
+import us.ihmc.quadrupedRobotics.util.PreallocatedDeque;
 import us.ihmc.robotics.MathTools;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
@@ -101,7 +98,8 @@ public class QuadrupedDcmBasedStepController implements QuadrupedController, Qua
    private static int MAXIMUM_STEP_QUEUE_SIZE = 100;
    private final GroundPlaneEstimator groundPlaneEstimator;
    private final QuadrantDependentList<FramePoint> groundPlanePositions;
-   private final QuadrupedTimedStepPressurePlanner copPlanner;
+   private final QuadrupedContactStateSequence contactStateSequence;
+   private final QuadrupedPiecewiseConstantPressureSequence piecewiseConstantPressureSequence;
    private final PiecewiseReverseDcmTrajectory dcmTrajectory;
    private final ThreeDoFMinimumJerkTrajectory dcmTransitionTrajectory;
    private final FramePoint dcmPositionWaypoint;
@@ -109,7 +107,7 @@ public class QuadrupedDcmBasedStepController implements QuadrupedController, Qua
    private final YoFrameVector stepAdjustmentForPlanning;
    private final YoFrameVector accumulatedStepAdjustmentForPlanning;
    private final QuadrupedStepCrossoverProjection crossoverProjection;
-   private final PreallocatedQueue<QuadrupedTimedStep> stepPlan;
+   private final PreallocatedDeque<QuadrupedTimedStep> stepPlan;
    private final FrameOrientation bodyOrientationReference;
    private final OrientationFrame bodyOrientationReferenceFrame;
 
@@ -162,8 +160,9 @@ public class QuadrupedDcmBasedStepController implements QuadrupedController, Qua
       {
          groundPlanePositions.set(robotQuadrant, new FramePoint());
       }
-      copPlanner = new QuadrupedTimedStepPressurePlanner(timedStepController.getQueueCapacity());
-      dcmTrajectory = new PiecewiseReverseDcmTrajectory(timedStepController.getQueueCapacity(), gravity, postureProvider.getComPositionInput().getZ());
+      contactStateSequence = new QuadrupedContactStateSequence(timedStepController.getStepDequeCapacity());
+      piecewiseConstantPressureSequence = new QuadrupedPiecewiseConstantPressureSequence(timedStepController.getStepDequeCapacity());
+      dcmTrajectory = new PiecewiseReverseDcmTrajectory(timedStepController.getStepDequeCapacity(), gravity, postureProvider.getComPositionInput().getZ());
       dcmTransitionTrajectory = new ThreeDoFMinimumJerkTrajectory();
       dcmPositionWaypoint = new FramePoint();
       stepAdjustmentForControl = new YoFrameVector("stepAdjustmentForControl", worldFrame, registry);
@@ -171,7 +170,7 @@ public class QuadrupedDcmBasedStepController implements QuadrupedController, Qua
       accumulatedStepAdjustmentForPlanning = new YoFrameVector("accumulatedStepAdjustmentForPlanning", worldFrame, registry);
       crossoverProjection = new QuadrupedStepCrossoverProjection(referenceFrames.getBodyZUpFrame(), minimumStepClearanceParameter.get(),
             maximumStepStrideParameter.get());
-      stepPlan = new PreallocatedQueue<>(QuadrupedTimedStep.class, MAXIMUM_STEP_QUEUE_SIZE);
+      stepPlan = new PreallocatedDeque<>(QuadrupedTimedStep.class, MAXIMUM_STEP_QUEUE_SIZE);
       bodyOrientationReference = new FrameOrientation();
       bodyOrientationReferenceFrame = new OrientationFrame(bodyOrientationReference);
 
@@ -273,15 +272,22 @@ public class QuadrupedDcmBasedStepController implements QuadrupedController, Qua
 
    private void computeDcmTrajectory()
    {
+      // compute piecewise constant center of pressure plan
       double currentTime = robotTimestamp.getDoubleValue();
-      int nIntervals = copPlanner.compute(stepPlan.size(), stepPlan, taskSpaceEstimates.getSolePosition(),
-            taskSpaceControllerSettings.getContactState(), currentTime);
-      dcmPositionWaypoint.setIncludingFrame(copPlanner.getCenterOfPressureAtStartOfInterval(nIntervals - 1));
+      QuadrantDependentList<FramePoint> currentSolePosition = taskSpaceEstimates.getSolePosition();
+      QuadrantDependentList<ContactState> currentContactState = taskSpaceControllerSettings.getContactState();
+      contactStateSequence.compute(stepPlan, currentSolePosition, currentContactState, currentTime);
+      piecewiseConstantPressureSequence.compute(contactStateSequence);
+
+      // compute dcm trajectory with final boundary constraint
+      int numberOfIntervals = piecewiseConstantPressureSequence.getNumberOfIntervals();
+      dcmPositionWaypoint.setIncludingFrame(piecewiseConstantPressureSequence.getCenterOfPressureAtStartOfInterval(numberOfIntervals - 1));
       dcmPositionWaypoint.changeFrame(ReferenceFrame.getWorldFrame());
       dcmPositionWaypoint.add(0, 0, lipModel.getComHeight());
       dcmTrajectory.setComHeight(lipModel.getComHeight());
-      dcmTrajectory.initializeTrajectory(nIntervals, copPlanner.getTimeAtStartOfInterval(), copPlanner.getCenterOfPressureAtStartOfInterval(),
-            copPlanner.getTimeAtStartOfInterval(nIntervals - 1), dcmPositionWaypoint);
+      dcmTrajectory.initializeTrajectory(numberOfIntervals, piecewiseConstantPressureSequence.getTimeAtStartOfInterval(),
+            piecewiseConstantPressureSequence.getCenterOfPressureAtStartOfInterval(),
+            piecewiseConstantPressureSequence.getTimeAtStartOfInterval(numberOfIntervals - 1), dcmPositionWaypoint);
    }
 
    private void computeDcmSetpoints()
@@ -308,9 +314,9 @@ public class QuadrupedDcmBasedStepController implements QuadrupedController, Qua
       {
          if (!haltFlag.getBooleanValue() || stepStream.getSteps().get(i).getTimeInterval().getEndTime() < haltTime.getDoubleValue())
          {
-            stepPlan.enqueue();
-            stepPlan.getTail().set(stepStream.getSteps().get(i));
-            stepPlan.getTail().getGoalPosition().add(accumulatedStepAdjustmentForPlanning.getFrameTuple().getVector());
+            stepPlan.pushBack();
+            stepPlan.back().set(stepStream.getSteps().get(i));
+            stepPlan.back().getGoalPosition().add(accumulatedStepAdjustmentForPlanning.getFrameTuple().getVector());
          }
       }
    }
@@ -357,7 +363,7 @@ public class QuadrupedDcmBasedStepController implements QuadrupedController, Qua
             }
             else if (timedStepController.addStep(stepPlan.get(i)))
             {
-               QuadrupedTimedStep adjustedStep = timedStepController.getQueue().getTail();
+               QuadrupedTimedStep adjustedStep = timedStepController.getStepDeque().back();
                adjustedStep.getGoalPosition().add(stepAdjustmentForPlanning.getFrameTuple().getVector());
                groundPlaneEstimator.projectZ(adjustedStep.getGoalPosition());
             }
@@ -431,11 +437,11 @@ public class QuadrupedDcmBasedStepController implements QuadrupedController, Qua
       // compute relative step adjustment
       computeRelativeStepAdjustment();
 
-      if (timedStepController.getQueueSize() > 0)
+      if (timedStepController.getStepDequeSize() > 0)
       {
          // compute dcm trajectory
          computeDcmTrajectory();
-         double transitionEndTime = copPlanner.getTimeAtStartOfInterval(1);
+         double transitionEndTime = piecewiseConstantPressureSequence.getTimeAtStartOfInterval(1);
          double transitionStartTime = Math.max(robotTimestamp.getDoubleValue(), transitionEndTime - initialTransitionDurationParameter.get());
          dcmTrajectory.computeTrajectory(transitionEndTime);
          dcmTrajectory.getPosition(dcmPositionWaypoint);
@@ -447,7 +453,7 @@ public class QuadrupedDcmBasedStepController implements QuadrupedController, Qua
    @Override
    public ControllerEvent process()
    {
-      if (timedStepController.getQueueSize() == 0)
+      if (timedStepController.getStepDequeSize() == 0)
       {
          return ControllerEvent.DONE;
       }
