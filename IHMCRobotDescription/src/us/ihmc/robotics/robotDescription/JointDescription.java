@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 import javax.vecmath.Vector3d;
 
-public class JointDescription
+public class JointDescription implements RobotDescriptionNode
 {
    private String name;
    private final ArrayList<JointDescription> childrenJointDescriptions = new ArrayList<>();
@@ -24,12 +24,15 @@ public class JointDescription
    private final ArrayList<LidarSensorDescription> lidarSensors = new ArrayList<>();
    private final ArrayList<ForceSensorDescription> forceSensors = new ArrayList<>();
 
+   private boolean isDynamic = true;
+
    public JointDescription(String name, Vector3d offsetFromParentJoint)
    {
       this.name = name;
       this.offsetFromParentJoint.set(offsetFromParentJoint);
    }
 
+   @Override
    public String getName()
    {
       return name;
@@ -70,6 +73,7 @@ public class JointDescription
       childrenJointDescriptions.add(childJointDescription);
    }
 
+   @Override
    public ArrayList<JointDescription> getChildrenJoints()
    {
       return childrenJointDescriptions;
@@ -153,5 +157,15 @@ public class JointDescription
    public ArrayList<ForceSensorDescription> getForceSensors()
    {
       return forceSensors;
+   }
+
+   public void setIsDynamic(boolean isDynamic)
+   {
+      this.isDynamic = isDynamic;
+   }
+
+   public boolean isDynamic()
+   {
+      return isDynamic;
    }
 }

@@ -53,6 +53,8 @@ public class RobotFromDescription extends Robot implements OneDegreeOfFreedomJoi
    {
       super(description.getName());
       constructRobotFromDescription(description);
+
+//      System.out.println(this);
    }
 
    public Joint getJoint(String jointName)
@@ -305,7 +307,7 @@ public class RobotFromDescription extends Robot implements OneDegreeOfFreedomJoi
          Vector3d offset = new Vector3d();
          floatingJointDescription.getOffsetFromParentJoint(offset);
 
-         joint = new FloatingJoint(jointDescription.getName(), offset, this);
+         joint = new FloatingJoint(jointDescription.getName(), offset, this, true);
       }
 
       else if (jointDescription instanceof FloatingPlanarJointDescription)
@@ -321,20 +323,31 @@ public class RobotFromDescription extends Robot implements OneDegreeOfFreedomJoi
          Vector3d offset = new Vector3d();
          pinJointDescription.getOffsetFromParentJoint(offset);
 
-         joint = new PinJoint(jointDescription.getName(), offset, this, pinJointDescription.getJointAxis());
-
-         PinJoint pinJoint = (PinJoint) joint;
-
-         if (pinJointDescription.containsLimitStops())
+         if (jointDescription.isDynamic())
          {
-            double[] limitStopParameters = pinJointDescription.getLimitStopParameters();
+            joint = new PinJoint(jointDescription.getName(), offset, this, pinJointDescription.getJointAxis());
 
-            double qMin = limitStopParameters[0];
-            double qMax = limitStopParameters[1];
-            double kLimit = limitStopParameters[2];
-            double bLimit = limitStopParameters[3];
+            PinJoint pinJoint = (PinJoint) joint;
 
-            pinJoint.setLimitStops(qMin, qMax, kLimit, bLimit);
+            if (pinJointDescription.containsLimitStops())
+            {
+               double[] limitStopParameters = pinJointDescription.getLimitStopParameters();
+
+               double qMin = limitStopParameters[0];
+               double qMax = limitStopParameters[1];
+               double kLimit = limitStopParameters[2];
+               double bLimit = limitStopParameters[3];
+
+               pinJoint.setLimitStops(qMin, qMax, kLimit, bLimit);
+            }
+
+            pinJoint.setDamping(pinJointDescription.getDamping());
+            pinJoint.setVelocityLimits(pinJointDescription.getVelocityLimit(), pinJointDescription.getVelocityDamping());
+            pinJoint.setStiction(pinJointDescription.getStiction());
+         }
+         else
+         {
+            joint = new DummyOneDegreeOfFreedomJoint(jointDescription.getName(), offset, this, pinJointDescription.getJointAxis());
          }
       }
       else if (jointDescription instanceof SliderJointDescription)
@@ -359,9 +372,15 @@ public class RobotFromDescription extends Robot implements OneDegreeOfFreedomJoi
             sliderJoint.setLimitStops(qMin, qMax, kLimit, bLimit);
          }
       }
+
       else
       {
          throw new RuntimeException("Don't support that joint type yet. Please implement it! Type = " + jointDescription.getClass());
+      }
+
+      if (!jointDescription.isDynamic())
+      {
+         joint.setDynamic(false);
       }
 
       Link link = createLink(jointDescription.getLink());

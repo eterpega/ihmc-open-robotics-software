@@ -137,8 +137,7 @@ public class SmartCMPProjector extends CMPProjector
 
       // if the support area is small set the desired CMP to centroid
       projectionArea.getBoundingBox(tempBoundingBox);
-      double diagonalLength = Math.sqrt(tempBoundingBox.getDiagonalLengthSquared());
-      if (diagonalLength < 0.01)
+      if (tempBoundingBox.getDiagonalLengthSquared() < 0.01 * 0.01)
       {
          projectionArea.getCentroid(projectedCMP);
          activeProjection.set(ProjectionMethod.SMALL_AREA_CENTROID);
@@ -214,7 +213,7 @@ public class SmartCMPProjector extends CMPProjector
             if (newAngle < angle)
             {
                angle = newAngle;
-               projectedCMP.set(vertex);
+               projectedCMP.setIncludingFrame(vertex);
             }
          }
          // only do this if it actually helps (pushed the ICP in the right direction)
