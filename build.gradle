@@ -147,8 +147,8 @@ subprojects { subproject ->
                jvmArgs = ['-Xdebug', '-Xrunjdwp:server=y,transport=dt_socket,address=9999,suspend=n']
             }
 
-            minHeapSize = "2048g"
-            maxHeapSize = "4096g"
+            minHeapSize = "1g"
+            maxHeapSize = "4g"
 
             ignoreFailures true
             forkEvery = forkEveryProp
