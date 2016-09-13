@@ -147,6 +147,8 @@ subprojects { subproject ->
                jvmArgs = ['-Xdebug', '-Xrunjdwp:server=y,transport=dt_socket,address=9999,suspend=n']
             }
 
+            jvmArgs.add("-Xmx6g")
+
             ignoreFailures true
             forkEvery = forkEveryProp
 
