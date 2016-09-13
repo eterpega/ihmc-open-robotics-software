@@ -147,6 +147,110 @@ subprojects { subproject ->
       }
    }
 
+   task copyNonJavaFilesFromSrc(type: Copy, dependsOn: assemble) {
+      description 'Copy resources in the src folder instead of the resource folder in to the output dir'
+      FileTree tree = fileTree(dir: 'src', exclude: '**/*.java')
+      from tree
+      into "$buildDir/classes/main"
+   }
+
+   task copyNonJavaFilesFromTest(type: Copy, dependsOn: assemble) {
+      description 'Copy resources in the test folder instead of the resource folder in to the output dir'
+      FileTree tree = fileTree(dir: 'test', exclude: '**/*.java')
+      from tree
+      into "$buildDir/classes/test"
+   }
+
+   test {
+      dependsOn copyNonJavaFilesFromSrc, copyNonJavaFilesFromTest
+
+      doFirst {
+         boolean enableRemoteDebug = remoteDebug.equals("true")
+
+         testLogging {
+            if (logLevel.equals("verbose")) {
+               events "passed", "skipped", "failed", "standardOut", "standardError"
+            } else {
+               events "standardError"
+            }
+
+            exceptionFormat "full"
+         }
+
+         if (enableRemoteDebug) {
+            jvmArgs = ['-Xdebug', '-Xrunjdwp:server=y,transport=dt_socket,address=9999,suspend=n']
+         }
+
+         ignoreFailures true
+         forkEvery = forkEveryProp
+
+         println "Setting syetem properties!"
+
+         if (rootProject.hasProperty("username") || subproject.hasProperty("username") || project.hasProperty("username")) {
+            println "bamboo.username was set to $username"
+            println "bamboo.password was set to $password"
+            systemProperty 'bamboo.username', "$username"
+            systemProperty 'bamboo.password', "$password"
+         }
+
+         if (rootProject.hasProperty("keepScsUp") || subproject.hasProperty("keepScsUp") || project.hasProperty("keepScsUp")) {
+            println "keep.scs.up was set to $keepScsUp"
+            systemProperty 'keep.scs.up', "$keepScsUp"
+         }
+
+         if (rootProject.hasProperty("checkNothingChanged") || subproject.hasProperty("checkNothingChanged") || project.hasProperty("checkNothingChanged")) {
+            println "check.nothing.changed.in.simulation was set to $checkNothingChanged"
+            systemProperty 'check.nothing.changed.in.simulation', "$checkNothingChanged"
+         }
+
+         if (rootProject.hasProperty("showScsWindows") || subproject.hasProperty("showScsWindows") || project.hasProperty("showScsWindows")) {
+            println "show.scs.windows was set to $showScsWindows"
+            systemProperty 'show.scs.windows', "$showScsWindows"
+         }
+
+         if (rootProject.hasProperty("scsDataBufferSize") || subproject.hasProperty("scsDataBufferSize") || project.hasProperty("scsDataBufferSize")) {
+            println "scs.dataBuffer.size was set to $scsDataBufferSize"
+            systemProperty 'scs.dataBuffer.size', "$scsDataBufferSize"
+         }
+
+         if (rootProject.hasProperty("showScsYoGraphics") || subproject.hasProperty("showScsYoGraphics") || project.hasProperty("showScsYoGraphics")) {
+            println "show.scs.yographics was set to $showScsYoGraphics"
+            systemProperty 'show.scs.yographics', "$showScsYoGraphics"
+         }
+
+         //put last beacuse it overrides other vars
+         if (rootProject.hasProperty("createVideos") || subproject.hasProperty("createVideos") || project.hasProperty("createVideos")) {
+            systemProperty 'java.awt.headless', "$awtHeadless"
+            println "java.awt.headless was set to $awtHeadless"
+            systemProperty 'create.videos', "$createVideos"
+            println "create.videos was set to $createVideos"
+            systemProperty 'create.scs.videos', "$createVideos"
+            println "create.scs.videos was set to $createVideos"
+            systemProperty 'create.scs.gui', "$createVideos"
+            println "create.scs.gui was set to $createVideos"
+            // systemProperty 'show.scs.windows', "$createVideos"
+            // println "show.scs.windows was set to $createVideos"
+
+            println "trying to get videoDir"
+
+            if (rootProject.hasProperty("videoDir") || subproject.hasProperty("videoDir") || project.hasProperty("videoDir")) {
+               systemProperty 'create.videos.dir', "$videoDir"
+               println "create.videos.dir was set to $videoDir"
+            } else {
+               systemProperty 'create.videos.dir', "/root/BambooVideos/"
+               println "create.videos.dir was set to /root/BambooVideos/"
+            }
+
+            println project.properties.entrySet()*.toString().sort().toString().replaceAll(", ", "\n")
+         }
+
+         systemProperty 'use.clover', "$useClover"
+         systemProperty 'openh264.license', 'accept'
+         systemProperty 'bamboo.gradle', 'yes'
+         include "$includeString"
+      }
+   }
+
    task testFast(type: Test) {
       ignoreFailures true
       include "**/*FastTestSuite.class"
