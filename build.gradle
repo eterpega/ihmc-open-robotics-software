@@ -95,7 +95,7 @@ subprojects { subproject ->
 
    apply plugin: 'maven-publish'
    apply plugin: 'java'
-   
+
    subproject.ext {
       getOpenRoboticsSoftwareProject = {
          if (subproject.getParent().name.equals(rootProject.name)) {
@@ -147,7 +147,8 @@ subprojects { subproject ->
                jvmArgs = ['-Xdebug', '-Xrunjdwp:server=y,transport=dt_socket,address=9999,suspend=n']
             }
 
-            jvmArgs.add("-Xmx6g")
+            minHeapSize = "2048g"
+            maxHeapSize = "4096g"
 
             ignoreFailures true
             forkEvery = forkEveryProp
