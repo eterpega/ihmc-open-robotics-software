@@ -148,7 +148,7 @@ subprojects { subproject ->
             }
 
             minHeapSize = "1g"
-            maxHeapSize = "4g"
+            maxHeapSize = "7g"
 
             ignoreFailures true
             forkEvery = forkEveryProp
