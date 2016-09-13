@@ -33,16 +33,7 @@ import java.util.concurrent.Executors;
             throwNotConnectedException(port);
          }
       }
-      try
-      {
-         communicator.send(sender, object);
-      }
-      catch(Throwable t)
-      {
-         System.out.println("Unexpected exception in " + IntraprocessCommunicationNetwork.class.getSimpleName() + "::sendObject");
-         System.out.println("Communicator connected to sender? " + communicator.isConnected(sender));
-         System.out.println("Sender connected? " + sender.isConnected());
-      }
+      communicator.send(sender, object);
       return 0;
    }
 
@@ -170,6 +161,8 @@ import java.util.concurrent.Executors;
                if (client != sender)
                {
                   final Object copy = sender.copyPacket(object);
+                  System.out.println("Callback executor shutdown? " + callBackExecutor.isShutdown());
+                  System.out.println("Callback executor terminated? " + callBackExecutor.isTerminated());
                   callBackExecutor.execute(new Runnable()
                   {
                      @Override
