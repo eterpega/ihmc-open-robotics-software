@@ -3,6 +3,12 @@ jdk:
 - oraclejdk8
 - oraclejdk7
 - openjdk7
+os: linux
+dist: trusty
+addons:
+  apt:
+    packages:
+      - oracle-java8-installer
 env:
 - IS_BAMBOO=true
 install:
