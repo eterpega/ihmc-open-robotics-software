@@ -1,14 +1,11 @@
 language: java
-jdk:
-- oraclejdk8
-- oraclejdk7
-- openjdk7
+jdk: oraclejdk8
 os: linux
 dist: trusty
-addons:
-  apt:
-    packages:
-      - oracle-java8-installer
+# addons:
+#   apt:
+#     packages:
+#       - oracle-java8-installer
 env:
 - IS_BAMBOO=true
 install:
@@ -18,3 +15,10 @@ script:
 branches:
     only:
     - feature/travis-ci-experiment
+before_cache:
+  - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+cache:
+  directories:
+    - $HOME/.gradle/caches/
+    - $HOME/.gradle/wrapper/
