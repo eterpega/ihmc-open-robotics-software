@@ -33,7 +33,16 @@ import java.util.concurrent.Executors;
             throwNotConnectedException(port);
          }
       }
-      communicator.send(sender, object);
+      try
+      {
+         communicator.send(sender, object);
+      }
+      catch(Throwable t)
+      {
+         System.out.println("Unexpected exception in " + IntraprocessCommunicationNetwork.class.getSimpleName() + "::sendObject");
+         System.out.println("Communicator connected to sender? " + communicator.isConnected(sender));
+         System.out.println("Sender connected? " + sender.isConnected());
+      }
       return 0;
    }
 
