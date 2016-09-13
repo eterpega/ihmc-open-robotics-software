@@ -161,8 +161,6 @@ import java.util.concurrent.Executors;
                if (client != sender)
                {
                   final Object copy = sender.copyPacket(object);
-                  System.out.println("Callback executor shutdown? " + callBackExecutor.isShutdown());
-                  System.out.println("Callback executor terminated? " + callBackExecutor.isTerminated());
                   callBackExecutor.execute(new Runnable()
                   {
                      @Override
