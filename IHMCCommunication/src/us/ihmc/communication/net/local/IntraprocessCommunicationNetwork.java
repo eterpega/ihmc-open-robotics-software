@@ -135,8 +135,6 @@ import java.util.concurrent.Executors;
          clients.remove(client);
          client.disconnected();
 
-         System.out.println("Shutting down executor");
-         System.out.println(callBackExecutor);
          callBackExecutor.shutdownNow();
       }
 
