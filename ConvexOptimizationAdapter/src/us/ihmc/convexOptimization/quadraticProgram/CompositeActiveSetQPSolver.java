@@ -1,10 +1,9 @@
-package us.ihmc.commonWalkingControlModules.controlModules.nativeOptimization;
+package us.ihmc.convexOptimization.quadraticProgram;
 
 import java.util.Arrays;
 
 import org.ejml.data.DenseMatrix64F;
 
-import us.ihmc.convexOptimization.quadraticProgram.SimpleActiveSetQPStandaloneSolver;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 import us.ihmc.robotics.dataStructures.variable.LongYoVariable;
 import us.ihmc.tools.exceptions.NoConvergenceException;
@@ -14,7 +13,7 @@ public class CompositeActiveSetQPSolver extends ConstrainedQPSolver
 
    YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
    SimpleActiveSetQPStandaloneSolver solver = new SimpleActiveSetQPStandaloneSolver(10);
-   ConstrainedQPSolver fullSolver = new QuadProgSolver(registry);
+   ConstrainedQPSolver fullSolver = new QuadProgSolver();
    //   ConstrainedQPSolver fullSolver = new OASESConstrainedQPSolver(registry);
    boolean[] linearInequalityActiveSet;
 

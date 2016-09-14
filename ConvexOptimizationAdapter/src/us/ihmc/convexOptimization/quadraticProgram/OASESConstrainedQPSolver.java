@@ -1,6 +1,4 @@
-package us.ihmc.commonWalkingControlModules.controlModules.nativeOptimization;
-
-//~--- non-JDK imports --------------------------------------------------------
+package us.ihmc.convexOptimization.quadraticProgram;
 
 import org.ejml.data.DenseMatrix64F;
 
@@ -9,8 +7,6 @@ import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
 import us.ihmc.robotics.dataStructures.variable.IntegerYoVariable;
 import us.ihmc.tools.exceptions.NoConvergenceException;
-
-//~--- JDK imports ------------------------------------------------------------
 
 public class OASESConstrainedQPSolver extends ConstrainedQPSolver
 {

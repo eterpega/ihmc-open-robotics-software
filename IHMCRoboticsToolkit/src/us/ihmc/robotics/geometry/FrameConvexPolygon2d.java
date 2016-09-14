@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.vecmath.Point2d;
-import javax.vecmath.Vector2d;
 
 import us.ihmc.robotics.lists.FrameTuple2dArrayList;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
@@ -26,11 +25,8 @@ import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 public class FrameConvexPolygon2d extends FrameGeometry2d<FrameConvexPolygon2d, ConvexPolygon2d>
 {
    protected final ConvexPolygon2d convexPolygon;
-   private final ConvexPolygon2dCalculator calculator = new ConvexPolygon2dCalculator();
 
    private final RigidBodyTransform temporaryTransformToDesiredFrame = new RigidBodyTransform();
-
-   private Vector2d[] temporaryVectorArray;
 
    private final FramePoint tempPoint = new FramePoint();
    private final FramePoint2d tempPoint2d = new FramePoint2d();
@@ -818,44 +814,21 @@ public class FrameConvexPolygon2d extends FrameGeometry2d<FrameConvexPolygon2d, 
     * @param observerFramePoint Point2d
     * @return Point2d[]
     */
-   public ArrayList<FramePoint2d> getAllVisibleVerticesFromOutsideLeftToRight(FramePoint2d observerFramePoint)
+   public ArrayList<FramePoint2d> getAllVisibleVerticesFromOutsideLeftToRightCopy(FramePoint2d observerFramePoint)
    {
       this.checkReferenceFrameMatch(observerFramePoint);
+      int[] lineOfSightIndeces = ConvexPolygon2dCalculator.getLineOfSightVertexIndicesCopy(observerFramePoint.getPoint(), convexPolygon);
 
       ArrayList<FramePoint2d> ret = new ArrayList<FramePoint2d>();
+      int index = lineOfSightIndeces[0];
 
-      ArrayList<Point2d> vertices = this.convexPolygon.getAllVisibleVerticesFromOutsideLeftToRightCopy(observerFramePoint.getPointCopy());
-      if (vertices == null)
-         return null;
-
-      for (Point2d vertex : vertices)
+      while (true)
       {
-         ret.add(new FramePoint2d(referenceFrame, vertex));
+         ret.add(getFrameVertexCopy(index));
+         index = convexPolygon.getPreviousVertexIndex(index);
+         if (index == lineOfSightIndeces[1])
+            break;
       }
-
-      return ret;
-   }
-
-   /**
-    * Returns the two FrameLineSegment2ds that are the first segments around the corner that cannot be seen from the observer FramePoint2d.
-    * If the observer FramePoint2d is null returns null. The line segments are returned in order of left, then right.
-    * The line segments go from the line of sight points to the points that are not in view, but are around the corner.
-    *
-    * @param observerFramePoint FramePoint2d marking the point of observation of this ConvexPolygon2d.
-    * @return FrameLineSegment2d[] Two line segments going from the line of sight points to the first points around the corners that are out of sight.
-    * null if the observer FramePoint2d is inside this FrameConvexPolygon2d.
-    */
-   public FrameLineSegment2d[] getAroundTheCornerEdges(FramePoint2d observerFramePoint)
-   {
-      this.checkReferenceFrameMatch(observerFramePoint);
-
-      LineSegment2d[] aroundTheCornerLineSegments2d = this.convexPolygon.getAroundTheCornerEdgesCopy(observerFramePoint.getPointCopy());
-
-      if (aroundTheCornerLineSegments2d == null)
-         return null;
-
-      FrameLineSegment2d[] ret = new FrameLineSegment2d[] { new FrameLineSegment2d(observerFramePoint.getReferenceFrame(), aroundTheCornerLineSegments2d[0]),
-            new FrameLineSegment2d(observerFramePoint.getReferenceFrame(), aroundTheCornerLineSegments2d[1]) };
 
       return ret;
    }
@@ -896,18 +869,11 @@ public class FrameConvexPolygon2d extends FrameGeometry2d<FrameConvexPolygon2d, 
       return new FramePoint2d(referenceFrame, ConvexPolygon2dCalculator.getClosestVertexCopy(point.getPoint(), convexPolygon));
    }
 
-   public FramePoint2d getClosestVertexWithRayCopy(FrameLine2d ray, boolean throwAwayVerticesOutsideRay)
-   {
-      ray.checkReferenceFrameMatch(referenceFrame);
-
-      return new FramePoint2d(referenceFrame, convexPolygon.getClosestVertexWithRayCopy(ray.getLine2d(), throwAwayVerticesOutsideRay));
-   }
-
-   public boolean getClosestVertexWithRay(FramePoint2d closestVertexToPack, FrameLine2d ray, boolean throwAwayVerticesOutsideRay)
+   public boolean getClosestPointWithRay(FramePoint2d closestVertexToPack, FrameLine2d ray)
    {
       ray.checkReferenceFrameMatch(referenceFrame);
       closestVertexToPack.setToZero(referenceFrame);
-      boolean success = convexPolygon.getClosestVertexWithRay(closestVertexToPack.getPoint(), ray.getLine2d(), throwAwayVerticesOutsideRay);
+      boolean success = convexPolygon.getClosestPointWithRay(closestVertexToPack.getPoint(), ray.getLine2d());
 
       return success;
    }
@@ -988,22 +954,6 @@ public class FrameConvexPolygon2d extends FrameGeometry2d<FrameConvexPolygon2d, 
       return ret;
    }
 
-   public FrameLineSegment2d[] getNearestEdges(FramePoint2d testPoint)
-   {
-      checkReferenceFrameMatch(testPoint);
-
-      LineSegment2d[] edges = convexPolygon.getNearestEdges(testPoint.getPoint());
-
-      FrameLineSegment2d[] ret = new FrameLineSegment2d[edges.length];
-
-      for (int i = 0; i < edges.length; i++)
-      {
-         ret[i] = new FrameLineSegment2d(referenceFrame, edges[i]);
-      }
-
-      return ret;
-   }
-
    @Override
    public void orthogonalProjection(FramePoint2d point)
    {
@@ -1022,31 +972,6 @@ public class FrameConvexPolygon2d extends FrameGeometry2d<FrameConvexPolygon2d, 
       }
 
       return new FramePoint2d(point.getReferenceFrame(), projected);
-   }
-
-   public void getOutwardEdgeNormals(FrameVector2d[] normalsToPack)
-   {
-      renewTemporaryVectorArray();
-
-      convexPolygon.getOutSideFacingOrthoNormalVectors(temporaryVectorArray);
-
-      for (int i = 0; i < normalsToPack.length; i++)
-      {
-         checkReferenceFrameMatch(normalsToPack[i]);
-         normalsToPack[i].set(temporaryVectorArray[i]);
-      }
-   }
-
-   private void renewTemporaryVectorArray()
-   {
-      if (temporaryVectorArray == null || temporaryVectorArray.length != getNumberOfVertices())
-      {
-         temporaryVectorArray = new Vector2d[getNumberOfVertices()];
-         for (int i = 0; i < temporaryVectorArray.length; i++)
-         {
-            temporaryVectorArray[i] = new Vector2d();
-         }
-      }
    }
 
    @Override
@@ -1224,23 +1149,6 @@ public class FrameConvexPolygon2d extends FrameGeometry2d<FrameConvexPolygon2d, 
       return new FramePoint2d(referenceFrame, convexPolygon.getMaxXMinYPointCopy());
    }
 
-   public double perimeter()
-   {
-      return convexPolygon.perimeter();
-   }
-
-   public FramePoint2d pointOnPerimeterGivenParameter(double parameter)
-   {
-      return new FramePoint2d(referenceFrame, convexPolygon.pointOnPerimeterGivenParameter(parameter));
-   }
-
-   public void pullPointTowardsCentroid(FramePoint2d point, double percent)
-   {
-      checkReferenceFrameMatch(point);
-      Point2d point2d = point.getPoint();
-      convexPolygon.pullPointTowardsCentroid(point2d, percent);
-   }
-
    public boolean isUpToDate()
    {
       return convexPolygon.isUpToDate();
@@ -1256,6 +1164,12 @@ public class FrameConvexPolygon2d extends FrameGeometry2d<FrameConvexPolygon2d, 
    {
       convexPolygon.set(other.convexPolygon);
       update();
+   }
+
+   public boolean getLineOfSightVertexIndices(FramePoint2d observer, int[] idicesToPack)
+   {
+      checkReferenceFrameMatch(observer);
+      return ConvexPolygon2dCalculator.getLineOfSightVertexIndices(observer.getPoint(), idicesToPack, convexPolygon);
    }
 
    // --- methods that generate garbage ---
