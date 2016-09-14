@@ -6,13 +6,25 @@ buildscript {
   }
   dependencies {
     classpath "gradle.plugin.us.ihmc.gradle:ihmc-build:0.0.17"
+    classpath "net.ltgt.gradle:gradle-apt-plugin:0.8"
   }
 }
 
 apply plugin: "us.ihmc.gradle.ihmc-build"
+apply plugin: "net.ltgt.apt"
+apply plugin: "idea"
+apply plugin: "eclipse"
 
 if (!rootProject.name.equals('IHMCOpenRoboticsSoftware')) {
     evaluationDependsOn(':IHMCOpenRoboticsSoftware')
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ["src", "build/classes/main/generated"]
+        }
+    }
 }
 
 sourceCompatibility = 1.7
@@ -40,13 +52,19 @@ ihmc.configureForIHMCOpenSourceBintrayPublish(false, "mavenJava", "maven-release
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.11'
 
+    compileOnly group: 'org.immutables', name: 'value', version: '2.3'
+    apt group: 'org.immutables', name: 'value', version: '2.3'
+
+
+    compile group: 'com.google.guava', name: 'guava', version: '18.0'
+
     compile group: 'javax.vecmath', name: 'vecmath', version: '1.5.2'
     compile group: 'org.ejml', name: 'core', version: '0.28'
 
     compile ihmc.getProjectDependency(":IHMCRoboticsToolkit")
     compile ihmc.getProjectDependency(":IHMCGraphics3DDescription")
-    testCompile ihmc.getProjectDependency(":IHMCUnitTesting")
-    testCompile ihmc.getProjectTestDependency(":IHMCRoboticsToolkit")
+    //testCompile ihmc.getProjectDependency(":IHMCUnitTesting")
+    //testCompile ihmc.getProjectTestDependency(":IHMCRoboticsToolkit")
 }
 
 jar {
