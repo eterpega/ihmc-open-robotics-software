@@ -147,11 +147,11 @@ public class SimpleCollisionDetectorTest
    }
 
    @DeployableTestMethod(estimatedDuration = 0.0, targets = TestPlanTarget.InDevelopment)
-   @Test(timeout = 30000)
+   @Test//(timeout = 30000)
    public void testBoxToBoxCollisions()
    {
-//      SimpleCollisionDetector detector = new SimpleCollisionDetector();
-      GdxCollisionDetector detector = new GdxCollisionDetector(10.0);
+      SimpleCollisionDetector detector = new SimpleCollisionDetector();
+//      GdxCollisionDetector detector = new GdxCollisionDetector(10.0);
 
       CollisionShapeFactory shapeFactory = detector.getShapeFactory();
 
@@ -170,7 +170,7 @@ public class SimpleCollisionDetectorTest
       double delta = 0.01;
 
       transformOne.setTranslation(0.0, 0.0, 0.0);
-      transformOne.setTranslation(1.0 + delta, 0.0, 0.0);
+      transformTwo.setTranslation(1.04 + delta, 0.0, 0.0);
 
       collideableObjectOne.setTransformToWorld(transformOne);
       collideableObjectTwo.setTransformToWorld(transformTwo);

@@ -9,7 +9,6 @@ import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 
 import us.ihmc.convexOptimization.quadraticProgram.OASESConstrainedQPSolver;
-import us.ihmc.convexOptimization.quadraticProgram.QuadProgSolver;
 import us.ihmc.robotics.geometry.RigidBodyTransform;
 import us.ihmc.simulationconstructionset.Link;
 import us.ihmc.simulationconstructionset.physics.CollisionShape;
@@ -21,6 +20,11 @@ import us.ihmc.tools.exceptions.NoConvergenceException;
 
 public class SimpleCollisionDetector implements ScsCollisionDetector
 {
+// private final SimpleActiveSetQPStandaloneSolver solver = new SimpleActiveSetQPStandaloneSolver();
+// private final QuadProgSolver solver = new QuadProgSolver(16, 2, 16);
+ private final OASESConstrainedQPSolver solver = new OASESConstrainedQPSolver(null);
+//   private final OJAlgoConstrainedQPSolver solver = new OJAlgoConstrainedQPSolver();
+
    private final ArrayList<CollisionShape> collisionObjects = new ArrayList<CollisionShape>();
 
    // Temporary variables for computation:
@@ -86,11 +90,6 @@ public class SimpleCollisionDetector implements ScsCollisionDetector
       }
    }
 
-//   private final SimpleActiveSetQPStandaloneSolver solver = new SimpleActiveSetQPStandaloneSolver();
-//   private final QuadProgSolver solver = new QuadProgSolver(16, 2, 16);
-   private final OASESConstrainedQPSolver solver = new OASESConstrainedQPSolver(null);
-
-
    private final DenseMatrix64F GMatrix = new DenseMatrix64F(3, 8);
    private final DenseMatrix64F HMatrix = new DenseMatrix64F(3, 8);
 
@@ -118,10 +117,10 @@ public class SimpleCollisionDetector implements ScsCollisionDetector
    private void doBoxBoxCollisionDetection(CollisionShape objectOne, BoxShapeDescription descriptionOne, CollisionShape objectTwo, BoxShapeDescription descriptionTwo, CollisionDetectionResult result)
    {
       objectOne.getTransformToWorld(transformOne);
-      objectOne.getTransformToWorld(transformTwo);
+      objectTwo.getTransformToWorld(transformTwo);
 
-      populateMatrixWithBoxVertices(GMatrix, descriptionOne);
-      populateMatrixWithBoxVertices(HMatrix, descriptionTwo);
+      populateMatrixWithBoxVertices(descriptionOne, GMatrix);
+      populateMatrixWithBoxVertices(descriptionTwo, HMatrix);
 
       CommonOps.transpose(GMatrix, GTransposeMatrix);
       CommonOps.transpose(HMatrix, HTransposeMatrix);
@@ -150,9 +149,9 @@ public class SimpleCollisionDetector implements ScsCollisionDetector
          linearEqualityConstraintA.set(0, i, 1.0);
          linearEqualityConstraintA.set(1, i + 8, 1.0);
 
-         linearInequalityConstraintA.set(i, i, 1.0);
+         linearInequalityConstraintA.set(i, i, -1.0);
          linearInequalityConstraintB.set(i, 0, 0.0);
-         linearInequalityConstraintA.set(i + 8, i + 8, 1.0);
+         linearInequalityConstraintA.set(i + 8, i + 8, -1.0);
          linearInequalityConstraintB.set(i + 8, 0, 0.0);
       }
 
@@ -164,20 +163,48 @@ public class SimpleCollisionDetector implements ScsCollisionDetector
       {
          solver.solve(quadraticCostGMatrix, quadraticCostFVector, linearEqualityConstraintA, linearEqualityConstraintB, linearInequalityConstraintA, linearInequalityConstraintB, solutionVector, initialize);
          System.out.println("solutionVector = " + solutionVector);
-
-
       }
       catch(NoConvergenceException exception)
       {
+         return;
+      }
 
+      Point3d pointOnA = new Point3d();
+      Point3d pointOnB = new Point3d();
+
+      getVectorFromBoxVertices(descriptionOne, transformOne, solutionVector, true, pointOnA);
+      getVectorFromBoxVertices(descriptionTwo, transformTwo, solutionVector, false, pointOnB);
+
+      double distance = pointOnA.distance(pointOnB);
+
+      Vector3d normalA = new Vector3d();
+      normalA.sub(pointOnB, pointOnA);
+
+      //TODO: Figure out the answer if they penetrate the boundary layer...
+      if (distance > 1e-8)
+      {
+         normalA.normalize();
+      }
+      else
+      {
+         normalA.set(1.0, 0.0, 0.0);
+      }
+
+      double boxToBoxEpsilon = 0.002;
+      if (distance < boxToBoxEpsilon)
+      {
+         SimpleContactWrapper contacts = new SimpleContactWrapper(objectOne, objectTwo);
+
+         contacts.addContact(pointOnA, pointOnB, normalA, distance);
+         result.addContact(contacts);
       }
    }
 
-   private void populateMatrixWithBoxVertices(DenseMatrix64F matrix, BoxShapeDescription descriptionOne)
+   private void populateMatrixWithBoxVertices(BoxShapeDescription description, DenseMatrix64F matrix)
    {
-      double halfLengthXOne = descriptionOne.getHalfLengthX();
-      double halfWidthYOne = descriptionOne.getHalfWidthY();
-      double halfHeightZOne = descriptionOne.getHalfHeightZ();
+      double halfLengthXOne = description.getHalfLengthX();
+      double halfWidthYOne = description.getHalfWidthY();
+      double halfHeightZOne = description.getHalfHeightZ();
 
       int index = 0;
 
@@ -192,6 +219,41 @@ public class SimpleCollisionDetector implements ScsCollisionDetector
                matrix.set(0, index, vertex.getX());
                matrix.set(1, index, vertex.getY());
                matrix.set(2, index, vertex.getZ());
+
+               index++;
+            }
+         }
+      }
+   }
+
+   private void getVectorFromBoxVertices(BoxShapeDescription description, RigidBodyTransform transform, DenseMatrix64F solution, boolean firstPoint, Point3d solutionPoint)
+   {
+      solutionPoint.set(0.0, 0.0, 0.0);
+
+      double halfLengthXOne = description.getHalfLengthX();
+      double halfWidthYOne = description.getHalfWidthY();
+      double halfHeightZOne = description.getHalfHeightZ();
+
+      int index = 0;
+      if (firstPoint == false)
+      {
+         index = 8;
+      }
+
+      for (double multX = -1.0; multX < 1.1; multX += 2.0)
+      {
+         for (double multY = -1.0; multY < 1.1; multY += 2.0)
+         {
+            for (double multZ = -1.0; multZ < 1.1; multZ += 2.0)
+            {
+               vertex.set(halfLengthXOne * multX, halfWidthYOne * multY, halfHeightZOne * multZ);
+               transform.transform(vertex);
+
+               double factor = solution.get(index, 0);
+
+               solutionPoint.setX(solutionPoint.getX() + factor * vertex.getX());
+               solutionPoint.setY(solutionPoint.getY() + factor * vertex.getY());
+               solutionPoint.setZ(solutionPoint.getZ() + factor * vertex.getZ());
 
                index++;
             }

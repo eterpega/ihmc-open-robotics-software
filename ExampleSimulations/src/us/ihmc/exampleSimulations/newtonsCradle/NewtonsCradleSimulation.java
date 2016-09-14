@@ -152,10 +152,10 @@ public class NewtonsCradleSimulation
 
    public static void main(String[] args)
    {
-      createNewtonsCradleSimulation();
+//      createNewtonsCradleSimulation();
 //      createStackOfBouncyBallsSimulation();
 //      createRowOfDominosSimulation();
-//      createPileOfRandomObjectsSimulation();
+      createPileOfRandomObjectsSimulation();
 //      createSpinningCoinSimulation();
    }
 }

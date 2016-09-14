@@ -46,23 +46,23 @@ import us.ihmc.tools.thread.RunnableThatThrows;
 public class JUnitTools
 {
    private static final String TEST_RESOURCES_FOLDER_NAME = "testResources";
-   
+
    public static Path deriveTestResourcesPath(Class<?> clazz)
    {
       List<String> pathNames = new ArrayList<String>();
-      
+
       String[] packageNames = clazz.getPackage().getName().split("\\.");
-      
+
       pathNames.addAll(Arrays.asList(packageNames));
       pathNames.add(Character.toLowerCase(clazz.getSimpleName().charAt(0)) + clazz.getSimpleName().substring(1));
-      
+
       return Paths.get(TEST_RESOURCES_FOLDER_NAME, pathNames.toArray(new String[0]));
    }
-   
+
    public static void assertExceptionThrown(Class<? extends Throwable> exceptionType, RunnableThatThrows methodToRun)
    {
       boolean thrown = false;
-      
+
       try
       {
          methodToRun.run();
@@ -70,10 +70,10 @@ public class JUnitTools
       catch (Throwable throwable)
       {
          assertTrue("Exception type mismatch: Expected: " + exceptionType.getName() + " Actual: " + throwable.getClass().getName(), exceptionType.getName().equals(throwable.getClass().getName()));
-         
+
          thrown = true;
       }
-      
+
       assertTrue("Exception not thrown", thrown);
    }
 
@@ -98,7 +98,7 @@ public class JUnitTools
          fail(message + " Expected = " + expected + ", actual = " + actual + ". norm of difference = " + difference.length());
       }
    }
-   
+
    public static void assertTuple3fEquals(Tuple3f expected, Tuple3f actual, float delta)
    {
       assertTuple3fEquals("", expected, actual, delta);
@@ -188,12 +188,12 @@ public class JUnitTools
          }
       }
    }
-   
+
    public static void assertMatrixEqualsZero(DenseMatrix64F matrix, double epsilon)
    {
       assertMatrixEqualsZero("", matrix, epsilon);
    }
-   
+
    public static void assertMatrixEqualsZero(String message, DenseMatrix64F matrix, double epsilon)
    {
       int numberOfRows = matrix.getNumRows();
@@ -205,7 +205,7 @@ public class JUnitTools
          {
             assertEquals(message, 0.0, matrix.get(row, column), epsilon);
          }
-      }   
+      }
    }
 
    public static void assertMatrixEquals(String message, DenseMatrix64F expected, DenseMatrix64F actual, double delta)
@@ -217,7 +217,7 @@ public class JUnitTools
       {
          for (int j = 0; j < expected.getNumCols(); j++)
          {
-            assertEquals(message, actual.get(i, j), expected.get(i, j), delta);
+            assertEquals(message, expected.get(i, j), actual.get(i, j), delta);
          }
       }
    }
@@ -233,7 +233,7 @@ public class JUnitTools
          }
       }
    }
-   
+
    public static void assertMatrix3fEquals(String message, Matrix3f expected, Matrix3f actual, double delta)
    {
       int size = 3;
@@ -245,7 +245,7 @@ public class JUnitTools
          }
       }
    }
-   
+
    public static void assertMatrix4dEquals(String message, Matrix4d expected, Matrix4d actual, double delta)
    {
       int size = 4;
@@ -257,7 +257,7 @@ public class JUnitTools
          }
       }
    }
-   
+
    public static void assertMatrix4fEquals(String message, Matrix4f expected, Matrix4f actual, double delta)
    {
       int size = 4;
@@ -269,41 +269,41 @@ public class JUnitTools
          }
       }
    }
-   
+
    public static void assertVector3dEquals(String message, Vector3d expected, Vector3d actual, double delta)
    {
       assertEquals(message,expected.getX(), actual.getX(),delta);
       assertEquals(message,expected.getY(), actual.getY(),delta);
       assertEquals(message, expected.getZ(), actual.getZ(), delta);
    }
-   
+
    public static void assertPoint3dEquals(String message, Point3d expected, Point3d actual, double delta)
    {
       assertEquals(message,expected.getX(), actual.getX(),delta);
       assertEquals(message,expected.getY(), actual.getY(),delta);
       assertEquals(message,expected.getZ(), actual.getZ(),delta);
    }
-   
+
    public static void assertPoint2dEquals(String message, Point2d expected, Point2d actual, double delta)
    {
       assertEquals(message, expected.getX(), actual.getX(), delta);
       assertEquals(message, expected.getY(), actual.getY(), delta);
    }
-   
+
    public static void assertPoint3fEquals(String message, Point3f expected, Point3f actual, double delta)
    {
       assertEquals(message,expected.getX(), actual.getX(),delta);
       assertEquals(message,expected.getY(), actual.getY(),delta);
       assertEquals(message, expected.getZ(), actual.getZ(), delta);
    }
-   
+
    public static void assertVector3fEquals(String message, Vector3f expected, Vector3f actual, double delta)
    {
       assertEquals(message,expected.getX(), actual.getX(),delta);
       assertEquals(message,expected.getY(), actual.getY(),delta);
       assertEquals(message, expected.getZ(), actual.getZ(), delta);
    }
-   
+
    public static void assertVector4dEquals(String message, Vector4d expected, Vector4d actual, double delta)
    {
       assertEquals(message,expected.getX(), actual.getX(),delta);
@@ -311,7 +311,7 @@ public class JUnitTools
       assertEquals(message,expected.getZ(), actual.getZ(),delta);
       assertEquals(message,expected.getW(), actual.getW(),delta);
    }
-   
+
    public static void assertVector4fEquals(String message, Vector4f expected, Vector4f actual, double delta)
    {
       assertEquals(message,expected.getX(), actual.getX(),delta);
@@ -381,12 +381,12 @@ public class JUnitTools
          fail("Object not serializable: class not found");
       }
    }
-   
+
    public static void assertQuaternionsEqual(Quat4f expectedQuaternion, Quat4f actualQuaternion, double epsilon)
    {
       assertQuaternionsEqual(new Quat4d(expectedQuaternion), new Quat4d(actualQuaternion), epsilon);
    }
-   
+
    public static void assertQuaternionsEqual(Quat4d expectedQuaternion, Quat4d actualQuaternion, double epsilon)
    {
       try
@@ -401,7 +401,7 @@ public class JUnitTools
          throw new AssertionError("expected:\n<" + expectedQuaternion + ">\n but was:\n<" + actualQuaternion + ">");
       }
    }
-   
+
    public static void assertQuaternionsEqualUsingDifference(Quat4d q1, Quat4d q2, double epsilon)
    {
       try

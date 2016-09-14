@@ -67,9 +67,21 @@ public class OASESConstrainedQPSolver extends ConstrainedQPSolver
    public int solve(DenseMatrix64F Q, DenseMatrix64F f, DenseMatrix64F Aeq, DenseMatrix64F beq, DenseMatrix64F Ain, DenseMatrix64F bin, DenseMatrix64F lb,
          DenseMatrix64F ub, DenseMatrix64F x, boolean initialize) throws NoConvergenceException
    {
-
       qpWrapper.setMaxCpuTime(maxCPUTime.getDoubleValue());
       qpWrapper.setMaxWorkingSetChanges(maxWorkingSetChange.getIntegerValue());
+
+      if (Aeq == null)
+      {
+         Aeq = new DenseMatrix64F(0, Q.getNumCols());
+         beq = new DenseMatrix64F(0, 0);
+      }
+
+      if (Ain == null)
+      {
+         Ain = new DenseMatrix64F(0, Q.getNumCols());
+         bin = new DenseMatrix64F(0, 0);
+      }
+
       qpWrapper.solve(Q, f, Aeq, beq, Ain, bin, lb, ub, x, initialize);
       int iter = qpWrapper.getLastWorkingSetChanges();
       currentCPUTime.set(qpWrapper.getLastCpuTime());
