@@ -1,7 +1,6 @@
 package us.ihmc.robotics.immutableRobotDescription;
 
 import org.ejml.data.DenseMatrix64F;
-import org.immutables.value.Value;
 import org.immutables.value.Value.Immutable;
 import org.immutables.value.Value.Lazy;
 import us.ihmc.graphics3DAdapter.graphics.appearances.AppearanceDefinition;
@@ -13,8 +12,7 @@ import javax.vecmath.Point3d;
 import javax.vecmath.Vector3d;
 import java.util.ArrayList;
 
-@Immutable
-public abstract class LinkDescription implements NamedObject
+@Immutable public abstract class LinkDescription implements NamedObject
 {
    public abstract LinkGraphicsDescription getLinkGraphics();
 
@@ -24,8 +22,7 @@ public abstract class LinkDescription implements NamedObject
 
    public abstract DenseMatrix64F getMomentOfInertia();
 
-   @Lazy
-   public PrincipalMomentsOfInertia getPrincipalMomentsOfInertia()
+   @Lazy public PrincipalMomentsOfInertia getPrincipalMomentsOfInertia()
    {
       Vector3d principalMomentsOfInertia = new Vector3d();
       Matrix3d principalAxesRotation = new Matrix3d();
@@ -33,20 +30,24 @@ public abstract class LinkDescription implements NamedObject
       return new PrincipalMomentsOfInertia(principalAxesRotation, principalMomentsOfInertia);
    }
 
-   public static class PrincipalMomentsOfInertia {
+   public static class PrincipalMomentsOfInertia
+   {
       private final Matrix3d principalAxesRotation;
       private final Vector3d principalMomentsOfIntertia;
 
-      PrincipalMomentsOfInertia(Matrix3d principalAxesRotation, Vector3d principalMomentsOfIntertia) {
+      PrincipalMomentsOfInertia(Matrix3d principalAxesRotation, Vector3d principalMomentsOfIntertia)
+      {
          this.principalAxesRotation = principalAxesRotation;
          this.principalMomentsOfIntertia = principalMomentsOfIntertia;
       }
 
-      public Matrix3d getPrincipalAxesRotation() {
+      public Matrix3d getPrincipalAxesRotation()
+      {
          return principalAxesRotation;
       }
 
-      public Vector3d getPrincipalMomentsOfIntertia() {
+      public Vector3d getPrincipalMomentsOfIntertia()
+      {
          return principalMomentsOfIntertia;
       }
    }
@@ -236,8 +237,10 @@ public abstract class LinkDescription implements NamedObject
    {
       Vector3d comOffset = getCenterOfMassOffset();
 
-      if (getMass() <= 0 || getMomentOfInertia().get(0, 0) <= 0 || getMomentOfInertia().get(1, 1) <= 0 || getMomentOfInertia().get(2, 2) <= 0 || getMomentOfInertia().get(0, 0) + getMomentOfInertia().get(1, 1) <= getMomentOfInertia().get(2, 2)
-            || getMomentOfInertia().get(1, 1) + getMomentOfInertia().get(2, 2) <= getMomentOfInertia().get(0, 0) || getMomentOfInertia().get(0, 0) + getMomentOfInertia().get(2, 2) <= getMomentOfInertia().get(1, 1))
+      if (getMass() <= 0 || getMomentOfInertia().get(0, 0) <= 0 || getMomentOfInertia().get(1, 1) <= 0 || getMomentOfInertia().get(2, 2) <= 0
+            || getMomentOfInertia().get(0, 0) + getMomentOfInertia().get(1, 1) <= getMomentOfInertia().get(2, 2)
+            || getMomentOfInertia().get(1, 1) + getMomentOfInertia().get(2, 2) <= getMomentOfInertia().get(0, 0)
+            || getMomentOfInertia().get(0, 0) + getMomentOfInertia().get(2, 2) <= getMomentOfInertia().get(1, 1))
       {
          System.err.println(getName() + " has unrealistic inertia");
       }
@@ -256,6 +259,9 @@ public abstract class LinkDescription implements NamedObject
       }
    }
 
-
+   public static LinkDescriptionBuilder builder()
+   {
+      return new LinkDescriptionBuilder();
+   }
 
 }

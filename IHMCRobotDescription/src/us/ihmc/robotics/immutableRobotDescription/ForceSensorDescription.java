@@ -2,8 +2,12 @@ package us.ihmc.robotics.immutableRobotDescription;
 
 import org.immutables.value.Value.Immutable;
 
-@Immutable
-public interface ForceSensorDescription extends SensorDescription
+@Immutable public abstract class ForceSensorDescription implements SensorDescription
 {
-   boolean getUseGroundContactPoints();
+   public abstract boolean getUseGroundContactPoints();
+
+   public static ForceSensorDescriptionBuilder builder()
+   {
+      return new ForceSensorDescriptionBuilder();
+   }
 }

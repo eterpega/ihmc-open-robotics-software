@@ -9,16 +9,16 @@ public abstract class OneDoFJointDescription implements JointDescription
 {
    public abstract Axis getAxis();
 
-   @Value.Lazy
-   public Vector3d getAxisVector() {
+   @Value.Lazy public Vector3d getAxisVector()
+   {
       switch (getAxis())
       {
-         case X:
-            return new Vector3d(1.0, 0.0, 0.0);
-         case Y:
-            return new Vector3d(0.0, 1.0, 0.0);
-         case Z:
-            return new Vector3d(0.0, 0.0, 1.0);
+      case X:
+         return new Vector3d(1.0, 0.0, 0.0);
+      case Y:
+         return new Vector3d(0.0, 1.0, 0.0);
+      case Z:
+         return new Vector3d(0.0, 0.0, 1.0);
       }
       return new Vector3d(1, 0, 0);
    }
@@ -46,34 +46,41 @@ public abstract class OneDoFJointDescription implements JointDescription
 
    public abstract double getEffortLimit();
 
-   public static class LimitStops {
+   public static class LimitStops
+   {
       private final double qMin, qMax, kLimit, bLimit;
 
-      public LimitStops(double qMin, double qMax, double kLimit, double bLimit) {
+      public LimitStops(double qMin, double qMax, double kLimit, double bLimit)
+      {
          this.qMin = qMin;
          this.qMax = qMax;
          this.kLimit = kLimit;
          this.bLimit = bLimit;
       }
 
-      public double getqMin() {
+      public double getqMin()
+      {
          return qMin;
       }
 
-      public double getqMax() {
+      public double getqMax()
+      {
          return qMax;
       }
 
-      public double getkLimit() {
+      public double getkLimit()
+      {
          return kLimit;
       }
 
-      public double getbLimit() {
+      public double getbLimit()
+      {
          return bLimit;
       }
 
-      public double[] getArray() {
-         return new double[] { qMin, qMax, kLimit, bLimit };
+      public double[] getArray()
+      {
+         return new double[] {qMin, qMax, kLimit, bLimit};
       }
    }
 }

@@ -3,8 +3,12 @@ package us.ihmc.robotics.immutableRobotDescription;
 import org.immutables.value.Value.Immutable;
 import us.ihmc.robotics.lidar.LidarScanParameters;
 
-@Immutable
-public interface LidarSensorDescription extends SensorDescription
+@Immutable public abstract class LidarSensorDescription implements SensorDescription
 {
-   LidarScanParameters getLidarScanParameters();
+   public abstract LidarScanParameters getLidarScanParameters();
+
+   public static LidarSensorDescriptionBuilder builder()
+   {
+      return new LidarSensorDescriptionBuilder();
+   }
 }

@@ -2,16 +2,20 @@ package us.ihmc.robotics.immutableRobotDescription;
 
 import org.immutables.value.Value.Immutable;
 
-@Immutable
-public interface CameraSensorDescription extends SensorDescription
+@Immutable public abstract class CameraSensorDescription implements SensorDescription
 {
-   double getFieldOfView();
+   public abstract double getFieldOfView();
 
-   double getClipNear();
+   public abstract double getClipNear();
 
-   double getClipFar();
+   public abstract double getClipFar();
 
-   int getImageWidth();
+   public abstract int getImageWidth();
 
-   int getImageHeight();
+   public abstract int getImageHeight();
+
+   public static CameraSensorDescriptionBuilder builder()
+   {
+      return new CameraSensorDescriptionBuilder();
+   }
 }
