@@ -9,14 +9,12 @@ import java.util.Collection;
 
 @Immutable public abstract class RobotDescription extends JointDescription implements GraphicsObjectsHolder
 {
-   @Default
-   @Override public Vector3d getOffsetFromJoint()
+   @Default @Override public Vector3d getOffsetFromJoint()
    {
       return new Vector3d();
    }
 
-   @Default
-   @Override public LinkDescription getLink()
+   @Default @Override public LinkDescription getLink()
    {
       return LinkDescription.empty("empty_" + getName());
    }
@@ -73,5 +71,7 @@ import java.util.Collection;
       return new RobotDescriptionBuilder();
    }
 
-   static abstract class Builder implements JointDescription.Builder {}
+   static abstract class Builder implements JointDescription.Builder
+   {
+   }
 }

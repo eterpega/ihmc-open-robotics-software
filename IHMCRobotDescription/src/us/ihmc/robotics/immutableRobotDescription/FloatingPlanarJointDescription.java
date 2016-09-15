@@ -12,5 +12,7 @@ import us.ihmc.robotics.Plane;
       return new FloatingPlanarJointDescriptionBuilder();
    }
 
-   static abstract class Builder implements JointDescription.Builder {}
+   static abstract class Builder implements JointDescription.Builder
+   {
+   }
 }

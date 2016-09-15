@@ -25,23 +25,23 @@ public abstract class OneDoFJointDescription extends JointDescription
       return new Vector3d(1, 0, 0);
    }
 
-   @Default
-   public double getDamping() {
+   @Default public double getDamping()
+   {
       return 0;
    }
 
-   @Default
-   public double getStiction() {
+   @Default public double getStiction()
+   {
       return 0;
    }
 
-   @Default
-   public double getVelocityLimit() {
+   @Default public double getVelocityLimit()
+   {
       return Double.POSITIVE_INFINITY;
    }
 
-   @Default
-   public double getVelocityDamping() {
+   @Default public double getVelocityDamping()
+   {
       return 0;
    }
 
@@ -51,24 +51,24 @@ public abstract class OneDoFJointDescription extends JointDescription
       return getLimitStops() != null;
    }
 
-   @Default
-   public LimitStops getLimitStops() {
+   @Default public LimitStops getLimitStops()
+   {
       return null;
    }
 
    // TODO: the following two methods do not really make sense as they default to a somewhat arbitrary zero value if limits are not present
-   @Derived
-   public double getLowerLimit() {
+   @Derived public double getLowerLimit()
+   {
       return getLimitStops() == null ? 0 : getLimitStops().getqMin();
    }
 
-   @Derived
-   public double getUpperLimit() {
+   @Derived public double getUpperLimit()
+   {
       return getLimitStops() == null ? 0 : getLimitStops().getqMax();
    }
 
-   @Default
-   public double getEffortLimit() {
+   @Default public double getEffortLimit()
+   {
       return Double.POSITIVE_INFINITY;
    }
 
@@ -110,5 +110,7 @@ public abstract class OneDoFJointDescription extends JointDescription
       }
    }
 
-   static abstract class Builder implements JointDescription.Builder {}
+   static abstract class Builder implements JointDescription.Builder
+   {
+   }
 }

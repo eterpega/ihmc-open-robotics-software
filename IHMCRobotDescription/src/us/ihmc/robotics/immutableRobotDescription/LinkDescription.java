@@ -16,23 +16,23 @@ import java.util.ArrayList;
 @Immutable public abstract class LinkDescription implements NamedObject
 {
    // TODO: should be marked nullable or optional
-   @Default
-   public LinkGraphicsDescription getLinkGraphics() {
+   @Default public LinkGraphicsDescription getLinkGraphics()
+   {
       return new LinkGraphicsDescription();
    }
 
-   @Default
-   public double getMass() {
+   @Default public double getMass()
+   {
       return 0;
    }
 
-   @Default
-   public Vector3d getCenterOfMassOffset() {
+   @Default public Vector3d getCenterOfMassOffset()
+   {
       return new Vector3d();
    }
 
-   @Default
-   public DenseMatrix64F getMomentOfInertia() {
+   @Default public DenseMatrix64F getMomentOfInertia()
+   {
       return new DenseMatrix64F(3, 3); // TODO: this creates a zero matrix, wouldn't a unit matrix be more appropriate?
    }
 
@@ -71,9 +71,9 @@ import java.util.ArrayList;
    public static DenseMatrix64F convertMomentOfInertia(Matrix3d momentOfInertia)
    {
       DenseMatrix64F result = new DenseMatrix64F(3, 3);
-      for (int i=0; i<3; i++)
+      for (int i = 0; i < 3; i++)
       {
-         for (int j=0; j<3; j++)
+         for (int j = 0; j < 3; j++)
          {
             result.set(i, j, momentOfInertia.getElement(i, j));
          }
@@ -293,7 +293,8 @@ import java.util.ArrayList;
       return new LinkDescriptionBuilder();
    }
 
-   public static LinkDescription empty(String name) {
+   public static LinkDescription empty(String name)
+   {
       return builder().name(name).build();
    }
 }

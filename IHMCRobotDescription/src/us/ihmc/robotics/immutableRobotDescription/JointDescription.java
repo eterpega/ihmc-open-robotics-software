@@ -26,12 +26,14 @@ public abstract class JointDescription implements NamedObject, LocatedObject
 
    public abstract List<ForceSensorDescription> getForceSensors();
 
-   @Default
-   public boolean getDynamic() {
+   @Default public boolean getDynamic()
+   {
       return true;
    }
-   
-   public interface Builder {
+
+   // TODO: get rid of this as soon as Immutables can generate it
+   public interface Builder
+   {
       Builder addChildrenJoints(JointDescription element);
 
       Builder addAllChildrenJoints(Iterable<? extends JointDescription> elements);
