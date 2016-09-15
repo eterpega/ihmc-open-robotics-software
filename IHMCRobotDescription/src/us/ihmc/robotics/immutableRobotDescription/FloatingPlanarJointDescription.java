@@ -3,7 +3,7 @@ package us.ihmc.robotics.immutableRobotDescription;
 import org.immutables.value.Value.Immutable;
 import us.ihmc.robotics.Plane;
 
-@Immutable public abstract class FloatingPlanarJointDescription implements JointDescription
+@Immutable public abstract class FloatingPlanarJointDescription extends JointDescription
 {
    public abstract Plane getPlane();
 
@@ -11,4 +11,6 @@ import us.ihmc.robotics.Plane;
    {
       return new FloatingPlanarJointDescriptionBuilder();
    }
+
+   static abstract class Builder implements JointDescription.Builder {}
 }

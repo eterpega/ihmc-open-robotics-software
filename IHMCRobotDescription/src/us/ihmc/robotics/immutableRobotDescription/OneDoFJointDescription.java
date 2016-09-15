@@ -1,17 +1,19 @@
 package us.ihmc.robotics.immutableRobotDescription;
 
-import org.immutables.value.Value;
+import org.immutables.value.Value.Default;
+import org.immutables.value.Value.Derived;
 import us.ihmc.robotics.Axis;
 
 import javax.vecmath.Vector3d;
 
-public abstract class OneDoFJointDescription implements JointDescription
+public abstract class OneDoFJointDescription extends JointDescription
 {
-   public abstract Axis getAxis();
+   public abstract Vector3d getAxis();
 
-   @Value.Lazy public Vector3d getAxisVector()
+   // TODO: move this elsewhere or remove if not used
+   public static Vector3d convertAxisVector(Axis axis)
    {
-      switch (getAxis())
+      switch (axis)
       {
       case X:
          return new Vector3d(1.0, 0.0, 0.0);
@@ -23,28 +25,52 @@ public abstract class OneDoFJointDescription implements JointDescription
       return new Vector3d(1, 0, 0);
    }
 
-   public abstract double getDamping();
+   @Default
+   public double getDamping() {
+      return 0;
+   }
 
-   public abstract double getStiction();
+   @Default
+   public double getStiction() {
+      return 0;
+   }
 
-   public abstract double getVelocityLimit();
+   @Default
+   public double getVelocityLimit() {
+      return Double.POSITIVE_INFINITY;
+   }
 
-   public abstract double getVelocityDamping();
+   @Default
+   public double getVelocityDamping() {
+      return 0;
+   }
 
-   public abstract Vector3d getJointAxis();
-
+   // TODO: getLimitStops should return optional/nullable and this should go away
    public boolean containsLimitStops()
    {
       return getLimitStops() != null;
    }
 
-   public abstract LimitStops getLimitStops();
+   @Default
+   public LimitStops getLimitStops() {
+      return null;
+   }
 
-   public abstract double getLowerLimit();
+   // TODO: the following two methods do not really make sense as they default to a somewhat arbitrary zero value if limits are not present
+   @Derived
+   public double getLowerLimit() {
+      return getLimitStops() == null ? 0 : getLimitStops().getqMin();
+   }
 
-   public abstract double getUpperLimit();
+   @Derived
+   public double getUpperLimit() {
+      return getLimitStops() == null ? 0 : getLimitStops().getqMax();
+   }
 
-   public abstract double getEffortLimit();
+   @Default
+   public double getEffortLimit() {
+      return Double.POSITIVE_INFINITY;
+   }
 
    public static class LimitStops
    {
@@ -83,4 +109,6 @@ public abstract class OneDoFJointDescription implements JointDescription
          return new double[] {qMin, qMax, kLimit, bLimit};
       }
    }
+
+   static abstract class Builder implements JointDescription.Builder {}
 }

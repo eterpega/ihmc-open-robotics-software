@@ -1,6 +1,7 @@
 package us.ihmc.robotics.immutableRobotDescription;
 
 import org.ejml.data.DenseMatrix64F;
+import org.immutables.value.Value.Default;
 import org.immutables.value.Value.Immutable;
 import org.immutables.value.Value.Lazy;
 import us.ihmc.graphics3DAdapter.graphics.appearances.AppearanceDefinition;
@@ -14,13 +15,26 @@ import java.util.ArrayList;
 
 @Immutable public abstract class LinkDescription implements NamedObject
 {
-   public abstract LinkGraphicsDescription getLinkGraphics();
+   // TODO: should be marked nullable or optional
+   @Default
+   public LinkGraphicsDescription getLinkGraphics() {
+      return new LinkGraphicsDescription();
+   }
 
-   public abstract double getMass();
+   @Default
+   public double getMass() {
+      return 0;
+   }
 
-   public abstract Vector3d getCenterOfMassOffset();
+   @Default
+   public Vector3d getCenterOfMassOffset() {
+      return new Vector3d();
+   }
 
-   public abstract DenseMatrix64F getMomentOfInertia();
+   @Default
+   public DenseMatrix64F getMomentOfInertia() {
+      return new DenseMatrix64F(3, 3); // TODO: this creates a zero matrix, wouldn't a unit matrix be more appropriate?
+   }
 
    @Lazy public PrincipalMomentsOfInertia getPrincipalMomentsOfInertia()
    {
@@ -50,6 +64,21 @@ import java.util.ArrayList;
       {
          return principalMomentsOfIntertia;
       }
+   }
+
+   // TODO: the following methods really do not belong here, move them elsewhere
+
+   public static DenseMatrix64F convertMomentOfInertia(Matrix3d momentOfInertia)
+   {
+      DenseMatrix64F result = new DenseMatrix64F(3, 3);
+      for (int i=0; i<3; i++)
+      {
+         for (int j=0; j<3; j++)
+         {
+            result.set(i, j, momentOfInertia.getElement(i, j));
+         }
+      }
+      return result;
    }
 
    // ////////// Graphics from Mass Properties Here ///////////////////////
@@ -264,4 +293,7 @@ import java.util.ArrayList;
       return new LinkDescriptionBuilder();
    }
 
+   public static LinkDescription empty(String name) {
+      return builder().name(name).build();
+   }
 }

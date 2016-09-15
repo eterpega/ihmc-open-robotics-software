@@ -9,4 +9,6 @@ import org.immutables.value.Value.Immutable;
    {
       return new PinJointDescriptionBuilder();
    }
+
+   static abstract class Builder implements JointDescription.Builder {}
 }

@@ -8,4 +8,6 @@ import org.immutables.value.Value.Immutable;
    {
       return new SliderJointDescriptionBuilder();
    }
+
+   static abstract class Builder implements JointDescription.Builder {}
 }

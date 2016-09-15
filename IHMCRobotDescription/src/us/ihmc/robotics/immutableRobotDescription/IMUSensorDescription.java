@@ -2,23 +2,15 @@ package us.ihmc.robotics.immutableRobotDescription;
 
 import org.immutables.value.Value.Immutable;
 
-@Immutable public abstract class IMUSensorDescription implements SensorDescription
+@Immutable public abstract class IMUSensorDescription extends SensorDescription
 {
-   public abstract double getAccelerationNoiseMean();
+   public abstract GaussianParameter getAccelerationNoise();
 
-   public abstract double getAccelerationNoiseStandardDeviation();
+   public abstract GaussianParameter getAccelerationBias();
 
-   public abstract double getAccelerationBiasMean();
+   public abstract GaussianParameter getAngularVelocityNoise();
 
-   public abstract double getAccelerationBiasStandardDeviation();
-
-   public abstract double getAngularVelocityNoiseMean();
-
-   public abstract double getAngularVelocityNoiseStandardDeviation();
-
-   public abstract double getAngularVelocityBiasMean();
-
-   public abstract double getAngularVelocityBiasStandardDeviation();
+   public abstract GaussianParameter getAngularVelocityBias();
 
    public static IMUSensorDescriptionBuilder builder()
    {

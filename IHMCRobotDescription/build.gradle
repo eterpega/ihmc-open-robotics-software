@@ -19,6 +19,9 @@ if (!rootProject.name.equals('IHMCOpenRoboticsSoftware')) {
     evaluationDependsOn(':IHMCOpenRoboticsSoftware')
 }
 
+compileJava {
+    generatedSourcesDestinationDir = "build/classes/main/generated"
+}
 sourceSets {
     main {
         java {
@@ -55,6 +58,7 @@ dependencies {
     compileOnly group: 'org.immutables', name: 'value', version: '2.3'
     apt group: 'org.immutables', name: 'value', version: '2.3'
 
+    compileOnly group: 'net.jcip', name: 'jcip-annotations', version: '1.0'
 
     compile group: 'com.google.guava', name: 'guava', version: '18.0'
 

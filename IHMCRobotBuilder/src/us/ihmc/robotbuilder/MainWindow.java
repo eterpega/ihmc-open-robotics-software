@@ -23,9 +23,8 @@ import us.ihmc.robotbuilder.util.JavaFX3DInstructionExecutor;
 import us.ihmc.robotbuilder.util.Tree;
 import us.ihmc.robotbuilder.util.TreeAdapter;
 import us.ihmc.robotbuilder.util.Util;
-import us.ihmc.robotics.robotDescription.JointDescription;
-import us.ihmc.robotics.robotDescription.RobotDescription;
-import us.ihmc.robotics.robotDescription.RobotDescriptionNode;
+import us.ihmc.robotics.immutableRobotDescription.JointDescription;
+import us.ihmc.robotics.immutableRobotDescription.RobotDescription;
 
 import javax.vecmath.Vector3d;
 import java.io.File;
@@ -79,9 +78,9 @@ public class MainWindow extends Application {
             dialog.setHeaderText("Please choose a model to open.");
             dialog.setContentText("Model:");
             return Option.ofOptional(dialog.showAndWait());
-        })).flatMap(robotDescription -> Util.runLaterInUI(() -> {
-            robotDescription.peek(description -> {
-                TreeAdapter<RobotDescriptionNode> tree = Tree.of(description, RobotDescriptionNode::getChildrenJoints);
+        })).flatMap(immutableRobotDescription -> Util.runLaterInUI(() -> {
+            immutableRobotDescription.peek(description -> {
+                TreeAdapter<JointDescription> tree = Tree.of(description, JointDescription::getChildrenJoints);
                 treeView.setRoot(Tree.map(tree, (node, children) -> {
                     TreeItem<String> item = new TreeItem<>(node.getValue().getName());
                     item.getChildren().addAll(children);
@@ -93,6 +92,7 @@ public class MainWindow extends Application {
         })).onFailure(err -> Util.runLaterInUI(() -> {
             Alert alert = new Alert(AlertType.ERROR, "Error loading file: " + err.getMessage(), ButtonType.OK);
             alert.showAndWait();
+            err.printStackTrace();
             return null;
         }));
     }
@@ -120,8 +120,7 @@ public class MainWindow extends Application {
         TreeAdapter<JointDescription> tree = Tree.of(description, JointDescription::getChildrenJoints);
         return Tree.map(tree, (node, children) -> {
                 Group jointGroup = new Group();
-                Vector3d offset = new Vector3d();
-                node.getValue().getOffsetFromParentJoint(offset);
+                Vector3d offset = node.getValue().getOffsetFromJoint();
                 jointGroup.getTransforms().add(new Translate(offset.x, offset.y, offset.z));
 
                 final PhongMaterial redMaterial = new PhongMaterial();

@@ -4,9 +4,9 @@ import javaslang.collection.List;
 import javaslang.concurrent.Future;
 import javaslang.control.Option;
 import us.ihmc.SdfLoader.GeneralizedSDFRobotModel;
+import us.ihmc.SdfLoader.ImmutableRobotDescriptionFromSDFLoader;
 import us.ihmc.SdfLoader.JaxbSDFLoader;
-import us.ihmc.SdfLoader.RobotDescriptionFromSDFLoader;
-import us.ihmc.robotics.robotDescription.RobotDescription;
+import us.ihmc.robotics.immutableRobotDescription.RobotDescription;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -19,7 +19,7 @@ import java.util.function.Function;
 public class Loader {
     public static Future<Option<RobotDescription>> loadFile(File file, Function<List<String>, Future<Option<String>>> modelSelector) {
         JaxbSDFLoader[] rawLoader = new JaxbSDFLoader[1];
-        RobotDescriptionFromSDFLoader sdfLoader = new RobotDescriptionFromSDFLoader();
+        ImmutableRobotDescriptionFromSDFLoader sdfLoader = new ImmutableRobotDescriptionFromSDFLoader();
         return Future.of(() -> {
                     JaxbSDFLoader jaxbSDFLoader = new JaxbSDFLoader(new FileInputStream(file), Collections.emptyList(), null);
                     rawLoader[0] = jaxbSDFLoader;
