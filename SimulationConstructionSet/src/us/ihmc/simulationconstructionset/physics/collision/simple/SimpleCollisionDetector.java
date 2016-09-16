@@ -25,6 +25,8 @@ public class SimpleCollisionDetector implements ScsCollisionDetector
  private final OASESConstrainedQPSolver solver = new OASESConstrainedQPSolver(null);
 //   private final OJAlgoConstrainedQPSolver solver = new OJAlgoConstrainedQPSolver();
 
+//   private final SimpleEfficientActiveSetQPSolver solver = new SimpleEfficientActiveSetQPSolver();
+   
    private final ArrayList<CollisionShape> collisionObjects = new ArrayList<CollisionShape>();
 
    // Temporary variables for computation:
@@ -36,6 +38,18 @@ public class SimpleCollisionDetector implements ScsCollisionDetector
 
    private final Vector3d normalVector = new Vector3d();
    private final Vector3d tempVector = new Vector3d();
+
+   private double boxToBoxMargin = 0.002;
+
+   public double getBoxToBoxMargin()
+   {
+      return boxToBoxMargin;
+   }
+
+   public void setBoxToBoxMargin(double boxToBoxMargin)
+   {
+      this.boxToBoxMargin = boxToBoxMargin;
+   }
 
    @Override
    public void initialize()
@@ -119,8 +133,8 @@ public class SimpleCollisionDetector implements ScsCollisionDetector
       objectOne.getTransformToWorld(transformOne);
       objectTwo.getTransformToWorld(transformTwo);
 
-      populateMatrixWithBoxVertices(descriptionOne, GMatrix);
-      populateMatrixWithBoxVertices(descriptionTwo, HMatrix);
+      populateMatrixWithBoxVertices(transformOne, descriptionOne, GMatrix);
+      populateMatrixWithBoxVertices(transformTwo, descriptionTwo, HMatrix);
 
       CommonOps.transpose(GMatrix, GTransposeMatrix);
       CommonOps.transpose(HMatrix, HTransposeMatrix);
@@ -158,11 +172,18 @@ public class SimpleCollisionDetector implements ScsCollisionDetector
       linearEqualityConstraintB.set(0, 0, 1.0);
       linearEqualityConstraintB.set(1, 0, 1.0);
 
-      boolean initialize = false;
+      boolean initialize = true;
       try
       {
+//         boolean[] activeSet = new boolean[16];
+//         solver.setQuadraticCostFunction(quadraticCostGMatrix, quadraticCostFVector, 0.0);
+//         solver.setLinearEqualityConstraints(linearEqualityConstraintA, linearEqualityConstraintB);
+//         solver.setLinearInequalityConstraints(linearInequalityConstraintA, linearInequalityConstraintB);
+//         solver.solve(solutionVector);
+         
+//         solver.solve(quadraticCostGMatrix, quadraticCostFVector, linearEqualityConstraintA, linearEqualityConstraintB, linearInequalityConstraintA, linearInequalityConstraintB, activeSet , solutionVector);
          solver.solve(quadraticCostGMatrix, quadraticCostFVector, linearEqualityConstraintA, linearEqualityConstraintB, linearInequalityConstraintA, linearInequalityConstraintB, solutionVector, initialize);
-         System.out.println("solutionVector = " + solutionVector);
+//         System.out.println("solutionVector = " + solutionVector);
       }
       catch(NoConvergenceException exception)
       {
@@ -190,8 +211,7 @@ public class SimpleCollisionDetector implements ScsCollisionDetector
          normalA.set(1.0, 0.0, 0.0);
       }
 
-      double boxToBoxEpsilon = 0.002;
-      if (distance < boxToBoxEpsilon)
+      if (distance < boxToBoxMargin)
       {
          SimpleContactWrapper contacts = new SimpleContactWrapper(objectOne, objectTwo);
 
@@ -200,7 +220,7 @@ public class SimpleCollisionDetector implements ScsCollisionDetector
       }
    }
 
-   private void populateMatrixWithBoxVertices(BoxShapeDescription description, DenseMatrix64F matrix)
+   private void populateMatrixWithBoxVertices(RigidBodyTransform transform, BoxShapeDescription description, DenseMatrix64F matrix)
    {
       double halfLengthXOne = description.getHalfLengthX();
       double halfWidthYOne = description.getHalfWidthY();
@@ -215,7 +235,7 @@ public class SimpleCollisionDetector implements ScsCollisionDetector
             for (double multZ = -1.0; multZ < 1.1; multZ += 2.0)
             {
                vertex.set(halfLengthXOne * multX, halfWidthYOne * multY, halfHeightZOne * multZ);
-               transformOne.transform(vertex);
+               transform.transform(vertex);
                matrix.set(0, index, vertex.getX());
                matrix.set(1, index, vertex.getY());
                matrix.set(2, index, vertex.getZ());

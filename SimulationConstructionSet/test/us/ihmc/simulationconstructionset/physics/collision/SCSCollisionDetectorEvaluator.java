@@ -17,7 +17,7 @@ import us.ihmc.simulationconstructionset.physics.CollisionShapeDescription;
 import us.ihmc.simulationconstructionset.physics.CollisionShapeFactory;
 import us.ihmc.simulationconstructionset.physics.Contacts;
 import us.ihmc.simulationconstructionset.physics.ScsCollisionDetector;
-import us.ihmc.simulationconstructionset.physics.collision.gdx.GdxCollisionDetector;
+import us.ihmc.simulationconstructionset.physics.collision.simple.SimpleCollisionDetector;
 import us.ihmc.simulationconstructionset.yoUtilities.graphics.YoGraphicPosition;
 import us.ihmc.simulationconstructionset.yoUtilities.graphics.YoGraphicsListRegistry;
 
@@ -86,7 +86,8 @@ public class SCSCollisionDetectorEvaluator
 
       // Collison Detector
       double worldRadius = 100.0;
-      ScsCollisionDetector collisionDetector = new GdxCollisionDetector(worldRadius);
+//      ScsCollisionDetector collisionDetector = new GdxCollisionDetector(worldRadius);
+      ScsCollisionDetector collisionDetector = new SimpleCollisionDetector();
 
       CollisionShapeFactory factory = collisionDetector.getShapeFactory();
       factory.setMargin(0.002);
@@ -117,15 +118,18 @@ public class SCSCollisionDetectorEvaluator
       scs.startOnAThread();
 
 
-      double x = -1.2;
+      double x = -1.4;
       double y = 0.0;
       double z = 0.0;
 
       CollisionDetectionResult result = new CollisionDetectionResult();
+      RigidBodyTransform transform = new RigidBodyTransform();
 
-      for (int i=0; i<4000; i++)
+      for (int i=0; i<3000; i++)
       {
-         jointOne.setPosition(x, y, z);
+         transform.setRotationEulerAndZeroTranslation(0.0, Math.PI/4.0, Math.PI/4.0);
+         transform.setTranslation(x, y, z);
+         jointOne.setRotationAndTranslation(transform);
          robot.update();
 
          x = x + 0.001;
