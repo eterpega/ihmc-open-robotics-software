@@ -16,9 +16,9 @@ import us.ihmc.graphics3DAdapter.graphics.Graphics3DObject;
 import us.ihmc.graphics3DAdapter.graphics.appearances.YoAppearance;
 import us.ihmc.robotics.geometry.InertiaTools;
 import us.ihmc.robotics.geometry.RigidBodyTransform;
+import us.ihmc.robotics.immutableRobotDescription.*;
 import us.ihmc.robotics.immutableRobotDescription.OneDoFJointDescription.LimitStops;
 import us.ihmc.robotics.lidar.LidarScanParameters;
-import us.ihmc.robotics.immutableRobotDescription.*;
 import us.ihmc.simulationconstructionset.simulatedSensors.SimulatedLIDARSensorLimitationParameters;
 import us.ihmc.simulationconstructionset.simulatedSensors.SimulatedLIDARSensorNoiseParameters;
 import us.ihmc.simulationconstructionset.simulatedSensors.SimulatedLIDARSensorUpdateParameters;
@@ -31,8 +31,11 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.*;
 
+import static java.lang.Double.parseDouble;
+
 public class ImmutableRobotDescriptionFromSDFLoader
 {
+   // TODO: there should be methods to generated the graphics based on the link description, not be static defines burried in a loader that the user cannot change
    private static final boolean SHOW_CONTACT_POINTS = true;
    private static final boolean SHOW_COM_REFERENCE_FRAMES = false;
    private static final boolean SHOW_INERTIA_ELLIPSOIDS = false;
@@ -56,7 +59,7 @@ public class ImmutableRobotDescriptionFromSDFLoader
 
       if (rootLinks.size() > 1)
       {
-         throw new RuntimeException("Can only accomodate one root link for now");
+         throw new RuntimeException("Can only accommodate one root link for now");
       }
 
       SDFLinkHolder rootLink = rootLinks.get(0);
@@ -75,42 +78,43 @@ public class ImmutableRobotDescriptionFromSDFLoader
 
       // Ground Contact Points:
 
-      Map<String, Vector3d> sdfJointNameToGroundContactPoint = new HashMap<>();
+      Map<String, List<Vector3d>> sdfJointNameToGroundContactPoints = new HashMap<>();
       if (sdfJointNameMap != null)
       {
-         for (ImmutablePair<String, Vector3d> jointContactPoint : sdfJointNameMap.getJointNameGroundContactPointMap())
-            sdfJointNameToGroundContactPoint.put(jointContactPoint.getLeft(), jointContactPoint.getRight());
-      }
-      LinkedHashMap<String, Integer> groundContactPointCounters = new LinkedHashMap<>();
+         groupContactPointsByJoint(sdfJointNameMap);
 
-      if (sdfJointNameMap != null)
-      {
          enableTorqueVelocityLimits = enableTorqueVelocityLimits && sdfJointNameMap.isTorqueVelocityLimitsEnabled();
       }
 
+      ConversionParameters conversionParameters = new ConversionParameters(useCollisionMeshes, enableTorqueVelocityLimits, enableDamping,
+                                                                           sdfJointNameToGroundContactPoints, sdfJointNameMap, resourceDirectories);
+
       for (SDFJointHolder child : rootLink.getChildren())
       {
-         // System.out.println("Joint name: " + child.getName());
-
-         Set<String> lastSimulatedJoints;
-
-         if (sdfJointNameMap != null)
-         {
-            lastSimulatedJoints = sdfJointNameMap.getLastSimulatedJoints();
-         }
-         else
-         {
-            lastSimulatedJoints = new HashSet<>();
-         }
-         JointDescription convertedChildJoint = convertJointsRecursively(child, useCollisionMeshes, enableTorqueVelocityLimits, enableDamping,
-                                                                         lastSimulatedJoints, false, sdfJointNameToGroundContactPoint,
-                                                                         groundContactPointCounters, sdfJointNameMap, resourceDirectories);
+         JointDescription convertedChildJoint = convertJointsRecursively(child, false, conversionParameters);
          rootJointDescription.addChildrenJoints(convertedChildJoint);
       }
 
       robotDescription.addChildrenJoints(rootJointDescription.build());
 
       return robotDescription.build();
+   }
+
+   private Map<String, List<Vector3d>> groupContactPointsByJoint(SDFJointNameMap sdfJointNameMap)
+   {
+      Map<String, List<Vector3d>> result = new HashMap<>();
+      if (sdfJointNameMap == null)
+         return result;
+
+      for (ImmutablePair<String, Vector3d> jointContactPoint : sdfJointNameMap.getJointNameGroundContactPointMap())
+      {
+         List<Vector3d> contactPoints = result.get(jointContactPoint.getLeft());
+         if (contactPoints == null)
+            contactPoints = new ArrayList<>();
+         contactPoints.add(jointContactPoint.getRight());
+         result.put(jointContactPoint.getLeft(), contactPoints);
+      }
+      return result;
    }
 
    // FIXME: graphics should be immutable as well
@@ -139,32 +143,26 @@ public class ImmutableRobotDescriptionFromSDFLoader
       }
    }
 
-   private JointContactPoints convertGroundContactPoints(String jointName, Map<String, Vector3d> sdfJointNameMap, LinkedHashMap<String, Integer> counters) {
-      int count;
-      if (counters.get(jointName) == null)
-         count = 0;
-      else
-         count = counters.get(jointName);
+   private List<JointContactPoints> convertGroundContactPoints(SDFJointHolder joint, List<Vector3d> groundContactPoints) {
 
-      Vector3d gcOffset = sdfJointNameMap.get(jointName);
-      if (gcOffset == null)
-         return null;
+      List<JointContactPoints> result = new ArrayList<>();
+      String sanitizedJointName = SDFConversionsHelper.sanitizeJointName(joint.getName());
+      for (int i = 0; i < groundContactPoints.size(); i++)
+      {
+         Vector3d gcOffset = groundContactPoints.get(i);
+         GroundContactPointDescription groundContactPoint = new GroundContactPointDescriptionBuilder()
+               .name("gc_" + sanitizedJointName + "_" + i)
+               .offsetFromJoint(gcOffset)
+               .build();
+         ExternalForcePointDescription externalForcePoint = new GroundContactPointDescriptionBuilder()
+               .name("ef_" + sanitizedJointName + "_")
+               .offsetFromJoint(gcOffset)
+               .build();
 
-      GroundContactPointDescription groundContactPoint = new GroundContactPointDescriptionBuilder()
-            .name("gc_" + SDFConversionsHelper.sanitizeJointName(jointName) + "_" + count++)
-            .offsetFromJoint(gcOffset)
-            .build();
-      ExternalForcePointDescription externalForcePoint = new GroundContactPointDescriptionBuilder()
-            .name("ef_" + SDFConversionsHelper.sanitizeJointName(jointName) + "_" + count++)
-            .offsetFromJoint(gcOffset)
-            .build();
+         result.add(new JointContactPoints(groundContactPoint, externalForcePoint));
+      }
 
-
-      counters.put(jointName, count);
-
-      //            PrintTools.info("Joint Contact Point: " + jointContactPoint);
-
-      return new JointContactPoints(groundContactPoint, externalForcePoint);
+      return result;
    }
 
    private static class JointContactPoints {
@@ -199,12 +197,9 @@ public class ImmutableRobotDescriptionFromSDFLoader
       Matrix3d inertia = InertiaTools.rotate(rotationTransform, link.getInertia());
       Vector3d CoMOffset = new Vector3d(link.getCoMOffset());
 
-      if (link.getJoint() != null)
+      if (link.getJoint() != null && isJointInNeedOfReducedGains(link.getJoint()))
       {
-         if (isJointInNeedOfReducedGains(link.getJoint()))
-         {
-            inertia.mul(100.0);
-         }
+         inertia.mul(100.0);
       }
 
       rotationTransform.transform(CoMOffset);
@@ -226,12 +221,10 @@ public class ImmutableRobotDescriptionFromSDFLoader
       return scsLink;
    }
 
-   private JointDescription convertJointsRecursively(SDFJointHolder joint, boolean useCollisionMeshes, boolean enableTorqueVelocityLimits,
-                                                     boolean enableDamping, Set<String> lastSimulatedJoints, boolean doNotSimulateJoint,
-                                                     Map<String, Vector3d> sdfJointNameToGroundContactPoint,
-                                                     LinkedHashMap<String, Integer> groundContactPointCounters, SDFJointNameMap sdfJointNameMap,
-                                                     List<String> resourceDirectories)
+   private JointDescription convertJointsRecursively(SDFJointHolder joint, boolean doNotSimulateJoint, ConversionParameters parameters)
    {
+      final Set<String> lastSimulatedJoints = parameters.sdfJointNameMap != null ? parameters.sdfJointNameMap.getLastSimulatedJoints() : new HashSet<String>();
+
       Vector3d jointAxis = new Vector3d(joint.getAxisInModelFrame());
       Vector3d offset = new Vector3d(joint.getOffsetFromParentJoint());
 
@@ -240,7 +233,7 @@ public class ImmutableRobotDescriptionFromSDFLoader
 
       String sanitizedJointName = SDFConversionsHelper.sanitizeJointName(joint.getName());
 
-      JointDescription.Builder scsJointBuilder;
+      OneDoFJointDescription.Builder scsJointBuilder;
 
 
       switch (joint.getType())
@@ -250,61 +243,34 @@ public class ImmutableRobotDescriptionFromSDFLoader
 
          if (joint.hasLimits())
          {
-            if (isJointInNeedOfReducedGains(joint))
-            {
-               pinJoint.limitStops(new LimitStops(joint.getLowerLimit(), joint.getUpperLimit(), 10.0, 2.5));
-            }
-            else
-            {
-               if ((joint.getContactKd() == 0.0) && (joint.getContactKp() == 0.0))
-               {
-                  pinJoint.limitStops(new LimitStops(joint.getLowerLimit(), joint.getUpperLimit(), 100.0, 20.0));
-                  //                     pinJoint.setLimitStops(joint.getLowerLimit(), joint.getUpperLimit(), 1000.0, 200.0);
-               }
-               else
-               {
-                  pinJoint.limitStops(new LimitStops(joint.getLowerLimit(), joint.getUpperLimit(), 0.0001 * joint.getContactKp(), 0.1 * joint.getContactKd()));
-               }
+            boolean reduceGains = isJointInNeedOfReducedGains(joint);
+            double defaultContactKp = reduceGains ? 10.0 : 100.0; // TODO: why these constants?
+            double defaultContactKd = reduceGains ? 2.5 : 20.0; // TODO: why these constants?
+            double contactKp = joint.getContactKp() == 0 ? defaultContactKp : 0.0001 * joint.getContactKp(); // TODO: why these constants?
+            double contactKd = joint.getContactKd() == 0 ? defaultContactKd : 0.1 * joint.getContactKd(); // TODO: why these constants?
+            pinJoint.limitStops(new LimitStops(joint.getLowerLimit(), joint.getUpperLimit(), contactKp, contactKd));
 
-               if (!Double.isNaN(joint.getVelocityLimit()))
-                  pinJoint.velocityLimit(joint.getVelocityLimit()).velocityDamping(0.0);
-               //System.out.println("SDFRobot: joint.getVelocityLimit()=" + joint.getVelocityLimit());
-
+            if (reduceGains && !Double.isNaN(joint.getVelocityLimit()))
+            {
+               pinJoint.velocityLimit(joint.getVelocityLimit())
+                       .velocityDamping(0.0);
             }
          }
 
-         if (enableDamping)
+         if (parameters.enableTorqueVelocityLimits && !isJointInNeedOfReducedGains(joint))
          {
-            pinJoint.damping(joint.getDamping());
-            pinJoint.stiction(joint.getFriction());
-         }
-         else
-         {
-            // TODO: Huh? What's this all about?
-            //                  pinJoint.setDampingParameterOnly(joint.getDamping());
-            //                  pinJoint.setStictionParameterOnly(joint.getFriction());
-         }
-
-         if (enableTorqueVelocityLimits)
-         {
-            if (!isJointInNeedOfReducedGains(joint))
+            if (!Double.isNaN(joint.getEffortLimit()))
             {
-               if (!Double.isNaN(joint.getEffortLimit()))
-               {
-                  pinJoint.effortLimit(joint.getEffortLimit());
-               }
+               pinJoint.effortLimit(joint.getEffortLimit());
+            }
 
-               if (!Double.isNaN(joint.getVelocityLimit()))
-               {
-                  if (!isJointInNeedOfReducedGains(joint))
-                  {
-                     pinJoint.velocityLimit(joint.getVelocityLimit()).velocityDamping(500.0);
-                  }
-               }
+            if (!Double.isNaN(joint.getVelocityLimit()))
+            {
+               pinJoint.velocityLimit(joint.getVelocityLimit())
+                       .velocityDamping(500.0); // TODO: why 500?
             }
          }
 
-         //               oneDoFJoints.put(joint.getName(), pinJoint);
          scsJointBuilder = pinJoint;
 
          break;
@@ -316,25 +282,9 @@ public class ImmutableRobotDescriptionFromSDFLoader
                .axis(jointAxis);
          if (joint.hasLimits())
          {
-            if ((joint.getContactKd() == 0.0) && (joint.getContactKp() == 0.0))
-            {
-               sliderJoint.limitStops(new LimitStops(joint.getLowerLimit(), joint.getUpperLimit(), 100.0, 20.0));
-            }
-            else
-            {
-               sliderJoint.limitStops(new LimitStops(joint.getLowerLimit(), joint.getUpperLimit(), 0.0001 * joint.getContactKp(), joint.getContactKd()));
-            }
-         }
-
-         if (enableDamping)
-         {
-            sliderJoint.damping(joint.getDamping());
-            sliderJoint.stiction(joint.getFriction());
-         }
-         else
-         {
-            // TODO: Huh? What's this all about?
-            //                  sliderJoint.setDampingParameterOnly(joint.getDamping());
+            double contactKp = joint.getContactKp() == 0 ? 100.0 : 0.0001 * joint.getContactKp(); // TODO: why these constants?
+            double contactKd = joint.getContactKd() == 0 ? 20.0 : joint.getContactKd(); // TODO: why these constants?
+            sliderJoint.limitStops(new LimitStops(joint.getLowerLimit(), joint.getUpperLimit(), contactKp, contactKd));
          }
 
          scsJointBuilder = sliderJoint;
@@ -344,23 +294,33 @@ public class ImmutableRobotDescriptionFromSDFLoader
          throw new RuntimeException("Joint type not implemented: " + joint.getType());
       }
 
+      if (parameters.enableDamping)
+      {
+         scsJointBuilder.damping(joint.getDamping());
+         scsJointBuilder.stiction(joint.getFriction());
+      }
+
       if (doNotSimulateJoint) scsJointBuilder.dynamic(false);
 
-      scsJointBuilder.link(createLinkDescription(joint.getChildLinkHolder(), visualTransform, useCollisionMeshes, resourceDirectories));
+      scsJointBuilder.link(createLinkDescription(joint.getChildLinkHolder(), visualTransform, parameters.useCollisionMeshes, parameters.resourceDirectories));
 
       ConvertedSensors convertedSensors = convertSensors(joint.getChildLinkHolder());
       scsJointBuilder.addAllCameraSensors(convertedSensors.cameras);
       scsJointBuilder.addAllIMUSensors(convertedSensors.imus);
       scsJointBuilder.addAllLidarSensors(convertedSensors.lidars);
 
-      JointContactPoints groundContactPoints = convertGroundContactPoints(sanitizedJointName, sdfJointNameToGroundContactPoint, groundContactPointCounters);
-      if (groundContactPoints != null)
+      List<Vector3d> groundContacts = parameters.sdfJointNameToGroundContactPoint.get(sanitizedJointName);
+      if (groundContacts == null)
+         groundContacts = Collections.emptyList();
+      List<JointContactPoints> groundContactPoints = convertGroundContactPoints(joint, groundContacts);
+      for (JointContactPoints groundContactPoint : groundContactPoints)
       {
-         scsJointBuilder.addGroundContactPoints(groundContactPoints.groundContactPointDescription);
-         scsJointBuilder.addExternalForcePoints(groundContactPoints.externalForcePointDescription);
+         scsJointBuilder.addGroundContactPoints(groundContactPoint.groundContactPointDescription);
+         scsJointBuilder.addExternalForcePoints(groundContactPoint.externalForcePointDescription);
       }
 
-      List<ForceSensorDescription> forceSensors = convertForceSensors(joint, sdfJointNameMap);
+
+      List<ForceSensorDescription> forceSensors = convertForceSensors(joint, parameters.sdfJointNameMap);
       scsJointBuilder.addAllForceSensors(forceSensors);
 
       if (!doNotSimulateJoint && lastSimulatedJoints.contains(joint.getName()))
@@ -370,8 +330,7 @@ public class ImmutableRobotDescriptionFromSDFLoader
 
       for (SDFJointHolder child : joint.getChildLinkHolder().getChildren())
       {
-         JointDescription childJoint = convertJointsRecursively(child, useCollisionMeshes, enableTorqueVelocityLimits, enableDamping, lastSimulatedJoints,
-                                                                doNotSimulateJoint, sdfJointNameToGroundContactPoint, groundContactPointCounters, sdfJointNameMap, resourceDirectories);
+         JointDescription childJoint = convertJointsRecursively(child, doNotSimulateJoint, parameters);
          scsJointBuilder.addChildrenJoints(childJoint);
       }
       JointDescription result = scsJointBuilder.build();
@@ -387,12 +346,6 @@ public class ImmutableRobotDescriptionFromSDFLoader
       return jointName.contains("f0") || jointName.contains("f1") || jointName.contains("f2") || jointName.contains("f3") || jointName.contains("palm") || jointName.contains("finger");
    }
 
-//   private void loadSDFFile()
-//   {
-//      resourceDirectories = Arrays.asList(sdfParameters.getResourceDirectories());
-//      loadSDFFile(sdfParameters.getSdfAsInputStream(), resourceDirectories, null);
-//   }
-
    private static GeneralizedSDFRobotModel loadSDFFile(String modelName, InputStream inputStream, List<String> resourceDirectories, SDFDescriptionMutator mutator)
    {
       GeneralizedSDFRobotModel generalizedSDFRobotModel;
@@ -400,7 +353,6 @@ public class ImmutableRobotDescriptionFromSDFLoader
       {
          JaxbSDFLoader loader = new JaxbSDFLoader(inputStream, resourceDirectories, mutator);
          generalizedSDFRobotModel = loader.getGeneralizedSDFRobotModel(modelName);
-//         resourceDirectories = generalizedSDFRobotModel.getResourceDirectories();
       }
       catch (FileNotFoundException | JAXBException e)
       {
@@ -425,33 +377,27 @@ public class ImmutableRobotDescriptionFromSDFLoader
    private ConvertedSensors convertSensors(SDFLinkHolder child)
    {
       ConvertedSensors result = new ConvertedSensors();
-      if (child.getSensors() != null)
+      if (child.getSensors() == null)
+         return result;
+
+      for (SDFSensor sensor : child.getSensors())
       {
-         for (SDFSensor sensor : child.getSensors())
+         switch (sensor.getType())
          {
-            switch (sensor.getType())
-            {
-            case "camera":
-            case "multicamera":
-               result.cameras.addAll(convertCameraMounts(sensor, child));
-               break;
-            case "imu":
-               result.imus.addAll(convertIMUMounts(sensor, child));
-               break;
-            case "gpu_ray":
-            case "ray":
-               result.lidars.addAll(convertLidarMounts(sensor, child));
-               break;
-            }
+         case "camera":
+         case "multicamera":
+            result.cameras.addAll(convertCameraMounts(sensor, child));
+            break;
+         case "imu":
+            result.imus.addAll(convertIMUMounts(sensor, child));
+            break;
+         case "gpu_ray":
+         case "ray":
+            result.lidars.addAll(convertLidarMounts(sensor, child));
+            break;
          }
       }
       return result;
-   }
-
-   private static class ConvertedSensors {
-      final List<CameraSensorDescription> cameras = new ArrayList<>();
-      final List<IMUSensorDescription> imus = new ArrayList<>();
-      final List<LidarSensorDescription> lidars = new ArrayList<>();
    }
 
    private List<CameraSensorDescription> convertCameraMounts(SDFSensor sensor, SDFLinkHolder child)
@@ -461,46 +407,42 @@ public class ImmutableRobotDescriptionFromSDFLoader
 
       List<CameraSensorDescription> result = new ArrayList<>();
 
-      if (cameras != null)
-      {
-         for (Camera camera : cameras)
-         {
-            // The linkRotation transform is to make sure that the linkToSensor is in a zUpFrame.
-            RigidBodyTransform linkRotation = new RigidBodyTransform(child.getTransformFromModelReferenceFrame());
-            linkRotation.setTranslation(0.0, 0.0, 0.0);
-            RigidBodyTransform linkToSensor = SDFConversionsHelper.poseToTransform(sensor.getPose());
-            RigidBodyTransform sensorToCamera = SDFConversionsHelper.poseToTransform(camera.getPose());
-            RigidBodyTransform linkToCamera = new RigidBodyTransform();
-            linkToCamera.multiply(linkRotation, linkToSensor);
-            linkToCamera.multiply(sensorToCamera);
-
-            double fieldOfView = Double.parseDouble(camera.getHorizontalFov());
-            double clipNear = Double.parseDouble(camera.getClip().getNear());
-            double clipFar = Double.parseDouble(camera.getClip().getFar());
-            String cameraName = sensor.getName() + "_" + camera.getName();
-            CameraSensorDescriptionBuilder mount = new CameraSensorDescriptionBuilder()
-                  .name(cameraName)
-                  .transformToJoint(linkToCamera)
-                  .fieldOfView(fieldOfView)
-                  .clipNear(clipNear)
-                  .clipFar(clipFar);
-
-            int imageHeight = Integer.parseInt(camera.getImage().getHeight());
-            int imageWidth = Integer.parseInt(camera.getImage().getWidth());
-
-            mount.imageHeight(imageHeight);
-            mount.imageWidth(imageWidth);
-
-            result.add(mount.build());
-
-//            SDFCamera sdfCamera = new SDFCamera(Integer.parseInt(camera.getImage().getWidth()), Integer.parseInt(camera.getImage().getHeight()));
-            //            this.cameras.put(cameraName, sdfCamera);
-         }
-      }
-      else
-      {
+      if (cameras == null) {
          System.err.println("JAXB loader: No camera section defined for camera sensor " + sensor.getName() + ", ignoring sensor.");
+         return result;
       }
+
+      for (Camera camera : cameras)
+      {
+         // The linkRotation transform is to make sure that the linkToSensor is in a zUpFrame.
+         RigidBodyTransform linkRotation = new RigidBodyTransform(child.getTransformFromModelReferenceFrame());
+         linkRotation.setTranslation(0.0, 0.0, 0.0);
+         RigidBodyTransform linkToSensor = SDFConversionsHelper.poseToTransform(sensor.getPose());
+         RigidBodyTransform sensorToCamera = SDFConversionsHelper.poseToTransform(camera.getPose());
+         RigidBodyTransform linkToCamera = new RigidBodyTransform();
+         linkToCamera.multiply(linkRotation, linkToSensor);
+         linkToCamera.multiply(sensorToCamera);
+
+         double fieldOfView = parseDouble(camera.getHorizontalFov());
+         double clipNear = parseDouble(camera.getClip().getNear());
+         double clipFar = parseDouble(camera.getClip().getFar());
+         String cameraName = sensor.getName() + "_" + camera.getName();
+         CameraSensorDescriptionBuilder mount = new CameraSensorDescriptionBuilder()
+               .name(cameraName)
+               .transformToJoint(linkToCamera)
+               .fieldOfView(fieldOfView)
+               .clipNear(clipNear)
+               .clipFar(clipFar);
+
+         int imageHeight = Integer.parseInt(camera.getImage().getHeight());
+         int imageWidth = Integer.parseInt(camera.getImage().getWidth());
+
+         mount.imageHeight(imageHeight);
+         mount.imageWidth(imageWidth);
+
+         result.add(mount.build());
+      }
+
       return result;
    }
 
@@ -508,53 +450,47 @@ public class ImmutableRobotDescriptionFromSDFLoader
    {
       // TODO: handle left and right sides of multicamera
       final IMU imu = sdfSensor.getImu();
-      List<IMUSensorDescription> result = new ArrayList<>();
-
-      if (imu != null)
-      {
-         // The linkRotation transform is to make sure that the linkToSensor is in a zUpFrame.
-         RigidBodyTransform linkRotation = new RigidBodyTransform(child.getTransformFromModelReferenceFrame());
-         linkRotation.setTranslation(0.0, 0.0, 0.0);
-         RigidBodyTransform linkToSensorInZUp = new RigidBodyTransform();
-         linkToSensorInZUp.multiply(linkRotation, SDFConversionsHelper.poseToTransform(sdfSensor.getPose()));
-
-         IMUSensorDescriptionBuilder imuMount = new IMUSensorDescriptionBuilder()
-               .name(child.getName() + "_" + sdfSensor.getName())
-               .transformToJoint(linkToSensorInZUp);
-
-         IMUNoise noise = imu.getNoise();
-         if (noise != null)
-         {
-            if ("gaussian".equals(noise.getType()))
-            {
-               NoiseParameters accelerationNoise = noise.getAccel();
-               NoiseParameters angularVelocityNoise = noise.getRate();
-
-               GaussianParameter outAccelNoise = GaussianParameter.fromMeanStd(Double.parseDouble(accelerationNoise.getMean()), Double.parseDouble(accelerationNoise.getStddev()));
-               GaussianParameter outAccelBias = GaussianParameter.fromMeanStd(Double.parseDouble(accelerationNoise.getBias_mean()), Double.parseDouble(accelerationNoise.getBias_stddev()));
-
-               GaussianParameter outAngularVelNoise = GaussianParameter.fromMeanStd(Double.parseDouble(angularVelocityNoise.getMean()), Double.parseDouble(angularVelocityNoise.getStddev()));
-               GaussianParameter outAngularValBias = GaussianParameter.fromMeanStd(Double.parseDouble(angularVelocityNoise.getBias_mean()), Double.parseDouble(angularVelocityNoise.getBias_stddev()));
-
-               imuMount.accelerationNoise(outAccelNoise)
-                     .accelerationBias(outAccelBias)
-                     .angularVelocityNoise(outAngularVelNoise)
-                     .angularVelocityBias(outAngularValBias);
-            }
-            else
-            {
-               throw new RuntimeException("Unknown IMU noise model: " + noise.getType());
-            }
-         }
-
-         result.add(imuMount.build());
-
-      }
-      else
-      {
+      if (imu == null) {
          System.err.println("JAXB loader: No imu section defined for imu sensor " + sdfSensor.getName() + ", ignoring sensor.");
+         return Collections.emptyList();
       }
-      return result;
+
+      // The linkRotation transform is to make sure that the linkToSensor is in a zUpFrame.
+      RigidBodyTransform linkRotation = new RigidBodyTransform(child.getTransformFromModelReferenceFrame());
+      linkRotation.setTranslation(0.0, 0.0, 0.0);
+      RigidBodyTransform linkToSensorInZUp = new RigidBodyTransform();
+      linkToSensorInZUp.multiply(linkRotation, SDFConversionsHelper.poseToTransform(sdfSensor.getPose()));
+
+      IMUSensorDescriptionBuilder imuMount = new IMUSensorDescriptionBuilder()
+            .name(child.getName() + "_" + sdfSensor.getName())
+            .transformToJoint(linkToSensorInZUp);
+
+      IMUNoise noise = imu.getNoise();
+      if (noise != null)
+      {
+         if ("gaussian".equals(noise.getType()))
+         {
+            NoiseParameters accelerationNoise = noise.getAccel();
+            NoiseParameters angularVelocityNoise = noise.getRate();
+
+            GaussianParameter outAccelNoise = GaussianParameter.fromMeanStd(parseDouble(accelerationNoise.getMean()), parseDouble(accelerationNoise.getStddev()));
+            GaussianParameter outAccelBias = GaussianParameter.fromMeanStd(parseDouble(accelerationNoise.getBias_mean()), parseDouble(accelerationNoise.getBias_stddev()));
+
+            GaussianParameter outAngularVelNoise = GaussianParameter.fromMeanStd(parseDouble(angularVelocityNoise.getMean()), parseDouble(angularVelocityNoise.getStddev()));
+            GaussianParameter outAngularValBias = GaussianParameter.fromMeanStd(parseDouble(angularVelocityNoise.getBias_mean()), parseDouble(angularVelocityNoise.getBias_stddev()));
+
+            imuMount.accelerationNoise(outAccelNoise)
+                  .accelerationBias(outAccelBias)
+                  .angularVelocityNoise(outAngularVelNoise)
+                  .angularVelocityBias(outAngularValBias);
+         }
+         else
+         {
+            throw new RuntimeException("Unknown IMU noise model: " + noise.getType());
+         }
+      }
+
+      return Collections.singletonList(imuMount.build());
    }
 
    private List<LidarSensorDescription> convertLidarMounts(SDFSensor sensor, SDFLinkHolder child)
@@ -564,108 +500,133 @@ public class ImmutableRobotDescriptionFromSDFLoader
       if (sdfRay == null)
       {
          System.err.println("SDFRobot: lidar not present in ray type sensor " + sensor.getName() + ". Ignoring this sensor.");
+         return result;
       }
-      else
+
+      Range sdfRange = sdfRay.getRange();
+      Scan sdfScan = sdfRay.getScan();
+      double sdfMaxRange = parseDouble(sdfRange.getMax());
+      double sdfMinRange = parseDouble(sdfRange.getMin());
+      HorizontalScan sdfHorizontalScan = sdfScan.getHorizontal();
+      VerticalScan sdfVerticalScan = sdfScan.getVertical();
+      double sdfMaxSweepAngle = parseDouble(sdfHorizontalScan.getMaxAngle());
+      double sdfMinSweepAngle = parseDouble(sdfHorizontalScan.getMinAngle());
+      double sdfMaxHeightAngle = sdfVerticalScan == null ? 0.0 : parseDouble(sdfVerticalScan.getMaxAngle());
+      double sdfMinHeightAngle = sdfVerticalScan == null ? 0.0 : parseDouble(sdfVerticalScan.getMinAngle());
+
+      // double sdfAngularResolution = Double.parseDouble(sdfHorizontalScan.getSillyAndProbablyNotUsefulResolution());
+      int sdfSamples = (Integer.parseInt(sdfHorizontalScan.getSamples()) / 3) * 3;
+      int sdfScanHeight = sdfVerticalScan == null ? 1 : Integer.parseInt(sdfVerticalScan.getSamples());
+      double sdfRangeResolution = parseDouble(sdfRay.getRange().getResolution());
+
+      final boolean sdfAlwaysOn = true;
+
+      double sdfGaussianStdDev = 0.0;
+      double sdfGaussianMean = 0.0;
+      int sdfUpdateRate = (int) (1000.0 / parseDouble(sensor.getUpdateRate()));
+
+      Noise sdfNoise = sdfRay.getNoise();
+      if (sdfNoise != null)
       {
-         Range sdfRange = sdfRay.getRange();
-         Scan sdfScan = sdfRay.getScan();
-         double sdfMaxRange = Double.parseDouble(sdfRange.getMax());
-         double sdfMinRange = Double.parseDouble(sdfRange.getMin());
-         HorizontalScan sdfHorizontalScan = sdfScan.getHorizontal();
-         VerticalScan sdfVerticalScan = sdfScan.getVertical();
-         double sdfMaxSweepAngle = Double.parseDouble(sdfHorizontalScan.getMaxAngle());
-         double sdfMinSweepAngle = Double.parseDouble(sdfHorizontalScan.getMinAngle());
-         double sdfMaxHeightAngle = sdfVerticalScan == null ? 0.0 : Double.parseDouble(sdfVerticalScan.getMaxAngle());
-         double sdfMinHeightAngle = sdfVerticalScan == null ? 0.0 : Double.parseDouble(sdfVerticalScan.getMinAngle());
-
-         // double sdfAngularResolution = Double.parseDouble(sdfHorizontalScan.getSillyAndProbablyNotUsefulResolution());
-         int sdfSamples = (Integer.parseInt(sdfHorizontalScan.getSamples()) / 3) * 3;
-         int sdfScanHeight = sdfVerticalScan == null ? 1 : Integer.parseInt(sdfVerticalScan.getSamples());
-         double sdfRangeResolution = Double.parseDouble(sdfRay.getRange().getResolution());
-
-         final boolean sdfAlwaysOn = true;
-
-         double sdfGaussianStdDev = 0.0;
-         double sdfGaussianMean = 0.0;
-         int sdfUpdateRate = (int) (1000.0 / Double.parseDouble(sensor.getUpdateRate()));
-
-         Noise sdfNoise = sdfRay.getNoise();
-         if (sdfNoise != null)
+         if ("gaussian".equals(sdfNoise.getType()))
          {
-            if ("gaussian".equals(sdfNoise.getType()))
-            {
-               sdfGaussianStdDev = Double.parseDouble(sdfNoise.getStddev());
-               sdfGaussianMean = Double.parseDouble(sdfNoise.getMean());
-            }
-            else
-            {
-               System.err.println("Unknown noise model: " + sdfNoise.getType());
-            }
+            sdfGaussianStdDev = parseDouble(sdfNoise.getStddev());
+            sdfGaussianMean = parseDouble(sdfNoise.getMean());
          }
-
-         //         System.err.println("[SDFRobot]: FIXME: Setting LIDAR angle to 0.5 pi due to current GPULidar limitations");
-         //         sdfMinAngle = -Math.PI/4;
-         //         sdfMaxAngle = Math.PI/4;
-
-         LidarScanParameters polarDefinition = new LidarScanParameters(sdfSamples, sdfScanHeight, (float) sdfMinSweepAngle, (float) sdfMaxSweepAngle, (float) sdfMinHeightAngle, (float) sdfMaxHeightAngle, 0.0f,
-                                                                       (float) sdfMinRange, (float) sdfMaxRange, 0.0f, 0L);
-
-         // The linkRotation transform is to make sure that the linkToSensor is in a zUpFrame.
-         RigidBodyTransform linkRotation = new RigidBodyTransform(child.getTransformFromModelReferenceFrame());
-         linkRotation.setTranslation(0.0, 0.0, 0.0);
-         RigidBodyTransform linkToSensorInZUp = new RigidBodyTransform();
-         linkToSensorInZUp.multiply(linkRotation, SDFConversionsHelper.poseToTransform(sensor.getPose()));
-
-         SimulatedLIDARSensorNoiseParameters noiseParameters = new SimulatedLIDARSensorNoiseParameters();
-         noiseParameters.setGaussianNoiseStandardDeviation(sdfGaussianStdDev);
-         noiseParameters.setGaussianNoiseMean(sdfGaussianMean);
-
-         SimulatedLIDARSensorLimitationParameters limitationParameters = new SimulatedLIDARSensorLimitationParameters();
-         limitationParameters.setMaxRange(sdfMaxRange);
-         limitationParameters.setMinRange(sdfMinRange);
-         limitationParameters.setQuantization(sdfRangeResolution);
-
-         SimulatedLIDARSensorUpdateParameters updateParameters = new SimulatedLIDARSensorUpdateParameters();
-         updateParameters.setAlwaysOn(sdfAlwaysOn);
-         updateParameters.setUpdatePeriodInMillis(sdfUpdateRate);
-
-         LidarSensorDescription lidarMount = new LidarSensorDescriptionBuilder()
-               .name(sensor.getName())
-               .transformToJoint(linkToSensorInZUp)
-               .lidarScanParameters(polarDefinition)
-               .build();
-         //         scsJoint.addLidarSensor(lidarMount);
-         result.add(lidarMount);
+         else
+         {
+            System.err.println("Unknown noise model: " + sdfNoise.getType());
+         }
       }
+
+      //         System.err.println("[SDFRobot]: FIXME: Setting LIDAR angle to 0.5 pi due to current GPULidar limitations");
+      //         sdfMinAngle = -Math.PI/4;
+      //         sdfMaxAngle = Math.PI/4;
+
+      LidarScanParameters polarDefinition = new LidarScanParameters(sdfSamples, sdfScanHeight, (float) sdfMinSweepAngle, (float) sdfMaxSweepAngle, (float) sdfMinHeightAngle, (float) sdfMaxHeightAngle, 0.0f,
+                                                                    (float) sdfMinRange, (float) sdfMaxRange, 0.0f, 0L);
+
+      // The linkRotation transform is to make sure that the linkToSensor is in a zUpFrame.
+      RigidBodyTransform linkRotation = new RigidBodyTransform(child.getTransformFromModelReferenceFrame());
+      linkRotation.setTranslation(0.0, 0.0, 0.0);
+      RigidBodyTransform linkToSensorInZUp = new RigidBodyTransform();
+      linkToSensorInZUp.multiply(linkRotation, SDFConversionsHelper.poseToTransform(sensor.getPose()));
+
+      SimulatedLIDARSensorNoiseParameters noiseParameters = new SimulatedLIDARSensorNoiseParameters();
+      noiseParameters.setGaussianNoiseStandardDeviation(sdfGaussianStdDev);
+      noiseParameters.setGaussianNoiseMean(sdfGaussianMean);
+
+      SimulatedLIDARSensorLimitationParameters limitationParameters = new SimulatedLIDARSensorLimitationParameters();
+      limitationParameters.setMaxRange(sdfMaxRange);
+      limitationParameters.setMinRange(sdfMinRange);
+      limitationParameters.setQuantization(sdfRangeResolution);
+
+      SimulatedLIDARSensorUpdateParameters updateParameters = new SimulatedLIDARSensorUpdateParameters();
+      updateParameters.setAlwaysOn(sdfAlwaysOn);
+      updateParameters.setUpdatePeriodInMillis(sdfUpdateRate);
+
+      LidarSensorDescription lidarMount = new LidarSensorDescriptionBuilder()
+            .name(sensor.getName())
+            .transformToJoint(linkToSensorInZUp)
+            .lidarScanParameters(polarDefinition)
+            .build();
+      result.add(lidarMount);
       return result;
    }
 
    private List<ForceSensorDescription> convertForceSensors(SDFJointHolder joint, SDFJointNameMap jointNameMap)
    {
       List<ForceSensorDescription> result = new ArrayList<>();
-      if (joint.getForceSensors().size() > 0)
+      if (joint.getForceSensors().isEmpty())
+         return result;
+
+      String[] jointNamesBeforeFeet = jointNameMap.getJointNamesBeforeFeet();
+
+      String jointName = joint.getName();
+
+      boolean jointIsParentOfFoot = false;
+      for (String aJointNamesBeforeFeet : jointNamesBeforeFeet)
       {
-         String[] jointNamesBeforeFeet = jointNameMap.getJointNamesBeforeFeet();
-
-         String jointName = joint.getName();
-
-         boolean jointIsParentOfFoot = false;
-         for (String aJointNamesBeforeFeet : jointNamesBeforeFeet)
+         if (jointName.equals(aJointNamesBeforeFeet))
          {
-            if (jointName.equals(aJointNamesBeforeFeet))
-            {
-               jointIsParentOfFoot = true;
-               break;
-            }
-         }
-
-         for (SDFForceSensor forceSensor : joint.getForceSensors())
-         {
-            ForceSensorDescriptionBuilder forceSensorDescription = new ForceSensorDescriptionBuilder().name(forceSensor.getName()).transformToJoint(forceSensor.getTransform());
-            forceSensorDescription.useGroundContactPoints(jointIsParentOfFoot);
-            result.add(forceSensorDescription.build());
+            jointIsParentOfFoot = true;
+            break;
          }
       }
+
+      for (SDFForceSensor forceSensor : joint.getForceSensors())
+      {
+         ForceSensorDescriptionBuilder forceSensorDescription = new ForceSensorDescriptionBuilder().name(forceSensor.getName()).transformToJoint(forceSensor.getTransform());
+         forceSensorDescription.useGroundContactPoints(jointIsParentOfFoot);
+         result.add(forceSensorDescription.build());
+      }
       return result;
+   }
+
+   private static class ConversionParameters {
+      final boolean useCollisionMeshes;
+      final boolean enableTorqueVelocityLimits;
+      final boolean enableDamping;
+      final Map<String, List<Vector3d>> sdfJointNameToGroundContactPoint;
+      final SDFJointNameMap sdfJointNameMap;
+      final List<String> resourceDirectories;
+
+      private ConversionParameters(boolean useCollisionMeshes, boolean enableTorqueVelocityLimits, boolean enableDamping,
+                                   Map<String, List<Vector3d>> sdfJointNameToGroundContactPoint, SDFJointNameMap sdfJointNameMap,
+                                   List<String> resourceDirectories)
+      {
+         this.useCollisionMeshes = useCollisionMeshes;
+         this.enableTorqueVelocityLimits = enableTorqueVelocityLimits;
+         this.enableDamping = enableDamping;
+         this.sdfJointNameToGroundContactPoint = sdfJointNameToGroundContactPoint;
+         this.sdfJointNameMap = sdfJointNameMap;
+         this.resourceDirectories = resourceDirectories;
+      }
+   }
+
+   private static class ConvertedSensors {
+      final List<CameraSensorDescription> cameras = new ArrayList<>();
+      final List<IMUSensorDescription> imus = new ArrayList<>();
+      final List<LidarSensorDescription> lidars = new ArrayList<>();
    }
 }

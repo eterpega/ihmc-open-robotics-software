@@ -3,6 +3,7 @@ package us.ihmc.robotics.immutableRobotDescription;
 import org.immutables.value.Value.Default;
 import org.immutables.value.Value.Derived;
 import us.ihmc.robotics.Axis;
+import us.ihmc.robotics.immutableRobotDescription.JointDescription.Builder;
 
 import javax.vecmath.Vector3d;
 
@@ -110,7 +111,10 @@ public abstract class OneDoFJointDescription extends JointDescription
       }
    }
 
-   static abstract class Builder implements JointDescription.Builder
+   public interface Builder extends JointDescription.Builder
    {
+      JointDescription.Builder damping(double damping);
+
+      JointDescription.Builder stiction(double stiction);
    }
 }
