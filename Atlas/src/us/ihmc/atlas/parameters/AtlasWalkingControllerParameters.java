@@ -419,8 +419,6 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
    {
       ICPControlGains gains = new ICPControlGains("", registry);
 
-      boolean runningOnRealRobot = target == DRCRobotModel.RobotTarget.REAL_ROBOT;
-
       double kpParallel = 2.5;
       double kpOrthogonal = 1.5;
       double ki = 0.0;
@@ -431,7 +429,8 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
       gains.setKi(ki);
       gains.setKiBleedOff(kiBleedOff);
 
-      if (runningOnRealRobot) gains.setFeedbackPartMaxRate(1.0);
+//      boolean runningOnRealRobot = target == DRCRobotModel.RobotTarget.REAL_ROBOT;
+//      if (runningOnRealRobot) gains.setFeedbackPartMaxRate(1.0);
       return gains;
    }
 
@@ -1033,5 +1032,11 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
       String bkyName = jointMap.getSpineJointName(SpineJointName.SPINE_PITCH);
       String[] joints = {bkxName, bkyName};
       return joints;
+   }
+
+   @Override
+   public boolean useOptimizationBasedICPController()
+   {
+      return false;
    }
 }

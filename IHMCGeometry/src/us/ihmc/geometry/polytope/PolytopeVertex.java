@@ -22,6 +22,12 @@ public class PolytopeVertex
       this.position.set(position);
    }
 
+   public PolytopeVertex(PolytopeVertex vertex)
+   {
+      this.position.set(vertex.position);
+//      TODO: Copy connecting vertices..getClass().
+   }
+
    public void addConnectingVertex(PolytopeVertex vertex)
    {
       if (!connectingVertices.contains(vertex))
@@ -46,6 +52,11 @@ public class PolytopeVertex
    public double dot(Vector3d vector)
    {
       return position.getX() * vector.getX() + position.getY() * vector.getY() + position.getZ() * vector.getZ();
+   }
+   
+   public String toString()
+   {
+      return position.toString();
    }
 
 }
