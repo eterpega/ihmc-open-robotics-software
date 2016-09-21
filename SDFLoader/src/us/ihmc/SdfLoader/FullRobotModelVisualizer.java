@@ -11,6 +11,7 @@ import us.ihmc.SdfLoader.models.FullRobotModel;
 import us.ihmc.SdfLoader.visualizer.RobotVisualizer;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 import us.ihmc.robotics.geometry.RigidBodyTransform;
+import us.ihmc.robotics.screwTheory.FloatingInverseDynamicsJoint;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
 import us.ihmc.robotics.screwTheory.SixDoFJoint;
 import us.ihmc.simulationconstructionset.OneDegreeOfFreedomJoint;
@@ -27,27 +28,27 @@ import us.ihmc.simulationconstructionset.yoUtilities.graphics.YoGraphicsListRegi
 public class FullRobotModelVisualizer implements RobotVisualizer
 {
    private final String name;
-   private final SDFRobot robot;
+   private final FloatingRootJointRobot robot;
    private final double updateDT;
    private final FullRobotModel fullRobot;
 
    private SimulationConstructionSet scs;
    private YoVariableRegistry robotRegistry;
-   private SixDoFJoint rootJoint;
+   private FloatingInverseDynamicsJoint rootJoint;
    private final ArrayList<ImmutablePair<OneDegreeOfFreedomJoint,OneDoFJoint>> revoluteJoints = new ArrayList<ImmutablePair<OneDegreeOfFreedomJoint, OneDoFJoint>>();
   
    public FullRobotModelVisualizer(SimulationConstructionSet scs, FullRobotModel fullRobotModel, double updateDT)
    {   
       this.fullRobot = fullRobotModel;
       this.scs = scs;
-      this.robot = (SDFRobot) scs.getRobots()[0];
+      this.robot = (FloatingRootJointRobot) scs.getRobots()[0];
       this.name = robot.getName() + "Simulated";    
       this.updateDT = updateDT;
       this.robotRegistry = robot.getRobotsYoVariableRegistry();
       this.setMainRegistry(robotRegistry, fullRobotModel, null);
    }
 
-   public SDFRobot getSDFRobot()
+   public FloatingRootJointRobot getSDFRobot()
    {
       return robot;
    }

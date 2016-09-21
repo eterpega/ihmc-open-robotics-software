@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit;
 
 import us.ihmc.commonWalkingControlModules.controllers.Updatable;
 import us.ihmc.humanoidBehaviors.IHMCHumanoidBehaviorManager;
-import us.ihmc.humanoidBehaviors.behaviors.BehaviorInterface;
+import us.ihmc.humanoidBehaviors.behaviors.AbstractBehavior;
 import us.ihmc.humanoidBehaviors.behaviors.simpleBehaviors.SimpleForwardingBehavior;
 import us.ihmc.humanoidBehaviors.communication.BehaviorCommunicationBridge;
 import us.ihmc.humanoidBehaviors.stateMachine.BehaviorStateMachine;
@@ -38,7 +38,7 @@ public class BehaviorDispatcher<E extends Enum<E>> implements Runnable
    private static final boolean DEBUG = true;
    private final Class<E> behaviorEnum;
    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(ThreadTools.getNamedThreadFactory("BehaviorDispatcher"));
-   
+
    private final String name = getClass().getSimpleName();
 
    private final YoVariableRegistry registry = new YoVariableRegistry(name);
@@ -61,10 +61,9 @@ public class BehaviorDispatcher<E extends Enum<E>> implements Runnable
 
    private final BooleanYoVariable hasBeenInitialized = new BooleanYoVariable("hasBeenInitialized", registry);
 
-   public BehaviorDispatcher(DoubleYoVariable yoTime, RobotDataReceiver robotDataReceiver,
-         BehaviorControlModeSubscriber desiredBehaviorControlSubscriber, BehaviorTypeSubscriber<E> desiredBehaviorSubscriber,
-         BehaviorCommunicationBridge communicationBridge, YoVariableServer yoVaribleServer, Class<E> behaviourEnum, E stopBehavior, YoVariableRegistry parentRegistry,
-         YoGraphicsListRegistry yoGraphicsListRegistry)
+   public BehaviorDispatcher(DoubleYoVariable yoTime, RobotDataReceiver robotDataReceiver, BehaviorControlModeSubscriber desiredBehaviorControlSubscriber,
+         BehaviorTypeSubscriber<E> desiredBehaviorSubscriber, BehaviorCommunicationBridge communicationBridge, YoVariableServer yoVaribleServer,
+         Class<E> behaviourEnum, E stopBehavior, YoVariableRegistry parentRegistry, YoGraphicsListRegistry yoGraphicsListRegistry)
    {
       this.behaviorEnum = behaviourEnum;
       this.yoTime = yoTime;
@@ -94,7 +93,7 @@ public class BehaviorDispatcher<E extends Enum<E>> implements Runnable
       requestedBehavior.set(behaviorEnum);
    }
 
-   public void addBehaviors(List<E> Es, List<BehaviorInterface> newBehaviors)
+   public void addBehaviors(List<E> Es, List<AbstractBehavior> newBehaviors)
    {
       if (Es.size() != newBehaviors.size())
          throw new RuntimeException("Arguments don't have the same size.");
@@ -105,9 +104,9 @@ public class BehaviorDispatcher<E extends Enum<E>> implements Runnable
       }
    }
 
-   public void addBehavior(E E, BehaviorInterface behaviorToAdd)
+   public void addBehavior(E E, AbstractBehavior behaviorToAdd)
    {
-      BehaviorStateWrapper<E> behaviorStateToAdd = new BehaviorStateWrapper<E>(E, behaviorToAdd);
+      BehaviorStateWrapper<E> behaviorStateToAdd = new BehaviorStateWrapper<E>(E, yoTime, behaviorToAdd);
 
       this.stateMachine.addState(behaviorStateToAdd);
       this.registry.addChild(behaviorToAdd.getYoVariableRegistry());
@@ -209,10 +208,6 @@ public class BehaviorDispatcher<E extends Enum<E>> implements Runnable
             communicationBridge.setPacketPassThrough(false);
             communicationBridge.sendPacketToNetworkProcessor(new BehaviorControlModeResponsePacket(BehaviorControlModeEnum.RESUME));
             break;
-         case ENABLE_ACTIONS:
-            stateMachine.enableActions();
-            communicationBridge.sendPacketToNetworkProcessor(new BehaviorControlModeResponsePacket(BehaviorControlModeEnum.ENABLE_ACTIONS));
-            break;
          default:
             throw new IllegalArgumentException("BehaviorCommunicationBridge, unhandled control!");
          }
@@ -220,7 +215,6 @@ public class BehaviorDispatcher<E extends Enum<E>> implements Runnable
       }
    }
 
- 
    @Override
    public void run()
    {
@@ -231,15 +225,15 @@ public class BehaviorDispatcher<E extends Enum<E>> implements Runnable
             initialize();
             hasBeenInitialized.set(true);
          }
-   
+
          doControl();
-   
+
          if (yoVaribleServer != null)
          {
             yoVaribleServer.update(TimeTools.secondsToNanoSeconds(yoTime.getDoubleValue()));
          }
       }
-      catch(Exception e)
+      catch (Exception e)
       {
          e.printStackTrace();
       }
@@ -256,8 +250,7 @@ public class BehaviorDispatcher<E extends Enum<E>> implements Runnable
       private final BehaviorStateWrapper<E> fromBehaviorState;
       private final BehaviorStateWrapper<E> toBehaviorState;
 
-      public SwitchGlobalListenersAction(BehaviorStateWrapper<E> fromBehaviorState,
-            BehaviorStateWrapper<E> toBehaviorState)
+      public SwitchGlobalListenersAction(BehaviorStateWrapper<E> fromBehaviorState, BehaviorStateWrapper<E> toBehaviorState)
       {
          this.fromBehaviorState = fromBehaviorState;
          this.toBehaviorState = toBehaviorState;
@@ -266,12 +259,18 @@ public class BehaviorDispatcher<E extends Enum<E>> implements Runnable
       @Override
       public void doTransitionAction()
       {
-         detachListeners(fromBehaviorState.getBehavior());
-         attachListeners(toBehaviorState.getBehavior());
+         for (AbstractBehavior behavior : fromBehaviorState.getBehaviors())
+         {
+            detachListeners(behavior);
+         }
+         for (AbstractBehavior behavior : toBehaviorState.getBehaviors())
+         {
+            attachListeners(behavior);
+         }
       }
    }
 
-   private void attachListeners(BehaviorInterface behavior)
+   private void attachListeners(AbstractBehavior behavior)
    {
       if (DEBUG)
          System.out.println(this.getClass().getSimpleName() + ": attach listeners to: " + behavior.getName());
@@ -279,23 +278,23 @@ public class BehaviorDispatcher<E extends Enum<E>> implements Runnable
       communicationBridge.attachGlobalListener(behavior.getNetworkProcessorGlobalObjectConsumer());
    }
 
-   private void detachListeners(BehaviorInterface behavior)
+   private void detachListeners(AbstractBehavior behavior)
    {
       if (DEBUG)
          System.out.println(this.getClass().getSimpleName() + ": detach listeners to: " + behavior.getName());
       communicationBridge.detachGlobalListener(behavior.getControllerGlobalPacketConsumer());
       communicationBridge.detachGlobalListener(behavior.getNetworkProcessorGlobalObjectConsumer());
    }
-   
+
    public void start()
    {
       // do start
       scheduler.scheduleAtFixedRate(this, 0, 10, TimeUnit.MILLISECONDS);
    }
-   
+
    public void closeAndDispose()
    {
-      
+
       // do stop
       scheduler.shutdown();
       try

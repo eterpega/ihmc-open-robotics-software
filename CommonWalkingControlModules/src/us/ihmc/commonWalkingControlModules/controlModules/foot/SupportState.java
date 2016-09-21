@@ -314,6 +314,8 @@ public class SupportState extends AbstractFootControlState
    public void requestFootholdExploration()
    {
       requestFootholdExploration.set(true);
+      if (partialFootholdControlModule != null)
+         partialFootholdControlModule.turnOnCropping();
    }
 
    @Override

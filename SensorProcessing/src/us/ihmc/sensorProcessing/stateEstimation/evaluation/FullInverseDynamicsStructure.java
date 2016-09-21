@@ -1,11 +1,8 @@
 package us.ihmc.sensorProcessing.stateEstimation.evaluation;
 
-import us.ihmc.SdfLoader.SDFFullRobotModel;
+import us.ihmc.SdfLoader.models.FullRobotModel;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
-import us.ihmc.robotics.screwTheory.RigidBody;
-import us.ihmc.robotics.screwTheory.SixDoFJoint;
-import us.ihmc.robotics.screwTheory.SpatialAccelerationCalculator;
-import us.ihmc.robotics.screwTheory.TwistCalculator;
+import us.ihmc.robotics.screwTheory.*;
 
 public class FullInverseDynamicsStructure
 {
@@ -13,10 +10,10 @@ public class FullInverseDynamicsStructure
    private final SpatialAccelerationCalculator spatialAccelerationCalculator;
    private final RigidBody estimationLink;
    private final RigidBody elevator;
-   private final SixDoFJoint rootJoint;
+   private final FloatingInverseDynamicsJoint rootJoint;
 
    // TODO: What's a good name for this?
-   public FullInverseDynamicsStructure(RigidBody elevator, RigidBody estimationLink, SixDoFJoint rootInverseDynamicsJoint)
+   public FullInverseDynamicsStructure(RigidBody elevator, RigidBody estimationLink, FloatingInverseDynamicsJoint rootInverseDynamicsJoint)
    {
       this.elevator = elevator;
       this.rootJoint = rootInverseDynamicsJoint;
@@ -26,8 +23,8 @@ public class FullInverseDynamicsStructure
 
       this.estimationLink = estimationLink;
    }
-   
-   public SixDoFJoint getRootJoint()
+
+   public FloatingInverseDynamicsJoint getRootJoint()
    {
       return rootJoint;
    }
@@ -63,11 +60,11 @@ public class FullInverseDynamicsStructure
       spatialAccelerationCalculator.compute();
    }
 
-   public static FullInverseDynamicsStructure createInverseDynamicStructure(SDFFullRobotModel sdfFullRobotModel)
+   public static FullInverseDynamicsStructure createInverseDynamicStructure(FullRobotModel fullRobotModel)
    {
-      RigidBody elevator = sdfFullRobotModel.getElevator();
-      SixDoFJoint rootInverseDynamicsJoint = sdfFullRobotModel.getRootJoint();
-      RigidBody estimationLink = sdfFullRobotModel.getPelvis();
+      RigidBody elevator = fullRobotModel.getElevator();
+      FloatingInverseDynamicsJoint rootInverseDynamicsJoint = fullRobotModel.getRootJoint();
+      RigidBody estimationLink = fullRobotModel.getPelvis();
 
       FullInverseDynamicsStructure inverseDynamicsStructure = new FullInverseDynamicsStructure(elevator, estimationLink, rootInverseDynamicsJoint);
 

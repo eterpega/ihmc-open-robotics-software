@@ -7,24 +7,24 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import us.ihmc.SdfLoader.models.FullRobotModel;
 import us.ihmc.robotics.geometry.RigidBodyTransform;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
-import us.ihmc.robotics.screwTheory.SixDoFJoint;
+import us.ihmc.robotics.screwTheory.FloatingInverseDynamicsJoint;
 import us.ihmc.simulationconstructionset.FloatingJoint;
 import us.ihmc.simulationconstructionset.OneDegreeOfFreedomJoint;
 
 public class SDFPerfectSimulatedOutputWriter implements OutputWriter
 {
    private final String name;
-   protected final SDFRobot robot;
-   protected ImmutablePair<FloatingJoint, SixDoFJoint> rootJointPair;
+   protected final FloatingRootJointRobot robot;
+   protected ImmutablePair<FloatingJoint, FloatingInverseDynamicsJoint> rootJointPair;
    protected final ArrayList<ImmutablePair<OneDegreeOfFreedomJoint,OneDoFJoint>> revoluteJoints = new ArrayList<ImmutablePair<OneDegreeOfFreedomJoint, OneDoFJoint>>();
    
-   public SDFPerfectSimulatedOutputWriter(SDFRobot robot)
+   public SDFPerfectSimulatedOutputWriter(FloatingRootJointRobot robot)
    {
       this.name = robot.getName() + "SimulatedSensorReader";
       this.robot = robot;
    }
    
-   public SDFPerfectSimulatedOutputWriter(SDFRobot robot, FullRobotModel fullRobotModel)
+   public SDFPerfectSimulatedOutputWriter(FloatingRootJointRobot robot, FullRobotModel fullRobotModel)
    {
       this.name = robot.getName() + "SimulatedSensorReader";
       this.robot = robot;
@@ -52,7 +52,7 @@ public class SDFPerfectSimulatedOutputWriter implements OutputWriter
          this.revoluteJoints.add(jointPair);
       }
       
-      rootJointPair = new ImmutablePair<FloatingJoint, SixDoFJoint>(robot.getRootJoint(), fullRobotModel.getRootJoint());
+      rootJointPair = new ImmutablePair<FloatingJoint, FloatingInverseDynamicsJoint>(robot.getRootJoint(), fullRobotModel.getRootJoint());
    }
 
    public String getName()
@@ -90,7 +90,7 @@ public class SDFPerfectSimulatedOutputWriter implements OutputWriter
       }
       
       FloatingJoint floatingJoint = rootJointPair.getLeft();
-      SixDoFJoint sixDoFJoint = rootJointPair.getRight();
+      FloatingInverseDynamicsJoint sixDoFJoint = rootJointPair.getRight();
       
       RigidBodyTransform transform = sixDoFJoint.getJointTransform3D();
       floatingJoint.setRotationAndTranslation(transform);

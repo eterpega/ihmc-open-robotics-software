@@ -5,11 +5,11 @@ import java.util.ArrayList;
 public abstract class State<E extends Enum<E>>
 {
    private final E stateEnum;
-   private State<E> previousState;
    private ArrayList<StateTransition<E>> stateTransitions = new ArrayList<StateTransition<E>>();
    private StateTransition<E> defaultNextStateTransition;
-   private boolean gotoDefaultNextState = false;
+   private boolean gotoDefaultNextState;
    private TimeInCurrentStateProvider timeInCurrentStateProvider;
+   private PreviousStateProvider<E, State<E>> previousStateProvider;
 
    public State(E stateEnum)
    {
@@ -22,15 +22,6 @@ public abstract class State<E extends Enum<E>>
    public abstract void doTransitionIntoAction();
 
    public abstract void doTransitionOutOfAction();
-
-   /**
-    * Override this method if you want to do a simple state machine with default transitions. This then becomes the default transition condition.
-    * @return true if this state should transition to the default next state set by {@link #setDefaultNextState(Enum)}.
-    */
-   public boolean isDone()
-   {
-      return true;
-   }
 
    public final void addStateTransition(E nextStateEnum, StateTransitionCondition stateTransitionCondition)
    {
@@ -105,7 +96,7 @@ public abstract class State<E extends Enum<E>>
 
    public final State<E> getPreviousState()
    {
-      return previousState;
+      return previousStateProvider.getPreviousState();
    }
 
    public String toString()
@@ -119,7 +110,7 @@ public abstract class State<E extends Enum<E>>
       {
          if (!firstTime)
             stringBuffer.append(", ");
-         stringBuffer.append(stateTransition.nextStateEnum);
+         stringBuffer.append(stateTransition.getNextStateEnum());
          firstTime = false;
       }
 
@@ -139,14 +130,14 @@ public abstract class State<E extends Enum<E>>
       this.timeInCurrentStateProvider = timeInCurrentStateProvider;
    }
 
+   final void setPreviousStateProvider(PreviousStateProvider<E, State<E>> provider)
+   {
+      this.previousStateProvider = provider;
+   }
+
    final void clearTransitionToDefaultNextState()
    {
       gotoDefaultNextState = false;
-   }
-
-   final void setPreviousState(State<E> previousState)
-   {
-      this.previousState = previousState;
    }
 
    StateTransition<E> checkTransitionConditions(double timeInState)

@@ -4,7 +4,10 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.geom.Rectangle2D;
 
+import javax.vecmath.Point2d;
+
 import us.ihmc.plotting.Graphics2DAdapter;
+import us.ihmc.plotting.Plotter2DAdapter;
 import us.ihmc.robotics.dataStructures.variable.YoVariable;
 import us.ihmc.robotics.geometry.ConvexPolygon2d;
 import us.ihmc.robotics.math.frames.YoFrameConvexPolygon2d;
@@ -16,9 +19,10 @@ public class YoArtifactPolygon extends YoArtifact
    
    private final ConvexPolygon2d tempConvexPolygon = new ConvexPolygon2d();
 
-   private final Color color;
    private final boolean fill;
    private final BasicStroke stroke;
+   
+   private final Point2d legendStringPosition = new Point2d();
    
    public YoArtifactPolygon(String name, YoFrameConvexPolygon2d yoConvexPolygon2d, Color color, boolean fill)
    {
@@ -29,53 +33,42 @@ public class YoArtifactPolygon extends YoArtifact
    {
       super(name,  new double[] {fill ? 1.0 : 0.0}, color);
       this.convexPolygon = yoConvexPolygon2d;
-      this.color = color;
       this.fill = fill;
-      stroke = new BasicStroke(lineWidth);
+      this.stroke = new BasicStroke(lineWidth);
    }
 
    @Override
-   public void drawLegend(Graphics2DAdapter graphics, int Xcenter, int Ycenter, double scaleFactor)
+   public void drawLegend(Plotter2DAdapter graphics, Point2d origin)
    {
       graphics.setColor(color);
       String name = "Polygon";
       Rectangle2D textDimensions = graphics.getFontMetrics().getStringBounds(name, graphics.getGraphicsContext());
-      int x = Xcenter - (int) (textDimensions.getWidth()/2);
-      int y = Ycenter + (int) (textDimensions.getHeight()/2);
-      graphics.drawString(name, x, y);
+      legendStringPosition.set(origin.getX() - textDimensions.getWidth() / 2.0, origin.getY() + textDimensions.getHeight() / 2.0);
+      graphics.drawString(graphics.getScreenFrame(), name, legendStringPosition);
    }
 
    @Override
-   public void draw(Graphics2DAdapter graphics, int Xcenter, int Ycenter, double headingOffset, double scaleFactor)
+   public void draw(Graphics2DAdapter graphics)
    {
-      if (isVisible)
+      graphics.setColor(color);
+      graphics.setStroke(stroke);
+
+      convexPolygon.getFrameConvexPolygon2d().get(tempConvexPolygon);
+
+      if (fill)
       {
-         graphics.setColor(color);
-         graphics.setStroke(stroke);
-
-         convexPolygon.getFrameConvexPolygon2d().get(tempConvexPolygon);
-
-         if (fill)
-         {
-            graphics.drawPolygonFilled(tempConvexPolygon);
-         }
-         else
-         {
-            graphics.drawPolygon(tempConvexPolygon);
-         }
+         graphics.drawPolygonFilled(tempConvexPolygon);
+      }
+      else
+      {
+         graphics.drawPolygon(tempConvexPolygon);
       }
    }
 
    @Override
-   public void drawHistory(Graphics2DAdapter graphics2d, int Xcenter, int Ycenter, double scaleFactor)
+   public void drawHistoryEntry(Graphics2DAdapter graphics, double[] entry)
    {
-      throw new RuntimeException("Not implemented!");
-   }
-
-   @Override
-   public RemoteGraphicType getRemoteGraphicType()
-   {
-      return RemoteGraphicType.POLYGON_ARTIFACT;
+      // not implemented
    }
 
    @Override
@@ -92,5 +85,11 @@ public class YoArtifactPolygon extends YoArtifact
       }
 
       return vars;
+   }
+
+   @Override
+   public RemoteGraphicType getRemoteGraphicType()
+   {
+      return RemoteGraphicType.POLYGON_ARTIFACT;
    }
 }

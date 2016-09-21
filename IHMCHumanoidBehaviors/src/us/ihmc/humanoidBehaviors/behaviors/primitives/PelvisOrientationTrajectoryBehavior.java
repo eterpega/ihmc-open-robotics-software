@@ -3,13 +3,13 @@ package us.ihmc.humanoidBehaviors.behaviors.primitives;
 import org.apache.commons.lang3.StringUtils;
 
 import us.ihmc.communication.packets.PacketDestination;
-import us.ihmc.humanoidBehaviors.behaviors.BehaviorInterface;
+import us.ihmc.humanoidBehaviors.behaviors.AbstractBehavior;
 import us.ihmc.humanoidBehaviors.communication.OutgoingCommunicationBridgeInterface;
 import us.ihmc.humanoidRobotics.communication.packets.walking.PelvisOrientationTrajectoryMessage;
 import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
 import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
 
-public class PelvisOrientationTrajectoryBehavior extends BehaviorInterface
+public class PelvisOrientationTrajectoryBehavior extends AbstractBehavior
 {
    private PelvisOrientationTrajectoryMessage outgoingPelvisOrientationTrajectoryMessage;
 
@@ -49,7 +49,7 @@ public class PelvisOrientationTrajectoryBehavior extends BehaviorInterface
 
    private void sendPelvisPosePacketToController()
    {
-      if (!isPaused.getBooleanValue() && !isStopped.getBooleanValue())
+      if (!isPaused.getBooleanValue() && !isAborted.getBooleanValue())
       {
          outgoingPelvisOrientationTrajectoryMessage.setDestination(PacketDestination.UI);
          sendPacketToNetworkProcessor(outgoingPelvisOrientationTrajectoryMessage);
@@ -66,7 +66,7 @@ public class PelvisOrientationTrajectoryBehavior extends BehaviorInterface
       hasPacketBeenSent.set(false);
 
       isPaused.set(false);
-      isStopped.set(false);
+      isAborted.set(false);
       
       hasBeenInitialized.set(true);
    }
@@ -78,23 +78,13 @@ public class PelvisOrientationTrajectoryBehavior extends BehaviorInterface
       outgoingPelvisOrientationTrajectoryMessage = null;
 
       isPaused.set(false);
-      isStopped.set(false);
+      isAborted.set(false);
 
       startTime.set(Double.NaN);
       trajectoryTime.set(Double.NaN);
    }
 
-   @Override //TODO: Not currently implemented for this behavior
-   public void stop()
-   {
-      isStopped.set(true);
-   }
 
-   @Override //TODO: Not currently implemented for this behavior
-   public void pause()
-   {
-      isPaused.set(true);
-   }
 
    @Override //TODO: Not currently implemented for this behavior
    public void resume()
@@ -114,21 +104,7 @@ public class PelvisOrientationTrajectoryBehavior extends BehaviorInterface
       return trajectoryTimeElapsed.getBooleanValue() && !isPaused.getBooleanValue();
    }
 
-   @Override
-   public void enableActions()
-   {
-   }
-
-   @Override
-   protected void passReceivedNetworkProcessorObjectToChildBehaviors(Object object)
-   {
-   }
-
-   @Override
-   protected void passReceivedControllerObjectToChildBehaviors(Object object)
-   {
-   }
-
+   
    @Override
    public boolean hasInputBeenSet()
    {

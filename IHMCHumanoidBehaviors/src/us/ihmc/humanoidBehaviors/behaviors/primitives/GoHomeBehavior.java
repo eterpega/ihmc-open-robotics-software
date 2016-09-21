@@ -3,7 +3,7 @@ package us.ihmc.humanoidBehaviors.behaviors.primitives;
 import org.apache.commons.lang3.StringUtils;
 
 import us.ihmc.communication.packets.PacketDestination;
-import us.ihmc.humanoidBehaviors.behaviors.BehaviorInterface;
+import us.ihmc.humanoidBehaviors.behaviors.AbstractBehavior;
 import us.ihmc.humanoidBehaviors.communication.OutgoingCommunicationBridgeInterface;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.StopAllTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.GoHomeMessage;
@@ -12,7 +12,7 @@ import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
 import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
 import us.ihmc.tools.io.printing.PrintTools;
 
-public class GoHomeBehavior extends BehaviorInterface
+public class GoHomeBehavior extends AbstractBehavior
 {
    private static final boolean DEBUG = false;
 
@@ -68,7 +68,7 @@ public class GoHomeBehavior extends BehaviorInterface
    {
       trajectoryTimeElapsed.set(yoTime.getDoubleValue() - startTime.getDoubleValue());
 
-      if (!isDone.getBooleanValue() && !isPaused.getBooleanValue() && !isStopped.getBooleanValue()
+      if (!isDone.getBooleanValue() && !isPaused.getBooleanValue() && !isAborted.getBooleanValue()
             && trajectoryTimeElapsed.getDoubleValue() > trajectoryTime.getDoubleValue())
       {
          if (DEBUG)
@@ -85,7 +85,7 @@ public class GoHomeBehavior extends BehaviorInterface
    private void sendOutgoingPacketToControllerAndNetworkProcessor()
    {
       
-      if (!isPaused.getBooleanValue() && !isStopped.getBooleanValue())
+      if (!isPaused.getBooleanValue() && !isAborted.getBooleanValue())
       {
          outgoingMessage.setDestination(PacketDestination.BROADCAST);
 
@@ -132,7 +132,7 @@ public class GoHomeBehavior extends BehaviorInterface
       outgoingMessage = null;
 
       isPaused.set(false);
-      isStopped.set(false);
+      isAborted.set(false);
 
       hasInputBeenSet.set(false);
 
@@ -143,10 +143,10 @@ public class GoHomeBehavior extends BehaviorInterface
    }
 
    @Override
-   public void stop()
+   public void abort()
    {
       stopArmMotion();
-      isStopped.set(true);
+      isAborted.set(true);
    }
 
    @Override
@@ -187,20 +187,6 @@ public class GoHomeBehavior extends BehaviorInterface
       return isDone.getBooleanValue();
    }
 
-   @Override
-   public void enableActions()
-   {
-   }
-
-   @Override
-   protected void passReceivedNetworkProcessorObjectToChildBehaviors(Object object)
-   {
-   }
-
-   @Override
-   protected void passReceivedControllerObjectToChildBehaviors(Object object)
-   {
-   }
 
    @Override
    public boolean hasInputBeenSet()

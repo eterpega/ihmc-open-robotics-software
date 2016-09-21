@@ -1,7 +1,6 @@
 package us.ihmc.quadrupedRobotics.controller.force.toolbox;
 
-import us.ihmc.SdfLoader.SDFFullQuadrupedRobotModel;
-import us.ihmc.graphics3DAdapter.graphics.appearances.AppearanceDefinition;
+import us.ihmc.SdfLoader.models.FullQuadrupedRobotModel;
 import us.ihmc.graphics3DAdapter.graphics.appearances.YoAppearance;
 import us.ihmc.quadrupedRobotics.estimator.referenceFrames.QuadrupedReferenceFrames;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
@@ -14,7 +13,11 @@ import us.ihmc.robotics.math.frames.YoFrameVector;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.QuadrantDependentList;
 import us.ihmc.robotics.robotSide.RobotQuadrant;
-import us.ihmc.robotics.screwTheory.*;
+import us.ihmc.robotics.screwTheory.CenterOfMassJacobian;
+import us.ihmc.robotics.screwTheory.OneDoFJoint;
+import us.ihmc.robotics.screwTheory.RigidBody;
+import us.ihmc.robotics.screwTheory.Twist;
+import us.ihmc.robotics.screwTheory.TwistCalculator;
 import us.ihmc.simulationconstructionset.yoUtilities.graphics.YoGraphicPosition;
 import us.ihmc.simulationconstructionset.yoUtilities.graphics.YoGraphicsListRegistry;
 
@@ -32,6 +35,8 @@ public class QuadrupedTaskSpaceEstimator
       private final QuadrantDependentList<FramePoint> solePosition = new QuadrantDependentList<>();
       private final QuadrantDependentList<FrameVector> soleAngularVelocity = new QuadrantDependentList<>();
       private final QuadrantDependentList<FrameVector> soleLinearVelocity = new QuadrantDependentList<>();
+      private final QuadrantDependentList<FrameVector> soleVirtualForce = new QuadrantDependentList<>();
+      private final QuadrantDependentList<FrameVector> soleContactForce = new QuadrantDependentList<>();
 
       public Estimates()
       {
@@ -41,6 +46,8 @@ public class QuadrupedTaskSpaceEstimator
             solePosition.set(robotQuadrant, new FramePoint());
             soleAngularVelocity.set(robotQuadrant, new FrameVector());
             soleLinearVelocity.set(robotQuadrant, new FrameVector());
+            soleVirtualForce.set(robotQuadrant, new FrameVector());
+            soleContactForce.set(robotQuadrant, new FrameVector());
          }
       }
 
@@ -58,6 +65,8 @@ public class QuadrupedTaskSpaceEstimator
             this.solePosition.get(robotQuadrant).setIncludingFrame(other.solePosition.get(robotQuadrant));
             this.soleAngularVelocity.get(robotQuadrant).setIncludingFrame(other.soleAngularVelocity.get(robotQuadrant));
             this.soleLinearVelocity.get(robotQuadrant).setIncludingFrame(other.soleLinearVelocity.get(robotQuadrant));
+            this.soleVirtualForce.get(robotQuadrant).setIncludingFrame(other.soleVirtualForce.get(robotQuadrant));
+            this.soleContactForce.get(robotQuadrant).setIncludingFrame(other.soleContactForce.get(robotQuadrant));
          }
       }
 
@@ -111,6 +120,16 @@ public class QuadrupedTaskSpaceEstimator
          return soleLinearVelocity.get(robotQuadrant);
       }
 
+      public FrameVector getSoleVirtualForce(RobotQuadrant robotQuadrant)
+      {
+         return soleVirtualForce.get(robotQuadrant);
+      }
+
+      public FrameVector getSoleContactForce(RobotQuadrant robotQuadrant)
+      {
+         return soleContactForce.get(robotQuadrant);
+      }
+
       public QuadrantDependentList<FrameOrientation> getSoleOrientation()
       {
          return soleOrientation;
@@ -129,6 +148,16 @@ public class QuadrupedTaskSpaceEstimator
       public QuadrantDependentList<FrameVector> getSoleLinearVelocity()
       {
          return soleLinearVelocity;
+      }
+
+      public QuadrantDependentList<FrameVector> getSoleVirtualForce()
+      {
+         return soleVirtualForce;
+      }
+
+      public QuadrantDependentList<FrameVector> getSoleContactForce()
+      {
+         return soleContactForce;
       }
    }
 
@@ -153,13 +182,14 @@ public class QuadrupedTaskSpaceEstimator
    private final YoFrameVector yoComVelocityEstimate;
 
    // solvers
+   private final QuadrupedSoleForceEstimator soleForceEstimator;
    private final CenterOfMassJacobian comJacobian;
    private final TwistCalculator twistCalculator;
    private final Twist twistStorage;
 
    private final YoVariableRegistry registry = new YoVariableRegistry("taskSpaceEstimator");
 
-   public QuadrupedTaskSpaceEstimator(SDFFullQuadrupedRobotModel fullRobotModel, QuadrupedReferenceFrames referenceFrames, YoVariableRegistry parentRegistry,
+   public QuadrupedTaskSpaceEstimator(FullQuadrupedRobotModel fullRobotModel, QuadrupedReferenceFrames referenceFrames, YoVariableRegistry parentRegistry,
          YoGraphicsListRegistry graphicsListRegistry)
    {
       this.referenceFrames = referenceFrames;
@@ -208,6 +238,7 @@ public class QuadrupedTaskSpaceEstimator
       }
 
       // solvers
+      soleForceEstimator = new QuadrupedSoleForceEstimator(fullRobotModel, referenceFrames, registry);
       comJacobian = new CenterOfMassJacobian(fullRobotModel.getElevator());
       twistCalculator = new TwistCalculator(worldFrame, fullRobotModel.getElevator());
       twistStorage = new Twist();
@@ -219,10 +250,11 @@ public class QuadrupedTaskSpaceEstimator
    {
       // update solvers
       referenceFrames.updateFrames();
+      soleForceEstimator.compute();
       twistCalculator.compute();
       comJacobian.compute();
 
-      // compute sole poses and twists
+      // compute sole poses, twists, and forces
       for (RobotQuadrant robotQuadrant : RobotQuadrant.values)
       {
          twistCalculator.getTwistOfBody(twistStorage, footRigidBody.get(robotQuadrant));
@@ -231,6 +263,8 @@ public class QuadrupedTaskSpaceEstimator
          twistStorage.getLinearPart(estimates.getSoleLinearVelocity().get(robotQuadrant));
          estimates.getSoleOrientation().get(robotQuadrant).setToZero(soleFrame.get(robotQuadrant));
          estimates.getSolePosition().get(robotQuadrant).setToZero(soleFrame.get(robotQuadrant));
+         estimates.getSoleVirtualForce().get(robotQuadrant).setIncludingFrame(soleForceEstimator.getSoleVirtualForce(robotQuadrant));
+         estimates.getSoleContactForce().get(robotQuadrant).setIncludingFrame(soleForceEstimator.getSoleContactForce(robotQuadrant));
       }
 
       // compute body pose and twist

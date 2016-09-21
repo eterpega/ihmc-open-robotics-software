@@ -13,6 +13,8 @@ import us.ihmc.tools.testing.TestPlanTarget;
 @SuiteClasses
 ({
    us.ihmc.robotics.alphaToAlpha.StretchedSlowInMiddleAlphaToAlphaFunctionTest.class,
+   us.ihmc.robotics.alphaToAlpha.YoMiniJerkUpAndDownAlphaToAlphaTest.class,
+   us.ihmc.robotics.alphaToAlpha.YoVariableRampUpAndDownAlphaToAlphaTest.class,
    us.ihmc.robotics.controllers.CylindricalPDGainsTest.class,
    us.ihmc.robotics.controllers.GainCalculatorTest.class,
    us.ihmc.robotics.controllers.PDControllerTest.class,
@@ -41,6 +43,7 @@ import us.ihmc.tools.testing.TestPlanTarget;
    us.ihmc.robotics.geometry.BoundingBox3dTest.class,
    us.ihmc.robotics.geometry.CapsuleTest.class,
    us.ihmc.robotics.geometry.ConvexHullCalculator2dTest.class,
+   us.ihmc.robotics.geometry.ConvexPolygon2dCalculatorTest.class,
    us.ihmc.robotics.geometry.ConvexPolygon2dTest.class,
    us.ihmc.robotics.geometry.ConvexPolygonShrinkerTest.class,
    us.ihmc.robotics.geometry.ConvexPolygonToolsTest.class,
@@ -230,8 +233,11 @@ import us.ihmc.tools.testing.TestPlanTarget;
    us.ihmc.robotics.screwTheory.TotalMassCalculatorTest.class,
    us.ihmc.robotics.screwTheory.TwistTest.class,
    us.ihmc.robotics.screwTheory.WrenchTest.class,
+   us.ihmc.robotics.stateMachines.FinishableStateTest.class,
+   us.ihmc.robotics.stateMachines.SimpleStateTest.class,
    us.ihmc.robotics.stateMachines.StateChangeRecorderTest.class,
    us.ihmc.robotics.stateMachines.StateMachineExampleOneTest.class,
+   us.ihmc.robotics.stateMachines.StateMachineExampleTwoTest.class,
    us.ihmc.robotics.stateMachines.StateMachineTest.class,
    us.ihmc.robotics.statistics.CovarianceDerivationTest.class,
    us.ihmc.robotics.statistics.OnePassMeanAndStandardDeviationTest.class,

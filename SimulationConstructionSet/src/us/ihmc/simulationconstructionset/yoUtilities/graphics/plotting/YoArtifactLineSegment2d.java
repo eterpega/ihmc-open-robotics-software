@@ -7,6 +7,7 @@ import javax.vecmath.Point2d;
 import javax.vecmath.Vector2d;
 
 import us.ihmc.plotting.Graphics2DAdapter;
+import us.ihmc.plotting.Plotter2DAdapter;
 import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
 import us.ihmc.robotics.geometry.ConvexPolygon2d;
 import us.ihmc.robotics.geometry.LineSegment2d;
@@ -19,7 +20,6 @@ public class YoArtifactLineSegment2d extends YoArtifact
    private static final BasicStroke STROKE = new BasicStroke(2);
 
    private final YoFrameLineSegment2d lineSegment;
-   private final Color color;
    
    private final Point2d tempFirstEndpoint = new Point2d();
    private final LineSegment2d tempLineSegment = new LineSegment2d();
@@ -53,7 +53,6 @@ public class YoArtifactLineSegment2d extends YoArtifact
       super(name, new double[0], color,
             lineSegment.getYoFirstEndpointX(), lineSegment.getYoFirstEndpointY(), lineSegment.getYoSecondEndpointX(), lineSegment.getYoSecondEndpointY());
       this.lineSegment = lineSegment;
-      this.color = color;
       this.drawArrow = true;
       instatiateArrowObjects(arrowHeadWidth, arrowHeadHeight);
    }
@@ -63,7 +62,6 @@ public class YoArtifactLineSegment2d extends YoArtifact
       super(name, new double[0], color,
             lineSegment.getYoFirstEndpointX(), lineSegment.getYoFirstEndpointY(), lineSegment.getYoSecondEndpointX(), lineSegment.getYoSecondEndpointY());
       this.lineSegment = lineSegment;
-      this.color = color;
       this.drawArrow = false;
    }
 
@@ -76,61 +74,58 @@ public class YoArtifactLineSegment2d extends YoArtifact
    }
    
    @Override
-   public void draw(Graphics2DAdapter graphics, int Xcenter, int Ycenter, double headingOffset, double scaleFactor)
-   {
-      if (isVisible)
-      {
-         graphics.setColor(color);
-         graphics.setStroke(STROKE);
-
-         if (lineSegment.areEndpointsTheSame())
-         {
-            tempFirstEndpoint.set(lineSegment.getFirstEndpointX(), lineSegment.getFirstEndpointY());
-            graphics.drawPoint(tempFirstEndpoint);
-         }
-         else
-         {
-            lineSegment.getFrameLineSegment2d().get(tempLineSegment);
-            graphics.drawLineSegment(tempLineSegment);
-         }
-
-         if (drawArrow)
-         {
-            arrowHeadVector.set(lineSegment.getSecondEndpointX() - lineSegment.getFirstEndpointX(), lineSegment.getSecondEndpointY() - lineSegment.getFirstEndpointY());
-            arrowHeadVector.normalize();
-            arrowHeadLateralVector.set(arrowHeadVector.getY(), -arrowHeadVector.getX());
-            
-            arrowHeadVector.scale(arrowHeadHeight);
-            arrowHeadLateralVector.scale(arrowHeadWidth / 2.0);
-            
-            tempArrowPolygon.getVertex(0).set(lineSegment.getSecondEndpointX(), lineSegment.getSecondEndpointY());
-            
-            tempArrowPolygon.getVertex(1).set(lineSegment.getSecondEndpointX(), lineSegment.getSecondEndpointY());
-            tempArrowPolygon.getVertex(1).sub(arrowHeadVector);
-            tempArrowPolygon.getVertex(1).sub(arrowHeadLateralVector);
-            
-            tempArrowPolygon.getVertex(2).set(lineSegment.getSecondEndpointX(), lineSegment.getSecondEndpointY());
-            tempArrowPolygon.getVertex(2).sub(arrowHeadVector);
-            tempArrowPolygon.getVertex(2).add(arrowHeadLateralVector);
-            
-            graphics.drawPolygonFilled(tempArrowPolygon);
-         }
-      }
-   }
-
-   @Override
-   public void drawLegend(Graphics2DAdapter graphics, int Xcenter, int Ycenter, double scaleFactor)
+   public void draw(Graphics2DAdapter graphics)
    {
       graphics.setColor(color);
       graphics.setStroke(STROKE);
 
-      graphics.drawLineSegment(-20 + Xcenter, -5 + Ycenter, 20 + Xcenter, 5 + Ycenter);
+      if (lineSegment.areEndpointsTheSame())
+      {
+         tempFirstEndpoint.set(lineSegment.getFirstEndpointX(), lineSegment.getFirstEndpointY());
+         graphics.drawPoint(tempFirstEndpoint);
+      }
+      else
+      {
+         lineSegment.getFrameLineSegment2d().get(tempLineSegment);
+         graphics.drawLineSegment(tempLineSegment);
+      }
+
+      if (drawArrow)
+      {
+         arrowHeadVector.set(lineSegment.getSecondEndpointX() - lineSegment.getFirstEndpointX(), lineSegment.getSecondEndpointY() - lineSegment.getFirstEndpointY());
+         arrowHeadVector.normalize();
+         arrowHeadLateralVector.set(arrowHeadVector.getY(), -arrowHeadVector.getX());
+         
+         arrowHeadVector.scale(arrowHeadHeight);
+         arrowHeadLateralVector.scale(arrowHeadWidth / 2.0);
+         
+         tempArrowPolygon.getVertex(0).set(lineSegment.getSecondEndpointX(), lineSegment.getSecondEndpointY());
+         
+         tempArrowPolygon.getVertex(1).set(lineSegment.getSecondEndpointX(), lineSegment.getSecondEndpointY());
+         tempArrowPolygon.getVertex(1).sub(arrowHeadVector);
+         tempArrowPolygon.getVertex(1).sub(arrowHeadLateralVector);
+         
+         tempArrowPolygon.getVertex(2).set(lineSegment.getSecondEndpointX(), lineSegment.getSecondEndpointY());
+         tempArrowPolygon.getVertex(2).sub(arrowHeadVector);
+         tempArrowPolygon.getVertex(2).add(arrowHeadLateralVector);
+         
+         graphics.drawPolygonFilled(tempArrowPolygon);
+      }
    }
 
    @Override
-   public void drawHistory(Graphics2DAdapter graphics2d, int Xcenter, int Ycenter, double scaleFactor)
+   public void drawLegend(Plotter2DAdapter graphics, Point2d origin)
    {
-      throw new RuntimeException("Not implemented!");
+      graphics.setColor(color);
+      graphics.setStroke(STROKE);
+
+      graphics.drawLineSegment(graphics.getScreenFrame(), -20.0 + origin.getX(), -5.0 + origin.getY(), 20.0 + origin.getX(), 5.0 + origin.getY());
+   }
+
+   @Override
+   public void drawHistoryEntry(Graphics2DAdapter graphics, double[] entry)
+   {
+      tempLineSegment.set(entry[0], entry[1], entry[2], entry[3]);
    }
 
    @Override

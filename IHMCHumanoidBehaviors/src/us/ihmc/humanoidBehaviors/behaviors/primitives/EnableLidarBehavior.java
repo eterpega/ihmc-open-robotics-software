@@ -1,12 +1,12 @@
 package us.ihmc.humanoidBehaviors.behaviors.primitives;
 
-import us.ihmc.humanoidBehaviors.behaviors.BehaviorInterface;
+import us.ihmc.humanoidBehaviors.behaviors.AbstractBehavior;
 import us.ihmc.humanoidBehaviors.communication.OutgoingCommunicationBridgeInterface;
 import us.ihmc.humanoidRobotics.communication.packets.sensing.DepthDataStateCommand;
 import us.ihmc.humanoidRobotics.communication.packets.sensing.DepthDataStateCommand.LidarState;
 import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
 
-public class EnableLidarBehavior extends BehaviorInterface
+public class EnableLidarBehavior extends AbstractBehavior
 {
    private final BooleanYoVariable packetHasBeenSent = new BooleanYoVariable("packetHasBeenSent" + behaviorName, registry);
    private DepthDataStateCommand enableLidarPacket;
@@ -30,7 +30,7 @@ public class EnableLidarBehavior extends BehaviorInterface
 
    private void sendPacketToNetworkProcessor()
    {
-      if (!isPaused.getBooleanValue() && !isStopped.getBooleanValue())
+      if (!isPaused.getBooleanValue() && !isAborted.getBooleanValue())
       {
          sendPacketToNetworkProcessor(enableLidarPacket);
          packetHasBeenSent.set(true);
@@ -43,7 +43,7 @@ public class EnableLidarBehavior extends BehaviorInterface
       packetHasBeenSent.set(false);
 
       isPaused.set(false);
-      isStopped.set(false);
+      isAborted.set(false);
    }
 
    @Override
@@ -52,26 +52,9 @@ public class EnableLidarBehavior extends BehaviorInterface
       packetHasBeenSent.set(false);
 
       isPaused.set(false);
-      isStopped.set(false);
+      isAborted.set(false);
    }
 
-   @Override
-   public void stop()
-   {
-      isStopped.set(true);
-   }
-
-   @Override
-   public void pause()
-   {
-      isPaused.set(true);
-   }
-
-   @Override
-   public void resume()
-   {
-      isPaused.set(false);
-   }
 
    @Override
    public boolean isDone()
@@ -79,20 +62,6 @@ public class EnableLidarBehavior extends BehaviorInterface
       return packetHasBeenSent.getBooleanValue() && !isPaused.getBooleanValue();
    }
 
-   @Override
-   public void enableActions()
-   {
-   }
-
-   @Override
-   protected void passReceivedNetworkProcessorObjectToChildBehaviors(Object object)
-   {
-   }
-
-   @Override
-   protected void passReceivedControllerObjectToChildBehaviors(Object object)
-   {
-   }
 
    @Override
    public boolean hasInputBeenSet()

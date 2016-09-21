@@ -16,8 +16,8 @@ import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 import org.ejml.ops.NormOps;
 
-import us.ihmc.SdfLoader.SDFFullHumanoidRobotModel;
-import us.ihmc.SdfLoader.SDFFullHumanoidRobotModelFactory;
+import us.ihmc.SdfLoader.models.FullHumanoidRobotModel;
+import us.ihmc.SdfLoader.FullHumanoidRobotModelFactory;
 import us.ihmc.SdfLoader.models.FullRobotModelUtils;
 import us.ihmc.SdfLoader.partNames.LegJointName;
 import us.ihmc.commonWalkingControlModules.controllerCore.WholeBodyControlCoreToolbox;
@@ -54,7 +54,7 @@ import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.robotics.screwTheory.InverseDynamicsJoint;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
 import us.ihmc.robotics.screwTheory.RigidBody;
-import us.ihmc.robotics.screwTheory.SixDoFJoint;
+import us.ihmc.robotics.screwTheory.FloatingInverseDynamicsJoint;
 import us.ihmc.robotics.screwTheory.Twist;
 import us.ihmc.robotics.screwTheory.TwistCalculator;
 import us.ihmc.sensorProcessing.communication.packets.dataobjects.RobotConfigurationData;
@@ -68,7 +68,7 @@ public class KinematicsToolboxController
    private static final double updateDT = 1.0e-3;
 
    private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
-   private final SDFFullHumanoidRobotModel desiredFullRobotModel;
+   private final FullHumanoidRobotModel desiredFullRobotModel;
    private final CommonHumanoidReferenceFrames referenceFrames;
    private final TwistCalculator twistCalculator;
    private final GeometricJacobianHolder geometricJacobianHolder;
@@ -82,7 +82,7 @@ public class KinematicsToolboxController
    private final StatusMessageOutputManager statusOutputManager;
    private final KinematicsToolboxOutputStatus inverseKinematicsSolution;
 
-   private final SixDoFJoint desiredRootJoint;
+   private final FloatingInverseDynamicsJoint desiredRootJoint;
    private final OneDoFJoint[] oneDoFJoints;
 
    private final AtomicReference<FramePoint2d> desiredCenterOfMassXYReference = new AtomicReference<>(null);
@@ -113,7 +113,7 @@ public class KinematicsToolboxController
 
    private final AtomicReference<PrivilegedConfigurationCommand> privilegedConfigurationCommandReference = new AtomicReference<PrivilegedConfigurationCommand>(null);
 
-   public KinematicsToolboxController(CommandInputManager commandInputManager, StatusMessageOutputManager statusOutputManager, SDFFullHumanoidRobotModelFactory fullRobotModelFactory,
+   public KinematicsToolboxController(CommandInputManager commandInputManager, StatusMessageOutputManager statusOutputManager, FullHumanoidRobotModelFactory fullRobotModelFactory,
          YoGraphicsListRegistry yoGraphicsListRegistry, YoVariableRegistry parentRegistry)
    {
       this.commandInputManager = commandInputManager;
@@ -164,7 +164,7 @@ public class KinematicsToolboxController
       legJointLimitReductionFactors.put(LegJointName.HIP_PITCH, hipReductionFactor);
       legJointLimitReductionFactors.put(LegJointName.HIP_ROLL, hipReductionFactor);
       legJointLimitReductionFactors.put(LegJointName.HIP_YAW, hipReductionFactor);
-      legJointLimitReductionFactors.put(LegJointName.KNEE, kneeReductionFactor);
+      legJointLimitReductionFactors.put(LegJointName.KNEE_PITCH, kneeReductionFactor);
       legJointLimitReductionFactors.put(LegJointName.ANKLE_PITCH, ankleReductionFactor);
       legJointLimitReductionFactors.put(LegJointName.ANKLE_ROLL, ankleReductionFactor);
 
@@ -541,7 +541,7 @@ public class KinematicsToolboxController
       };
    }
 
-   public SDFFullHumanoidRobotModel getDesiredFullRobotModel()
+   public FullHumanoidRobotModel getDesiredFullRobotModel()
    {
       return desiredFullRobotModel;
    }

@@ -3,14 +3,14 @@ package us.ihmc.humanoidBehaviors.behaviors.primitives;
 import org.apache.commons.lang3.StringUtils;
 
 import us.ihmc.communication.packets.PacketDestination;
-import us.ihmc.humanoidBehaviors.behaviors.BehaviorInterface;
+import us.ihmc.humanoidBehaviors.behaviors.AbstractBehavior;
 import us.ihmc.humanoidBehaviors.communication.OutgoingCommunicationBridgeInterface;
 import us.ihmc.humanoidRobotics.communication.packets.walking.ChestTrajectoryMessage;
 import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
 import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
 import us.ihmc.tools.io.printing.PrintTools;
 
-public class ChestTrajectoryBehavior extends BehaviorInterface
+public class ChestTrajectoryBehavior extends AbstractBehavior
 {
    private static final boolean DEBUG = false;
    
@@ -52,7 +52,7 @@ public class ChestTrajectoryBehavior extends BehaviorInterface
 
    private void sendChestPoseToController()
    {
-      if (!isPaused.getBooleanValue() && !isStopped.getBooleanValue())
+      if (!isPaused.getBooleanValue() && !isAborted.getBooleanValue())
       {
          outgoingChestTrajectoryMessage.setDestination(PacketDestination.UI);
          sendPacketToNetworkProcessor(outgoingChestTrajectoryMessage);
@@ -71,7 +71,7 @@ public class ChestTrajectoryBehavior extends BehaviorInterface
       hasBeenInitialized.set(true);
       
       isPaused.set(false);
-      isStopped.set(false);
+      isAborted.set(false);
    }
 
    @Override
@@ -81,29 +81,14 @@ public class ChestTrajectoryBehavior extends BehaviorInterface
       outgoingChestTrajectoryMessage = null;
 
       isPaused.set(false);
-      isStopped.set(false);
+      isAborted.set(false);
 
       startTime.set(Double.NaN);
       trajectoryTime.set(Double.NaN);
    }
 
-   @Override
-   public void stop()
-   {
-      isStopped.set(true);
-   }
 
-   @Override
-   public void pause()
-   {
-      isPaused.set(true);
-   }
 
-   @Override
-   public void resume()
-   {
-      isPaused.set(false);
-   }
 
    @Override
    public boolean isDone()
@@ -126,20 +111,7 @@ public class ChestTrajectoryBehavior extends BehaviorInterface
       return trajectoryTimeHasElapsed.getBooleanValue() && !isPaused.getBooleanValue();
    }
 
-   @Override
-   public void enableActions()
-   {
-   }
-
-   @Override
-   protected void passReceivedNetworkProcessorObjectToChildBehaviors(Object object)
-   {
-   }
-
-   @Override
-   protected void passReceivedControllerObjectToChildBehaviors(Object object)
-   {
-   }
+  
 
    @Override
    public boolean hasInputBeenSet()

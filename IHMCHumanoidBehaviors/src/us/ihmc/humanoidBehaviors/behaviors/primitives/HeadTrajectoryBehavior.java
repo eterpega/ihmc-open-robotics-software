@@ -3,13 +3,13 @@ package us.ihmc.humanoidBehaviors.behaviors.primitives;
 import org.apache.commons.lang3.StringUtils;
 
 import us.ihmc.communication.packets.PacketDestination;
-import us.ihmc.humanoidBehaviors.behaviors.BehaviorInterface;
+import us.ihmc.humanoidBehaviors.behaviors.AbstractBehavior;
 import us.ihmc.humanoidBehaviors.communication.OutgoingCommunicationBridgeInterface;
 import us.ihmc.humanoidRobotics.communication.packets.walking.HeadTrajectoryMessage;
 import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
 import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
 
-public class HeadTrajectoryBehavior extends BehaviorInterface
+public class HeadTrajectoryBehavior extends AbstractBehavior
 {
    private final BooleanYoVariable packetHasBeenSent;
    private HeadTrajectoryMessage outgoingHeadTrajectoryMessage;
@@ -52,7 +52,7 @@ public class HeadTrajectoryBehavior extends BehaviorInterface
 
    private void sendHeadOrientationPacketToController()
    {
-      if (!isPaused.getBooleanValue() &&!isStopped.getBooleanValue())
+      if (!isPaused.getBooleanValue() &&!isAborted.getBooleanValue())
       {
          outgoingHeadTrajectoryMessage.setDestination(PacketDestination.UI);
          sendPacketToNetworkProcessor(outgoingHeadTrajectoryMessage);
@@ -70,7 +70,7 @@ public class HeadTrajectoryBehavior extends BehaviorInterface
       packetHasBeenSent.set(false);
       
       isPaused.set(false);
-      isStopped.set(false);
+      isAborted.set(false);
       
       hasBeenInitialized.set(true);
    }
@@ -82,28 +82,11 @@ public class HeadTrajectoryBehavior extends BehaviorInterface
       outgoingHeadTrajectoryMessage = null;
 
       isPaused.set(false);
-      isStopped.set(false);
+      isAborted.set(false);
       
       trajectoryTime.set(Double.NaN);      
    }
 
-   @Override
-   public void stop()
-   {
-      isStopped.set(true);
-   }
-
-   @Override
-   public void pause()
-   {
-      isPaused.set(true);
-   }
-
-   @Override
-   public void resume()
-   {
-      isPaused.set(false);
-   }
 
    @Override
    public boolean isDone()
@@ -113,20 +96,8 @@ public class HeadTrajectoryBehavior extends BehaviorInterface
       return trajectoryTimeElapsed && !isPaused.getBooleanValue();
    }
 
-   @Override
-   public void enableActions()
-   {
-   }
+   
 
-   @Override
-   protected void passReceivedNetworkProcessorObjectToChildBehaviors(Object object)
-   {
-   }
-
-   @Override
-   protected void passReceivedControllerObjectToChildBehaviors(Object object)
-   {
-   }
    
    public boolean hasInputBeenSet() {
 	   if (outgoingHeadTrajectoryMessage != null)

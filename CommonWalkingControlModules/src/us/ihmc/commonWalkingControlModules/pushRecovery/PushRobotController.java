@@ -6,7 +6,7 @@ import java.awt.event.ActionListener;
 import javax.swing.JButton;
 import javax.vecmath.Vector3d;
 
-import us.ihmc.SdfLoader.SDFRobot;
+import us.ihmc.SdfLoader.FloatingRootJointRobot;
 import us.ihmc.SdfLoader.models.FullRobotModel;
 import us.ihmc.graphics3DAdapter.graphics.appearances.YoAppearance;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
@@ -44,12 +44,12 @@ public class PushRobotController implements RobotController
    
    private final YoGraphicVector forceVisualizer;
    
-   public PushRobotController(SDFRobot pushableRobot, FullRobotModel fullRobotModel)
+   public PushRobotController(FloatingRootJointRobot pushableRobot, FullRobotModel fullRobotModel)
    {
       this(pushableRobot, fullRobotModel.getChest().getParentJoint().getName(), new Vector3d(0, 0, 0.3));
    }
    
-   public PushRobotController(SDFRobot pushableRobot, String jointNameToApplyForce, Vector3d forcePointOffset)
+   public PushRobotController(FloatingRootJointRobot pushableRobot, String jointNameToApplyForce, Vector3d forcePointOffset)
    {
       yoTime = pushableRobot.getYoTime();
       registry = new YoVariableRegistry(jointNameToApplyForce + "_" + getClass().getSimpleName());
@@ -76,6 +76,11 @@ public class PushRobotController implements RobotController
    public YoGraphic getForceVisualizer()
    {
       return forceVisualizer;
+   }
+
+   public int getPushNumber()
+   {
+      return pushNumber.getIntegerValue();
    }
 
    public void setPushDuration(double duration)
@@ -179,6 +184,7 @@ public class PushRobotController implements RobotController
       {
          isBeingPushed.set(true);
          pushForce.get(forceVector);
+         pushNumber.decrement();
       }
       else
       {

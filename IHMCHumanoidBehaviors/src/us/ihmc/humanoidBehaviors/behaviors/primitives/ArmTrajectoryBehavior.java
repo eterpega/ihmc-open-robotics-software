@@ -3,7 +3,7 @@ package us.ihmc.humanoidBehaviors.behaviors.primitives;
 import org.apache.commons.lang3.StringUtils;
 
 import us.ihmc.communication.packets.PacketDestination;
-import us.ihmc.humanoidBehaviors.behaviors.BehaviorInterface;
+import us.ihmc.humanoidBehaviors.behaviors.AbstractBehavior;
 import us.ihmc.humanoidBehaviors.communication.OutgoingCommunicationBridgeInterface;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.ArmTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.StopAllTrajectoryMessage;
@@ -12,7 +12,7 @@ import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.tools.io.printing.PrintTools;
 
-public class ArmTrajectoryBehavior extends BehaviorInterface
+public class ArmTrajectoryBehavior extends AbstractBehavior
 {
    private static final boolean DEBUG = false;
 
@@ -70,7 +70,7 @@ public class ArmTrajectoryBehavior extends BehaviorInterface
    {
       trajectoryTimeElapsed.set(yoTime.getDoubleValue() - startTime.getDoubleValue());
 
-      if (!isDone.getBooleanValue() && hasInputBeenSet() && !isPaused.getBooleanValue() && !isStopped.getBooleanValue()
+      if (!isDone.getBooleanValue() && hasInputBeenSet() && !isPaused.getBooleanValue() && !isAborted.getBooleanValue()
             && trajectoryTimeElapsed.getDoubleValue() > trajectoryTime.getDoubleValue())
       {
          if (DEBUG)
@@ -86,7 +86,7 @@ public class ArmTrajectoryBehavior extends BehaviorInterface
 
    private void sendOutgoingPacketToControllerAndNetworkProcessor()
    {
-      if (!isPaused.getBooleanValue() && !isStopped.getBooleanValue())
+      if (!isPaused.getBooleanValue() && !isAborted.getBooleanValue())
       {
          outgoingMessage.setDestination(PacketDestination.UI);
 
@@ -134,7 +134,7 @@ public class ArmTrajectoryBehavior extends BehaviorInterface
       outgoingMessage = null;
 
       isPaused.set(false);
-      isStopped.set(false);
+      isAborted.set(false);
 
       hasInputBeenSet.set(false);
       hasStatusBeenReceived.set(false);
@@ -147,10 +147,10 @@ public class ArmTrajectoryBehavior extends BehaviorInterface
    }
 
    @Override
-   public void stop()
+   public void abort()
    {
       stopArmMotion();
-      isStopped.set(true);
+      isAborted.set(true);
    }
 
    @Override
@@ -191,20 +191,6 @@ public class ArmTrajectoryBehavior extends BehaviorInterface
       return isDone.getBooleanValue();
    }
 
-   @Override
-   public void enableActions()
-   {
-   }
-
-   @Override
-   protected void passReceivedNetworkProcessorObjectToChildBehaviors(Object object)
-   {
-   }
-
-   @Override
-   protected void passReceivedControllerObjectToChildBehaviors(Object object)
-   {
-   }
 
    @Override
    public boolean hasInputBeenSet()

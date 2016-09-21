@@ -1,13 +1,12 @@
 package us.ihmc.quadrupedRobotics.controller.force.toolbox;
 
-import us.ihmc.commonWalkingControlModules.controlModules.foot.PartialFootholdControlModule;
-import us.ihmc.commonWalkingControlModules.controlModules.foot.SupportState;
 import us.ihmc.graphics3DAdapter.graphics.appearances.AppearanceDefinition;
 import us.ihmc.graphics3DAdapter.graphics.appearances.YoAppearance;
 import us.ihmc.quadrupedRobotics.optimization.contactForceOptimization.QuadrupedContactForceLimits;
 import us.ihmc.quadrupedRobotics.params.DoubleArrayParameter;
 
 import us.ihmc.quadrupedRobotics.params.DoubleParameter;
+import us.ihmc.quadrupedRobotics.params.IntegerParameter;
 import us.ihmc.quadrupedRobotics.params.ParameterFactory;
 import us.ihmc.quadrupedRobotics.planning.ContactState;
 import us.ihmc.quadrupedRobotics.planning.QuadrupedTimedStep;
@@ -15,22 +14,21 @@ import us.ihmc.quadrupedRobotics.planning.trajectory.ThreeDoFSwingFootTrajectory
 import us.ihmc.quadrupedRobotics.state.FiniteStateMachine;
 import us.ihmc.quadrupedRobotics.state.FiniteStateMachineBuilder;
 import us.ihmc.quadrupedRobotics.state.FiniteStateMachineState;
-import us.ihmc.quadrupedRobotics.util.PreallocatedQueue;
-import us.ihmc.quadrupedRobotics.util.PreallocatedQueueSorter;
+import us.ihmc.quadrupedRobotics.util.*;
+import us.ihmc.quadrupedRobotics.state.FiniteStateMachineStateChangedListener;
 import us.ihmc.quadrupedRobotics.util.TimeInterval;
-import us.ihmc.robotics.MathTools;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.robotics.dataStructures.variable.YoVariable;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FrameVector;
+import us.ihmc.robotics.math.filters.GlitchFilteredBooleanYoVariable;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.QuadrantDependentList;
 import us.ihmc.robotics.robotSide.RobotEnd;
 import us.ihmc.robotics.robotSide.RobotQuadrant;
 import us.ihmc.simulationconstructionset.yoUtilities.graphics.BagOfBalls;
 import us.ihmc.simulationconstructionset.yoUtilities.graphics.YoGraphicsListRegistry;
-
-import java.util.Comparator;
 
 public class QuadrupedTimedStepController
 {
@@ -44,11 +42,9 @@ public class QuadrupedTimedStepController
    private final DoubleArrayParameter solePositionIntegralGainsParameter = parameterFactory.createDoubleArray("solePositionIntegralGains", 0, 0, 0);
    private final DoubleParameter solePositionMaxIntegralErrorParameter = parameterFactory.createDouble("solePositionMaxIntegralError", 0);
    private final DoubleParameter touchdownPressureLimitParameter = parameterFactory.createDouble("touchdownPressureLimit", 50);
+   private final IntegerParameter touchdownTriggerWindowParameter = parameterFactory.createInteger("touchdownTriggerWindow", 1);
    private final DoubleParameter contactPressureLowerLimitParameter = parameterFactory.createDouble("contactPressureLowerLimit", 50);
    private final DoubleParameter contactPressureUpperLimitParameter = parameterFactory.createDouble("contactPressureUpperLimit", 1000);
-   private final DoubleParameter loadDurationParameter = parameterFactory.createDouble("loadDuration", 0.0);
-   private final DoubleParameter unloadDurationParameter = parameterFactory.createDouble("unloadDuration", 0.0);
-   private final DoubleParameter soleCoefficientOfFrictionParameter = parameterFactory.createDouble("soleCoefficientOfFriction", 75);
    private final DoubleParameter minimumStepAdjustmentTimeParameter = parameterFactory.createDouble("minimumStepAdjustmentTime", 0.1);
    private final DoubleParameter stepGoalOffsetZParameter = parameterFactory.createDouble("stepGoalOffsetZ", 0.0);
 
@@ -56,7 +52,7 @@ public class QuadrupedTimedStepController
    private final DoubleYoVariable timestamp;
    private final QuadrantDependentList<QuadrupedSolePositionController> solePositionController;
    private final QuadrantDependentList<QuadrupedSolePositionController.Setpoints> solePositionControllerSetpoints;
-   private final PreallocatedQueue<QuadrupedTimedStep> stepQueue;
+   private final PreallocatedList<QuadrupedTimedStep> stepSequence;
    private final QuadrantDependentList<FramePoint> solePositionEstimate;
    private final QuadrantDependentList<FrameVector> soleForceCommand;
    private final QuadrantDependentList<ContactState> contactState;
@@ -64,20 +60,20 @@ public class QuadrupedTimedStepController
    private final QuadrupedTaskSpaceEstimator.Estimates taskSpaceEstimates;
 
    // graphics
-   private final FramePoint stepQueueVisualizationPosition;
-   private final QuadrantDependentList<BagOfBalls> stepQueueVisualization;
-   private static final QuadrantDependentList<AppearanceDefinition> stepQueueAppearance = new QuadrantDependentList<>(YoAppearance.Red(), YoAppearance.Blue(),
+   private final FramePoint stepSequenceVisualizationPosition;
+   private final QuadrantDependentList<BagOfBalls> stepSequenceVisualization;
+   private static final QuadrantDependentList<AppearanceDefinition> stepSequenceAppearance = new QuadrantDependentList<>(YoAppearance.Red(), YoAppearance.Blue(),
          YoAppearance.RGBColor(1, 0.5, 0.0), YoAppearance.RGBColor(0.0, 0.5, 1.0));
 
    // state machine
    public enum StepState
    {
-      LOAD, SUPPORT, UNLOAD, SWING
+      SUPPORT, SWING
    }
 
    public enum StepEvent
    {
-      TIMEOUT, UNLOAD, LIFT_OFF, TOUCH_DOWN
+      TIMEOUT
    }
 
    private final QuadrantDependentList<FiniteStateMachine<StepState, StepEvent>> stepStateMachine;
@@ -94,7 +90,7 @@ public class QuadrupedTimedStepController
       {
          this.solePositionControllerSetpoints.set(robotQuadrant, new QuadrupedSolePositionController.Setpoints(robotQuadrant));
       }
-      stepQueue = new PreallocatedQueue<>(QuadrupedTimedStep.class, 100);
+      stepSequence = new PreallocatedList<>(QuadrupedTimedStep.class, 100);
       contactState = new QuadrantDependentList<>();
       solePositionEstimate = new QuadrantDependentList<>();
       soleForceCommand = new QuadrantDependentList<>();
@@ -114,27 +110,22 @@ public class QuadrupedTimedStepController
          String prefix = robotQuadrant.getCamelCaseName();
          FiniteStateMachineBuilder<StepState, StepEvent> stateMachineBuilder = new FiniteStateMachineBuilder<>(StepState.class, StepEvent.class,
                prefix + "StepState", registry);
-         stateMachineBuilder.addState(StepState.LOAD, new LoadState(robotQuadrant));
          stateMachineBuilder.addState(StepState.SUPPORT, new SupportState(robotQuadrant));
-         stateMachineBuilder.addState(StepState.UNLOAD, new UnloadState(robotQuadrant));
          stateMachineBuilder.addState(StepState.SWING, new SwingState(robotQuadrant));
-         stateMachineBuilder.addTransition(StepEvent.TIMEOUT, StepState.LOAD, StepState.SUPPORT);
-         stateMachineBuilder.addTransition(StepEvent.UNLOAD, StepState.SUPPORT, StepState.UNLOAD);
-         stateMachineBuilder.addTransition(StepEvent.LIFT_OFF, StepState.SUPPORT, StepState.SWING);
-         stateMachineBuilder.addTransition(StepEvent.LIFT_OFF, StepState.UNLOAD, StepState.SWING);
-         stateMachineBuilder.addTransition(StepEvent.TOUCH_DOWN, StepState.SWING, StepState.LOAD);
+         stateMachineBuilder.addTransition(StepEvent.TIMEOUT, StepState.SUPPORT, StepState.SWING);
+         stateMachineBuilder.addTransition(StepEvent.TIMEOUT, StepState.SWING, StepState.SUPPORT);
          stepStateMachine.set(robotQuadrant, stateMachineBuilder.build(StepState.SUPPORT));
       }
       stepTransitionCallback = null;
 
       // graphics
-      stepQueueVisualization = new QuadrantDependentList<>();
-      stepQueueVisualizationPosition = new FramePoint();
+      stepSequenceVisualization = new QuadrantDependentList<>();
+      stepSequenceVisualizationPosition = new FramePoint();
       for (RobotQuadrant robotQuadrant : RobotQuadrant.values)
       {
-         AppearanceDefinition appearance = stepQueueAppearance.get(robotQuadrant);
+         AppearanceDefinition appearance = stepSequenceAppearance.get(robotQuadrant);
          String prefix = "timedStepController" + robotQuadrant.getPascalCaseName() + "GoalPositions";
-         stepQueueVisualization.set(robotQuadrant, new BagOfBalls(stepQueue.capacity(), 0.015, prefix, appearance, registry, graphicsListRegistry));
+         stepSequenceVisualization.set(robotQuadrant, new BagOfBalls(stepSequence.capacity(), 0.015, prefix, appearance, registry, graphicsListRegistry));
       }
       parentRegistry.addChild(registry);
    }
@@ -146,18 +137,18 @@ public class QuadrupedTimedStepController
 
    public boolean addStep(QuadrupedTimedStep timedStep)
    {
-      for (int i = 0; i < stepQueue.size(); i++)
+      for (int i = 0; i < stepSequence.size(); i++)
       {
-         if (timedStep.getRobotQuadrant() == stepQueue.get(i).getRobotQuadrant())
+         if (timedStep.getRobotQuadrant() == stepSequence.get(i).getRobotQuadrant())
          {
-            if (timedStep.getTimeInterval().getStartTime() < stepQueue.get(i).getTimeInterval().getEndTime())
+            if (timedStep.getTimeInterval().getStartTime() < stepSequence.get(i).getTimeInterval().getEndTime())
                return false;
          }
       }
-      if ((timestamp.getDoubleValue() <= timedStep.getTimeInterval().getStartTime()) && stepQueue.enqueue())
+      if ((timestamp.getDoubleValue() <= timedStep.getTimeInterval().getStartTime()) && stepSequence.add())
       {
-         stepQueue.getTail().set(timedStep);
-         PreallocatedQueueSorter.sort(stepQueue, compareByEndTime);
+         stepSequence.get(stepSequence.size() - 1).set(timedStep);
+         TimeIntervalTools.sortByEndTime(stepSequence);
          return true;
       }
       else
@@ -168,41 +159,30 @@ public class QuadrupedTimedStepController
 
    public void removeSteps()
    {
-      int size = stepQueue.size();
-      for (int i = 0; i < size; i++)
-      {
-         // keep ongoing steps in the queue
-         QuadrupedTimedStep step = stepQueue.getHead();
-         if (step.getTimeInterval().getStartTime() < timestamp.getDoubleValue())
-         {
-            stepQueue.enqueue();
-            stepQueue.getTail().set(step);
-         }
-         // remove future steps from the queue
-         stepQueue.dequeue();
-      }
+      double currentTime = timestamp.getDoubleValue();
+      TimeIntervalTools.removeStartTimesGreaterThan(currentTime, stepSequence);
    }
 
-   public PreallocatedQueue<QuadrupedTimedStep> getQueue()
+   public PreallocatedList<QuadrupedTimedStep> getStepSequence()
    {
-      return stepQueue;
+      return stepSequence;
    }
 
-   public int getQueueSize()
+   public int getStepSequenceSize()
    {
-      return stepQueue.size();
+      return stepSequence.size();
    }
 
-   public int getQueueCapacity()
+   public int getStepSequenceCapacity()
    {
-      return stepQueue.capacity();
+      return stepSequence.capacity();
    }
 
    public QuadrupedTimedStep getCurrentStep(RobotEnd robotEnd)
    {
-      for (int i = 0; i < stepQueue.size(); i++)
+      for (int i = 0; i < stepSequence.size(); i++)
       {
-         QuadrupedTimedStep step = stepQueue.get(i);
+         QuadrupedTimedStep step = stepSequence.get(i);
          if (step.getRobotQuadrant().getEnd() == robotEnd)
          {
             return step;
@@ -213,9 +193,9 @@ public class QuadrupedTimedStepController
 
    public QuadrupedTimedStep getCurrentStep(RobotQuadrant robotQuadrant)
    {
-      for (int i = 0; i < stepQueue.size(); i++)
+      for (int i = 0; i < stepSequence.size(); i++)
       {
-         QuadrupedTimedStep step = stepQueue.get(i);
+         QuadrupedTimedStep step = stepSequence.get(i);
          if (step.getRobotQuadrant() == robotQuadrant)
          {
             return step;
@@ -224,17 +204,23 @@ public class QuadrupedTimedStepController
       return null;
    }
 
+   public void attachStateChangedListener(FiniteStateMachineStateChangedListener stateChangedListener)
+   {
+      for (RobotQuadrant robotQuadrant : RobotQuadrant.values)
+      {
+         stepStateMachine.get(robotQuadrant).attachStateChangedListener(stateChangedListener);
+      }
+   }
+
    public void reset()
    {
-      while (stepQueue.size() > 0)
-      {
-         stepQueue.dequeue();
-      }
+      stepSequence.clear();
       for (RobotQuadrant robotQuadrant : RobotQuadrant.values)
       {
          stepStateMachine.get(robotQuadrant).reset();
          contactForceLimits.setPressureUpperLimit(robotQuadrant, contactPressureUpperLimitParameter.get());
          contactForceLimits.setPressureLowerLimit(robotQuadrant, contactPressureLowerLimitParameter.get());
+         contactState.set(robotQuadrant, ContactState.IN_CONTACT);
       }
    }
 
@@ -253,10 +239,8 @@ public class QuadrupedTimedStepController
 
       // dequeue completed steps
       double currentTime = timestamp.getDoubleValue();
-      while ((stepQueue.size() > 0) && (currentTime > stepQueue.getHead().getTimeInterval().getEndTime()))
-      {
-         stepQueue.dequeue();
-      }
+      TimeIntervalTools.removeEndTimesLessThan(currentTime, stepSequence);
+
       updateGraphics();
 
       // copy outputs
@@ -270,70 +254,19 @@ public class QuadrupedTimedStepController
 
    private void updateGraphics()
    {
-      for (int i = 0; i < stepQueue.capacity(); i++)
+      for (int i = 0; i < stepSequence.capacity(); i++)
       {
          for (RobotQuadrant robotQuadrant : RobotQuadrant.values)
          {
-            stepQueueVisualizationPosition.setToZero();
-            stepQueueVisualization.get(robotQuadrant).setBall(stepQueueVisualizationPosition, i);
+            stepSequenceVisualizationPosition.setToZero();
+            stepSequenceVisualization.get(robotQuadrant).setBall(stepSequenceVisualizationPosition, i);
          }
       }
-      for (int i = 0; i < stepQueue.size(); i++)
+      for (int i = 0; i < stepSequence.size(); i++)
       {
-         stepQueue.get(i).getGoalPosition(stepQueueVisualizationPosition);
-         RobotQuadrant robotQuadrant = stepQueue.get(i).getRobotQuadrant();
-         stepQueueVisualization.get(robotQuadrant).setBallLoop(stepQueueVisualizationPosition);
-      }
-   }
-
-   private Comparator<QuadrupedTimedStep> compareByEndTime = new Comparator<QuadrupedTimedStep>()
-   {
-      @Override
-      public int compare(QuadrupedTimedStep a, QuadrupedTimedStep b)
-      {
-         return Double.compare(a.getTimeInterval().getEndTime(), b.getTimeInterval().getEndTime());
-      }
-   };
-
-   private class LoadState implements FiniteStateMachineState<StepEvent>
-   {
-      private double initialTime;
-      private RobotQuadrant robotQuadrant;
-
-      public LoadState(RobotQuadrant robotQuadrant)
-      {
-         this.robotQuadrant = robotQuadrant;
-      }
-
-      @Override
-      public void onEntry()
-      {
-         initialTime = timestamp.getDoubleValue();
-      }
-
-      @Override
-      public StepEvent process()
-      {
-         double elapsedTime = timestamp.getDoubleValue() - initialTime;
-         double loadDuration = Math.max(loadDurationParameter.get(), 0.001);
-
-         if (elapsedTime > loadDuration)
-         {
-            return StepEvent.TIMEOUT;
-         }
-
-         // ramp up contact pressure
-         double alpha = MathTools.clipToMinMax(Math.pow(elapsedTime / loadDuration, 2.0), 0.0, 1.0);
-         double pressureLowerLimit = alpha * contactPressureLowerLimitParameter.get();
-         double pressureUpperLimit = alpha * contactPressureUpperLimitParameter.get();
-         contactForceLimits.setPressureLowerLimit(robotQuadrant, pressureLowerLimit);
-         contactForceLimits.setPressureUpperLimit(robotQuadrant, pressureUpperLimit);
-         return null;
-      }
-
-      @Override
-      public void onExit()
-      {
+         stepSequence.get(i).getGoalPosition(stepSequenceVisualizationPosition);
+         RobotQuadrant robotQuadrant = stepSequence.get(i).getRobotQuadrant();
+         stepSequenceVisualization.get(robotQuadrant).setBallLoop(stepSequenceVisualizationPosition);
       }
    }
 
@@ -361,11 +294,10 @@ public class QuadrupedTimedStepController
          if (timedStep != null)
          {
             double currentTime = timestamp.getDoubleValue();
-            double unloadTime = timedStep.getTimeInterval().getStartTime() - unloadDurationParameter.get();
             double liftOffTime = timedStep.getTimeInterval().getStartTime();
             double touchDownTime = timedStep.getTimeInterval().getEndTime();
 
-            // trigger unload event
+            // trigger swing phase
             if (currentTime >= liftOffTime && currentTime < touchDownTime)
             {
                if (stepTransitionCallback != null)
@@ -373,70 +305,10 @@ public class QuadrupedTimedStepController
                   stepTransitionCallback.onLiftOff(robotQuadrant, contactState);
                }
                contactState.set(robotQuadrant, ContactState.NO_CONTACT);
-               return StepEvent.LIFT_OFF;
-            }
-            else if (currentTime >= unloadTime && currentTime < touchDownTime)
-            {
-               return StepEvent.UNLOAD;
+               return StepEvent.TIMEOUT;
             }
          }
 
-         return null;
-      }
-
-      @Override
-      public void onExit()
-      {
-      }
-   }
-
-   private class UnloadState implements FiniteStateMachineState<StepEvent>
-   {
-      private double initialTime;
-      private RobotQuadrant robotQuadrant;
-
-      public UnloadState(RobotQuadrant robotQuadrant)
-      {
-         this.robotQuadrant = robotQuadrant;
-      }
-
-      @Override
-      public void onEntry()
-      {
-         initialTime = timestamp.getDoubleValue();
-      }
-
-      @Override
-      public StepEvent process()
-      {
-         double elapsedTime = timestamp.getDoubleValue() - initialTime;
-         double unloadDuration = unloadDurationParameter.get();
-
-         QuadrupedTimedStep timedStep = getCurrentStep(robotQuadrant);
-         if (timedStep != null)
-         {
-            double currentTime = timestamp.getDoubleValue();
-            double liftOffTime = timedStep.getTimeInterval().getStartTime();
-            double touchDownTime = timedStep.getTimeInterval().getEndTime();
-
-            // trigger lift off event
-            if (currentTime >= liftOffTime && currentTime < touchDownTime)
-            {
-               if (stepTransitionCallback != null)
-               {
-                  stepTransitionCallback.onLiftOff(robotQuadrant, contactState);
-               }
-               contactState.set(robotQuadrant, ContactState.NO_CONTACT);
-               return StepEvent.LIFT_OFF;
-            }
-         }
-
-         // ramp up contact pressure
-         double alpha = MathTools.clipToMinMax(1.0 - Math.pow(elapsedTime / unloadDuration, 0.5), 0.0, 1.0);
-         double pressureLowerLimit = alpha * contactPressureLowerLimitParameter.get();
-         double pressureUpperLimit = alpha * contactPressureUpperLimitParameter.get();
-         contactForceLimits.setPressureLowerLimit(robotQuadrant, pressureLowerLimit);
-         contactForceLimits.setPressureUpperLimit(robotQuadrant, pressureUpperLimit);
          return null;
       }
 
@@ -451,12 +323,15 @@ public class QuadrupedTimedStepController
       private RobotQuadrant robotQuadrant;
       private final ThreeDoFSwingFootTrajectory swingTrajectory;
       private final FramePoint goalPosition;
+      private final GlitchFilteredBooleanYoVariable touchdownTrigger;
 
       public SwingState(RobotQuadrant robotQuadrant)
       {
          this.robotQuadrant = robotQuadrant;
          this.goalPosition = new FramePoint();
-         this.swingTrajectory = new ThreeDoFSwingFootTrajectory();
+         this.swingTrajectory = new ThreeDoFSwingFootTrajectory(this.robotQuadrant.getPascalCaseName(), registry);
+         this.touchdownTrigger = new GlitchFilteredBooleanYoVariable(this.robotQuadrant.getCamelCaseName() + "TouchdownTriggered", registry,
+               touchdownTriggerWindowParameter.get());
       }
 
       @Override
@@ -480,6 +355,8 @@ public class QuadrupedTimedStepController
          solePositionController.get(robotQuadrant).getGains()
                .setIntegralGains(solePositionIntegralGainsParameter.get(), solePositionMaxIntegralErrorParameter.get());
          solePositionControllerSetpoints.get(robotQuadrant).initialize(taskSpaceEstimates);
+
+         touchdownTrigger.set(false);
       }
 
       @Override
@@ -502,26 +379,32 @@ public class QuadrupedTimedStepController
          swingTrajectory.computeTrajectory(currentTime);
          swingTrajectory.getPosition(solePositionControllerSetpoints.get(robotQuadrant).getSolePosition());
 
-         // compute sole force
-         solePositionController.get(robotQuadrant)
-               .compute(soleForceCommand.get(robotQuadrant), solePositionControllerSetpoints.get(robotQuadrant), taskSpaceEstimates);
-         soleForceCommand.get(robotQuadrant).changeFrame(ReferenceFrame.getWorldFrame());
-
-         // limit sole forces
-         double coefficientOfFriction = soleCoefficientOfFrictionParameter.get();
-         double pressureLimit = touchdownPressureLimitParameter.get();
-         FrameVector soleForce = soleForceCommand.get(robotQuadrant);
-         if (soleForce.getZ() < -pressureLimit)
+         // detect early touch-down
+         FrameVector soleForceEstimate = taskSpaceEstimates.getSoleVirtualForce(robotQuadrant);
+         soleForceEstimate.changeFrame(ReferenceFrame.getWorldFrame());
+         double pressureEstimate = -soleForceEstimate.getZ();
+         double relativeTimeInSwing = currentTime - timedStep.getTimeInterval().getStartTime();
+         double normalizedTimeInSwing = relativeTimeInSwing / timedStep.getTimeInterval().getDuration();
+         if (normalizedTimeInSwing > 0.5)
          {
-            // limit vertical force and project horizontal forces into friction pyramid
-            soleForce.setX(Math.min(soleForce.getX(), coefficientOfFriction * pressureLimit));
-            soleForce.setX(Math.max(soleForce.getX(), -coefficientOfFriction * pressureLimit));
-            soleForce.setY(Math.min(soleForce.getY(), coefficientOfFriction * pressureLimit));
-            soleForce.setY(Math.max(soleForce.getY(), -coefficientOfFriction * pressureLimit));
-            soleForce.setZ(-pressureLimit);
+            touchdownTrigger.update(pressureEstimate > touchdownPressureLimitParameter.get());
          }
 
-         // trigger touch down event
+         // compute sole force
+         if (touchdownTrigger.getBooleanValue())
+         {
+            double pressureLimit = touchdownPressureLimitParameter.get();
+            soleForceCommand.get(robotQuadrant).changeFrame(ReferenceFrame.getWorldFrame());
+            soleForceCommand.get(robotQuadrant).set(0, 0, -pressureLimit);
+         }
+         else
+         {
+            solePositionController.get(robotQuadrant)
+                  .compute(soleForceCommand.get(robotQuadrant), solePositionControllerSetpoints.get(robotQuadrant), taskSpaceEstimates);
+            soleForceCommand.get(robotQuadrant).changeFrame(ReferenceFrame.getWorldFrame());
+         }
+
+         // trigger support phase
          if (currentTime >= touchDownTime)
          {
             if (stepTransitionCallback != null)
@@ -529,7 +412,7 @@ public class QuadrupedTimedStepController
                stepTransitionCallback.onTouchDown(robotQuadrant, contactState);
             }
             contactState.set(robotQuadrant, ContactState.IN_CONTACT);
-            return StepEvent.TOUCH_DOWN;
+            return StepEvent.TIMEOUT;
          }
          else
             return null;

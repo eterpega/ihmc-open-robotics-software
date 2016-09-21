@@ -12,6 +12,7 @@ import us.ihmc.quadrupedRobotics.QuadrupedTestBehaviors;
 import us.ihmc.quadrupedRobotics.QuadrupedTestFactory;
 import us.ihmc.quadrupedRobotics.QuadrupedTestGoals;
 import us.ihmc.quadrupedRobotics.controller.QuadrupedControlMode;
+import us.ihmc.quadrupedRobotics.params.ParameterRegistry;
 import us.ihmc.quadrupedRobotics.simulation.QuadrupedGroundContactModelType;
 import us.ihmc.robotics.testing.YoVariableTestGoal;
 import us.ihmc.simulationconstructionset.util.simulationRunner.BlockingSimulationRunner.SimulationExceededMaximumTimeException;
@@ -31,7 +32,7 @@ public abstract class QuadrupedPositionCrawlTurning360Test implements QuadrupedM
       try
       {
          MemoryTools.printCurrentMemoryUsageAndReturnUsedMemoryInMB(getClass().getSimpleName() + " before test.");
-
+         ParameterRegistry.destroyAndRecreateInstance();
          QuadrupedTestFactory quadrupedTestFactory = createQuadrupedTestFactory();
          quadrupedTestFactory.setControlMode(QuadrupedControlMode.POSITION);
          quadrupedTestFactory.setGroundContactModelType(QuadrupedGroundContactModelType.FLAT);
@@ -59,7 +60,7 @@ public abstract class QuadrupedPositionCrawlTurning360Test implements QuadrupedM
    {
       QuadrupedTestBehaviors.standUp(conductor, variables);
       
-      variables.getYoPlanarVelocityInputZ().set(-0.2);
+      variables.getYoPlanarVelocityInputZ().set(-0.1);
       
       int numSpins = 1;
       for (int i = 0; i < numSpins; i++)
@@ -86,7 +87,7 @@ public abstract class QuadrupedPositionCrawlTurning360Test implements QuadrupedM
    {
       QuadrupedTestBehaviors.standUp(conductor, variables);
       
-      variables.getYoPlanarVelocityInputZ().set(0.2);
+      variables.getYoPlanarVelocityInputZ().set(0.1);
       
       int numSpins = 1;
       for (int i = 0; i < numSpins; i++)

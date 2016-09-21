@@ -52,6 +52,7 @@ dependencies {
     compile ihmc.getProjectDependency(":SimulationConstructionSet")
     compile ihmc.getProjectDependency(":Graphics3DAdapter")
     compile ihmc.getProjectDependency(":CommonWalkingControlModules")
+    compile ihmc.getProjectDependency(":ConvexOptimizationAdapter")
     compile ihmc.getProjectDependency(":IHMCHumanoidRobotics")
     compile ihmc.getProjectDependency(":IHMCJavaToolkit")
     compile ihmc.getProjectDependency(":IHMCRoboticsToolkit")
@@ -59,6 +60,7 @@ dependencies {
     compile ihmc.getProjectDependency(":SDFLoader")
     compile ihmc.getProjectDependency(":SensorProcessing")
     compile ihmc.getProjectDependency(":IHMCStateEstimation")
+    compile ihmc.getProjectDependency(":IHMCGraphics3DDescription")
 
     testCompile group: 'com.google.caliper', name: 'caliper', version: '1.0-beta-2'
     testCompile ihmc.getProjectDependency(":IHMCUnitTesting")

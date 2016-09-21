@@ -1,13 +1,13 @@
 package us.ihmc.humanoidBehaviors.behaviors.primitives;
 
 import us.ihmc.communication.packets.PacketDestination;
-import us.ihmc.humanoidBehaviors.behaviors.BehaviorInterface;
+import us.ihmc.humanoidBehaviors.behaviors.AbstractBehavior;
 import us.ihmc.humanoidBehaviors.communication.OutgoingCommunicationBridgeInterface;
 import us.ihmc.humanoidRobotics.communication.packets.walking.PelvisHeightTrajectoryMessage;
 import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
 import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
 
-public class PelvisHeightTrajectoryBehavior extends BehaviorInterface
+public class PelvisHeightTrajectoryBehavior extends AbstractBehavior
 {
    private final BooleanYoVariable hasInputBeenSet = new BooleanYoVariable("hasInputBeenSet" + behaviorName, registry);
    private final BooleanYoVariable packetHasBeenSent = new BooleanYoVariable("packetHasBeenSent" + behaviorName, registry);
@@ -46,7 +46,7 @@ public class PelvisHeightTrajectoryBehavior extends BehaviorInterface
 
    private void sendMessageToController()
    {
-      if (!isPaused.getBooleanValue() && !isStopped.getBooleanValue())
+      if (!isPaused.getBooleanValue() && !isAborted.getBooleanValue())
       {      
          outgoingPelvisHeightTrajectoryMessage.setDestination(PacketDestination.UI);  
          sendPacketToController(outgoingPelvisHeightTrajectoryMessage);
@@ -63,7 +63,7 @@ public class PelvisHeightTrajectoryBehavior extends BehaviorInterface
       packetHasBeenSent.set(false);
 
       isPaused.set(false);
-      isStopped.set(false);
+      isAborted.set(false);
       
       hasInputBeenSet.set(false);
       trajectoryTimeElapsed.set(false);
@@ -83,26 +83,10 @@ public class PelvisHeightTrajectoryBehavior extends BehaviorInterface
       trajectoryTime.set(Double.NaN);
       
       isPaused.set(false);
-      isStopped.set(false);
+      isAborted.set(false);
    }
 
-   @Override
-   public void stop()
-   {
-      isStopped.set(true);
-   }
 
-   @Override
-   public void pause()
-   {
-      isPaused.set(true);
-   }
-
-   @Override
-   public void resume()
-   {
-      isPaused.set(false);
-   }
 
    @Override
    public boolean isDone()
@@ -115,20 +99,7 @@ public class PelvisHeightTrajectoryBehavior extends BehaviorInterface
       return trajectoryTimeElapsed.getBooleanValue() && !isPaused.getBooleanValue();
    }
 
-   @Override
-   public void enableActions()
-   {
-   }
-
-   @Override
-   protected void passReceivedNetworkProcessorObjectToChildBehaviors(Object object)
-   {
-   }
-
-   @Override
-   protected void passReceivedControllerObjectToChildBehaviors(Object object)
-   {
-   }
+   
 
    @Override
    public boolean hasInputBeenSet()

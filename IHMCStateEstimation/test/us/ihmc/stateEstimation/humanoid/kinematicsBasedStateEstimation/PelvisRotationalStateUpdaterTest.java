@@ -17,11 +17,7 @@ import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 import us.ihmc.robotics.geometry.RigidBodyTransform;
 import us.ihmc.robotics.random.RandomTools;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
-import us.ihmc.robotics.screwTheory.RevoluteJoint;
-import us.ihmc.robotics.screwTheory.RigidBody;
-import us.ihmc.robotics.screwTheory.ScrewTestTools;
-import us.ihmc.robotics.screwTheory.SixDoFJoint;
-import us.ihmc.robotics.screwTheory.Twist;
+import us.ihmc.robotics.screwTheory.*;
 import us.ihmc.robotics.sensors.IMUDefinition;
 import us.ihmc.sensorProcessing.sensorProcessors.SensorProcessing;
 import us.ihmc.sensorProcessing.simulatedSensors.SensorNoiseParameters;
@@ -63,7 +59,7 @@ public class PelvisRotationalStateUpdaterTest
       
       try
       {
-         new PelvisRotationalStateUpdater(inverseDynamicsStructure, imuSensors, null, 1.0e-3, registry);
+         new IMUBasedPelvisRotationalStateUpdater(inverseDynamicsStructure, imuSensors, null, 1.0e-3, registry);
       }
       catch (Exception e)
       {
@@ -87,10 +83,10 @@ public class PelvisRotationalStateUpdaterTest
       StateEstimatorSensorDefinitions stateEstimatorSensorDefinitions = new StateEstimatorSensorDefinitions();
       buildSensorConfigurations(stateEstimatorSensorDefinitions, registry);
       
-      PelvisRotationalStateUpdater pelvisRotationalStateUpdater;
+      PelvisRotationalStateUpdaterInterface pelvisRotationalStateUpdater;
       try
       {
-         pelvisRotationalStateUpdater = new PelvisRotationalStateUpdater(inverseDynamicsStructure, imuSensors, null, 1.0e-3, registry);
+         pelvisRotationalStateUpdater = new IMUBasedPelvisRotationalStateUpdater(inverseDynamicsStructure, imuSensors, null, 1.0e-3, registry);
       }
       catch (Exception e)
       {
@@ -118,14 +114,14 @@ public class PelvisRotationalStateUpdaterTest
       
       SensorProcessing jointAndIMUSensorDataSource = buildSensorConfigurations(stateEstimatorSensorDefinitions, registry);
 
-      PelvisRotationalStateUpdater pelvisRotationalStateUpdater = new PelvisRotationalStateUpdater(inverseDynamicsStructure, imuSensors, null, 1.0e-3, registry);
+      PelvisRotationalStateUpdaterInterface pelvisRotationalStateUpdater = new IMUBasedPelvisRotationalStateUpdater(inverseDynamicsStructure, imuSensors, null, 1.0e-3, registry);
 
       
       Quat4d rotationExpected = new Quat4d();
       Twist twistExpected = new Twist();
       Quat4d rotationEstimated = new Quat4d();
       Twist twistEstimated = new Twist();
-      SixDoFJoint rootJoint = inverseDynamicsStructure.getRootJoint();
+      FloatingInverseDynamicsJoint rootJoint = inverseDynamicsStructure.getRootJoint();
 
       setRandomRobotConfigurationAndUpdateSensors(joints, inverseDynamicsStructure, stateEstimatorSensorDefinitions, jointAndIMUSensorDataSource);
       

@@ -12,8 +12,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import javax.vecmath.Point3d;
 import javax.vecmath.Vector3d;
 
-import us.ihmc.SdfLoader.SDFFullHumanoidRobotModel;
-import us.ihmc.SdfLoader.SDFHumanoidRobot;
+import us.ihmc.SdfLoader.HumanoidFloatingRootJointRobot;
 import us.ihmc.SdfLoader.models.FullHumanoidRobotModel;
 import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParameters;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.HighLevelBehaviorFactory;
@@ -62,7 +61,7 @@ import us.ihmc.tools.thread.ThreadTools;
 public class DRCSimulationTestHelper
 {
    private final SimulationConstructionSet scs;
-   private final SDFHumanoidRobot sdfRobot;
+   private final HumanoidFloatingRootJointRobot sdfRobot;
    private final DRCSimulationFactory drcSimulationFactory;
    protected final PacketCommunicator controllerCommunicator;
    private final CommonAvatarEnvironmentInterface testEnvironment;
@@ -90,21 +89,31 @@ public class DRCSimulationTestHelper
    public DRCSimulationTestHelper(CommonAvatarEnvironmentInterface commonAvatarEnvironmentInterface, String name,
          DRCStartingLocation selectedLocation, SimulationTestingParameters simulationTestingParameters, DRCRobotModel robotModel)
    {
-      this(commonAvatarEnvironmentInterface, name, selectedLocation, simulationTestingParameters, robotModel, null, null, null);
+      this(commonAvatarEnvironmentInterface, name, selectedLocation, simulationTestingParameters, robotModel, null, null, null, false, false, false);
    }
 
    public DRCSimulationTestHelper(CommonAvatarEnvironmentInterface commonAvatarEnvironmentInterface, String name,
          DRCStartingLocation selectedLocation, SimulationTestingParameters simulationTestingParameters, DRCRobotModel robotModel,
-         DRCNetworkModuleParameters drcNetworkModuleParameters)
+         boolean addFootstepMessageGenerator, boolean useHeadingAndVelocityScript, boolean cheatWithGroundHeightAtForFootstep)
    {
-      this(commonAvatarEnvironmentInterface, name, selectedLocation, simulationTestingParameters, robotModel, drcNetworkModuleParameters, null, null);
+      this(commonAvatarEnvironmentInterface, name, selectedLocation, simulationTestingParameters, robotModel, null, null, null, addFootstepMessageGenerator,
+            useHeadingAndVelocityScript, cheatWithGroundHeightAtForFootstep);
    }
 
-   public DRCSimulationTestHelper(CommonAvatarEnvironmentInterface commonAvatarEnvironmentInterface, String name,
-         DRCStartingLocation selectedLocation, SimulationTestingParameters simulationTestingParameters, DRCRobotModel robotModel,
-         DRCNetworkModuleParameters drcNetworkModuleParameters, HighLevelBehaviorFactory highLevelBehaviorFactoryToAdd, DRCRobotInitialSetup<SDFHumanoidRobot> initialSetup)
+   public DRCSimulationTestHelper(CommonAvatarEnvironmentInterface commonAvatarEnvironmentInterface, String name, DRCStartingLocation selectedLocation,
+         SimulationTestingParameters simulationTestingParameters, DRCRobotModel robotModel, DRCNetworkModuleParameters drcNetworkModuleParameters)
    {
-      this.controllerCommunicator = PacketCommunicator.createIntraprocessPacketCommunicator(NetworkPorts.CONTROLLER_PORT, new IHMCCommunicationKryoNetClassList());
+      this(commonAvatarEnvironmentInterface, name, selectedLocation, simulationTestingParameters, robotModel, drcNetworkModuleParameters, null, null, false,
+            false, false);
+   }
+
+   public DRCSimulationTestHelper(CommonAvatarEnvironmentInterface commonAvatarEnvironmentInterface, String name, DRCStartingLocation selectedLocation,
+         SimulationTestingParameters simulationTestingParameters, DRCRobotModel robotModel, DRCNetworkModuleParameters drcNetworkModuleParameters,
+         HighLevelBehaviorFactory highLevelBehaviorFactoryToAdd, DRCRobotInitialSetup<HumanoidFloatingRootJointRobot> initialSetup,
+         boolean addFootstepMessageGenerator, boolean useHeadingAndVelocityScript, boolean cheatWithGroundHeightAtForFootstep)
+   {
+      this.controllerCommunicator = PacketCommunicator.createIntraprocessPacketCommunicator(NetworkPorts.CONTROLLER_PORT,
+            new IHMCCommunicationKryoNetClassList());
       this.testEnvironment = commonAvatarEnvironmentInterface;
 
       this.walkingControlParameters = robotModel.getWalkingControllerParameters();
@@ -137,6 +146,9 @@ public class DRCSimulationTestHelper
       simulationStarter.setStartingLocation(selectedLocation);
       simulationStarter.setGuiInitialSetup(guiInitialSetup);
       simulationStarter.setInitializeEstimatorToActual(true);
+
+      if (addFootstepMessageGenerator)
+         simulationStarter.addFootstepMessageGenerator(useHeadingAndVelocityScript, cheatWithGroundHeightAtForFootstep);
 
       if (drcNetworkModuleParameters == null)
       {
@@ -216,14 +228,14 @@ public class DRCSimulationTestHelper
       controllerFactory.setInverseDynamicsCalculatorListener(inverseDynamicsCalculatorListener);
    }
 
-   public SDFFullHumanoidRobotModel getControllerFullRobotModel()
+   public FullHumanoidRobotModel getControllerFullRobotModel()
    {
       return drcSimulationFactory.getControllerFullRobotModel();
    }
 
-   public SDFFullHumanoidRobotModel getSDFFullRobotModel()
+   public FullHumanoidRobotModel getSDFFullRobotModel()
    {
-      return (SDFFullHumanoidRobotModel) fullRobotModel;
+      return (FullHumanoidRobotModel) fullRobotModel;
    }
 
    /**
@@ -267,7 +279,7 @@ public class DRCSimulationTestHelper
       }
    }
 
-   public SDFHumanoidRobot getRobot()
+   public HumanoidFloatingRootJointRobot getRobot()
    {
       return sdfRobot;
    }
@@ -361,7 +373,7 @@ public class DRCSimulationTestHelper
       assertRobotsRootJointIsInBoundingBox(boundingBox, getRobot());
    }
 
-   public static void assertRobotsRootJointIsInBoundingBox(BoundingBox3d boundingBox, SDFHumanoidRobot robot)
+   public static void assertRobotsRootJointIsInBoundingBox(BoundingBox3d boundingBox, HumanoidFloatingRootJointRobot robot)
    {
       Point3d position = new Point3d();
       robot.getRootJoint().getPosition(position);

@@ -538,8 +538,6 @@ public enum RobotQuadrant implements RobotSegment<RobotQuadrant>
             return RobotQuadrant.FRONT_RIGHT;
       }
 
-//      throw new RuntimeException("Could not find an associated quadrant for " + name);
-      System.err.println("Could not find an associated quadrant for " + name);
       return null;
    }
 
@@ -596,6 +594,37 @@ public enum RobotQuadrant implements RobotSegment<RobotQuadrant>
          case HIND_LEFT:
          {
             return "hindLeft";
+         }
+   
+         default:
+         {
+            throw new RuntimeException();
+         }
+      }
+   }
+   
+   public String getUnderBarName()
+   {
+      switch (this)
+      {
+         case FRONT_LEFT:
+         {
+            return "front_left";
+         }
+   
+         case FRONT_RIGHT:
+         {
+            return "front_right";
+         }
+   
+         case HIND_RIGHT:
+         {
+            return "hind_right";
+         }
+   
+         case HIND_LEFT:
+         {
+            return "hind_left";
          }
    
          default:

@@ -20,7 +20,6 @@ import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinemat
 import us.ihmc.commonWalkingControlModules.desiredFootStep.WalkingMessageHandler;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.HighLevelControlManagerFactory;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.highLevelStates.walkingController.WalkingCommandConsumer;
-import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.highLevelStates.walkingController.stateTransitionConditions.DoneWithStateCondition;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.highLevelStates.walkingController.stateTransitionConditions.DoubSuppToSingSuppCond4DistRecov;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.highLevelStates.walkingController.stateTransitionConditions.SingleSupportToTransferToCondition;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.highLevelStates.walkingController.stateTransitionConditions.StartFlamingoCondition;
@@ -59,6 +58,7 @@ import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
 import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.robotics.screwTheory.ScrewTools;
+import us.ihmc.robotics.stateMachines.DoneWithFinishableStateTransitionCondition;
 import us.ihmc.robotics.stateMachines.GenericStateMachine;
 import us.ihmc.robotics.stateMachines.State;
 import us.ihmc.robotics.stateMachines.StateChangedListener;
@@ -116,7 +116,7 @@ public class WalkingHighLevelHumanoidController extends HighLevelBehavior
 
    private final JointLimitEnforcementMethodCommand jointLimitEnforcementMethodCommand = new JointLimitEnforcementMethodCommand();
    private final BooleanYoVariable limitCommandSent = new BooleanYoVariable("limitCommandSent", registry);
-   
+
    private final PrivilegedConfigurationCommand privilegedConfigurationCommand = new PrivilegedConfigurationCommand();
    private final ControllerCoreCommand controllerCoreCommand = new ControllerCoreCommand(WholeBodyControllerCoreMode.INVERSE_DYNAMICS);
    private ControllerCoreOutputReadOnly controllerCoreOutput;
@@ -230,9 +230,7 @@ public class WalkingHighLevelHumanoidController extends HighLevelBehavior
 
       // Encapsulate toStandingTransition to make sure it is not used afterwards
       {
-         DoneWithStateCondition toStandingDoneCondition = new DoneWithStateCondition(toStandingState);
-         StateTransition<WalkingStateEnum> toStandingTransition = new StateTransition<>(WalkingStateEnum.STANDING, toStandingDoneCondition);
-         toStandingState.addStateTransition(toStandingTransition);
+         toStandingState.addDoneWithStateTransition(WalkingStateEnum.STANDING);
       }
 
       // Setup start/stop walking conditions
@@ -267,9 +265,7 @@ public class WalkingHighLevelHumanoidController extends HighLevelBehavior
          SingleSupportState singleSupportState = walkingSingleSupportStates.get(robotSide);
          WalkingStateEnum singleSupportStateEnum = singleSupportState.getStateEnum();
 
-         DoneWithStateCondition doneWithTransferCondition = new DoneWithStateCondition(transferState);
-         StateTransition<WalkingStateEnum> toSingleSupport = new StateTransition<WalkingStateEnum>(singleSupportStateEnum, doneWithTransferCondition);
-         transferState.addStateTransition(toSingleSupport);
+         transferState.addDoneWithStateTransition(singleSupportStateEnum);
       }
 
       // Setup walking single support to transfer conditions
@@ -326,9 +322,7 @@ public class WalkingHighLevelHumanoidController extends HighLevelBehavior
 
          WalkingStateEnum singleSupportStateEnum = singleSupportState.getStateEnum();
 
-         DoneWithStateCondition doneWithTransferCondition = new DoneWithStateCondition(transferState);
-         StateTransition<WalkingStateEnum> toSingleSupport = new StateTransition<WalkingStateEnum>(singleSupportStateEnum, doneWithTransferCondition);
-         transferState.addStateTransition(toSingleSupport);
+         transferState.addDoneWithStateTransition(singleSupportStateEnum);
       }
 
       // Setup the abort condition from all states to the toStandingState
@@ -402,7 +396,7 @@ public class WalkingHighLevelHumanoidController extends HighLevelBehavior
 
       for (RobotSide robotSide : RobotSide.values)
       {
-         privilegedConfigurationCommand.addJoint(fullRobotModel.getLegJoint(robotSide, LegJointName.KNEE), PrivilegedConfigurationOption.AT_MID_RANGE);
+         privilegedConfigurationCommand.addJoint(fullRobotModel.getLegJoint(robotSide, LegJointName.KNEE_PITCH), PrivilegedConfigurationOption.AT_MID_RANGE);
 
          RigidBody pelvis = fullRobotModel.getPelvis();
          RigidBody foot = fullRobotModel.getFoot(robotSide);

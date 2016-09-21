@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.vecmath.Point3d;
 
 import sensor_msgs.PointCloud2;
-import us.ihmc.SdfLoader.SDFFullHumanoidRobotModel;
+import us.ihmc.SdfLoader.models.FullHumanoidRobotModel;
 import us.ihmc.SdfLoader.partNames.NeckJointName;
 import us.ihmc.SdfLoader.partNames.SpineJointName;
 import us.ihmc.communication.packetCommunicator.PacketCommunicator;
@@ -36,11 +36,11 @@ public class MultisensePointCloudReceiver extends RosPointCloudSubscriber
       this.testInfo = testInfo;
       this.frame = testInfo.getFrame();
       
-      SDFFullHumanoidRobotModel fullRobotModel = robotModel.createFullRobotModel();
+      FullHumanoidRobotModel fullRobotModel = robotModel.createFullRobotModel();
       robotDataReceiver = new HumanoidRobotDataReceiver(fullRobotModel, null);
       HumanoidReferenceFrames referenceFrames = robotDataReceiver.getReferenceFrames();
       
-      this.headRootReferenceFrame = referenceFrames.getNeckFrame(NeckJointName.LOWER_NECK_PITCH);
+      this.headRootReferenceFrame = referenceFrames.getNeckFrame(NeckJointName.PROXIMAL_NECK_PITCH);
       setupReferenceFrames(referenceFrames);
    }
 
@@ -106,7 +106,7 @@ public class MultisensePointCloudReceiver extends RosPointCloudSubscriber
          }
          case HEAD_ROOT:
          {
-            this.pointCloudReferenceFrame = referenceFrames.getNeckFrame(NeckJointName.LOWER_NECK_PITCH);
+            this.pointCloudReferenceFrame = referenceFrames.getNeckFrame(NeckJointName.PROXIMAL_NECK_PITCH);
             break;
          }
          case U_TORSO:

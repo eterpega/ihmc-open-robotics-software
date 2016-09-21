@@ -8,7 +8,7 @@ import us.ihmc.quadrupedRobotics.planning.QuadrupedXGaitPlanner;
 import us.ihmc.quadrupedRobotics.planning.QuadrupedXGaitSettings;
 import us.ihmc.quadrupedRobotics.providers.QuadrupedPlanarVelocityInputProvider;
 import us.ihmc.quadrupedRobotics.providers.QuadrupedXGaitSettingsInputProvider;
-import us.ihmc.quadrupedRobotics.util.PreallocatedQueue;
+import us.ihmc.quadrupedRobotics.util.PreallocatedList;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
 import us.ihmc.robotics.geometry.FrameOrientation;
@@ -43,7 +43,7 @@ public class QuadrupedXGaitStepStream implements QuadrupedStepStream
    private final DoubleYoVariable timestamp;
    private final FrameOrientation bodyOrientation;
    private double bodyYaw;
-   private final PreallocatedQueue<QuadrupedTimedStep> stepQueue;
+   private final PreallocatedList<QuadrupedTimedStep> stepSequence;
 
    public QuadrupedXGaitStepStream(QuadrupedPlanarVelocityInputProvider planarVelocityProvider, QuadrupedXGaitSettingsInputProvider xGaitSettingsProvider,
          QuadrupedReferenceFrames referenceFrames, double controlDT, DoubleYoVariable timestamp, YoVariableRegistry parentRegistry)
@@ -69,7 +69,7 @@ public class QuadrupedXGaitStepStream implements QuadrupedStepStream
       this.controlDT = controlDT;
       this.timestamp = timestamp;
       this.bodyOrientation = new FrameOrientation();
-      this.stepQueue = new PreallocatedQueue<>(QuadrupedTimedStep.class, NUMBER_OF_PREVIEW_STEPS + 2);
+      this.stepSequence = new PreallocatedList<>(QuadrupedTimedStep.class, NUMBER_OF_PREVIEW_STEPS + 2);
 
       if (parentRegistry != null)
       {
@@ -139,22 +139,22 @@ public class QuadrupedXGaitStepStream implements QuadrupedStepStream
       Vector3d inputVelocity = planarVelocityProvider.get();
       xGaitStepPlanner.computeOnlinePlan(xGaitPreviewSteps, xGaitCurrentSteps, inputVelocity, currentTime, bodyYaw, xGaitSettings);
 
-      // update step queue
-      stepQueue.clear();
+      // update step sequence
+      stepSequence.clear();
       for (RobotEnd robotEnd : RobotEnd.values)
       {
          if (xGaitCurrentSteps.get(robotEnd).getTimeInterval().getEndTime() >= currentTime)
          {
-            stepQueue.enqueue();
-            stepQueue.getTail().set(xGaitCurrentSteps.get(robotEnd));
+            stepSequence.add();
+            stepSequence.get(stepSequence.size() - 1).set(xGaitCurrentSteps.get(robotEnd));
          }
       }
       for (int i = 0; i < xGaitPreviewSteps.size(); i++)
       {
          if (xGaitPreviewSteps.get(i).getTimeInterval().getEndTime() >= currentTime)
          {
-            stepQueue.enqueue();
-            stepQueue.getTail().set(xGaitPreviewSteps.get(i));
+            stepSequence.add();
+            stepSequence.get(stepSequence.size() - 1).set(xGaitPreviewSteps.get(i));
          }
       }
    }
@@ -172,8 +172,8 @@ public class QuadrupedXGaitStepStream implements QuadrupedStepStream
    }
 
    @Override
-   public PreallocatedQueue<QuadrupedTimedStep> getSteps()
+   public PreallocatedList<QuadrupedTimedStep> getSteps()
    {
-      return stepQueue;
+      return stepSequence;
    }
 }
