@@ -25,7 +25,7 @@ public class PolytopeVertex
    public PolytopeVertex(PolytopeVertex vertex)
    {
       this.position.set(vertex.position);
-//      TODO: Copy connecting vertices..getClass().
+      //      TODO: Copy connecting vertices..getClass().
    }
 
    public void addConnectingVertex(PolytopeVertex vertex)
@@ -37,6 +37,11 @@ public class PolytopeVertex
    public int getNumberOfConnectingVertices()
    {
       return connectingVertices.size();
+   }
+
+   public PolytopeVertex getConnectingVertex(int index)
+   {
+      return connectingVertices.get(index);
    }
 
    public Point3d getPosition()
@@ -53,7 +58,7 @@ public class PolytopeVertex
    {
       return position.getX() * vector.getX() + position.getY() * vector.getY() + position.getZ() * vector.getZ();
    }
-   
+
    public String toString()
    {
       return position.toString();

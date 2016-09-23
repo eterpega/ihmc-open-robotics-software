@@ -7,6 +7,14 @@ public class PrintingGilbertJohnsonKeerthiCollisionDetectorListener implements G
 {
 
    @Override
+   public void checkingIfPolytopesAreColliding(ConvexPolytope polytopeA, ConvexPolytope polytopeB)
+   {
+      System.out.println("\nChecking if Polytopes are colliding");
+      System.out.println("PolytopeA = \n" + polytopeA);
+      System.out.println("PolytopeB = \n" + polytopeB);
+   }
+
+   @Override
    public void addedVertexToSimplex(SimplexPolytope simplex, Point3d vertexOnSimplex, Point3d vertexOnA, Point3d vertexOnB)
    {
       System.out.println("\nAdded Vertex to Simplex. New simplex is: ");
@@ -51,7 +59,7 @@ public class PrintingGilbertJohnsonKeerthiCollisionDetectorListener implements G
       System.out.println("\nMet Stopping Condition For No Intersection");
       System.out.println("closestPointOnA = " + closestPointOnA);
       System.out.println("closestPointOnB = " + closestPointOnB);
-      
+
       System.out.println("---------------------------");
       System.out.println("");
    }
@@ -62,7 +70,7 @@ public class PrintingGilbertJohnsonKeerthiCollisionDetectorListener implements G
       System.out.println("\nToo Many Iterations. No Intersection");
       System.out.println("closestPointOnA = " + closestPointOnA);
       System.out.println("closestPointOnB = " + closestPointOnB);
-      
+
       System.out.println("---------------------------");
       System.out.println("");
    }
@@ -75,7 +83,7 @@ public class PrintingGilbertJohnsonKeerthiCollisionDetectorListener implements G
       System.out.println("closestPointOnB = " + closestPointOnB);
       System.out.println("---------------------------");
       System.out.println("");
-      
+
    }
 
 }

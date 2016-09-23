@@ -1,21 +1,25 @@
 package us.ihmc.geometry.polytope;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import javax.vecmath.Point3d;
 import javax.vecmath.Vector3d;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertNull;
 
 public class GilbertJohnsonKeerthiCollisionDetectorAssertListener implements GilbertJohnsonKeerthiCollisionDetectorListener
 {
 
    @Override
+   public void checkingIfPolytopesAreColliding(ConvexPolytope polytopeA, ConvexPolytope polytopeB)
+   {
+      // TODO Auto-generated method stub
+   }
+
+   @Override
    public void addedVertexToSimplex(SimplexPolytope simplex, Point3d vertexOnSimplex, Point3d vertexOnA, Point3d vertexOnB)
    {
       // TODO Auto-generated method stub
-
    }
 
    @Override
@@ -35,7 +39,7 @@ public class GilbertJohnsonKeerthiCollisionDetectorAssertListener implements Gil
             System.err.println("\n---------------------\nlambda = " + lambda + ". Troublesome simplex for closest point:");
             System.err.println(simplex);
          }
-         assertTrue("lambda = " + lambda, lambda >= 0.0 -1e-7);
+         assertTrue("lambda = " + lambda, lambda >= 0.0 - 1e-7);
          assertTrue("lambda = " + lambda, lambda <= 1.0 + 1e-7);
          lambdaTotal = lambdaTotal + lambda;
       }

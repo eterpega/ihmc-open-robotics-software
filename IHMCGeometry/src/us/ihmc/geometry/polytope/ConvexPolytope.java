@@ -1,6 +1,7 @@
 package us.ihmc.geometry.polytope;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import javax.vecmath.Point3d;
 import javax.vecmath.Vector3d;
@@ -25,7 +26,7 @@ public class ConvexPolytope
 
    public void addVertices(Point3d[] polytopePoints)
    {
-      for (int i=0; i<polytopePoints.length; i++)
+      for (int i = 0; i < polytopePoints.length; i++)
       {
          addVertex(polytopePoints[i]);
       }
@@ -75,6 +76,44 @@ public class ConvexPolytope
       return numberOfEdges;
    }
 
+   public ArrayList<PolytopeVertex[]> getEdges()
+   {
+      //TODO: Make this more efficient, and the representation of edges in a Polytope in general.
+      ArrayList<PolytopeVertex[]> edgesToReturn = new ArrayList<>();
+
+      for (int i = 0; i < vertices.size(); i++)
+      {
+         PolytopeVertex vertex = vertices.get(i);
+         int numberOfConnectingVertices = vertex.getNumberOfConnectingVertices();
+         for (int j=0; j<numberOfConnectingVertices; j++)
+         {
+            PolytopeVertex connectingVertex = vertex.getConnectingVertex(j);
+
+            if (!alreadyHaveEdgeInList(edgesToReturn, vertex, connectingVertex))
+            {
+               edgesToReturn.add(new PolytopeVertex[]{vertex, connectingVertex});
+            }
+         }
+      }
+
+      return edgesToReturn;
+   }
+
+   private boolean alreadyHaveEdgeInList(ArrayList<PolytopeVertex[]> listOfEdges, PolytopeVertex vertexOne, PolytopeVertex vertexTwo)
+   {
+      for (int k=0; k<listOfEdges.size(); k++)
+      {
+         PolytopeVertex[] edgeToReturn = listOfEdges.get(k);
+         if (((edgeToReturn[0] == vertexOne) && (edgeToReturn[1] == vertexTwo))
+            || ((edgeToReturn[0] == vertexTwo) && (edgeToReturn[1] == vertexOne)))
+         {
+            return true;
+         }
+      }
+
+      return false;
+   }
+
    public void applyTransform(RigidBodyTransform transform)
    {
       for (int i = 0; i < vertices.size(); i++)
@@ -105,18 +144,17 @@ public class ConvexPolytope
 
       return bestVertex;
    }
-   
+
    public String toString()
    {
       String string = "";
-      
+
       for (PolytopeVertex vertex : vertices)
       {
          string = string + "\n" + vertex;
       }
-      
+
       return string;
    }
-
 
 }
