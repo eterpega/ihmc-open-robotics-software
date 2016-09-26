@@ -5,6 +5,13 @@ import us.ihmc.commonWalkingControlModules.instantaneousCapturePoint.icpOptimiza
 /** {@inheritDoc} */
 public class AtlasICPOptimizationParameters extends ICPOptimizationParameters
 {
+   private final boolean runningOnRealRobot;
+
+   public AtlasICPOptimizationParameters(boolean runningOnRealRobot)
+   {
+      this.runningOnRealRobot = runningOnRealRobot;
+   }
+
    /** {@inheritDoc} */
    @Override
    public int numberOfFootstepsToConsider()
@@ -16,7 +23,7 @@ public class AtlasICPOptimizationParameters extends ICPOptimizationParameters
    @Override
    public double getFootstepWeight()
    {
-      return 15.0;
+      return runningOnRealRobot ? 100.0 : 15.0;
    }
 
    /** {@inheritDoc} */
@@ -30,35 +37,35 @@ public class AtlasICPOptimizationParameters extends ICPOptimizationParameters
    @Override
    public double getFeedbackWeight()
    {
-      return 0.1;
+      return 0.05;
    }
 
    /** {@inheritDoc} */
    @Override
    public double getFeedbackRegularizationWeight()
    {
-      return 0.001;
+      return runningOnRealRobot ? 0.001 : 0.001;
    }
 
    /** {@inheritDoc} */
    @Override
    public double getFeedbackParallelGain()
    {
-      return 5.0;
+      return runningOnRealRobot ? 2.5 : 5.0;
    }
 
    /** {@inheritDoc} */
    @Override
    public double getFeedbackOrthogonalGain()
    {
-      return 5.0;
+      return runningOnRealRobot ? 1.5 : 5.0;
    }
 
    /** {@inheritDoc} */
    @Override
    public double getDynamicRelaxationWeight()
    {
-      return 5000.0;
+      return runningOnRealRobot ? 1000.0 : 5000.0;
    }
 
    /** {@inheritDoc} */
@@ -163,14 +170,14 @@ public class AtlasICPOptimizationParameters extends ICPOptimizationParameters
    @Override
    public double getMaxCMPForwardExit()
    {
-      return 0.01;
+      return 0.02;
    }
 
    /** {@inheritDoc} */
    @Override
    public double getMaxCMPLateralExit()
    {
-      return 0.015;
+      return 0.03;
    }
 
    /** {@inheritDoc} */
