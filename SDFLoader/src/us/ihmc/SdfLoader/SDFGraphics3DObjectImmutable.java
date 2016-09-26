@@ -6,6 +6,7 @@ import us.ihmc.SdfLoader.xmlDescription.SDFGeometry;
 import us.ihmc.SdfLoader.xmlDescription.SDFGeometry.HeightMap.Blend;
 import us.ihmc.SdfLoader.xmlDescription.SDFGeometry.HeightMap.Texture;
 import us.ihmc.SdfLoader.xmlDescription.SDFGeometry.Mesh;
+import us.ihmc.graphics3DAdapter.graphics.Graphics3DObject;
 import us.ihmc.graphics3DAdapter.graphics.ModelFileType;
 import us.ihmc.graphics3DAdapter.graphics.appearances.*;
 import us.ihmc.robotics.geometry.GeometryTools;
@@ -23,7 +24,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SDFGraphics3DObjectImmutable extends LinkGraphicsDescription
+public class SDFGraphics3DObjectImmutable extends Graphics3DObject
 {
    private static final boolean SHOW_COORDINATE_SYSTEMS = false;
    private static final AppearanceDefinition DEFAULT_APPEARANCE = YoAppearance.Orange();

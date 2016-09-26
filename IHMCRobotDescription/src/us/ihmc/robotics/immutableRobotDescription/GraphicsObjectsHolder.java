@@ -1,11 +1,11 @@
 package us.ihmc.robotics.immutableRobotDescription;
 
-import us.ihmc.graphics3DAdapter.graphics.Graphics3DObject;
+import us.ihmc.robotics.immutableRobotDescription.graphics.GraphicsGroupDescription;
 
 public interface GraphicsObjectsHolder
 {
-   Graphics3DObject getCollisionObject(String name);
+   GraphicsGroupDescription getCollisionObject(String name);
 
-   Graphics3DObject getGraphicsObject(String name);
+   GraphicsGroupDescription getGraphicsObject(String name);
 }
 

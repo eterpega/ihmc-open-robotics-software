@@ -1,9 +1,11 @@
 package us.ihmc.robotics.immutableRobotDescription;
 
-// TODO: GroundContactPointDescription extends this but also gets instantiated in SDF loader...
-public interface ExternalForcePointDescription extends KinematicPointDescription
+import org.immutables.value.Value.Immutable;
+
+@Immutable public abstract class ExternalForcePointDescription implements KinematicPointDescription
 {
-   abstract class Builder implements JointDescription.Builder
+   public static ExternalForcePointDescriptionBuilder builder()
    {
+      return new ExternalForcePointDescriptionBuilder();
    }
 }

@@ -1,15 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.PerspectiveCamera?>
-<?import javafx.scene.control.Menu?>
-<?import javafx.scene.control.MenuBar?>
-<?import javafx.scene.control.MenuItem?>
-<?import javafx.scene.control.SplitPane?>
-<?import javafx.scene.control.TreeView?>
+<?import javafx.scene.control.*?>
 <?import javafx.scene.input.KeyCodeCombination?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.Pane?>
-
 <BorderPane minHeight="300" minWidth="300" xmlns="http://javafx.com/javafx/8.0.76-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="us.ihmc.robotbuilder.MainWindow">
     <top>
         <MenuBar>
@@ -25,8 +19,7 @@
     <center>
         <SplitPane dividerPositions="0.5">
             <TreeView fx:id="treeView" prefWidth="200" />
-            <Pane fx:id="view3D" prefHeight="200.0" prefWidth="200.0">
-            </Pane>
+            <Pane fx:id="view3D" prefHeight="200.0" prefWidth="200.0" />
         </SplitPane>
     </center>
 </BorderPane>

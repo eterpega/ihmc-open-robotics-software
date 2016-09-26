@@ -2,7 +2,8 @@ package us.ihmc.robotics.immutableRobotDescription;
 
 import org.immutables.value.Value.Default;
 import org.immutables.value.Value.Immutable;
-import us.ihmc.graphics3DAdapter.graphics.Graphics3DObject;
+import us.ihmc.robotics.immutableRobotDescription.graphics.GraphicsGroupDescription;
+import us.ihmc.robotics.immutableRobotDescription.graphics.ShapeDescription;
 
 import javax.vecmath.Vector3d;
 import java.util.Collection;
@@ -47,7 +48,7 @@ import java.util.Collection;
       return null;
    }
 
-   @Override public Graphics3DObject getCollisionObject(String name)
+   @Override public GraphicsGroupDescription getCollisionObject(String name)
    {
       //TODO: Fix up for collision meshes to work...
       JointDescription jointDescription = getJointDescription(name);
@@ -57,7 +58,7 @@ import java.util.Collection;
       return jointDescription.getLink().getLinkGraphics();
    }
 
-   @Override public Graphics3DObject getGraphicsObject(String name)
+   @Override public GraphicsGroupDescription getGraphicsObject(String name)
    {
       JointDescription jointDescription = getJointDescription(name);
       if (jointDescription == null)

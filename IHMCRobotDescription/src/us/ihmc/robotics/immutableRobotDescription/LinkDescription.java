@@ -4,21 +4,26 @@ import org.ejml.data.DenseMatrix64F;
 import org.immutables.value.Value.Default;
 import org.immutables.value.Value.Immutable;
 import org.immutables.value.Value.Lazy;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import us.ihmc.graphics3DAdapter.graphics.Graphics3DObject;
 import us.ihmc.graphics3DAdapter.graphics.appearances.AppearanceDefinition;
 import us.ihmc.graphics3DAdapter.graphics.appearances.YoAppearance;
 import us.ihmc.robotics.geometry.InertiaTools;
+import us.ihmc.robotics.immutableRobotDescription.graphics.*;
 
 import javax.vecmath.Matrix3d;
 import javax.vecmath.Point3d;
 import javax.vecmath.Vector3d;
 import java.util.ArrayList;
 
+import static us.ihmc.robotics.immutableRobotDescription.graphics.TransformDescription.fromTranslation;
+
 @Immutable public abstract class LinkDescription implements NamedObject
 {
-   // TODO: should be marked nullable or optional
-   @Default public LinkGraphicsDescription getLinkGraphics()
+   @Default @NotNull public GraphicsGroupDescription getLinkGraphics()
    {
-      return new LinkGraphicsDescription();
+      return GraphicsGroupDescription.EMPTY_GROUP;
    }
 
    @Default public double getMass()
@@ -89,18 +94,18 @@ import java.util.ArrayList;
     */
    public void addEllipsoidFromMassProperties(LinkGraphicsDescription linkGraphics)
    {
-      addEllipsoidFromMassProperties(linkGraphics, null);
+      //addEllipsoidFromMassProperties(linkGraphics, null);
    }
 
    /**
     * Adds a coordinate system representation at the center of mass of this link.  The axis of this system
     * have the given length.
     *
-    * @param linkGraphics link graphics
     * @param length length in meters of each arm/axis on the coordinate system.
     */
-   public void addCoordinateSystemToCOM(LinkGraphicsDescription linkGraphics, double length)
+   public GraphicsGroupDescription createCoordinateSystemInCOM(double length)
    {
+      Graphics3DObject linkGraphics = new Graphics3DObject();
       linkGraphics.identity();
 
       Vector3d comOffset = getCenterOfMassOffset();
@@ -108,9 +113,10 @@ import java.util.ArrayList;
       linkGraphics.translate(comOffset.getX(), comOffset.getY(), comOffset.getZ());
       linkGraphics.addCoordinateSystem(length);
 
-      linkGraphics.identity();
+      return GraphicsGroupDescription.fromGraphics3DObject(linkGraphics);
    }
 
+   // TODO: what is this? Remove? Not used anywhere...
    public void addEllipsoidFromMassProperties2(LinkGraphicsDescription linkGraphics, AppearanceDefinition appearance)
    {
       PrincipalMomentsOfInertia principalMomentsOfInertia = getPrincipalMomentsOfInertia();
@@ -232,24 +238,27 @@ import java.util.ArrayList;
     *
     * @param appearance Appearance to be used with the ellipsoid.  See {@link YoAppearance YoAppearance} for implementations.
     */
-   public void addEllipsoidFromMassProperties(LinkGraphicsDescription linkGraphics, AppearanceDefinition appearance)
+   public GeometryDescription addEllipsoidFromMassProperties(@Nullable MaterialDescription appearance)
    {
       PrincipalMomentsOfInertia principalMomentsOfInertia = getPrincipalMomentsOfInertia();
 
       Vector3d inertiaEllipsoidRadii = InertiaTools.getInertiaEllipsoidRadii(principalMomentsOfInertia.getPrincipalMomentsOfIntertia(), getMass());
 
       if (appearance == null)
-         appearance = YoAppearance.Black();
+         appearance = MaterialDescription.BLACK;
 
       Matrix3d principalAxesRotation = principalMomentsOfInertia.getPrincipalAxesRotation();
 
       Vector3d comOffset = getCenterOfMassOffset();
 
-      linkGraphics.identity();
-      linkGraphics.translate(comOffset.getX(), comOffset.getY(), comOffset.getZ());
-      linkGraphics.rotate(principalAxesRotation);
-      linkGraphics.addEllipsoid(inertiaEllipsoidRadii.getX(), inertiaEllipsoidRadii.getY(), inertiaEllipsoidRadii.getZ(), appearance);
-      linkGraphics.identity();
+      return new EllipsoidDescriptionBuilder()
+            .transform(TransformDescription.fromRotation(principalAxesRotation).compose(fromTranslation(comOffset)))
+            .radiusX(inertiaEllipsoidRadii.getX())
+            .radiusY(inertiaEllipsoidRadii.getY())
+            .radiusZ(inertiaEllipsoidRadii.getZ())
+            .material(appearance)
+            .build();
+
    }
 
    /**
@@ -262,7 +271,7 @@ import java.util.ArrayList;
     *
     * @param appearance Appearance to be used with the ellipsoid.  See {@link YoAppearance YoAppearance} for implementations.
     */
-   public void addBoxFromMassProperties(LinkGraphicsDescription linkGraphics, AppearanceDefinition appearance)
+   public GeometryDescription createBoxFromMassProperties(MaterialDescription appearance)
    {
       Vector3d comOffset = getCenterOfMassOffset();
 
@@ -272,19 +281,24 @@ import java.util.ArrayList;
             || getMomentOfInertia().get(0, 0) + getMomentOfInertia().get(2, 2) <= getMomentOfInertia().get(1, 1))
       {
          System.err.println(getName() + " has unrealistic inertia");
+         return GeometryDescription.EMPTY;
       }
       else
       {
          DenseMatrix64F momentOfInertia = getMomentOfInertia();
          double mass = getMass();
-         linkGraphics.identity();
-         linkGraphics.translate(comOffset.getX(), comOffset.getY(), comOffset.getZ());
          double lx = Math.sqrt(6.0 * (momentOfInertia.get(2, 2) + momentOfInertia.get(1, 1) - momentOfInertia.get(0, 0)) / mass);
          double ly = Math.sqrt(6.0 * (momentOfInertia.get(2, 2) + momentOfInertia.get(0, 0) - momentOfInertia.get(1, 1)) / mass);
          double lz = Math.sqrt(6.0 * (momentOfInertia.get(0, 0) + momentOfInertia.get(1, 1) - momentOfInertia.get(2, 2)) / mass);
-         linkGraphics.translate(0.0, 0.0, -lz / 2.0);
-         linkGraphics.addCube(lx, ly, lz, appearance);
-         linkGraphics.identity();
+
+         TransformDescription transform = fromTranslation(comOffset).compose(fromTranslation(new Vector3d(0, 0, -lz / 2.0)));
+         return new BoxDescriptionBuilder()
+               .transform(transform)
+               .material(appearance)
+               .width(lx)
+               .height(ly)
+               .depth(lz)
+               .build();
       }
    }
 

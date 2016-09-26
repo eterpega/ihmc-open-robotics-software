@@ -13,11 +13,11 @@ import us.ihmc.SdfLoader.xmlDescription.SDFSensor.Ray.Scan;
 import us.ihmc.SdfLoader.xmlDescription.SDFSensor.Ray.Scan.HorizontalScan;
 import us.ihmc.SdfLoader.xmlDescription.SDFSensor.Ray.Scan.VerticalScan;
 import us.ihmc.graphics3DAdapter.graphics.Graphics3DObject;
-import us.ihmc.graphics3DAdapter.graphics.appearances.YoAppearance;
 import us.ihmc.robotics.geometry.InertiaTools;
 import us.ihmc.robotics.geometry.RigidBodyTransform;
 import us.ihmc.robotics.immutableRobotDescription.*;
 import us.ihmc.robotics.immutableRobotDescription.OneDoFJointDescription.LimitStops;
+import us.ihmc.robotics.immutableRobotDescription.graphics.GraphicsGroupDescription;
 import us.ihmc.robotics.lidar.LidarScanParameters;
 import us.ihmc.simulationconstructionset.simulatedSensors.SimulatedLIDARSensorLimitationParameters;
 import us.ihmc.simulationconstructionset.simulatedSensors.SimulatedLIDARSensorNoiseParameters;
@@ -36,10 +36,10 @@ import static java.lang.Double.parseDouble;
 public class ImmutableRobotDescriptionFromSDFLoader
 {
    // TODO: there should be methods to generated the graphics based on the link description, not be static defines burried in a loader that the user cannot change
-   private static final boolean SHOW_CONTACT_POINTS = true;
+   /*private static final boolean SHOW_CONTACT_POINTS = true;
    private static final boolean SHOW_COM_REFERENCE_FRAMES = false;
    private static final boolean SHOW_INERTIA_ELLIPSOIDS = false;
-   private static final boolean SHOW_SENSOR_REFERENCE_FRAMES = false;
+   private static final boolean SHOW_SENSOR_REFERENCE_FRAMES = false;*/
 
    public RobotDescription loadRobotDescriptionFromSDF(String modelName, InputStream inputStream, List<String> resourceDirectories, SDFDescriptionMutator mutator, SDFJointNameMap sdfJointNameMap, boolean useCollisionMeshes,
          boolean enableTorqueVelocityLimits, boolean enableDamping)
@@ -118,13 +118,12 @@ public class ImmutableRobotDescriptionFromSDFLoader
    }
 
    // FIXME: graphics should be immutable as well
-   private void convertLinkGraphics(JointDescription jointDescription) {
+   /*private void convertLinkGraphics(JointDescription jointDescription) {
       if (SHOW_CONTACT_POINTS)
       {
          for (GroundContactPointDescription groundContactPointDescription : jointDescription.getGroundContactPoints())
          {
-            Graphics3DObject graphics = jointDescription.getLink().getLinkGraphics();
-            if (graphics == null) graphics = new Graphics3DObject();
+            GraphicsGroupDescription graphics = jointDescription.getLink().getLinkGraphics();
 
             graphics.identity();
             graphics.translate(groundContactPointDescription.getOffsetFromJoint());
@@ -141,7 +140,7 @@ public class ImmutableRobotDescriptionFromSDFLoader
       {
          showCordinateSystem(jointDescription, sensor.getTransformToJoint());
       }
-   }
+   }*/
 
    private List<JointContactPoints> convertGroundContactPoints(SDFJointHolder joint, List<Vector3d> groundContactPoints) {
 
@@ -154,7 +153,7 @@ public class ImmutableRobotDescriptionFromSDFLoader
                .name("gc_" + sanitizedJointName + "_" + i)
                .offsetFromJoint(gcOffset)
                .build();
-         ExternalForcePointDescription externalForcePoint = new GroundContactPointDescriptionBuilder()
+         ExternalForcePointDescription externalForcePoint = new ExternalForcePointDescriptionBuilder()
                .name("ef_" + sanitizedJointName + "_")
                .offsetFromJoint(gcOffset)
                .build();
@@ -183,14 +182,14 @@ public class ImmutableRobotDescriptionFromSDFLoader
       //TODO: Get collision meshes working.
       if (useCollisionMeshes)
       {
-         LinkGraphicsDescription linkGraphicsDescription = new SDFGraphics3DObjectImmutable(link.getCollisions(), resourceDirectories, rotationTransform);
+         Graphics3DObject linkGraphicsDescription = new SDFGraphics3DObjectImmutable(link.getCollisions(), resourceDirectories, rotationTransform);
 
-         scsLinkBuilder.linkGraphics(linkGraphicsDescription);
+         scsLinkBuilder.linkGraphics(GraphicsGroupDescription.fromGraphics3DObject(linkGraphicsDescription));
       }
       else if (link.getVisuals() != null)
       {
-         LinkGraphicsDescription linkGraphicsDescription = new SDFGraphics3DObjectImmutable(link.getVisuals(), resourceDirectories, rotationTransform);
-         scsLinkBuilder.linkGraphics(linkGraphicsDescription);
+         Graphics3DObject linkGraphicsDescription = new SDFGraphics3DObjectImmutable(link.getVisuals(), resourceDirectories, rotationTransform);
+         scsLinkBuilder.linkGraphics(GraphicsGroupDescription.fromGraphics3DObject(linkGraphicsDescription));
       }
 
       double mass = link.getMass();
@@ -208,17 +207,7 @@ public class ImmutableRobotDescriptionFromSDFLoader
       scsLinkBuilder.mass(mass);
       scsLinkBuilder.momentOfInertia(LinkDescription.convertMomentOfInertia(inertia));
 
-      LinkDescription scsLink = scsLinkBuilder.build();
-      if (SHOW_COM_REFERENCE_FRAMES)
-      {
-         scsLink.addCoordinateSystemToCOM(scsLink.getLinkGraphics(), 0.1);
-      }
-      if (SHOW_INERTIA_ELLIPSOIDS)
-      {
-         scsLink.addEllipsoidFromMassProperties(scsLink.getLinkGraphics(), YoAppearance.Orange());
-      }
-
-      return scsLink;
+      return scsLinkBuilder.build();
    }
 
    private JointDescription convertJointsRecursively(SDFJointHolder joint, boolean doNotSimulateJoint, ConversionParameters parameters)
@@ -333,9 +322,7 @@ public class ImmutableRobotDescriptionFromSDFLoader
          JointDescription childJoint = convertJointsRecursively(child, doNotSimulateJoint, parameters);
          scsJointBuilder.addChildrenJoints(childJoint);
       }
-      JointDescription result = scsJointBuilder.build();
-      convertLinkGraphics(result);
-      return result;
+      return scsJointBuilder.build();
    }
 
    ///TODO:
@@ -362,7 +349,7 @@ public class ImmutableRobotDescriptionFromSDFLoader
       return generalizedSDFRobotModel;
    }
 
-   private void showCordinateSystem(JointDescription scsJoint, RigidBodyTransform offsetFromLink)
+   /*private void showCordinateSystem(JointDescription scsJoint, RigidBodyTransform offsetFromLink)
    {
       if (SHOW_SENSOR_REFERENCE_FRAMES)
       {
@@ -372,7 +359,7 @@ public class ImmutableRobotDescriptionFromSDFLoader
          linkGraphics.addCoordinateSystem(1.0);
          linkGraphics.identity();
       }
-   }
+   }*/
 
    private ConvertedSensors convertSensors(SDFLinkHolder child)
    {
