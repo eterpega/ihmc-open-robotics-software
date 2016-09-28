@@ -40,6 +40,9 @@ public class ConvexPolygon2d implements Geometry2d<ConvexPolygon2d>
    private int minXminY_index = 0, maxXminY_index = 0, maxXmaxY_index = 0;
    private final int minXmaxY_index = 0;
 
+   // temporary object to avoid garbage generation
+   private final Point3d tempVertex3d = new Point3d();
+
    /**
     * Creates an empty convex polygon.
     */
@@ -662,280 +665,6 @@ public class ConvexPolygon2d implements Geometry2d<ConvexPolygon2d>
       update();
    }
 
-   // here ---------------------
-   /**
-    * Returns all of the vertices that are visible from the observerPoint2d, in left to right order.
-    * If the observerPoint2d is inside the polygon, returns null.
-    *
-    * @param observerPoint2d Point2d
-    * @return ArrayList<Point2d>
-    */
-   public ArrayList<Point2d> getAllVisibleVerticesFromOutsideLeftToRightCopy(Point2d observerPoint2d)
-   {
-      checkIfUpToDate();
-      if (!hasAtLeastTwoVertices())
-      {
-         ArrayList<Point2d> points = new ArrayList<Point2d>();
-         for (int i = 0; i < numberOfVertices; i++)
-         {
-            points.add(new Point2d(getVertex(i)));
-         }
-
-         return points;
-      }
-
-      int[] indices = ConvexPolygon2dCalculator.getLineOfSightVertexIndicesCopy(observerPoint2d, this);
-
-      if (indices == null)
-         return null;
-
-      ArrayList<Point2d> ret = new ArrayList<Point2d>();
-
-      int leavingLeftEdge = indices[0];
-      int enteringRightEdge = indices[1];
-
-      int edgeToAdd = leavingLeftEdge;
-
-      while (edgeToAdd != enteringRightEdge)
-      {
-         Point2d point = new Point2d(getVertex(edgeToAdd));
-         ret.add(point);
-
-         edgeToAdd = getPreviousVertexIndex(edgeToAdd);
-      }
-
-      Point2d point = new Point2d(getVertex(edgeToAdd));
-      ret.add(point);
-
-      return ret;
-   }
-
-   /**
-    * Returns the two LineSegment2ds that are the first segments around the corner that cannot be seen from the observerPoint2d.
-    * If the observerPoint2d is null returns null. The line segments are returned in order of left, then right.
-    * The line segments go from the line of sight points to the points that are not in view, but are around the corner.
-    *
-    * @param observerPoint2d Point2d marking the point of observation of this ConvexPolygon2d.
-    * @return LineSegment2d[] Two line segments going from the line of sight points to the first points around the corners that are out of sight.
-    * null if the observerPoint2d is inside this ConvexPolygon2d.
-    */
-   public LineSegment2d[] getAroundTheCornerEdgesCopy(Point2d observerPoint2d)
-   {
-      checkIfUpToDate();
-      int[] indices = ConvexPolygon2dCalculator.getLineOfSightVertexIndicesCopy(observerPoint2d, this);
-
-      // TODO indices == null || indices.length == 1 is deprecated
-      if (indices == null || indices.length == 1 || indices[0] == indices[1])
-         return null;
-
-      int leavingLeftEdge = indices[0];
-      int enteringRightEdge = indices[1];
-
-      int aroundCornerOfLeftEdge = leavingLeftEdge + 1;
-      if (aroundCornerOfLeftEdge == numberOfVertices)
-         aroundCornerOfLeftEdge = 0;
-
-      int aroundCornerRightEdge = enteringRightEdge - 1;
-      if (aroundCornerRightEdge < 0)
-         aroundCornerRightEdge = numberOfVertices - 1;
-
-      Point2d leftPoint = new Point2d(getVertex(leavingLeftEdge));
-      Point2d leftPointAroundCorner = new Point2d(getVertex(aroundCornerOfLeftEdge));
-
-      Point2d rightPoint = new Point2d(getVertex(enteringRightEdge));
-      Point2d rightPointAroundCorner = new Point2d(getVertex(aroundCornerRightEdge));
-
-      LineSegment2d leftLineSegment = new LineSegment2d(leftPoint, leftPointAroundCorner);
-      LineSegment2d rightLineSegment = new LineSegment2d(rightPoint, rightPointAroundCorner);
-
-      return new LineSegment2d[] {leftLineSegment, rightLineSegment};
-   }
-
-   @Override
-   public Point2d[] intersectionWith(LineSegment2d lineSegment2d)
-   {
-      checkIfUpToDate();
-      if (hasExactlyOneVertex())
-      {
-         if (lineSegment2d.isPointOnLineSegment(getVertex(0)))
-            return new Point2d[] {new Point2d(getVertex(0))};
-         else
-            return null;
-      }
-
-      if (hasExactlyTwoVertices())
-      {
-         LineSegment2d polygonAsSegment = new LineSegment2d(getVertex(0), getVertex(1));
-         Point2d intersection = polygonAsSegment.intersectionWith(lineSegment2d);
-         if (intersection != null)
-            return new Point2d[] {intersection};
-         else
-            return null;
-      }
-
-      Point2d[] endPoints = lineSegment2d.endpoints;
-
-      Point2d outsidePoint, otherPoint;
-      boolean onePointIsInside;
-
-      // First make sure that the ray goes from an outside point...
-      if (ConvexPolygon2dCalculator.isPointInside(endPoints[0], this))
-      {
-         if (ConvexPolygon2dCalculator.isPointInside(endPoints[1], this))
-            return null; // Both Points are inside!
-
-         outsidePoint = endPoints[1];
-         otherPoint = endPoints[0];
-         onePointIsInside = true;
-      }
-      else if (ConvexPolygon2dCalculator.isPointInside(endPoints[1], this))
-      {
-         outsidePoint = endPoints[0];
-         otherPoint = endPoints[1];
-         onePointIsInside = true;
-      }
-      else
-      {
-         outsidePoint = endPoints[0];
-         otherPoint = endPoints[1];
-         onePointIsInside = false;
-      }
-
-      // +++ jjc 090625 swap the line points to set the first point as the closest point to the polygon so that line segment intersections are properly found.
-      Line2d line2d;
-      if (distance(outsidePoint) > distance(otherPoint))
-      {
-         line2d = new Line2d(otherPoint, outsidePoint);
-      }
-      else
-      {
-         line2d = new Line2d(outsidePoint, otherPoint);
-      }
-
-      // Line2d line2d = new Line2d(outsidePoint, otherPoint);
-
-      Point2d[] intersections = intersectionWithRayCopy(line2d);
-      if (intersections == null)
-         return null;
-
-      if (!onePointIsInside)
-         return intersections;
-
-      return new Point2d[] {intersections[0]}; // Only return the entering point, if the segment has one point inside the polygon.
-   }
-
-   @Override
-   public ConvexPolygon2d intersectionWith(ConvexPolygon2d convexPolygon)
-   {
-      checkIfUpToDate();
-      ConvexPolygon2d ret = new ConvexPolygon2d();
-      boolean success = ConvexPolygonTools.computeIntersectionOfPolygons(this, convexPolygon, ret);
-      if (!success)
-         ret = null;
-      return ret;
-   }
-
-   public boolean intersectionWith(ConvexPolygon2d convexPolygon, ConvexPolygon2d intersectionToPack)
-   {
-      checkIfUpToDate();
-      return ConvexPolygonTools.computeIntersectionOfPolygons(this, convexPolygon, intersectionToPack);
-   }
-
-   public LineSegment2d getClosestEdgeCopy(Point2d point)
-   {
-      checkIfUpToDate();
-      if (!hasAtLeastTwoVertices())
-      {
-         return null;
-      }
-
-      int[] closestEdgeVertices = getClosestEdgeVertexIndicesInClockwiseOrderedList(point);
-
-      Point2d prevP = getVertex(closestEdgeVertices[0]);
-      Point2d p = getVertex(closestEdgeVertices[1]);
-      LineSegment2d closestEdge = new LineSegment2d(prevP, p);
-
-      return closestEdge;
-   }
-
-   public boolean getClosestEdge(LineSegment2d closestEdgeToPack, Point2d point)
-   {
-      checkIfUpToDate();
-      if (!hasAtLeastTwoVertices())
-      {
-         return false;
-      }
-
-      int[] closestEdgeVertices = getClosestEdgeVertexIndicesInClockwiseOrderedList(point);
-
-      Point2d prevP = getVertex(closestEdgeVertices[0]);
-      Point2d p = getVertex(closestEdgeVertices[1]);
-      closestEdgeToPack.set(prevP, p);
-
-      return true;
-   }
-
-   private final LineSegment2d tempEdge = new LineSegment2d();
-
-   protected int[] getClosestEdgeVertexIndicesInClockwiseOrderedList(Point2d point)
-   {
-      checkIfUpToDate();
-      if (!hasAtLeastTwoVertices())
-      {
-         return null;
-      }
-
-      // TODO: Create a more efficient algorithm to find this distance
-      double smallestDistance = Double.POSITIVE_INFINITY;
-
-      int prevIndex = getNumberOfVertices() - 1;
-
-      int[] closestEdgeVertexIndicesInClockwiseOrderedList = new int[2];
-      closestEdgeVertexIndicesInClockwiseOrderedList[0] = prevIndex;
-      closestEdgeVertexIndicesInClockwiseOrderedList[1] = 0;
-
-      for (int index = 0; index < getNumberOfVertices(); index++)
-      {
-         Point2d currentVertex = getVertex(index);
-         Point2d prevVertex = getVertex(prevIndex);
-         tempEdge.set(prevVertex, currentVertex);
-         double dist = tempEdge.distance(point);
-         if (dist < smallestDistance)
-         {
-            closestEdgeVertexIndicesInClockwiseOrderedList[0] = prevIndex;
-            closestEdgeVertexIndicesInClockwiseOrderedList[1] = index;
-            smallestDistance = dist;
-         }
-
-         prevIndex = index;
-      }
-
-      return closestEdgeVertexIndicesInClockwiseOrderedList;
-   }
-
-   // to here ---------------------
-
-   @Override
-   public double distance(Line2d line)
-   {
-      checkIfUpToDate();
-      throw new RuntimeException("Not yet implemented");
-   }
-
-   @Override
-   public double distance(LineSegment2d lineSegment)
-   {
-      checkIfUpToDate();
-      throw new RuntimeException("Not yet implemented");
-   }
-
-   @Override
-   public double distance(ConvexPolygon2d convexPolygon)
-   {
-      checkIfUpToDate();
-      throw new RuntimeException("Not yet implemented");
-   }
-
    @Override
    public String toString()
    {
@@ -955,7 +684,6 @@ public class ConvexPolygon2d implements Geometry2d<ConvexPolygon2d>
       throw new RuntimeException("This is a 2d object use applyTransformAndProjectToXYPlane method instead.");
    }
 
-   private final Point3d tempVertex3d = new Point3d();
    @Override
    public void applyTransformAndProjectToXYPlane(RigidBodyTransform transform)
    {
@@ -1274,6 +1002,16 @@ public class ConvexPolygon2d implements Geometry2d<ConvexPolygon2d>
       return ConvexPolygon2dCalculator.intersectionWithLineCopy(line, this);
    }
 
+   public boolean getClosestEdge(LineSegment2d closestEdgeToPack, Point2d point)
+   {
+      return ConvexPolygon2dCalculator.getClosestEdge(point, this, closestEdgeToPack);
+   }
+
+   public LineSegment2d getClosestEdgeCopy(Point2d point)
+   {
+      return ConvexPolygon2dCalculator.getClosestEdgeCopy(point, this);
+   }
+
    public Point2d[] intersectionWithRayCopy(Line2d ray)
    {
       return ConvexPolygon2dCalculator.intersectionWithRayCopy(ray, this);
@@ -1283,5 +1021,50 @@ public class ConvexPolygon2d implements Geometry2d<ConvexPolygon2d>
    public Point2d orthogonalProjectionCopy(Point2d point)
    {
       return ConvexPolygon2dCalculator.orthogonalProjectionCopy(point, this);
+   }
+
+   @Override
+   public Point2d[] intersectionWith(LineSegment2d lineSegment2d)
+   {
+      return ConvexPolygon2dCalculator.intersectionWithLineSegmentCopy(lineSegment2d, this);
+   }
+
+   // TODO: clean up garbage in / implement the following methods
+   @Override
+   public ConvexPolygon2d intersectionWith(ConvexPolygon2d convexPolygon)
+   {
+      checkIfUpToDate();
+      ConvexPolygon2d ret = new ConvexPolygon2d();
+      boolean success = ConvexPolygonTools.computeIntersectionOfPolygons(this, convexPolygon, ret);
+      if (!success)
+         ret = null;
+      return ret;
+   }
+
+   public boolean intersectionWith(ConvexPolygon2d convexPolygon, ConvexPolygon2d intersectionToPack)
+   {
+      checkIfUpToDate();
+      return ConvexPolygonTools.computeIntersectionOfPolygons(this, convexPolygon, intersectionToPack);
+   }
+
+   @Override
+   public double distance(Line2d line)
+   {
+      checkIfUpToDate();
+      throw new RuntimeException("Not yet implemented");
+   }
+
+   @Override
+   public double distance(LineSegment2d lineSegment)
+   {
+      checkIfUpToDate();
+      throw new RuntimeException("Not yet implemented");
+   }
+
+   @Override
+   public double distance(ConvexPolygon2d convexPolygon)
+   {
+      checkIfUpToDate();
+      throw new RuntimeException("Not yet implemented");
    }
 }

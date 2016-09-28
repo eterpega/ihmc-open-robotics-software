@@ -870,73 +870,6 @@ public class ConvexPolygon2dTest
 
    }
 
-   @DeployableTestMethod(estimatedDuration = 0.2)
-   @Test(timeout = 30000)
-   public void testGetAroundCornerEdgesOne()
-   {
-      Random random = new Random(1999L);
-
-      ReferenceFrame zUpFrame = ReferenceFrame.constructARootFrame("someFrame", true, false, true);
-      double xMin = -100.0, xMax = 100.0, yMin = -100.0, yMax = 100.0;
-
-      ArrayList<FramePoint2d> points = ConvexPolygon2dTestHelpers.generateRandomCircularFramePoints(random, zUpFrame, xMin, xMax, yMin, yMax, 30);
-
-      FrameConvexPolygon2d polygon = new FrameConvexPolygon2d(points);
-      ConvexPolygon2dTestHelpers.verifyPointsAreClockwise(polygon);
-
-      FrameGeometry2dPlotter plotter = null;
-      FrameGeometryTestFrame testFrame = null;
-      if (PLOT_RESULTS)
-      {
-         testFrame = new FrameGeometryTestFrame(xMin, xMax, yMin, yMax);
-
-         plotter = testFrame.getFrameGeometry2dPlotter();
-         plotter.setPolygonToCheckInside(polygon);
-
-         testFrame.addTestPoints(points);
-      }
-
-      int numAroundCornerTests = 100000;
-
-      ArrayList<FramePoint2d> randomOutsidePoints = new ArrayList<FramePoint2d>();
-
-      for (int i = 0; i < numAroundCornerTests; i++)
-      {
-         FramePoint2d randomPoint = FramePoint2d.generateRandomFramePoint2d(random, zUpFrame, 2.0 * xMin, 2.0 * xMax, 2.0 * yMin, 2.0 * yMax);
-         if (!polygon.isPointInside(randomPoint))
-         {
-            randomOutsidePoints.add(randomPoint);
-
-            FramePoint2d[] lineOfSightVertices = polygon.getLineOfSightVerticesCopy(randomPoint);
-            FrameLineSegment2d[] aroundCornerEdges = polygon.getAroundTheCornerEdges(randomPoint);
-
-            ConvexPolygon2dTestHelpers.verifyAroundTheCornerEdges(polygon, randomPoint, lineOfSightVertices, aroundCornerEdges);
-
-            if (PLOT_RESULTS)
-            {
-               FrameLineSegment2d frameLine1 = new FrameLineSegment2d(randomPoint, lineOfSightVertices[0]);
-               FrameLineSegment2d frameLine2 = new FrameLineSegment2d(randomPoint, lineOfSightVertices[1]);
-
-               plotter.addFrameLineSegment2d(frameLine1, Color.cyan);
-               plotter.addFrameLineSegment2d(aroundCornerEdges[0], Color.cyan);
-
-               plotter.addFrameLineSegment2d(frameLine2, Color.magenta);
-               plotter.addFrameLineSegment2d(aroundCornerEdges[1], Color.magenta);
-            }
-
-         }
-         else
-         {
-         }
-      }
-
-      if (PLOT_RESULTS)
-      {
-         waitForButtonOrPause(testFrame);
-      }
-
-   }
-
    @DeployableTestMethod(estimatedDuration = 0.0)
    @Test(timeout = 30000)
    public void testGetLineOfSightVerticesOne()
@@ -1438,7 +1371,6 @@ public class ConvexPolygon2dTest
             nonIntersectingLines.add(frameLine2d);
             ConvexPolygon2dTestHelpers.verifyLineDoesNotIntersectPolygon(frameLine2d, polygon);
          }
-
          else
          {
             intersectingLines.add(frameLine2d);
@@ -1958,16 +1890,14 @@ public class ConvexPolygon2dTest
          LineSegment2d arbitraryLineSegment = new LineSegment2d(arbitraryPoint0, arbitraryPoint1);
 
          assertEquals(pointThatDefinesThePolygon.distance(arbitraryPoint0), ConvexPolygon2dCalculator.getClosestVertexCopy(arbitraryPoint0, polygonWithOnePoint).distance(arbitraryPoint0), epsilon);
-         assertTrue(polygonWithOnePoint.getAllVisibleVerticesFromOutsideLeftToRightCopy(arbitraryPoint0).get(0).equals(pointThatDefinesThePolygon));
          assertEquals(0.0, polygonWithOnePoint.getArea(), epsilon);
-         assertTrue(polygonWithOnePoint.getAroundTheCornerEdgesCopy(arbitraryPoint0) == null);
          assertTrue(polygonWithOnePoint.getBoundingBoxCopy().getMaxPoint().equals(pointThatDefinesThePolygon));
          assertTrue(polygonWithOnePoint.getBoundingBoxCopy().getMinPoint().equals(pointThatDefinesThePolygon));
          assertTrue(polygonWithOnePoint.getCentroid().equals(pointThatDefinesThePolygon));
          assertEquals(1, polygonWithOnePoint.getNumberOfVertices());
          assertTrue(polygonWithOnePoint.getVertex(0).equals(pointThatDefinesThePolygon));
          assertTrue(polygonWithOnePoint.getClosestEdgeCopy(arbitraryPoint0) == null);
-         assertTrue(polygonWithOnePoint.getClosestEdgeVertexIndicesInClockwiseOrderedList(arbitraryPoint0) == null);
+         assertTrue(ConvexPolygon2dCalculator.getClosestEdgeIndex(arbitraryPoint0, polygonWithOnePoint) == -1);
          assertTrue(ConvexPolygon2dCalculator.getClosestVertexCopy(arbitraryLine, polygonWithOnePoint).equals(pointThatDefinesThePolygon));
          assertTrue(ConvexPolygon2dCalculator.getClosestVertexCopy(arbitraryPoint0, polygonWithOnePoint).equals(pointThatDefinesThePolygon));
          assertEquals(1, polygonWithOnePoint.getNumberOfVertices());
@@ -2067,17 +1997,7 @@ public class ConvexPolygon2dTest
          // one line tests
          assertEquals(Math.min(pointThatDefinesThePolygon0.distance(arbitraryPoint0), pointThatDefinesThePolygon1.distance(arbitraryPoint0)),
                ConvexPolygon2dCalculator.getClosestVertexCopy(arbitraryPoint0, polygonWithTwoPoints).distance(arbitraryPoint0), epsilon);
-         assertEqualsInEitherOrder(pointThatDefinesThePolygon0, pointThatDefinesThePolygon1,
-               polygonWithTwoPoints
-               .getAllVisibleVerticesFromOutsideLeftToRightCopy(arbitraryPoint0).get(0),
-               polygonWithTwoPoints.getAllVisibleVerticesFromOutsideLeftToRightCopy(arbitraryPoint0).get(1));
          assertEquals(0.0, polygonWithTwoPoints.getArea(), epsilon);
-         LineSegment2d aroundTheCornerEdge0 = polygonWithTwoPoints.getAroundTheCornerEdgesCopy(arbitraryPoint0)[0];
-         LineSegment2d aroundTheCornerEdge1 = polygonWithTwoPoints.getAroundTheCornerEdgesCopy(arbitraryPoint0)[1];
-         assertEqualsInEitherOrder(pointThatDefinesThePolygon0, pointThatDefinesThePolygon1, aroundTheCornerEdge0.getFirstEndpointCopy(),
-               aroundTheCornerEdge0.getSecondEndpointCopy());
-         assertEqualsInEitherOrder(pointThatDefinesThePolygon0, pointThatDefinesThePolygon1, aroundTheCornerEdge1.getFirstEndpointCopy(),
-               aroundTheCornerEdge1.getSecondEndpointCopy());
          Point2d minPoint = new Point2d(Math.min(pointThatDefinesThePolygon0.getX(), pointThatDefinesThePolygon1.getX()), Math.min(
                pointThatDefinesThePolygon0.getY(), pointThatDefinesThePolygon1.getY()));
          Point2d maxPoint = new Point2d(Math.max(pointThatDefinesThePolygon0.getX(), pointThatDefinesThePolygon1.getX()), Math.max(
@@ -2100,8 +2020,8 @@ public class ConvexPolygon2dTest
          assertEqualsInEitherOrder(closestEdgeEndpoints[0], closestEdgeEndpoints[1], pointThatDefinesThePolygon0, pointThatDefinesThePolygon1);
 
          // getClosestEdgeVertexIndicesInClockwiseOrderedList
-         int[] closestEdgesClockwise = polygonWithTwoPoints.getClosestEdgeVertexIndicesInClockwiseOrderedList(arbitraryPoint0);
-         assertEqualsInEitherOrder(closestEdgesClockwise[0], closestEdgesClockwise[1], 0, 1);
+         int edgeIndex = ConvexPolygon2dCalculator.getClosestEdgeIndex(arbitraryPoint0, polygonWithTwoPoints);
+         assertEqualsInEitherOrder(edgeIndex, polygonWithTwoPoints.getNextVertexIndex(edgeIndex), 0, 1);
 
          // getCounterClockwiseOrderedListOfPointsCopy
          assertEqualsInEitherOrder(polygonWithTwoPoints.getVertexCCW(0), polygonWithTwoPoints.getVertexCCW(1), pointThatDefinesThePolygon0,
@@ -2205,7 +2125,7 @@ public class ConvexPolygon2dTest
          else if (expectedIntersectionWithSparePolygon.length == 1)
          {
             assertTrue(actualIntersectionWithSparePolygon.getNumberOfVertices() == 1);
-            assertTrue(expectedIntersectionWithSparePolygon[0].equals(actualIntersectionWithSparePolygon.getVertex(0)));
+            assertTrue(expectedIntersectionWithSparePolygon[0].epsilonEquals(actualIntersectionWithSparePolygon.getVertex(0), epsilon));
          }
          else if (expectedIntersectionWithSparePolygon.length == 2)
          {
@@ -2261,7 +2181,7 @@ public class ConvexPolygon2dTest
          if (!success)
             assertTrue(sparePolygon.intersectionWith(lineSegmentThatDefinesThePolygon) == null);
          else if (polygonIntersection.getNumberOfVertices() == 1)
-            assertTrue(sparePolygon.intersectionWith(lineSegmentThatDefinesThePolygon)[0].equals(polygonIntersection.getVertex(0)));
+            assertTrue(sparePolygon.intersectionWith(lineSegmentThatDefinesThePolygon)[0].epsilonEquals(polygonIntersection.getVertex(0), epsilon));
          else if (polygonIntersection.getNumberOfVertices() == 2)
             assertEqualsInEitherOrder(sparePolygon.intersectionWith(lineSegmentThatDefinesThePolygon)[0],
                   sparePolygon.intersectionWith(lineSegmentThatDefinesThePolygon)[1], polygonIntersection.getVertex(0), polygonIntersection.getVertex(1));
@@ -2274,6 +2194,12 @@ public class ConvexPolygon2dTest
             assertTrue(arbitraryLineSegment.intersectionWith(lineSegmentThatDefinesThePolygon) == null);
          else if (intersection.length == 1)
             assertTrue(intersection[0].distance(arbitraryLineSegment.intersectionWith(lineSegmentThatDefinesThePolygon)) < epsilon);
+         else if (intersection.length == 2)
+         {
+            assertTrue(intersection[0].distance(arbitraryLineSegment.intersectionWith(lineSegmentThatDefinesThePolygon)) < epsilon);
+            assertTrue(intersection[1].distance(arbitraryLineSegment.intersectionWith(lineSegmentThatDefinesThePolygon)) < epsilon);
+            assertFalse(intersection[0].epsilonEquals(intersection[1], epsilon));
+         }
          else
             fail();
 
@@ -2299,10 +2225,10 @@ public class ConvexPolygon2dTest
 
    private void assertEqualsInEitherOrder(Point2d expected0, Point2d expected1, Point2d actual0, Point2d actual1)
    {
-      if (expected0.equals(actual0))
-         assertTrue(expected1.equals(actual1));
-      else if (expected0.equals(actual1))
-         assertTrue(expected1.equals(actual0));
+      if (expected0.epsilonEquals(actual0, epsilon))
+         assertTrue(expected1.epsilonEquals(actual1, epsilon));
+      else if (expected0.epsilonEquals(actual1, epsilon))
+         assertTrue(expected1.epsilonEquals(actual0, epsilon));
       else
       {
          fail("Points are not equal in either order.");

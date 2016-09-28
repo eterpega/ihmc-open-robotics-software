@@ -1,15 +1,10 @@
 package us.ihmc.convexOptimization.quadraticProgram;
 
-//~--- non-JDK imports --------------------------------------------------------
-
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 
 import us.ihmc.convexOptimization.QuadProgWrapper;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 import us.ihmc.tools.exceptions.NoConvergenceException;
-
-//~--- JDK imports ------------------------------------------------------------
 
 public class QuadProgSolver extends ConstrainedQPSolver
 {
@@ -22,12 +17,12 @@ public class QuadProgSolver extends ConstrainedQPSolver
    QuadProgWrapper qpWrapper;
    DenseMatrix64F negAin = new DenseMatrix64F(0), negAeq = new DenseMatrix64F(0);
 
-   public QuadProgSolver(YoVariableRegistry parentRegistry)
+   public QuadProgSolver()
    {
-      this(1, 0, 0, parentRegistry);
+      this(1, 0, 0);
    }
 
-   public QuadProgSolver(int nvar, int neq, int nin, YoVariableRegistry parentRegistry)
+   public QuadProgSolver(int nvar, int neq, int nin)
    {
       qpWrapper = new QuadProgWrapper(nvar, neq, nin);
       allocateTempraryMatrixOnDemand(nvar, neq, nin);
@@ -47,15 +42,14 @@ public class QuadProgSolver extends ConstrainedQPSolver
    }
 
    @Override
-   public int solve(DenseMatrix64F Q, DenseMatrix64F f, DenseMatrix64F Aeq, DenseMatrix64F beq, DenseMatrix64F Ain, DenseMatrix64F bin, DenseMatrix64F x,
-         boolean initialize) throws NoConvergenceException
+   public int solve(DenseMatrix64F Q, DenseMatrix64F f, DenseMatrix64F Aeq, DenseMatrix64F beq, DenseMatrix64F Ain, DenseMatrix64F bin, DenseMatrix64F x, boolean initialize) throws NoConvergenceException
    {
       return solve(Q, f, Aeq, beq, Ain, bin, null, null, x, initialize);
    }
 
    @Override
-   public int solve(DenseMatrix64F Q, DenseMatrix64F f, DenseMatrix64F Aeq, DenseMatrix64F beq, DenseMatrix64F Ain, DenseMatrix64F bin, DenseMatrix64F lb,
-         DenseMatrix64F ub, DenseMatrix64F x, boolean initialize) throws NoConvergenceException
+   public int solve(DenseMatrix64F Q, DenseMatrix64F f, DenseMatrix64F Aeq, DenseMatrix64F beq, DenseMatrix64F Ain, DenseMatrix64F bin, DenseMatrix64F lb, DenseMatrix64F ub, DenseMatrix64F x, boolean initialize)
+         throws NoConvergenceException
    {
 
       allocateTempraryMatrixOnDemand(Aeq.numCols, Aeq.numRows, Ain.numRows);

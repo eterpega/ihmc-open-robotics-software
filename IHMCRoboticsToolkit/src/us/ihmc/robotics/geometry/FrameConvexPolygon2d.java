@@ -814,44 +814,26 @@ public class FrameConvexPolygon2d extends FrameGeometry2d<FrameConvexPolygon2d, 
     * @param observerFramePoint Point2d
     * @return Point2d[]
     */
-   public ArrayList<FramePoint2d> getAllVisibleVerticesFromOutsideLeftToRight(FramePoint2d observerFramePoint)
+   public ArrayList<FramePoint2d> getAllVisibleVerticesFromOutsideLeftToRightCopy(FramePoint2d observerFramePoint)
    {
       this.checkReferenceFrameMatch(observerFramePoint);
+      int[] lineOfSightIndeces = ConvexPolygon2dCalculator.getLineOfSightVertexIndicesCopy(observerFramePoint.getPoint(), convexPolygon);
+      if (lineOfSightIndeces == null)
+         return null;
 
       ArrayList<FramePoint2d> ret = new ArrayList<FramePoint2d>();
+      int index = lineOfSightIndeces[0];
 
-      ArrayList<Point2d> vertices = this.convexPolygon.getAllVisibleVerticesFromOutsideLeftToRightCopy(observerFramePoint.getPointCopy());
-      if (vertices == null)
-         return null;
-
-      for (Point2d vertex : vertices)
+      while (true)
       {
-         ret.add(new FramePoint2d(referenceFrame, vertex));
+         ret.add(getFrameVertexCopy(index));
+         index = convexPolygon.getPreviousVertexIndex(index);
+         if (index == lineOfSightIndeces[1])
+         {
+            ret.add(getFrameVertexCopy(index));
+            break;
+         }
       }
-
-      return ret;
-   }
-
-   /**
-    * Returns the two FrameLineSegment2ds that are the first segments around the corner that cannot be seen from the observer FramePoint2d.
-    * If the observer FramePoint2d is null returns null. The line segments are returned in order of left, then right.
-    * The line segments go from the line of sight points to the points that are not in view, but are around the corner.
-    *
-    * @param observerFramePoint FramePoint2d marking the point of observation of this ConvexPolygon2d.
-    * @return FrameLineSegment2d[] Two line segments going from the line of sight points to the first points around the corners that are out of sight.
-    * null if the observer FramePoint2d is inside this FrameConvexPolygon2d.
-    */
-   public FrameLineSegment2d[] getAroundTheCornerEdges(FramePoint2d observerFramePoint)
-   {
-      this.checkReferenceFrameMatch(observerFramePoint);
-
-      LineSegment2d[] aroundTheCornerLineSegments2d = this.convexPolygon.getAroundTheCornerEdgesCopy(observerFramePoint.getPointCopy());
-
-      if (aroundTheCornerLineSegments2d == null)
-         return null;
-
-      FrameLineSegment2d[] ret = new FrameLineSegment2d[] { new FrameLineSegment2d(observerFramePoint.getReferenceFrame(), aroundTheCornerLineSegments2d[0]),
-            new FrameLineSegment2d(observerFramePoint.getReferenceFrame(), aroundTheCornerLineSegments2d[1]) };
 
       return ret;
    }
@@ -1187,6 +1169,12 @@ public class FrameConvexPolygon2d extends FrameGeometry2d<FrameConvexPolygon2d, 
    {
       convexPolygon.set(other.convexPolygon);
       update();
+   }
+
+   public boolean getLineOfSightVertexIndices(FramePoint2d observer, int[] idicesToPack)
+   {
+      checkReferenceFrameMatch(observer);
+      return ConvexPolygon2dCalculator.getLineOfSightVertexIndices(observer.getPoint(), idicesToPack, convexPolygon);
    }
 
    // --- methods that generate garbage ---

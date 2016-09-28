@@ -12,6 +12,8 @@ import us.ihmc.robotics.robotSide.RobotSide;
  */
 public class ConvexPolygon2dCalculator
 {
+   private static final double epsilon = 1.0E-10;
+
    /**
     * Returns distance from the point to the boundary of this polygon. The return value
     * is negative if the point is inside the polygon.
@@ -150,6 +152,44 @@ public class ConvexPolygon2dCalculator
       if (index < 0)
          return false;
       pointToPack.set(polygon.getVertex(index));
+      return true;
+   }
+
+   /**
+    * Packs the index of the closest edge to the given point. The index corresponds to the index
+    * of the vertex at the start of the edge.
+    */
+   public static int getClosestEdgeIndex(Point2d point, ConvexPolygon2d polygon)
+   {
+      int index = -1;
+      if (!polygon.hasAtLeastTwoVertices())
+         return index;
+
+      double minDistance = Double.POSITIVE_INFINITY;
+      for (int i = 0; i < polygon.getNumberOfVertices(); i++)
+      {
+         Point2d start = polygon.getVertex(i);
+         Point2d end = polygon.getNextVertex(i);
+         double distance = GeometryTools.distanceFromPointToLineSegment(point, start, end);
+         if (distance < minDistance)
+         {
+            index = i;
+            minDistance = distance;
+         }
+      }
+
+      return index;
+   }
+
+   /**
+    * Packs the closest edge to the given point.
+    */
+   public static boolean getClosestEdge(Point2d point, ConvexPolygon2d polygon, LineSegment2d edgeToPack)
+   {
+      int edgeIndex = getClosestEdgeIndex(point, polygon);
+      if (edgeIndex == -1)
+         return false;
+      edgeToPack.set(polygon.getVertex(edgeIndex), polygon.getNextVertex(edgeIndex));
       return true;
    }
 
@@ -493,6 +533,106 @@ public class ConvexPolygon2dCalculator
    }
 
    /**
+    * Computes the points of intersection between the line segment and the polygon and packs them into pointToPack1
+    * and pointToPack2. If there is only one intersection it will be stored in pointToPack1. Returns the number of
+    * intersections found.
+    */
+   public static int intersectionWithLineSegment(LineSegment2d lineSegment, Point2d pointToPack1, Point2d pointToPack2, ConvexPolygon2d polygon)
+   {
+      Point2d segmentStart = lineSegment.getFirstEndpoint();
+      Point2d segmentEnd = lineSegment.getSecondEndpoint();
+      double segmentVectorX = segmentEnd.x - segmentStart.x;
+      double segmentVectorY = segmentEnd.y - segmentStart.y;
+
+      int foundIntersections = 0;
+      if (polygon.hasExactlyTwoVertices())
+      {
+         Point2d vertex0 = polygon.getVertex(0);
+         Point2d vertex1 = polygon.getVertex(1);
+         if (GeometryTools.distanceFromPointToLineSegment(vertex0, segmentStart, segmentEnd) < epsilon)
+         {
+            pointToPack1.set(vertex0);
+            foundIntersections++;
+         }
+         if (GeometryTools.distanceFromPointToLineSegment(vertex1, segmentStart, segmentEnd) < epsilon)
+         {
+            if (foundIntersections == 0)
+               pointToPack1.set(vertex1);
+            else
+               pointToPack2.set(vertex1);
+            foundIntersections++;
+         }
+
+         if (foundIntersections == 2)
+            return 2;
+      }
+
+      for (int i = 0; i < polygon.getNumberOfVertices(); i++)
+      {
+         Point2d edgeStart = polygon.getVertex(i);
+         Point2d edgeEnd = polygon.getNextVertex(i);
+
+         // check if the end points of the line segments are on this edge
+         if (GeometryTools.distanceFromPointToLineSegment(segmentStart, edgeStart, edgeEnd) < epsilon)
+         {
+            if (foundIntersections == 0)
+               pointToPack1.set(segmentStart);
+            else
+               pointToPack2.set(segmentStart);
+
+            foundIntersections++;
+            if (foundIntersections == 2 && pointToPack1.epsilonEquals(pointToPack2, epsilon))
+               foundIntersections--;
+            if (foundIntersections == 2) break;
+         }
+         if (GeometryTools.distanceFromPointToLineSegment(segmentEnd, edgeStart, edgeEnd) < epsilon)
+         {
+            if (foundIntersections == 0)
+               pointToPack1.set(segmentEnd);
+            else
+               pointToPack2.set(segmentEnd);
+
+            foundIntersections++;
+            if (foundIntersections == 2 && pointToPack1.epsilonEquals(pointToPack2, epsilon))
+               foundIntersections--;
+            if (foundIntersections == 2) break;
+         }
+
+         double edgeVectorX = edgeEnd.x - edgeStart.x;
+         double edgeVectorY = edgeEnd.y - edgeStart.y;
+         double lambda = getIntersectionLambda(edgeStart.x, edgeStart.y, edgeVectorX, edgeVectorY, segmentStart.x, segmentStart.y, segmentVectorX,
+               segmentVectorY);
+         if (Double.isNaN(lambda))
+            continue;
+
+         // check if within edge bounds:
+         if (lambda < 0.0 || lambda > 1.0)
+            continue;
+
+         double candidateX = edgeStart.x + lambda * edgeVectorX;
+         double candidateY = edgeStart.y + lambda * edgeVectorY;
+
+         // check if within segment bounds:
+         if (!isPointInFrontOfRay(segmentStart.x, segmentStart.y, segmentVectorX, segmentVectorY, candidateX, candidateY))
+            continue;
+         if (!isPointInFrontOfRay(segmentEnd.x, segmentEnd.y, -segmentVectorX, -segmentVectorY, candidateX, candidateY))
+            continue;
+
+         if (foundIntersections == 0)
+            pointToPack1.set(candidateX, candidateY);
+         else
+            pointToPack2.set(candidateX, candidateY);
+
+         foundIntersections++;
+         if (foundIntersections == 2 && pointToPack1.epsilonEquals(pointToPack2, epsilon))
+            foundIntersections--;
+         if (foundIntersections == 2) break; // performance only
+      }
+
+      return foundIntersections;
+   }
+
+   /**
     * Computes the points of intersection between the ray and the polygon and packs them into pointToPack1 and
     * pointToPack2. If there is only one intersection it will be stored in pointToPack1. Returns the number of
     * intersections found. The ray is given as a Line2d, where the start point of the ray is the point used to
@@ -586,7 +726,7 @@ public class ConvexPolygon2dCalculator
          }
       }
 
-      if (foundIntersections == 2 && pointToPack1.equals(pointToPack2))
+      if (foundIntersections == 2 && pointToPack1.epsilonEquals(pointToPack2, epsilon))
          foundIntersections--;
 
       return foundIntersections;
@@ -594,19 +734,41 @@ public class ConvexPolygon2dCalculator
 
    /**
     * This finds the edges of the polygon that intersect the given line. Will pack the edges into edgeToPack1 and
-    * edgeToPack2. Returns number of intersections found. The edged will be ordered according to their index.
+    * edgeToPack2. Returns number of intersections found. An edge parallel to the line can not intersect the edge.
+    * If the line goes through a vertex but is not parallel to an edge adjacent to that vertex this method will
+    * only pack the edge before the vertex, not both edges.
     */
    public static int getIntersectingEdges(Line2d line, LineSegment2d edgeToPack1, LineSegment2d edgeToPack2, ConvexPolygon2d polygon)
    {
+      if (polygon.hasExactlyOneVertex())
+         return 0;
+
       int foundEdges = 0;
       for (int i = 0; i < polygon.getNumberOfVertices(); i++)
       {
-         if (doesLineIntersectEdge(line, i, polygon))
+         Point2d startVertex = polygon.getVertex(i);
+         Point2d endVertex = polygon.getNextVertex(i);
+
+         // edge is on the line
+         if (line.isPointOnLine(startVertex) && line.isPointOnLine(endVertex))
+         {
+            if (polygon.hasExactlyTwoVertices())
+               return 0;
+            // set the edges to be the previous and the next edge
+            edgeToPack1.set(polygon.getPreviousVertex(i), startVertex);
+            edgeToPack2.set(endVertex, polygon.getNextVertex(polygon.getNextVertexIndex(i)));
+            return 2;
+         }
+
+         if (line.isPointOnLine(startVertex))
+            continue;
+
+         if (doesLineIntersectEdge(line, i, polygon) || line.isPointOnLine(endVertex))
          {
             if (foundEdges == 0)
-               edgeToPack1.set(polygon.getVertex(i), polygon.getNextVertex(i));
+               edgeToPack1.set(startVertex, endVertex);
             else
-               edgeToPack2.set(polygon.getVertex(i), polygon.getNextVertex(i));
+               edgeToPack2.set(startVertex, endVertex);
             foundEdges++;
          }
 
@@ -631,14 +793,7 @@ public class ConvexPolygon2dCalculator
       double edgeVectorY = edgePointTwo.y - edgePointOne.y;
       double lambdaOne = getIntersectionLambda(edgePointOne.x, edgePointOne.y, edgeVectorX, edgeVectorY, line.getPoint().x, line.getPoint().y,
             line.getNormalizedVector().x, line.getNormalizedVector().y);
-      if (Double.isNaN(lambdaOne) || lambdaOne < 0.0)
-         return false;
-
-      double edgeVectorInvX = edgePointOne.x - edgePointTwo.x;
-      double edgeVectorInvY = edgePointOne.y - edgePointTwo.y;
-      double lambdaTwo = getIntersectionLambda(edgePointTwo.x, edgePointTwo.y, edgeVectorInvX, edgeVectorInvY, line.getPoint().x, line.getPoint().y,
-            line.getNormalizedVector().x, line.getNormalizedVector().y);
-      if (lambdaTwo < 0.0)
+      if (Double.isNaN(lambdaOne) || lambdaOne < 0.0 || lambdaOne > 1.0)
          return false;
 
       return true;
@@ -659,7 +814,7 @@ public class ConvexPolygon2dCalculator
       double denumerator = direction1X / direction2X - direction1Y / direction2Y;
 
       // check if lines parallel:
-      if (Math.abs(denumerator) < 10E-10)
+      if (Math.abs(denumerator) < epsilon)
          return Double.NaN;
 
       double numerator = (point1Y - point2Y) / direction2Y - (point1X - point2X) / direction2X;
@@ -670,7 +825,7 @@ public class ConvexPolygon2dCalculator
     * Determines if a point is laying in front of a ray. This means that an observer standing at the
     * start point looking in the direction of the ray will see the point in front of him. If the point
     * is on the line orthogonal to the ray through the ray start (perfectly left or right of the
-    * observer) the method will return false.
+    * observer) the method will return true.
     */
    public static boolean isPointInFrontOfRay(Point2d rayStart, Vector2d rayDirection, Point2d pointToTest)
    {
@@ -705,7 +860,7 @@ public class ConvexPolygon2dCalculator
       double edgeDirectionY = edgeEnd.y - edgeStart.y;
 
       double crossProduct = -edgeDirectionY * direction.x + edgeDirectionX * direction.y;
-      return Math.abs(crossProduct) < 1.0E-10;
+      return Math.abs(crossProduct) < epsilon;
    }
 
    // --- Methods that generate garbage ---
@@ -762,6 +917,8 @@ public class ConvexPolygon2dCalculator
       int edges = getIntersectingEdges(line, edge1, edge2, polygon);
       if (edges == 2)
          return new LineSegment2d[] {edge1, edge2};
+      if (edges == 1)
+         return new LineSegment2d[] {edge1};
       return null;
    }
 
@@ -791,6 +948,19 @@ public class ConvexPolygon2dCalculator
       return null;
    }
 
+   public static Point2d[] intersectionWithLineSegmentCopy(LineSegment2d lineSegment, ConvexPolygon2d polygon)
+   {
+      Point2d point1 = new Point2d();
+      Point2d point2 = new Point2d();
+
+      int intersections = intersectionWithLineSegment(lineSegment, point1, point2, polygon);
+      if (intersections == 2)
+         return new Point2d[] {point1, point2};
+      if (intersections == 1)
+         return new Point2d[] {point1};
+      return null;
+   }
+
    public static Point2d orthogonalProjectionCopy(Point2d pointToProject, ConvexPolygon2d polygon)
    {
       Point2d ret = new Point2d(pointToProject);
@@ -802,6 +972,14 @@ public class ConvexPolygon2dCalculator
    {
       Point2d ret = new Point2d();
       if (getClosestPointToRay(ray, ret, polygon))
+         return ret;
+      return null;
+   }
+
+   public static LineSegment2d getClosestEdgeCopy(Point2d point, ConvexPolygon2d polygon)
+   {
+      LineSegment2d ret = new LineSegment2d();
+      if (getClosestEdge(point, polygon, ret))
          return ret;
       return null;
    }
