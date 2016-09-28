@@ -1,8 +1,10 @@
 package us.ihmc.robotbuilder;
 
 import javafx.application.Application;
+import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.*;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
@@ -20,10 +22,12 @@ import javafx.scene.transform.Affine;
 import javafx.scene.transform.MatrixType;
 import javafx.scene.transform.Translate;
 import javafx.stage.FileChooser;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javaslang.control.Option;
 import us.ihmc.javaFXToolkit.cameraControllers.SimpleCameraKeyboardEventHandler;
 import us.ihmc.javaFXToolkit.cameraControllers.SimpleCameraMouseEventHandler;
+import us.ihmc.robotbuilder.gui.FloatingJointEditorPane;
 import us.ihmc.robotbuilder.model.Loader;
 import us.ihmc.robotbuilder.util.FloatArrayCollector;
 import us.ihmc.robotbuilder.util.Tree;
@@ -48,10 +52,13 @@ import java.util.stream.Stream;
  */
 public class MainWindow extends Application {
     @FXML
+    private ScrollPane jointSettings;
+
+    @FXML
     private Pane view3D;
 
     @FXML
-    private TreeView<String> treeView;
+    private TreeView<JointDescription> treeView;
 
     private Stage stage;
 
@@ -59,7 +66,14 @@ public class MainWindow extends Application {
     public void start(Stage primaryStage) throws Exception {
         Parent root = FXMLLoader.load(getClass().getResource("/main_window.fxml"));
 
-        Scene scene = new Scene(root, 300, 275);
+        Screen screen = Screen.getPrimary();
+        Rectangle2D bounds = screen.getVisualBounds();
+
+        primaryStage.setX(bounds.getMinX());
+        primaryStage.setY(bounds.getMinY());
+        primaryStage.setWidth(bounds.getWidth());
+        primaryStage.setHeight(bounds.getHeight());
+        Scene scene = new Scene(root, bounds.getWidth(), bounds.getHeight());
 
         this.stage = primaryStage;
         stage.setTitle("IHMC Robot Builder");
@@ -96,10 +110,23 @@ public class MainWindow extends Application {
             immutableRobotDescription.peek(description -> {
                 TreeAdapter<JointDescription> tree = Tree.of(description, JointDescription::getChildrenJoints);
                 treeView.setRoot(Tree.map(tree, (node, children) -> {
-                    TreeItem<String> item = new TreeItem<>(node.getValue().getName());
+                    TreeItem<JointDescription> item = new TreeItem<>(node.getValue());
                     item.getChildren().addAll(children);
                     return item;
                 }));
+
+                treeView.getSelectionModel()
+                        .getSelectedItems()
+                        .addListener((ListChangeListener<? super TreeItem<JointDescription>>) change ->
+                        {
+                            while (change.next())
+                            {
+                                if (!change.wasAdded())
+                                    continue;
+                                change.getAddedSubList().forEach(selected -> jointSettings.setContent(new FloatingJointEditorPane(selected.getValue())));
+                            }
+                        });
+
                 populate3DView(description);
             });
             return null;
