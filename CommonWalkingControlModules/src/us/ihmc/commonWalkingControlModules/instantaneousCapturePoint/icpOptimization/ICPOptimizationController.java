@@ -245,7 +245,7 @@ public class ICPOptimizationController
 
       footstepRecursionMultiplierCalculator.resetTimes();
 
-      cmpConstraintHandler.initializeCMPConstraintForDoubleSupport(solver);
+      cmpConstraintHandler.updateCMPConstraintForDoubleSupport(solver);
    }
 
    public void initializeForTransfer(double initialTime, RobotSide transferToSide, double omega0)
@@ -281,7 +281,7 @@ public class ICPOptimizationController
       if (localUseFeedbackRegularization)
          solver.resetFeedbackRegularization();
 
-      cmpConstraintHandler.initializeCMPConstraintForDoubleSupport(solver);
+      cmpConstraintHandler.updateCMPConstraintForDoubleSupport(solver);
    }
 
    public void initializeForSingleSupport(double initialTime, RobotSide supportSide, double omega0)
@@ -315,7 +315,7 @@ public class ICPOptimizationController
       if (localUseFeedbackRegularization)
          solver.resetFeedbackRegularization();
 
-      cmpConstraintHandler.initializeCMPConstraintForSingleSupport(supportSide, solver);
+      cmpConstraintHandler.updateCMPConstraintForSingleSupport(supportSide, solver);
    }
 
    private void setProblemBooleans()
@@ -384,7 +384,7 @@ public class ICPOptimizationController
          numberOfIterations.set(solver.getNumberOfIterations());
 
          if (localUseStepAdjustment)
-            solutionHandler.extractFootstepSolutions(footstepSolutions, upcomingFootsteps, numberOfFootstepsToConsider, solver);
+            solutionHandler.extractFootstepSolutions(footstepSolutions, upcomingFootstepLocations, upcomingFootsteps, numberOfFootstepsToConsider, solver);
 
          solver.getCMPFeedbackDifference(desiredCMPDelta);
          solutionHandler.updateCostsToGo(solver);
@@ -425,6 +425,11 @@ public class ICPOptimizationController
 
    private int setConditionsForSteppingControl(int numberOfFootstepsToConsider, double omega0)
    {
+      if (isInTransfer.getBooleanValue())
+         cmpConstraintHandler.updateCMPConstraintForDoubleSupport(solver);
+      else
+         cmpConstraintHandler.updateCMPConstraintForSingleSupport(supportSide.getEnumValue(), solver);
+
       solver.submitProblemConditions(numberOfFootstepsToConsider, localUseStepAdjustment, localUseFeedback, localUseTwoCMPs);
 
       if (localUseFeedback)

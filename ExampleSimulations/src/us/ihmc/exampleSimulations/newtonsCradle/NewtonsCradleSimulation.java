@@ -97,9 +97,11 @@ public class NewtonsCradleSimulation
 //      CollisionHandler handler = new DefaultCollisionHandler(0.98, 0.1, robot);
       CollisionHandler handler = new DefaultCollisionHandler(0.3, 0.7);
 
-      DefaultCollisionVisualize visualize = new DefaultCollisionVisualize(100.0, 100.0, scs, 100);
+//      DefaultCollisionVisualize visualize = new DefaultCollisionVisualize(100.0, 100.0, scs, 100);
+//
+//      handler.addListener(visualize);
+    DefaultCollisionVisualize visualize = null;
 
-      handler.addListener(visualize);
       ScsCollisionDetector collisionDetector = robot.getCollisionDetector();
       collisionDetector.initialize();
 
@@ -120,14 +122,16 @@ public class NewtonsCradleSimulation
       parameters.setCreateGUI(showGUI);
 
       SimulationConstructionSet scs = new SimulationConstructionSet(robotArray, parameters);
-      scs.setDT(0.0001, 100);
+      scs.setDT(0.00025, 100);
+      scs.setFastSimulate(true);
       scs.setGroundVisible(false);
       scs.startOnAThread();
 
       CollisionHandler handler = new DefaultCollisionHandler(0.3, 0.7);
 
-      DefaultCollisionVisualize visualize = new DefaultCollisionVisualize(100.0, 100.0, scs, 100);
-      handler.addListener(visualize);
+//    DefaultCollisionVisualize visualize = new DefaultCollisionVisualize(100.0, 100.0, scs, 100);
+    DefaultCollisionVisualize visualize = null;
+//      handler.addListener(visualize);
 
       ScsCollisionDetector collisionDetector = pileOfRandomObjectsRobot.getCollisionDetector();
       collisionDetector.initialize();
@@ -139,7 +143,7 @@ public class NewtonsCradleSimulation
       long wallStartTime = System.currentTimeMillis();
       while(true)
       {
-         ThreadTools.sleep(1000);
+         ThreadTools.sleep(5000);
 
          double simTime = scs.getTime();
          long wallTime = System.currentTimeMillis();

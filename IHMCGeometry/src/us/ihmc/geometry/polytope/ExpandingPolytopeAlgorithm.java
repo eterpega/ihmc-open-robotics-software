@@ -1,14 +1,21 @@
 package us.ihmc.geometry.polytope;
 
 import java.util.PriorityQueue;
+import java.util.Set;
 
 import javax.vecmath.Point3d;
 import javax.vecmath.Vector3d;
+
+import gnu.trove.map.hash.THashMap;
+import us.ihmc.robotics.lists.RecyclingArrayList;
 
 public class ExpandingPolytopeAlgorithm
 {
    private final PriorityQueue<ExpandingPolytopeEntry> triangleEntryQueue = new PriorityQueue<ExpandingPolytopeEntry>();
    private final ExpandingPolytopeEdgeList edgeList = new ExpandingPolytopeEdgeList();
+
+   private final THashMap<Point3d, Point3d> correspondingPointsOnA = new THashMap<>();
+   private final THashMap<Point3d, Point3d> correspondingPointsOnB = new THashMap<>();
 
    private ConvexPolytope polytopeA;
    private ConvexPolytope polytopeB;
@@ -16,6 +23,8 @@ public class ExpandingPolytopeAlgorithm
    private final double epsilonRelative;
 
    private ExpandingPolytopeAlgorithmListener listener;
+
+   private final RecyclingArrayList<ExpandingPolytopeEntry> polytopeEntryPool = new RecyclingArrayList<>(ExpandingPolytopeEntry.class);
 
    public ExpandingPolytopeAlgorithm(double epsilonRelative)
    {
@@ -29,10 +38,15 @@ public class ExpandingPolytopeAlgorithm
 
    public void setPolytopes(SimplexPolytope simplex, ConvexPolytope polytopeOne, ConvexPolytope polytopeTwo)
    {
+      polytopeEntryPool.clear();
+
+      correspondingPointsOnA.clear();
+      correspondingPointsOnB.clear();
+      edgeList.clear();
+      triangleEntryQueue.clear();
+
       this.polytopeA = polytopeOne;
       this.polytopeB = polytopeTwo;
-
-      triangleEntryQueue.clear();
 
       int numberOfPoints = simplex.getNumberOfPoints();
       if (numberOfPoints != 4)
@@ -43,10 +57,25 @@ public class ExpandingPolytopeAlgorithm
       Point3d pointThree = simplex.getPoint(2);
       Point3d pointFour = simplex.getPoint(3);
 
-      ExpandingPolytopeEntry entry123 = new ExpandingPolytopeEntry(pointOne, pointTwo, pointThree);
-      ExpandingPolytopeEntry entry324 = new ExpandingPolytopeEntry(pointThree, pointTwo, pointFour);
-      ExpandingPolytopeEntry entry421 = new ExpandingPolytopeEntry(pointFour, pointTwo, pointOne);
-      ExpandingPolytopeEntry entry134 = new ExpandingPolytopeEntry(pointOne, pointThree, pointFour);
+      correspondingPointsOnA.put(pointOne, simplex.getCorrespondingPointOnPolytopeA(pointOne));
+      correspondingPointsOnA.put(pointTwo, simplex.getCorrespondingPointOnPolytopeA(pointTwo));
+      correspondingPointsOnA.put(pointThree, simplex.getCorrespondingPointOnPolytopeA(pointThree));
+      correspondingPointsOnA.put(pointFour, simplex.getCorrespondingPointOnPolytopeA(pointFour));
+
+      correspondingPointsOnB.put(pointOne, simplex.getCorrespondingPointOnPolytopeB(pointOne));
+      correspondingPointsOnB.put(pointTwo, simplex.getCorrespondingPointOnPolytopeB(pointTwo));
+      correspondingPointsOnB.put(pointThree, simplex.getCorrespondingPointOnPolytopeB(pointThree));
+      correspondingPointsOnB.put(pointFour, simplex.getCorrespondingPointOnPolytopeB(pointFour));
+
+      ExpandingPolytopeEntry entry123 = polytopeEntryPool.add();
+      ExpandingPolytopeEntry entry324 = polytopeEntryPool.add();
+      ExpandingPolytopeEntry entry421 = polytopeEntryPool.add();
+      ExpandingPolytopeEntry entry134 = polytopeEntryPool.add();
+
+      entry123.reset(pointOne, pointTwo, pointThree);
+      entry324.reset(pointThree, pointTwo, pointFour);
+      entry421.reset(pointFour, pointTwo, pointOne);
+      entry134.reset(pointOne, pointThree, pointFour);
 
       entry123.setAdjacentTriangle(1, entry324, 0);
       entry324.setAdjacentTriangle(0, entry123, 1);
@@ -83,13 +112,18 @@ public class ExpandingPolytopeAlgorithm
 
    private final Vector3d supportDirection = new Vector3d();
 
-   public Vector3d computeExpandedPolytope()
+   public void computeExpandedPolytope(Vector3d separatingVectorToPack, Point3d closestPointOnA, Point3d closestPointOnB)
    {
       double mu = Double.POSITIVE_INFINITY; // Upper bound for the square penetration depth.
       Vector3d closestPointToOrigin = null;
+      ExpandingPolytopeEntry closestTriangleToOrigin = null;
 
+      int numberOfIterations = 0;
       while (true)
       {
+         //TODO: Stop the looping!
+         numberOfIterations++;
+
          ExpandingPolytopeEntry triangleEntryToExpand = triangleEntryQueue.poll();
          if (listener != null)
             listener.polledEntryToExpand(triangleEntryToExpand);
@@ -99,6 +133,7 @@ public class ExpandingPolytopeAlgorithm
          if (!triangleEntryToExpand.isObsolete())
          {
             closestPointToOrigin = triangleEntryToExpand.getClosestPointToOrigin();
+            closestTriangleToOrigin = triangleEntryToExpand;
 
             supportDirection.set(closestPointToOrigin);
 
@@ -136,12 +171,15 @@ public class ExpandingPolytopeAlgorithm
 
                // edgeList now is the entire silhouette of the current polytope as seen from w.
 
-               int numberOfEdges = edgeList.getNumberOfEdges();
-               //               if (numberOfEdges < 3) throw new RuntimeException("Should have at least three edges, no?");
-
                ExpandingPolytopeEntry firstNewEntry = null;
-               ExpandingPolytopeEntry previousEntry = null;
                Point3d wPoint = new Point3d(w);
+               correspondingPointsOnA.put(wPoint, supportingVertexA.getPosition());
+               correspondingPointsOnB.put(wPoint, supportingVertexB.getPosition());
+
+               int numberOfEdges = edgeList.getNumberOfEdges();
+
+               //TODO: Recycle the trash here...
+               THashMap<Point3d, ExpandingPolytopeEntry[]> mapFromStitchVertexToTriangles = new THashMap<>();
 
                for (int edgeIndex = 0; edgeIndex < numberOfEdges; edgeIndex++)
                {
@@ -151,16 +189,34 @@ public class ExpandingPolytopeAlgorithm
                   int sentryEdgeIndex = edge.getEdgeIndex();
                   int nextIndex = (sentryEdgeIndex + 1) % 3;
 
-                  ExpandingPolytopeEntry newEntry = new ExpandingPolytopeEntry(sentry.getVertex(nextIndex), sentry.getVertex(sentryEdgeIndex), wPoint);
+                  Point3d sentryVertexOne = sentry.getVertex(sentryEdgeIndex);
+                  Point3d sentryVertexTwo = sentry.getVertex(nextIndex);
+
+//                  ExpandingPolytopeEntry newEntry = polytopeEntryPool.add();
+//                  newEntry.reset(sentryVertexTwo, sentryVertexOne, wPoint);
+                  
+                  ExpandingPolytopeEntry newEntry = polytopeEntryPool.add();
+                  newEntry.reset(sentryVertexTwo, sentryVertexOne, wPoint);
+//                  ExpandingPolytopeEntry newEntry = new ExpandingPolytopeEntry(sentryVertexTwo, sentryVertexOne, wPoint);
+
+                  if (newEntry.isAffinelyDependent())
+                  {
+                     computeClosestPointsOnAAndB(closestTriangleToOrigin, closestPointOnA, closestPointOnB);
+                     if (listener != null)
+                     {
+                        listener.foundMinimumPenetrationVector(closestPointToOrigin, closestPointOnA, closestPointOnB);
+                     }
+                     separatingVectorToPack.set(closestPointToOrigin);
+                     return;
+                  }
+
+                  ExpandingPolytopeEntry[] twoTriangles = getOrCreateTwoTriangleArray(mapFromStitchVertexToTriangles, sentryVertexOne);
+                  storeNewEntry(newEntry, twoTriangles);
+                  twoTriangles = getOrCreateTwoTriangleArray(mapFromStitchVertexToTriangles, sentryVertexTwo);
+                  storeNewEntry(newEntry, twoTriangles);
+
                   newEntry.setAdjacentTriangle(0, sentry, sentryEdgeIndex);
                   sentry.setAdjacentTriangle(sentryEdgeIndex, newEntry, 0);
-
-                  if (previousEntry != null)
-                  {
-                     //TODO: Verify if these are correct:
-                     newEntry.setAdjacentTriangle(1, previousEntry, 2);
-                     newEntry.setAdjacentTriangle(2, previousEntry, 1);
-                  }
 
                   if (edgeIndex == 0)
                      firstNewEntry = newEntry;
@@ -168,34 +224,111 @@ public class ExpandingPolytopeAlgorithm
                   if (listener != null)
                      listener.createdNewEntry(newEntry);
 
-                  if (newEntry.isAffinelyDependent())
-                  {
-                     return closestPointToOrigin;
-                  }
-
                   double newEntryClosestDistanceSquared = newEntry.getClosestPointToOrigin().lengthSquared();
-                  if ((newEntry.closestIsInternal()) && (closestPointToOrigin.lengthSquared() <= newEntryClosestDistanceSquared) && (newEntryClosestDistanceSquared <= mu))
+                  if ((newEntry.closestIsInternal()) && (closestPointToOrigin.lengthSquared() <= newEntryClosestDistanceSquared)
+                        && (newEntryClosestDistanceSquared <= mu))
                   {
                      triangleEntryQueue.add(newEntry);
 
                      if (listener != null)
                         listener.addedNewEntryToQueue(newEntry);
                   }
+               }
 
-                  previousEntry = newEntry;
+               // Stich em up:
+               Set<Point3d> keySet = mapFromStitchVertexToTriangles.keySet();
+
+               for (Point3d stitchVertex : keySet)
+               {
+                  ExpandingPolytopeEntry[] trianglesToStitch = mapFromStitchVertexToTriangles.get(stitchVertex);
+                  if ((trianglesToStitch[0] == null) || (trianglesToStitch[1] == null))
+                  {
+                     throw new RuntimeException("Stitch triangle is null");
+                  }
+
+                  ExpandingPolytopeEntry triangleOne = trianglesToStitch[0];
+                  ExpandingPolytopeEntry triangleTwo = trianglesToStitch[1];
+
+                  boolean stitchedTriangles = triangleOne.setAdjacentTriangleIfPossible(triangleTwo);
+                  if (!stitchedTriangles)
+                  {
+                     throw new RuntimeException("Failed to stitch triangles!!");
+                  }
+               }
+
+               if (listener != null)
+               {
+                  listener.expandedPolytope(firstNewEntry);
                }
             }
          }
 
-         if ((closeEnough) || (triangleEntryQueue.isEmpty()) || (triangleEntryQueue.peek().getClosestPointToOrigin().lengthSquared() > mu))
+         if ((numberOfIterations > 1000) || (closeEnough) || (triangleEntryQueue.isEmpty())
+               || (triangleEntryQueue.peek().getClosestPointToOrigin().lengthSquared() > mu))
          {
+            computeClosestPointsOnAAndB(closestTriangleToOrigin, closestPointOnA, closestPointOnB);
+
             if (listener != null)
             {
-               listener.foundMinimumPenetrationVector(closestPointToOrigin);
+               listener.foundMinimumPenetrationVector(closestPointToOrigin, closestPointOnA, closestPointOnB);
             }
-            return closestPointToOrigin;
+            separatingVectorToPack.set(closestPointToOrigin);
+            return;
          }
       }
+   }
+
+   private void storeNewEntry(ExpandingPolytopeEntry newEntry, ExpandingPolytopeEntry[] twoTriangles)
+   {
+      if (twoTriangles[0] == null)
+         twoTriangles[0] = newEntry;
+      else if (twoTriangles[1] != null)
+      {
+         throw new RuntimeException("twoTriangles[1] != null");
+      }
+      else
+      {
+         twoTriangles[1] = newEntry;
+      }
+   }
+
+   private ExpandingPolytopeEntry[] getOrCreateTwoTriangleArray(THashMap<Point3d, ExpandingPolytopeEntry[]> mapFromStitchVertexToTriangles,
+         Point3d sentryVertexOne)
+   {
+      ExpandingPolytopeEntry[] twoTriangleArray = mapFromStitchVertexToTriangles.get(sentryVertexOne);
+      if (twoTriangleArray == null)
+      {
+         twoTriangleArray = new ExpandingPolytopeEntry[2];
+         mapFromStitchVertexToTriangles.put(sentryVertexOne, twoTriangleArray);
+      }
+
+      return twoTriangleArray;
+   }
+
+   private final Point3d tempPoint = new Point3d();
+
+   private void computeClosestPointsOnAAndB(ExpandingPolytopeEntry closestTriangleToOrigin, Point3d closestPointOnA, Point3d closestPointOnB)
+   {
+      closestPointOnA.set(0.0, 0.0, 0.0);
+      closestPointOnB.set(0.0, 0.0, 0.0);
+
+      for (int i = 0; i < 3; i++)
+      {
+         Point3d vertex = closestTriangleToOrigin.getVertex(i);
+         double lambda = closestTriangleToOrigin.getLambda(i);
+
+         Point3d pointOnA = correspondingPointsOnA.get(vertex);
+         Point3d pointOnB = correspondingPointsOnB.get(vertex);
+
+         tempPoint.set(pointOnA);
+         tempPoint.scale(lambda);
+         closestPointOnA.add(tempPoint);
+
+         tempPoint.set(pointOnB);
+         tempPoint.scale(lambda);
+         closestPointOnB.add(tempPoint);
+      }
+
    }
 
 }

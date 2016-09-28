@@ -183,4 +183,22 @@ public abstract class ICPOptimizationParameters
     * This is used to prevent there being step adjustment in the last portion of a step, when more change cannot be realized.
     */
    public abstract double getRemainingTimeToStopAdjusting();
+   
+   /**
+    * This method determines whether or not to use a discontinuous deadband.
+    * If set true, the value of the deadband is not subtracted out, as normally done.
+    */
+   public boolean useDiscontinuousDeadband()
+   {
+      return false;
+   }
+
+   /**
+    * This method sets what the minimum change in the current footstep is allowed to be.
+    * Works in tandem with the footstep regularization parameter.
+    */
+   public double getFootstepSolutionResolution()
+   {
+      return 0.015;
+   }
 }

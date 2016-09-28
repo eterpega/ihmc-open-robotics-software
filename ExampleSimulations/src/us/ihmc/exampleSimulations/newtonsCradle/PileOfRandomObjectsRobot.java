@@ -27,7 +27,7 @@ public class PileOfRandomObjectsRobot
 
    public PileOfRandomObjectsRobot()
    {
-      int numberOfObjects = 20; //400;
+      int numberOfObjects = 200;
 
 //      collisionDetector = new GdxCollisionDetector(100.0);
       collisionDetector = new SimpleCollisionDetector();
@@ -37,6 +37,13 @@ public class PileOfRandomObjectsRobot
 
       Random random = new Random(1886L);
 
+      createFallingObjects(numberOfObjects, collisionShapeFactory, random);
+      createBoardFrame(collisionShapeFactory, random);
+      createGroundAsABox(collisionShapeFactory);
+   }
+
+   private void createFallingObjects(int numberOfObjects, CollisionShapeFactory collisionShapeFactory, Random random)
+   {
       for (int i = 0; i < numberOfObjects; i++)
       {
          Robot robot = new Robot("RandomRobot" + i);
@@ -76,26 +83,10 @@ public class PileOfRandomObjectsRobot
 
          this.robots.add(robot);
       }
+   }
 
-      double boardZ = 0.14;
-
-      FloatingJoint board0 = createContainerBoard("board0", collisionShapeFactory, random);
-      board0.setPosition(0.51, 0.0, boardZ);
-      board0.setYawPitchRoll(Math.PI/2.0, 0.0, 0.0);
-
-      FloatingJoint board1 = createContainerBoard("board1", collisionShapeFactory, random);
-      board1.setPosition(0.0, 0.35, boardZ);
-      board1.setYawPitchRoll(0.0, 0.0, 0.0);
-
-      FloatingJoint board2 = createContainerBoard("board2", collisionShapeFactory, random);
-      board2.setPosition(0.0, -0.35, boardZ);
-      board2.setYawPitchRoll(0.0, 0.0, 0.0);
-
-      FloatingJoint board3 = createContainerBoard("board3", collisionShapeFactory, random);
-      board3.setPosition(-0.51, 0.0, boardZ);
-      board3.setYawPitchRoll(Math.PI/2.0, 0.0, 0.0);
-
-
+   private void createGroundAsABox(CollisionShapeFactory collisionShapeFactory)
+   {
       Robot baseRobot = new Robot("BaseRobot");
       NullJoint baseJoint = new NullJoint("base", new Vector3d(), baseRobot);
 
@@ -121,6 +112,27 @@ public class PileOfRandomObjectsRobot
 
       baseRobot.addStaticLink(baseLink);
       this.robots.add(baseRobot);
+   }
+
+   private void createBoardFrame(CollisionShapeFactory collisionShapeFactory, Random random)
+   {
+      double boardZ = 0.14;
+
+      FloatingJoint board0 = createContainerBoard("board0", collisionShapeFactory, random);
+      board0.setPosition(0.51, 0.0, boardZ);
+      board0.setYawPitchRoll(Math.PI/2.0, 0.0, 0.0);
+
+      FloatingJoint board1 = createContainerBoard("board1", collisionShapeFactory, random);
+      board1.setPosition(0.0, 0.35, boardZ);
+      board1.setYawPitchRoll(0.0, 0.0, 0.0);
+
+      FloatingJoint board2 = createContainerBoard("board2", collisionShapeFactory, random);
+      board2.setPosition(0.0, -0.35, boardZ);
+      board2.setYawPitchRoll(0.0, 0.0, 0.0);
+
+      FloatingJoint board3 = createContainerBoard("board3", collisionShapeFactory, random);
+      board3.setPosition(-0.51, 0.0, boardZ);
+      board3.setYawPitchRoll(Math.PI/2.0, 0.0, 0.0);
    }
 
    private FloatingJoint createContainerBoard(String name, CollisionShapeFactory collisionShapeFactory, Random random)

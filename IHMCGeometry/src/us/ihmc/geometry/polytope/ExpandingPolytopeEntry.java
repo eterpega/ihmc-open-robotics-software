@@ -12,7 +12,7 @@ import javax.vecmath.Vector3d;
  */
 public class ExpandingPolytopeEntry implements Comparable<ExpandingPolytopeEntry>
 {
-   private final Point3d[] triangleVertices;
+   private final Point3d[] triangleVertices = new Point3d[3];
    private final Vector3d closestPointToOrigin = new Vector3d();
    private final double[] lambdas = new double[3];
    private double distanceToOriginKey;
@@ -20,20 +20,61 @@ public class ExpandingPolytopeEntry implements Comparable<ExpandingPolytopeEntry
    private final ExpandingPolytopeEntry[] adjacentTriangles = new ExpandingPolytopeEntry[3];
    private final int[] adjacentTriangleEdgeIndices = new int[3];
 
+   private boolean affinelyDependent = false;
    private boolean obsolete = false;
+
+   public ExpandingPolytopeEntry()
+   {
+      
+   }
+
+   public ExpandingPolytopeEntry(Point3d vertexOne, Point3d vertexTwo, Point3d vertexThree)
+   {
+      reset(vertexOne, vertexTwo, vertexThree);
+   }
+
+   public void reset(Point3d pointOne, Point3d pointTwo, Point3d pointThree)
+   {
+      this.obsolete = false;
+      this.affinelyDependent = false;
+
+      adjacentTriangles[0] = null;
+      adjacentTriangles[1] = null;
+      adjacentTriangles[2] = null;
+
+      lambdas[0] = 0.0;
+      lambdas[1] = 0.0;
+      lambdas[2] = 0.0;
+
+      distanceToOriginKey = 0.0;
+
+      adjacentTriangleEdgeIndices[0] = 0;
+      adjacentTriangleEdgeIndices[1] = 0;
+      adjacentTriangleEdgeIndices[2] = 0;
+      
+      closestPointToOrigin.set(0.0, 0.0, 0.0);
+
+      triangleVertices[0] = pointOne;
+      triangleVertices[1] = pointTwo;
+      triangleVertices[2] = pointThree;
+
+      projectOriginOntoFace(pointOne, pointTwo, pointThree, closestPointToOrigin, lambdas);
+      distanceToOriginKey = closestPointToOrigin.length();
+      if (Double.isNaN(distanceToOriginKey))
+      {
+         this.affinelyDependent = true;
+         //         throw new RuntimeException("Distance to origin is NaN!. \npointOne = " + pointOne + ", \npointTwo = " + pointTwo + ", \npointThree = " + pointThree);
+      }
+   }
 
    public Point3d getVertex(int index)
    {
       return triangleVertices[index];
    }
 
-   public ExpandingPolytopeEntry(Point3d pointOne, Point3d pointTwo, Point3d pointThree)
+   public double getLambda(int index)
    {
-      triangleVertices = new Point3d[] { pointOne, pointTwo, pointThree };
-      projectOriginOntoFace(pointOne, pointTwo, pointThree, closestPointToOrigin, lambdas);
-      distanceToOriginKey = closestPointToOrigin.length();
-      if (Double.isNaN(distanceToOriginKey))
-         throw new RuntimeException();
+      return lambdas[index];
    }
 
    public boolean closestIsInternal()
@@ -113,7 +154,14 @@ public class ExpandingPolytopeEntry implements Comparable<ExpandingPolytopeEntry
       tempVector2.sub(vertexThree, vertexOne);
 
       tempNormalVector1.cross(tempVector1, tempVector2);
-      double oneOver4ASquared = 1.0 / (tempNormalVector1.dot(tempNormalVector1));
+      double fourASquared = tempNormalVector1.dot(tempNormalVector1);
+
+      //TODO: Magic number for checking affinely Dependent...
+      // Probably a better way to check this than just the area of the triangle.
+      // Something relative. 
+      this.affinelyDependent = fourASquared < 1e-10;
+
+      double oneOver4ASquared = 1.0 / (fourASquared);
 
       tempVector3.set(vertexOne);
       tempVector3.scale(-1.0); //w
@@ -157,8 +205,7 @@ public class ExpandingPolytopeEntry implements Comparable<ExpandingPolytopeEntry
 
    public boolean isAffinelyDependent()
    {
-      // TODO: Implement and test this!
-      return false;
+      return affinelyDependent;
    }
 
    public boolean setAdjacentTriangleIfPossible(ExpandingPolytopeEntry entry)
@@ -220,25 +267,31 @@ public class ExpandingPolytopeEntry implements Comparable<ExpandingPolytopeEntry
       for (int i = 0; i < 3; i++)
       {
          ExpandingPolytopeEntry adjacentTriangle = adjacentTriangles[i];
-         if (adjacentTriangle != null)
+
+         if (adjacentTriangle == null)
          {
-            int j = this.adjacentTriangleEdgeIndices[i];
-            if (adjacentTriangle.adjacentTriangles[j] != this)
-               throw new RuntimeException("");
-            if (adjacentTriangle.adjacentTriangleEdgeIndices[j] != i)
-               throw new RuntimeException("");
-
-            Point3d firstVertex = this.triangleVertices[i];
-            Point3d secondVertex = this.triangleVertices[(i + 1) % 3];
-
-            Point3d firstVertexOtherSide = adjacentTriangle.triangleVertices[j];
-            Point3d secondVertexOtherSide = adjacentTriangle.triangleVertices[(j + 1) % 3];
-
-            if (firstVertex != secondVertexOtherSide)
-               throw new RuntimeException("");
-            if (secondVertex != firstVertexOtherSide)
-               throw new RuntimeException("");
+            throw new RuntimeException("Adjacent triangle is null. Not fully connected!");
          }
+
+         //         if (adjacentTriangle != null)
+         //         {
+         int j = this.adjacentTriangleEdgeIndices[i];
+         if (adjacentTriangle.adjacentTriangles[j] != this)
+            throw new RuntimeException("Adjacent triangle was not connected properly!");
+         if (adjacentTriangle.adjacentTriangleEdgeIndices[j] != i)
+            throw new RuntimeException("Adjacent triangle was not connected properly!");
+
+         Point3d firstVertex = this.triangleVertices[i];
+         Point3d secondVertex = this.triangleVertices[(i + 1) % 3];
+
+         Point3d firstVertexOtherSide = adjacentTriangle.triangleVertices[j];
+         Point3d secondVertexOtherSide = adjacentTriangle.triangleVertices[(j + 1) % 3];
+
+         if (firstVertex != secondVertexOtherSide)
+            throw new RuntimeException("");
+         if (secondVertex != firstVertexOtherSide)
+            throw new RuntimeException("");
+         //         }
       }
    }
 
