@@ -134,19 +134,6 @@ public class TreeInterfaceTest
         assertEquals(expectedMapCalls, mapFn.getCacheMisses()); // the first map goes uncached for each node
     }
 
-    @Test
-    public void testTreeOfCreatesAProperWrapper() {
-        TreeAdapter<Integer> root = of(1, node -> IntStream.iterate(1, i -> i + 1)
-                .limit(node >= 3 ? 0 : 3)
-                .mapToObj(x -> node + 1)
-                .collect(Collectors.toList()));
-
-        Map<Integer, List<Integer>> grouped = flatten(root).map(TreeAdapter::getValue).collect(Collectors.groupingBy(v -> v));
-        assertEquals(1, grouped.get(1).size());
-        assertEquals(3, grouped.get(2).size());
-        assertEquals(9, grouped.get(3).size());
-    }
-
     private static <T> void assertStreamEquals(Stream<T> a, Stream<T> b) {
         assertArrayEquals(a.toArray(), b.toArray());
     }

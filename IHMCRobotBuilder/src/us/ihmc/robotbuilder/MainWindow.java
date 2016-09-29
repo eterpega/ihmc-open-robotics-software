@@ -29,10 +29,7 @@ import us.ihmc.javaFXToolkit.cameraControllers.SimpleCameraKeyboardEventHandler;
 import us.ihmc.javaFXToolkit.cameraControllers.SimpleCameraMouseEventHandler;
 import us.ihmc.robotbuilder.gui.FloatingJointEditorPane;
 import us.ihmc.robotbuilder.model.Loader;
-import us.ihmc.robotbuilder.util.FloatArrayCollector;
-import us.ihmc.robotbuilder.util.TreeInterface;
-import us.ihmc.robotbuilder.util.TreeAdapter;
-import us.ihmc.robotbuilder.util.Util;
+import us.ihmc.robotbuilder.util.*;
 import us.ihmc.robotics.immutableRobotDescription.JointDescription;
 import us.ihmc.robotics.immutableRobotDescription.RobotDescription;
 import us.ihmc.robotics.immutableRobotDescription.graphics.GeometryDescription;
@@ -108,8 +105,8 @@ public class MainWindow extends Application {
             return Option.ofOptional(dialog.showAndWait());
         })).flatMap(immutableRobotDescription -> Util.runLaterInUI(() -> {
             immutableRobotDescription.peek(description -> {
-                TreeAdapter<JointDescription> tree = TreeInterface.of(description, JointDescription::getChildrenJoints);
-                treeView.setRoot(TreeInterface.map(tree, (node, children) -> {
+                Tree<JointDescription> tree = Tree.adapt(description, JointDescription::getChildrenJoints);
+                treeView.setRoot(tree.map((node, children) -> {
                     TreeItem<JointDescription> item = new TreeItem<>(node.getValue());
                     item.getChildren().addAll(children);
                     return item;
@@ -158,8 +155,8 @@ public class MainWindow extends Application {
     }
 
     private Node create3DNodes(JointDescription description) {
-        TreeAdapter<JointDescription> tree = TreeInterface.of(description, JointDescription::getChildrenJoints);
-        return TreeInterface.map(tree, (node, children) -> {
+        Tree<JointDescription> tree = Tree.adapt(description, JointDescription::getChildrenJoints);
+        return tree.map((node, children) -> {
                 Group jointGroup = new Group();
                 Vector3d offset = node.getValue().getOffsetFromJoint();
                 jointGroup.getTransforms().add(new Translate(offset.x, offset.y, offset.z));

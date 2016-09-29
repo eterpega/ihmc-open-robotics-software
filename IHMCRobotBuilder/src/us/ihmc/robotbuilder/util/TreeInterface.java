@@ -27,10 +27,6 @@ public interface TreeInterface<T extends TreeInterface> {
         return StreamSupport.stream(getChildren().spliterator(), false);
     }
 
-    static <Source> TreeAdapter<Source> of(Source root, Function<Source, ? extends Iterable<? extends Source>> supplier) {
-        return new TreeAdapter<>(root, supplier);
-    }
-
     /**
      * Flattens the given tree to a sequential stream of nodes.
      * @param tree tree to flatten

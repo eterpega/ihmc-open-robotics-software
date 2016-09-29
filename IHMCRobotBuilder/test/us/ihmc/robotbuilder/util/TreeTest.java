@@ -2,6 +2,7 @@ package us.ihmc.robotbuilder.util;
 
 import javafx.scene.control.TreeItem;
 import javaslang.collection.List;
+import org.fest.assertions.Index;
 import org.junit.Test;
 import us.ihmc.tools.testing.JUnitTools;
 
@@ -26,13 +27,28 @@ public class TreeTest
       JUnitTools.testHashCodeEqualsMethods(BINARY_TREE, BINARY_TREE.mapValues(x -> x), SINGLETON_TREE);
    }
 
-   @Test
-   public void testNodeDoesNotEqualNullOrAnotherClass()
+   @Test public void testFirstChildReturnsFirstChildOfNonEmptyTree()
    {
-      //noinspection ObjectEqualsNull
-      assertFalse(BINARY_TREE.equals(null));
-      //noinspection EqualsBetweenInconvertibleTypes
-      assertFalse(BINARY_TREE.equals("nonsense"));
+      assertEquals(BINARY_TREE.firstChild(), Optional.of(BINARY_TREE.getChildren().iterator().next()));
+   }
+
+   @Test public void testFirstChildReturnsEmptyForEmptyTree()
+   {
+      assertFalse(SINGLETON_TREE.firstChild().isPresent());
+   }
+
+   @Test public void testGetChildReturnsTheCorrectChild()
+   {
+      List<Tree<Integer>> children = BINARY_TREE.childStream().collect(List.collector());
+      assertEquals(BINARY_TREE.getChild(0), children.get(0));
+      assertEquals(BINARY_TREE.getChild(1), children.get(1));
+
+      try {
+         BINARY_TREE.getChild(BINARY_TREE.countChildren());
+         assertTrue("No IndexOutOfBoundsException thrown", false);
+      } catch (Exception ex) {
+         assertTrue(ex instanceof IndexOutOfBoundsException);
+      }
    }
 
    @Test
