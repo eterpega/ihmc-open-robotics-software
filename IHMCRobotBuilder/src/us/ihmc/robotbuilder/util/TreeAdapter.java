@@ -7,7 +7,8 @@ import java.util.stream.StreamSupport;
 /**
  *
  */
-public class TreeAdapter<Source> implements Tree<TreeAdapter<Source>> {
+public class TreeAdapter<Source> implements TreeInterface<TreeAdapter<Source>>
+{
     private final Source value;
     private final Function<Source, ? extends Iterable<? extends Source>> childGetter;
 

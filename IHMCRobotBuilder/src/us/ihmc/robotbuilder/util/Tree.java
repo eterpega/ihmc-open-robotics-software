@@ -1,124 +1,136 @@
 package us.ihmc.robotbuilder.util;
 
-import java.util.List;
+import javaslang.collection.List;
+import javaslang.collection.Stream;
+import us.ihmc.robotbuilder.util.TreeFocus.Breadcrumb;
+
 import java.util.Optional;
-import java.util.WeakHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 /**
- * Generic interface for a tree structure with support methods such as mapping or filtering.
+ *
  */
-public interface Tree<T extends Tree> {
-    /**
-     * Get the child nodes of this tree node
-     * @return child nodes
-     */
-    Iterable<T> getChildren();
+public final class Tree<T> implements TreeInterface<Tree<T>>
+{
+   private final T value;
+   private final Stream<Tree<T>> children;
 
-    /**
-     * Returns a lazy stream of child nodes of this tree node. A convenience method around {@link #getChildren()}.
-     * @return children as {@link Stream}
-     */
-    default Stream<T> childStream() {
-        return StreamSupport.stream(getChildren().spliterator(), false);
-    }
+   public Tree(T value, Iterable<Tree<T>> children)
+   {
+      this.value = value;
+      this.children = Stream.ofAll(children);
+   }
 
-    static <Source> TreeAdapter<Source> of(Source root, Function<Source, ? extends Iterable<? extends Source>> supplier) {
-        return new TreeAdapter<>(root, supplier);
-    }
+   public static <Source> Tree<Source> adapt(Source value, Function<Source, ? extends Iterable<? extends Source>> childGetter)
+   {
+      return new Tree<>(value, List.ofAll(childGetter.apply(value)).map(child -> adapt(child, childGetter)));
+   }
 
-    /**
-     * Flattens the given tree to a sequential stream of nodes.
-     * @param tree tree to flatten
-     * @param <T> tree type
-     * @return flattened tree
-     */
-    static <T extends Tree<T>> Stream<T> flatten(T tree) {
-        //noinspection Convert2MethodRef
-        return Stream.concat(Stream.of(tree), tree.childStream().flatMap(child -> flatten(child)));
-    }
+   public T getValue()
+   {
+      return value;
+   }
 
-    /**
-     * Maps one tree to another, keeping the parent -> child relationships in the mapped tree.
-     * The mapper is required to create target tree nodes based on a source node and a list of
-     * already mapped children.
-     * @param tree tree to map to another
-     * @param mapper function that maps source nodes to target nodes
-     * @param <Source> source tree type
-     * @param <Target> target tree type
-     * @return mapped tree root
-     */
-    static <Source extends Tree<Source>, Target> Target map(Source tree, final TreeNodeMapper<? super Source, Target> mapper) {
-        List<Target> mappedChildren = tree.childStream()
-                .map(child -> map(child, mapper))
-                .collect(Collectors.toList());
+   @Override
+   public Iterable<Tree<T>> getChildren()
+   {
+      return children;
+   }
 
-        return mapper.mapNode(tree, mappedChildren);
-    }
+   public final <R> R map(TreeNodeMapper<Tree<T>, R> mapper)
+   {
+      return TreeInterface.map(this, mapper);
+   }
 
-    /**
-     * Creates a cached/memoized mapping function that does not re-evaluate
-     * nodes that have been mapped in the past.
-     * @param mapper mapping function
-     * @param <Source> source tree type
-     * @param <Target> target tree type
-     * @return cached map function
-     */
-    static <Source extends Tree<Source>, Target> CachedMapper<Source, Target> cachedMap(final TreeNodeMapper<? super Source, Target> mapper) {
-        return new CachedMapper<>(mapper);
-    }
+   public final <R> Tree<R> mapValues(Function<? super T, ? extends R> mapper)
+   {
+      return TreeInterface.map(this, new TreeNodeMapper<Tree<T>, Tree<R>>()
+      {
+         @Override public Tree<R> mapNode(Tree<T> node, java.util.List<Tree<R>> children)
+         {
+            return new Tree<>(mapper.apply(node.getValue()), List.ofAll(children));
+         }
+      });
+   }
 
-    static <T extends Tree<T>> Optional<T> filter(T tree, Predicate<? super T> predicate, TreeNodeSupplier<T> nodeSupplier) {
-        if (predicate.test(tree)) {
-            List<T> filteredChildren = tree.childStream()
-                    .map(child -> filter(child, predicate, nodeSupplier))
-                    .filter(Optional::isPresent)
-                    .map(Optional::get)
-                    .collect(Collectors.toList());
-            T filteredNode = nodeSupplier.supply(tree, filteredChildren);
-            return Optional.of(filteredNode);
-        } else {
-            return Optional.empty();
-        }
-    }
+   public final Optional<Tree<T>> filter(Predicate<? super Tree<T>> predicate)
+   {
+      return TreeInterface.filter(this, predicate, Tree::nodeSupplier);
+   }
 
+   public final Optional<Tree<T>> filterValues(Predicate<? super T> predicate)
+   {
+      return TreeInterface.filter(this, tree -> predicate.test(tree.getValue()), Tree::nodeSupplier);
+   }
 
+   public final java.util.stream.Stream<T> stream()
+   {
+      return TreeInterface.flatten(this).map(Tree::getValue);
+   }
 
-    interface TreeNodeMapper<Source extends Tree, Target> {
-        Target mapNode(Source node, List<Target> children);
-    }
+   public final Optional<TreeFocus<Tree<T>>> find(Predicate<? super Tree<T>> predicate)
+   {
+      return find(predicate, List.empty());
+   }
 
-    interface TreeNodeSupplier<T extends Tree> {
-        T supply(T source, List<T> children);
-    }
+   public final Optional<TreeFocus<Tree<T>>> findValue(Predicate<? super T> predicate)
+   {
+      return find(tree -> predicate.test(tree.value), List.empty());
+   }
 
-    class CachedMapper<Source extends Tree<Source>, Target> {
-        private final Cache<Source, Target> cache = new Cache<Source, Target>(Integer.MAX_VALUE, WeakHashMap<Source, Cache<Source, Target>.CachedItem>::new);
-        private final TreeNodeMapper<? super Source, Target> mapper;
+   public final TreeFocus<Tree<T>> getFocus()
+   {
+      return new TreeFocus<>(this, List.empty(), Tree::nodeSupplier);
+   }
 
-        private CachedMapper(TreeNodeMapper<? super Source, Target> mapper) {
-            this.mapper = mapper;
-        }
+   private Optional<TreeFocus<Tree<T>>> find(Predicate<? super Tree<T>> predicate, List<Breadcrumb<Tree<T>>> breadcrumbs)
+   {
+      if (predicate.test(this))
+         return Optional.of(new TreeFocus<>(this, breadcrumbs, Tree::nodeSupplier));
 
-        public Target map(Source node) {
-            return cache.getItem(node).orElseGet(() -> {
-                List<Target> children = node.childStream().map(this::map).collect(Collectors.toList());
-                Target mapped = mapper.mapNode(node, children);
-                cache.cacheItem(node, mapped);
-                return mapped;
-            });
-        }
+      List<Tree<T>> leftReversed = List.empty();
+      List<Tree<T>> right = children.toList();
+      while (!right.isEmpty())
+      {
+         Tree<T> focus = right.head();
+         right = right.tail();
+         Breadcrumb<Tree<T>> newBreadcrumb = new Breadcrumb<>(this, leftReversed, right);
+         leftReversed = leftReversed.prepend(focus);
 
-        public long getCacheMisses() {
-            return cache.getMisses();
-        }
+         Optional<TreeFocus<Tree<T>>> findResult = focus.find(predicate, breadcrumbs.prepend(newBreadcrumb));
+         if (findResult.isPresent())
+            return findResult;
+      }
+      return Optional.empty();
+   }
 
-        public long getCacheHits() {
-            return cache.getHits();
-        }
-    }
+   @Override public boolean equals(Object o)
+   {
+      if (this == o)
+         return true;
+      if (o == null || getClass() != o.getClass())
+         return false;
+
+      Tree<?> tree = (Tree<?>) o;
+
+      return value.equals(tree.value) && children.equals(tree.children);
+
+   }
+
+   @Override public int hashCode()
+   {
+      int result = value.hashCode();
+      result = 31 * result + children.hashCode();
+      return result;
+   }
+
+   @Override public String toString()
+   {
+      return "Tree{" + "value=" + value + ", children=" + children + '}';
+   }
+
+   private static <T> Tree<T> nodeSupplier(Tree<T> source, Iterable<Tree<T>> children) {
+      return new Tree<>(source.getValue(), List.ofAll(children));
+   }
 }

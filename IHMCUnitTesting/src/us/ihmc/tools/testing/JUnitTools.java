@@ -1,10 +1,5 @@
 package us.ihmc.tools.testing;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -42,6 +37,8 @@ import org.ejml.data.DenseMatrix64F;
 
 import Jama.Matrix;
 import us.ihmc.tools.thread.RunnableThatThrows;
+
+import static org.junit.Assert.*;
 
 public class JUnitTools
 {
@@ -416,5 +413,16 @@ public class JUnitTools
       {
          throw new AssertionError("expected:\n<" + q1 + ">\n but was:\n<" + q2 + ">");
       }
+   }
+
+   public static <T> void testHashCodeEqualsMethods(T object, T equalObject, T differentObject)
+   {
+      assertEquals(object, equalObject);
+      assertEquals(object, object);
+      assertNotEquals(object, differentObject);
+      assertNotEquals(object, null);
+      assertNotEquals(object, new Object());
+
+      assertEquals(object.hashCode(), equalObject.hashCode());
    }
 }

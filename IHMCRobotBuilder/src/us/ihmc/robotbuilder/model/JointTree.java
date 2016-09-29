@@ -1,13 +1,12 @@
 package us.ihmc.robotbuilder.model;
 
-import javaslang.collection.List;
-import us.ihmc.robotbuilder.util.Tree;
+import us.ihmc.robotbuilder.util.TreeInterface;
 import us.ihmc.robotics.immutableRobotDescription.JointDescription;
 
 /**
  *
  */
-public class JointTree implements Tree<JointTree>
+public class JointTree implements TreeInterface<JointTree>
 {
    private final JointDescription jointDescription;
    private final boolean expanded;

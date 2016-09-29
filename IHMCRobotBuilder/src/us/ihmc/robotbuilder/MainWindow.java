@@ -30,7 +30,7 @@ import us.ihmc.javaFXToolkit.cameraControllers.SimpleCameraMouseEventHandler;
 import us.ihmc.robotbuilder.gui.FloatingJointEditorPane;
 import us.ihmc.robotbuilder.model.Loader;
 import us.ihmc.robotbuilder.util.FloatArrayCollector;
-import us.ihmc.robotbuilder.util.Tree;
+import us.ihmc.robotbuilder.util.TreeInterface;
 import us.ihmc.robotbuilder.util.TreeAdapter;
 import us.ihmc.robotbuilder.util.Util;
 import us.ihmc.robotics.immutableRobotDescription.JointDescription;
@@ -108,8 +108,8 @@ public class MainWindow extends Application {
             return Option.ofOptional(dialog.showAndWait());
         })).flatMap(immutableRobotDescription -> Util.runLaterInUI(() -> {
             immutableRobotDescription.peek(description -> {
-                TreeAdapter<JointDescription> tree = Tree.of(description, JointDescription::getChildrenJoints);
-                treeView.setRoot(Tree.map(tree, (node, children) -> {
+                TreeAdapter<JointDescription> tree = TreeInterface.of(description, JointDescription::getChildrenJoints);
+                treeView.setRoot(TreeInterface.map(tree, (node, children) -> {
                     TreeItem<JointDescription> item = new TreeItem<>(node.getValue());
                     item.getChildren().addAll(children);
                     return item;
@@ -158,8 +158,8 @@ public class MainWindow extends Application {
     }
 
     private Node create3DNodes(JointDescription description) {
-        TreeAdapter<JointDescription> tree = Tree.of(description, JointDescription::getChildrenJoints);
-        return Tree.map(tree, (node, children) -> {
+        TreeAdapter<JointDescription> tree = TreeInterface.of(description, JointDescription::getChildrenJoints);
+        return TreeInterface.map(tree, (node, children) -> {
                 Group jointGroup = new Group();
                 Vector3d offset = node.getValue().getOffsetFromJoint();
                 jointGroup.getTransforms().add(new Translate(offset.x, offset.y, offset.z));
