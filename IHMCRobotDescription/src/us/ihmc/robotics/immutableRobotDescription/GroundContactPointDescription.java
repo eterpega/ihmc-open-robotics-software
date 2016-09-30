@@ -4,8 +4,8 @@ import org.immutables.value.Value.Immutable;
 
 @Immutable public abstract class GroundContactPointDescription implements KinematicPointDescription
 {
-   public static GroundContactPointDescriptionBuilder builder()
+   public static ImmutableGroundContactPointDescription.Builder builder()
    {
-      return new GroundContactPointDescriptionBuilder();
+      return ImmutableGroundContactPointDescription.builder();
    }
 }

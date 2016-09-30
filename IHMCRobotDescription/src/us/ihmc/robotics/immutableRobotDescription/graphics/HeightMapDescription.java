@@ -77,7 +77,7 @@ public abstract class HeightMapDescription extends GeometryDescription
       }
 
       return TriangleMeshDescription.fromTriangleSoupSanitized(
-            new TriangleSoupDescriptionBuilder()
+            TriangleSoupDescription.builder()
                   .indexBuffer(indices)
                   .vertexBuffer(vertices)
                   .normalBuffer(normals)
@@ -160,9 +160,14 @@ public abstract class HeightMapDescription extends GeometryDescription
 
    @Override public TriangleGeometryDescription toTriangleGeometry()
    {
-      return new TriangleGeometryDescriptionBuilder()
+      return TriangleGeometryDescription.builder()
             .triangleMesh(createGridGeometry(getRows(), getColumns(), getHeightMap()))
             .transform(getTransform())
             .build();
+   }
+
+   public static ImmutableHeightMapDescription.Builder builder()
+   {
+      return ImmutableHeightMapDescription.builder();
    }
 }

@@ -67,9 +67,9 @@ import java.util.Collection;
       return jointDescription.getLink().getLinkGraphics();
    }
 
-   public static RobotDescriptionBuilder builder()
+   public static ImmutableRobotDescription.Builder builder()
    {
-      return new RobotDescriptionBuilder();
+      return ImmutableRobotDescription.builder();
    }
 
    static abstract class Builder implements JointDescription.Builder

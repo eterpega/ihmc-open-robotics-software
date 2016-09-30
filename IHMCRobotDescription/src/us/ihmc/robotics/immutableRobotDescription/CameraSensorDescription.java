@@ -14,8 +14,8 @@ import org.immutables.value.Value.Immutable;
 
    public abstract int getImageHeight();
 
-   public static CameraSensorDescriptionBuilder builder()
+   public static ImmutableCameraSensorDescription.Builder builder()
    {
-      return new CameraSensorDescriptionBuilder();
+      return ImmutableCameraSensorDescription.builder();
    }
 }

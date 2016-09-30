@@ -171,7 +171,7 @@ import javax.vecmath.Vector3f;
          }
       }
 
-      return TriangleMeshDescription.fromTriangleSoupSanitized(new TriangleSoupDescriptionBuilder()
+      return TriangleMeshDescription.fromTriangleSoupSanitized(TriangleSoupDescription.builder()
                                                             .indexBuffer(indexBuffer)
                                                             .vertexBuffer(vertexBuffer)
                                                             .normalBuffer(normalBuffer)
@@ -182,9 +182,14 @@ import javax.vecmath.Vector3f;
    @Override public TriangleGeometryDescription toTriangleGeometry()
    {
       // reuse base geometry and just scale it accordingly
-      return new TriangleGeometryDescriptionBuilder()
+      return TriangleGeometryDescription.builder()
             .triangleMesh(geometryData)
             .transform(TransformDescription.fromScale(new Vector3f(getRadius(), getRadius(), getHeight())).compose(getTransform()))
             .build();
+   }
+
+   public static ImmutableCylinderDescription.Builder builder()
+   {
+      return ImmutableCylinderDescription.builder();
    }
 }

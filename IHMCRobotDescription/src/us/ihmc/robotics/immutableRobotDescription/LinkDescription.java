@@ -23,7 +23,7 @@ import static us.ihmc.robotics.immutableRobotDescription.graphics.TransformDescr
 {
    @Default @NotNull public GraphicsGroupDescription getLinkGraphics()
    {
-      return GraphicsGroupDescription.EMPTY_GROUP;
+      return GraphicsGroupDescription.empty();
    }
 
    @Default public double getMass()
@@ -245,13 +245,13 @@ import static us.ihmc.robotics.immutableRobotDescription.graphics.TransformDescr
       Vector3d inertiaEllipsoidRadii = InertiaTools.getInertiaEllipsoidRadii(principalMomentsOfInertia.getPrincipalMomentsOfIntertia(), getMass());
 
       if (appearance == null)
-         appearance = MaterialDescription.BLACK;
+         appearance = MaterialDescription.black();
 
       Matrix3d principalAxesRotation = principalMomentsOfInertia.getPrincipalAxesRotation();
 
       Vector3d comOffset = getCenterOfMassOffset();
 
-      return new EllipsoidDescriptionBuilder()
+      return EllipsoidDescription.builder()
             .transform(TransformDescription.fromRotation(principalAxesRotation).compose(fromTranslation(comOffset)))
             .radiusX(inertiaEllipsoidRadii.getX())
             .radiusY(inertiaEllipsoidRadii.getY())
@@ -292,7 +292,7 @@ import static us.ihmc.robotics.immutableRobotDescription.graphics.TransformDescr
          double lz = Math.sqrt(6.0 * (momentOfInertia.get(0, 0) + momentOfInertia.get(1, 1) - momentOfInertia.get(2, 2)) / mass);
 
          TransformDescription transform = fromTranslation(comOffset).compose(fromTranslation(new Vector3d(0, 0, -lz / 2.0)));
-         return new BoxDescriptionBuilder()
+         return BoxDescription.builder()
                .transform(transform)
                .material(appearance)
                .width(lx)
@@ -302,9 +302,9 @@ import static us.ihmc.robotics.immutableRobotDescription.graphics.TransformDescr
       }
    }
 
-   public static LinkDescriptionBuilder builder()
+   public static ImmutableLinkDescription.Builder builder()
    {
-      return new LinkDescriptionBuilder();
+      return ImmutableLinkDescription.builder();
    }
 
    public static LinkDescription empty(String name)

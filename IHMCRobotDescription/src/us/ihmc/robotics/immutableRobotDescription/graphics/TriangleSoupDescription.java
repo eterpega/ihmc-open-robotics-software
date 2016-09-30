@@ -61,7 +61,7 @@ import java.util.*;
 
       Vector3f[] normals = findNormalsPerVertex(indices, vertices);
 
-      return new TriangleSoupDescriptionBuilder()
+      return builder()
             .vertexBuffer(vertices)
             .indexBuffer(indices)
             .normalBuffer(normals)
@@ -159,5 +159,10 @@ import java.util.*;
       }
 
       return ret;
+   }
+
+   public static ImmutableTriangleSoupDescription.Builder builder()
+   {
+      return ImmutableTriangleSoupDescription.builder();
    }
 }

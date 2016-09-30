@@ -6,8 +6,8 @@ import org.immutables.value.Value.Immutable;
 {
    public abstract boolean getUseGroundContactPoints();
 
-   public static ForceSensorDescriptionBuilder builder()
+   public static ImmutableForceSensorDescription.Builder builder()
    {
-      return new ForceSensorDescriptionBuilder();
+      return ImmutableForceSensorDescription.builder();
    }
 }

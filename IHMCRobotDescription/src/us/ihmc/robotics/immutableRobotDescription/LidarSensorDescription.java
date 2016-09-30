@@ -7,8 +7,8 @@ import us.ihmc.robotics.lidar.LidarScanParameters;
 {
    public abstract LidarScanParameters getLidarScanParameters();
 
-   public static LidarSensorDescriptionBuilder builder()
+   public static ImmutableLidarSensorDescription.Builder builder()
    {
-      return new LidarSensorDescriptionBuilder();
+      return ImmutableLidarSensorDescription.builder();
    }
 }

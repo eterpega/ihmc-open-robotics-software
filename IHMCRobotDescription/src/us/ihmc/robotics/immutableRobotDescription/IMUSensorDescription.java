@@ -12,8 +12,8 @@ import org.immutables.value.Value.Immutable;
 
    public abstract GaussianParameter getAngularVelocityBias();
 
-   public static IMUSensorDescriptionBuilder builder()
+   public static ImmutableIMUSensorDescription.Builder builder()
    {
-      return new IMUSensorDescriptionBuilder();
+      return ImmutableIMUSensorDescription.builder();
    }
 }

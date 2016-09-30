@@ -9,8 +9,21 @@ import java.awt.Color;
  */
 @Immutable public abstract class MaterialDescription
 {
-   public static final MaterialDescription BLACK = new MaterialDescriptionBuilder().color(Color.BLACK).build();
-   public static final MaterialDescription WHITE = new MaterialDescriptionBuilder().color(Color.WHITE).build();
+   private static final MaterialDescription[] DEFAULT_MATERIALS = new MaterialDescription[2];
+
+   public static MaterialDescription black()
+   {
+      if (DEFAULT_MATERIALS[0] == null)
+         DEFAULT_MATERIALS[0] = builder().color(Color.BLACK).build();
+      return DEFAULT_MATERIALS[0];
+   }
+
+   public static MaterialDescription white()
+   {
+      if (DEFAULT_MATERIALS[1] == null)
+         DEFAULT_MATERIALS[1] = builder().color(Color.WHITE).build();
+      return DEFAULT_MATERIALS[1];
+   }
 
    /**
     * Diffuse color.
@@ -34,5 +47,10 @@ import java.awt.Color;
    public double getRoughness()
    {
       return 1;
+   }
+
+   public static ImmutableMaterialDescription.Builder builder()
+   {
+      return ImmutableMaterialDescription.builder();
    }
 }

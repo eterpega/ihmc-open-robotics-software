@@ -2,11 +2,11 @@ package us.ihmc.robotics.immutableRobotDescription;
 
 import org.immutables.value.Value.Default;
 import org.immutables.value.Value.Immutable;
+import org.immutables.value.Value.Modifiable;
 
 import javax.vecmath.Vector3d;
 
-// TODO: couldn't RobotDescription and FloatingJointDescription be merged?
-@Immutable public abstract class FloatingJointDescription extends JointDescription
+@Immutable @Modifiable public abstract class FloatingJointDescription extends JointDescription
 {
    static abstract class Builder implements JointDescription.Builder
    {

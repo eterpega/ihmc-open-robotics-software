@@ -7,9 +7,9 @@ import us.ihmc.robotics.Plane;
 {
    public abstract Plane getPlane();
 
-   public static FloatingPlanarJointDescriptionBuilder builder()
+   public static ImmutableFloatingPlanarJointDescription.Builder builder()
    {
-      return new FloatingPlanarJointDescriptionBuilder();
+      return ImmutableFloatingPlanarJointDescription.builder();
    }
 
    static abstract class Builder implements JointDescription.Builder

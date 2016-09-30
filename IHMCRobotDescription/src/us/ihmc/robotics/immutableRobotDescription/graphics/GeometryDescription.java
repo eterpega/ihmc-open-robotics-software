@@ -11,12 +11,12 @@ public abstract class GeometryDescription implements Transformable
    {
       @Override public TriangleGeometryDescription toTriangleGeometry()
       {
-         return new TriangleGeometryDescriptionBuilder().triangleMesh(TriangleMeshDescription.EMPTY).build();
+         return TriangleGeometryDescription.builder().triangleMesh(TriangleMeshDescription.empty()).build();
       }
    };
 
    public @Default MaterialDescription getMaterial() {
-      return MaterialDescription.WHITE;
+      return MaterialDescription.white();
    }
 
    public @Override @Default TransformDescription getTransform() {

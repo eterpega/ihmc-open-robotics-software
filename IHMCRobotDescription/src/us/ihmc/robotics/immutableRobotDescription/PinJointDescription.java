@@ -5,9 +5,9 @@ import org.immutables.value.Value.Immutable;
 @Immutable public abstract class PinJointDescription extends OneDoFJointDescription
 {
 
-   public static PinJointDescriptionBuilder builder()
+   public static ImmutablePinJointDescription.Builder builder()
    {
-      return new PinJointDescriptionBuilder();
+      return ImmutablePinJointDescription.builder();
    }
 
    static abstract class Builder implements OneDoFJointDescription.Builder

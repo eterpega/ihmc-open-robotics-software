@@ -101,7 +101,7 @@ import javax.vecmath.Vector3f;
       normBuf[i] = new Vector3f(0, 0, 1);
       texBuf[i] = new Vector2f(0.5f, 1.0f);
 
-      return TriangleMeshDescription.fromTriangleSoupSanitized(new TriangleSoupDescriptionBuilder()
+      return TriangleMeshDescription.fromTriangleSoupSanitized(TriangleSoupDescription.builder()
             .indexBuffer(indexBuf)
             .vertexBuffer(posBuf)
             .normalBuffer(normBuf)
@@ -157,9 +157,14 @@ import javax.vecmath.Vector3f;
    @Override public TriangleGeometryDescription toTriangleGeometry()
    {
       // reuse immutable geometry data and just scale it based on radius
-      return new TriangleGeometryDescriptionBuilder()
+      return TriangleGeometryDescription.builder()
             .triangleMesh(GEOMETRY_DATA)
             .transform(TransformDescription.fromScale((float)getRadius()).compose(getTransform()))
             .build();
+   }
+
+   public static ImmutableSphereDescription.Builder builder()
+   {
+      return ImmutableSphereDescription.builder();
    }
 }

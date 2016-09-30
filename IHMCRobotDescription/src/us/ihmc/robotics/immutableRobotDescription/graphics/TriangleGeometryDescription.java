@@ -21,4 +21,9 @@ public abstract class TriangleGeometryDescription extends GeometryDescription
    {
       return TransformDescription.UNIT;
    }
+
+   public static ImmutableTriangleGeometryDescription.Builder builder()
+   {
+      return ImmutableTriangleGeometryDescription.builder();
+   }
 }

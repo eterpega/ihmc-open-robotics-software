@@ -15,12 +15,23 @@ import static java.lang.Float.isNaN;
  */
 public class TriangleMeshDescription implements ShapeDescription
 {
-   public static final TriangleMeshDescription EMPTY = new TriangleMeshDescription(new TriangleSoupDescriptionBuilder()
-                                                                                         .indexBuffer()
-                                                                                         .vertexBuffer()
-                                                                                         .normalBuffer()
-                                                                                         .textureCoordinatesBuffer()
-                                                                                         .build(), CullMode.CullNone);
+   private static final TriangleMeshDescription[] EMPTY = new TriangleMeshDescription[1];
+
+   /**
+    * Empty triangle mesh
+    * @return empty mesh
+    */
+   public static TriangleMeshDescription empty()
+   {
+      if (EMPTY[0] == null)
+         EMPTY[0] = new TriangleMeshDescription(TriangleSoupDescription.builder()
+                                                   .indexBuffer()
+                                                   .vertexBuffer()
+                                                   .normalBuffer()
+                                                   .textureCoordinatesBuffer()
+                                                   .build(), CullMode.CullNone);
+      return EMPTY[0];
+   }
 
    private final TriangleSoupDescription triangleSoup;
    private final CullMode cullMode;
@@ -179,7 +190,7 @@ public class TriangleMeshDescription implements ShapeDescription
          });
       }
 
-      return new TriangleSoupDescriptionBuilder().indexBuffer(newFaces.indexBuffer)
+      return TriangleSoupDescription.builder().indexBuffer(newFaces.indexBuffer)
                                .vertexBuffer(newVertices)
                                .normalBuffer(newFaces.normalBuffer)
                                .textureCoordinatesBuffer(newTexCoords)

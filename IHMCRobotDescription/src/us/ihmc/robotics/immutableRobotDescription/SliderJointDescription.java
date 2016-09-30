@@ -4,9 +4,9 @@ import org.immutables.value.Value.Immutable;
 
 @Immutable public abstract class SliderJointDescription extends OneDoFJointDescription
 {
-   public static SliderJointDescriptionBuilder builder()
+   public static ImmutableSliderJointDescription.Builder builder()
    {
-      return new SliderJointDescriptionBuilder();
+      return ImmutableSliderJointDescription.builder();
    }
 
    static abstract class Builder implements OneDoFJointDescription.Builder

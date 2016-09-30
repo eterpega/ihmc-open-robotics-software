@@ -23,9 +23,14 @@ import javax.vecmath.Vector3d;
    @Override public TriangleGeometryDescription toTriangleGeometry()
    {
       // reuse immutable geometry data and just scale it based on radius
-      return new TriangleGeometryDescriptionBuilder()
+      return TriangleGeometryDescription.builder()
             .triangleMesh(SphereDescription.GEOMETRY_DATA)
             .transform(TransformDescription.fromScale(getRadii()).compose(getTransform()))
             .build();
+   }
+
+   public static ImmutableEllipsoidDescription.Builder builder()
+   {
+      return ImmutableEllipsoidDescription.builder();
    }
 }

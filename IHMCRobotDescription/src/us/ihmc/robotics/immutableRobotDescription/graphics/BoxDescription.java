@@ -40,7 +40,7 @@ import javax.vecmath.Vector3f;
    };
 
    private static final TriangleMeshDescription geometryData = TriangleMeshDescription.fromTriangleSoupSanitized(
-         new TriangleSoupDescriptionBuilder()
+         TriangleSoupDescription.builder()
                .indexBuffer(GEOMETRY_INDICES_DATA)
                .vertexBuffer(createVertices())
                .normalBuffer(createVectorBuffer(GEOMETRY_NORMALS_DATA))
@@ -113,9 +113,14 @@ import javax.vecmath.Vector3f;
 
    @Override public TriangleGeometryDescription toTriangleGeometry()
    {
-      return new TriangleGeometryDescriptionBuilder()
+      return TriangleGeometryDescription.builder()
             .triangleMesh(geometryData)
             .transform(TransformDescription.fromScale(getDimensions()).compose(getTransform()))
             .build();
+   }
+
+   public static ImmutableBoxDescription.Builder builder()
+   {
+      return ImmutableBoxDescription.builder();
    }
 }

@@ -12,9 +12,9 @@ import org.immutables.value.Value.Parameter;
 
    @Parameter public abstract double getStandardDeviation();
 
-   public static GaussianParameterBuilder builder()
+   public static ImmutableGaussianParameter.Builder builder()
    {
-      return new GaussianParameterBuilder();
+      return ImmutableGaussianParameter.builder();
    }
 
    public static GaussianParameter fromMeanStd(double mean, double standardDeviation)

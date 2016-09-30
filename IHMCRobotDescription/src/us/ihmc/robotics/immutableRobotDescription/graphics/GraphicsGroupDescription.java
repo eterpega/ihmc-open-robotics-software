@@ -18,10 +18,17 @@ import java.util.List;
 @Immutable
 public abstract class GraphicsGroupDescription implements Transformable
 {
-   public static final GraphicsGroupDescription EMPTY_GROUP = new GraphicsGroupDescriptionBuilder()
-                                       .childGeometries(Collections.<GeometryDescription>emptyList())
-                                       .childGroups(Collections.<GraphicsGroupDescription>emptyList())
-                                       .build();
+   private static final GraphicsGroupDescription[] EMPTY_GROUP = new GraphicsGroupDescription[1];
+
+   public static GraphicsGroupDescription empty()
+   {
+      if (EMPTY_GROUP[0] == null)
+         EMPTY_GROUP[0] = GraphicsGroupDescription.builder()
+                                               .childGeometries(Collections.<GeometryDescription>emptyList())
+                                               .childGroups(Collections.<GraphicsGroupDescription>emptyList())
+                                               .build();
+      return EMPTY_GROUP[0];
+   }
 
    public abstract List<GraphicsGroupDescription> getChildGroups();
 
@@ -34,7 +41,7 @@ public abstract class GraphicsGroupDescription implements Transformable
    }
 
    public static GraphicsGroupDescription fromGraphics3DObject(Graphics3DObject graphics3DObject) {
-      GraphicsGroupDescriptionBuilder groupBuilder = new GraphicsGroupDescriptionBuilder();
+      ImmutableGraphicsGroupDescription.Builder groupBuilder = GraphicsGroupDescription.builder();
       TransformDescription currentTransform = new TransformDescription();
       for (Graphics3DPrimitiveInstruction instruction : graphics3DObject.getGraphics3DInstructions())
       {
@@ -48,7 +55,7 @@ public abstract class GraphicsGroupDescription implements Transformable
             Graphics3DAddMeshDataInstruction graphics3DAddMesh = (Graphics3DAddMeshDataInstruction) instruction;
             TriangleMeshDescription mesh = TriangleMeshDescription
                   .fromTriangleSoupSanitized(TriangleSoupDescription.fromMeshDataHolder(graphics3DAddMesh.getMeshData()));
-            TriangleGeometryDescription geometry = new TriangleGeometryDescriptionBuilder()
+            TriangleGeometryDescription geometry = TriangleGeometryDescription.builder()
                                                                            .triangleMesh(mesh)
                                                                            .transform(currentTransform)
                                                                            .build();
@@ -81,7 +88,7 @@ public abstract class GraphicsGroupDescription implements Transformable
          else if (instruction instanceof Graphics3DAddHeightMapInstruction)
          {
             Graphics3DAddHeightMapInstruction graphics3DAddHeightMap = (Graphics3DAddHeightMapInstruction) instruction;
-            HeightMapDescription heightMap = new HeightMapDescriptionBuilder().heightMap(graphics3DAddHeightMap.getHeightMap()).transform(currentTransform)
+            HeightMapDescription heightMap = HeightMapDescription.builder().heightMap(graphics3DAddHeightMap.getHeightMap()).transform(currentTransform)
                                                                               .build();
             groupBuilder.addChildGeometries(heightMap);
          }
@@ -92,5 +99,10 @@ public abstract class GraphicsGroupDescription implements Transformable
 
       }
       return groupBuilder.build();
+   }
+
+   public static ImmutableGraphicsGroupDescription.Builder builder()
+   {
+      return ImmutableGraphicsGroupDescription.builder();
    }
 }
