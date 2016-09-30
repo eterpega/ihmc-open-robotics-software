@@ -8,6 +8,7 @@ import javafx.scene.layout.BorderPane;
 import org.controlsfx.control.PropertySheet;
 import org.controlsfx.control.PropertySheet.Item;
 import org.controlsfx.property.BeanProperty;
+import us.ihmc.robotbuilder.gui.editors.EditorFactory;
 import us.ihmc.robotics.immutableRobotDescription.JointDescription;
 
 import java.beans.IntrospectionException;
@@ -23,18 +24,20 @@ import static java.lang.reflect.Modifier.isStatic;
 /**
  *
  */
-public class FloatingJointEditorPane extends BorderPane
+public class JointEditorPane extends BorderPane
 {
 
    private Property<JointDescription> jointDescription = new SimpleObjectProperty<>();
 
-   public FloatingJointEditorPane(JointDescription jointDescription)
+   public JointEditorPane(JointDescription jointDescription)
    {
       this.jointDescription.setValue(jointDescription);
 
       PropertySheet propertySheet = new PropertySheet();
+      propertySheet.setPropertyEditorFactory(new EditorFactory());
       propertySheet.getItems().addAll(getProperties(jointDescription.toModifiable()));
       setCenter(propertySheet);
+
       //buildUI();
    }
 
@@ -79,21 +82,4 @@ public class FloatingJointEditorPane extends BorderPane
             .filter(method -> method.getName().contains(propertyName))
             .findFirst().orElse(null);
    }
-
-   /*private void buildUI() {
-      AtomicInteger rowIndex = new AtomicInteger(0);
-      getUIFields(jointDescription.getValue())
-            .map(field -> Editor.editorForField(jointDescription.getValue(), field))
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .forEach(editor -> add(editor, 0, rowIndex.getAndIncrement()));
-   }
-
-   private Stream<Field> getUIFields(Object object) {
-      return Arrays.stream(object.getClass().getDeclaredFields())
-            .filter(field -> Modifier.isFinal(field.getModifiers()) && !Modifier.isStatic(field.getModifiers()));
-   }*/
-
-
-
 }

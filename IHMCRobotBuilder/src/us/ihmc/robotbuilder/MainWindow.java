@@ -27,7 +27,7 @@ import javafx.stage.Stage;
 import javaslang.control.Option;
 import us.ihmc.javaFXToolkit.cameraControllers.SimpleCameraKeyboardEventHandler;
 import us.ihmc.javaFXToolkit.cameraControllers.SimpleCameraMouseEventHandler;
-import us.ihmc.robotbuilder.gui.FloatingJointEditorPane;
+import us.ihmc.robotbuilder.gui.JointEditorPane;
 import us.ihmc.robotbuilder.model.JointWrapper;
 import us.ihmc.robotbuilder.model.Loader;
 import us.ihmc.robotbuilder.util.*;
@@ -122,7 +122,7 @@ public class MainWindow extends Application {
                             {
                                 if (!change.wasAdded())
                                     continue;
-                                change.getAddedSubList().forEach(selected -> jointSettings.setContent(new FloatingJointEditorPane(selected.getValue().getJointDescription())));
+                                change.getAddedSubList().forEach(selected -> jointSettings.setContent(new JointEditorPane(selected.getValue().getJointDescription())));
                             }
                         });
 
