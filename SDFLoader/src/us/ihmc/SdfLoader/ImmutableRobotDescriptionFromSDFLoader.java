@@ -53,7 +53,7 @@ public class ImmutableRobotDescriptionFromSDFLoader
       List<String> resourceDirectories = generalizedSDFRobotModel.getResourceDirectories();
 
       String name = generalizedSDFRobotModel.getName();
-      RobotDescriptionBuilder robotDescription = new RobotDescriptionBuilder().name(name);
+      ImmutableRobotDescription.Builder robotDescription = RobotDescription.builder().name(name);
 
       ArrayList<SDFLinkHolder> rootLinks = generalizedSDFRobotModel.getRootLinks();
 
@@ -67,7 +67,7 @@ public class ImmutableRobotDescriptionFromSDFLoader
       Vector3d offset = new Vector3d();
       Quat4d orientation = new Quat4d();
       generalizedSDFRobotModel.getTransformToRoot().get(orientation, offset);
-      FloatingJointDescriptionBuilder rootJointDescription = new FloatingJointDescriptionBuilder().name(rootLink.getName());
+      ImmutableFloatingJointDescription.Builder rootJointDescription = FloatingJointDescription.builder().name(rootLink.getName());
 
       LinkDescription rootLinkDescription = createLinkDescription(rootLink, new RigidBodyTransform(), useCollisionMeshes, resourceDirectories);
       rootJointDescription.link(rootLinkDescription);
@@ -149,11 +149,11 @@ public class ImmutableRobotDescriptionFromSDFLoader
       for (int i = 0; i < groundContactPoints.size(); i++)
       {
          Vector3d gcOffset = groundContactPoints.get(i);
-         GroundContactPointDescription groundContactPoint = new GroundContactPointDescriptionBuilder()
+         GroundContactPointDescription groundContactPoint = GroundContactPointDescription.builder()
                .name("gc_" + sanitizedJointName + "_" + i)
                .offsetFromJoint(gcOffset)
                .build();
-         ExternalForcePointDescription externalForcePoint = new ExternalForcePointDescriptionBuilder()
+         ExternalForcePointDescription externalForcePoint = ExternalForcePointDescription.builder()
                .name("ef_" + sanitizedJointName + "_")
                .offsetFromJoint(gcOffset)
                .build();
@@ -177,7 +177,7 @@ public class ImmutableRobotDescriptionFromSDFLoader
 
    private LinkDescription createLinkDescription(SDFLinkHolder link, RigidBodyTransform rotationTransform, boolean useCollisionMeshes, List<String> resourceDirectories)
    {
-      LinkDescriptionBuilder scsLinkBuilder = new LinkDescriptionBuilder().name(link.getName());
+      ImmutableLinkDescription.Builder scsLinkBuilder = LinkDescription.builder().name(link.getName());
 
       //TODO: Get collision meshes working.
       if (useCollisionMeshes)
@@ -228,7 +228,7 @@ public class ImmutableRobotDescriptionFromSDFLoader
       switch (joint.getType())
       {
       case REVOLUTE:
-         PinJointDescriptionBuilder pinJoint = new PinJointDescriptionBuilder().name(sanitizedJointName).offsetFromJoint(offset).axis(jointAxis);
+         ImmutablePinJointDescription.Builder pinJoint = PinJointDescription.builder().name(sanitizedJointName).offsetFromJoint(offset).axis(jointAxis);
 
          if (joint.hasLimits())
          {
@@ -265,7 +265,7 @@ public class ImmutableRobotDescriptionFromSDFLoader
          break;
 
       case PRISMATIC:
-         SliderJointDescriptionBuilder sliderJoint = new SliderJointDescriptionBuilder()
+         ImmutableSliderJointDescription.Builder sliderJoint = SliderJointDescription.builder()
                .name(sanitizedJointName)
                .offsetFromJoint(offset)
                .axis(jointAxis);
@@ -414,7 +414,7 @@ public class ImmutableRobotDescriptionFromSDFLoader
          double clipNear = parseDouble(camera.getClip().getNear());
          double clipFar = parseDouble(camera.getClip().getFar());
          String cameraName = sensor.getName() + "_" + camera.getName();
-         CameraSensorDescriptionBuilder mount = new CameraSensorDescriptionBuilder()
+         ImmutableCameraSensorDescription.Builder mount = CameraSensorDescription.builder()
                .name(cameraName)
                .transformToJoint(linkToCamera)
                .fieldOfView(fieldOfView)
@@ -448,7 +448,7 @@ public class ImmutableRobotDescriptionFromSDFLoader
       RigidBodyTransform linkToSensorInZUp = new RigidBodyTransform();
       linkToSensorInZUp.multiply(linkRotation, SDFConversionsHelper.poseToTransform(sdfSensor.getPose()));
 
-      IMUSensorDescriptionBuilder imuMount = new IMUSensorDescriptionBuilder()
+      ImmutableIMUSensorDescription.Builder imuMount = IMUSensorDescription.builder()
             .name(child.getName() + "_" + sdfSensor.getName())
             .transformToJoint(linkToSensorInZUp);
 
@@ -477,7 +477,7 @@ public class ImmutableRobotDescriptionFromSDFLoader
          }
       }
 
-      return Collections.singletonList(imuMount.build());
+      return Collections.singletonList((IMUSensorDescription)imuMount.build());
    }
 
    private List<LidarSensorDescription> convertLidarMounts(SDFSensor sensor, SDFLinkHolder child)
@@ -552,7 +552,7 @@ public class ImmutableRobotDescriptionFromSDFLoader
       updateParameters.setAlwaysOn(sdfAlwaysOn);
       updateParameters.setUpdatePeriodInMillis(sdfUpdateRate);
 
-      LidarSensorDescription lidarMount = new LidarSensorDescriptionBuilder()
+      LidarSensorDescription lidarMount = LidarSensorDescription.builder()
             .name(sensor.getName())
             .transformToJoint(linkToSensorInZUp)
             .lidarScanParameters(polarDefinition)
@@ -583,7 +583,7 @@ public class ImmutableRobotDescriptionFromSDFLoader
 
       for (SDFForceSensor forceSensor : joint.getForceSensors())
       {
-         ForceSensorDescriptionBuilder forceSensorDescription = new ForceSensorDescriptionBuilder().name(forceSensor.getName()).transformToJoint(forceSensor.getTransform());
+         ImmutableForceSensorDescription.Builder forceSensorDescription = ForceSensorDescription.builder().name(forceSensor.getName()).transformToJoint(forceSensor.getTransform());
          forceSensorDescription.useGroundContactPoints(jointIsParentOfFoot);
          result.add(forceSensorDescription.build());
       }

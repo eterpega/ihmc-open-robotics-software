@@ -16,5 +16,10 @@ import javax.vecmath.Vector3d;
    {
       return new Vector3d();
    }
+
+   public static ImmutableFloatingJointDescription.Builder builder()
+   {
+      return ImmutableFloatingJointDescription.builder();
+   }
 }
 
