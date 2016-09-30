@@ -4,7 +4,7 @@ import org.immutables.value.Value.Default;
 
 import java.util.List;
 
-public abstract class JointDescription implements NamedObject, LocatedObject
+public abstract class JointDescription implements NamedObject, LocatedObject, ModifiableObject
 {
    public abstract List<JointDescription> getChildrenJoints();
 

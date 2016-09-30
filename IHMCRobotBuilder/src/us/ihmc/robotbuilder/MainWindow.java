@@ -28,6 +28,7 @@ import javaslang.control.Option;
 import us.ihmc.javaFXToolkit.cameraControllers.SimpleCameraKeyboardEventHandler;
 import us.ihmc.javaFXToolkit.cameraControllers.SimpleCameraMouseEventHandler;
 import us.ihmc.robotbuilder.gui.FloatingJointEditorPane;
+import us.ihmc.robotbuilder.model.JointWrapper;
 import us.ihmc.robotbuilder.model.Loader;
 import us.ihmc.robotbuilder.util.*;
 import us.ihmc.robotics.immutableRobotDescription.JointDescription;
@@ -55,7 +56,7 @@ public class MainWindow extends Application {
     private Pane view3D;
 
     @FXML
-    private TreeView<JointDescription> treeView;
+    private TreeView<JointWrapper> treeView;
 
     private Stage stage;
 
@@ -105,22 +106,23 @@ public class MainWindow extends Application {
             return Option.ofOptional(dialog.showAndWait());
         })).flatMap(immutableRobotDescription -> Util.runLaterInUI(() -> {
             immutableRobotDescription.peek(description -> {
-                Tree<JointDescription> tree = Tree.adapt(description, JointDescription::getChildrenJoints);
+                Tree<JointWrapper> tree = Tree.adapt(description, JointDescription::getChildrenJoints)
+                                              .mapValues(JointWrapper::new);
                 treeView.setRoot(tree.map((node, children) -> {
-                    TreeItem<JointDescription> item = new TreeItem<>(node.getValue());
+                    TreeItem<JointWrapper> item = new TreeItem<>(node.getValue());
                     item.getChildren().addAll(children);
                     return item;
                 }));
 
                 treeView.getSelectionModel()
                         .getSelectedItems()
-                        .addListener((ListChangeListener<? super TreeItem<JointDescription>>) change ->
+                        .addListener((ListChangeListener<? super TreeItem<JointWrapper>>) change ->
                         {
                             while (change.next())
                             {
                                 if (!change.wasAdded())
                                     continue;
-                                change.getAddedSubList().forEach(selected -> jointSettings.setContent(new FloatingJointEditorPane(selected.getValue())));
+                                change.getAddedSubList().forEach(selected -> jointSettings.setContent(new FloatingJointEditorPane(selected.getValue().getJointDescription())));
                             }
                         });
 

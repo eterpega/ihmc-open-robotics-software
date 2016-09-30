@@ -4,6 +4,7 @@ import org.ejml.data.DenseMatrix64F;
 import org.immutables.value.Value.Default;
 import org.immutables.value.Value.Immutable;
 import org.immutables.value.Value.Lazy;
+import org.immutables.value.Value.Modifiable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import us.ihmc.graphics3DAdapter.graphics.Graphics3DObject;
@@ -19,9 +20,9 @@ import java.util.ArrayList;
 
 import static us.ihmc.robotics.immutableRobotDescription.graphics.TransformDescription.fromTranslation;
 
-@Immutable public abstract class LinkDescription implements NamedObject
+@Immutable @Modifiable public abstract class LinkDescription implements NamedObject, ModifiableObject
 {
-   @Default @NotNull public GraphicsGroupDescription getLinkGraphics()
+   @Default public GraphicsGroupDescription getLinkGraphics()
    {
       return GraphicsGroupDescription.empty();
    }
@@ -39,6 +40,11 @@ import static us.ihmc.robotics.immutableRobotDescription.graphics.TransformDescr
    @Default public DenseMatrix64F getMomentOfInertia()
    {
       return new DenseMatrix64F(3, 3); // TODO: this creates a zero matrix, wouldn't a unit matrix be more appropriate?
+   }
+
+   @Override public ModifiableLinkDescription toModifiable()
+   {
+      return ModifiableLinkDescription.create().from(this);
    }
 
    @Lazy public PrincipalMomentsOfInertia getPrincipalMomentsOfInertia()

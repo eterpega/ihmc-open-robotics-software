@@ -2,13 +2,14 @@ package us.ihmc.robotics.immutableRobotDescription;
 
 import org.immutables.value.Value.Default;
 import org.immutables.value.Value.Immutable;
+import org.immutables.value.Value.Modifiable;
 import us.ihmc.robotics.immutableRobotDescription.graphics.GraphicsGroupDescription;
 import us.ihmc.robotics.immutableRobotDescription.graphics.ShapeDescription;
 
 import javax.vecmath.Vector3d;
 import java.util.Collection;
 
-@Immutable public abstract class RobotDescription extends JointDescription implements GraphicsObjectsHolder
+@Immutable @Modifiable public abstract class RobotDescription extends JointDescription implements GraphicsObjectsHolder
 {
    @Default @Override public Vector3d getOffsetFromJoint()
    {
@@ -18,6 +19,11 @@ import java.util.Collection;
    @Default @Override public LinkDescription getLink()
    {
       return LinkDescription.empty("empty_" + getName());
+   }
+
+   @Override public ModifiableRobotDescription toModifiable()
+   {
+      return ModifiableRobotDescription.create().from(this);
    }
 
    // TODO: the following methods need to be tested

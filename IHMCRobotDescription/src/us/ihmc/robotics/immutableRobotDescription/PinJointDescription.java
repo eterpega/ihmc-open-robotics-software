@@ -1,9 +1,15 @@
 package us.ihmc.robotics.immutableRobotDescription;
 
 import org.immutables.value.Value.Immutable;
+import org.immutables.value.Value.Modifiable;
 
-@Immutable public abstract class PinJointDescription extends OneDoFJointDescription
+@Immutable @Modifiable public abstract class PinJointDescription extends OneDoFJointDescription
 {
+
+   @Override public ModifiablePinJointDescription toModifiable()
+   {
+      return ModifiablePinJointDescription.create().from(this);
+   }
 
    public static ImmutablePinJointDescription.Builder builder()
    {

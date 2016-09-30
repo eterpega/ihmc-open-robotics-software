@@ -1,8 +1,9 @@
 package us.ihmc.robotics.immutableRobotDescription;
 
 import org.immutables.value.Value.Immutable;
+import org.immutables.value.Value.Modifiable;
 
-@Immutable public abstract class CameraSensorDescription extends SensorDescription
+@Immutable @Modifiable public abstract class CameraSensorDescription extends SensorDescription
 {
    public abstract double getFieldOfView();
 
@@ -13,6 +14,11 @@ import org.immutables.value.Value.Immutable;
    public abstract int getImageWidth();
 
    public abstract int getImageHeight();
+
+   @Override public ModifiableCameraSensorDescription toModifiable()
+   {
+      return ModifiableCameraSensorDescription.create().from(this);
+   }
 
    public static ImmutableCameraSensorDescription.Builder builder()
    {

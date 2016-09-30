@@ -14,6 +14,11 @@ public class JointWrapper
       this.jointDescription = jointDescription;
    }
 
+   public JointDescription getJointDescription()
+   {
+      return jointDescription;
+   }
+
    @Override public boolean equals(Object o)
    {
       if (this == o)

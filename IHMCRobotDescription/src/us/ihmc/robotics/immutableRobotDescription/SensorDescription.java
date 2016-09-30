@@ -4,7 +4,7 @@ import us.ihmc.robotics.geometry.RigidBodyTransform;
 
 import javax.vecmath.Vector3d;
 
-public abstract class SensorDescription implements NamedObject, LocatedObject
+public abstract class SensorDescription implements NamedObject, LocatedObject, ModifiableObject
 {
    public abstract RigidBodyTransform getTransformToJoint();
 
