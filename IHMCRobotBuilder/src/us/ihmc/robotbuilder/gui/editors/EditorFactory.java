@@ -1,11 +1,13 @@
 package us.ihmc.robotbuilder.gui.editors;
 
+import javafx.beans.value.ObservableValue;
 import org.controlsfx.control.PropertySheet.Item;
+import org.controlsfx.property.editor.AbstractPropertyEditor;
 import org.controlsfx.property.editor.DefaultPropertyEditorFactory;
 import org.controlsfx.property.editor.PropertyEditor;
 
 import javax.vecmath.Vector3d;
-import java.util.List;
+import java.lang.reflect.InvocationTargetException;
 
 /**
  *
@@ -14,17 +16,37 @@ public class EditorFactory extends DefaultPropertyEditorFactory
 {
    @Override public PropertyEditor<?> call(Item item)
    {
-      PropertyEditor<?> result = super.call(item);
-      if (result != null)
-         return result;
-
       Class<?> type = item.getType();
 
+      if (item.getValue() instanceof Number)
+         return createNumericEditor(item);
       if (type == Vector3d.class)
          return new Vector3DEditor();
       if (Iterable.class.isAssignableFrom(type))
          return new IterableEditor<>(this);
 
-      return null;
+      return super.call(item);
+   }
+
+
+   private static PropertyEditor<?> createNumericEditor(Item property) {
+
+      //noinspection unchecked
+      return new AbstractPropertyEditor<Number, NumberField<Number>>(property, new NumberField<>((Class) property.getType())) {
+
+         @Override protected ObservableValue<Number> getObservableValue() {
+            //noinspection unchecked
+            return getEditor().valueProperty();
+         }
+
+         @Override public Number getValue() {
+            return getEditor().valueProperty().getValue();
+         }
+
+         @Override public void setValue(Number value) {
+            getEditor().valueProperty().setValue(value);
+         }
+
+      };
    }
 }

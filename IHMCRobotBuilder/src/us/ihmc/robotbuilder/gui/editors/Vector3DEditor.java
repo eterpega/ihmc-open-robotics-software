@@ -1,7 +1,6 @@
 package us.ihmc.robotbuilder.gui.editors;
 
 import javafx.scene.Node;
-import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import org.controlsfx.property.editor.PropertyEditor;
 
@@ -31,13 +30,14 @@ public class Vector3DEditor implements PropertyEditor<Vector3d>
 
    private static class EditorComponent extends GridPane
    {
-      private final DecimalTextField[] textFields = new DecimalTextField[3];
+      @SuppressWarnings("unchecked")
+      private final NumberField<Double>[] textFields = new NumberField[3];
 
       EditorComponent()
       {
          for (int i = 0; i < textFields.length; i++)
          {
-            textFields[i] = new DecimalTextField();
+            textFields[i] = new NumberField<>(Double.class);
             GridPane.setColumnIndex(textFields[i], i);
          }
          getChildren().addAll(textFields);
@@ -53,9 +53,9 @@ public class Vector3DEditor implements PropertyEditor<Vector3d>
       Vector3d getValue()
       {
          Vector3d result = new Vector3d();
-         result.x = textFields[0].getValue();
-         result.y = textFields[1].getValue();
-         result.z = textFields[2].getValue();
+         result.x = textFields[0].getValue().orElse(0.0);
+         result.y = textFields[1].getValue().orElse(0.0);
+         result.z = textFields[2].getValue().orElse(0.0);
          return result;
       }
    }
