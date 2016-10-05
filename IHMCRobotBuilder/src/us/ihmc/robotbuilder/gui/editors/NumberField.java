@@ -13,7 +13,7 @@ import java.util.function.Function;
 /**
  * Field for holding numeric values.
  */
-class NumberField<T extends Number> extends TextField
+public class NumberField<T extends Number> extends TextField
 {
 
    private final Property<Number> value;

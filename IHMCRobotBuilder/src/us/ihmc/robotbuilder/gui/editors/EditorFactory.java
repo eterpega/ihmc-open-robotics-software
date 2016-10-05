@@ -7,7 +7,6 @@ import org.controlsfx.property.editor.DefaultPropertyEditorFactory;
 import org.controlsfx.property.editor.PropertyEditor;
 
 import javax.vecmath.Vector3d;
-import java.lang.reflect.InvocationTargetException;
 
 /**
  *
@@ -25,7 +24,11 @@ public class EditorFactory extends DefaultPropertyEditorFactory
       if (Iterable.class.isAssignableFrom(type))
          return new IterableEditor<>(this);
 
-      return super.call(item);
+      PropertyEditor<?> result = super.call(item);
+      if (result != null)
+         return result;
+
+      return null;
    }
 
 
