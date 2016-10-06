@@ -16,9 +16,6 @@ public class JointEditorPane extends BorderPane
 
    public JointEditorPane(JointDescription jointDescription)
    {
-      Property<JointDescription> jointDescription1 = new SimpleObjectProperty<>();
-      jointDescription1.setValue(jointDescription);
-
       PropertySheet propertySheet = new ImmutableBeanEditor<>(jointDescription, new EditorFactory(), false).getEditor();
       setCenter(propertySheet);
    }

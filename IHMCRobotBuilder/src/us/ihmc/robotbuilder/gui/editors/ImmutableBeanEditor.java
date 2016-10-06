@@ -26,6 +26,11 @@ public class ImmutableBeanEditor<T> implements PropertyEditor<T>
    private final Property<T> valueProperty;
    private final boolean includeReadonlyProperties;
 
+   public ImmutableBeanEditor(@NotNull T value)
+   {
+      this(value, new EditorFactory(), false);
+   }
+
    public ImmutableBeanEditor(@NotNull T value, Callback<Item, PropertyEditor<?>> editorFactory, boolean includeReadonlyProperties)
    {
       this.includeReadonlyProperties = includeReadonlyProperties;

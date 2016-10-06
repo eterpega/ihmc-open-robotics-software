@@ -10,6 +10,8 @@
 <?import javafx.scene.layout.Pane?>
 
 <?import javafx.scene.control.ScrollPane?>
+<?import us.ihmc.robotbuilder.gui.Preview3D?>
+<?import us.ihmc.robotbuilder.gui.JointTreeView?>
 <BorderPane minHeight="300" minWidth="300" xmlns="http://javafx.com/javafx/8.0.76-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="us.ihmc.robotbuilder.MainWindow">
     <top>
         <MenuBar>
@@ -25,10 +27,10 @@
     <center>
         <SplitPane dividerPositions="0.5">
             <SplitPane dividerPositions="0.7" orientation="VERTICAL">
-                <TreeView fx:id="treeView" prefWidth="200" />
+                <JointTreeView fx:id="treeView" prefWidth="200" />
                 <ScrollPane fx:id="jointSettings" />
             </SplitPane>
-            <Pane fx:id="view3D" prefHeight="200.0" prefWidth="200.0" />
+            <Preview3D fx:id="view3D" prefHeight="200.0" prefWidth="200.0" />
         </SplitPane>
     </center>
 </BorderPane>
