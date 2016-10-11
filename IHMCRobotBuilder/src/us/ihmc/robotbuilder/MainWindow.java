@@ -6,8 +6,11 @@ import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ChoiceDialog;
+import javafx.scene.control.ScrollPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
@@ -18,11 +21,11 @@ import us.ihmc.robotbuilder.gui.editors.ImmutableBeanEditor;
 import us.ihmc.robotbuilder.model.Loader;
 import us.ihmc.robotbuilder.util.FunctionalObservableValue;
 import us.ihmc.robotbuilder.util.Tree;
+import us.ihmc.robotbuilder.util.TreeFocus;
 import us.ihmc.robotbuilder.util.Util;
 import us.ihmc.robotics.immutableRobotDescription.JointDescription;
 
 import java.io.File;
-import java.util.Objects;
 
 /**
  *
@@ -87,16 +90,15 @@ public class MainWindow extends Application {
             immutableRobotDescription.peek(description -> {
                Tree<JointDescription> tree = Tree.adapt(description, JointDescription::getChildrenJoints);
 
-               FunctionalObservableValue.of(treeView.getSelectionModel().selectedItemProperty())
-                                        .filter(Objects::nonNull)
-                                        .map(TreeItem::getValue)
-                                        .map(ImmutableBeanEditor::new)
-                                        .map(ImmutableBeanEditor::getEditor)
-                                        .consume(jointSettings::setContent);
-
-               treeView.setRootJoint(tree);
-
-               view3D.setTree(tree);
+               treeView.selectedNodeObservable()
+                         .map(newSelectedItem -> {
+                            ImmutableBeanEditor<JointDescription> editor = new ImmutableBeanEditor<>(newSelectedItem.getFocusedNode().getValue());
+                            FunctionalObservableValue.of(editor.valueProperty()).consume(editedValue -> onItemEdited(newSelectedItem.replace(newSelectedItem.getFocusedNode().withValue(editedValue))));
+                            return editor;
+                         })
+                         .map(ImmutableBeanEditor::getEditor)
+                         .consume(jointSettings::setContent);
+               updateUIState(tree);
             });
             return null;
         })).onFailure(err -> Util.runLaterInUI(() -> {
@@ -105,5 +107,17 @@ public class MainWindow extends Application {
             err.printStackTrace();
             return null;
         }));
+    }
+
+    private void onItemEdited(TreeFocus<Tree<JointDescription>> newItem)
+    {
+       Tree<JointDescription> newRoot = newItem.root().getFocusedNode();
+       updateUIState(newRoot);
+    }
+
+    private void updateUIState(Tree<JointDescription> newState)
+    {
+       treeView.setRootJoint(newState);
+       view3D.setTree(newState);
     }
 }

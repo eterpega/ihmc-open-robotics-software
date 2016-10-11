@@ -1,5 +1,7 @@
 package us.ihmc.robotbuilder.util;
 
+import javaslang.Function2;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.WeakHashMap;
@@ -8,6 +10,8 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+
+import static javaslang.collection.List.empty;
 
 /**
  * Generic interface for a tree structure with support methods such as mapping or filtering.
@@ -68,6 +72,12 @@ public interface TreeInterface<T extends TreeInterface> {
         return new CachedMapper<>(mapper);
     }
 
+    /**
+     * Removes nodes (and their children) that do not match the predicate from the tree.
+     * Returns a new, pruned tree.
+     * @param predicate filter predicate
+     * @return filtered tree
+     */
     static <T extends TreeInterface<T>> Optional<T> filter(T tree, Predicate<? super T> predicate, TreeNodeSupplier<T> nodeSupplier) {
         if (predicate.test(tree)) {
             List<T> filteredChildren = tree.childStream()
@@ -82,8 +92,6 @@ public interface TreeInterface<T extends TreeInterface> {
         }
     }
 
-
-
     interface TreeNodeMapper<Source extends TreeInterface, Target> {
         Target mapNode(Source node, List<Target> children);
     }
@@ -93,7 +101,7 @@ public interface TreeInterface<T extends TreeInterface> {
     }
 
     class CachedMapper<Source extends TreeInterface<Source>, Target> {
-        private final Cache<Source, Target> cache = new Cache<Source, Target>(Integer.MAX_VALUE, WeakHashMap<Source, Cache<Source, Target>.CachedItem>::new);
+        private final Cache<Source, Target> cache = new Cache<>(Integer.MAX_VALUE, WeakHashMap<Source, Cache<Source, Target>.CachedItem>::new);
         private final TreeNodeMapper<? super Source, Target> mapper;
 
         private CachedMapper(TreeNodeMapper<? super Source, Target> mapper) {

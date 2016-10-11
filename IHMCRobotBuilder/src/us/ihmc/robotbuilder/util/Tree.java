@@ -1,10 +1,9 @@
 package us.ihmc.robotbuilder.util;
 
-import javaslang.collection.List;
-import javaslang.collection.Stream;
+import javaslang.collection.*;
 import us.ihmc.robotbuilder.util.TreeFocus.Breadcrumb;
 
-import java.util.Iterator;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -71,6 +70,16 @@ public final class Tree<T> implements TreeInterface<Tree<T>>
    }
 
    /**
+    * Get the child stream directly. Package private, used for optimization
+    * in tree algorithms.
+    * @return children
+    */
+   Stream<Tree<T>> children()
+   {
+      return children;
+   }
+
+   /**
     * Count the direct children of this tree node.
     * @return children count
     */
@@ -85,7 +94,7 @@ public final class Tree<T> implements TreeInterface<Tree<T>>
     */
    public Optional<Tree<T>> firstChild()
    {
-      Iterator<Tree<T>> iter = getChildren().iterator();
+      java.util.Iterator<Tree<T>> iter = getChildren().iterator();
       if (iter.hasNext())
          return Optional.of(iter.next());
       return Optional.empty();
@@ -199,6 +208,17 @@ public final class Tree<T> implements TreeInterface<Tree<T>>
    public final TreeFocus<Tree<T>> getFocus()
    {
       return new TreeFocus<>(this, List.empty(), Tree::nodeSupplier);
+   }
+
+   /**
+    * Returns a new node with the current value replaced with the given
+    * new value. Keeps child nodes intact.
+    * @param newValue new value for the node
+    * @return node with the new value
+    */
+   public final Tree<T> withValue(T newValue)
+   {
+      return new Tree<>(newValue, children);
    }
 
    private Optional<TreeFocus<Tree<T>>> find(Predicate<? super Tree<T>> predicate, List<Breadcrumb<Tree<T>>> breadcrumbs)

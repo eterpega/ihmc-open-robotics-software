@@ -8,11 +8,15 @@ import javafx.scene.transform.Affine;
 import javafx.scene.transform.MatrixType;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
+import javaslang.Function2;
 import javaslang.concurrent.Future;
 import javaslang.concurrent.Promise;
 
 import javax.vecmath.Vector3d;
+import java.util.Optional;
 import java.util.concurrent.Callable;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Utility methods
@@ -132,5 +136,19 @@ public class Util {
             newDirection.x, newDirection.y, newDirection.z, 0,
             0, 0, 0, 1
         }, MatrixType.MT_3D_4x4, 0);
+    }
+
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    public static <T, R> R matchOptionals(Optional<T> first, Optional<T> second, Supplier<R> nonePresent, Function<T, R> firstPresent, Function<T, R> secondPresent, Function2<T, T, R> bothPresent)
+    {
+        if (!first.isPresent() && !second.isPresent())
+            return nonePresent.get();
+        if (first.isPresent() && !second.isPresent())
+            return firstPresent.apply(first.get());
+        if (second.isPresent() && !first.isPresent())
+            return secondPresent.apply(second.get());
+        if (first.isPresent() && second.isPresent())
+            return bothPresent.apply(first.get(), second.get());
+        return nonePresent.get();
     }
 }

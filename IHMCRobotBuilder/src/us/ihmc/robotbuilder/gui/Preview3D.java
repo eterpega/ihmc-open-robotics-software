@@ -64,7 +64,7 @@ public class Preview3D extends GridPane
                subScene.setRoot(newSceneRoot);
             });
 
-      setBackground(new Background(new BackgroundFill(Color.DARKGRAY, null, null)));
+      setBackground(new Background(new BackgroundFill(new Color(0.1, 0.1, 0.1, 1), null, null)));
    }
 
    public Property<Optional<TreeFocus<Tree<JointDescription>>>> jointTreeProperty()
@@ -161,7 +161,19 @@ public class Preview3D extends GridPane
          });
       }
 
-      return treeToNodeCachedMapper.map(tree);
+      //return treeToNodeCachedMapper.map(tree);
+      return tree.map(new TreeNodeMapper<Tree<JointDescription>, Group>()
+      {
+         @Override public Group mapNode(Tree<JointDescription> node, List<Group> children)
+         {
+            Group result = new Group();
+            Vector3d offset = node.getValue().getOffsetFromJoint();
+            result.getTransforms().add(new Translate(offset.x, offset.y, offset.z));
+            result.getChildren().add(convertGraphicsGroup(node.getValue().getLink().getLinkGraphics()));
+            result.getChildren().addAll(children);
+            return result;
+         }
+      });
    }
 
 }

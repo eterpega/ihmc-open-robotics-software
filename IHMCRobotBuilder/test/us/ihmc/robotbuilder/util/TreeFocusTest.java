@@ -5,6 +5,7 @@ import org.junit.Test;
 import us.ihmc.robotbuilder.util.TreeFocus.Breadcrumb;
 import us.ihmc.tools.testing.JUnitTools;
 
+import java.util.Iterator;
 import java.util.Optional;
 
 import static javaslang.collection.List.empty;
@@ -15,8 +16,15 @@ import static org.junit.Assert.*;
  */
 public class TreeFocusTest
 {
-   private static final Tree<Integer> BINARY_TREE = new Tree<>(0, List.of(new Tree<>(1, empty()), new Tree<>(2, empty())));
-   private static final Tree<Integer> SINGLETON_TREE = new Tree<>(0, empty());
+   private static final Tree<Integer> BINARY_TREE = tree(0, tree(1), tree(2));
+   private static final Tree<Integer> SINGLETON_TREE = tree(0);
+   private static final Tree<Integer> DEEP_TREE = tree(0, tree(1, tree(3), tree(4), tree(5)), tree(2));
+
+   private static Tree<Integer> tree(int value, Tree... children)
+   {
+      //noinspection unchecked
+      return new Tree<>(value, List.of((Tree<Integer>[])children));
+   }
 
    @Test public void testEqualsHashCode()
    {
@@ -51,12 +59,46 @@ public class TreeFocusTest
       assertFalse(SINGLETON_TREE.getFocus().firstChild().isPresent());
    }
 
+   @Test public void testFocusOnPathReturnsRootWithEmptyPath()
+   {
+      Optional<TreeFocus<Tree<Integer>>> rootFocus = SINGLETON_TREE.getFocus().focusOnPath(empty());
+      assertTrue(rootFocus.isPresent());
+      assertEquals(rootFocus, Optional.of(SINGLETON_TREE.getFocus()));
+   }
+
+   @Test public void testFocusOnPathReturnsCorrectNode()
+   {
+      Optional<TreeFocus<Tree<Integer>>> focus = DEEP_TREE.getFocus().focusOnPath(List.of(0, 1));
+      assertTrue(focus.isPresent());
+      assertEquals(4, (int)focus.get().getFocusedNode().getValue());
+   }
+
+   @Test public void testFocusOnInvalidPathReturnsEmptyFocus()
+   {
+      Optional<TreeFocus<Tree<Integer>>> focus = DEEP_TREE.getFocus().focusOnPath(List.of(0, 100000));
+      assertFalse(focus.isPresent());
+   }
+
    @Test public void testFirstChildReturnsTheCorrectChild()
    {
       TreeFocus<Tree<Integer>> root = BINARY_TREE.getFocus();
       Optional<TreeFocus<Tree<Integer>>> firstChild = root.firstChild();
       assertTrue(firstChild.isPresent());
       assertEquals(1, (int) firstChild.get().getFocusedNode().getValue());
+   }
+
+   @Test public void testGetChildReturnsEmptyForInvalidChildIndex()
+   {
+      TreeFocus<Tree<Integer>> root = BINARY_TREE.getFocus();
+      assertFalse(root.getChild(-1).isPresent());
+      assertFalse(root.getChild(2).isPresent());
+   }
+
+   @Test public void testGetChildReturnsChildAtTheCorrectLocation()
+   {
+      TreeFocus<Tree<Integer>> root = BINARY_TREE.getFocus();
+      assertEquals(root.getChild(0), root.firstChild());
+      assertEquals(root.getChild(1), root.firstChild().flatMap(TreeFocus::nextSibling));
    }
 
    @Test public void testSiblingOfFirstChildIsTheSecondChild()
@@ -103,17 +145,18 @@ public class TreeFocusTest
 
    @Test public void testReplaceCreatesANewTreeWithTheReplacedNode()
    {
-      TreeFocus<Tree<Integer>> root = BINARY_TREE.getFocus();
+      TreeFocus<Tree<Integer>> root = DEEP_TREE.getFocus();
       root.firstChild().map(child ->
                             {
-                               TreeFocus<Tree<Integer>> replaced = child.replace(new Tree<>(3));
+                               TreeFocus<Tree<Integer>> replaced = child.replace(new Tree<>(42));
                                TreeFocus<Tree<Integer>> replacedRoot = replaced.root();
                                assertNotEquals(replacedRoot.getFocusedNode(), root);
-                               assertEquals(3, (int)replacedRoot.getFocusedNode().getChild(0).getValue());
+                               assertEquals(42, (int)replacedRoot.getFocusedNode().getChild(0).getValue());
+                               assertFalse(replacedRoot.getFocusedNode().getChild(0).firstChild().isPresent());
                                return child;
                             })
       .orElseGet(() -> {
-         assertTrue("Root has no children", false);
+         fail("Root has no children");
          return null;
       });
    }
@@ -248,5 +291,42 @@ public class TreeFocusTest
          assertTrue("Removed node should have a parent", false);
          return null;
       });
+   }
+
+   @Test public void testChildIteratorOnLeafNodeHasNoNextItem()
+   {
+      assertFalse(SINGLETON_TREE.getFocus().getChildren().iterator().hasNext());
+   }
+
+   @Test public void testChildIteratorVisitsAllChildren()
+   {
+      Iterator<Tree<Integer>> baseIter = BINARY_TREE.getChildren().iterator();
+      Iterator<TreeFocus<Tree<Integer>>> focusIter = BINARY_TREE.getFocus().getChildren().iterator();
+      while (baseIter.hasNext())
+      {
+         assertTrue(focusIter.hasNext());
+         assertEquals(baseIter.next(), focusIter.next().getFocusedNode());
+      }
+   }
+
+   @Test public void testIndexOutOfBoundsIsThrownForAnInvalidIteratorAccess()
+   {
+      Iterator<TreeFocus<Tree<Integer>>> focusIter = BINARY_TREE.getFocus().getChildren().iterator();
+      focusIter.next();
+      focusIter.next();
+      try {
+         focusIter.next();
+         fail("Index out of bounds should have been thrown");
+      } catch (IndexOutOfBoundsException ex) {
+         // OK
+      }
+
+      focusIter = SINGLETON_TREE.getFocus().getChildren().iterator();
+      try {
+         focusIter.next();
+         fail("Index out of bounds should have been thrown for a singleton list");
+      } catch (IndexOutOfBoundsException ex) {
+         // OK
+      }
    }
 }

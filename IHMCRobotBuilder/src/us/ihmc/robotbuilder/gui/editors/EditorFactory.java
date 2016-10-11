@@ -20,7 +20,7 @@ public class EditorFactory extends DefaultPropertyEditorFactory
       if (item.getValue() instanceof Number)
          return createNumericEditor(item);
       if (type == Vector3d.class)
-         return new Vector3DEditor();
+         return new Vector3DEditor(item);
       if (Iterable.class.isAssignableFrom(type))
          return new IterableEditor<>(this);
 

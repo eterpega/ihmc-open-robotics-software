@@ -4,7 +4,10 @@ import javaslang.Function2;
 import javaslang.Tuple;
 import javaslang.Tuple2;
 import javaslang.collection.List;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Optional;
 import java.util.function.Predicate;
 
@@ -13,7 +16,7 @@ import java.util.function.Predicate;
  * immutable tree modification. See http://learnyouahaskell.com/zippers for details.
  * This class allows focusing on any tree implementing the {@link TreeInterface}.
  */
-public class TreeFocus<T extends TreeInterface<T>>
+public class TreeFocus<T extends TreeInterface<T>> implements TreeInterface<TreeFocus<T>>
 {
    private final T focus;
    private final List<Breadcrumb<T>> breadcrumbs;
@@ -31,6 +34,19 @@ public class TreeFocus<T extends TreeInterface<T>>
       this.focus = focus;
       this.breadcrumbs = breadcrumbs;
       this.treeConstructor = treeConstructor;
+   }
+
+   /**
+    * Creates a child focus by following the given path. Each element of the path
+    * represents an index to the child list.
+    * @param path path to follow
+    * @return given tree focus or {@link Optional#empty()} if the path is not valid
+    */
+   public Optional<TreeFocus<T>> focusOnPath(List<Integer> path)
+   {
+      return path.headOption().toJavaOptional()
+                 .map(index -> getChild(index).flatMap(child -> child.focusOnPath(path.tail())))
+                 .orElse(Optional.of(this));
    }
 
    /**
@@ -73,6 +89,21 @@ public class TreeFocus<T extends TreeInterface<T>>
    public Optional<TreeFocus<T>> findChild(Predicate<? super T> predicate)
    {
       Tuple2<List<T>, List<T>> findResult = List.ofAll(focus.getChildren()).splitAt(predicate);
+      return findResult._2.headOption()
+                          .map(newFocus -> focusOnChild(newFocus, findResult._1, findResult._2.tail()))
+                          .toJavaOptional();
+   }
+
+   /**
+    * Returns focus on the ith child if it is in range.
+    * @param index child index
+    * @return found child or {@link Optional#empty()} if the given index is out of bounds
+    */
+   public Optional<TreeFocus<T>> getChild(int index)
+   {
+      if (index < 0)
+         return Optional.empty();
+      Tuple2<List<T>, List<T>> findResult = List.ofAll(focus.getChildren()).splitAt(index);
       return findResult._2.headOption()
                           .map(newFocus -> focusOnChild(newFocus, findResult._1, findResult._2.tail()))
                           .toJavaOptional();
@@ -206,6 +237,34 @@ public class TreeFocus<T extends TreeInterface<T>>
       }).toJavaOptional();
    }
 
+   /**
+    * Returns a path from the root of the tree to the given child. A path consists
+    * of child index at every level of the tree that the path should follow.
+    * @param child child to find the path to
+    * @param childIndexOf function returning the child index for the given parent
+    * @param parentGetter function returning the parent of the given node
+    * @param <T> tree type
+    * @return path to the given child node if it exists
+    */
+   public static <T> List<Integer> pathTo(T child, ChildIndexOf<T> childIndexOf, ParentOf<T> parentGetter)
+   {
+      java.util.List<Integer> result = new ArrayList<>();
+      pathTo(child, childIndexOf, parentGetter, result);
+      return List.ofAll(result);
+   }
+
+   private static <T> void pathTo(T child, ChildIndexOf<T> childIndexOf, ParentOf<T> parentGetter, java.util.List<Integer> accumulator)
+   {
+      Optional<T> parentOpt = parentGetter.getParentOfOptional(child);
+      parentOpt.ifPresent(parent -> {
+         Optional<Integer> childIndex = childIndexOf.indexOfOptional(parent, child);
+         childIndex.ifPresent(index -> {
+            pathTo(parent, childIndexOf, parentGetter, accumulator);
+            accumulator.add(index);
+         });
+      });
+   }
+
    @Override public boolean equals(Object o)
    {
       if (this == o)
@@ -229,6 +288,36 @@ public class TreeFocus<T extends TreeInterface<T>>
    @Override public String toString()
    {
       return "TreeFocus{" + "focus=" + focus + ", breadcrumbs=" + breadcrumbs + '}';
+   }
+
+   @Override public Iterable<TreeFocus<T>> getChildren()
+   {
+      return () -> new FocusIterator<>(TreeFocus.this.firstChild());
+   }
+
+   @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+   private static class FocusIterator<T extends TreeInterface<T>> implements Iterator<TreeFocus<T>>
+   {
+      private Optional<TreeFocus<T>> nextFocus;
+
+      FocusIterator(Optional<TreeFocus<T>> nextFocus)
+      {
+         this.nextFocus = nextFocus;
+      }
+
+      @Override public boolean hasNext()
+      {
+         return nextFocus.isPresent();
+      }
+
+      @Override public TreeFocus<T> next()
+      {
+         if (!hasNext())
+            throw new IndexOutOfBoundsException("Iterator out of bounds");
+         TreeFocus<T> result = nextFocus.orElse(null);
+         nextFocus = nextFocus.flatMap(TreeFocus::nextSibling);
+         return result;
+      }
    }
 
    /**
@@ -271,6 +360,29 @@ public class TreeFocus<T extends TreeInterface<T>>
       @Override public String toString()
       {
          return "Breadcrumb{" + "parent=" + parent + ", leftReversed=" + leftReversed + ", right=" + right + '}';
+      }
+   }
+
+   public interface ChildIndexOf<T>
+   {
+      int indexOf(T parent, T child);
+
+      default Optional<Integer> indexOfOptional(T parent, T child)
+      {
+         int index = indexOf(parent, child);
+         if (index < 0)
+            return Optional.empty();
+         return Optional.of(index);
+      }
+   }
+
+   public interface ParentOf<T>
+   {
+      @Nullable T getParentOf(T child);
+
+      default Optional<T> getParentOfOptional(T child)
+      {
+         return Optional.ofNullable(getParentOf(child));
       }
    }
 }

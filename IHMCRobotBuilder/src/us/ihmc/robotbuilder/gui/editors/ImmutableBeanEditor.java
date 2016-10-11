@@ -65,6 +65,11 @@ public class ImmutableBeanEditor<T> implements PropertyEditor<T>
       valueProperty.setValue(value);
    }
 
+   public Property<T> valueProperty()
+   {
+      return valueProperty;
+   }
+
    private List<ImmutableBeanProperty<T>> getProperties(final T bean)
    {
       final String getPrefix = "get";
