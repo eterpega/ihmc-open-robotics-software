@@ -64,12 +64,19 @@ public class TreeFocus<T extends TreeInterface<T>> implements TreeInterface<Tree
     */
    public Optional<TreeFocus<T>> parent()
    {
-      return breadcrumbs.headOption().map(breadcrumb ->
-                                          {
-                                             T newParent = treeConstructor
-                                                   .apply(breadcrumb.parent, breadcrumb.leftReversed.prepend(focus).reverse().appendAll(breadcrumb.right));
-                                             return new TreeFocus<>(newParent, breadcrumbs.tail(), treeConstructor);
-                                          }).toJavaOptional();
+      return breadcrumbs
+            .headOption()
+            .map(breadcrumb ->
+                 {
+                    // Optimization: just return the old parent node if this node has not changed
+                    T oldParent = breadcrumb.parent;
+                    Optional<T> oldThis = oldParent.childStream().skip(breadcrumb.leftReversed.length()).findFirst();
+                    if (oldThis.isPresent() && oldThis.get() == focus)
+                       return new TreeFocus<>(oldParent, breadcrumbs.tail(), treeConstructor);
+
+                    T newParent = treeConstructor.apply(breadcrumb.parent, breadcrumb.leftReversed.prepend(focus).reverse().appendAll(breadcrumb.right));
+                    return new TreeFocus<>(newParent, breadcrumbs.tail(), treeConstructor);
+                 }).toJavaOptional();
    }
 
    /**

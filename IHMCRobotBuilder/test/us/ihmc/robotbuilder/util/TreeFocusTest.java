@@ -1,8 +1,10 @@
 package us.ihmc.robotbuilder.util;
 
+import javafx.scene.control.TreeItem;
 import javaslang.collection.List;
 import org.junit.Test;
 import us.ihmc.robotbuilder.util.TreeFocus.Breadcrumb;
+import us.ihmc.robotbuilder.util.TreeFocus.ChildIndexOf;
 import us.ihmc.tools.testing.JUnitTools;
 
 import java.util.Iterator;
@@ -79,6 +81,47 @@ public class TreeFocusTest
       assertFalse(focus.isPresent());
    }
 
+   private static final ChildIndexOf<TreeItem<Object>> treeItemIndexOf = (parent, child) -> parent.getChildren().indexOf(child);
+
+   @Test public void testPathToRootReturnsEmptyPath()
+   {
+      List<Integer> path = TreeFocus.pathTo(new TreeItem<>(), treeItemIndexOf, TreeItem::getParent);
+      assertTrue(path.isEmpty());
+   }
+
+   @Test public void testPathToFirstChildReturnsOneItem()
+   {
+      TreeItem<Object> root = new TreeItem<>();
+      root.getChildren().add(new TreeItem<>());
+      List<Integer> path = TreeFocus.pathTo(root.getChildren().get(0), treeItemIndexOf, TreeItem::getParent);
+      assertEquals(List.of(0), path);
+   }
+
+   @Test public void testPathToDeepChildIsCorrectlyOrdered()
+   {
+      TreeItem<Object> deepTree = DEEP_TREE.map((node, children) ->
+         {
+            TreeItem<Object> result = new TreeItem<>(node.getValue());
+            result.getChildren().addAll(children);
+            return result;
+         }
+      );
+
+      TreeItem<Object> childToFind = deepTree.getChildren().get(0).getChildren().get(1);
+      List<Integer> path = TreeFocus.pathTo(childToFind, treeItemIndexOf, TreeItem::getParent);
+
+      assertEquals(List.of(0, 1), path);
+   }
+
+   @Test public void testPathToInvalidChildReturnsEmptyPath()
+   {
+      TreeItem<Object> root = new TreeItem<>(), child = new TreeItem<>();
+      child.getChildren().add(new TreeItem<>());
+      root.getChildren().add(child);
+      List<Integer> path = TreeFocus.pathTo(child.getChildren().get(0), (x, y) -> -1, TreeItem::getParent);
+      assertEquals(List.empty(), path);
+   }
+
    @Test public void testFirstChildReturnsTheCorrectChild()
    {
       TreeFocus<Tree<Integer>> root = BINARY_TREE.getFocus();
@@ -106,8 +149,11 @@ public class TreeFocusTest
       TreeFocus<Tree<Integer>> root = BINARY_TREE.getFocus();
       Optional<TreeFocus<Tree<Integer>>> firstChild = root.firstChild();
       Optional<TreeFocus<Tree<Integer>>> secondChild = firstChild.flatMap(TreeFocus::nextSibling);
+      assertTrue(firstChild.isPresent());
       assertTrue(secondChild.isPresent());
       assertEquals(2, (int) secondChild.get().getFocusedNode().getValue());
+      assertTrue(firstChild.get().root().getFocusedNode() == BINARY_TREE);
+      assertTrue(secondChild.get().root().getFocusedNode() == BINARY_TREE);
    }
 
    @Test public void testSiblingOfSecondChildIsTheFirstChild()
@@ -119,7 +165,7 @@ public class TreeFocusTest
       assertEquals(root.firstChild(), firstChild);
    }
 
-   @Test public void testRootFindsTreeRootFromChild()
+   @Test public void testRootMethodFindsTreeRootFromChild()
    {
       Optional<TreeFocus<Tree<Integer>>> firstChild = BINARY_TREE.getFocus().firstChild();
       assertTrue(firstChild.isPresent());
