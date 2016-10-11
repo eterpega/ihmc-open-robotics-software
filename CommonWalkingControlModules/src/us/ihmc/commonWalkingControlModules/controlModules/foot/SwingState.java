@@ -117,7 +117,7 @@ public class SwingState extends AbstractUnconstrainedState
       swingTimeRemaining = new YoVariableDoubleProvider(namePrefix + "SwingTimeRemaining", registry);
 
       velocityAdjustmentDamping = new DoubleYoVariable(namePrefix + "VelocityAdjustmentDamping", registry);
-      velocityAdjustmentDamping.set(0.5);
+      velocityAdjustmentDamping.set(footControlHelper.getWalkingControllerParameters().getSwingFootVelocityAdjustmentDamping());
       adjustmentVelocityCorrection = new YoFrameVector(namePrefix + "AdjustmentVelocityCorrection", worldFrame, registry);
 
       // todo make a smarter distinction on this as a way to work with the push recovery module
@@ -417,20 +417,29 @@ public class SwingState extends AbstractUnconstrainedState
    public void replanTrajectory(Footstep newFootstep, double swingTime)
    {
       setFootstep(newFootstep, swingTime);
-      if (!currentTimeWithSwingSpeedUp.isNaN())
-         this.swingTimeRemaining.set(swingTimeProvider.getValue() - currentTimeWithSwingSpeedUp.getDoubleValue());
-      else
-         this.swingTimeRemaining.set(swingTimeProvider.getValue() - getTimeInCurrentState());
+      computeSwingTimeRemaining();
 
       this.replanTrajectory.set(true);
    }
 
-   public void requestSwingSpeedUp(double speedUpFactor)
+   private void computeSwingTimeRemaining()
    {
-      if (isSwingSpeedUpEnabled.getBooleanValue())
+      if (!currentTimeWithSwingSpeedUp.isNaN())
+         this.swingTimeRemaining.set(swingTimeProvider.getValue() - currentTimeWithSwingSpeedUp.getDoubleValue());
+      else
+         this.swingTimeRemaining.set(swingTimeProvider.getValue() - getTimeInCurrentState());
+   }
+
+   /**
+    * Request the swing trajectory to speed up using the given speed up factor.
+    * It is clamped w.r.t. to {@link WalkingControllerParameters#getMinimumSwingTimeForDisturbanceRecovery()}.
+    * @param speedUpFactor
+    * @return the current swing time remaining for the swing foot trajectory
+    */
+   public double requestSwingSpeedUp(double speedUpFactor)
+   {
+      if (isSwingSpeedUpEnabled.getBooleanValue() && (speedUpFactor > 1.1 && speedUpFactor > swingTimeSpeedUpFactor.getDoubleValue()))
       {
-         if (speedUpFactor <= 1.1 || speedUpFactor <= swingTimeSpeedUpFactor.getDoubleValue())
-            return;
          speedUpFactor = MathTools.clipToMinMax(speedUpFactor, swingTimeSpeedUpFactor.getDoubleValue(), maxSwingTimeSpeedUpFactor.getDoubleValue());
 
          //         speedUpFactor = MathTools.clipToMinMax(speedUpFactor, 0.7, maxSwingTimeSpeedUpFactor.getDoubleValue());
@@ -440,6 +449,9 @@ public class SwingState extends AbstractUnconstrainedState
          if (currentTimeWithSwingSpeedUp.isNaN())
             currentTimeWithSwingSpeedUp.set(currentTime.getDoubleValue());
       }
+
+      computeSwingTimeRemaining();
+      return swingTimeRemaining.getValue();
    }
 
    @Override

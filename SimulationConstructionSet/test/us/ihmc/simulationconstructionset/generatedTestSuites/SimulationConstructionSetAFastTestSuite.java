@@ -25,6 +25,7 @@ import us.ihmc.tools.testing.TestPlanTarget;
    us.ihmc.simulationconstructionset.LinkTest.class,
    us.ihmc.simulationconstructionset.mathfunctions.MatrixTest.class,
    us.ihmc.simulationconstructionset.optimization.SimpleSimulationTest.class,
+   us.ihmc.simulationconstructionset.physics.collision.CollisionResolutionTest.class,
    us.ihmc.simulationconstructionset.physics.collision.gdx.GdxUtilTest.class,
    us.ihmc.simulationconstructionset.physics.collision.simple.SimpleCollisionDetectorTest.class,
    us.ihmc.simulationconstructionset.RobotTest.class,

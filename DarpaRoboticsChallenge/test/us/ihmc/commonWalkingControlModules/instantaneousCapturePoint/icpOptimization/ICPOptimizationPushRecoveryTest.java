@@ -17,6 +17,7 @@ import us.ihmc.darpaRoboticsChallenge.testTools.DRCSimulationTestHelper;
 import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
 import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
 import us.ihmc.robotics.dataStructures.variable.EnumYoVariable;
+import us.ihmc.robotics.geometry.RigidBodyTransform;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
@@ -27,7 +28,7 @@ import us.ihmc.simulationconstructionset.bambooTools.SimulationTestingParameters
 import us.ihmc.simulationconstructionset.util.simulationRunner.BlockingSimulationRunner.SimulationExceededMaximumTimeException;
 import us.ihmc.tools.MemoryTools;
 import us.ihmc.tools.io.printing.PrintTools;
-import us.ihmc.tools.testing.TestPlanAnnotations.DeployableTestMethod;
+import us.ihmc.tools.testing.TestPlanAnnotations.ContinuousIntegrationTest;
 import us.ihmc.tools.thread.ThreadTools;
 
 import javax.vecmath.Point3d;
@@ -42,6 +43,7 @@ public abstract class ICPOptimizationPushRecoveryTest
    private DRCSimulationTestHelper drcSimulationTestHelper;
 
    private static String script = "scripts/ExerciseAndJUnitScripts/icpOptimizationPushTestScript.xml";
+   private static String yawScript = "scripts/ExerciseAndJUnitScripts/icpOptimizationPushTestScript.xml";
 
    private static double simulationTime = 10.0;
 
@@ -87,7 +89,7 @@ public abstract class ICPOptimizationPushRecoveryTest
 
    protected abstract DRCRobotModel getRobotModel();
 
-   @DeployableTestMethod(estimatedDuration =  20.0)
+   @ContinuousIntegrationTest(estimatedDuration =  20.0)
    @Test(timeout = 120000)
    public void testPushICPOptimizationNoPush() throws SimulationExceededMaximumTimeException
    {
@@ -100,7 +102,7 @@ public abstract class ICPOptimizationPushRecoveryTest
       assertTrue(noExceptions);
    }
 
-   @DeployableTestMethod(estimatedDuration =  20.0)
+   @ContinuousIntegrationTest(estimatedDuration =  20.0)
    @Test(timeout = 120000)
    public void testPushICPOptimizationOutwardPushInSwing() throws SimulationExceededMaximumTimeException
    {
@@ -113,7 +115,7 @@ public abstract class ICPOptimizationPushRecoveryTest
 
       // push parameters:
       Vector3d forceDirection = new Vector3d(0.0, -1.0, 0.0);
-      double percentWeight = 0.18;
+      double percentWeight = 0.25;
       double magnitude = percentWeight * totalMass * 9.81;
       double duration = 0.1;
       pushRobotController.applyForceDelayed(pushCondition, delay, forceDirection, magnitude, duration);
@@ -124,7 +126,87 @@ public abstract class ICPOptimizationPushRecoveryTest
       assertTrue(noExceptions);
    }
 
-   @DeployableTestMethod(estimatedDuration =  20.0)
+   @ContinuousIntegrationTest(estimatedDuration =  20.0)
+   @Test(timeout = 120000)
+   public void testPushICPOptimizationDiagonalOutwardPushInSwing() throws SimulationExceededMaximumTimeException
+   {
+      setupTest(script);
+      drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(1.0);
+
+      // push timing:
+      StateTransitionCondition pushCondition = singleSupportStartConditions.get(RobotSide.RIGHT);
+      double delay = 0.5 * swingTime;
+
+      // push parameters:
+      Vector3d forceDirection = new Vector3d(2.0, -1.0, 0.0);
+      double percentWeight = 0.40;
+      double magnitude = percentWeight * totalMass * 9.81;
+      double duration = 0.1;
+      pushRobotController.applyForceDelayed(pushCondition, delay, forceDirection, magnitude, duration);
+      boolean success = drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(simulationTime);
+      boolean noExceptions = caughtException == null;
+
+      assertTrue(success);
+      assertTrue(noExceptions);
+   }
+
+   @ContinuousIntegrationTest(estimatedDuration =  20.0)
+   @Test(timeout = 120000)
+   public void testPushICPOptimizationDiagonalYawingOutwardPushInSwing() throws SimulationExceededMaximumTimeException
+   {
+      RigidBodyTransform transform = new RigidBodyTransform();
+      transform.applyRotationZ(0.5);
+      ReferenceFrame referenceFrame = ReferenceFrame.constructBodyFrameWithUnchangingTransformToParent("yawing", ReferenceFrame.getWorldFrame(), transform);
+
+      setupTest(yawScript, referenceFrame);
+      drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(1.0);
+
+      // push parameters:
+      StateTransitionCondition firstPushCondition = singleSupportStartConditions.get(RobotSide.RIGHT);
+      StateTransitionCondition secondPushCondition = singleSupportStartConditions.get(RobotSide.LEFT);
+      double delay = 0.5 * swingTime;
+
+      Vector3d firstForceDirection = new Vector3d(0.0, -1.0, 0.0);
+      Vector3d secondForceDirection = new Vector3d(0.0, 1.0, 0.0);
+      double percentWeight = 0.17;
+      double magnitude = percentWeight * totalMass * 9.81;
+      double duration = 0.1;
+      pushRobotController.applyForceDelayed(firstPushCondition, delay, firstForceDirection, magnitude, duration);
+      boolean success;
+
+      success = drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(1.0);
+      assertTrue(success);
+
+      pushRobotController.applyForceDelayed(secondPushCondition, delay, secondForceDirection, magnitude, duration);
+
+      success = drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(1.0);
+      assertTrue(success);
+
+      pushRobotController.applyForceDelayed(firstPushCondition, delay, firstForceDirection, magnitude, duration);
+
+      success = drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(1.0);
+      assertTrue(success);
+
+      pushRobotController.applyForceDelayed(secondPushCondition, delay, secondForceDirection, magnitude, duration);
+
+      success = drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(1.0);
+      assertTrue(success);
+
+      pushRobotController.applyForceDelayed(firstPushCondition, delay, firstForceDirection, magnitude, duration);
+
+      success = drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(1.0);
+      assertTrue(success);
+
+      pushRobotController.applyForceDelayed(secondPushCondition, delay, secondForceDirection, magnitude, duration);
+
+      success = drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(3.0);
+      boolean noExceptions = caughtException == null;
+
+      assertTrue(success);
+      assertTrue(noExceptions);
+   }
+
+   @ContinuousIntegrationTest(estimatedDuration =  20.0)
    @Test(timeout = 120000)
    public void testPushICPOptimizationRandomPushInSwing() throws SimulationExceededMaximumTimeException
    {
@@ -152,7 +234,7 @@ public abstract class ICPOptimizationPushRecoveryTest
       assertTrue(noExceptions);
    }
 
-   @DeployableTestMethod(estimatedDuration =  20.0)
+   @ContinuousIntegrationTest(estimatedDuration =  20.0)
    @Test(timeout = 120000)
    public void testPushICPOptimizationLongForwardPushInSwing() throws SimulationExceededMaximumTimeException
    {
@@ -176,7 +258,7 @@ public abstract class ICPOptimizationPushRecoveryTest
       assertTrue(noExceptions);
    }
 
-   @DeployableTestMethod(estimatedDuration =  20.0)
+   @ContinuousIntegrationTest(estimatedDuration =  20.0)
    @Test(timeout = 120000)
    public void testPushICPOptimizationLongBackwardPushInSwing() throws SimulationExceededMaximumTimeException
    {
@@ -200,7 +282,7 @@ public abstract class ICPOptimizationPushRecoveryTest
       assertTrue(noExceptions);
    }
 
-   @DeployableTestMethod(estimatedDuration =  20.0)
+   @ContinuousIntegrationTest(estimatedDuration =  20.0)
    @Test(timeout = 120000)
    public void testPushICPOptimizationLongInwardPushInSwing() throws SimulationExceededMaximumTimeException
    {
@@ -224,7 +306,7 @@ public abstract class ICPOptimizationPushRecoveryTest
       assertTrue(noExceptions);
    }
 
-   @DeployableTestMethod(estimatedDuration =  20.0)
+   @ContinuousIntegrationTest(estimatedDuration =  20.0)
    @Test(timeout = 120000)
    public void testPushICPOptimizationOutwardPushInTransfer() throws SimulationExceededMaximumTimeException
    {
@@ -237,7 +319,7 @@ public abstract class ICPOptimizationPushRecoveryTest
 
       // push parameters:
       Vector3d forceDirection = new Vector3d(0.0, 1.0, 0.0);
-      double percentWeight = 0.23;
+      double percentWeight = 0.12;
       double magnitude = percentWeight * totalMass * 9.81;
       double duration = 0.1;
 
@@ -254,7 +336,7 @@ public abstract class ICPOptimizationPushRecoveryTest
       assertTrue(noExceptions);
    }
 
-   @DeployableTestMethod(estimatedDuration =  20.0)
+   @ContinuousIntegrationTest(estimatedDuration =  20.0)
    @Test(timeout = 120000)
    public void testPushICPOptimizationInwardPushInSwing() throws SimulationExceededMaximumTimeException
    {
@@ -278,7 +360,7 @@ public abstract class ICPOptimizationPushRecoveryTest
       assertTrue(noExceptions);
    }
 
-   @DeployableTestMethod(estimatedDuration =  20.0)
+   @ContinuousIntegrationTest(estimatedDuration =  20.0)
    @Test(timeout = 120000)
    public void testPushICPOptimizationInwardPushInTransfer() throws SimulationExceededMaximumTimeException
    {
@@ -308,7 +390,7 @@ public abstract class ICPOptimizationPushRecoveryTest
       assertTrue(noExceptions);
    }
 
-   @DeployableTestMethod(estimatedDuration =  20.0)
+   @ContinuousIntegrationTest(estimatedDuration =  20.0)
    @Test(timeout = 120000)
    public void testPushICPOptimizationForwardPushInSwing() throws SimulationExceededMaximumTimeException
    {
@@ -332,7 +414,7 @@ public abstract class ICPOptimizationPushRecoveryTest
       assertTrue(noExceptions);
    }
 
-   @DeployableTestMethod(estimatedDuration =  20.0)
+   @ContinuousIntegrationTest(estimatedDuration =  20.0)
    @Test(timeout = 120000)
    public void testPushICPOptimizationBackwardPushInSwing() throws SimulationExceededMaximumTimeException
    {
@@ -356,7 +438,7 @@ public abstract class ICPOptimizationPushRecoveryTest
       assertTrue(noExceptions);
    }
 
-   @DeployableTestMethod(estimatedDuration =  20.0)
+   @ContinuousIntegrationTest(estimatedDuration =  20.0)
    @Test(timeout = 120000)
    public void testPushICPOptimizationOutwardPushOnEachStep() throws SimulationExceededMaximumTimeException
    {
@@ -413,6 +495,11 @@ public abstract class ICPOptimizationPushRecoveryTest
 
    private void setupTest(String scriptName) throws SimulationExceededMaximumTimeException
    {
+      this.setupTest(scriptName, ReferenceFrame.getWorldFrame());
+   }
+
+   private void setupTest(String scriptName, ReferenceFrame yawReferenceFrame) throws SimulationExceededMaximumTimeException
+   {
       FlatGroundEnvironment flatGround = new FlatGroundEnvironment();
       DRCObstacleCourseStartingLocation selectedLocation = DRCObstacleCourseStartingLocation.DEFAULT;
       drcSimulationTestHelper = new DRCSimulationTestHelper(flatGround, "DRCSimpleFlatGroundScriptTest", selectedLocation, simulationTestingParameters, getRobotModel());
@@ -426,7 +513,14 @@ public abstract class ICPOptimizationPushRecoveryTest
       {
          drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(0.001);
          InputStream scriptInputStream = getClass().getClassLoader().getResourceAsStream(scriptName);
-         drcSimulationTestHelper.loadScriptFile(scriptInputStream, ReferenceFrame.getWorldFrame());
+         if (yawReferenceFrame != null)
+         {
+            drcSimulationTestHelper.loadScriptFile(scriptInputStream, yawReferenceFrame);
+         }
+         else
+         {
+            drcSimulationTestHelper.loadScriptFile(scriptInputStream, ReferenceFrame.getWorldFrame());
+         }
       }
 
       for (RobotSide robotSide : RobotSide.values)

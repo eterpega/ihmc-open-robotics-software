@@ -22,7 +22,7 @@ import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.tools.io.printing.PrintTools;
-import us.ihmc.tools.testing.TestPlanAnnotations.DeployableTestMethod;
+import us.ihmc.tools.testing.TestPlanAnnotations.ContinuousIntegrationTest;
 
 import javax.vecmath.Point2d;
 import java.util.ArrayList;
@@ -50,7 +50,7 @@ public class ICPOptimizationControllerTest
 
    private BipedSupportPolygons bipedSupportPolygons;
 
-   @DeployableTestMethod(estimatedDuration = 1.0)
+   @ContinuousIntegrationTest(estimatedDuration = 1.0)
    @Test(timeout = 21000)
    public void testStepping()
    {
@@ -61,7 +61,7 @@ public class ICPOptimizationControllerTest
       omega.set(omega0);
 
       ICPPlanner icpPlanner = new ICPPlanner(bipedSupportPolygons, contactableFeet, icpPlannerParameters, registry, null);
-      ICPOptimizationController icpOptimizationController = new ICPOptimizationController(icpPlannerParameters, icpOptimizationParameters, bipedSupportPolygons,
+      ICPOptimizationController icpOptimizationController = new ICPOptimizationController(icpPlannerParameters, icpOptimizationParameters, null, bipedSupportPolygons,
             contactableFeet, 0.001, registry, null);
       icpOptimizationController.setStepDurations(doubleSupportDuration, singleSupportDuration);
       icpPlanner.setSingleSupportTime(singleSupportDuration);
@@ -284,12 +284,7 @@ public class ICPOptimizationControllerTest
          return 0.03;
       }
 
-      @Override public double getForwardAdjustmentDeadband()
-      {
-         return 0.0;
-      }
-
-      @Override public double getLateralAdjustmentDeadband()
+      @Override public double getAdjustmentDeadband()
       {
          return 0.0;
       }
