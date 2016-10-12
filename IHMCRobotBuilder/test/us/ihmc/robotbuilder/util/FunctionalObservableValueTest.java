@@ -69,6 +69,18 @@ public class FunctionalObservableValueTest
    }
 
    @Test
+   public void testFlatMapConvertsNewValuesFromInnerObservables()
+   {
+      SimpleIntegerProperty base = new SimpleIntegerProperty(10);
+      SimpleIntegerProperty inner = new SimpleIntegerProperty(20);
+      FunctionalObservableValue<Number> mappedObservable = of(base).flatMap(x -> inner);
+
+      assertEquals(20, (int)mappedObservable.getValue());
+      inner.setValue(30);
+      assertEquals(30, (int)mappedObservable.getValue());
+   }
+
+   @Test
    public void testFilterTrueKeepsAllValues()
    {
       SimpleIntegerProperty base = new SimpleIntegerProperty(10);

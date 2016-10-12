@@ -1,9 +1,9 @@
 package us.ihmc.robotbuilder.util;
 
-import javaslang.collection.*;
+import javaslang.collection.List;
+import javaslang.collection.Stream;
 import us.ihmc.robotbuilder.util.TreeFocus.Breadcrumb;
 
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;

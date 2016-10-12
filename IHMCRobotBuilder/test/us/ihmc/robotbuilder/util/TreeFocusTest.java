@@ -16,18 +16,8 @@ import static org.junit.Assert.*;
 /**
  *
  */
-public class TreeFocusTest
+public class TreeFocusTest extends TreeTestBase
 {
-   private static final Tree<Integer> BINARY_TREE = tree(0, tree(1), tree(2));
-   private static final Tree<Integer> SINGLETON_TREE = tree(0);
-   private static final Tree<Integer> DEEP_TREE = tree(0, tree(1, tree(3), tree(4), tree(5)), tree(2));
-
-   private static Tree<Integer> tree(int value, Tree... children)
-   {
-      //noinspection unchecked
-      return new Tree<>(value, List.of((Tree<Integer>[])children));
-   }
-
    @Test public void testEqualsHashCode()
    {
       //noinspection OptionalGetWithoutIsPresent

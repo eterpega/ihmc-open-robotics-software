@@ -2,7 +2,6 @@ package us.ihmc.robotbuilder.util;
 
 import javafx.scene.control.TreeItem;
 import javaslang.collection.List;
-import org.fest.assertions.Index;
 import org.junit.Test;
 import us.ihmc.tools.testing.JUnitTools;
 
@@ -13,14 +12,8 @@ import java.util.stream.Collectors;
 import static javaslang.collection.List.empty;
 import static org.junit.Assert.*;
 
-/**
- *
- */
-public class TreeTest
+public class TreeTest extends TreeTestBase
 {
-   private static final Tree<Integer> BINARY_TREE = new Tree<>(0, List.of(new Tree<>(1, empty()), new Tree<>(2, empty())));
-   private static final Tree<Integer> SINGLETON_TREE = new Tree<>(0, empty());
-
    @Test
    public void testEqualsHashCode()
    {
@@ -163,6 +156,15 @@ public class TreeTest
    {
       Optional<TreeFocus<Tree<Integer>>> findResult = BINARY_TREE.findValue(value -> value == 1);
       assertNodeFound(findResult);
+   }
+
+   @Test
+   public void testWithValueReturnsANewNodeWithTheAppropriateValue()
+   {
+      Tree<Integer> newTree = BINARY_TREE.withValue(42);
+      assertEquals(42, (int)newTree.getValue());
+      assertEquals(BINARY_TREE.getChild(0), newTree.getChild(0));
+      assertEquals(BINARY_TREE.getChild(1), newTree.getChild(1));
    }
 
    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
