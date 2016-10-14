@@ -1,8 +1,10 @@
 package us.ihmc.robotbuilder.gui;
 
+import javafx.collections.ObservableList;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
+import javaslang.collection.Map;
 import us.ihmc.robotbuilder.util.FunctionalObservableValue;
 import us.ihmc.robotbuilder.util.Tree;
 import us.ihmc.robotbuilder.util.TreeDifference;
@@ -11,11 +13,9 @@ import us.ihmc.robotbuilder.util.TreeFocus;
 import us.ihmc.robotbuilder.util.TreeFocus.ChildIndexOf;
 import us.ihmc.robotics.immutableRobotDescription.JointDescription;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
+import static java.lang.Integer.compare;
 import static us.ihmc.robotbuilder.util.TreeFocus.pathTo;
 
 /**
@@ -23,6 +23,8 @@ import static us.ihmc.robotbuilder.util.TreeFocus.pathTo;
  */
 public class JointTreeView extends TreeView<JointDescription>
 {
+   private boolean ignoreSelectionUpdates = false;
+
    public JointTreeView()
    {
       setCellFactory(JointTreeCell::new);
@@ -42,23 +44,17 @@ public class JointTreeView extends TreeView<JointDescription>
 
    private void applyDifferencesByNode(JointTreeItem parentItem, DifferencesByNode<JointDescription> differencesByNode)
    {
-      differencesByNode.get(parentItem.getOriginalTree()).forEach(diff ->
-         diff.match((valueChanged) -> parentItem.setOriginalTree(valueChanged.getNewNode()),
-                    (childrenAdded) -> parentItem.getChildren().addAll(childrenAdded.getNewChildren().map(this::mapTree).toJavaList()),
-                    (childrenRemoved) -> parentItem.getChildrenSpecific().removeIf(child -> childrenRemoved.getRemovedChildren().contains(child.getOriginalTree())),
-                    (childOrderChanged) ->
-                    {
-                       Stream<Integer> newIndices = parentItem.getChildrenSpecific().stream()
-                                                                         .map(JointTreeItem::getOriginalTree)
-                                                                         .map(childOrderChanged.getChildIndices()::get)
-                                                                         .map(optIndex -> optIndex.getOrElse(() -> { assert false; return 0; }));
-                       List<JointTreeItem> newChildren = newIndices.map(parentItem.getChildrenSpecific()::get).collect(Collectors.toList());
-                       parentItem.getChildren().clear();
-                       parentItem.getChildren().addAll(newChildren);
-                    })
-      );
+      differencesByNode.get(parentItem.getOriginalTree()).ifPresent(diff -> {
+         parentItem.getChildrenSpecific().forEach(child -> applyDifferencesByNode(child, differencesByNode));
 
-      parentItem.getChildrenSpecific().forEach(child -> applyDifferencesByNode(child, differencesByNode));
+         parentItem.setOriginalTree(diff.getNewNode());
+         parentItem.getChildren().addAll(diff.getAddedChildren().map(this::mapTree).toJavaList());
+         parentItem.getChildrenSpecific().removeIf(child -> diff.getRemovedChildren().contains(child.getOriginalTree()));
+
+         // Reorder
+         Map<Tree<JointDescription>, Integer> newOrder = diff.getFinalChildOrder();
+         parentItem.getChildrenSpecific().sort((item1, item2) -> compare(newOrder.apply(item1.getOriginalTree()), newOrder.apply(item2.getOriginalTree())));
+      });
    }
 
    public FunctionalObservableValue<TreeFocus<Tree<JointDescription>>> selectedNodeObservable()
@@ -66,6 +62,7 @@ public class JointTreeView extends TreeView<JointDescription>
       ChildIndexOf<TreeItem<JointDescription>> childIndexOf = (tree, child) -> tree.getChildren().indexOf(child);
 
       return FunctionalObservableValue.of(getSelectionModel().selectedItemProperty())
+                                      .filter(item -> !ignoreSelectionUpdates)
                                       .filter(item -> item instanceof JointTreeItem)
                                       .map(item -> (JointTreeItem)item)
                                       .flatMapOptional(selectedItem -> {
@@ -97,18 +94,23 @@ public class JointTreeView extends TreeView<JointDescription>
     */
    public void setRootJoint(Tree<JointDescription> newRoot)
    {
+      ignoreSelectionUpdates = true;
+      setRootJointInternal(newRoot);
+      ignoreSelectionUpdates = false;
+   }
+
+   private void setRootJointInternal(Tree<JointDescription> newRoot)
+   {
       if (newRoot == null)
       {
          setRoot(null);
          return;
       }
-
       if (!(getRoot() instanceof JointTreeItem))
       {
          setRoot(mapTree(newRoot));
          return;
       }
-
       JointTreeItem itemRoot = (JointTreeItem) getRoot();
       applyDifferencesByNode(itemRoot, TreeDifference.difference(itemRoot.getOriginalTree(), newRoot));
    }
@@ -155,9 +157,10 @@ public class JointTreeView extends TreeView<JointDescription>
          this.setValue(originalTree.getValue());
       }
 
-      List<JointTreeItem> getChildrenSpecific()
+      ObservableList<JointTreeItem> getChildrenSpecific()
       {
-         return getChildren().stream().map(x -> (JointTreeItem)x).collect(Collectors.toList());
+         //noinspection unchecked
+         return (ObservableList)getChildren();
       }
    }
 }

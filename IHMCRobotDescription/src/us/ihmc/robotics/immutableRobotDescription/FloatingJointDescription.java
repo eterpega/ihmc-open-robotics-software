@@ -13,6 +13,11 @@ import javax.vecmath.Vector3d;
       return ModifiableFloatingJointDescription.create().from(this);
    }
 
+   @Override public String toString()
+   {
+      return super.toString();
+   }
+
    static abstract class Builder implements JointDescription.Builder
    {
    }

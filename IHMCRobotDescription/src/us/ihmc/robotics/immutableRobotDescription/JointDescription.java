@@ -31,6 +31,11 @@ public abstract class JointDescription implements NamedObject, LocatedObject, Mo
       return true;
    }
 
+   @Override public String toString()
+   {
+      return getClass().getSimpleName() + "[" + getName() + "]";
+   }
+
    // TODO: get rid of this as soon as Immutables can generate it
    public interface Builder
    {

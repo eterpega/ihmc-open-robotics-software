@@ -13,6 +13,11 @@ import us.ihmc.robotics.Plane;
       return ModifiableFloatingPlanarJointDescription.create().from(this);
    }
 
+   @Override public String toString()
+   {
+      return super.toString();
+   }
+
    public static ImmutableFloatingPlanarJointDescription.Builder builder()
    {
       return ImmutableFloatingPlanarJointDescription.builder();

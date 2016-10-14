@@ -138,17 +138,4 @@ public class Util {
         }, MatrixType.MT_3D_4x4, 0);
     }
 
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    public static <T, R> R matchOptionals(Optional<T> first, Optional<T> second, Supplier<R> nonePresent, Function<T, R> firstPresent, Function<T, R> secondPresent, Function2<T, T, R> bothPresent)
-    {
-        if (!first.isPresent() && !second.isPresent())
-            return nonePresent.get();
-        if (first.isPresent() && !second.isPresent())
-            return firstPresent.apply(first.get());
-        if (second.isPresent() && !first.isPresent())
-            return secondPresent.apply(second.get());
-        if (first.isPresent() && second.isPresent())
-            return bothPresent.apply(first.get(), second.get());
-        return nonePresent.get();
-    }
 }

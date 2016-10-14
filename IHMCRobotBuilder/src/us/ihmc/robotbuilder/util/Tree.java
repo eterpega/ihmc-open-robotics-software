@@ -201,6 +201,17 @@ public final class Tree<T> implements TreeInterface<Tree<T>>
    }
 
    /**
+    * Finds the first node whose value matches the given value and returns its focus.
+    * The returned focus allows modifying the tree around the found node.
+    * @param value value to find in the children
+    * @return {@link TreeFocus} on the found node or {@link Optional#empty()} if no node matches the value
+    */
+   public final Optional<TreeFocus<Tree<T>>> findValue(T value)
+   {
+      return findValue(value::equals);
+   }
+
+   /**
     * Returns a root {@link TreeFocus} of this node. This effectively
     * sets this node as a root for any operations performed on the returned focus.
     * @return root focus
@@ -242,24 +253,51 @@ public final class Tree<T> implements TreeInterface<Tree<T>>
       return Optional.empty();
    }
 
-   @Override public boolean equals(Object o)
+   /**
+    * Does deep structural comparison of this tree and another tree.
+    * This is a linear time operation
+    * @param o tree to compare to
+    * @return true if the trees have the same structure
+    */
+   public boolean deepEquals(Tree<T> o)
    {
-      if (this == o)
-         return true;
-      if (o == null || getClass() != o.getClass())
-         return false;
-
-      Tree<?> tree = (Tree<?>) o;
-
-      return value.equals(tree.value) && children.equals(tree.children);
-
+      return this == o ||
+            value.equals(o.value) &&
+                  children.size() == o.children.size() &&
+                  children.zip(o.children).forAll(zipped -> zipped._1.deepEquals(zipped._2));
    }
 
-   @Override public int hashCode()
+   /**
+    * Computes structural hash code instead of hash code based on object references only.
+    * @return deep hash code
+    */
+   public int deepHashCode()
    {
       int result = value.hashCode();
-      result = 31 * result + children.hashCode();
+      result = 31 * result + children.map(Tree::deepHashCode).fold(0, (hash1, hash2) -> 31 * hash1 + hash2);
       return result;
+   }
+
+   /**
+    * Draws a nice ASCII art representation of the tree.
+    * Code adapted from Javaslang's Tree.
+    * @return tree drawing
+    */
+   public String draw() {
+      StringBuilder builder = new StringBuilder();
+      drawAux("", builder);
+      return builder.toString();
+   }
+
+   private void drawAux(String indent, StringBuilder builder) {
+      builder.append(value);
+      for (Stream<Tree<T>> it = children; !it.isEmpty(); it = it.tail()) {
+         final boolean isLast = it.tail().isEmpty();
+         builder.append('\n')
+                .append(indent)
+                .append(isLast ? "└──" : "├──");
+         it.head().drawAux(indent + (isLast ? "   " : "│  "), builder);
+      }
    }
 
    @Override public String toString()

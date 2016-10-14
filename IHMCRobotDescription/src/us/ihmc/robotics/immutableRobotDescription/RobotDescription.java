@@ -73,6 +73,11 @@ import java.util.Collection;
       return jointDescription.getLink().getLinkGraphics();
    }
 
+   @Override public String toString()
+   {
+      return super.toString();
+   }
+
    public static ImmutableRobotDescription.Builder builder()
    {
       return ImmutableRobotDescription.builder();

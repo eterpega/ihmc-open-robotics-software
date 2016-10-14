@@ -14,12 +14,6 @@ import static org.junit.Assert.*;
 
 public class TreeTest extends TreeTestBase
 {
-   @Test
-   public void testEqualsHashCode()
-   {
-      JUnitTools.testHashCodeEqualsMethods(BINARY_TREE, BINARY_TREE.mapValues(x -> x), SINGLETON_TREE);
-   }
-
    @Test public void testFirstChildReturnsFirstChildOfNonEmptyTree()
    {
       assertEquals(BINARY_TREE.firstChild(), Optional.of(BINARY_TREE.getChildren().iterator().next()));
@@ -106,8 +100,8 @@ public class TreeTest extends TreeTestBase
    @Test
    public void testTruePredicateKeepsTreeUntouched()
    {
-      assertEquals(BINARY_TREE.filter(x -> true), Optional.of(BINARY_TREE));
-      assertEquals(BINARY_TREE.filterValues(x -> true), Optional.of(BINARY_TREE));
+      assertTrue(BINARY_TREE.filter(x -> true).map(BINARY_TREE::deepEquals).orElse(false));
+      assertTrue(BINARY_TREE.filterValues(x -> true).map(BINARY_TREE::deepEquals).orElse(false));
    }
 
    @Test
@@ -152,9 +146,16 @@ public class TreeTest extends TreeTestBase
    }
 
    @Test
-   public void testFindChildValueReturnsTheCorrectNode()
+   public void testFindChildValueBasedOnPredicateReturnsTheCorrectNode()
    {
       Optional<TreeFocus<Tree<Integer>>> findResult = BINARY_TREE.findValue(value -> value == 1);
+      assertNodeFound(findResult);
+   }
+
+   @Test
+   public void testFindChildValueReturnsTheCorrectNode()
+   {
+      Optional<TreeFocus<Tree<Integer>>> findResult = BINARY_TREE.findValue(1);
       assertNodeFound(findResult);
    }
 
@@ -165,6 +166,58 @@ public class TreeTest extends TreeTestBase
       assertEquals(42, (int)newTree.getValue());
       assertEquals(BINARY_TREE.getChild(0), newTree.getChild(0));
       assertEquals(BINARY_TREE.getChild(1), newTree.getChild(1));
+   }
+
+   @Test
+   public void testDeepEqualsHashCode()
+   {
+      class Wrapper {
+         private final Tree<Integer> tree;
+
+         private Wrapper(Tree<Integer> tree)
+         {
+            this.tree = tree;
+         }
+
+         @Override public boolean equals(Object o)
+         {
+            if (this == o)
+               return true;
+            if (o == null || getClass() != o.getClass())
+               return false;
+
+            Wrapper wrapper = (Wrapper) o;
+
+            return tree.deepEquals(wrapper.tree);
+
+         }
+
+         @Override public int hashCode()
+         {
+            return tree.deepHashCode();
+         }
+      }
+      JUnitTools.testHashCodeEqualsMethods(new Wrapper(DEEP_TREE), new Wrapper(DEEP_TREE.mapValues(x -> x)), new Wrapper(BINARY_TREE));
+   }
+
+   @Test
+   public void testDrawSingletonTreeEqualsValueToString()
+   {
+      assertEquals(SINGLETON_TREE.getValue().toString(), SINGLETON_TREE.draw());
+   }
+
+   @Test
+   public void testDrawSingletonTreeContainsAllValues()
+   {
+      String drawing = BINARY_TREE.draw();
+      assertTrue(BINARY_TREE.children().map(Tree::getValue).map(Object::toString).forAll(drawing::contains));
+   }
+
+   @Test
+   public void testDrawTreeAgainstKnownResult()
+   {
+      Tree<Integer> treeToShow = tree(1, tree(2, tree(2)), tree(4));
+      assertEquals("1\n├──2\n│  └──2\n└──4", treeToShow.draw());
    }
 
    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")

@@ -2,15 +2,9 @@ package us.ihmc.robotbuilder.util;
 
 import javaslang.Tuple;
 import javaslang.Tuple2;
-import javaslang.collection.HashMap;
-import javaslang.collection.List;
-import javaslang.collection.Map;
-import javaslang.collection.Set;
+import javaslang.collection.*;
 
-import java.security.InvalidParameterException;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.stream.Stream;
+import java.util.Optional;
 
 /**
  *
@@ -18,23 +12,30 @@ import java.util.stream.Stream;
 public class TreeDifference
 {
 
+   /**
+    * Computers a difference between two {@link Tree}s. The tree values and nodes
+    * are compared using reference equals (==) to guarantee good runtime complexity.
+    * This algorithm does not guarantee to return the minimum edit distance (as that
+    * is O(N^3)) but tries a few heuristics with O(N) runtime for common tree edits
+    * and O(N^2) worst case runtime.
+    * @param original original tree
+    * @param otherTree new tree
+    * @param <T> tree value type
+    * @return tree {@link Difference}s grouped by tree nodes they apply to
+    */
    public static <T> DifferencesByNode<T> difference(Tree<T> original, Tree<T> otherTree)
    {
-      return new DifferencesByNode<>(differenceImpl(original, otherTree));
+      return new DifferencesByNode<>(HashMap.ofEntries(differenceImpl(original, otherTree)));
    }
 
-   private static <T> Map<Tree<T>, List<Difference<T>>> differenceImpl(Tree<T> original, Tree<T> otherTree)
+   private static <T> Seq<Tuple2<Tree<T>, Difference<T>>> differenceImpl(Tree<T> original, Tree<T> otherTree)
    {
-      List<Difference<T>> differences = List.empty();
       if (original == otherTree)
-         return HashMap.empty();
-
-      differences = differences.prepend(new NodeChanged<>(original, otherTree));
+         return List.empty();
 
       Map<Tree<T>, Integer> myIndex = indexChildren(original);
       Map<Tree<T>, Integer> otherIndex = indexChildren(otherTree);
 
-      Set<Tree<T>> sameChildren = otherIndex.keySet().filter(myIndex::containsKey);
       Set<Tree<T>> addedChildren = otherIndex.keySet().filter(otherChild -> !myIndex.containsKey(otherChild));
       Set<Tree<T>> removedChildren = myIndex.keySet().filter(myChild -> !otherIndex.containsKey(myChild));
 
@@ -43,154 +44,73 @@ public class TreeDifference
       addedChildren = addedChildren.filter(child -> !replacements.contains(child));
       removedChildren = removedChildren.filter(child -> !replacedChildren.containsKey(child));
 
-      differences = differences.prepend(new ChildrenAdded<>(original, addedChildren));
-      differences = differences.prepend(new ChildrenRemoved<>(original, removedChildren));
-
-      boolean childOrderChanged = addedChildren.size() > 0 ||
-            removedChildren.size() > 0 ||
-            replacedChildren.exists(child -> (int)myIndex.get(child._1).get() != otherIndex.get(child._2).get()) ||
-            sameChildren.exists(child -> (int)myIndex.get(child).get() != otherIndex.get(child).get());
-
-      if (childOrderChanged)
-      {
-         differences = differences.prepend(new ChildOrderChanged<>(original, otherIndex));
-      }
-
+      Difference<T> difference = new Difference<>(otherTree, addedChildren, removedChildren, otherIndex);
       return replacedChildren
-                  .map(replacement -> differenceImpl(replacement._1, replacement._2))
-                  .fold(HashMap.empty(), Map::merge)
-                  .put(original, differences);
+                  .flatMap(replacement -> differenceImpl(replacement._1, replacement._2))
+                  .prepend(Tuple.of(original, difference));
    }
 
+   /**
+    * Grouped {@link Difference}s by node. A thin wrapper around a
+    * hash map to avoid extra long type specification in client code.
+    * @param <T> tree value type
+    */
    public static class DifferencesByNode<T>
    {
-      private final Map<Tree<T>, List<Difference<T>>> differencesByNode;
+      private final Map<Tree<T>, Difference<T>> differencesByNode;
 
-      public DifferencesByNode(Map<Tree<T>, List<Difference<T>>> differencesByNode)
+      DifferencesByNode(Map<Tree<T>, Difference<T>> differencesByNode)
       {
          this.differencesByNode = differencesByNode;
       }
 
-      public List<Difference<T>> get(Tree<T> node)
+      public Optional<Difference<T>> get(Tree<T> node)
       {
-         return differencesByNode.get(node).getOrElse(List.empty());
+         return differencesByNode.get(node).toJavaOptional();
       }
 
-      public Stream<Difference<T>> getStream(Tree<T> node)
+      public Map<Tree<T>, Difference<T>> getAllDifferences()
       {
-         return get(node).toJavaStream();
-      }
-   }
-
-   public static abstract class Difference<T> {
-      private final Tree<T> node;
-
-      Difference(Tree<T> node)
-      {
-         this.node = node;
-      }
-
-      public Tree<T> getNode()
-      {
-         return node;
-      }
-
-      public <R> R match(Function<NodeChanged<T>, R> matchNodeValueChanged,
-                         Function<ChildrenAdded<T>, R> matchChildAdded,
-                         Function<ChildrenRemoved<T>, R> matchChildRemoved,
-                         Function<ChildOrderChanged<T>, R> matchChildOrderChanged)
-      {
-         if (this instanceof NodeChanged)
-            return matchNodeValueChanged.apply((NodeChanged<T>) this);
-         else if (this instanceof ChildrenAdded)
-            return matchChildAdded.apply((ChildrenAdded<T>) this);
-         else if (this instanceof ChildrenRemoved)
-            return matchChildRemoved.apply((ChildrenRemoved<T>) this);
-         else if (this instanceof ChildOrderChanged)
-            return matchChildOrderChanged.apply((ChildOrderChanged<T>) this);
-
-         throw new InvalidParameterException(getClass().getSimpleName() + " is not a recognized Difference");
-      }
-
-      public void match(Consumer<NodeChanged<T>> matchNodeValueChanged,
-                        Consumer<ChildrenAdded<T>> matchChildAdded,
-                        Consumer<ChildrenRemoved<T>> matchChildRemoved,
-                        Consumer<ChildOrderChanged<T>> matchChildMoved)
-      {
-         match(consumerToFunction(matchNodeValueChanged),
-               consumerToFunction(matchChildAdded),
-               consumerToFunction(matchChildRemoved),
-               consumerToFunction(matchChildMoved)
-               );
-      }
-
-      private static <T, Void> Function<T, Void> consumerToFunction(Consumer<T> consumer)
-      {
-         return x -> {
-            consumer.accept(x);
-            return null;
-         };
+         return differencesByNode;
       }
    }
 
-
-   public static final class NodeChanged<T> extends Difference<T> {
+   /**
+    *
+    * @param <T>
+    */
+   public static class Difference<T> {
       private final Tree<T> newNode;
+      private final Set<Tree<T>> addedChildren;
+      private final Set<Tree<T>> removedChildren;
+      private final Map<Tree<T>, Integer> finalChildOrder;
 
-      NodeChanged(Tree<T> node, Tree<T> newNode)
+      Difference(Tree<T> newNode, Set<Tree<T>> addedChildren, Set<Tree<T>> removedChildren, Map<Tree<T>, Integer> finalChildOrder)
       {
-         super(node);
          this.newNode = newNode;
+         this.addedChildren = addedChildren;
+         this.removedChildren = removedChildren;
+         this.finalChildOrder = finalChildOrder;
       }
 
       public Tree<T> getNewNode()
       {
          return newNode;
       }
-   }
 
-   public static final class ChildrenAdded<T> extends Difference<T> {
-      private final Set<Tree<T>> newChildren;
-
-      ChildrenAdded(Tree<T> node, Set<Tree<T>> newChildren)
+      public Set<Tree<T>> getAddedChildren()
       {
-         super(node);
-         this.newChildren = newChildren;
-      }
-
-      public Set<Tree<T>> getNewChildren()
-      {
-         return newChildren;
-      }
-   }
-
-   public static final class ChildrenRemoved<T> extends Difference<T> {
-      private final Set<Tree<T>> removedChildren;
-
-      ChildrenRemoved(Tree<T> node, Set<Tree<T>> removedChildren)
-      {
-         super(node);
-         this.removedChildren = removedChildren;
+         return addedChildren;
       }
 
       public Set<Tree<T>> getRemovedChildren()
       {
          return removedChildren;
       }
-   }
 
-   public static final class ChildOrderChanged<T> extends Difference<T> {
-      private final Map<Tree<T>, Integer> childIndices;
-
-      ChildOrderChanged(Tree<T> parent, Map<Tree<T>, Integer> childIndices)
+      public Map<Tree<T>, Integer> getFinalChildOrder()
       {
-         super(parent);
-         this.childIndices = childIndices;
-      }
-
-      public Map<Tree<T>, Integer> getChildIndices()
-      {
-         return childIndices;
+         return finalChildOrder;
       }
    }
 
@@ -216,25 +136,26 @@ public class TreeDifference
 
    private static <T> Tree<T> findClosestTree(Tree<T> base, Set<Tree<T>> others)
    {
-      class ScoredTree {
-         private final Tree<T> tree;
-         private final int score;
-
-         private ScoredTree(Tree<T> tree, int score)
-         {
-            this.tree = tree;
-            this.score = score;
-         }
-      }
-
-      return others.map(tree -> new ScoredTree(tree, computeChildSimilarity(base, tree)))
+      return others.map(tree -> new ScoredTree<>(tree, computeChildSimilarity(base, tree)))
                    .reduce((tree1, tree2) -> tree1.score > tree2.score ? tree1 : tree2)
-            .tree;
+                   .tree;
    }
 
    private static <T> int computeChildSimilarity(Tree<T> tree1, Tree<T> tree2)
    {
-      Set<Tree<T>> otherChildrenSet = tree2.children().toSet();
-      return tree1.children().count(otherChildrenSet::contains);
+      return tree1.children()
+                  .zip(tree2.children())
+                  .count(childPair -> childPair._1.getValue() == childPair._2.getValue());
+   }
+
+   private static class ScoredTree<T> {
+      private final Tree<T> tree;
+      private final int score;
+
+      private ScoredTree(Tree<T> tree, int score)
+      {
+         this.tree = tree;
+         this.score = score;
+      }
    }
 }
