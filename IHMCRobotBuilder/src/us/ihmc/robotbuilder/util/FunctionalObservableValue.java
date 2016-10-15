@@ -5,9 +5,12 @@ import javafx.beans.Observable;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javaslang.Tuple;
+import javaslang.Tuple2;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -39,6 +42,20 @@ public final class FunctionalObservableValue<T> implements ObservableValue<T>
    public static <T> FunctionalObservableValue<T> of(@NotNull ObservableValue<T> base)
    {
       return new FunctionalObservableValue<>(base);
+   }
+
+   /**
+    * Creates a new functional observable value by combining the latest values
+    * of the two given observables. A syntactic sugar around {@link #combineLatest(ObservableValue)}.
+    * @param first first observable
+    * @param second second observable
+    * @param <T> first observable type
+    * @param <U> second observable type
+    * @return combined observables
+    */
+   public static <T, U> FunctionalObservableValue<Tuple2<T, U>> combineLatest(@NotNull ObservableValue<T> first, @NotNull ObservableValue<? extends U> second)
+   {
+      return of(first).combineLatest(second);
    }
 
    /**
@@ -162,6 +179,56 @@ public final class FunctionalObservableValue<T> implements ObservableValue<T>
       });
       if (getValue() != null)
          target.setValue(getValue());
+      return new FunctionalObservableValue<>(target);
+   }
+
+   /**
+    * Emits a pair of values whenever *any* of the two observables (this or other)
+    * emits a new value. See http://reactivex.io/documentation/operators/combinelatest.html
+    * for details on the behavior of this operator.
+    * @param other other observable
+    * @param <U> type of the other observable
+    * @return combined observable
+    */
+   public final <U> FunctionalObservableValue<Tuple2<T, U>> combineLatest(ObservableValue<? extends U> other)
+   {
+      SimpleObjectProperty<Tuple2<T, U>> target = new SimpleObjectProperty<>();
+      AtomicReference<T> lastThis = new AtomicReference<>(getValue());
+      AtomicReference<U> lastOther = new AtomicReference<>(other.getValue());
+      final Object lock = new Object();
+
+      Runnable propagateChange = () -> {
+         synchronized (lock)
+         {
+            T lastThisVal = lastThis.get();
+            U lastOtherVal = lastOther.get();
+            if (lastThisVal != null && lastOtherVal != null)
+               target.setValue(Tuple.of(lastThisVal, lastOtherVal));
+         }
+      };
+
+      ChangeListener<T> thisChangeListener = (observable, oldValue, newValue) -> {
+         synchronized (lock)
+         {
+            lastThis.set(newValue);
+            propagateChange.run();
+         }
+      };
+
+      ChangeListener<U> otherChangeListener = (observable, oldValue, newValue) -> {
+         synchronized (lock)
+         {
+            lastOther.set(newValue);
+            propagateChange.run();
+         }
+      };
+
+      addListener(thisChangeListener);
+      other.addListener(otherChangeListener);
+
+      if (lastThis.get() != null && lastOther.get() != null)
+         propagateChange.run();
+
       return new FunctionalObservableValue<>(target);
    }
 

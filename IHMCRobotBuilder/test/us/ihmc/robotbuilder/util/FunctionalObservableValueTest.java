@@ -1,9 +1,10 @@
 package us.ihmc.robotbuilder.util;
 
 import javafx.beans.InvalidationListener;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.*;
 import javafx.beans.value.ChangeListener;
+import javaslang.Tuple;
+import javaslang.Tuple2;
 import javaslang.collection.List;
 import org.junit.Test;
 
@@ -12,6 +13,7 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.*;
+import static us.ihmc.robotbuilder.util.FunctionalObservableValue.combineLatest;
 import static us.ihmc.robotbuilder.util.FunctionalObservableValue.of;
 
 public class FunctionalObservableValueTest
@@ -182,6 +184,31 @@ public class FunctionalObservableValueTest
       base.set(2);
       base.set(3);
       assertEquals(6, counter.get());
+   }
+
+   @Test
+   public void testCombineLatestDoesNotFireWhenNoValuesWereSet()
+   {
+      IntegerProperty property1 = new SimpleIntegerProperty();
+      StringProperty property2 = new SimpleStringProperty();
+      combineLatest(property1, property2)
+            .consume(pair -> fail("Should not be called"));
+   }
+
+   @Test
+   public void testCombineLatestProducesCorrectPairs()
+   {
+      IntegerProperty property1 = new SimpleIntegerProperty(1);
+      StringProperty property2 = new SimpleStringProperty("A");
+
+      FunctionalObservableValue<Tuple2<Number, String>> combined = combineLatest(property1, property2);
+      assertEquals(Tuple.of(1, "A"), combined.getValue());
+      property1.setValue(2);
+      assertEquals(Tuple.of(2, "A"), combined.getValue());
+      property2.setValue("B");
+      assertEquals(Tuple.of(2, "B"), combined.getValue());
+      property1.setValue(3);
+      assertEquals(Tuple.of(3, "B"), combined.getValue());
    }
 
    @Test
