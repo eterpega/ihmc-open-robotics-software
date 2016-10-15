@@ -73,7 +73,7 @@ public class Util
       radiusVec.sub(bboxMin);
       double r = radiusVec.length(); // scene bounding sphere radius
       double near = r / 1000; // camera near, giving some space for zoom-in
-      double h = Math.sin(Math.toRadians(fovDegrees) / 2) * near; // half of the height of the projection plane
+      double h = Math.sin(Math.toRadians(fovDegrees)) * near; // height of the projection plane
       double d = r * near / h; // how far we need to be for the bounding sphere to fit in the projection rectangle
 
       double far = 10 * (2 * r + d); // (distance from the scene + scene bounding sphere diameter) * 10 (allows a 10x zoom-out)
