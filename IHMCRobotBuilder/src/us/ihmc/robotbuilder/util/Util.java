@@ -124,11 +124,11 @@ public class Util
       rotation.setColumn(0, xAxis);
       rotation.setColumn(1, yAxis);
       rotation.setColumn(2, zAxis);
-      Affine result3 = new Affine();
-      result3.appendTranslation(cameraPosition.x, cameraPosition.y, cameraPosition.z);
-      JavaFXTools.convertRotationMatrixToAffine(rotation, result3);
+      Affine result = new Affine();
+      result.appendTranslation(cameraPosition.x, cameraPosition.y, cameraPosition.z);
+      JavaFXTools.convertRotationMatrixToAffine(rotation, result);
 
-      return result3;
+      return result;
    }
 
 }
