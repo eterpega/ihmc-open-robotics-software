@@ -72,7 +72,7 @@ public class FocusBasedCameraMouseEventHandler implements EventHandler<Event>
       this.camera = camera;
       this.up = new Vector3d(up);
       this.up.normalize();
-      camera.getTransforms().addAll(focusPointTranslation, cameraOrientation, offsetFromFocusPoint);
+      camera.getTransforms().setAll(focusPointTranslation, cameraOrientation, offsetFromFocusPoint);
 
       changeCameraPosition(-2.0, 0.7, 1.0);
 
