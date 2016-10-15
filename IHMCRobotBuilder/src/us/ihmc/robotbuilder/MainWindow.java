@@ -26,6 +26,7 @@ import us.ihmc.robotbuilder.util.Util;
 import us.ihmc.robotics.immutableRobotDescription.JointDescription;
 
 import java.io.File;
+import java.util.Optional;
 
 /**
  *
@@ -93,12 +94,12 @@ public class MainWindow extends Application {
                treeView.selectedNodeObservable()
                          .map(newSelectedItem -> {
                             ImmutableBeanEditor<JointDescription> editor = new ImmutableBeanEditor<>(newSelectedItem.getFocusedNode().getValue());
-                            FunctionalObservableValue.of(editor.valueProperty()).consume(editedValue -> onItemEdited(newSelectedItem.replace(newSelectedItem.getFocusedNode().withValue(editedValue))));
+                            FunctionalObservableValue.of(editor.valueProperty()).consume(editedValue -> updateUIState(newSelectedItem.replace(newSelectedItem.getFocusedNode().withValue(editedValue))));
                             return editor;
                          })
                          .map(ImmutableBeanEditor::getEditor)
                          .consume(jointSettings::setContent);
-               updateUIState(tree);
+               updateUIState(tree.getFocus());
             });
             return null;
         })).onFailure(err -> Util.runLaterInUI(() -> {
@@ -109,15 +110,9 @@ public class MainWindow extends Application {
         }));
     }
 
-    private void onItemEdited(TreeFocus<Tree<JointDescription>> newItem)
+    private void updateUIState(TreeFocus<Tree<JointDescription>> newState)
     {
-       Tree<JointDescription> newRoot = newItem.root().getFocusedNode();
-       updateUIState(newRoot);
-    }
-
-    private void updateUIState(Tree<JointDescription> newState)
-    {
-       treeView.setRootJoint(newState);
-       view3D.setTree(newState);
+       treeView.setRootJoint(newState.root().getFocusedNode());
+        view3D.jointTreeProperty().setValue(Optional.of(newState));
     }
 }
