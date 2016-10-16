@@ -11,6 +11,7 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.text.Font;
 import javafx.stage.FileChooser;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
@@ -43,6 +44,7 @@ public class MainWindow extends Application
 
    @Override public void start(Stage primaryStage) throws Exception
    {
+      Font.loadFont(getClass().getResource("/fonts/FontAwesome.otf").toExternalForm(), 10);
       Parent root = FXMLLoader.load(getClass().getResource("/main_window.fxml"));
 
       Screen screen = Screen.getPrimary();

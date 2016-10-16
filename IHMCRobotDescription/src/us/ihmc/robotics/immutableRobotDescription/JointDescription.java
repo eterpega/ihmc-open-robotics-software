@@ -33,7 +33,12 @@ public abstract class JointDescription implements NamedObject, LocatedObject, Mo
 
    @Override public String toString()
    {
-      return getClass().getSimpleName() + "[" + getName() + "]";
+      String className = getClass().getSimpleName();
+      if (className.startsWith("Immutable"))
+         className = className.substring("Immutable".length());
+      if (className.endsWith("Description"))
+         className = className.substring(0, className.length() - "Description".length());
+      return className + "[" + getName() + "]";
    }
 
    // TODO: get rid of this as soon as Immutables can generate it

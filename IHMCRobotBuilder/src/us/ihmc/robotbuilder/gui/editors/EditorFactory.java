@@ -22,7 +22,7 @@ public class EditorFactory extends DefaultPropertyEditorFactory
       if (type == Vector3d.class)
          return new Vector3DEditor(item);
       if (Iterable.class.isAssignableFrom(type))
-         return new IterableEditor<>(this);
+         return new IterableEditor<>(item, this);
 
       PropertyEditor<?> result = super.call(item);
       if (result != null)
