@@ -18,7 +18,7 @@ import javafx.stage.Stage;
 import javaslang.control.Option;
 import us.ihmc.robotbuilder.gui.JointTreeView;
 import us.ihmc.robotbuilder.gui.Preview3D;
-import us.ihmc.robotbuilder.gui.editors.ImmutableBeanEditor;
+import us.ihmc.robotbuilder.gui.editors.RecursiveBeanEditor;
 import us.ihmc.robotbuilder.model.Loader;
 import us.ihmc.robotbuilder.util.FunctionalObservableValue;
 import us.ihmc.robotbuilder.util.Tree;
@@ -94,12 +94,12 @@ public class MainWindow extends Application
 
             treeView.selectedNodeObservable()
                       .map(newSelectedItem -> {
-                         ImmutableBeanEditor<JointDescription> editor = new ImmutableBeanEditor<>(newSelectedItem.getFocusedNode().getValue());
+                         RecursiveBeanEditor<JointDescription> editor = new RecursiveBeanEditor<>(newSelectedItem.getFocusedNode().getValue());
                          FunctionalObservableValue.of(editor.valueProperty())
                                                   .consume(editedValue -> updateUIState(newSelectedItem.replace(newSelectedItem.getFocusedNode().withValue(editedValue))));
                          return editor;
                       })
-                      .map(ImmutableBeanEditor::getEditor)
+                      .map(RecursiveBeanEditor::getEditor)
                       .consume(jointSettings::setContent);
             updateUIState(tree.getFocus());
          });
