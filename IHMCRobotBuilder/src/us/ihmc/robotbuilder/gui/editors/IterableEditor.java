@@ -15,7 +15,6 @@ import org.controlsfx.property.editor.PropertyEditor;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -62,9 +61,11 @@ public class IterableEditor<T> extends AbstractPropertyEditor<Iterable<T>, Title
       }
       valueProperty.setValue(Collections.unmodifiableCollection(this.value));
 
-      List<ListItemEditor> editors = this.value.stream()
-                                               .map(ListItemEditor::new)
-                                               .collect(Collectors.toList());
+      List<ListItemEditor> editors = javaslang.collection.Stream.ofAll(this.value)
+                                                                .zipWithIndex()
+                                                                .map(listItemWithIndex -> new ListItemEditor(listItemWithIndex._1,
+                                                                                                             (int) (long) listItemWithIndex._2))
+                                                                .toJavaList();
 
       int index = 0;
       for (ListItemEditor editor : editors)
@@ -80,34 +81,40 @@ public class IterableEditor<T> extends AbstractPropertyEditor<Iterable<T>, Title
 
    }
 
-   private class ListItemEditor implements PropertyEditor<T>
+   private class ListItemEditor extends GridPane implements PropertyEditor<T>
    {
       private final Button remove = new Button("\uf00d");
       private final Button moveUp = new Button("\uf077");
       private final Button moveDown = new Button("\uf078");
       private T originalValue;
       private PropertyEditor<T> innerEditor;
-      private final GridPane container = new GridPane();
+      private final ItemProperty<T> itemProperty;
 
-      ListItemEditor(T originalValue)
+      ListItemEditor(T originalValue, int itemIndex)
       {
+         itemProperty = new ItemProperty<>(this::getValue, this::setValue);
+         setIndex(itemIndex);
          this.originalValue = originalValue;
-         ItemProperty property = new ItemProperty(this::getValue, this::setValue);
          //noinspection unchecked
-         innerEditor = (PropertyEditor<T>)editorFactory.call(property);
+         innerEditor = (PropertyEditor<T>)editorFactory.call(itemProperty);
          if (innerEditor == null)
-            innerEditor = new DefaultEditor<>(property);
+            innerEditor = new DefaultEditor<>(itemProperty);
 
          Node[] nodes = {remove, moveUp, moveDown, innerEditor.getEditor()};
          for (int i = 0; i < nodes.length; i++)
          {
             GridPane.setColumnIndex(nodes[i], i);
          }
-         container.getChildren().addAll(nodes);
+         getChildren().addAll(nodes);
 
          remove.setOnAction(event ->
                             {
-                               editorGrid.getChildren().remove(container);
+                               editorGrid.getChildren().remove(this);
+                               //noinspection unchecked
+                               javaslang.collection.Stream.of(editorGrid.getChildren())
+                                                          .map(x -> (ListItemEditor) x)
+                                                          .zipWithIndex()
+                                                          .forEach(editorItem -> editorItem._1.setIndex((int) (long) editorItem._2));
                                value.remove(originalValue);
                                updateValue();
                             });
@@ -142,20 +149,27 @@ public class IterableEditor<T> extends AbstractPropertyEditor<Iterable<T>, Title
          valueProperty.setValue(Collections.unmodifiableCollection(IterableEditor.this.value));
       }
 
+      private void setIndex(int index)
+      {
+         itemProperty.setName(IterableEditor.this.getProperty().getName() + "[" + index + "]");
+      }
+
       private void swapEditors(int index1, int index2)
       {
-         GridPane.setRowIndex(editorGrid.getChildren().get(index1), index2);
-         GridPane.setRowIndex(editorGrid.getChildren().get(index2), index1);
-         Node tmp1 = editorGrid.getChildren().get(index1);
-         Node tmp2 = editorGrid.getChildren().get(index2);
+         @SuppressWarnings("unchecked") ListItemEditor editor1 = (ListItemEditor) editorGrid.getChildren().get(index2);
+         @SuppressWarnings("unchecked") ListItemEditor editor2 = (ListItemEditor) editorGrid.getChildren().get(index2);
+         GridPane.setRowIndex(editor1, index2);
+         GridPane.setRowIndex(editor2, index1);
          editorGrid.getChildren().set(index2, new GridPane());
-         editorGrid.getChildren().set(index1, tmp2);
-         editorGrid.getChildren().set(index2, tmp1);
+         editorGrid.getChildren().set(index1, editor2);
+         editorGrid.getChildren().set(index2, editor1);
+         editor1.setIndex(index2);
+         editor2.setIndex(index1);
       }
 
       @Override public GridPane getEditor()
       {
-         return container;
+         return this;
       }
 
       @Override public T getValue()
@@ -198,15 +212,22 @@ public class IterableEditor<T> extends AbstractPropertyEditor<Iterable<T>, Title
       }
    }
 
-   private class ItemProperty implements Item
+   private static class ItemProperty<T> implements Item
    {
       final Supplier<T> itemSupplier;
       final Consumer<T> itemConsumer;
+      String name;
+
 
       private ItemProperty(Supplier<T> itemSupplier, Consumer<T> itemConsumer)
       {
          this.itemSupplier = itemSupplier;
          this.itemConsumer = itemConsumer;
+      }
+
+      public void setName(String name)
+      {
+         this.name = name;
       }
 
       @Override public Class<?> getType()
@@ -221,12 +242,12 @@ public class IterableEditor<T> extends AbstractPropertyEditor<Iterable<T>, Title
 
       @Override public String getName()
       {
-         return "Item";
+         return name;
       }
 
       @Override public String getDescription()
       {
-         return "Item";
+         return getName();
       }
 
       @Override public Object getValue()

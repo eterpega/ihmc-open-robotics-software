@@ -3,9 +3,11 @@ package us.ihmc.robotbuilder.gui.editors;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.util.Callback;
 import org.controlsfx.control.PropertySheet;
 import org.controlsfx.control.PropertySheet.Item;
+import org.controlsfx.property.editor.AbstractPropertyEditor;
 import org.controlsfx.property.editor.PropertyEditor;
 import org.jetbrains.annotations.NotNull;
 import us.ihmc.robotbuilder.util.FunctionalObservableValue;
@@ -20,27 +22,22 @@ import static java.lang.reflect.Modifier.isStatic;
 /**
  *
  */
-public class ImmutableBeanEditor<T> implements PropertyEditor<T>
+public class ImmutableBeanEditor<T> extends AbstractPropertyEditor<T, PropertySheet>
 {
    private final PropertySheet currentSheet;
-   private final Property<T> valueProperty;
+   private Property<T> valueProperty;
    private final boolean includeReadonlyProperties;
 
-   public ImmutableBeanEditor(@NotNull T value)
+   public ImmutableBeanEditor(@NotNull Item itemToEdit, Callback<Item, PropertyEditor<?>> editorFactory, boolean includeReadonlyProperties)
    {
-      this(value, new EditorFactory(), false);
-   }
-
-   public ImmutableBeanEditor(@NotNull T value, Callback<Item, PropertyEditor<?>> editorFactory, boolean includeReadonlyProperties)
-   {
+      super(itemToEdit, new PropertySheet());
       this.includeReadonlyProperties = includeReadonlyProperties;
       this.currentSheet = new PropertySheet();
       currentSheet.setPropertyEditorFactory(editorFactory);
-      valueProperty = new SimpleObjectProperty<>(value);
 
       ChangeListener<T> itemChangeListener = (observable, oldValue, newValue) -> valueProperty.setValue(newValue);
       FunctionalObservableValue<T> funcValueProperty = FunctionalObservableValue.of(valueProperty);
-      getProperties(value).forEach(item ->
+      getProperties(valueProperty.getValue()).forEach(item ->
                                    {
                                       // Update bean when value changes
                                       item.beanProperty().addListener(itemChangeListener);
@@ -50,9 +47,22 @@ public class ImmutableBeanEditor<T> implements PropertyEditor<T>
                                    });
    }
 
+   @Override protected ObservableValue<T> getObservableValue()
+   {
+      if (valueProperty == null)
+         //noinspection unchecked
+         valueProperty = new SimpleObjectProperty<>((T)getProperty().getValue());
+      return valueProperty;
+   }
+
    @Override public PropertySheet getEditor()
    {
       return currentSheet;
+   }
+
+   public Property<T> valueProperty()
+   {
+      return valueProperty;
    }
 
    @Override public T getValue()
@@ -63,11 +73,6 @@ public class ImmutableBeanEditor<T> implements PropertyEditor<T>
    @Override public void setValue(T value)
    {
       valueProperty.setValue(value);
-   }
-
-   public Property<T> valueProperty()
-   {
-      return valueProperty;
    }
 
    private List<ImmutableBeanProperty<T>> getProperties(final T bean)
