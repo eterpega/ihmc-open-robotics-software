@@ -19,6 +19,7 @@ import us.ihmc.robotics.immutableRobotDescription.*;
 import us.ihmc.robotics.immutableRobotDescription.OneDoFJointDescription.LimitStops;
 import us.ihmc.robotics.immutableRobotDescription.graphics.GraphicsGroupDescription;
 import us.ihmc.robotics.lidar.LidarScanParameters;
+import us.ihmc.robotics.partNames.JointNameMap;
 import us.ihmc.simulationconstructionset.simulatedSensors.SimulatedLIDARSensorLimitationParameters;
 import us.ihmc.simulationconstructionset.simulatedSensors.SimulatedLIDARSensorNoiseParameters;
 import us.ihmc.simulationconstructionset.simulatedSensors.SimulatedLIDARSensorUpdateParameters;
@@ -41,14 +42,14 @@ public class ImmutableRobotDescriptionFromSDFLoader
    private static final boolean SHOW_INERTIA_ELLIPSOIDS = false;
    private static final boolean SHOW_SENSOR_REFERENCE_FRAMES = false;*/
 
-   public RobotDescription loadRobotDescriptionFromSDF(String modelName, InputStream inputStream, List<String> resourceDirectories, SDFDescriptionMutator mutator, SDFJointNameMap sdfJointNameMap, boolean useCollisionMeshes,
+   public RobotDescription loadRobotDescriptionFromSDF(String modelName, InputStream inputStream, List<String> resourceDirectories, SDFDescriptionMutator mutator, JointNameMap sdfJointNameMap, boolean useCollisionMeshes,
          boolean enableTorqueVelocityLimits, boolean enableDamping)
    {
       GeneralizedSDFRobotModel generalizedSDFRobotModel = loadSDFFile(modelName, inputStream, resourceDirectories, mutator);
       return loadRobotDescriptionFromSDF(generalizedSDFRobotModel, sdfJointNameMap, useCollisionMeshes, enableTorqueVelocityLimits, enableDamping);
    }
 
-   public RobotDescription loadRobotDescriptionFromSDF(GeneralizedSDFRobotModel generalizedSDFRobotModel, SDFJointNameMap sdfJointNameMap, boolean useCollisionMeshes, boolean enableTorqueVelocityLimits, boolean enableDamping)
+   public RobotDescription loadRobotDescriptionFromSDF(GeneralizedSDFRobotModel generalizedSDFRobotModel, JointNameMap sdfJointNameMap, boolean useCollisionMeshes, boolean enableTorqueVelocityLimits, boolean enableDamping)
    {
       List<String> resourceDirectories = generalizedSDFRobotModel.getResourceDirectories();
 
@@ -100,7 +101,7 @@ public class ImmutableRobotDescriptionFromSDFLoader
       return robotDescription.build();
    }
 
-   private Map<String, List<Vector3d>> groupContactPointsByJoint(SDFJointNameMap sdfJointNameMap)
+   private Map<String, List<Vector3d>> groupContactPointsByJoint(JointNameMap sdfJointNameMap)
    {
       Map<String, List<Vector3d>> result = new HashMap<>();
       if (sdfJointNameMap == null)
@@ -561,7 +562,7 @@ public class ImmutableRobotDescriptionFromSDFLoader
       return result;
    }
 
-   private List<ForceSensorDescription> convertForceSensors(SDFJointHolder joint, SDFJointNameMap jointNameMap)
+   private List<ForceSensorDescription> convertForceSensors(SDFJointHolder joint, JointNameMap jointNameMap)
    {
       List<ForceSensorDescription> result = new ArrayList<>();
       if (joint.getForceSensors().isEmpty())
@@ -595,11 +596,11 @@ public class ImmutableRobotDescriptionFromSDFLoader
       final boolean enableTorqueVelocityLimits;
       final boolean enableDamping;
       final Map<String, List<Vector3d>> sdfJointNameToGroundContactPoint;
-      final SDFJointNameMap sdfJointNameMap;
+      final JointNameMap sdfJointNameMap;
       final List<String> resourceDirectories;
 
       private ConversionParameters(boolean useCollisionMeshes, boolean enableTorqueVelocityLimits, boolean enableDamping,
-                                   Map<String, List<Vector3d>> sdfJointNameToGroundContactPoint, SDFJointNameMap sdfJointNameMap,
+                                   Map<String, List<Vector3d>> sdfJointNameToGroundContactPoint, JointNameMap sdfJointNameMap,
                                    List<String> resourceDirectories)
       {
          this.useCollisionMeshes = useCollisionMeshes;
