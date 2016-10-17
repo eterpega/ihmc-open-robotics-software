@@ -25,14 +25,14 @@ import us.ihmc.robotics.immutableRobotDescription.JointDescription;
 import us.ihmc.robotics.immutableRobotDescription.graphics.*;
 
 import javax.vecmath.Vector3d;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+
+import static java.util.Collections.emptyList;
 
 /**
  *
@@ -79,7 +79,43 @@ public class Preview3D extends GridPane
                camera.setValue(sceneRoot.filter(x -> createDefaultCamera).map(Preview3D::createDefaultCamera));
             });
 
+      jointTreeProperty().addListener((observable, oldValue, newValue) ->
+                                      {
+                                         oldValue.map(TreeFocus::getFocusedNode).flatMap(this::graphicsNodeForTree)
+                                               .ifPresent(graphicsNode -> highlightNode(graphicsNode, false));
+                                         newValue.map(TreeFocus::getFocusedNode).flatMap(this::graphicsNodeForTree)
+                                                 .ifPresent(graphicsNode -> highlightNode(graphicsNode, true));
+                                      });
+
       setBackground(new Background(new BackgroundFill(new Color(0.1, 0.1, 0.1, 1), null, null)));
+   }
+
+   private void highlightNode(Graphics3DNode node, boolean highLight)
+   {
+      Tree<Node> adaptedTree = Tree.adapt(node.graphicsGroup, n -> n instanceof Group ? ((Group)n).getChildren() : emptyList());
+      adaptedTree.stream()
+                 .filter(x -> x instanceof HighlightMeshView)
+                 .map(x -> (HighlightMeshView)x)
+                 .forEach(meshView -> meshView.setMaterial(highLight ? meshView.highlightMaterial : meshView.originalMaterial));
+   }
+
+   private Optional<Graphics3DNode> graphicsNodeForTree(Tree<JointDescription> tree)
+   {
+      Queue<Graphics3DNode> nodeQueue = new LinkedList<>();
+      Consumer<Group> childTraversal = (node) -> node.getChildren()
+            .stream()
+            .filter(child -> child instanceof Graphics3DNode)
+            .map(child -> (Graphics3DNode)child)
+            .forEach(nodeQueue::add);
+      childTraversal.accept(subSceneRootGroup);
+      while (!nodeQueue.isEmpty())
+      {
+         Graphics3DNode node = nodeQueue.remove();
+         if (node.originalTree.getValue() == tree.getValue())
+            return Optional.of(node);
+         childTraversal.accept(node);
+      }
+      return Optional.empty();
    }
 
    public Property<Optional<TreeFocus<Tree<JointDescription>>>> jointTreeProperty()
@@ -197,14 +233,15 @@ public class Preview3D extends GridPane
    {
       Group geometryGroup = new Group();
       TriangleMeshDescription sourceMesh = geometryDescription.toTriangleGeometry().getTriangleMesh();
-      MeshView meshView = new MeshView(convertMesh(sourceMesh));
-      meshView.setMaterial(convertMaterial(geometryDescription.getMaterial()));
+      PhongMaterial material = convertMaterial(geometryDescription.getMaterial());
+      PhongMaterial highlightMaterial = new PhongMaterial(material.getDiffuseColor().interpolate(Color.LIGHTBLUE, 0.85));
+      HighlightMeshView meshView = new HighlightMeshView(convertMesh(sourceMesh), material, highlightMaterial);
       geometryGroup.getChildren().add(meshView);
       geometryGroup.getTransforms().add(convertTransform(geometryDescription.getTransform()));
       return geometryGroup;
    }
 
-   private static Node convertGraphicsGroup(GraphicsGroupDescription groupDescription)
+   private static Group convertGraphicsGroup(GraphicsGroupDescription groupDescription)
    {
       Group graphicsGroup = new Group();
       graphicsGroup.getTransforms().add(convertTransform(groupDescription.getTransform()));
@@ -231,7 +268,7 @@ public class Preview3D extends GridPane
    private static class Graphics3DNode extends Group
    {
       private Tree<JointDescription> originalTree;
-      private @Nullable Node graphicsGroup;
+      private @Nullable Group graphicsGroup;
 
       Graphics3DNode(Tree<JointDescription> originalTree, List<Graphics3DNode> children)
       {
@@ -255,7 +292,7 @@ public class Preview3D extends GridPane
                              .flatMap(child -> child instanceof Graphics3DNode ? Stream.of((Graphics3DNode)child) : Stream.empty());
       }
 
-      void setGraphicsGroup(@Nullable Node graphicsGroup)
+      void setGraphicsGroup(@Nullable Group graphicsGroup)
       {
          getChildren().remove(this.graphicsGroup);
          getChildren().add(graphicsGroup);
@@ -268,4 +305,16 @@ public class Preview3D extends GridPane
       }
    }
 
+   private static class HighlightMeshView extends MeshView
+   {
+      private final PhongMaterial originalMaterial, highlightMaterial;
+
+      HighlightMeshView(Mesh mesh, PhongMaterial originalMaterial, PhongMaterial highlightMaterial)
+      {
+         super(mesh);
+         this.originalMaterial = originalMaterial;
+         this.highlightMaterial = highlightMaterial;
+         setMaterial(originalMaterial);
+      }
+   }
 }
