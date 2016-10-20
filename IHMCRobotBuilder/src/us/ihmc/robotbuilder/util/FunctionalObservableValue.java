@@ -10,6 +10,7 @@ import javaslang.Tuple2;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
@@ -230,6 +231,41 @@ public final class FunctionalObservableValue<T> implements ObservableValue<T>
          propagateChange.run();
 
       return new FunctionalObservableValue<>(target);
+   }
+
+   /**
+    * Avoids propagating the value if it has already
+    * been called up in the call stack. This breaks
+    * dependency cycles between observables.
+    * @return observable avoiding dependency cycles
+    */
+   public final FunctionalObservableValue<T> avoidCycles()
+   {
+      AtomicBoolean inLoop = new AtomicBoolean(false);
+      SimpleObjectProperty<T> target = new SimpleObjectProperty<>();
+      addListener((observable, oldValue, newValue) ->
+                  {
+                     if (inLoop.getAndSet(true))
+                        return;
+
+                     target.setValue(newValue);
+                     inLoop.set(false);
+                  });
+      return new FunctionalObservableValue<>(target);
+   }
+
+   /**
+    * Narrows this functional observable to a subtype of T.
+    * All values that are not of the target type are filtered out first.
+    * @param toClass target class type
+    * @param <Narrowed> narrowed type
+    * @return narrowed observable value
+    */
+   public final <Narrowed extends T> FunctionalObservableValue<Narrowed> narrow(Class<Narrowed> toClass)
+   {
+      //noinspection unchecked
+      return filter(value -> value != null && toClass.isAssignableFrom(value.getClass()))
+            .map(value -> (Narrowed)value);
    }
 
    /**

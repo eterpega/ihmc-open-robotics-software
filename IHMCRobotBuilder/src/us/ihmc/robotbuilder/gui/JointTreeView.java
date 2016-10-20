@@ -23,8 +23,6 @@ import static us.ihmc.robotbuilder.util.TreeFocus.pathTo;
  */
 public class JointTreeView extends TreeView<JointDescription>
 {
-   private boolean ignoreSelectionUpdates = false;
-
    public JointTreeView()
    {
       setCellFactory(JointTreeCell::new);
@@ -62,9 +60,8 @@ public class JointTreeView extends TreeView<JointDescription>
       ChildIndexOf<TreeItem<JointDescription>> childIndexOf = (tree, child) -> tree.getChildren().indexOf(child);
 
       return FunctionalObservableValue.of(getSelectionModel().selectedItemProperty())
-                                      .filter(item -> !ignoreSelectionUpdates)
-                                      .filter(item -> item instanceof JointTreeItem)
-                                      .map(item -> (JointTreeItem)item)
+                                      .avoidCycles()
+                                      .narrow(JointTreeItem.class)
                                       .flatMapOptional(selectedItem -> {
                                          JointTreeItem root = rootOf(selectedItem);
                                          TreeFocus<Tree<JointDescription>> rootFocus = root.getOriginalTree().getFocus();
@@ -93,13 +90,6 @@ public class JointTreeView extends TreeView<JointDescription>
     * @param newRoot new root
     */
    public void setRootJoint(Tree<JointDescription> newRoot)
-   {
-      ignoreSelectionUpdates = true;
-      setRootJointInternal(newRoot);
-      ignoreSelectionUpdates = false;
-   }
-
-   private void setRootJointInternal(Tree<JointDescription> newRoot)
    {
       if (newRoot == null)
       {

@@ -212,6 +212,36 @@ public class FunctionalObservableValueTest
    }
 
    @Test
+   public void testAvoidCyclesIsNotCalledMultipleTimesInACycle()
+   {
+      IntegerProperty property1 = new SimpleIntegerProperty(1);
+      StringProperty property2 = new SimpleStringProperty("0");
+
+      property1.addListener((observable, oldValue, newValue) -> property2.setValue(newValue.toString()));
+
+      FunctionalObservableValue<String> cycleBreaker = of(property2).avoidCycles();
+      cycleBreaker.consume(newValue -> property1.setValue(Integer.parseInt(newValue) + 1));
+
+      property1.setValue(2);
+      assertEquals("3", property2.getValue());
+   }
+
+   @Test
+   public void testNarrowFiltersOutNonNarrowableValues()
+   {
+      ObjectProperty<Object> property = new SimpleObjectProperty<>("Test");
+
+      FunctionalObservableValue<String> narrowed = of(property).narrow(String.class);
+      assertEquals("Test", narrowed.getValue());
+
+      property.setValue(1234);
+      assertEquals("Test", narrowed.getValue());
+
+      property.setValue("Test2");
+      assertEquals("Test2", narrowed.getValue());
+   }
+
+   @Test
    public void testAddRemoveListeners()
    {
       SimpleIntegerProperty base = new SimpleIntegerProperty(1);
