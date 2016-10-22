@@ -47,6 +47,7 @@ public class Preview3D extends GridPane
    private final Property<Optional<PerspectiveCamera>> camera = new SimpleObjectProperty<>();
 
    private Optional<Graphics3DNode> sceneRoot = Optional.empty();
+   private Optional<Graphics3DNode> highlightedNode = Optional.empty();
    private final Group subSceneRootGroup = new Group();
    private final SubScene subScene = new SubScene(subSceneRootGroup, 0, 0, true, SceneAntialiasing.BALANCED);
 
@@ -75,13 +76,7 @@ public class Preview3D extends GridPane
          subScene.addEventHandler(Event.ANY, cameraController);
       }));
 
-      jointTreeProperty().addListener((observable, oldValue, newValue) ->
-                                      {
-                                         oldValue.map(TreeFocus::getFocusedNode).flatMap(treeMapping::get)
-                                                 .ifPresent(graphicsNode -> highlightNode(graphicsNode, false));
-                                         newValue.map(TreeFocus::getFocusedNode).flatMap(treeMapping::get)
-                                                 .ifPresent(graphicsNode -> highlightNode(graphicsNode, true));
-                                      });
+
 
       FunctionalObservableValue.of(jointTreeProperty())
             .flatMapOptional(Function.identity())
@@ -91,6 +86,17 @@ public class Preview3D extends GridPane
                setRootJoint(newSceneRoot);
                camera.setValue(sceneRoot.filter(x -> createDefaultCamera).map(Preview3D::createDefaultCamera));
             });
+
+      jointTreeProperty().addListener((observable, oldValue, newValue) ->
+                                      {
+                                         highlightedNode
+                                               .ifPresent(graphicsNode -> highlightNode(graphicsNode, false));
+                                         newValue.map(TreeFocus::getFocusedNode).flatMap(treeMapping::get)
+                                                 .ifPresent(graphicsNode -> {
+                                                    highlightNode(graphicsNode, true);
+                                                    highlightedNode = Optional.of(graphicsNode);
+                                                 });
+                                      });
 
       setBackground(new Background(new BackgroundFill(new Color(0.1, 0.1, 0.1, 1), null, null)));
    }
@@ -102,13 +108,14 @@ public class Preview3D extends GridPane
       return result;
    }
 
-   private void highlightNode(Graphics3DNode node, boolean highLight)
+   private static void highlightNode(Graphics3DNode node, boolean highLight)
    {
       Tree<Node> adaptedTree = Tree.adapt(node.graphicsGroup, n -> n instanceof Group ? ((Group)n).getChildren() : emptyList());
       adaptedTree.stream()
                  .filter(x -> x instanceof HighlightMeshView)
                  .map(x -> (HighlightMeshView)x)
                  .forEach(meshView -> meshView.setMaterial(highLight ? meshView.highlightMaterial : meshView.originalMaterial));
+
    }
 
    public Property<Optional<TreeFocus<Tree<JointDescription>>>> jointTreeProperty()
