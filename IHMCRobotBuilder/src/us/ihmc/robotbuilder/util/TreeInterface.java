@@ -1,22 +1,17 @@
 package us.ihmc.robotbuilder.util;
 
-import javaslang.Function2;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.WeakHashMap;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static javaslang.collection.List.empty;
-
 /**
  * Generic interface for a tree structure with support methods such as mapping or filtering.
  */
-public interface TreeInterface<T extends TreeInterface> {
+public interface TreeInterface<T extends TreeInterface<T>> {
     /**
      * Get the child nodes of this tree node
      * @return child nodes
