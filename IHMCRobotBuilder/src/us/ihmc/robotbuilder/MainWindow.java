@@ -103,6 +103,7 @@ public class MainWindow extends Application
                       .consume(jointSettings::setContent);
             updateUIState(tree.getFocus());
          });
+         treeView.getSelectionModel().select(0);
          return null;
       })).onFailure(err -> Util.runLaterInUI(() -> {
          Alert alert = new Alert(AlertType.ERROR, "Error loading file: " + err.getMessage(), ButtonType.OK);
