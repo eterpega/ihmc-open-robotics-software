@@ -117,7 +117,8 @@ public class Preview3D extends BorderPane
    {
       Graphics3DNode result = new Graphics3DNode(node, children);
       applyDifferencesToItem(result, null, node.getValue());
-      result.addEventHandler(MouseEvent.MOUSE_CLICKED, this::handleGraphicsClick);
+      if (result.graphicsGroup != null && !result.graphicsGroup.getBoundsInLocal().isEmpty())
+         result.graphicsGroup.addEventHandler(MouseEvent.MOUSE_CLICKED, this::handleGraphicsClick);
       return result;
    }
 
@@ -138,11 +139,13 @@ public class Preview3D extends BorderPane
 
    private void handleGraphicsClick(MouseEvent event)
    {
-      if (event.getSource() instanceof Graphics3DNode)
+      if (event.getSource() instanceof Group)
       {
-         Graphics3DNode clickedNode = (Graphics3DNode) event.getSource();
-         sceneRoot.flatMap(root -> root.originalTree.find(node -> node == clickedNode.originalTree))
-               .ifPresent(newRoot -> jointTree.setValue(Optional.of(newRoot)));
+         if (((Group) event.getSource()).getParent() instanceof Graphics3DNode)
+         {
+            Graphics3DNode clickedNode = (Graphics3DNode) ((Group) event.getSource()).getParent();
+            sceneRoot.flatMap(root -> root.originalTree.find(node -> node == clickedNode.originalTree)).ifPresent(newRoot -> jointTree.setValue(Optional.of(newRoot)));
+         }
       }
    }
 
@@ -308,7 +311,6 @@ public class Preview3D extends BorderPane
          this.originalTree = originalTree;
          getChildren().addAll(children);
          tooltip = new Tooltip(originalTree.getValue().getName());
-         Tooltip.install(this, tooltip);
       }
 
       Tree<JointDescription> getOriginalTree()
@@ -333,6 +335,8 @@ public class Preview3D extends BorderPane
          getChildren().remove(this.graphicsGroup);
          getChildren().add(graphicsGroup);
          this.graphicsGroup = graphicsGroup;
+         if (graphicsGroup != null && !graphicsGroup.getBoundsInLocal().isEmpty())
+            Tooltip.install(graphicsGroup, tooltip);
       }
 
       @Override public String toString()
