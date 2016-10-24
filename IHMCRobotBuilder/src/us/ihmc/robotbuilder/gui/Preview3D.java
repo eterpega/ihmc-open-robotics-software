@@ -301,11 +301,14 @@ public class Preview3D extends BorderPane
    {
       private Tree<JointDescription> originalTree;
       private @Nullable Group graphicsGroup;
+      private final Tooltip tooltip;
 
       Graphics3DNode(Tree<JointDescription> originalTree, List<Graphics3DNode> children)
       {
          this.originalTree = originalTree;
          getChildren().addAll(children);
+         tooltip = new Tooltip(originalTree.getValue().getName());
+         Tooltip.install(this, tooltip);
       }
 
       Tree<JointDescription> getOriginalTree()
@@ -316,6 +319,7 @@ public class Preview3D extends BorderPane
       void setOriginalTree(Tree<JointDescription> originalTree)
       {
          this.originalTree = originalTree;
+         tooltip.setText(originalTree.getValue().getName());
       }
 
       Stream<Graphics3DNode> getChildrenSpecific()
