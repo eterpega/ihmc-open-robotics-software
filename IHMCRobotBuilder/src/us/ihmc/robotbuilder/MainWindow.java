@@ -101,6 +101,10 @@ public class MainWindow extends Application
                       })
                       .map(RecursiveBeanEditor::getEditor)
                       .consume(jointSettings::setContent);
+
+            FunctionalObservableValue.of(view3D.jointTreeProperty())
+                  .avoidCycles()
+                  .consume(treeView::setFocus);
             updateUIState(tree.getFocus());
          });
          treeView.getSelectionModel().select(0);
@@ -115,7 +119,7 @@ public class MainWindow extends Application
 
    private void updateUIState(TreeFocus<Tree<JointDescription>> newState)
    {
-      treeView.setRootJoint(newState.root().getFocusedNode());
+      treeView.setFocus(Optional.of(newState));
       view3D.jointTreeProperty().setValue(Optional.of(newState));
    }
 }

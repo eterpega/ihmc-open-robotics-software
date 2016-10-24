@@ -10,6 +10,7 @@ import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
@@ -116,6 +117,7 @@ public class Preview3D extends BorderPane
    {
       Graphics3DNode result = new Graphics3DNode(node, children);
       applyDifferencesToItem(result, null, node.getValue());
+      result.addEventHandler(MouseEvent.MOUSE_CLICKED, this::handleGraphicsClick);
       return result;
    }
 
@@ -132,6 +134,16 @@ public class Preview3D extends BorderPane
    public Property<Optional<TreeFocus<Tree<JointDescription>>>> jointTreeProperty()
    {
       return jointTree;
+   }
+
+   private void handleGraphicsClick(MouseEvent event)
+   {
+      if (event.getSource() instanceof Graphics3DNode)
+      {
+         Graphics3DNode clickedNode = (Graphics3DNode) event.getSource();
+         sceneRoot.flatMap(root -> root.originalTree.find(node -> node == clickedNode.originalTree))
+               .ifPresent(newRoot -> jointTree.setValue(Optional.of(newRoot)));
+      }
    }
 
    private void applyDifferencesByNode(Graphics3DNode parentItem, DifferencesByNode<JointDescription> differencesByNode)

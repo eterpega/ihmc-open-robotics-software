@@ -5,14 +5,13 @@ import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javaslang.collection.Map;
-import us.ihmc.robotbuilder.util.FunctionalObservableValue;
-import us.ihmc.robotbuilder.util.Tree;
-import us.ihmc.robotbuilder.util.TreeDifference;
+import org.jetbrains.annotations.Nullable;
+import us.ihmc.robotbuilder.util.*;
 import us.ihmc.robotbuilder.util.TreeDifference.DifferencesByNode;
-import us.ihmc.robotbuilder.util.TreeFocus;
 import us.ihmc.robotbuilder.util.TreeFocus.ChildIndexOf;
 import us.ihmc.robotics.immutableRobotDescription.JointDescription;
 
+import java.util.List;
 import java.util.Optional;
 
 import static java.lang.Integer.compare;
@@ -23,21 +22,19 @@ import static us.ihmc.robotbuilder.util.TreeFocus.pathTo;
  */
 public class JointTreeView extends TreeView<JointDescription>
 {
+   private TreeMapping<Tree<JointDescription>, JointTreeItem> treeToItemMapping = new TreeMapping<>(JointTreeView::mapTree);
+
    public JointTreeView()
    {
       setCellFactory(JointTreeCell::new);
    }
 
-   private JointTreeItem mapTree(Tree<JointDescription> tree)
+   private static JointTreeItem mapTree(Tree<JointDescription> node, List<JointTreeItem> children)
    {
-      return tree.map((node, children) ->
-         {
-            JointTreeItem item = new JointTreeItem(node);
-            item.getChildren().addAll(children);
-            item.setExpanded(true);
-            return item;
-         }
-      );
+      JointTreeItem item = new JointTreeItem(node);
+      item.getChildren().addAll(children);
+      item.setExpanded(true);
+      return item;
    }
 
    private void applyDifferencesByNode(JointTreeItem parentItem, DifferencesByNode<JointDescription> differencesByNode)
@@ -45,9 +42,11 @@ public class JointTreeView extends TreeView<JointDescription>
       differencesByNode.get(parentItem.getOriginalTree()).ifPresent(diff -> {
          parentItem.getChildrenSpecific().forEach(child -> applyDifferencesByNode(child, differencesByNode));
 
+         treeToItemMapping.replaceSingleNode(parentItem.getOriginalTree(), diff.getNewNode());
          parentItem.setOriginalTree(diff.getNewNode());
-         parentItem.getChildren().addAll(diff.getAddedChildren().map(this::mapTree).toJavaList());
+         parentItem.getChildren().addAll(diff.getAddedChildren().map(treeToItemMapping::mapNewNode).toJavaList());
          parentItem.getChildrenSpecific().removeIf(child -> diff.getRemovedChildren().contains(child.getOriginalTree()));
+         diff.getRemovedChildren().forEach(treeToItemMapping::removeMapping);
 
          // Reorder
          Map<Tree<JointDescription>, Integer> newOrder = diff.getFinalChildOrder();
@@ -84,12 +83,31 @@ public class JointTreeView extends TreeView<JointDescription>
    }
 
    /**
+    * Change the tree displayed in the TreeView to the given new focus.
+    * The selected item will be set to whatever node the focus is pointing at.
+    * @param newFocus new focused tree
+    */
+   @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+   public void setFocus(Optional<TreeFocus<Tree<JointDescription>>> newFocus)
+   {
+      newFocus.flatMap(focus ->
+                       {
+                          setRootJoint(focus.root().getFocusedNode());
+                          return treeToItemMapping.get(focus.getFocusedNode());
+                       })
+              .ifPresent(getSelectionModel()::select);
+
+      if (!newFocus.isPresent())
+         setRootJoint(null);
+   }
+
+   /**
     * Change the root joint of this tree view.
     * The new root will be diffed against the existing tree and
     * only necessary changes will be applied to the tree.
     * @param newRoot new root
     */
-   public void setRootJoint(Tree<JointDescription> newRoot)
+   private void setRootJoint(@Nullable Tree<JointDescription> newRoot)
    {
       if (newRoot == null)
       {
@@ -98,7 +116,7 @@ public class JointTreeView extends TreeView<JointDescription>
       }
       if (!(getRoot() instanceof JointTreeItem))
       {
-         setRoot(mapTree(newRoot));
+         setRoot(treeToItemMapping.mapNewNode(newRoot));
          return;
       }
       JointTreeItem itemRoot = (JointTreeItem) getRoot();
