@@ -5,9 +5,14 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.Event;
 import javafx.geometry.Bounds;
 import javafx.scene.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.ToolBar;
+import javafx.scene.control.Tooltip;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.GridPane;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Mesh;
@@ -41,7 +46,7 @@ import static us.ihmc.robotbuilder.util.Memoization.memoized;
  *
  */
 @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-public class Preview3D extends GridPane
+public class Preview3D extends BorderPane
 {
    private final Property<Optional<TreeFocus<Tree<JointDescription>>>> jointTree = new SimpleObjectProperty<>(Optional.empty());
    private final Property<Optional<PerspectiveCamera>> camera = new SimpleObjectProperty<>();
@@ -50,16 +55,21 @@ public class Preview3D extends GridPane
    private Optional<Graphics3DNode> highlightedNode = Optional.empty();
    private final Group subSceneRootGroup = new Group();
    private final SubScene subScene = new SubScene(subSceneRootGroup, 0, 0, true, SceneAntialiasing.BALANCED);
+   private final ToolBar toolBar = new ToolBar();
 
    private final TreeMapping<Tree<JointDescription>, Graphics3DNode> treeMapping = new TreeMapping<>(this::treeMapper);
 
    public Preview3D()
    {
-      subScene.widthProperty().bind(widthProperty());
-      subScene.heightProperty().bind(heightProperty());
+      FunctionalObservableValue.combineLatest(widthProperty(), heightProperty())
+            .consume(dimension -> {
+               subScene.widthProperty().setValue(dimension._1);
+               subScene.heightProperty().setValue(dimension._2.doubleValue() - toolBar.getHeight());
+            });
       subScene.setFocusTraversable(true);
+      subScene.setManaged(false);
 
-      add(subScene, 1, 1);
+      setCenter(subScene);
 
       camera.addListener((observable, oldValue, newValue) -> newValue.ifPresent(newCamera -> {
          double locationX = newCamera.getLocalToSceneTransform().getTx();
@@ -99,6 +109,7 @@ public class Preview3D extends GridPane
                                       });
 
       setBackground(new Background(new BackgroundFill(new Color(0.1, 0.1, 0.1, 1), null, null)));
+      createToolbar();
    }
 
    private Graphics3DNode treeMapper(Tree<JointDescription> node, List<Graphics3DNode> children)
@@ -188,6 +199,23 @@ public class Preview3D extends GridPane
          return null;
       });
 
+   }
+
+   private void createToolbar()
+   {
+      String[] titles = {"Bottom", "Front", "Left", "Rear", "Right", "Top"};
+      String[] icons = {"boxBottom.png", "boxFront.png", "boxLeft.png", "boxRear.png", "boxRight.png", "boxTop.png"};
+      Vector3d[] directions = {new Vector3d(0, 0, 1), new Vector3d(-1, 0, 0), new Vector3d(0, 1, 0), new Vector3d(1, 0, 0), new Vector3d(0, -1, 0), new Vector3d(0, 0, -1)};
+      for (int i = 0; i < icons.length; i++)
+      {
+         Button button = new Button("", new ImageView(new Image(getClass().getResourceAsStream("/icons/" + icons[i]))));
+         button.setTooltip(new Tooltip(titles[i]));
+         final int buttonIndex = i;
+         button.setOnAction(event -> sceneRoot.ifPresent(rootNode ->
+                     camera.setValue(Optional.of(Util.lookAtNodeFromDirection(rootNode, 60, directions[buttonIndex], new Vector3d(0, 0, 1))))));
+         toolBar.getItems().add(button);
+      }
+      setBottom(toolBar);
    }
 
    private static PerspectiveCamera createDefaultCamera(Node nodeToLookAt)

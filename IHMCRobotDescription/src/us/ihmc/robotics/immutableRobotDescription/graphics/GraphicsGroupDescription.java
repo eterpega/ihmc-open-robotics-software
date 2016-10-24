@@ -37,7 +37,7 @@ public abstract class GraphicsGroupDescription implements Transformable
    @Default
    public TransformDescription getTransform()
    {
-      return TransformDescription.UNIT;
+      return TransformDescription.IDENTITY;
    }
 
    public static GraphicsGroupDescription fromGraphics3DObject(Graphics3DObject graphics3DObject) {

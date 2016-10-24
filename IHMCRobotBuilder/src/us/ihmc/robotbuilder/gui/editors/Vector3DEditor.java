@@ -51,9 +51,11 @@ public class Vector3DEditor extends AbstractPropertyEditor<Vector3d, EditorCompo
                                    {
                                       if (!ignoreEdit)
                                       {
+                                         ignoreEdit = true;
                                          textFields[0].setText(Double.toString(newValue.x));
                                          textFields[1].setText(Double.toString(newValue.y));
                                          textFields[2].setText(Double.toString(newValue.z));
+                                         ignoreEdit = false;
                                       }
                                    });
 
@@ -61,6 +63,8 @@ public class Vector3DEditor extends AbstractPropertyEditor<Vector3d, EditorCompo
                .map(NumberField::valueProperty)
                .forEach(textProperty -> textProperty.addListener((observable, oldValue, newValue) ->
                                         {
+                                           if (ignoreEdit)
+                                              return;
                                            ignoreEdit = true;
                                            valueProperty.setValue(getValue());
                                            ignoreEdit = false;

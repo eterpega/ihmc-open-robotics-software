@@ -19,7 +19,7 @@ public abstract class TriangleGeometryDescription extends GeometryDescription
    @Default
    @Override public TransformDescription getTransform()
    {
-      return TransformDescription.UNIT;
+      return TransformDescription.IDENTITY;
    }
 
    public static ImmutableTriangleGeometryDescription.Builder builder()

@@ -5,6 +5,7 @@ import org.controlsfx.control.PropertySheet.Item;
 import org.controlsfx.property.editor.AbstractPropertyEditor;
 import org.controlsfx.property.editor.DefaultPropertyEditorFactory;
 import org.controlsfx.property.editor.PropertyEditor;
+import us.ihmc.robotics.immutableRobotDescription.graphics.TransformDescription;
 
 import javax.vecmath.Vector3d;
 
@@ -23,6 +24,8 @@ public class EditorFactory extends DefaultPropertyEditorFactory
          return new Vector3DEditor(item);
       if (Iterable.class.isAssignableFrom(type))
          return new IterableEditor<>(item, this);
+      if (TransformDescription.class.isAssignableFrom(type))
+         return new TransformEditor(item);
 
       PropertyEditor<?> result = super.call(item);
       if (result != null)

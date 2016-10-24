@@ -20,7 +20,7 @@ public abstract class GeometryDescription implements Transformable
    }
 
    public @Override @Default TransformDescription getTransform() {
-      return TransformDescription.UNIT;
+      return TransformDescription.IDENTITY;
    }
 
    public abstract TriangleGeometryDescription toTriangleGeometry();
