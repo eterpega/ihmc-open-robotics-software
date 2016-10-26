@@ -27,11 +27,12 @@ public class TreeMappingTest extends TreeTestBase
    {
       TreeMapping<Tree<Integer>, TreeItem<Integer>> mapping = new TreeMapping<>(TreeMappingTest::mapToTreeItem);
       Tree<Integer> base = tree(1);
-      mapping.mapNewNode(base);
+      TreeItem<Integer> mapped = mapping.mapNewNode(base);
 
       mapping.removeMapping(base);
 
       assertFalse(mapping.get(base).isPresent());
+      assertFalse(mapping.getReverse(mapped).isPresent());
    }
 
    @SuppressWarnings("OptionalGetWithoutIsPresent") @Test
