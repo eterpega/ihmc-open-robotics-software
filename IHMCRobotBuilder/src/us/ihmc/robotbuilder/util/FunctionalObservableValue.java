@@ -40,7 +40,7 @@ public final class FunctionalObservableValue<T> implements ObservableValue<T>
     * @param <T> base value type
     * @return functional wrapper for the base value
     */
-   public static <T> FunctionalObservableValue<T> of(@NotNull ObservableValue<T> base)
+   public static <T> FunctionalObservableValue<T> functional(@NotNull ObservableValue<T> base)
    {
       return new FunctionalObservableValue<>(base);
    }
@@ -56,7 +56,33 @@ public final class FunctionalObservableValue<T> implements ObservableValue<T>
     */
    public static <T, U> FunctionalObservableValue<Tuple2<T, U>> combineLatest(@NotNull ObservableValue<T> first, @NotNull ObservableValue<? extends U> second)
    {
-      return of(first).combineLatest(second);
+      return functional(first).combineLatest(second);
+   }
+
+   /**
+    * Joins multiple observable values to a single one that fires whenever join of the given
+    * observables fire.
+    * @param observables observables to monitor
+    * @param <T> observable type
+    * @return observable joining all the given observables
+    */
+   public static <T> FunctionalObservableValue<T> join(Iterable<ObservableValue<T>> observables)
+   {
+      SimpleObjectProperty<T> target = new SimpleObjectProperty<>();
+      ChangeListener<T> changeListener = (observable, oldValue, newValue) ->
+      {
+         synchronized (target)
+         {
+            target.setValue(newValue);
+         }
+      };
+
+      observables.forEach(observable -> {
+         if (observable.getValue() != null)
+            target.setValue(observable.getValue());
+         observable.addListener(changeListener);
+      });
+      return functional(target);
    }
 
    /**
@@ -184,7 +210,7 @@ public final class FunctionalObservableValue<T> implements ObservableValue<T>
    }
 
    /**
-    * Emits a pair of values whenever *any* of the two observables (this or other)
+    * Emits a pair of values whenever *join* of the two observables (this or other)
     * emits a new value. See http://reactivex.io/documentation/operators/combinelatest.html
     * for details on the behavior of this operator.
     * @param other other observable
@@ -241,16 +267,8 @@ public final class FunctionalObservableValue<T> implements ObservableValue<T>
     */
    public final FunctionalObservableValue<T> avoidCycles()
    {
-      AtomicBoolean inLoop = new AtomicBoolean(false);
-      SimpleObjectProperty<T> target = new SimpleObjectProperty<>();
-      addListener((observable, oldValue, newValue) ->
-                  {
-                     if (inLoop.getAndSet(true))
-                        return;
-
-                     target.setValue(newValue);
-                     inLoop.set(false);
-                  });
+      NoCycleProperty<T> target = new NoCycleProperty<>(new SimpleObjectProperty<>());
+      this.addListener(observable -> target.setValue(getValue()));
       return new FunctionalObservableValue<>(target);
    }
 

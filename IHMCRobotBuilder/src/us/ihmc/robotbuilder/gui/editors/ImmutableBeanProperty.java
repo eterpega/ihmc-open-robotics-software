@@ -15,6 +15,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Optional;
 
+import static us.ihmc.robotbuilder.util.FunctionalObservableValue.functional;
+
 /**
  * A convenience class for creating a {@link Item} for use in the
  * {@link PropertySheet} control based on a property belonging to an immutable bean.
@@ -63,7 +65,7 @@ public class ImmutableBeanProperty<BeanType> implements Item
       this.readMethod = readMethod;
       this.writeMethod = writeMethod;
       this.propertyType = propertyType;
-      this.valueProperty = FunctionalObservableValue.of(beanProperty).map(x -> this.getValue());
+      this.valueProperty = functional(beanProperty).map(x -> this.getValue());
       this.setEditable(writeMethod.isPresent());
    }
 

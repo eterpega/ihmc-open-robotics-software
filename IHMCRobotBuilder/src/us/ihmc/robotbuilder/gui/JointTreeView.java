@@ -1,5 +1,7 @@
 package us.ihmc.robotbuilder.gui;
 
+import javafx.beans.property.Property;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
@@ -15,6 +17,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static java.lang.Integer.compare;
+import static us.ihmc.robotbuilder.util.FunctionalObservableValue.functional;
 import static us.ihmc.robotbuilder.util.TreeFocus.pathTo;
 
 /**
@@ -22,11 +25,14 @@ import static us.ihmc.robotbuilder.util.TreeFocus.pathTo;
  */
 public class JointTreeView extends TreeView<JointDescription>
 {
-   private TreeMapping<Tree<JointDescription>, JointTreeItem> treeToItemMapping = new TreeMapping<>(JointTreeView::mapTree);
+   private final TreeMapping<Tree<JointDescription>, JointTreeItem> treeToItemMapping = new TreeMapping<>(JointTreeView::mapTree);
+   private final Property<Optional<TreeFocus<Tree<JointDescription>>>> focusProperty = new NoCycleProperty<>(new SimpleObjectProperty<>());
 
    public JointTreeView()
    {
       setCellFactory(JointTreeCell::new);
+      observeUserSelections();
+      observeFocusChanges();
    }
 
    private static JointTreeItem mapTree(Tree<JointDescription> node, List<JointTreeItem> children)
@@ -35,6 +41,11 @@ public class JointTreeView extends TreeView<JointDescription>
       item.getChildren().addAll(children);
       item.setExpanded(true);
       return item;
+   }
+
+   public Property<Optional<TreeFocus<Tree<JointDescription>>>> focusProperty()
+   {
+      return focusProperty;
    }
 
    private void applyDifferencesByNode(JointTreeItem parentItem, DifferencesByNode<JointDescription> differencesByNode)
@@ -54,22 +65,35 @@ public class JointTreeView extends TreeView<JointDescription>
       });
    }
 
-   public FunctionalObservableValue<TreeFocus<Tree<JointDescription>>> selectedNodeObservable()
+   private void observeUserSelections()
    {
       ChildIndexOf<TreeItem<JointDescription>> childIndexOf = (tree, child) -> tree.getChildren().indexOf(child);
 
-      return FunctionalObservableValue.of(getSelectionModel().selectedItemProperty())
-                                      .avoidCycles()
+      functional(getSelectionModel().selectedItemProperty())
                                       .narrow(JointTreeItem.class)
-                                      .flatMapOptional(selectedItem -> {
+                                      .map(selectedItem -> {
                                          JointTreeItem root = rootOf(selectedItem);
                                          TreeFocus<Tree<JointDescription>> rootFocus = root.getOriginalTree().getFocus();
-                                         Optional<TreeFocus<Tree<JointDescription>>> result = rootFocus
+                                         return rootFocus
                                                .focusOnPath(pathTo(selectedItem, childIndexOf, TreeItem::getParent));
+                                      }).consume(focusProperty::setValue);
+   }
 
-                                         assert result.isPresent();
-                                         return result;
-                                      });
+   private void observeFocusChanges()
+   {
+      focusProperty.addListener((observable, oldValue, newFocus) ->
+                                {
+                                   newFocus.flatMap(focus ->
+                                                    {
+                                                       setRootJoint(focus.root().getFocusedNode());
+                                                       return treeToItemMapping.get(focus.getFocusedNode());
+                                                    })
+                                           .ifPresent(getSelectionModel()::select);
+
+                                   if (!newFocus.isPresent())
+                                      setRootJoint(null);
+                                });
+
    }
 
    private static JointTreeItem rootOf(JointTreeItem item)

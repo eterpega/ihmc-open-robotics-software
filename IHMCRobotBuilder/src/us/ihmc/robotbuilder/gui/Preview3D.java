@@ -41,6 +41,7 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
+import static us.ihmc.robotbuilder.util.FunctionalObservableValue.functional;
 import static us.ihmc.robotbuilder.util.Memoization.memoized;
 
 /**
@@ -89,7 +90,7 @@ public class Preview3D extends BorderPane
 
 
 
-      FunctionalObservableValue.of(jointTreeProperty())
+      functional(jointTreeProperty())
             .flatMapOptional(Function.identity())
             .map(treeFocus -> treeFocus.root().getFocusedNode())
             .consume(newSceneRoot -> {

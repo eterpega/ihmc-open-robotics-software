@@ -8,7 +8,6 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import org.controlsfx.control.PropertySheet.Item;
 import org.controlsfx.property.editor.AbstractPropertyEditor;
-import us.ihmc.robotbuilder.util.FunctionalObservableValue;
 import us.ihmc.robotics.immutableRobotDescription.graphics.TransformDescription;
 
 import javax.vecmath.Vector3d;
@@ -16,6 +15,8 @@ import javax.vecmath.Vector3f;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+
+import static us.ihmc.robotbuilder.util.FunctionalObservableValue.functional;
 
 /**
  * Editor for {@link TransformDescription}.
@@ -146,7 +147,7 @@ public class TransformEditor extends AbstractPropertyEditor<TransformDescription
 
       @Override public Optional<ObservableValue<?>> getObservableValue()
       {
-         return Optional.of(FunctionalObservableValue.of(TransformEditor.this.getObservableValue()).map(x -> valueGetter.get()));
+         return Optional.of(functional(TransformEditor.this.getObservableValue()).map(x -> valueGetter.get()));
       }
    }
 }

@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 
 import static java.lang.reflect.Modifier.isPublic;
 import static java.lang.reflect.Modifier.isStatic;
+import static us.ihmc.robotbuilder.util.FunctionalObservableValue.functional;
 
 /**
  *
@@ -36,7 +37,7 @@ public class ImmutableBeanEditor<T> extends AbstractPropertyEditor<T, PropertySh
       currentSheet.setPropertyEditorFactory(editorFactory);
 
       ChangeListener<T> itemChangeListener = (observable, oldValue, newValue) -> valueProperty.setValue(newValue);
-      FunctionalObservableValue<T> funcValueProperty = FunctionalObservableValue.of(valueProperty);
+      FunctionalObservableValue<T> funcValueProperty = functional(valueProperty);
       getProperties(valueProperty.getValue()).forEach(item ->
                                    {
                                       // Update bean when value changes

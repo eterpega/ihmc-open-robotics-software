@@ -4,11 +4,12 @@ import javafx.beans.property.Property;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleLongProperty;
 import javafx.scene.control.TextField;
-import us.ihmc.robotbuilder.util.FunctionalObservableValue;
 
 import java.math.BigInteger;
 import java.util.Optional;
 import java.util.function.Function;
+
+import static us.ihmc.robotbuilder.util.FunctionalObservableValue.functional;
 
 /**
  * Field for holding numeric values.
@@ -55,18 +56,18 @@ public class NumberField<T extends Number> extends TextField
                                        textProperty().setValue(oldValue);
                                  });
 
-      FunctionalObservableValue.of(textProperty())
-                               .flatMapOptional(stringToNumber)
-                               .consume(value::setValue);
+      functional(textProperty())
+             .flatMapOptional(stringToNumber)
+             .consume(value::setValue);
 
-      FunctionalObservableValue.of(value)
-                               .filter(newValue -> {
-                                  Optional<Number> oldValueOpt = stringToNumber.apply(getText());
-                                  Optional<Number> newValueOpt = Optional.ofNullable(newValue);
-                                  return !oldValueOpt.equals(newValueOpt) && newValueOpt.isPresent();
-                               })
-                               .map(Object::toString)
-                               .consume(this::setText);
+      functional(value)
+             .filter(newValue -> {
+                Optional<Number> oldValueOpt = stringToNumber.apply(getText());
+                Optional<Number> newValueOpt = Optional.ofNullable(newValue);
+                return !oldValueOpt.equals(newValueOpt) && newValueOpt.isPresent();
+             })
+             .map(Object::toString)
+             .consume(this::setText);
    }
 
    public final Property<T> valueProperty()

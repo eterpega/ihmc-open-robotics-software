@@ -213,7 +213,7 @@ public final class Tree<T> implements TreeInterface<Tree<T>>
 
    /**
     * Returns a root {@link TreeFocus} of this node. This effectively
-    * sets this node as a root for any operations performed on the returned focus.
+    * sets this node as a root for join operations performed on the returned focus.
     * @return root focus
     */
    public final TreeFocus<Tree<T>> getFocus()

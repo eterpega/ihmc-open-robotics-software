@@ -8,13 +8,15 @@ import javaslang.Tuple2;
 import javaslang.collection.List;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.*;
+import static us.ihmc.robotbuilder.util.FunctionalObservableValue.join;
 import static us.ihmc.robotbuilder.util.FunctionalObservableValue.combineLatest;
-import static us.ihmc.robotbuilder.util.FunctionalObservableValue.of;
+import static us.ihmc.robotbuilder.util.FunctionalObservableValue.functional;
 
 public class FunctionalObservableValueTest
 {
@@ -22,7 +24,7 @@ public class FunctionalObservableValueTest
    @Test
    public void testMapConvertsBaseValue()
    {
-      assertEquals("10", of(new SimpleIntegerProperty(10))
+      assertEquals("10", functional(new SimpleIntegerProperty(10))
             .map(Object::toString)
             .getValue());
    }
@@ -31,7 +33,7 @@ public class FunctionalObservableValueTest
    public void testMapConvertsNewValues()
    {
       SimpleIntegerProperty base = new SimpleIntegerProperty(10);
-      FunctionalObservableValue<String> mapped = of(base).map(Object::toString);
+      FunctionalObservableValue<String> mapped = functional(base).map(Object::toString);
       base.setValue(20);
       assertEquals("20", mapped.getValue());
       base.setValue(30);
@@ -41,15 +43,15 @@ public class FunctionalObservableValueTest
    @Test
    public void testFlatMapConvertsBaseValue()
    {
-      assertEquals(10, of(new SimpleIntegerProperty(10))
+      assertEquals(10, functional(new SimpleIntegerProperty(10))
                                                   .flatMap(SimpleObjectProperty::new)
                                                   .getValue());
 
-      assertEquals(10, of(new SimpleIntegerProperty(10))
+      assertEquals(10, functional(new SimpleIntegerProperty(10))
                                                 .flatMapIterable(Collections::singletonList)
                                                 .getValue());
 
-      assertEquals(10, of(new SimpleIntegerProperty(10))
+      assertEquals(10, functional(new SimpleIntegerProperty(10))
                                                 .flatMapOptional(Optional::of)
                                                 .getValue());
    }
@@ -58,9 +60,9 @@ public class FunctionalObservableValueTest
    public void testFlatMapConvertsNewValues()
    {
       SimpleIntegerProperty base = new SimpleIntegerProperty(10);
-      FunctionalObservableValue<Number> mappedObservable = of(base).flatMap(SimpleObjectProperty::new);
-      FunctionalObservableValue<Number> mappedIterable = of(base).flatMapIterable(Collections::singletonList);
-      FunctionalObservableValue<Number> mappedOptional = of(base).flatMapOptional(Optional::of);
+      FunctionalObservableValue<Number> mappedObservable = functional(base).flatMap(SimpleObjectProperty::new);
+      FunctionalObservableValue<Number> mappedIterable = functional(base).flatMapIterable(Collections::singletonList);
+      FunctionalObservableValue<Number> mappedOptional = functional(base).flatMapOptional(Optional::of);
       List<FunctionalObservableValue<Number>> allMapped = List.of(mappedObservable, mappedIterable, mappedOptional);
 
 
@@ -75,7 +77,7 @@ public class FunctionalObservableValueTest
    {
       SimpleIntegerProperty base = new SimpleIntegerProperty(10);
       SimpleIntegerProperty inner = new SimpleIntegerProperty(20);
-      FunctionalObservableValue<Number> mappedObservable = of(base).flatMap(x -> inner);
+      FunctionalObservableValue<Number> mappedObservable = functional(base).flatMap(x -> inner);
 
       assertEquals(20, (int)mappedObservable.getValue());
       inner.setValue(30);
@@ -86,7 +88,7 @@ public class FunctionalObservableValueTest
    public void testFilterTrueKeepsAllValues()
    {
       SimpleIntegerProperty base = new SimpleIntegerProperty(10);
-      FunctionalObservableValue<Number> filtered = of(base).filter(x -> true);
+      FunctionalObservableValue<Number> filtered = functional(base).filter(x -> true);
 
       assertEquals(10, filtered.getValue());
 
@@ -98,7 +100,7 @@ public class FunctionalObservableValueTest
    public void testFilterFalseKeepsNothing()
    {
       SimpleIntegerProperty base = new SimpleIntegerProperty(10);
-      FunctionalObservableValue<Number> filtered = of(base).filter(x -> false);
+      FunctionalObservableValue<Number> filtered = functional(base).filter(x -> false);
 
       assertNull(filtered.getValue());
 
@@ -110,7 +112,7 @@ public class FunctionalObservableValueTest
    public void testFilterKeepsTrueValues()
    {
       SimpleIntegerProperty base = new SimpleIntegerProperty(10);
-      FunctionalObservableValue<Number> filtered = of(base).filter(x -> x.intValue() > 20);
+      FunctionalObservableValue<Number> filtered = functional(base).filter(x -> x.intValue() > 20);
 
       assertNull(filtered.getValue());
 
@@ -125,7 +127,7 @@ public class FunctionalObservableValueTest
    public void testEmptyReduceContainsFirstValue()
    {
       SimpleIntegerProperty base = new SimpleIntegerProperty(10);
-      FunctionalObservableValue<Number> reduced = of(base).reduce((x, y) -> y);
+      FunctionalObservableValue<Number> reduced = functional(base).reduce((x, y) -> y);
 
       assertEquals(10, reduced.getValue());
    }
@@ -134,7 +136,7 @@ public class FunctionalObservableValueTest
    public void testEmptyReducedContainsFirstValueAfterTheValueIsSet()
    {
       SimpleObjectProperty<String> base = new SimpleObjectProperty<>();
-      FunctionalObservableValue<String> reduced = of(base).reduce((x, y) -> y);
+      FunctionalObservableValue<String> reduced = functional(base).reduce((x, y) -> y);
 
       assertNull(reduced.getValue());
       base.setValue("10");
@@ -145,7 +147,7 @@ public class FunctionalObservableValueTest
    public void testReduceWithAdditionAccumulatesValues()
    {
       SimpleIntegerProperty base = new SimpleIntegerProperty(10);
-      FunctionalObservableValue<Number> reduced = of(base).reduce((x, y) -> x.intValue() + y.intValue());
+      FunctionalObservableValue<Number> reduced = functional(base).reduce((x, y) -> x.intValue() + y.intValue());
 
       assertEquals(10, reduced.getValue());
 
@@ -162,13 +164,13 @@ public class FunctionalObservableValueTest
       SimpleObjectProperty<Object> base = new SimpleObjectProperty<>();
       try
       {
-         of(base).map(Object::toString);
-         of(base).flatMap(SimpleObjectProperty::new).map(Object::toString);
-         of(base).flatMapIterable(Collections::singletonList).map(Object::toString);
-         of(base).flatMapOptional(Optional::of).map(Object::toString);
-         of(base).filter(x -> x.hashCode() > 0);
-         of(base).reduce((x, y) -> x.toString() + y.toString());
-         of(base).consume(x -> fail("Should not call consume on empty value"));
+         functional(base).map(Object::toString);
+         functional(base).flatMap(SimpleObjectProperty::new).map(Object::toString);
+         functional(base).flatMapIterable(Collections::singletonList).map(Object::toString);
+         functional(base).flatMapOptional(Optional::of).map(Object::toString);
+         functional(base).filter(x -> x.hashCode() > 0);
+         functional(base).reduce((x, y) -> x.toString() + y.toString());
+         functional(base).consume(x -> fail("Should not call consume on empty value"));
       } catch (NullPointerException ex) {
          fail("Should not throw NPE");
          ex.printStackTrace();
@@ -180,7 +182,7 @@ public class FunctionalObservableValueTest
    {
       SimpleIntegerProperty base = new SimpleIntegerProperty(1);
       AtomicInteger counter = new AtomicInteger();
-      of(base).consume(x -> counter.addAndGet(x.intValue()));
+      functional(base).consume(x -> counter.addAndGet(x.intValue()));
       base.set(2);
       base.set(3);
       assertEquals(6, counter.get());
@@ -219,11 +221,25 @@ public class FunctionalObservableValueTest
 
       property1.addListener((observable, oldValue, newValue) -> property2.setValue(newValue.toString()));
 
-      FunctionalObservableValue<String> cycleBreaker = of(property2).avoidCycles();
+      FunctionalObservableValue<String> cycleBreaker = functional(property2).avoidCycles();
       cycleBreaker.consume(newValue -> property1.setValue(Integer.parseInt(newValue) + 1));
 
       property1.setValue(2);
       assertEquals("3", property2.getValue());
+      assertEquals("2", cycleBreaker.getValue());
+   }
+
+   @Test
+   public void testAvoidCyclesDoesNothingWhenNoCycleIsPresent()
+   {
+      IntegerProperty property1 = new SimpleIntegerProperty(1);
+
+      FunctionalObservableValue<Number> cycleBreaker = functional(property1).avoidCycles();
+
+      property1.setValue(2);
+      assertEquals(2, cycleBreaker.getValue());
+      property1.setValue(3);
+      assertEquals(3, cycleBreaker.getValue());
    }
 
    @Test
@@ -231,7 +247,7 @@ public class FunctionalObservableValueTest
    {
       ObjectProperty<Object> property = new SimpleObjectProperty<>("Test");
 
-      FunctionalObservableValue<String> narrowed = of(property).narrow(String.class);
+      FunctionalObservableValue<String> narrowed = functional(property).narrow(String.class);
       assertEquals("Test", narrowed.getValue());
 
       property.setValue(1234);
@@ -248,7 +264,7 @@ public class FunctionalObservableValueTest
       boolean[] called = new boolean[1];
       ChangeListener<Number> emptyListener = (observable, oldValue, newValue) -> called[0] = true;
       InvalidationListener emptyInvalidationListener = x -> called[0] = true;
-      FunctionalObservableValue<Number> functional = of(base);
+      FunctionalObservableValue<Number> functional = functional(base);
       functional.addListener(emptyListener);
       functional.removeListener(emptyListener);
       functional.addListener(emptyInvalidationListener);
@@ -256,5 +272,33 @@ public class FunctionalObservableValueTest
       base.setValue(2);
 
       assertFalse(called[0]);
+   }
+
+   @Test
+   public void testJoinContainsLastGivenObservableValueAfterCreation()
+   {
+      SimpleIntegerProperty property1 = new SimpleIntegerProperty(1);
+      SimpleIntegerProperty property2 = new SimpleIntegerProperty(100);
+      SimpleIntegerProperty property3 = new SimpleIntegerProperty(10000);
+
+      FunctionalObservableValue<Number> joined = join(Arrays.asList(property1, property2, property3));
+      assertEquals(10000, joined.getValue());
+
+   }
+
+   @Test
+   public void testJoinFiresForAnyObservable()
+   {
+      SimpleIntegerProperty property1 = new SimpleIntegerProperty(1);
+      SimpleIntegerProperty property2 = new SimpleIntegerProperty(100);
+      SimpleIntegerProperty property3 = new SimpleIntegerProperty(10000);
+
+      FunctionalObservableValue<Number> joined = join(Arrays.asList(property1, property2, property3));
+      property1.setValue(2);
+      assertEquals(2, joined.getValue());
+      property2.setValue(101);
+      assertEquals(101, joined.getValue());
+      property3.setValue(10001);
+      assertEquals(10001, joined.getValue());
    }
 }

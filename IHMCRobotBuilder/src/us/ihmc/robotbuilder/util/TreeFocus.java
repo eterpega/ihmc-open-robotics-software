@@ -14,7 +14,7 @@ import java.util.function.Predicate;
 /**
  * Represents a focus (aka zipper) on a {@link Tree} node that allows for a simple
  * immutable tree modification. See http://learnyouahaskell.com/zippers for details.
- * This class allows focusing on any tree implementing the {@link TreeInterface}.
+ * This class allows focusing on join tree implementing the {@link TreeInterface}.
  */
 public class TreeFocus<T extends TreeInterface<T>> implements TreeInterface<TreeFocus<T>>
 {

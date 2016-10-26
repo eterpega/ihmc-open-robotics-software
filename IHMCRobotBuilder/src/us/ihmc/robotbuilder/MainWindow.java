@@ -18,7 +18,7 @@ import javafx.stage.Stage;
 import javaslang.control.Option;
 import us.ihmc.robotbuilder.gui.JointTreeView;
 import us.ihmc.robotbuilder.gui.Preview3D;
-import us.ihmc.robotbuilder.gui.editors.RecursiveBeanEditor;
+import us.ihmc.robotbuilder.gui.editors2.RecursiveBeanEditor;
 import us.ihmc.robotbuilder.model.Loader;
 import us.ihmc.robotbuilder.util.FunctionalObservableValue;
 import us.ihmc.robotbuilder.util.Tree;
@@ -28,6 +28,8 @@ import us.ihmc.robotics.immutableRobotDescription.JointDescription;
 
 import java.io.File;
 import java.util.Optional;
+
+import static us.ihmc.robotbuilder.util.FunctionalObservableValue.functional;
 
 /**
  *
@@ -92,17 +94,18 @@ public class MainWindow extends Application
          immutableRobotDescription.peek(description -> {
             Tree<JointDescription> tree = Tree.adapt(description, JointDescription::getChildrenJoints);
 
-            treeView.selectedNodeObservable()
+            jointSettings.setContent(new RecursiveBeanEditor<>(treeView.focusProperty()).getEditor());
+            /*treeView.selectedNodeObservable()
                       .map(newSelectedItem -> {
-                         RecursiveBeanEditor<JointDescription> editor = new RecursiveBeanEditor<>(newSelectedItem.getFocusedNode().getValue());
-                         FunctionalObservableValue.of(editor.valueProperty())
+                         RecursiveBeanEditor<JointDescription> editor = new RecursiveBeanEditor<>(newSelectedItem.getFocusedNode());
+                         functional(editor.valueProperty())
                                                   .consume(editedValue -> updateUIState(newSelectedItem.replace(newSelectedItem.getFocusedNode().withValue(editedValue))));
                          return editor;
                       })
                       .map(RecursiveBeanEditor::getEditor)
-                      .consume(jointSettings::setContent);
+                      .consume(jointSettings::setContent);*/
 
-            FunctionalObservableValue.of(view3D.jointTreeProperty())
+            functional(view3D.jointTreeProperty())
                   .avoidCycles()
                   .consume(treeView::setFocus);
             updateUIState(tree.getFocus());
