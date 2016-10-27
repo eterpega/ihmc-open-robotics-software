@@ -1,42 +1,36 @@
 package us.ihmc.robotbuilder.gui.editors;
 
 import javafx.beans.property.Property;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.value.ObservableValue;
+import javafx.scene.Node;
 import javafx.scene.layout.GridPane;
-import org.controlsfx.control.PropertySheet.Item;
-import org.controlsfx.property.editor.AbstractPropertyEditor;
-import us.ihmc.robotbuilder.gui.editors.Vector3DEditor.EditorComponent;
+import us.ihmc.robotbuilder.gui.Editor;
 
 import javax.vecmath.Vector3d;
 import java.util.Arrays;
 
+import static us.ihmc.robotbuilder.util.NoCycleProperty.noCycle;
+
 /**
  *
  */
-public class Vector3DEditor extends AbstractPropertyEditor<Vector3d, EditorComponent>
+public class Vector3DEditor extends Editor<Vector3d>
 {
-   public Vector3DEditor(Item property)
+   private final EditorComponent component = new EditorComponent();
+
+   public Vector3DEditor(Property<Vector3d> valueProperty)
    {
-      super(property, new EditorComponent());
+      super(noCycle(valueProperty));
    }
 
-   @Override protected ObservableValue<Vector3d> getObservableValue()
+   @Override public Node getEditor()
    {
-      return getEditor().valueProperty();
+      return component;
    }
 
-   @Override public void setValue(Vector3d value)
-   {
-      getEditor().setValue(value);
-   }
-
-   static class EditorComponent extends GridPane
+   private class EditorComponent extends GridPane
    {
       @SuppressWarnings("unchecked")
       private final NumberField<Double>[] textFields = new NumberField[3];
-      private final Property<Vector3d> valueProperty = new SimpleObjectProperty<>();
-      private boolean ignoreEdit = false;
 
       EditorComponent()
       {
@@ -47,38 +41,21 @@ public class Vector3DEditor extends AbstractPropertyEditor<Vector3d, EditorCompo
          }
          getChildren().addAll(textFields);
 
-         valueProperty.addListener((observable, oldValue, newValue) ->
+         valueProperty().addListener((observable, oldValue, newValue) ->
                                    {
-                                      if (!ignoreEdit)
-                                      {
-                                         ignoreEdit = true;
-                                         textFields[0].setText(Double.toString(newValue.x));
-                                         textFields[1].setText(Double.toString(newValue.y));
-                                         textFields[2].setText(Double.toString(newValue.z));
-                                         ignoreEdit = false;
-                                      }
+                                      textFields[0].valueProperty().setValue(newValue.x);
+                                      textFields[1].valueProperty().setValue(newValue.y);
+                                      textFields[2].valueProperty().setValue(newValue.z);
                                    });
 
          Arrays.stream(textFields)
                .map(NumberField::valueProperty)
-               .forEach(textProperty -> textProperty.addListener((observable, oldValue, newValue) ->
-                                        {
-                                           if (ignoreEdit)
-                                              return;
-                                           ignoreEdit = true;
-                                           valueProperty.setValue(getValue());
-                                           ignoreEdit = false;
-                                        }));
-      }
-
-      Property<Vector3d> valueProperty()
-      {
-         return valueProperty;
+               .forEach(textProperty -> textProperty.addListener((observable, oldValue, newValue) -> valueProperty().setValue(getValue())));
       }
 
       void setValue(Vector3d value)
       {
-         valueProperty.setValue(value);
+         valueProperty().setValue(value);
       }
 
       Vector3d getValue()

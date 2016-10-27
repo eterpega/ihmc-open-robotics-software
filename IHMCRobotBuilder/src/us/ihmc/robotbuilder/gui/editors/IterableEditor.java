@@ -11,6 +11,7 @@ import javafx.scene.layout.GridPane;
 import org.controlsfx.control.PropertySheet.Item;
 import org.controlsfx.property.editor.AbstractPropertyEditor;
 import org.controlsfx.property.editor.PropertyEditor;
+import us.ihmc.robotbuilder.gui.Editor;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -23,11 +24,11 @@ import java.util.stream.Stream;
 public class IterableEditor<T> extends AbstractPropertyEditor<Iterable<T>, TitledPane>
 {
    private final GridPane editorGrid = new GridPane();
-   private final EditorFactory editorFactory;
+   private final Editor.Factory editorFactory;
    private List<T> value = new ArrayList<>();
    private Property<Iterable<T>> valueProperty;
 
-   public IterableEditor(Item property, EditorFactory editorFactory)
+   public IterableEditor(Item property, Editor.Factory editorFactory)
    {
       super(property, new TitledPane());
       this.editorFactory = editorFactory;
@@ -96,7 +97,7 @@ public class IterableEditor<T> extends AbstractPropertyEditor<Iterable<T>, Title
          setIndex(itemIndex);
          this.originalValue = originalValue;
          //noinspection unchecked
-         innerEditor = (PropertyEditor<T>)editorFactory.call(itemProperty);
+         //innerEditor = (Editor<T>)editorFactory.create(itemProperty.getType(), null, "");
          if (innerEditor == null)
             innerEditor = new DefaultEditor<>(itemProperty);
 

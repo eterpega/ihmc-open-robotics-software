@@ -34,11 +34,13 @@ public class NoCycleProperty<T> implements Property<T>
 
    /**
     * Creates a new {@link NoCycleProperty} by wrapping the given property.
-    * Alias for {@link #NoCycleProperty(Property)} for a more readable static-imported code.
+    * Can be used in static import to make code more readable.
     * @param originalProperty property to wrap
     */
    public static <T> NoCycleProperty<T> noCycle(Property<T> originalProperty)
    {
+      if (originalProperty instanceof NoCycleProperty)
+         return (NoCycleProperty<T>) originalProperty;
       return new NoCycleProperty<>(originalProperty);
    }
 

@@ -4,12 +4,14 @@ import javafx.beans.property.Property;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleLongProperty;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextFormatter;
 
 import java.math.BigInteger;
 import java.util.Optional;
 import java.util.function.Function;
 
 import static us.ihmc.robotbuilder.util.FunctionalObservableValue.functional;
+import static us.ihmc.robotbuilder.util.NoCycleProperty.noCycle;
 
 /**
  * Field for holding numeric values.
@@ -20,8 +22,10 @@ public class NumberField<T extends Number> extends TextField
    private final Property<Number> value;
    private final Function<String, Optional<Number>> stringToNumber;
 
-   public NumberField(Class<T> cls)
+   public NumberField(Class<?> cls)
    {
+      Property<String> textProperty = noCycle(textProperty());
+
       Function<Function<String, ? extends Number>, Function<String, Optional<Number>>> stringToOptionalNumber = stringToNr -> string ->
       {
          try
@@ -37,26 +41,16 @@ public class NumberField<T extends Number> extends TextField
       if (cls == byte.class || cls == Byte.class || cls == short.class || cls == Short.class || cls == int.class || cls == Integer.class || cls == long.class
             || cls == Long.class || cls == BigInteger.class)
       {
-         value = new SimpleLongProperty(0);
+         value = noCycle(new SimpleLongProperty(0));
          stringToNumber = stringToOptionalNumber.apply(Long::valueOf);
       }
       else
       {
-         value = new SimpleDoubleProperty(0);
+         value = noCycle(new SimpleDoubleProperty(0));
          stringToNumber = stringToOptionalNumber.apply(Double::valueOf);
       }
 
-      textProperty().setValue("0");
-
-      textProperty().addListener((observable, oldValue, newValue) ->
-                                 {
-                                    if (newValue == null || newValue.isEmpty())
-                                       textProperty().setValue("0");
-                                    if (!stringToNumber.apply(newValue).isPresent())
-                                       textProperty().setValue(oldValue);
-                                 });
-
-      functional(textProperty())
+      functional(textProperty)
              .flatMapOptional(stringToNumber)
              .consume(value::setValue);
 
@@ -67,7 +61,14 @@ public class NumberField<T extends Number> extends TextField
                 return !oldValueOpt.equals(newValueOpt) && newValueOpt.isPresent();
              })
              .map(Object::toString)
-             .consume(this::setText);
+             .consume(textProperty::setValue);
+
+      setTextFormatter(new TextFormatter<>(c ->
+                                           {
+                                              if (c.getControlNewText().isEmpty() || stringToNumber.apply(c.getControlNewText()).isPresent())
+                                                 return c;
+                                              return null;
+                                           }));
    }
 
    public final Property<T> valueProperty()

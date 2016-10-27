@@ -1,49 +1,64 @@
 package us.ihmc.robotbuilder.gui.editors;
 
 import javafx.beans.property.Property;
-import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.TreeItem;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
+import javaslang.Tuple;
+import javaslang.Tuple2;
 import org.controlsfx.control.BreadCrumbBar;
-import org.controlsfx.control.PropertySheet.Item;
-import org.controlsfx.property.editor.AbstractPropertyEditor;
-import org.controlsfx.property.editor.PropertyEditor;
+import us.ihmc.robotbuilder.gui.Editor;
+import us.ihmc.robotbuilder.gui.editors.ImmutableEditor;
+import us.ihmc.robotbuilder.gui.editors.PropertyEditorFactory;
 import us.ihmc.robotics.immutableRobotDescription.NamedObject;
 
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Stack;
 
+import static us.ihmc.robotbuilder.util.FunctionalObservableValue.functional;
+
 /**
  *
  */
-public class RecursiveBeanEditor<T> implements PropertyEditor<T>
+public class RecursiveBeanEditor<T> extends Editor<T>
 {
-   private final RecursiveEditorFactory FACTORY = new RecursiveEditorFactory();
 
    private final BorderPane container = new BorderPane();
-   private final Stack<ImmutableBeanEditor<?>> editorStack = new Stack<>();
-   private final Property<T> valueProperty;
+   private final Stack<Tuple2<String, ImmutableEditor<?>>> editorStack = new Stack<>();
    private final BreadCrumbBar<BreadCrumbItem> breadCrumbBar = new BreadCrumbBar<>();
+   private final ImmutableEditor<T> rootEditor;
 
-   public RecursiveBeanEditor(T objectToEdit)
+   public RecursiveBeanEditor(Property<T> valueProperty)
    {
-      ImmutableBeanEditor<T> rootEditor = new ImmutableBeanEditor<>(new RootProperty(objectToEdit), FACTORY, false);
-      editorStack.push(rootEditor);
-      valueProperty = rootEditor.valueProperty();
-      container.setTop(breadCrumbBar);
-      updateEditorState();
+      super(valueProperty);
+      rootEditor = new ImmutableEditor<>(valueProperty(), new RecursiveEditorFactory());
+      functional(valueProperty())
+            .avoidCycles()
+            .consume(objectToEdit -> {
+               editorStack.clear();
+               editorStack.push(Tuple.of(objectName(objectToEdit), rootEditor));
+               container.setTop(breadCrumbBar);
+               updateEditorState();
+            });
+
 
       breadCrumbBar.setOnCrumbAction(event -> revertTo(event.getSelectedCrumb().getValue().index));
+   }
+
+   private static String objectName(Object object)
+   {
+      if (object instanceof NamedObject)
+         return ((NamedObject) object).getName();
+      return Objects.toString(object);
    }
 
    private void updateEditorState()
    {
       if (editorStack.size() > 0)
-         container.setCenter(editorStack.peek().getEditor());
+         container.setCenter(editorStack.peek()._2.getEditor());
       else
          container.setCenter(null);
 
@@ -56,7 +71,7 @@ public class RecursiveBeanEditor<T> implements PropertyEditor<T>
       for (int i = 0; i < editorStack.size(); i++)
       {
          TreeItem<BreadCrumbItem> lastItem = item;
-         item = new TreeItem<>(new BreadCrumbItem(i, editorStack.get(i).getProperty()));
+         item = new TreeItem<>(new BreadCrumbItem(i, editorStack.get(i)._1));
          if (lastItem != null)
             lastItem.getChildren().add(item);
       }
@@ -78,128 +93,52 @@ public class RecursiveBeanEditor<T> implements PropertyEditor<T>
       return container;
    }
 
-   @Override public T getValue()
+   private class RecursiveEditorFactory extends PropertyEditorFactory
    {
-      return valueProperty.getValue();
-   }
-
-   public Property<T> valueProperty()
-   {
-      return valueProperty;
-   }
-
-   @Override public void setValue(T value)
-   {
-      // Traverse back to the root
-      while (editorStack.size() > 1)
-         editorStack.pop();
-
-      valueProperty.setValue(value);
-   }
-
-   private class RecursiveEditorFactory extends EditorFactory
-   {
-      @Override public PropertyEditor<?> call(Item item)
+      @Override public Optional<Editor<?>> create(Class<?> clazz, Property<?> value, String name)
       {
-         PropertyEditor<?> editor = super.call(item);
-         if (editor != null)
-            return editor;
-
-         if (item.isEditable())
-            return new InnerBeanEditor(item);
-
-         return null;
+         return Optional.of(super.create(clazz, value, name).orElse(new InnerBeanEditor<>(value, this, name)));
       }
    }
 
-   private class InnerBeanEditor extends AbstractPropertyEditor<Object, FlowPane>
+   private class InnerBeanEditor<U> extends Editor<U>
    {
-      private ImmutableBeanEditor<Object> editor;
+      private final ImmutableEditor<U> innerEditor;
+      private final FlowPane container = new FlowPane();
 
-      InnerBeanEditor(Item property)
+      InnerBeanEditor(Property<U> property, Factory factory, String name)
       {
-         super(property, new FlowPane());
+         super(property);
+         innerEditor = new ImmutableEditor<>(property, factory);
          Button edit = new Button("Edit...");
          edit.setOnAction(e ->
-                                {
-                                    editorStack.push(editor);
-                                   updateEditorState();
-                                });
-         getEditor().getChildren().add(edit);
+                          {
+                             editorStack.push(Tuple.of(name, innerEditor));
+                             updateEditorState();
+                          });
+         container.getChildren().add(edit);
       }
 
-      @Override protected ObservableValue<Object> getObservableValue()
+      @Override public Node getEditor()
       {
-         if (editor == null)
-            editor = new ImmutableBeanEditor<>(getProperty(), FACTORY, false);
-         return editor.valueProperty();
-      }
-
-      @Override public void setValue(Object value)
-      {
-         editor.setValue(value);
+         return container;
       }
    }
 
    private static class BreadCrumbItem
    {
       private final int index;
-      private final Item editedItem;
+      private final String name;
 
-      private BreadCrumbItem(int index, Item editedItem)
+      private BreadCrumbItem(int index, String name)
       {
          this.index = index;
-         this.editedItem = editedItem;
+         this.name = name;
       }
 
       @Override public String toString()
       {
-         return editedItem.getName();
-      }
-   }
-
-   private class RootProperty implements Item
-   {
-      final T objectToEdit;
-
-      private RootProperty(T objectToEdit)
-      {
-         this.objectToEdit = objectToEdit;
-      }
-
-      @Override public Class<?> getType()
-      {
-         return objectToEdit.getClass();
-      }
-
-      @Override public String getCategory()
-      {
-         return "";
-      }
-
-      @Override public String getName()
-      {
-         return objectToEdit instanceof NamedObject ? ((NamedObject)objectToEdit).getName() : Objects.toString(objectToEdit);
-      }
-
-      @Override public String getDescription()
-      {
-         return getName();
-      }
-
-      @Override public Object getValue()
-      {
-         return objectToEdit;
-      }
-
-      @Override public void setValue(Object value)
-      {
-
-      }
-
-      @Override public Optional<ObservableValue<?>> getObservableValue()
-      {
-         return Optional.empty();
+         return name;
       }
    }
 }

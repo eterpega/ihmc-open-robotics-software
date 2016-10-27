@@ -10,17 +10,15 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceDialog;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.text.Font;
 import javafx.stage.FileChooser;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javaslang.control.Option;
+import us.ihmc.robotbuilder.gui.JointSettingsHolder;
 import us.ihmc.robotbuilder.gui.JointTreeView;
 import us.ihmc.robotbuilder.gui.Preview3D;
-import us.ihmc.robotbuilder.gui.editors2.RecursiveBeanEditor;
 import us.ihmc.robotbuilder.model.Loader;
-import us.ihmc.robotbuilder.util.FunctionalObservableValue;
 import us.ihmc.robotbuilder.util.Tree;
 import us.ihmc.robotbuilder.util.TreeFocus;
 import us.ihmc.robotbuilder.util.Util;
@@ -28,6 +26,7 @@ import us.ihmc.robotics.immutableRobotDescription.JointDescription;
 
 import java.io.File;
 import java.util.Optional;
+import java.util.function.Function;
 
 import static us.ihmc.robotbuilder.util.FunctionalObservableValue.functional;
 
@@ -36,7 +35,7 @@ import static us.ihmc.robotbuilder.util.FunctionalObservableValue.functional;
  */
 public class MainWindow extends Application
 {
-   @FXML private ScrollPane jointSettings;
+   @FXML private JointSettingsHolder jointSettings;
 
    @FXML private Preview3D view3D;
 
@@ -94,8 +93,12 @@ public class MainWindow extends Application
          immutableRobotDescription.peek(description -> {
             Tree<JointDescription> tree = Tree.adapt(description, JointDescription::getChildrenJoints);
 
-            jointSettings.setContent(new RecursiveBeanEditor<>(treeView.focusProperty()).getEditor());
-            /*treeView.selectedNodeObservable()
+            jointSettings.setFocusProperty(treeView.focusProperty());
+            functional(treeView.focusProperty())
+                  .flatMapOptional(Function.identity())
+                  .consume(this::updateUIState);
+            /*functional(treeView.focusProperty())
+                      .flatMapOptional(Function.identity())
                       .map(newSelectedItem -> {
                          RecursiveBeanEditor<JointDescription> editor = new RecursiveBeanEditor<>(newSelectedItem.getFocusedNode());
                          functional(editor.valueProperty())

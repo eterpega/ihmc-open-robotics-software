@@ -18,6 +18,7 @@ import java.util.Optional;
 
 import static java.lang.Integer.compare;
 import static us.ihmc.robotbuilder.util.FunctionalObservableValue.functional;
+import static us.ihmc.robotbuilder.util.NoCycleProperty.noCycle;
 import static us.ihmc.robotbuilder.util.TreeFocus.pathTo;
 
 /**
@@ -26,7 +27,7 @@ import static us.ihmc.robotbuilder.util.TreeFocus.pathTo;
 public class JointTreeView extends TreeView<JointDescription>
 {
    private final TreeMapping<Tree<JointDescription>, JointTreeItem> treeToItemMapping = new TreeMapping<>(JointTreeView::mapTree);
-   private final Property<Optional<TreeFocus<Tree<JointDescription>>>> focusProperty = new NoCycleProperty<>(new SimpleObjectProperty<>());
+   private final Property<Optional<TreeFocus<Tree<JointDescription>>>> focusProperty = noCycle(new SimpleObjectProperty<>());
 
    public JointTreeView()
    {

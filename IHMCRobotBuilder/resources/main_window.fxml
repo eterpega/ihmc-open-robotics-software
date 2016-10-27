@@ -5,6 +5,7 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import us.ihmc.robotbuilder.gui.JointTreeView?>
 <?import us.ihmc.robotbuilder.gui.Preview3D?>
+<?import us.ihmc.robotbuilder.gui.JointSettingsHolder?>
 <BorderPane minHeight="300" minWidth="300" xmlns="http://javafx.com/javafx/8.0.76-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="us.ihmc.robotbuilder.MainWindow">
     <top>
         <MenuBar>
@@ -21,7 +22,7 @@
         <SplitPane dividerPositions="0.5">
             <SplitPane dividerPositions="0.7" orientation="VERTICAL">
                 <JointTreeView fx:id="treeView" prefWidth="200" />
-                <ScrollPane fx:id="jointSettings" fitToWidth="true" />
+                <JointSettingsHolder fx:id="jointSettings" />
             </SplitPane>
             <Preview3D fx:id="view3D" prefHeight="200.0" prefWidth="200.0" />
         </SplitPane>
