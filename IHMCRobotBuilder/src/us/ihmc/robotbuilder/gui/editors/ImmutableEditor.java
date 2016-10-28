@@ -14,12 +14,10 @@ import us.ihmc.robotbuilder.gui.ModifiableProperty;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.function.Function;
 
 import static java.lang.reflect.Modifier.isPublic;
 import static java.lang.reflect.Modifier.isStatic;
 import static us.ihmc.robotbuilder.util.FunctionalObservableValue.functional;
-import static us.ihmc.robotbuilder.util.Memoization.memoized;
 import static us.ihmc.robotbuilder.util.NoCycleProperty.noCycle;
 
 /**
@@ -32,7 +30,6 @@ public class ImmutableEditor<T> extends Editor<T>
    private final Editor.Factory editorFactory;
    private List<ModifiableBeanProperty> properties = List.empty();
    private T currentlyEditedBean = null;
-   private Function<Class<?>, List<ModifiableBeanProperty>> memoizedGetProperties = memoized(this::getProperties);
 
    public ImmutableEditor(Property<T> valueProperty, Editor.Factory editorFactory)
    {
@@ -53,7 +50,7 @@ public class ImmutableEditor<T> extends Editor<T>
       properties.forEach(ModifiableBeanProperty::unregisterObservers);
       editor.getChildren().clear();
 
-      properties = memoizedGetProperties.apply(bean.getClass());
+      properties = getProperties(bean.getClass());
       //noinspection OptionalGetWithoutIsPresent
       properties
             .map(property -> Tuple.of(property, editorFactory.create(property.getValueType(), property.value())))
