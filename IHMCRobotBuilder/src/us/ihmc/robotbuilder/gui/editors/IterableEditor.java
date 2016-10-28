@@ -6,14 +6,17 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.GridPane;
 import javaslang.collection.Stream;
 import us.ihmc.robotbuilder.gui.Editor;
+import us.ihmc.robotbuilder.gui.FontAwesomeLabel;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Objects;
 
 import static us.ihmc.robotbuilder.util.FunctionalObservableValue.functional;
 import static us.ihmc.robotbuilder.util.NoCycleProperty.noCycle;
@@ -87,9 +90,9 @@ public class IterableEditor<T> extends Editor<Iterable<T>>
 
    private class ListItemEditor extends GridPane
    {
-      private final Button remove = new Button("\uf00d");
-      private final Button moveUp = new Button("\uf077");
-      private final Button moveDown = new Button("\uf078");
+      private final Button remove = new Button("", new FontAwesomeLabel("\uf00d"));
+      private final Button moveUp = new Button("", new FontAwesomeLabel("\uf077"));
+      private final Button moveDown = new Button("", new FontAwesomeLabel("\uf078"));
       private Editor<T> innerEditor;
       private final Property<T> itemProperty;
       private int itemIndex;
@@ -154,8 +157,6 @@ public class IterableEditor<T> extends Editor<Iterable<T>>
                updateValue();
             }
          });
-
-         Stream.of(moveUp, moveDown, remove).forEach(button -> button.setStyle("-fx-font-family: \"FontAwesome\";"));
       }
 
       private void updateValue()
@@ -179,12 +180,12 @@ public class IterableEditor<T> extends Editor<Iterable<T>>
 
    private static class DefaultEditor<T> extends Editor<T>
    {
-      private final TextField editor = new TextField();
+      private final Label editor = new Label();
 
       DefaultEditor(Property<T> property)
       {
          super(property);
-         getEditor().setDisable(true);
+         editor.textProperty().bind(functional(property).map(Objects::toString));
       }
 
       @Override public Node getEditor()
