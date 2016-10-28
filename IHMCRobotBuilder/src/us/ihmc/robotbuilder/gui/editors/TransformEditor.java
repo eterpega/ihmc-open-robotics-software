@@ -24,11 +24,11 @@ public class TransformEditor extends Editor<TransformDescription>
    public TransformEditor(Property<TransformDescription> property)
    {
       super(noCycle(property));
-      Property<Vector3d> rotationProperty = new SimpleObjectProperty<>(getRotation());
+      Property<Vector3d> rotationProperty = new SimpleObjectProperty<>();
       functional(rotationProperty).consume(this::setRotation);
-      Property<Vector3d> scaleProperty = new SimpleObjectProperty<>(getScale());
+      Property<Vector3d> scaleProperty = new SimpleObjectProperty<>();
       functional(scaleProperty).consume(this::setScale);
-      Property<Vector3d> translationProperty = new SimpleObjectProperty<>(getTranslation());
+      Property<Vector3d> translationProperty = new SimpleObjectProperty<>();
       functional(translationProperty).consume(this::setTranslation);
 
       valueProperty().addListener((observable, oldValue, newValue) ->

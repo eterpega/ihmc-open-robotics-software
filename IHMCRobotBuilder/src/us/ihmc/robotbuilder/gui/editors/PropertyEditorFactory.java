@@ -14,7 +14,7 @@ import java.util.Optional;
  */
 public class PropertyEditorFactory implements Editor.Factory
 {
-   @Override public Optional<Editor<?>> create(Class<?> clazz, Property<?> value, String name)
+   @Override public Optional<Editor<?>> create(Class<?> clazz, Property<?> value)
    {
       if (value.getValue() instanceof String)
       {
@@ -44,6 +44,12 @@ public class PropertyEditorFactory implements Editor.Factory
       {
          //noinspection unchecked
          return Optional.of(new TransformEditor((Property<TransformDescription>)value));
+      }
+
+      if (value.getValue() instanceof Iterable)
+      {
+         //noinspection unchecked
+         return Optional.of(new IterableEditor<>((Property<Iterable<Object>>) value, this));
       }
 
       return Optional.empty();

@@ -3,7 +3,6 @@ package us.ihmc.robotbuilder.gui;
 import javafx.beans.property.Property;
 import javafx.scene.Node;
 import javafx.scene.control.Control;
-import javaslang.Function2;
 
 import java.util.Optional;
 import java.util.function.Function;
@@ -49,6 +48,6 @@ public abstract class Editor<T>
 
    public interface Factory
    {
-      Optional<Editor<?>> create(Class<?> clazz, Property<?> property, String name);
+      Optional<Editor<?>> create(Class<?> clazz, Property<?> property);
    }
 }

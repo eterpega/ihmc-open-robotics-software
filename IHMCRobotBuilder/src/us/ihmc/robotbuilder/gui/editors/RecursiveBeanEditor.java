@@ -1,17 +1,19 @@
 package us.ihmc.robotbuilder.gui.editors;
 
+import impl.org.controlsfx.skin.BreadCrumbBarSkin.BreadCrumbButton;
 import javafx.beans.property.Property;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.TreeItem;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
+import javaslang.Lazy;
 import javaslang.Tuple;
 import javaslang.Tuple2;
 import org.controlsfx.control.BreadCrumbBar;
 import us.ihmc.robotbuilder.gui.Editor;
-import us.ihmc.robotbuilder.gui.editors.ImmutableEditor;
-import us.ihmc.robotbuilder.gui.editors.PropertyEditorFactory;
 import us.ihmc.robotics.immutableRobotDescription.NamedObject;
 
 import java.util.Objects;
@@ -19,6 +21,7 @@ import java.util.Optional;
 import java.util.Stack;
 
 import static us.ihmc.robotbuilder.util.FunctionalObservableValue.functional;
+import static us.ihmc.robotbuilder.util.NoCycleProperty.noCycle;
 
 /**
  *
@@ -27,25 +30,41 @@ public class RecursiveBeanEditor<T> extends Editor<T>
 {
 
    private final BorderPane container = new BorderPane();
-   private final Stack<Tuple2<String, ImmutableEditor<?>>> editorStack = new Stack<>();
+   private final Stack<Tuple2<ObservableValue<String>, ImmutableEditor<?>>> editorStack = new Stack<>();
    private final BreadCrumbBar<BreadCrumbItem> breadCrumbBar = new BreadCrumbBar<>();
-   private final ImmutableEditor<T> rootEditor;
 
    public RecursiveBeanEditor(Property<T> valueProperty)
    {
-      super(valueProperty);
-      rootEditor = new ImmutableEditor<>(valueProperty(), new RecursiveEditorFactory());
+      super(noCycle(valueProperty));
+      Property<T> rootEditorProperty = noCycle(new SimpleObjectProperty<>());
+      ImmutableEditor<T> rootEditor = new ImmutableEditor<>(rootEditorProperty, new RecursiveEditorFactory());
       functional(valueProperty())
-            .avoidCycles()
             .consume(objectToEdit -> {
+               if (objectToEdit == rootEditorProperty.getValue())
+               {
+                  return;
+               }
+               rootEditorProperty.setValue(objectToEdit);
                editorStack.clear();
-               editorStack.push(Tuple.of(objectName(objectToEdit), rootEditor));
+               editorStack.push(Tuple.of(functional(valueProperty()).map(RecursiveBeanEditor::objectName), rootEditor));
                container.setTop(breadCrumbBar);
                updateEditorState();
             });
 
+      rootEditorProperty.addListener((observable, oldValue, newValue) -> valueProperty().setValue(newValue));
 
+      setupBreadCrumbBar();
+   }
+
+   private void setupBreadCrumbBar()
+   {
       breadCrumbBar.setOnCrumbAction(event -> revertTo(event.getSelectedCrumb().getValue().index));
+
+      breadCrumbBar.setCrumbFactory(crumb -> {
+         BreadCrumbButton button = new BreadCrumbButton(crumb.getValue().name.getValue());
+         button.textProperty().bind(crumb.getValue().name);
+         return button;
+      });
    }
 
    private static String objectName(Object object)
@@ -75,6 +94,7 @@ public class RecursiveBeanEditor<T> extends Editor<T>
          if (lastItem != null)
             lastItem.getChildren().add(item);
       }
+
       breadCrumbBar.setSelectedCrumb(item);
    }
 
@@ -95,25 +115,25 @@ public class RecursiveBeanEditor<T> extends Editor<T>
 
    private class RecursiveEditorFactory extends PropertyEditorFactory
    {
-      @Override public Optional<Editor<?>> create(Class<?> clazz, Property<?> value, String name)
+      @Override public Optional<Editor<?>> create(Class<?> clazz, Property<?> value)
       {
-         return Optional.of(super.create(clazz, value, name).orElse(new InnerBeanEditor<>(value, this, name)));
+         return Optional.of(super.create(clazz, value).orElse(new InnerBeanEditor<>(value, this)));
       }
    }
 
    private class InnerBeanEditor<U> extends Editor<U>
    {
-      private final ImmutableEditor<U> innerEditor;
+      private final Lazy<ImmutableEditor<U>> innerEditor;
       private final FlowPane container = new FlowPane();
 
-      InnerBeanEditor(Property<U> property, Factory factory, String name)
+      InnerBeanEditor(Property<U> property, Factory factory)
       {
          super(property);
-         innerEditor = new ImmutableEditor<>(property, factory);
+         innerEditor = Lazy.of(() -> new ImmutableEditor<>(property, factory));
          Button edit = new Button("Edit...");
          edit.setOnAction(e ->
                           {
-                             editorStack.push(Tuple.of(name, innerEditor));
+                             editorStack.push(Tuple.of(new SimpleObjectProperty<>(property.getName()), innerEditor.get()));
                              updateEditorState();
                           });
          container.getChildren().add(edit);
@@ -128,17 +148,12 @@ public class RecursiveBeanEditor<T> extends Editor<T>
    private static class BreadCrumbItem
    {
       private final int index;
-      private final String name;
+      private final ObservableValue<String> name;
 
-      private BreadCrumbItem(int index, String name)
+      private BreadCrumbItem(int index, ObservableValue<String> name)
       {
          this.index = index;
          this.name = name;
-      }
-
-      @Override public String toString()
-      {
-         return name;
       }
    }
 }
