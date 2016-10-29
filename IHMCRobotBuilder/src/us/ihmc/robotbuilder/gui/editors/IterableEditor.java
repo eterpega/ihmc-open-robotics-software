@@ -7,16 +7,18 @@ import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.GridPane;
 import javaslang.collection.Stream;
 import us.ihmc.robotbuilder.gui.Editor;
 import us.ihmc.robotbuilder.gui.FontAwesomeLabel;
+import us.ihmc.robotics.immutableRobotDescription.NamedObject;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static us.ihmc.robotbuilder.util.FunctionalObservableValue.functional;
 import static us.ihmc.robotbuilder.util.NoCycleProperty.noCycle;
@@ -54,6 +56,29 @@ public class IterableEditor<T> extends Editor<Iterable<T>>
             editorContainer.expandedProperty().removeListener(this);
          }
       });
+
+      observeTitleChanges();
+   }
+
+   private void observeTitleChanges()
+   {
+      final int maxTextLength = 70;
+      functional(valueProperty()).consume((newValue) ->
+                                  {
+                                     String text = StreamSupport.stream(newValue.spliterator(), false)
+                                                                .map(item -> item instanceof NamedObject ? ((NamedObject)item).getName() : item.toString())
+                                                                .collect(Collectors.joining(", "));
+                                     if (text.length() > maxTextLength)
+                                       text = text.substring(0, maxTextLength - 4) + " ...";
+                                     if (text.isEmpty())
+                                     {
+                                        editorContainer.setText("[]");
+                                     }
+                                     else
+                                     {
+                                        editorContainer.setText(text);
+                                     }
+                                  });
    }
 
    private void observeValueChanges()

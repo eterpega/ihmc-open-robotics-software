@@ -3,11 +3,14 @@ package us.ihmc.robotbuilder.gui.editors;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
+import javafx.geometry.Insets;
+import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javaslang.Tuple;
 import javaslang.collection.List;
+import org.controlsfx.control.spreadsheet.Grid;
 import org.jetbrains.annotations.NotNull;
 import us.ihmc.robotbuilder.gui.Editor;
 import us.ihmc.robotbuilder.gui.ModifiableProperty;
@@ -39,6 +42,9 @@ public class ImmutableEditor<T> extends Editor<T>
       functional(valueProperty())
             .filter(newValue -> newValue != null)
             .consume(this::updateUIFromBean);
+
+      editor.setVgap(5);
+      editor.setHgap(10);
    }
 
    private void updateUIFromBean(@NotNull T bean)
@@ -65,6 +71,8 @@ public class ImmutableEditor<T> extends Editor<T>
 
                         Label label = new Label(property.getName());
                         editor.add(label, 0, index);
+                        label.setPadding(new Insets(5, 0, 0, 0));
+                        GridPane.setValignment(label, VPos.TOP);
                         editor.add(propertyEditor.getEditor(), 1, index);
                      });
    }

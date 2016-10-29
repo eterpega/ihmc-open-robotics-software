@@ -97,16 +97,6 @@ public class MainWindow extends Application
             functional(treeView.focusProperty())
                   .flatMapOptional(Function.identity())
                   .consume(this::updateUIState);
-            /*functional(treeView.focusProperty())
-                      .flatMapOptional(Function.identity())
-                      .map(newSelectedItem -> {
-                         RecursiveBeanEditor<JointDescription> editor = new RecursiveBeanEditor<>(newSelectedItem.getFocusedNode());
-                         functional(editor.valueProperty())
-                                                  .consume(editedValue -> updateUIState(newSelectedItem.replace(newSelectedItem.getFocusedNode().withValue(editedValue))));
-                         return editor;
-                      })
-                      .map(RecursiveBeanEditor::getEditor)
-                      .consume(jointSettings::setContent);*/
 
             functional(view3D.jointTreeProperty())
                   .avoidCycles()

@@ -42,6 +42,6 @@ public class FontAwesomeLabel extends Label
 
    private void init()
    {
-      setStyle("-fx-font-family: \"FontAwesome\";");
+      setStyle("-fx-font-family: \"FontAwesome\"; -fx-text-fill: black;");
    }
 }

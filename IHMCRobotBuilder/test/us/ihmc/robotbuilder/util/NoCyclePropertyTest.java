@@ -1,6 +1,7 @@
 package us.ihmc.robotbuilder.util;
 
 import javafx.beans.InvalidationListener;
+import javafx.beans.property.Property;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.value.ChangeListener;
 import org.junit.Test;
@@ -136,5 +137,12 @@ public class NoCyclePropertyTest
 
       assertEquals("TestName", property1.getName());
       assertEquals(bean, property1.getBean());
+   }
+
+   @Test
+   public void testNoCycleOfNoCycleReturnsTheSameInstance()
+   {
+      Property<Number> property = noCycle(new SimpleIntegerProperty(0));
+      assertEquals(property, noCycle(property));
    }
 }

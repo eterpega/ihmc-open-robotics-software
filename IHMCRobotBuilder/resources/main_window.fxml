@@ -6,6 +6,7 @@
 <?import us.ihmc.robotbuilder.gui.JointTreeView?>
 <?import us.ihmc.robotbuilder.gui.Preview3D?>
 <?import us.ihmc.robotbuilder.gui.JointSettingsHolder?>
+<?import us.ihmc.robotbuilder.gui.FontAwesomeLabel?>
 <BorderPane minHeight="300" minWidth="300" xmlns="http://javafx.com/javafx/8.0.76-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="us.ihmc.robotbuilder.MainWindow">
     <top>
         <MenuBar>
@@ -14,13 +15,16 @@
                     <accelerator>
                         <KeyCodeCombination alt="UP" code="O" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                     </accelerator>
+                    <graphic>
+                        <FontAwesomeLabel text="&#xf115;" />
+                    </graphic>
                 </MenuItem>
             </Menu>
         </MenuBar>
     </top>
     <center>
         <SplitPane dividerPositions="0.5">
-            <SplitPane dividerPositions="0.7" orientation="VERTICAL">
+            <SplitPane dividerPositions="0.5" orientation="VERTICAL">
                 <JointTreeView fx:id="treeView" prefWidth="200" />
                 <JointSettingsHolder fx:id="jointSettings" />
             </SplitPane>

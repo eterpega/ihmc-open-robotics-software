@@ -4,6 +4,7 @@ import impl.org.controlsfx.skin.BreadCrumbBarSkin.BreadCrumbButton;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
+import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.TreeItem;
@@ -14,6 +15,7 @@ import javaslang.Tuple;
 import javaslang.Tuple2;
 import org.controlsfx.control.BreadCrumbBar;
 import us.ihmc.robotbuilder.gui.Editor;
+import us.ihmc.robotbuilder.gui.FontAwesomeLabel;
 import us.ihmc.robotics.immutableRobotDescription.NamedObject;
 
 import java.util.Objects;
@@ -77,7 +79,10 @@ public class RecursiveBeanEditor<T> extends Editor<T>
    private void updateEditorState()
    {
       if (editorStack.size() > 0)
+      {
          container.setCenter(editorStack.peek()._2.getEditor());
+         BorderPane.setMargin(container.getCenter(), new Insets(5, 0, 0, 10));
+      }
       else
          container.setCenter(null);
 
@@ -130,7 +135,7 @@ public class RecursiveBeanEditor<T> extends Editor<T>
       {
          super(property);
          innerEditor = Lazy.of(() -> new ImmutableEditor<>(property, factory));
-         Button edit = new Button("Edit...");
+         Button edit = new Button("Edit...", new FontAwesomeLabel("\uf040"));
          edit.setOnAction(e ->
                           {
                              editorStack.push(Tuple.of(new SimpleObjectProperty<>(property.getName()), innerEditor.get()));
