@@ -371,4 +371,18 @@ import javax.vecmath.*;
       }
       return result;
    }
+
+   @Override public String toString()
+   {
+      Vector3f rotation = getRotationEulerAngles();
+      rotation.x = (float)Math.toDegrees(rotation.x);
+      rotation.y = (float)Math.toDegrees(rotation.y);
+      rotation.z = (float)Math.toDegrees(rotation.z);
+      Vector3f scale = getScale();
+      Vector3f translation = getTranslation();
+      return "Transform {\n" +
+            "\trotation = [" + rotation.x + "°, " + rotation.y + "°, " + rotation.z + "°],\n" +
+            "\tscale = [" + scale.x + ", " + scale.y + ", " + scale.z + "],\n" +
+            "\ttranslation = [" + translation.x + ", " + translation.y + ", " + translation.z + "]\n}";
+   }
 }

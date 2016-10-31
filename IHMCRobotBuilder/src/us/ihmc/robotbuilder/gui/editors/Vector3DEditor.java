@@ -8,6 +8,7 @@ import us.ihmc.robotbuilder.gui.Editor;
 import javax.vecmath.Vector3d;
 import java.util.Arrays;
 
+import static us.ihmc.robotbuilder.util.FunctionalObservableValue.functional;
 import static us.ihmc.robotbuilder.util.NoCycleProperty.noCycle;
 
 /**
@@ -15,11 +16,12 @@ import static us.ihmc.robotbuilder.util.NoCycleProperty.noCycle;
  */
 public class Vector3DEditor extends Editor<Vector3d>
 {
-   private final EditorComponent component = new EditorComponent();
+   private final EditorComponent component;
 
    public Vector3DEditor(Property<Vector3d> valueProperty)
    {
       super(noCycle(valueProperty));
+      component = new EditorComponent();
    }
 
    @Override public Node getEditor()
@@ -41,7 +43,7 @@ public class Vector3DEditor extends Editor<Vector3d>
          }
          getChildren().addAll(textFields);
 
-         valueProperty().addListener((observable, oldValue, newValue) ->
+         functional(valueProperty()).consume(newValue ->
                                    {
                                       textFields[0].valueProperty().setValue(newValue.x);
                                       textFields[1].valueProperty().setValue(newValue.y);
@@ -50,7 +52,7 @@ public class Vector3DEditor extends Editor<Vector3d>
 
          Arrays.stream(textFields)
                .map(NumberField::valueProperty)
-               .forEach(textProperty -> textProperty.addListener((observable, oldValue, newValue) -> valueProperty().setValue(getValue())));
+               .forEach(numberProperty -> numberProperty.addListener((observable, oldValue, newValue) -> valueProperty().setValue(getValue())));
       }
 
       void setValue(Vector3d value)

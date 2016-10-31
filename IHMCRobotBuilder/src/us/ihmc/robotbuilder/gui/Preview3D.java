@@ -207,7 +207,7 @@ public class Preview3D extends BorderPane
       sceneRoot.map((sceneRoot) ->
       {
          applyDifferencesByNode(sceneRoot, TreeDifference.difference(sceneRoot.getOriginalTree(), newRoot));
-         return null;
+         return sceneRoot;
       }).orElseGet(() -> {
          Graphics3DNode newGraphicsRoot = treeMapping.mapNewNode(newRoot);
          this.sceneRoot = Optional.of(newGraphicsRoot);
@@ -279,11 +279,11 @@ public class Preview3D extends BorderPane
    {
       Group geometryGroup = new Group();
       TriangleMeshDescription sourceMesh = geometryDescription.toTriangleGeometry().getTriangleMesh();
-      PhongMaterial material = convertMaterial(geometryDescription.getMaterial());
+      PhongMaterial material = memoized(Preview3D::convertMaterial).apply(geometryDescription.getMaterial());
       PhongMaterial highlightMaterial = new PhongMaterial(material.getDiffuseColor().interpolate(Color.LIGHTBLUE, 0.85));
-      HighlightMeshView meshView = new HighlightMeshView(convertMesh(sourceMesh), material, highlightMaterial);
+      HighlightMeshView meshView = new HighlightMeshView(memoized(Preview3D::convertMesh).apply(sourceMesh), material, highlightMaterial);
       geometryGroup.getChildren().add(meshView);
-      geometryGroup.getTransforms().add(convertTransform(geometryDescription.getTransform()));
+      geometryGroup.getTransforms().add(memoized(Preview3D::convertTransform).apply(geometryDescription.getTransform()));
       return geometryGroup;
    }
 

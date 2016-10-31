@@ -31,7 +31,7 @@ public class TransformEditor extends Editor<TransformDescription>
       Property<Vector3d> translationProperty = new SimpleObjectProperty<>();
       functional(translationProperty).consume(this::setTranslation);
 
-      valueProperty().addListener((observable, oldValue, newValue) ->
+      functional(valueProperty()).consume(newValue ->
                                   {
                                      rotationProperty.setValue(getRotation());
                                      scaleProperty.setValue(getScale());
