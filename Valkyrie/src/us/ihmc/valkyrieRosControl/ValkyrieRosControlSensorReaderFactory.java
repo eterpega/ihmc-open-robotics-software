@@ -210,4 +210,14 @@ public class ValkyrieRosControlSensorReaderFactory implements SensorReaderFactor
    {
       sensorReader.setupLowLevelControlWithPacketCommunicator(packetCommunicator);
    }
+
+   public void enableAccelerationIntegration(boolean enable)
+   {
+      sensorReader.enableAccelerationIntegration(enable);
+   }
+   
+   public void enableTorqueHysteresisCompensator(boolean enable)
+   {
+      sensorReader.enableTorqueHysteresisCompensator(enable);
+   }
 }

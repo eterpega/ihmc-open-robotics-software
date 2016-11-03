@@ -24,6 +24,7 @@ import us.ihmc.humanoidRobotics.communication.packets.walking.WalkingControllerF
 import us.ihmc.robotics.MathTools;
 import us.ihmc.robotics.dataStructures.listener.VariableChangedListener;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
+import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
 import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
 import us.ihmc.robotics.dataStructures.variable.EnumYoVariable;
 import us.ihmc.robotics.dataStructures.variable.YoVariable;
@@ -66,6 +67,9 @@ public class ValkyrieRosControlLowLevelController
    private final DoubleYoVariable calibrationDuration = new DoubleYoVariable("calibrationDuration", registry);
    private final DoubleYoVariable calibrationStartTime = new DoubleYoVariable("calibrationStartTime", registry);
    private final DoubleYoVariable timeInCalibration = new DoubleYoVariable("timeInCalibration", registry);
+
+   private final BooleanYoVariable enableTorqueHysteresisCompensator = new BooleanYoVariable("enableTorqueHysteresisCompensator", registry);
+   private final BooleanYoVariable enableAccelerationIntegration = new BooleanYoVariable("enableAccelerationIntegration", registry);
 
    private final EnumYoVariable<ValkyrieLowLevelControlModeMessage.ControlMode> currentControlMode = new EnumYoVariable<>("lowLevelControlMode", registry, ValkyrieLowLevelControlModeMessage.ControlMode.class);
 
@@ -294,8 +298,11 @@ public class ValkyrieRosControlLowLevelController
 
          if (taskExecutor.isDone() && currentHighLevelState.get() != HighLevelState.DO_NOTHING_BEHAVIOR)
          {
-            highLevelStateCommand.setHighLevelState(HighLevelState.DO_NOTHING_BEHAVIOR);
-            commandInputManager.submitCommand(highLevelStateCommand);
+            if (commandInputManager != null)
+            {
+               highLevelStateCommand.setHighLevelState(HighLevelState.DO_NOTHING_BEHAVIOR);
+               commandInputManager.submitCommand(highLevelStateCommand);
+            }
          }
 
          if (newRequest == null)
@@ -304,6 +311,8 @@ public class ValkyrieRosControlLowLevelController
          switch (newRequest)
          {
          case CALIBRATION:
+            if (commandInputManager == null)
+               break;
             highLevelStateCommand.setHighLevelState(HighLevelState.CALIBRATION);
             commandInputManager.submitCommand(highLevelStateCommand);
             taskExecutor.submit(rampUpIHMCControlRatioTask);
@@ -312,8 +321,11 @@ public class ValkyrieRosControlLowLevelController
             currentControlMode.set(ValkyrieLowLevelControlModeMessage.ControlMode.CALIBRATION);
             break;
          case HIGH_LEVEL_CONTROL:
-            highLevelStateCommand.setHighLevelState(HighLevelState.WALKING);
-            commandInputManager.submitCommand(highLevelStateCommand);
+            if (commandInputManager != null)
+            {
+               highLevelStateCommand.setHighLevelState(HighLevelState.WALKING);
+               commandInputManager.submitCommand(highLevelStateCommand);
+            }
             taskExecutor.submit(rampUpIHMCControlRatioTask);
             currentControlMode.set(ValkyrieLowLevelControlModeMessage.ControlMode.HIGH_LEVEL_CONTROL);
             break;
@@ -351,8 +363,9 @@ public class ValkyrieRosControlLowLevelController
             break;
          }
 
-         torqueHysteresisCompensator.compute();
-         if (ValkyrieRosControlController.INTEGRATE_ACCELERATIONS_AND_CONTROL_VELOCITIES)
+         if (enableTorqueHysteresisCompensator.getBooleanValue())
+            torqueHysteresisCompensator.compute();
+         if (enableAccelerationIntegration.getBooleanValue())
             accelerationIntegration.compute();
          break;
       }
@@ -443,6 +456,16 @@ public class ValkyrieRosControlLowLevelController
    public void attachJointTorqueOffsetEstimator(JointTorqueOffsetEstimator jointTorqueOffsetEstimator)
    {
       this.jointTorqueOffsetEstimator = jointTorqueOffsetEstimator;
+   }
+
+   public void enableAccelerationIntegration(boolean enable)
+   {
+      enableAccelerationIntegration.set(enable);
+   }
+   
+   public void enableTorqueHysteresisCompensator(boolean enable)
+   {
+      enableTorqueHysteresisCompensator.set(enable);
    }
 
    private abstract class AbstractLowLevelTask implements Task

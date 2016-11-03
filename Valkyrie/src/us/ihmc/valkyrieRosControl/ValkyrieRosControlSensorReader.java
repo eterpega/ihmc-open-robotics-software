@@ -189,4 +189,14 @@ public class ValkyrieRosControlSensorReader implements SensorReader, JointTorque
    {
       lowlLevelController.setupLowLevelControlWithPacketCommunicator(packetCommunicator);
    }
+
+   public void enableAccelerationIntegration(boolean enable)
+   {
+      lowlLevelController.enableAccelerationIntegration(enable);
+   }
+   
+   public void enableTorqueHysteresisCompensator(boolean enable)
+   {
+      lowlLevelController.enableTorqueHysteresisCompensator(enable);
+   }
 }
