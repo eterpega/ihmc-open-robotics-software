@@ -1,6 +1,7 @@
-package us.ihmc.robotbuilder.util;
+package us.ihmc.robotics.util;
 
 import org.junit.Test;
+import us.ihmc.robotics.util.FloatArrayCollector;
 
 import java.util.Arrays;
 import java.util.Collections;

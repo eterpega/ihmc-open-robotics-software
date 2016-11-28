@@ -1,57 +1,36 @@
 package us.ihmc.robotics.immutableRobotDescription;
 
-import org.immutables.value.Value.Default;
-import org.immutables.value.Value.Immutable;
-import org.immutables.value.Value.Modifiable;
 import us.ihmc.robotics.immutableRobotDescription.graphics.GraphicsGroupDescription;
-import us.ihmc.robotics.immutableRobotDescription.graphics.ShapeDescription;
+import us.ihmc.robotics.util.Tree;
 
-import javax.vecmath.Vector3d;
-import java.util.Collection;
-
-@Immutable @Modifiable public abstract class RobotDescription extends JointDescription implements GraphicsObjectsHolder
+public class RobotDescription implements GraphicsObjectsHolder, NamedObject
 {
-   @Default @Override public Vector3d getOffsetFromJoint()
+   private final Tree<JointDescription> rootJoint;
+   private final String name;
+
+   public RobotDescription(Tree<JointDescription> rootJoint, String name)
    {
-      return new Vector3d();
+      this.rootJoint = rootJoint;
+      this.name = name;
    }
 
-   @Default @Override public LinkDescription getLink()
+   public Tree<JointDescription> getRootJoint()
    {
-      return LinkDescription.empty("empty_" + getName());
+      return rootJoint;
    }
 
-   @Override public ModifiableRobotDescription toModifiable()
+   public RobotDescription withRootJoint(Tree<JointDescription> newRoot)
    {
-      return ModifiableRobotDescription.create().from(this);
+      return new RobotDescription(newRoot, name);
    }
 
    // TODO: the following methods need to be tested
    public JointDescription getJointDescription(String name)
    {
-      for (JointDescription rootJoint : getChildrenJoints())
-      {
-         JointDescription jointDescription = getJointDescriptionRecursively(name, rootJoint);
-         if (jointDescription != null)
-            return jointDescription;
-      }
-
-      return null;
-   }
-
-   private JointDescription getJointDescriptionRecursively(String name, JointDescription jointDescription)
-   {
-      if (jointDescription.getName().equals(name))
-         return jointDescription;
-
-      Collection<JointDescription> childJointDescriptions = jointDescription.getChildrenJoints();
-      for (JointDescription childJointDescription : childJointDescriptions)
-      {
-         JointDescription jointDescriptionRecursively = getJointDescriptionRecursively(name, childJointDescription);
-         if (jointDescriptionRecursively != null)
-            return jointDescriptionRecursively;
-      }
-      return null;
+      return rootJoint.stream()
+                      .filter(node -> name.equals(node.getName()))
+                      .findFirst()
+                      .orElse(null);
    }
 
    @Override public GraphicsGroupDescription getCollisionObject(String name)
@@ -75,15 +54,16 @@ import java.util.Collection;
 
    @Override public String toString()
    {
-      return super.toString();
+      return rootJoint.toString();
    }
 
-   public static ImmutableRobotDescription.Builder builder()
+   @Override public String getName()
    {
-      return ImmutableRobotDescription.builder();
+      return name;
    }
 
-   static abstract class Builder implements JointDescription.Builder
+   public RobotDescription withName(String newName)
    {
+      return new RobotDescription(rootJoint, newName);
    }
 }

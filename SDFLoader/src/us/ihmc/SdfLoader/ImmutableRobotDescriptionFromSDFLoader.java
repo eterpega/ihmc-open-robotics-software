@@ -20,6 +20,7 @@ import us.ihmc.robotics.immutableRobotDescription.OneDoFJointDescription.LimitSt
 import us.ihmc.robotics.immutableRobotDescription.graphics.GraphicsGroupDescription;
 import us.ihmc.robotics.lidar.LidarScanParameters;
 import us.ihmc.robotics.partNames.JointNameMap;
+import us.ihmc.robotics.util.Tree;
 import us.ihmc.simulationconstructionset.simulatedSensors.SimulatedLIDARSensorLimitationParameters;
 import us.ihmc.simulationconstructionset.simulatedSensors.SimulatedLIDARSensorNoiseParameters;
 import us.ihmc.simulationconstructionset.simulatedSensors.SimulatedLIDARSensorUpdateParameters;
@@ -54,7 +55,6 @@ public class ImmutableRobotDescriptionFromSDFLoader
       List<String> resourceDirectories = generalizedSDFRobotModel.getResourceDirectories();
 
       String name = generalizedSDFRobotModel.getName();
-      ImmutableRobotDescription.Builder robotDescription = RobotDescription.builder().name(name);
 
       ArrayList<SDFLinkHolder> rootLinks = generalizedSDFRobotModel.getRootLinks();
 
@@ -90,15 +90,14 @@ public class ImmutableRobotDescriptionFromSDFLoader
       ConversionParameters conversionParameters = new ConversionParameters(useCollisionMeshes, enableTorqueVelocityLimits, enableDamping,
                                                                            sdfJointNameToGroundContactPoints, sdfJointNameMap, resourceDirectories);
 
+      List<Tree<JointDescription>> children = new ArrayList<>();
       for (SDFJointHolder child : rootLink.getChildren())
       {
-         JointDescription convertedChildJoint = convertJointsRecursively(child, false, conversionParameters);
-         rootJointDescription.addChildrenJoints(convertedChildJoint);
+         Tree<JointDescription> convertedChildJoint = convertJointsRecursively(child, false, conversionParameters);
+         children.add(convertedChildJoint);
       }
 
-      robotDescription.addChildrenJoints(rootJointDescription.build());
-
-      return robotDescription.build();
+      return new RobotDescription(new Tree<>(rootJointDescription.build(), children), name);
    }
 
    private Map<String, List<Vector3d>> groupContactPointsByJoint(JointNameMap sdfJointNameMap)
@@ -211,7 +210,7 @@ public class ImmutableRobotDescriptionFromSDFLoader
       return scsLinkBuilder.build();
    }
 
-   private JointDescription convertJointsRecursively(SDFJointHolder joint, boolean doNotSimulateJoint, ConversionParameters parameters)
+   private Tree<JointDescription> convertJointsRecursively(SDFJointHolder joint, boolean doNotSimulateJoint, ConversionParameters parameters)
    {
       final Set<String> lastSimulatedJoints = parameters.sdfJointNameMap != null ? parameters.sdfJointNameMap.getLastSimulatedJoints() : new HashSet<String>();
 
@@ -318,12 +317,13 @@ public class ImmutableRobotDescriptionFromSDFLoader
          doNotSimulateJoint = true;
       }
 
+      List<Tree<JointDescription>> children = new ArrayList<>();
       for (SDFJointHolder child : joint.getChildLinkHolder().getChildren())
       {
-         JointDescription childJoint = convertJointsRecursively(child, doNotSimulateJoint, parameters);
-         scsJointBuilder.addChildrenJoints(childJoint);
+         Tree<JointDescription> childJoint = convertJointsRecursively(child, doNotSimulateJoint, parameters);
+         children.add(childJoint);
       }
-      return scsJointBuilder.build();
+      return new Tree<>(scsJointBuilder.build(), children);
    }
 
    ///TODO:

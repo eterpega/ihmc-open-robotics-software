@@ -1,15 +1,15 @@
-package us.ihmc.robotbuilder.util;
+package us.ihmc.robotics.util;
 
 import org.junit.Test;
-import us.ihmc.robotbuilder.util.TreeDifference.Difference;
-import us.ihmc.robotbuilder.util.TreeDifference.DifferencesByNode;
+import us.ihmc.robotics.util.TreeDifference.Difference;
+import us.ihmc.robotics.util.TreeDifference.DifferencesByNode;
 
 import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static us.ihmc.robotbuilder.util.TreeDifference.difference;
+import static us.ihmc.robotics.util.TreeDifference.difference;
 
 public class TreeDifferenceTest extends TreeTestBase
 {

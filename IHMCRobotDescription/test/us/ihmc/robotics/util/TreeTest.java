@@ -1,7 +1,8 @@
-package us.ihmc.robotbuilder.util;
+package us.ihmc.robotics.util;
 
 import javafx.scene.control.TreeItem;
 import javaslang.collection.List;
+import org.junit.Assert;
 import org.junit.Test;
 import us.ihmc.tools.testing.JUnitTools;
 
@@ -27,8 +28,8 @@ public class TreeTest extends TreeTestBase
    @Test public void testGetChildReturnsTheCorrectChild()
    {
       List<Tree<Integer>> children = BINARY_TREE.childStream().collect(List.collector());
-      assertEquals(BINARY_TREE.getChild(0), children.get(0));
-      assertEquals(BINARY_TREE.getChild(1), children.get(1));
+      Assert.assertEquals(BINARY_TREE.getChild(0), children.get(0));
+      Assert.assertEquals(BINARY_TREE.getChild(1), children.get(1));
 
       try {
          BINARY_TREE.getChild(BINARY_TREE.countChildren());
@@ -41,7 +42,7 @@ public class TreeTest extends TreeTestBase
    @Test
    public void testToStringContainsValue()
    {
-      Tree<String> test = new Tree<>("abcd1234", empty());
+      Tree<String> test = new Tree<>("abcd1234", List.empty());
       assertTrue(test.toString().contains(test.getValue()));
    }
 

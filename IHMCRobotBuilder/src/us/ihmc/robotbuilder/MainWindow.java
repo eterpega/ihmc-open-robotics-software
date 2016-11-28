@@ -15,12 +15,16 @@ import javafx.stage.FileChooser;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javaslang.control.Option;
+import javaslang.control.Try;
 import us.ihmc.robotbuilder.gui.JointSettingsHolder;
 import us.ihmc.robotbuilder.gui.JointTreeView;
 import us.ihmc.robotbuilder.gui.Preview3D;
+import us.ihmc.robotbuilder.gui.editors.NewBeanEditor;
+import us.ihmc.robotbuilder.gui.editors.PropertyEditorFactory;
 import us.ihmc.robotbuilder.model.Loader;
-import us.ihmc.robotbuilder.util.Tree;
-import us.ihmc.robotbuilder.util.TreeFocus;
+import us.ihmc.robotics.immutableRobotDescription.ModifiablePinJointDescription;
+import us.ihmc.robotics.util.Tree;
+import us.ihmc.robotics.util.TreeFocus;
 import us.ihmc.robotbuilder.util.Util;
 import us.ihmc.robotics.immutableRobotDescription.JointDescription;
 
@@ -28,7 +32,7 @@ import java.io.File;
 import java.util.Optional;
 import java.util.function.Function;
 
-import static us.ihmc.robotbuilder.util.FunctionalObservableValue.functional;
+import static us.ihmc.robotics.util.FunctionalObservableValue.functional;
 
 /**
  *
@@ -62,6 +66,8 @@ public class MainWindow extends Application
       stage.setScene(scene);
       stage.setMaximized(true);
       stage.show();
+
+      NewBeanEditor.createDialog(ModifiablePinJointDescription.create(), joint -> Try.run(() -> joint.toImmutable()), new PropertyEditorFactory());
    }
 
    /**
@@ -91,7 +97,7 @@ public class MainWindow extends Application
          return Option.ofOptional(dialog.showAndWait());
       })).flatMap(immutableRobotDescription -> Util.runLaterInUI(() -> {
          immutableRobotDescription.peek(description -> {
-            Tree<JointDescription> tree = Tree.adapt(description, JointDescription::getChildrenJoints);
+            Tree<JointDescription> tree = description.getRootJoint();
 
             jointSettings.setFocusProperty(treeView.focusProperty());
             functional(treeView.focusProperty())

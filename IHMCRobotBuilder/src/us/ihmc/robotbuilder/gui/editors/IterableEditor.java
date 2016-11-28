@@ -10,6 +10,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.GridPane;
 import javaslang.collection.Stream;
+import us.ihmc.robotbuilder.gui.Creator;
 import us.ihmc.robotbuilder.gui.Editor;
 import us.ihmc.robotbuilder.gui.FontAwesomeLabel;
 import us.ihmc.robotics.immutableRobotDescription.NamedObject;
@@ -20,8 +21,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import static us.ihmc.robotbuilder.util.FunctionalObservableValue.functional;
-import static us.ihmc.robotbuilder.util.NoCycleProperty.noCycle;
+import static us.ihmc.robotics.util.FunctionalObservableValue.functional;
+import static us.ihmc.robotics.util.NoCycleProperty.noCycle;
 
 /**
  *
@@ -39,7 +40,7 @@ public class IterableEditor<T> extends Editor<Iterable<T>>
       this.editorFactory = editorFactory;
 
       editorContainer.setExpanded(false);
-      editorContainer.setText("Click to expand");
+      editorContainer.setText("[]");
       editorContainer.setAnimated(false);
 
       editorContainer.expandedProperty().addListener(new ChangeListener<Boolean>()
@@ -105,12 +106,29 @@ public class IterableEditor<T> extends Editor<Iterable<T>>
                         Button addButton = new Button("Add");
                         GridPane.setRowIndex(addButton, editorGrid.getChildren().size());
                         editorGrid.getChildren().add(addButton);
+
+                        addButton.setOnAction(event ->
+                                              {
+                                                 CreatorFactory factory = new CreatorFactory();
+                                                 factory.create(value.get(0).getClass()).map(Creator::create).map(future -> future.onSuccess(newValueOpt -> {
+                                                    newValueOpt.ifPresent(newValue1 -> {
+                                                       value.add((T) newValue1);
+                                                       updateValue();
+                                                    });
+
+                                                 }));
+                                              });
                      });
    }
 
    @Override public Node getEditor()
    {
       return editorContainer;
+   }
+
+   private void updateValue()
+   {
+      valueProperty().setValue(Collections.unmodifiableCollection(IterableEditor.this.value));
    }
 
    private class ListItemEditor extends GridPane
@@ -182,11 +200,6 @@ public class IterableEditor<T> extends Editor<Iterable<T>>
                updateValue();
             }
          });
-      }
-
-      private void updateValue()
-      {
-         valueProperty().setValue(Collections.unmodifiableCollection(IterableEditor.this.value));
       }
 
       private void swapEditors(int index1, int index2)

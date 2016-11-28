@@ -1,15 +1,16 @@
-package us.ihmc.robotbuilder.util;
+package us.ihmc.robotics.util;
 
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.value.ChangeListener;
 import org.junit.Test;
+import us.ihmc.robotics.util.NoCycleProperty;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.*;
-import static us.ihmc.robotbuilder.util.NoCycleProperty.noCycle;
+import static us.ihmc.robotics.util.NoCycleProperty.noCycle;
 
 public class NoCyclePropertyTest
 {

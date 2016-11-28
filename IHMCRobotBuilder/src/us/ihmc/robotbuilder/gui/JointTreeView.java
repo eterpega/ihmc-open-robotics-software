@@ -8,21 +8,24 @@ import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javaslang.collection.Map;
 import org.jetbrains.annotations.Nullable;
-import us.ihmc.robotbuilder.util.*;
-import us.ihmc.robotbuilder.util.TreeDifference.DifferencesByNode;
-import us.ihmc.robotbuilder.util.TreeFocus.ChildIndexOf;
+import us.ihmc.robotics.util.Tree;
+import us.ihmc.robotics.util.TreeDifference;
+import us.ihmc.robotics.util.TreeDifference.DifferencesByNode;
+import us.ihmc.robotics.util.TreeFocus;
+import us.ihmc.robotics.util.TreeFocus.ChildIndexOf;
 import us.ihmc.robotics.immutableRobotDescription.JointDescription;
+import us.ihmc.robotics.util.TreeMapping;
 
 import java.util.List;
 import java.util.Optional;
 
 import static java.lang.Integer.compare;
-import static us.ihmc.robotbuilder.util.FunctionalObservableValue.functional;
-import static us.ihmc.robotbuilder.util.NoCycleProperty.noCycle;
-import static us.ihmc.robotbuilder.util.TreeFocus.pathTo;
+import static us.ihmc.robotics.util.FunctionalObservableValue.functional;
+import static us.ihmc.robotics.util.NoCycleProperty.noCycle;
+import static us.ihmc.robotics.util.TreeFocus.pathTo;
 
 /**
- * Represents a tree view of a robot tree (see {@link Tree<JointDescription>}).
+ * Represents a tree view of a robot tree (see {@link Tree <JointDescription>}).
  */
 public class JointTreeView extends TreeView<JointDescription>
 {

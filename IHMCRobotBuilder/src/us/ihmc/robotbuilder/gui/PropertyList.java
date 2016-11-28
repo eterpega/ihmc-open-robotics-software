@@ -1,7 +1,7 @@
 package us.ihmc.robotbuilder.gui;
 
 import javafx.beans.value.ObservableValue;
-import us.ihmc.robotbuilder.util.FunctionalObservableValue;
+import us.ihmc.robotics.util.FunctionalObservableValue;
 
 import java.util.stream.Collectors;
 import java.util.stream.Stream;

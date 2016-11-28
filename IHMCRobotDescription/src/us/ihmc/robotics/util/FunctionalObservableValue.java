@@ -1,4 +1,4 @@
-package us.ihmc.robotbuilder.util;
+package us.ihmc.robotics.util;
 
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;

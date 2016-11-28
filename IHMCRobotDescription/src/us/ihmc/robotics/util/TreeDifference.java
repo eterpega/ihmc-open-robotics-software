@@ -1,4 +1,4 @@
-package us.ihmc.robotbuilder.util;
+package us.ihmc.robotics.util;
 
 import javaslang.Tuple;
 import javaslang.Tuple2;

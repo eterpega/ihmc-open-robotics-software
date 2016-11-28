@@ -4,13 +4,13 @@ import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.ScrollPane;
 import us.ihmc.robotbuilder.gui.editors.RecursiveBeanEditor;
-import us.ihmc.robotbuilder.util.Tree;
-import us.ihmc.robotbuilder.util.TreeFocus;
+import us.ihmc.robotics.util.Tree;
+import us.ihmc.robotics.util.TreeFocus;
 import us.ihmc.robotics.immutableRobotDescription.JointDescription;
 
 import java.util.Optional;
 
-import static us.ihmc.robotbuilder.util.NoCycleProperty.noCycle;
+import static us.ihmc.robotics.util.NoCycleProperty.noCycle;
 
 /**
  *

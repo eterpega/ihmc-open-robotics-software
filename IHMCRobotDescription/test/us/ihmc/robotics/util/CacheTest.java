@@ -1,6 +1,7 @@
-package us.ihmc.robotbuilder.util;
+package us.ihmc.robotics.util;
 
 import org.junit.Test;
+import us.ihmc.robotics.util.Cache;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;

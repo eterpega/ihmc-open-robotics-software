@@ -30,7 +30,10 @@ sourceSets {
     }
 }
 
-sourceCompatibility = 1.7
+compileJava {
+    sourceCompatibility = "1.8"
+    targetCompatibility = "1.8"
+}
 version = "${getOpenRoboticsSoftwareProject().version}"
 project.ext.fullVersion = "${getOpenRoboticsSoftwareProject().ext.fullVersion}"
 project.ext.vcsUrl = "${getOpenRoboticsSoftwareProject().ext.vcsUrl}"
@@ -58,6 +61,7 @@ dependencies {
     compileOnly group: 'org.immutables', name: 'value', version: '2.3'
     apt group: 'org.immutables', name: 'value', version: '2.3'
 
+    compile group: 'io.javaslang', name: 'javaslang', version: '2.0.3'
     compile group: 'net.jcip', name: 'jcip-annotations', version: '1.0'
     compile group: 'com.intellij', name: 'annotations', version: '12.0'
 

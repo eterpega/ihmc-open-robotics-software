@@ -11,8 +11,8 @@ import us.ihmc.robotics.immutableRobotDescription.graphics.TransformDescription;
 import javax.vecmath.Vector3d;
 import javax.vecmath.Vector3f;
 
-import static us.ihmc.robotbuilder.util.FunctionalObservableValue.functional;
-import static us.ihmc.robotbuilder.util.NoCycleProperty.noCycle;
+import static us.ihmc.robotics.util.FunctionalObservableValue.functional;
+import static us.ihmc.robotics.util.NoCycleProperty.noCycle;
 
 /**
  * Editor for {@link TransformDescription}.

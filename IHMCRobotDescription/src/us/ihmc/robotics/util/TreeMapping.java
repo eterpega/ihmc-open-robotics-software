@@ -1,6 +1,6 @@
-package us.ihmc.robotbuilder.util;
+package us.ihmc.robotics.util;
 
-import us.ihmc.robotbuilder.util.TreeInterface.TreeNodeMapper;
+import us.ihmc.robotics.util.TreeInterface.TreeNodeMapper;
 
 import java.util.*;
 

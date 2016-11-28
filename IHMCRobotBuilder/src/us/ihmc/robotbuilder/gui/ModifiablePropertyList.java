@@ -5,7 +5,7 @@ import javafx.beans.Observable;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
-import us.ihmc.robotbuilder.util.FunctionalObservableValue;
+import us.ihmc.robotics.util.FunctionalObservableValue;
 
 import java.util.ArrayList;
 import java.util.Iterator;

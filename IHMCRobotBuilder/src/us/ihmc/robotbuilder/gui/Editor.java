@@ -7,7 +7,7 @@ import javafx.scene.control.Control;
 import java.util.Optional;
 import java.util.function.Function;
 
-import static us.ihmc.robotbuilder.util.FunctionalObservableValue.functional;
+import static us.ihmc.robotics.util.FunctionalObservableValue.functional;
 
 /**
  *

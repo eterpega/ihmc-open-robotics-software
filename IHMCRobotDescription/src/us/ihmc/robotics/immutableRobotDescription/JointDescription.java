@@ -6,8 +6,6 @@ import java.util.List;
 
 public abstract class JointDescription implements NamedObject, LocatedObject, ModifiableObject
 {
-   public abstract List<JointDescription> getChildrenJoints();
-
    public abstract LinkDescription getLink();
 
    public abstract List<GroundContactPointDescription> getGroundContactPoints();
@@ -44,10 +42,6 @@ public abstract class JointDescription implements NamedObject, LocatedObject, Mo
    // TODO: get rid of this as soon as Immutables can generate it
    public interface Builder
    {
-      Builder addChildrenJoints(JointDescription element);
-
-      Builder addAllChildrenJoints(Iterable<? extends JointDescription> elements);
-
       Builder link(LinkDescription link);
 
       Builder addGroundContactPoints(GroundContactPointDescription element);

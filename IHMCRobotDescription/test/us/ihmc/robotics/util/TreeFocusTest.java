@@ -1,10 +1,11 @@
-package us.ihmc.robotbuilder.util;
+package us.ihmc.robotics.util;
 
 import javafx.scene.control.TreeItem;
 import javaslang.collection.List;
+import org.junit.Assert;
 import org.junit.Test;
-import us.ihmc.robotbuilder.util.TreeFocus.Breadcrumb;
-import us.ihmc.robotbuilder.util.TreeFocus.ChildIndexOf;
+import us.ihmc.robotics.util.TreeFocus.Breadcrumb;
+import us.ihmc.robotics.util.TreeFocus.ChildIndexOf;
 import us.ihmc.tools.testing.JUnitTools;
 
 import java.util.Iterator;
@@ -22,14 +23,14 @@ public class TreeFocusTest extends TreeTestBase
    {
       //noinspection OptionalGetWithoutIsPresent
       JUnitTools.testHashCodeEqualsMethods(BINARY_TREE.getFocus(), BINARY_TREE.getFocus(), BINARY_TREE.getFocus().firstChild().get());
-      JUnitTools.testHashCodeEqualsMethods(new Breadcrumb<>(BINARY_TREE, empty(), empty()),
-                                           new Breadcrumb<>(BINARY_TREE, empty(), empty()),
-                                           new Breadcrumb<>(SINGLETON_TREE, empty(), empty()));
+      JUnitTools.testHashCodeEqualsMethods(new Breadcrumb<>(BINARY_TREE, List.empty(), List.empty()),
+                                           new Breadcrumb<>(BINARY_TREE, List.empty(), List.empty()),
+                                           new Breadcrumb<>(SINGLETON_TREE, List.empty(), List.empty()));
    }
 
    @Test public void testToStringContainsUsefulInformation()
    {
-      assertTrue(new Tree<>("ABCD1234", empty()).getFocus().toString().contains("ABCD1234"));
+      assertTrue(new Tree<>("ABCD1234", List.empty()).getFocus().toString().contains("ABCD1234"));
       String childFocusString = BINARY_TREE.getFocus().firstChild().map(TreeFocus::toString).orElse("");
       assertTrue(childFocusString.contains("1") && childFocusString.contains("0") && childFocusString.contains("2")); // both root and siblings
    }
@@ -53,7 +54,7 @@ public class TreeFocusTest extends TreeTestBase
 
    @Test public void testFocusOnPathReturnsRootWithEmptyPath()
    {
-      Optional<TreeFocus<Tree<Integer>>> rootFocus = SINGLETON_TREE.getFocus().focusOnPath(empty());
+      Optional<TreeFocus<Tree<Integer>>> rootFocus = SINGLETON_TREE.getFocus().focusOnPath(List.empty());
       assertTrue(rootFocus.isPresent());
       assertEquals(rootFocus, Optional.of(SINGLETON_TREE.getFocus()));
    }
@@ -84,7 +85,7 @@ public class TreeFocusTest extends TreeTestBase
       TreeItem<Object> root = new TreeItem<>();
       root.getChildren().add(new TreeItem<>());
       List<Integer> path = TreeFocus.pathTo(root.getChildren().get(0), treeItemIndexOf, TreeItem::getParent);
-      assertEquals(List.of(0), path);
+      Assert.assertEquals(List.of(0), path);
    }
 
    @Test public void testPathToDeepChildIsCorrectlyOrdered()
@@ -100,7 +101,7 @@ public class TreeFocusTest extends TreeTestBase
       TreeItem<Object> childToFind = deepTree.getChildren().get(0).getChildren().get(1);
       List<Integer> path = TreeFocus.pathTo(childToFind, treeItemIndexOf, TreeItem::getParent);
 
-      assertEquals(List.of(0, 1), path);
+      Assert.assertEquals(List.of(0, 1), path);
    }
 
    @Test public void testPathToInvalidChildReturnsEmptyPath()
@@ -109,7 +110,7 @@ public class TreeFocusTest extends TreeTestBase
       child.getChildren().add(new TreeItem<>());
       root.getChildren().add(child);
       List<Integer> path = TreeFocus.pathTo(child.getChildren().get(0), (x, y) -> -1, TreeItem::getParent);
-      assertEquals(List.empty(), path);
+      Assert.assertEquals(List.empty(), path);
    }
 
    @Test public void testFirstChildReturnsTheCorrectChild()
@@ -210,9 +211,9 @@ public class TreeFocusTest extends TreeTestBase
             .flatMap(firstChild -> firstChild.addLeftSibling(new Tree<>(3)))
             .map(addedSibling -> {
                assertEquals(3, (int)addedSibling.getFocusedNode().getValue());
-               assertNotEquals(addedSibling.root(), BINARY_TREE.getFocus());
+               Assert.assertNotEquals(addedSibling.root(), BINARY_TREE.getFocus());
 
-               assertEquals(BINARY_TREE.firstChild(), addedSibling.nextSibling().map(TreeFocus::getFocusedNode));
+               Assert.assertEquals(BINARY_TREE.firstChild(), addedSibling.nextSibling().map(TreeFocus::getFocusedNode));
 
                assertFalse(addedSibling.previousSibling().isPresent());
                return addedSibling;
@@ -230,10 +231,10 @@ public class TreeFocusTest extends TreeTestBase
                  .flatMap(lastChild -> lastChild.addLeftSibling(new Tree<>(3)))
                  .map(addedSibling -> {
                     assertEquals(3, (int)addedSibling.getFocusedNode().getValue());
-                    assertNotEquals(addedSibling.root(), BINARY_TREE.getFocus());
+                    Assert.assertNotEquals(addedSibling.root(), BINARY_TREE.getFocus());
 
-                    assertEquals(Optional.of(1), addedSibling.previousSibling().map(TreeFocus::getFocusedNode).map(Tree::getValue));
-                    assertEquals(Optional.of(2), addedSibling.nextSibling().map(TreeFocus::getFocusedNode).map(Tree::getValue));
+                    Assert.assertEquals(Optional.of(1), addedSibling.previousSibling().map(TreeFocus::getFocusedNode).map(Tree::getValue));
+                    Assert.assertEquals(Optional.of(2), addedSibling.nextSibling().map(TreeFocus::getFocusedNode).map(Tree::getValue));
                     return addedSibling;
                  })
                  .orElseGet(() -> {
@@ -248,10 +249,10 @@ public class TreeFocusTest extends TreeTestBase
                  .flatMap(firstChild -> firstChild.addRightSibling(new Tree<>(3)))
                  .map(addedSibling -> {
                     assertEquals(3, (int)addedSibling.getFocusedNode().getValue());
-                    assertNotEquals(addedSibling.root(), BINARY_TREE.getFocus());
+                    Assert.assertNotEquals(addedSibling.root(), BINARY_TREE.getFocus());
 
-                    assertEquals(Optional.of(1), addedSibling.previousSibling().map(TreeFocus::getFocusedNode).map(Tree::getValue));
-                    assertEquals(Optional.of(2), addedSibling.nextSibling().map(TreeFocus::getFocusedNode).map(Tree::getValue));
+                    Assert.assertEquals(Optional.of(1), addedSibling.previousSibling().map(TreeFocus::getFocusedNode).map(Tree::getValue));
+                    Assert.assertEquals(Optional.of(2), addedSibling.nextSibling().map(TreeFocus::getFocusedNode).map(Tree::getValue));
                     return addedSibling;
                  })
                  .orElseGet(() -> {
@@ -266,9 +267,9 @@ public class TreeFocusTest extends TreeTestBase
                  .flatMap(firstChild -> firstChild.addLeftSibling(new Tree<>(3)))
                  .map(addedSibling -> {
                     assertEquals(3, (int)addedSibling.getFocusedNode().getValue());
-                    assertNotEquals(addedSibling.root(), BINARY_TREE.getFocus());
+                    Assert.assertNotEquals(addedSibling.root(), BINARY_TREE.getFocus());
 
-                    assertEquals(BINARY_TREE.firstChild(), addedSibling.nextSibling().map(TreeFocus::getFocusedNode));
+                    Assert.assertEquals(BINARY_TREE.firstChild(), addedSibling.nextSibling().map(TreeFocus::getFocusedNode));
 
                     assertFalse(addedSibling.previousSibling().isPresent());
                     return addedSibling;
@@ -320,7 +321,7 @@ public class TreeFocusTest extends TreeTestBase
                  .firstChild()
                  .flatMap(TreeFocus::remove)
       .map(removedParent -> {
-         assertEquals(1, removedParent.getFocusedNode().childStream().count());
+         Assert.assertEquals(1, removedParent.getFocusedNode().childStream().count());
          assertEquals(2, (int)removedParent.getFocusedNode().getChild(0).getValue());
          return removedParent;
       }).orElseGet(() -> {

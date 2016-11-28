@@ -1,4 +1,4 @@
-package us.ihmc.robotbuilder.util;
+package us.ihmc.robotics.util;
 
 import javafx.scene.control.TreeItem;
 import org.junit.Test;

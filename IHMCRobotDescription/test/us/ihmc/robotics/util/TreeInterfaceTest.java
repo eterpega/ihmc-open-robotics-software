@@ -1,16 +1,16 @@
-package us.ihmc.robotbuilder.util;
+package us.ihmc.robotics.util;
 
 import javaslang.Function2;
 import org.junit.Test;
+import us.ihmc.robotics.util.TreeInterface;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static org.junit.Assert.*;
-import static us.ihmc.robotbuilder.util.TreeInterface.*;
+import static us.ihmc.robotics.util.TreeInterface.*;
 
 public class TreeInterfaceTest
 {

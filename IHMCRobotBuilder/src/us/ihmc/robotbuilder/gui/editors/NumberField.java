@@ -10,8 +10,8 @@ import java.math.BigInteger;
 import java.util.Optional;
 import java.util.function.Function;
 
-import static us.ihmc.robotbuilder.util.FunctionalObservableValue.functional;
-import static us.ihmc.robotbuilder.util.NoCycleProperty.noCycle;
+import static us.ihmc.robotics.util.FunctionalObservableValue.functional;
+import static us.ihmc.robotics.util.NoCycleProperty.noCycle;
 
 /**
  * Field for holding numeric values.

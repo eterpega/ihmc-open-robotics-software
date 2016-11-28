@@ -26,7 +26,8 @@ import javafx.scene.transform.Translate;
 import org.jetbrains.annotations.Nullable;
 import us.ihmc.javaFXToolkit.cameraControllers.FocusBasedCameraMouseEventHandler;
 import us.ihmc.robotbuilder.util.*;
-import us.ihmc.robotbuilder.util.TreeDifference.DifferencesByNode;
+import us.ihmc.robotics.util.*;
+import us.ihmc.robotics.util.TreeDifference.DifferencesByNode;
 import us.ihmc.robotics.immutableRobotDescription.JointDescription;
 import us.ihmc.robotics.immutableRobotDescription.graphics.*;
 
@@ -41,8 +42,8 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
-import static us.ihmc.robotbuilder.util.FunctionalObservableValue.functional;
-import static us.ihmc.robotbuilder.util.Memoization.memoized;
+import static us.ihmc.robotics.util.FunctionalObservableValue.functional;
+import static us.ihmc.robotics.util.Memoization.memoized;
 
 /**
  *
@@ -64,7 +65,7 @@ public class Preview3D extends BorderPane
    public Preview3D()
    {
       FunctionalObservableValue.combineLatest(widthProperty(), heightProperty())
-            .consume(dimension -> {
+                               .consume(dimension -> {
                subScene.widthProperty().setValue(dimension._1);
                subScene.heightProperty().setValue(dimension._2.doubleValue() - toolBar.getHeight());
             });

@@ -1,4 +1,4 @@
-package us.ihmc.robotbuilder.util;
+package us.ihmc.robotics.util;
 
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.*;
@@ -6,7 +6,9 @@ import javafx.beans.value.ChangeListener;
 import javaslang.Tuple;
 import javaslang.Tuple2;
 import javaslang.collection.List;
+import org.junit.Assert;
 import org.junit.Test;
+import us.ihmc.robotics.util.FunctionalObservableValue;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -14,9 +16,9 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.*;
-import static us.ihmc.robotbuilder.util.FunctionalObservableValue.join;
-import static us.ihmc.robotbuilder.util.FunctionalObservableValue.combineLatest;
-import static us.ihmc.robotbuilder.util.FunctionalObservableValue.functional;
+import static us.ihmc.robotics.util.FunctionalObservableValue.join;
+import static us.ihmc.robotics.util.FunctionalObservableValue.combineLatest;
+import static us.ihmc.robotics.util.FunctionalObservableValue.functional;
 
 public class FunctionalObservableValueTest
 {
@@ -67,9 +69,9 @@ public class FunctionalObservableValueTest
 
 
       base.setValue(20);
-      allMapped.map(FunctionalObservableValue::getValue).forEach(val -> assertEquals(20, val));
+      allMapped.map(FunctionalObservableValue::getValue).forEach(val -> Assert.assertEquals(20, val));
       base.setValue(30);
-      allMapped.map(FunctionalObservableValue::getValue).forEach(val -> assertEquals(30, val));
+      allMapped.map(FunctionalObservableValue::getValue).forEach(val -> Assert.assertEquals(30, val));
    }
 
    @Test
@@ -204,13 +206,13 @@ public class FunctionalObservableValueTest
       StringProperty property2 = new SimpleStringProperty("A");
 
       FunctionalObservableValue<Tuple2<Number, String>> combined = combineLatest(property1, property2);
-      assertEquals(Tuple.of(1, "A"), combined.getValue());
+      Assert.assertEquals(Tuple.of(1, "A"), combined.getValue());
       property1.setValue(2);
-      assertEquals(Tuple.of(2, "A"), combined.getValue());
+      Assert.assertEquals(Tuple.of(2, "A"), combined.getValue());
       property2.setValue("B");
-      assertEquals(Tuple.of(2, "B"), combined.getValue());
+      Assert.assertEquals(Tuple.of(2, "B"), combined.getValue());
       property1.setValue(3);
-      assertEquals(Tuple.of(3, "B"), combined.getValue());
+      Assert.assertEquals(Tuple.of(3, "B"), combined.getValue());
    }
 
    @Test

@@ -1,4 +1,4 @@
-package us.ihmc.robotbuilder.util;
+package us.ihmc.robotics.util;
 
 import org.junit.Test;
 
@@ -6,7 +6,7 @@ import java.util.function.Function;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static us.ihmc.robotbuilder.util.Memoization.memoized;
+import static us.ihmc.robotics.util.Memoization.memoized;
 
 public class MemoizationTest
 {

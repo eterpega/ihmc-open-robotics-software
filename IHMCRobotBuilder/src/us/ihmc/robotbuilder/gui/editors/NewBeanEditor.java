@@ -5,57 +5,66 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.geometry.Insets;
 import javafx.geometry.VPos;
-import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javaslang.Tuple;
 import javaslang.collection.List;
+import javaslang.concurrent.Future;
+import javaslang.concurrent.Promise;
+import javaslang.control.Try;
 import org.jetbrains.annotations.NotNull;
+import us.ihmc.robotbuilder.gui.Creator.CreatorUI;
 import us.ihmc.robotbuilder.gui.Editor;
+import us.ihmc.robotbuilder.gui.Editor.Factory;
 import us.ihmc.robotbuilder.gui.ModifiableProperty;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Optional;
+import java.util.function.Function;
 
 import static java.lang.reflect.Modifier.isPublic;
 import static java.lang.reflect.Modifier.isStatic;
-import static us.ihmc.robotics.util.FunctionalObservableValue.functional;
-import static us.ihmc.robotics.util.NoCycleProperty.noCycle;
 
 /**
  *
  */
-public class ImmutableEditor<T> extends Editor<T>
+public class NewBeanEditor<Builder, FinalBean>
 {
    private static final String GET_PREFIX = "get";
    private final GridPane editor = new GridPane();
-   private final Editor.Factory editorFactory;
-   private List<ModifiableBeanProperty> properties = List.empty();
-   private T currentlyEditedBean = null;
+   private final Factory editorFactory;
+   private final Builder beanBuilder;
+   private final Promise<Optional<FinalBean>> promise = Promise.make();
+   private final Function<Builder, Try<FinalBean>> beanFinalizer;
 
-   public ImmutableEditor(Property<T> valueProperty, Editor.Factory editorFactory)
+   private NewBeanEditor(Builder beanBuilder, Function<Builder, Try<FinalBean>> beanFinalizer, Factory editorFactory)
    {
-      super(noCycle(valueProperty));
+      this.beanFinalizer = beanFinalizer;
+      this.beanBuilder = beanBuilder;
       this.editorFactory = editorFactory;
 
-      functional(valueProperty())
-            .filter(newValue -> newValue != null)
-            .consume(this::updateUIFromBean);
+      createUIFromBuilder(beanBuilder);
 
       editor.setVgap(5);
       editor.setHgap(10);
    }
 
-   private void updateUIFromBean(@NotNull T bean)
+   public static <Builder, FinalBean> Future<Optional<FinalBean>> createDialog(Builder beanBuilder, Function<Builder, Try<FinalBean>> beanFinalizer, Editor.Factory editorFactory)
    {
-      if (bean == currentlyEditedBean)
-         return;
+      NewBeanEditor<Builder, FinalBean> editor = new NewBeanEditor<>(beanBuilder, beanFinalizer, editorFactory);
+      DialogCreatorUI ui = new DialogCreatorUI(editor.editor);
+      ui.addCancelActionListener(editor::onCancel);
+      ui.addConfirmAndValidationActionListener(editor::onApply);
 
-      currentlyEditedBean = bean;
-      properties.forEach(ModifiableBeanProperty::unregisterObservers);
+      return editor.getPromise().future();
+   }
+
+   private void createUIFromBuilder(@NotNull Builder builder)
+   {
       editor.getChildren().clear();
 
-      properties = getProperties(bean.getClass());
+      List<NewBeanProperty> properties = getProperties(builder.getClass());
       //noinspection OptionalGetWithoutIsPresent
       properties
             .map(property -> Tuple.of(property, editorFactory.create(property.getValueType(), property.value())))
@@ -65,7 +74,7 @@ public class ImmutableEditor<T> extends Editor<T>
             .forEach(indexed ->
                      {
                         int index = (int) (long) indexed._2;
-                        ModifiableBeanProperty property = indexed._1._1;
+                        NewBeanProperty property = indexed._1._1;
                         Editor<?> propertyEditor = indexed._1._2;
 
                         Label label = new Label(property.getName());
@@ -76,23 +85,36 @@ public class ImmutableEditor<T> extends Editor<T>
                      });
    }
 
-   @Override public Node getEditor()
-   {
-      return editor;
+   private Optional<Throwable> onApply() {
+      Try<FinalBean> finalBean = beanFinalizer.apply(beanBuilder);
+      finalBean.onSuccess(value -> promise.success(Optional.of(value)));
+      if (finalBean.isFailure())
+         return Optional.of(finalBean.getCause());
+      return Optional.empty();
    }
 
-   private List<ModifiableBeanProperty> getProperties(final Class<?> beanClass)
+   private void onCancel() {
+      if (!promise.isCompleted())
+         promise.success(Optional.empty());
+   }
+
+   private Promise<Optional<FinalBean>> getPromise()
+   {
+      return promise;
+   }
+
+   private List<NewBeanProperty> getProperties(final Class<?> beanClass)
    {
       final String getPrefix = "get";
       return List.ofAll(Arrays.asList(beanClass.getMethods()))
-                   .filter(ImmutableEditor::isGetter)
+                   .filter(NewBeanEditor::isGetter)
                    .distinctBy(Method::getName)
                    .map(getMethod -> {
                       String propertyName = getMethod.getName().substring(getPrefix.length());
                       Method setMethod = findSetter(beanClass, propertyName, getMethod.getReturnType());
                       if (setMethod != null)
                          //noinspection unchecked
-                         return new ModifiableBeanProperty(propertyName, beanClass, (Class)getMethod.getReturnType(), getMethod, setMethod);
+                         return new NewBeanProperty(propertyName, (Class)getMethod.getReturnType(), setMethod);
                       return null;
                    })
                    .filter(item -> item != null);
@@ -107,7 +129,7 @@ public class ImmutableEditor<T> extends Editor<T>
    private static Method findSetter(Class<?> clazz, String propertyName, Class<?> propertyType)
    {
       return Arrays.stream(clazz.getMethods())
-                   .filter(method -> method.getName().startsWith("with") || method.getName().startsWith("set"))
+                   .filter(method -> method.getName().startsWith("set"))
                    .filter(method -> method.getName().contains(propertyName))
                    .filter(method -> clazz.isAssignableFrom(method.getReturnType()))
                    .filter(method -> method.getParameterCount() == 1 && method.getParameterTypes()[0].isAssignableFrom(propertyType))
@@ -116,7 +138,7 @@ public class ImmutableEditor<T> extends Editor<T>
 
 
 
-   private class ModifiableBeanProperty implements ModifiableProperty<Object>
+   private class NewBeanProperty implements ModifiableProperty<Object>
    {
       private final String name;
       private final Class<Object> valueType;
@@ -128,59 +150,29 @@ public class ImmutableEditor<T> extends Editor<T>
 
          @Override public Object getBean()
          {
-            return beanProperty().getValue();
+            return beanBuilder;
          }
       };
-      private final ChangeListener<Object> propertyChangeListener;
-      private final ChangeListener<T> valueChangeListener;
 
-      ModifiableBeanProperty(String name, Class<?> beanType, Class<Object> valueType, Method getter, Method setter)
+      NewBeanProperty(String name, Class<Object> valueType, Method setter)
       {
          this.name = name;
          this.valueType = valueType;
 
-         propertyChangeListener = (observable, oldValue, newValue) -> {
-            if (beanProperty().getValue() == null || !beanProperty().getValue().getClass().equals(beanType))
-               return;
+         ChangeListener<Object> propertyChangeListener = (observable, oldValue, newValue) -> {
             try
             {
                //noinspection unchecked
-               T newBean = (T) setter.invoke(beanProperty().getValue(), newValue);
-               currentlyEditedBean = newBean;
-               beanProperty().setValue(newBean);
+               setter.invoke(beanBuilder, newValue);
             }
             catch (Exception e)
             {
                throw new RuntimeException(e);
             }
 
-         };
-
-         valueChangeListener = (observable, oldValue, newValue) ->
-         {
-            if (!newValue.getClass().equals(beanType))
-               return;
-            try
-            {
-               valueProperty.setValue(getter.invoke(newValue));
-            }
-            catch (Exception e)
-            {
-               throw new RuntimeException(e);
-            }
          };
 
          valueProperty.addListener(propertyChangeListener);
-
-         beanProperty().addListener(valueChangeListener);
-
-         if (beanProperty().getValue() != null)
-            valueChangeListener.changed(beanProperty(), null, beanProperty().getValue());
-      }
-
-      private Property<T> beanProperty()
-      {
-         return ImmutableEditor.this.valueProperty();
       }
 
       @Override public String getName()
@@ -196,12 +188,6 @@ public class ImmutableEditor<T> extends Editor<T>
       @Override public Property<Object> value()
       {
          return valueProperty;
-      }
-
-      private void unregisterObservers()
-      {
-         valueProperty.removeListener(propertyChangeListener);
-         ImmutableEditor.this.valueProperty().removeListener(valueChangeListener);
       }
    }
 }

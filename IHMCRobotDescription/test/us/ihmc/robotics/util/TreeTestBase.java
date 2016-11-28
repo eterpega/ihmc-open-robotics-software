@@ -1,6 +1,7 @@
-package us.ihmc.robotbuilder.util;
+package us.ihmc.robotics.util;
 
 import javaslang.collection.List;
+import us.ihmc.robotics.util.Tree;
 
 /**
  *

@@ -8,8 +8,8 @@ import us.ihmc.robotbuilder.gui.Editor;
 import javax.vecmath.Vector3d;
 import java.util.Arrays;
 
-import static us.ihmc.robotbuilder.util.FunctionalObservableValue.functional;
-import static us.ihmc.robotbuilder.util.NoCycleProperty.noCycle;
+import static us.ihmc.robotics.util.FunctionalObservableValue.functional;
+import static us.ihmc.robotics.util.NoCycleProperty.noCycle;
 
 /**
  *
