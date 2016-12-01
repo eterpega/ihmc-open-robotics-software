@@ -205,6 +205,7 @@ public class DiagnosticBehavior extends AbstractBehavior
       TOUCHDOWN,
       INCOMPLETE,
       ILLEGAL_PROCEDURE,
+      ENCROACHMENT,
       REDO_LAST_TASK // Keep that one at the end.
    };
 
@@ -1796,7 +1797,15 @@ public class DiagnosticBehavior extends AbstractBehavior
 	   submitSymmetricHumanoidArmPose(HumanoidArmPose.STAND_PREP);
 	   pipeLine.requestNewStage();
    }
-
+   
+   private void sequenceEncroachment()
+   {
+	   submitSymmetricHumanoidArmPose(HumanoidArmPose.ENCROACHMENT);
+	   pipeLine.requestNewStage();
+	   submitSymmetricHumanoidArmPose(HumanoidArmPose.STAND_PREP);
+	   pipeLine.requestNewStage();
+   }
+   
    private void karateKid(RobotSide robotSide)
    {
       ReferenceFrame ankleZUpFrame = ankleZUpFrames.get(robotSide.getOppositeSide());
@@ -2617,6 +2626,10 @@ public class DiagnosticBehavior extends AbstractBehavior
              lastDiagnosticTask.set(DiagnosticTask.ILLEGAL_PROCEDURE);
              sequenceIllegalProcedure();
              break;
+         case ENCROACHMENT:
+             lastDiagnosticTask.set(DiagnosticTask.ILLEGAL_PROCEDURE);
+             sequenceEncroachment();
+             break;             
          default:
             break;
          }

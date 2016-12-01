@@ -53,7 +53,8 @@ public enum HumanoidArmPose
    ILLEGAL_PROCEDURE_LA_1,
    ILLEGAL_PROCEDURE_LA_2,
    ILLEGAL_PROCEDURE_LA_3,
-   ILLEGAL_PROCEDURE_LA_4;
+   ILLEGAL_PROCEDURE_LA_4,
+   ENCROACHMENT;
 
    private static final double halfPi = Math.PI / 2.0;
 
@@ -145,6 +146,9 @@ public enum HumanoidArmPose
           return symmetricArmPose(0.0, 0.0, 0.0, 1.78771, robotSide);
       case ILLEGAL_PROCEDURE_LA_4:
           return symmetricArmPose(0.0, 0.0, 0.0, 1.52034, robotSide);
+      case ENCROACHMENT:
+          return symmetricArmPose(0.0, 0.0, 0.0, 2.02819, robotSide);   
+       
          
       case ARM_STRAIGHT_DOWN:
          return symmetricArmPose(0.0, 1.4, 0.0, 0.0, robotSide);
@@ -277,6 +281,9 @@ public enum HumanoidArmPose
           return new double[] {-1.25869, 0.01520, -0.18834};
       case ILLEGAL_PROCEDURE_LA_4:
           return new double[] {-1.24681, 0.34267, -0.42548};
+          
+      case ENCROACHMENT:
+          return new double[] {-1.57307, 1.21985, -1.5};
 
       case ARM_STRAIGHT_DOWN:
          return new double[] {0.0000, -0.0000, -1.0708};
