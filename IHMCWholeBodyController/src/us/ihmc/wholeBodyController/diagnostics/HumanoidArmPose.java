@@ -42,7 +42,18 @@ public enum HumanoidArmPose
    ARM_FORTFIVE_ELBOW_DOWN2,
    ARM_FORTFIVE_ELBOW_DOWN3,
    REACH_FAR_FORWARD,
-   REACH_FAR_BACK;
+   REACH_FAR_BACK,
+   TOUCHDOWN,
+   INCOMPLETE1,
+   INCOMPLETE2,
+   ILLEGAL_PROCEDURE_RA_1,
+   ILLEGAL_PROCEDURE_RA_2,
+   ILLEGAL_PROCEDURE_RA_3,
+   ILLEGAL_PROCEDURE_RA_4,
+   ILLEGAL_PROCEDURE_LA_1,
+   ILLEGAL_PROCEDURE_LA_2,
+   ILLEGAL_PROCEDURE_LA_3,
+   ILLEGAL_PROCEDURE_LA_4;
 
    private static final double halfPi = Math.PI / 2.0;
 
@@ -111,10 +122,35 @@ public enum HumanoidArmPose
          return symmetricArmPose(-0.8 * halfPi, halfPi - 0.4, 0.0, 0.0, robotSide);
       case REACH_FAR_BACK:
          return symmetricArmPose(0.8 * halfPi, halfPi - 0.4, 0.0, 0.0, robotSide);
-
+         
+      case TOUCHDOWN:
+          return symmetricArmPose(0.0, 0.0, -halfPi, 0.75, robotSide);
+      case INCOMPLETE1:
+          return symmetricArmPose(0.0, 0.0, 0.0, halfPi*1.25, robotSide);
+      case INCOMPLETE2:
+          return symmetricArmPose(0.0, 0.0, 0.0, 0.0, robotSide);
+      case ILLEGAL_PROCEDURE_RA_1:
+          return symmetricArmPose(0.0, 0.0, 0.0, 2.04565, robotSide);
+      case ILLEGAL_PROCEDURE_RA_2:
+          return symmetricArmPose(0.0, 0.0, 0.0, 1.47176, robotSide);
+      case ILLEGAL_PROCEDURE_RA_3:
+          return symmetricArmPose(0.0, 0.0, 0.0, 1.30082, robotSide);
+      case ILLEGAL_PROCEDURE_RA_4:
+          return symmetricArmPose(0.0, 0.0, 0.0, 1.79043, robotSide);
+      case ILLEGAL_PROCEDURE_LA_1:
+          return symmetricArmPose(0.0, 0.0, 0.0, 2.0, robotSide);
+      case ILLEGAL_PROCEDURE_LA_2:
+          return symmetricArmPose(0.0, 0.0, 0.0, 2.10934, robotSide);
+      case ILLEGAL_PROCEDURE_LA_3:
+          return symmetricArmPose(0.0, 0.0, 0.0, 2.07256, robotSide);
+      case ILLEGAL_PROCEDURE_LA_4:
+          return symmetricArmPose(0.0, 0.0, 0.0, 1.55912, robotSide);
+         
       case ARM_STRAIGHT_DOWN:
          return symmetricArmPose(0.0, 1.4, 0.0, 0.0, robotSide);
 
+      case ARM_NINETY:
+          return symmetricArmPose(0.0, 0.0, 0.0, 0.0, robotSide);
       case ARM_NINETY_ELBOW_DOWN:
          return symmetricArmPose(0.0, 0.0, halfPi, halfPi, robotSide);
       case ARM_NINETY_ELBOW_DOWN2:
@@ -123,6 +159,7 @@ public enum HumanoidArmPose
          return symmetricArmPose(0.0, 0.0, 0.0, halfPi, robotSide);
       case ARM_NINETY_ELBOW_FORWARD2:
          return symmetricArmPose(halfPi / 2.0, 0.0, -halfPi / 2.0, halfPi, robotSide);
+
       case ARM_NINETY_ELBOW_UP:
          return symmetricArmPose(0.0, 0.0, -halfPi, halfPi, robotSide);
       case ARM_NINETY_ELBOW_UP2:
@@ -217,10 +254,35 @@ public enum HumanoidArmPose
          return new double[] {-0.0000, -1.2566, -1.1708};
       case REACH_FAR_BACK:
          return new double[] {0.0000, 1.2566, -1.1708};
+         
+      case TOUCHDOWN:
+          return new double[] {-1.47336, -0.90646, 1.50619};
+      case INCOMPLETE1:
+          return new double[] {0.35, -0.2, 0.0};
+      case INCOMPLETE2:
+          return new double[] {0.35, -0.2, 0.0};
+      case ILLEGAL_PROCEDURE_RA_1:
+          return new double[] {-1.20502, 0.32558, -0.70685};
+      case ILLEGAL_PROCEDURE_RA_2:
+          return new double[] {-1.49987, -0.00790, -0.64813};
+      case ILLEGAL_PROCEDURE_RA_3:
+          return new double[] {-1.63010, 0.09170, -0.90105};
+      case ILLEGAL_PROCEDURE_RA_4:
+          return new double[] {-1.53697, 0.14338, -1.01009};
+      case ILLEGAL_PROCEDURE_LA_1:
+          return new double[] {0.9085, 0.27368, -1.11784};
+      case ILLEGAL_PROCEDURE_LA_2:
+          return new double[] {-1.07105, 0.29773, -1.07823};
+      case ILLEGAL_PROCEDURE_LA_3:
+          return new double[] {-1.00910, -0.02846, -0.91878};
+      case ILLEGAL_PROCEDURE_LA_4:
+          return new double[] {-1.00314, -0.06915, -1.00185};
 
       case ARM_STRAIGHT_DOWN:
          return new double[] {0.0000, -0.0000, -1.0708};
 
+      case ARM_NINETY:
+          return new double[] {0.4636, -1.5708, -1.1071};
       case ARM_NINETY_ELBOW_DOWN:
          return new double[] {-0.4636, 1.5708, -1.1071};
       case ARM_NINETY_ELBOW_DOWN2:

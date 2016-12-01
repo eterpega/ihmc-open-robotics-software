@@ -202,6 +202,9 @@ public class DiagnosticBehavior extends AbstractBehavior
       FLEX_DOWN,
       FLEX_UP_FLEX_DOWN,
       KRANE_KICK,
+      TOUCHDOWN,
+      INCOMPLETE,
+      ILLEGAL_PROCEDURE,
       REDO_LAST_TASK // Keep that one at the end.
    };
 
@@ -1754,6 +1757,47 @@ public class DiagnosticBehavior extends AbstractBehavior
       // Put the foot back on the ground
       submitFootPosition(false, robotSide, new FramePoint(ankleZUpFrame, 0.0, robotSide.negateIfRightSide(0.25), -0.3));
    }
+   
+   private void sequenceTouchdown()
+   {
+	   submitSymmetricHumanoidArmPose(HumanoidArmPose.TOUCHDOWN);
+	   pipeLine.requestNewStage();
+	   submitSymmetricHumanoidArmPose(HumanoidArmPose.STAND_PREP);
+	   pipeLine.requestNewStage();
+   }
+   
+   private void sequenceIncomplete()
+   {
+	   submitSymmetricHumanoidArmPose(HumanoidArmPose.INCOMPLETE1);
+	   pipeLine.requestNewStage();
+	   submitSymmetricHumanoidArmPose(HumanoidArmPose.INCOMPLETE2);
+	   pipeLine.requestNewStage();
+	   submitSymmetricHumanoidArmPose(HumanoidArmPose.INCOMPLETE1);
+	   pipeLine.requestNewStage();
+	   submitSymmetricHumanoidArmPose(HumanoidArmPose.STAND_PREP);
+	   pipeLine.requestNewStage();
+   }
+   
+   private void sequenceIllegalProcedure()
+   {
+	   for(int i = 0; i < 4; i++)
+	   {
+		   submitHumanoidArmPose(RobotSide.LEFT, HumanoidArmPose.ILLEGAL_PROCEDURE_LA_1);
+		   submitHumanoidArmPose(RobotSide.RIGHT, HumanoidArmPose.ILLEGAL_PROCEDURE_RA_1);
+		   pipeLine.requestNewStage();
+		   submitHumanoidArmPose(RobotSide.LEFT, HumanoidArmPose.ILLEGAL_PROCEDURE_LA_2);
+		   submitHumanoidArmPose(RobotSide.RIGHT, HumanoidArmPose.ILLEGAL_PROCEDURE_RA_2);
+		   pipeLine.requestNewStage();
+		   submitHumanoidArmPose(RobotSide.LEFT, HumanoidArmPose.ILLEGAL_PROCEDURE_LA_3);
+		   submitHumanoidArmPose(RobotSide.RIGHT, HumanoidArmPose.ILLEGAL_PROCEDURE_RA_3);
+		   pipeLine.requestNewStage();
+		   submitHumanoidArmPose(RobotSide.LEFT, HumanoidArmPose.ILLEGAL_PROCEDURE_LA_4);
+		   submitHumanoidArmPose(RobotSide.RIGHT, HumanoidArmPose.ILLEGAL_PROCEDURE_RA_4);
+		   pipeLine.requestNewStage();
+	   }
+	   submitSymmetricHumanoidArmPose(HumanoidArmPose.STAND_PREP);
+	   pipeLine.requestNewStage();
+   }
 
    private void karateKid(RobotSide robotSide)
    {
@@ -2562,6 +2606,19 @@ public class DiagnosticBehavior extends AbstractBehavior
          case KRANE_KICK:
             lastDiagnosticTask.set(DiagnosticTask.KRANE_KICK);
             sequenceKraneKick();
+            break;
+         case TOUCHDOWN:
+             lastDiagnosticTask.set(DiagnosticTask.TOUCHDOWN);
+             sequenceTouchdown();
+             break;
+         case INCOMPLETE:
+             lastDiagnosticTask.set(DiagnosticTask.INCOMPLETE);
+             sequenceIncomplete();
+             break;
+         case ILLEGAL_PROCEDURE:
+             lastDiagnosticTask.set(DiagnosticTask.ILLEGAL_PROCEDURE);
+             sequenceIllegalProcedure();
+             break;
          default:
             break;
          }
