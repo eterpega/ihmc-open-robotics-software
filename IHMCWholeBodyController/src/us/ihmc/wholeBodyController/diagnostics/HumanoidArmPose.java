@@ -130,21 +130,21 @@ public enum HumanoidArmPose
       case INCOMPLETE2:
           return symmetricArmPose(0.0, 0.0, 0.0, 0.0, robotSide);
       case ILLEGAL_PROCEDURE_RA_1:
-          return symmetricArmPose(0.0, 0.0, 0.0, 2.04565, robotSide);
+          return symmetricArmPose(0.0, 0.0, 0.0, 1.73847, robotSide);
       case ILLEGAL_PROCEDURE_RA_2:
-          return symmetricArmPose(0.0, 0.0, 0.0, 1.47176, robotSide);
+          return symmetricArmPose(0.0, 0.0, 0.0, 1.22535, robotSide);
       case ILLEGAL_PROCEDURE_RA_3:
-          return symmetricArmPose(0.0, 0.0, 0.0, 1.30082, robotSide);
+          return symmetricArmPose(0.0, 0.0, 0.0, 1.23906, robotSide);
       case ILLEGAL_PROCEDURE_RA_4:
-          return symmetricArmPose(0.0, 0.0, 0.0, 1.79043, robotSide);
+          return symmetricArmPose(0.0, 0.0, 0.0, 1.85972, robotSide);
       case ILLEGAL_PROCEDURE_LA_1:
           return symmetricArmPose(0.0, 0.0, 0.0, 2.0, robotSide);
       case ILLEGAL_PROCEDURE_LA_2:
-          return symmetricArmPose(0.0, 0.0, 0.0, 2.10934, robotSide);
+          return symmetricArmPose(0.0, 0.0, 0.0, 1.99991, robotSide);
       case ILLEGAL_PROCEDURE_LA_3:
-          return symmetricArmPose(0.0, 0.0, 0.0, 2.07256, robotSide);
+          return symmetricArmPose(0.0, 0.0, 0.0, 1.78771, robotSide);
       case ILLEGAL_PROCEDURE_LA_4:
-          return symmetricArmPose(0.0, 0.0, 0.0, 1.55912, robotSide);
+          return symmetricArmPose(0.0, 0.0, 0.0, 1.52034, robotSide);
          
       case ARM_STRAIGHT_DOWN:
          return symmetricArmPose(0.0, 1.4, 0.0, 0.0, robotSide);
@@ -262,21 +262,21 @@ public enum HumanoidArmPose
       case INCOMPLETE2:
           return new double[] {0.35, -0.2, 0.0};
       case ILLEGAL_PROCEDURE_RA_1:
-          return new double[] {-1.20502, 0.32558, -0.70685};
+          return new double[] {-1.37678, 0.07467, -0.25189};
       case ILLEGAL_PROCEDURE_RA_2:
-          return new double[] {-1.49987, -0.00790, -0.64813};
+          return new double[] {-1.56330, 0.26574, -0.26194};
       case ILLEGAL_PROCEDURE_RA_3:
-          return new double[] {-1.63010, 0.09170, -0.90105};
+          return new double[] {-1.70046, 0.28137, -0.60994};
       case ILLEGAL_PROCEDURE_RA_4:
-          return new double[] {-1.53697, 0.14338, -1.01009};
+          return new double[] {-1.50990, 0.32529, -0.47504};
       case ILLEGAL_PROCEDURE_LA_1:
-          return new double[] {0.9085, 0.27368, -1.11784};
+          return new double[] {-1.41168, 0.32257, -0.71272};
       case ILLEGAL_PROCEDURE_LA_2:
-          return new double[] {-1.07105, 0.29773, -1.07823};
+          return new double[] {-1.18554, 0.24614, -0.34262};
       case ILLEGAL_PROCEDURE_LA_3:
-          return new double[] {-1.00910, -0.02846, -0.91878};
+          return new double[] {-1.25869, 0.01520, -0.18834};
       case ILLEGAL_PROCEDURE_LA_4:
-          return new double[] {-1.00314, -0.06915, -1.00185};
+          return new double[] {-1.24681, 0.34267, -0.42548};
 
       case ARM_STRAIGHT_DOWN:
          return new double[] {0.0000, -0.0000, -1.0708};
