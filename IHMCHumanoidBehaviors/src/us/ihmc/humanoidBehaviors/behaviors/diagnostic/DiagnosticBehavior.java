@@ -1772,8 +1772,6 @@ public class DiagnosticBehavior extends AbstractBehavior
 	   pipeLine.requestNewStage();
 	   submitSymmetricHumanoidArmPose(HumanoidArmPose.INCOMPLETE2);
 	   pipeLine.requestNewStage();
-	   submitSymmetricHumanoidArmPose(HumanoidArmPose.INCOMPLETE1);
-	   pipeLine.requestNewStage();
 	   submitSymmetricHumanoidArmPose(HumanoidArmPose.STAND_PREP);
 	   pipeLine.requestNewStage();
    }
