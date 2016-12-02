@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+
+<TitledPane animated="false" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="75.0" prefWidth="275.0" text="Chart Pan Manager" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+<content>
+    <AnchorPane maxHeight="-Infinity" minHeight="0.0" minWidth="0.0" prefHeight="50.0" prefWidth="273.0">
+        <children>
+            <GridPane layoutY="10.0" maxHeight="-Infinity" prefHeight="40.0" prefWidth="244.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                <columnConstraints>
+                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="153.00000762939453" minWidth="10.0" prefWidth="127.99999237060547" />
+                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="141.00000762939453" minWidth="10.0" prefWidth="124.00000762939453" />
+                </columnConstraints>
+                <rowConstraints>
+                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                </rowConstraints>
+                <children>
+                    <CheckBox fx:id="horizontalPanningCheckBox" mnemonicParsing="false" text="Horizontal" />
+                    <CheckBox fx:id="verticalPanningCheckBox" mnemonicParsing="false" text="Vertical" GridPane.columnIndex="1" />
+                </children>
+            </GridPane>
+        </children></AnchorPane>
+</content>
+</TitledPane>

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.text.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.chart.*?>
+<?import javafx.scene.shape.*?>
+<?import javafx.scene.control.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+
+<TitledPane animated="false" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="275.0" text="Chart Zoom Manager" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+    <content>
+        <AnchorPane maxHeight="-Infinity" minHeight="0.0" minWidth="0.0" prefHeight="200.0" prefWidth="449.0">
+         <children>
+            <VBox layoutY="21.0" prefHeight="241.0" prefWidth="472.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+               <children>
+                  <Label text="Zoom on Scroll:">
+                     <font>
+                        <Font name="System Bold" size="13.0" />
+                     </font>
+                  </Label>
+                  <FlowPane prefHeight="40.0" prefWidth="253.0">
+                     <children>
+                        <CheckBox fx:id="scrollZoomH" mnemonicParsing="false" text="Horizontal">
+                           <FlowPane.margin>
+                              <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                           </FlowPane.margin>
+                        </CheckBox>
+                        <CheckBox fx:id="scrollZoomV" mnemonicParsing="false" text="Vertical">
+                           <FlowPane.margin>
+                              <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                           </FlowPane.margin>
+                        </CheckBox>
+                     </children>
+                  </FlowPane>
+                  <Separator prefWidth="200.0" />
+                  <Label text="Selection Rectangle Zoom:">
+                     <font>
+                        <Font name="System Bold" size="13.0" />
+                     </font>
+                  </Label>
+                  <FlowPane prefHeight="40.0" prefWidth="200.0">
+                     <children>
+                        <CheckBox fx:id="selectRectH" mnemonicParsing="false" text="Horizontal">
+                           <FlowPane.margin>
+                              <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                           </FlowPane.margin>
+                        </CheckBox>
+                        <CheckBox fx:id="selectRectV" mnemonicParsing="false" text="Vertical">
+                           <FlowPane.margin>
+                              <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                           </FlowPane.margin>
+                        </CheckBox>
+                     </children>
+                  </FlowPane>
+                  <Separator prefWidth="200.0" />
+                  <FlowPane prefHeight="40.0" prefWidth="200.0">
+                     <children>
+                        <CheckBox fx:id="autoRangeMiddleMouse" mnemonicParsing="false" text="Auto Range on Middle Mouse Click">
+                           <FlowPane.margin>
+                              <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                           </FlowPane.margin>
+                        </CheckBox>
+                     </children>
+                  </FlowPane>
+               </children>
+            </VBox>
+         </children></AnchorPane>
+    </content>
+</TitledPane>
