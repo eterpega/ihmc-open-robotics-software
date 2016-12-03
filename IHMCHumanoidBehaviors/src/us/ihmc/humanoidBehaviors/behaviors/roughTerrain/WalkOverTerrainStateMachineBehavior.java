@@ -224,7 +224,8 @@ public class WalkOverTerrainStateMachineBehavior extends StateMachineBehavior<Wa
       statemachine.addStateWithDoneTransition(lookForGoalAction, WalkOverTerrainState.SLEEP);
       statemachine.addStateWithDoneTransition(sleepAction, WalkOverTerrainState.LOOK_DOWN_AT_TERRAIN);
       statemachine.addStateWithDoneTransition(lookDownAtTerrainAction, WalkOverTerrainState.PLAN_TO_GOAL);
-      statemachine.addStateWithDoneTransition(planHumanoidFootstepsAction, WalkOverTerrainState.CLEAR_PLANAR_REGIONS_LIST);
+//      statemachine.addStateWithDoneTransition(planHumanoidFootstepsAction, WalkOverTerrainState.CLEAR_PLANAR_REGIONS_LIST);
+      statemachine.addStateWithDoneTransition(planHumanoidFootstepsAction, WalkOverTerrainState.TAKE_SOME_STEPS);
       statemachine.addStateWithDoneTransition(clearPlanarRegionsListAction, WalkOverTerrainState.TAKE_SOME_STEPS);
       statemachine.addStateWithDoneTransition(takeSomeStepsAction, WalkOverTerrainState.PLAN_TO_GOAL); //REACHED_GOAL);
 //      statemachine.addStateWithDoneTransition(takeSomeStepsAction, WalkOverTerrainState.LOOK_DOWN_AT_TERRAIN); //REACHED_GOAL);

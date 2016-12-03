@@ -20,7 +20,6 @@ import us.ihmc.footstepPlanning.SimpleFootstep;
 import us.ihmc.footstepPlanning.graphSearch.BipedalFootstepPlannerParameters;
 import us.ihmc.footstepPlanning.graphSearch.PlanarRegionBipedalFootstepPlanner;
 import us.ihmc.footstepPlanning.graphSearch.PlanarRegionBipedalFootstepPlannerVisualizer;
-import us.ihmc.footstepPlanning.graphSearch.SimplePlanarRegionBipedalAnytimeFootstepPlanner;
 import us.ihmc.humanoidBehaviors.behaviors.AbstractBehavior;
 import us.ihmc.humanoidBehaviors.behaviors.behaviorServices.FiducialDetectorBehaviorService;
 import us.ihmc.humanoidBehaviors.communication.CommunicationBridge;
@@ -46,7 +45,6 @@ import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.robotics.time.YoTimer;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
-import us.ihmc.tools.thread.ThreadTools;
 
 public class PlanHumanoidFootstepsBehavior extends AbstractBehavior
 {
@@ -64,7 +62,7 @@ public class PlanHumanoidFootstepsBehavior extends AbstractBehavior
    
    private final EnumYoVariable<RobotSide> nextSideToSwing;
 
-   private final SimplePlanarRegionBipedalAnytimeFootstepPlanner footstepPlanner;
+   private final PlanarRegionBipedalFootstepPlanner footstepPlanner;
    private FootstepPlan plan = null;
 
    private final YoFramePose footstepPlannerInitialStepPose;
@@ -111,10 +109,10 @@ public class PlanHumanoidFootstepsBehavior extends AbstractBehavior
       requestedPlanarRegion.set(false);
    }
 
-   private SimplePlanarRegionBipedalAnytimeFootstepPlanner createFootstepPlanner()
+   private PlanarRegionBipedalFootstepPlanner createFootstepPlanner()
    {
-      SimplePlanarRegionBipedalAnytimeFootstepPlanner planner = new SimplePlanarRegionBipedalAnytimeFootstepPlanner(registry);
-//      PlanarRegionBipedalFootstepPlanner planner = new PlanarRegionBipedalFootstepPlanner(registry);
+//      SimplePlanarRegionBipedalAnytimeFootstepPlanner planner = new SimplePlanarRegionBipedalAnytimeFootstepPlanner(registry);
+      PlanarRegionBipedalFootstepPlanner planner = new PlanarRegionBipedalFootstepPlanner(registry);
       BipedalFootstepPlannerParameters parameters = planner.getParameters();
       
       parameters.setMaximumStepReach(0.65); //0.55); //(0.4);
@@ -199,7 +197,7 @@ public class PlanHumanoidFootstepsBehavior extends AbstractBehavior
       for(int i = 0; i < numberOfFootstepsTakenFromPlan; i++)
       {
          SimpleFootstep footstep = plan.getFootstep(i);
-         footstepPlanner.executingFootstep(footstep);
+//         footstepPlanner.executingFootstep(footstep);
       }
    }
 
@@ -208,19 +206,26 @@ public class PlanHumanoidFootstepsBehavior extends AbstractBehavior
    @Override
    public void doControl()
    {
+      requestPlanarRegionsList();
+      
       if (plannerTimer.totalElapsed() < 0.5)
          return;
 
-      if (!requestedPlanarRegion.getBooleanValue() || (timeSinceNewPlanarRegionsTimer.totalElapsed() > 5.0))
-      {
-         clearAndRequestPlanarRegionsList();
-         requestedPlanarRegion.set(true);
-      }
+//      if (!requestedPlanarRegion.getBooleanValue() || (timeSinceNewPlanarRegionsTimer.totalElapsed() > 5.0))
+//      {
+//         clearAndRequestPlanarRegionsList();
+//         requestedPlanarRegion.set(true);
+//      }
 
       boolean planarRegionsListIsAvailable = updatePlannerIfPlanarRegionsListIsAvailable();
       if (planarRegionsListIsAvailable)
       {
          timeSinceNewPlanarRegionsTimer.reset();
+      }
+      else
+      {
+         sendTextToSpeechPacket("No PlanarRegionsList was received");
+         plannerTimer.reset();
       }
 
 //      if (!planarRegionsListIsAvailable)
@@ -228,10 +233,10 @@ public class PlanHumanoidFootstepsBehavior extends AbstractBehavior
 //         return;
 //      }
 
-      if (timeSinceNewPlanarRegionsTimer.totalElapsed() < 1.5)
-      {
-         return;
-      }
+//      if (timeSinceNewPlanarRegionsTimer.totalElapsed() < 1.5)
+//      {
+//         return;
+//      }
 
       //TODO: Change to anytime functionality.
 //      plan = footstepPlanner.getBestPlanYet();
@@ -265,6 +270,11 @@ public class PlanHumanoidFootstepsBehavior extends AbstractBehavior
    {
       planarRegionsListQueue.getLatestPacket();
 
+      requestPlanarRegionsList();
+   }
+   
+   private void requestPlanarRegionsList()
+   {
       RequestPlanarRegionsListMessage requestPlanarRegionsListMessage = new RequestPlanarRegionsListMessage(RequestType.SINGLE_UPDATE);
       requestPlanarRegionsListMessage.setDestination(PacketDestination.REA_MODULE);
       sendPacket(requestPlanarRegionsListMessage);
