@@ -27,6 +27,7 @@ import us.ihmc.tools.thread.ThreadTools;
 @ContinuousIntegrationAnnotations.ContinuousIntegrationPlan(categories = {IntegrationCategory.IN_DEVELOPMENT})
 public class AnytimeFootstepPlannerOnRoughTerrainTest implements PlanningTest
 {
+   private boolean assertPlannerReturnedResult = true;
    private static final boolean visualize = false;
    private static final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
 
@@ -68,7 +69,7 @@ public class AnytimeFootstepPlannerOnRoughTerrainTest implements PlanningTest
       FootstepPlan bestPlan = anytimePlanner.getBestPlanYet();
       double expectedClosestDistanceToGoal = 3.0;
       double actualClosestDistanceToGoal = getDistanceFromPlansLastFootstepToGoalFootstep(bestPlan, goalPoses);
-      assertTrue(actualClosestDistanceToGoal < expectedClosestDistanceToGoal);
+      if (assertPlannerReturnedResult) assertTrue("expectedClosestDistanceToGoal: " + expectedClosestDistanceToGoal + ", actualClosestDistanceToGoal: " + actualClosestDistanceToGoal, actualClosestDistanceToGoal < expectedClosestDistanceToGoal);
 
       if (visualize())
       {
@@ -117,7 +118,7 @@ public class AnytimeFootstepPlannerOnRoughTerrainTest implements PlanningTest
 
       anytimePlanner.requestStop();
       double expectedClosestDistanceToGoal = 3.0;
-      assertTrue(closestDistanceOfFootstepToGoal < expectedClosestDistanceToGoal);
+      if (assertPlannerReturnedResult) assertTrue(closestDistanceOfFootstepToGoal < expectedClosestDistanceToGoal);
 
       if (visualize())
       {
@@ -143,9 +144,11 @@ public class AnytimeFootstepPlannerOnRoughTerrainTest implements PlanningTest
 
       for(int i = 0; i < 10; i++)
       {
-         ThreadTools.sleep(100);
+         ThreadTools.sleep(500);
 
          FootstepPlan bestPlanYet = anytimePlanner.getBestPlanYet();
+         if(bestPlanYet == null)
+            continue;
 
          int numberOfFootsteps = bestPlanYet.getNumberOfSteps();
          if(numberOfFootsteps < 2)
@@ -153,7 +156,7 @@ public class AnytimeFootstepPlannerOnRoughTerrainTest implements PlanningTest
 
          double newClosestDistance = getDistanceFromPlansLastFootstepToGoalFootstep(bestPlanYet, goalPoses);
 
-         assertTrue(newClosestDistance <= closestFootstepToGoal);
+         if (assertPlannerReturnedResult) assertTrue(newClosestDistance <= closestFootstepToGoal);
          closestFootstepToGoal = newClosestDistance;
       }
 

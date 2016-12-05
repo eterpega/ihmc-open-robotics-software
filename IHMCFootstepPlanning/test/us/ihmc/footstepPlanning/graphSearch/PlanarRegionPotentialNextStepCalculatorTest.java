@@ -13,6 +13,7 @@ import org.junit.Test;
 import us.ihmc.footstepPlanning.FootstepPlan;
 import us.ihmc.footstepPlanning.FootstepPlannerGoal;
 import us.ihmc.footstepPlanning.FootstepPlannerGoalType;
+import us.ihmc.footstepPlanning.FootstepPlanningUtils;
 import us.ihmc.footstepPlanning.testTools.PlanningTestTools;
 import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
@@ -128,8 +129,7 @@ public class PlanarRegionPotentialNextStepCalculatorTest
             node = null;
       }
 
-      FootstepPlan footstepPlan = new FootstepPlan(endNode);
-//      System.out.println(footstepPlan.getNumberOfSteps());
+      FootstepPlan footstepPlan = FootstepPlanningUtils.createFootstepPlanFromEndNode(endNode);
       listener.notifyListenerSolutionWasFound(footstepPlan);
 
       assertTrue(footstepPlan.getNumberOfSteps() <= maxNumberOfExpectedFootsteps);

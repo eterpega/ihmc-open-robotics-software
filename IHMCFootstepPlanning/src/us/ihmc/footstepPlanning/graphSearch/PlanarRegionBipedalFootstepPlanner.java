@@ -7,10 +7,7 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 
-import us.ihmc.footstepPlanning.FootstepPlan;
-import us.ihmc.footstepPlanning.FootstepPlanner;
-import us.ihmc.footstepPlanning.FootstepPlannerGoal;
-import us.ihmc.footstepPlanning.FootstepPlanningResult;
+import us.ihmc.footstepPlanning.*;
 import us.ihmc.footstepPlanning.scoring.PenalizationHeatmapStepScorer;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 import us.ihmc.robotics.dataStructures.variable.IntegerYoVariable;
@@ -112,7 +109,7 @@ public class PlanarRegionBipedalFootstepPlanner implements FootstepPlanner
 
       if (footstepPlan == null)
       {
-         footstepPlan = new FootstepPlan(goalNode);
+         footstepPlan = FootstepPlanningUtils.createFootstepPlanFromEndNode(goalNode);
       }
 
       return footstepPlan;

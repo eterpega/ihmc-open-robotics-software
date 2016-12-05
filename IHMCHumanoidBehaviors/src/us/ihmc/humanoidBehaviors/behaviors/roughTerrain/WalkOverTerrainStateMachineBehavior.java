@@ -177,6 +177,7 @@ public class WalkOverTerrainStateMachineBehavior extends StateMachineBehavior<Wa
             String xString = FormattingTools.getFormattedToSignificantFigures(goalPosition.getX(), 3);
             String yString = FormattingTools.getFormattedToSignificantFigures(goalPosition.getY(), 3);
 
+            System.out.println("Plannning Footsteps to (" + xString + ", " + yString + ")");
             TextToSpeechPacket p1 = new TextToSpeechPacket("Plannning Footsteps to (" + xString + ", " + yString + ")");
             sendPacket(p1);
 
@@ -192,7 +193,7 @@ public class WalkOverTerrainStateMachineBehavior extends StateMachineBehavior<Wa
             TextToSpeechPacket p1 = new TextToSpeechPacket("Taking some Footsteps");
             sendPacket(p1);
 
-            FootstepDataListMessage footstepDataListMessageForPlan = planHumanoidFootstepsBehavior.getFootstepDataListMessageForPlan(maxNumberOfStepsToTake.getIntegerValue(), swingTime.getDoubleValue(), transferTime.getDoubleValue());
+            FootstepDataListMessage footstepDataListMessageForPlan = planHumanoidFootstepsBehavior.getFootstepDataListMessageForPlan(maxNumberOfStepsToTake.getIntegerValue(), 0, swingTime.getDoubleValue(), transferTime.getDoubleValue());
             takeSomeStepsBehavior.setFootstepsToTake(footstepDataListMessageForPlan);
 
             nextSideToSwing.set(footstepDataListMessageForPlan.footstepDataList.get(footstepDataListMessageForPlan.footstepDataList.size() - 1).getRobotSide().getOppositeSide());
@@ -224,9 +225,9 @@ public class WalkOverTerrainStateMachineBehavior extends StateMachineBehavior<Wa
       statemachine.addStateWithDoneTransition(lookForGoalAction, WalkOverTerrainState.SLEEP);
       statemachine.addStateWithDoneTransition(sleepAction, WalkOverTerrainState.LOOK_DOWN_AT_TERRAIN);
       statemachine.addStateWithDoneTransition(lookDownAtTerrainAction, WalkOverTerrainState.PLAN_TO_GOAL);
-      statemachine.addStateWithDoneTransition(planHumanoidFootstepsAction, WalkOverTerrainState.CLEAR_PLANAR_REGIONS_LIST);
-      statemachine.addStateWithDoneTransition(clearPlanarRegionsListAction, WalkOverTerrainState.TAKE_SOME_STEPS);
-      statemachine.addStateWithDoneTransition(takeSomeStepsAction, WalkOverTerrainState.PLAN_TO_GOAL); //REACHED_GOAL);
+      statemachine.addStateWithDoneTransition(planHumanoidFootstepsAction, WalkOverTerrainState.REACHED_GOAL);
+//      statemachine.addStateWithDoneTransition(clearPlanarRegionsListAction, WalkOverTerrainState.TAKE_SOME_STEPS);
+//      statemachine.addStateWithDoneTransition(takeSomeStepsAction, WalkOverTerrainState.PLAN_TO_GOAL); //REACHED_GOAL);
 //      statemachine.addStateWithDoneTransition(takeSomeStepsAction, WalkOverTerrainState.LOOK_DOWN_AT_TERRAIN); //REACHED_GOAL);
       //      statemachine.addStateWithDoneTransition(takeSomeStepsAction, WalkOverTerrainState.LOOK_FOR_GOAL);
       statemachine.addStateWithDoneTransition(reachedGoalAction, WalkOverTerrainState.LOOK_DOWN_AT_TERRAIN);

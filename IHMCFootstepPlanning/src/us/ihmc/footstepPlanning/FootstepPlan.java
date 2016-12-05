@@ -15,25 +15,6 @@ public class FootstepPlan
    {
    }
 
-   public FootstepPlan(BipedalFootstepPlannerNode endNode)
-   {
-      clear();
-      BipedalFootstepPlannerNode node = endNode;
-
-      while (node != null)
-      {
-         RigidBodyTransform soleTransform = new RigidBodyTransform();
-         node.getSoleTransform(soleTransform);
-
-         FramePose framePose = new FramePose(ReferenceFrame.getWorldFrame(), soleTransform);
-         addFootstep(node.getRobotSide(), framePose);
-
-         node = node.getParentNode();
-      }
-
-      reverse();
-   }
-
    private final ArrayList<SimpleFootstep> footsteps = new ArrayList<>();
 
    public int getNumberOfSteps()

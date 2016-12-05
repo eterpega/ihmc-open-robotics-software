@@ -17,7 +17,7 @@ public class BipedalFootstepPlannerNode
    private RigidBodyTransform soleTransform = new RigidBodyTransform();
    private BipedalFootstepPlannerNode parentNode;
 
-   private ArrayList<BipedalFootstepPlannerNode> childrenNodes;
+   private ArrayList<BipedalFootstepPlannerNode> childrenNodes = new ArrayList<>();
    private double costFromParent;
    private double costToHereFromStart;
    private double estimatedCostToGoal;
@@ -26,6 +26,7 @@ public class BipedalFootstepPlannerNode
    private static final double YAW_ROTATION_THRESHOLD_TO_CONSIDER_NODES_EQUAL = 0.04;
 
    private boolean isAtGoal = false;
+   private boolean isDead = false;
 
    private double singleStepScore;
 
@@ -117,11 +118,6 @@ public class BipedalFootstepPlannerNode
 
    public void addChild(BipedalFootstepPlannerNode childNode)
    {
-      if (childrenNodes == null)
-      {
-         childrenNodes = new ArrayList<>();
-      }
-
       this.childrenNodes.add(childNode);
    }
 
@@ -192,20 +188,28 @@ public class BipedalFootstepPlannerNode
          
          if (!(tempPointA.length() < 1e-10)) return false;
          
-         
          this.soleTransform.getRotationEuler(tempRotationVectorA);
          double thisYaw = MathTools.roundToGivenPrecisionForAngle(tempRotationVectorA.getZ(), YAW_ROTATION_THRESHOLD_TO_CONSIDER_NODES_EQUAL);
 
          otherNode.soleTransform.getRotationEuler(tempRotationVectorB);
-         double otherYaw = MathTools.roundToGivenPrecisionForAngle(tempRotationVectorB.getZ(), YAW_ROTATION_THRESHOLD_TO_CONSIDER_NODES_EQUAL);  
+         double otherYaw = MathTools.roundToGivenPrecisionForAngle(tempRotationVectorB.getZ(), YAW_ROTATION_THRESHOLD_TO_CONSIDER_NODES_EQUAL);
 
-         
 //         tempRotationVectorA.sub(tempRotationVectorB);
          double yawDifference = Math.abs(AngleTools.computeAngleDifferenceMinusPiToPi(thisYaw, otherYaw));
          if (!(yawDifference < 1e-10)) return false;
 
          return true;
       }
+   }
+
+   public void setToDead()
+   {
+      isDead = true;
+   }
+
+   public boolean isDead()
+   {
+      return isDead;
    }
 
    @Override
