@@ -44,7 +44,6 @@ public class SimplePlanarRegionBipedalAnytimeFootstepPlanner extends PlanarRegio
    public void setPlanarRegions(PlanarRegionsList planarRegionsList)
    {
       planarRegionsListReference.set(planarRegionsList);
-      requestInitialize = true;
    }
 
    @Override
@@ -86,6 +85,10 @@ public class SimplePlanarRegionBipedalAnytimeFootstepPlanner extends PlanarRegio
                recursivelyMarkAsDead(node);
             }
          }
+
+         startNode = newStartNode;
+         initialSide = startNode.getRobotSide();
+         initialFootPose = startNode.getTransformToParent();
       }
    }
 
@@ -212,7 +215,6 @@ public class SimplePlanarRegionBipedalAnytimeFootstepPlanner extends PlanarRegio
       {
          closestNodeToGoal = nodeToSetCostOf;
          FootstepPlan newBestPlan = FootstepPlanningUtils.createFootstepPlanFromEndNode(closestNodeToGoal);
-         PrintTools.info("setting new best plan, " + newBestPlan.getNumberOfSteps() + " steps long");
          bestPlanYet.set(newBestPlan);
       }
    }

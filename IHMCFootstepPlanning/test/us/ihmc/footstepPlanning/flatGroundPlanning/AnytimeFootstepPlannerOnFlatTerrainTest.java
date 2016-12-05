@@ -69,13 +69,13 @@ public class AnytimeFootstepPlannerOnFlatTerrainTest implements PlanningTest
       for (int i = 0; i < numIterations; i++)
       {
          ThreadTools.sleep(100);
-         bestPlanYet = anytimePlanner.getBestPlanYet();
+         FootstepPlan newPlan = anytimePlanner.getBestPlanYet();
 
-         int numberOfFootsteps = bestPlanYet.getNumberOfSteps();
-         if (numberOfFootsteps < 2)
+         if (newPlan == null || newPlan.getNumberOfSteps() < 2)
             continue;
 
-         SimpleFootstep lastFootstep = bestPlanYet.getFootstep(numberOfFootsteps - 1);
+         bestPlanYet = newPlan;
+         SimpleFootstep lastFootstep = bestPlanYet.getFootstep(bestPlanYet.getNumberOfSteps() - 1);
          lastFootstep.getSoleFramePose(lastFootstepPose);
          FramePose footstepGoalPose = goalPoses.get(lastFootstep.getRobotSide());
 
