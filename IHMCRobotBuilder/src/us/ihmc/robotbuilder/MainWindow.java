@@ -67,7 +67,7 @@ public class MainWindow extends Application
       stage.setMaximized(true);
       stage.show();
 
-      NewBeanEditor.createDialog(ModifiablePinJointDescription.create(), joint -> Try.run(() -> joint.toImmutable()), new PropertyEditorFactory());
+      //NewBeanEditor.createDialog(ModifiablePinJointDescription.create(), joint -> Try.run(() -> joint.toImmutable()), new PropertyEditorFactory());
    }
 
    /**
