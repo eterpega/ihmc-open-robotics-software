@@ -10,9 +10,11 @@ import javax.vecmath.Quat4d;
 import us.ihmc.communication.controllerAPI.StatusMessageOutputManager;
 import us.ihmc.communication.controllerAPI.command.CommandArrayDeque;
 import us.ihmc.communication.packets.TextToSpeechPacket;
+import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.humanoidRobotics.bipedSupportPolygons.ContactablePlaneBody;
+import us.ihmc.humanoidRobotics.communication.controllerAPI.command.AdjustFootstepCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.FootTrajectoryCommand;
-import us.ihmc.humanoidRobotics.communication.controllerAPI.command.FootstepDataControllerCommand;
+import us.ihmc.humanoidRobotics.communication.controllerAPI.command.FootstepDataCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.FootstepDataListCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.PauseWalkingCommand;
 import us.ihmc.humanoidRobotics.communication.packets.ExecutionMode;
@@ -33,7 +35,6 @@ import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.robotics.trajectories.TrajectoryType;
-import us.ihmc.simulationconstructionset.yoUtilities.graphics.YoGraphicsListRegistry;
 import us.ihmc.tools.io.printing.PrintTools;
 
 public class WalkingMessageHandler
@@ -44,6 +45,8 @@ public class WalkingMessageHandler
 
    // TODO Need to find something better than an ArrayList.
    private final List<Footstep> upcomingFootsteps = new ArrayList<>();
+   private final BooleanYoVariable hasNewFootstepAdjustment = new BooleanYoVariable("hasNewFootstepAdjustement", registry);
+   private final AdjustFootstepCommand requestedFootstepAdjustment = new AdjustFootstepCommand();
    private final SideDependentList<? extends ContactablePlaneBody> contactableFeet;
    private final SideDependentList<Footstep> footstepsAtCurrentLocation = new SideDependentList<>();
    private final SideDependentList<Footstep> lastDesiredFootsteps = new SideDependentList<>();
@@ -133,6 +136,20 @@ public class WalkingMessageHandler
       updateVisualization();
    }
 
+   public void handleAdjustFootstepCommand(AdjustFootstepCommand command)
+   {
+      if (isWalkingPaused.getBooleanValue())
+      {
+         PrintTools.warn(this, "Received " + AdjustFootstepCommand.class.getSimpleName() + " but walking is currently paused. Command ignored.");
+         requestedFootstepAdjustment.clear();
+         hasNewFootstepAdjustment.set(false);
+         return;
+      }
+
+      requestedFootstepAdjustment.set(command);
+      hasNewFootstepAdjustment.set(true);
+   }
+
    public void handlePauseWalkingCommand(PauseWalkingCommand command)
    {
       isWalkingPaused.set(command.isPauseRequested());
@@ -173,6 +190,48 @@ public class WalkingMessageHandler
       return upcomingFootTrajectoryCommandListForFlamingoStance.get(swingSide).poll();
    }
 
+   public boolean pollRequestedFootstepAdjustment(Footstep footstepToAdjust)
+   {
+      if (!hasNewFootstepAdjustment.getBooleanValue())
+         return false;
+
+      if (footstepToAdjust.getRobotSide() != requestedFootstepAdjustment.getRobotSide())
+      {
+         PrintTools.warn(this, "RobotSide does not match: side of footstep to be adjusted: " + footstepToAdjust.getRobotSide() + ", side of adjusted footstep: " + requestedFootstepAdjustment.getRobotSide());
+         hasNewFootstepAdjustment.set(false);
+         requestedFootstepAdjustment.clear();
+         return false;
+      }
+
+      Point3d adjustedPosition = requestedFootstepAdjustment.getPosition();
+      Quat4d adjustedOrientation = requestedFootstepAdjustment.getOrientation();
+
+      switch (requestedFootstepAdjustment.getOrigin())
+      {
+      case AT_ANKLE_FRAME:
+         footstepToAdjust.setPose(adjustedPosition, adjustedOrientation);
+         break;
+      case AT_SOLE_FRAME:
+         footstepToAdjust.setSolePose(adjustedPosition, adjustedOrientation);
+         break;
+      default:
+         throw new RuntimeException("Should not get there.");
+      }
+
+      if (!requestedFootstepAdjustment.getPredictedContactPoints().isEmpty())
+      {
+         List<Point2d> contactPoints = new ArrayList<>();
+         for (int i = 0; i < footstepToAdjust.getPredictedContactPoints().size(); i++)
+            contactPoints.add(footstepToAdjust.getPredictedContactPoints().get(i));
+         footstepToAdjust.setPredictedContactPointsFromPoint2ds(contactPoints);
+      }
+
+      hasNewFootstepAdjustment.set(false);
+      requestedFootstepAdjustment.clear();
+
+      return true;
+   }
+
    public void insertNextFootstep(Footstep newNextFootstep)
    {
       if (newNextFootstep != null)
@@ -182,6 +241,16 @@ public class WalkingMessageHandler
    public boolean hasUpcomingFootsteps()
    {
       return !upcomingFootsteps.isEmpty() && !isWalkingPaused.getBooleanValue();
+   }
+
+   public boolean hasRequestedFootstepAdjustment()
+   {
+      if (isWalkingPaused.getBooleanValue())
+      {
+         hasNewFootstepAdjustment.set(false);
+         requestedFootstepAdjustment.clear();
+      }
+      return hasNewFootstepAdjustment.getBooleanValue();
    }
 
    public boolean isNextFootstepFor(RobotSide swingSide)
@@ -231,14 +300,20 @@ public class WalkingMessageHandler
       updateVisualization();
    }
 
+   private final Point3d desiredFootPositionInWorld = new Point3d();
+   private final Quat4d desiredFootOrientationInWorld = new Quat4d();
    private final Point3d actualFootPositionInWorld = new Point3d();
    private final Quat4d actualFootOrientationInWorld = new Quat4d();
    private final TextToSpeechPacket reusableSpeechPacket = new TextToSpeechPacket();
    private final WalkingControllerFailureStatusMessage failureStatusMessage = new WalkingControllerFailureStatusMessage();
 
-   public void reportFootstepStarted(RobotSide robotSide)
+   public void reportFootstepStarted(RobotSide robotSide, FramePose desiredFootPoseInWorld, FramePose actualFootPoseInWorld)
    {
-      statusOutputManager.reportStatusMessage(new FootstepStatus(FootstepStatus.Status.STARTED, currentFootstepIndex.getIntegerValue()));
+      desiredFootPoseInWorld.getPose(desiredFootPositionInWorld, desiredFootOrientationInWorld);
+      actualFootPoseInWorld.getPose(actualFootPositionInWorld, actualFootOrientationInWorld);
+      statusOutputManager.reportStatusMessage(new FootstepStatus(FootstepStatus.Status.STARTED, currentFootstepIndex.getIntegerValue(),
+            desiredFootPositionInWorld, desiredFootOrientationInWorld,
+            actualFootPositionInWorld, actualFootOrientationInWorld, robotSide));
    }
 
    public void reportFootstepCompleted(RobotSide robotSide, FramePose actualFootPoseInWorld)
@@ -351,6 +426,11 @@ public class WalkingMessageHandler
       footstepListVisualizer.update(upcomingFootsteps);
    }
 
+   public void updateVisualizationAfterFootstepAdjustement(Footstep adjustedFootstep)
+   {
+      footstepListVisualizer.updateFirstFootstep(adjustedFootstep);
+   }
+
    public TransferToAndNextFootstepsData createTransferToAndNextFootstepDataForDoubleSupport(RobotSide transferToSide)
    {
       Footstep transferFromFootstep = getFootstepAtCurrentLocation(transferToSide.getOppositeSide());
@@ -384,7 +464,7 @@ public class WalkingMessageHandler
       return transferToAndNextFootstepsData;
    }
 
-   private Footstep createFootstep(FootstepDataControllerCommand footstepData)
+   private Footstep createFootstep(FootstepDataCommand footstepData)
    {
       FramePose footstepPose = new FramePose(worldFrame, footstepData.getPosition(), footstepData.getOrientation());
       PoseReferenceFrame footstepPoseFrame = new PoseReferenceFrame("footstepPoseFrame", footstepPose);

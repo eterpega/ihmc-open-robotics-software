@@ -14,22 +14,22 @@ import com.martiansoftware.jsap.JSAPResult;
 import com.martiansoftware.jsap.Switch;
 
 import us.ihmc.SdfLoader.GeneralizedSDFRobotModel;
+import us.ihmc.avatar.DRCObstacleCourseStartingLocation;
+import us.ihmc.avatar.DRCStartingLocation;
+import us.ihmc.avatar.drcRobot.DRCRobotModel;
+import us.ihmc.avatar.factory.AvatarSimulation;
+import us.ihmc.avatar.initialSetup.DRCGuiInitialSetup;
+import us.ihmc.avatar.networkProcessor.DRCNetworkModuleParameters;
+import us.ihmc.avatar.networkProcessor.modules.uiConnector.UiPacketToRosMsgRedirector;
+import us.ihmc.avatar.networkProcessor.time.SimulationRosClockPPSTimestampOffsetProvider;
+import us.ihmc.avatar.rosAPI.ThePeoplesGloriousNetworkProcessor;
+import us.ihmc.avatar.simulationStarter.DRCSimulationStarter;
 import us.ihmc.communication.PacketRouter;
 import us.ihmc.communication.configuration.NetworkParameters;
 import us.ihmc.communication.net.LocalObjectCommunicator;
 import us.ihmc.communication.packetCommunicator.PacketCommunicator;
 import us.ihmc.communication.packets.PacketDestination;
 import us.ihmc.communication.util.NetworkPorts;
-import us.ihmc.darpaRoboticsChallenge.DRCGuiInitialSetup;
-import us.ihmc.darpaRoboticsChallenge.DRCObstacleCourseStartingLocation;
-import us.ihmc.darpaRoboticsChallenge.DRCSimulationFactory;
-import us.ihmc.darpaRoboticsChallenge.DRCSimulationStarter;
-import us.ihmc.darpaRoboticsChallenge.DRCStartingLocation;
-import us.ihmc.darpaRoboticsChallenge.drcRobot.DRCRobotModel;
-import us.ihmc.darpaRoboticsChallenge.networkProcessor.DRCNetworkModuleParameters;
-import us.ihmc.darpaRoboticsChallenge.networkProcessor.modules.uiConnector.UiPacketToRosMsgRedirector;
-import us.ihmc.darpaRoboticsChallenge.networkProcessor.time.SimulationRosClockPPSTimestampOffsetProvider;
-import us.ihmc.darpaRoboticsChallenge.rosAPI.ThePeoplesGloriousNetworkProcessor;
 import us.ihmc.utilities.ros.subscriber.AbstractRosTopicSubscriber;
 import us.ihmc.utilities.ros.subscriber.RosTopicSubscriberInterface;
 import us.ihmc.valkyrie.parameters.ValkyrieContactPointParameters;
@@ -42,7 +42,7 @@ public class OpenHumanoidsSimulator
    private static final boolean REDIRECT_UI_PACKETS_TO_ROS = false;
    private static final String DEFAULT_TF_PREFIX = null;
    private SDFEnvironment environment = null;
-   private DRCSimulationFactory drcSimulationFactory;
+   private AvatarSimulation avatarSimulation;
    private boolean rosShutDown = false;
 
    class RosIPABAPISubscriber extends AbstractRosTopicSubscriber<std_msgs.String>
@@ -122,7 +122,7 @@ public class OpenHumanoidsSimulator
 		  simulationStarter.setStartingLocation(startingLocation);
 		  simulationStarter.setInitializeEstimatorToActual(true);
 		  simulationStarter.startSimulation(networkProcessorParameters, false);
-		  simulationStarter.getDRCSimulationFactory().getSimulationConstructionSet().hideAllDynamicGraphicObjects();
+		  simulationStarter.getAvatarSimulation().getSimulationConstructionSet().hideAllDynamicGraphicObjects();
 
 
 		  if (REDIRECT_UI_PACKETS_TO_ROS)
@@ -142,7 +142,7 @@ public class OpenHumanoidsSimulator
 
 		  new ThePeoplesGloriousNetworkProcessor(rosUri, rosAPI_communicator, sensorCommunicator, ppsOffsetProvider, robotModel, nameSpace, tfPrefix, additionalPacketTypes, subscribers, null);
 
-		  drcSimulationFactory = simulationStarter.getDRCSimulationFactory();
+		  avatarSimulation = simulationStarter.getAvatarSimulation();
    }
 
    private void processCommand(String command)
@@ -175,14 +175,14 @@ public class OpenHumanoidsSimulator
    public void simulate()
    {
 	   System.out.println("Starting simulation");
-	   drcSimulationFactory.simulate();
+	   avatarSimulation.simulate();
    }
 
    public void loadEnvironment(String filename)
    {
 	   System.out.println("Loading environment from '"+filename+"'");
 	   environment.load(filename);
-	   drcSimulationFactory.updateEnvironment(environment);
+	   avatarSimulation.updateEnvironment(environment);
    }
 
    public static boolean extra_sim_points = false;

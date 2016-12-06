@@ -14,9 +14,9 @@ import us.ihmc.quadrupedRobotics.QuadrupedTestGoals;
 import us.ihmc.quadrupedRobotics.controller.QuadrupedControlMode;
 import us.ihmc.quadrupedRobotics.params.ParameterRegistry;
 import us.ihmc.quadrupedRobotics.simulation.QuadrupedGroundContactModelType;
+import us.ihmc.robotics.controllers.ControllerFailureException;
 import us.ihmc.robotics.testing.YoVariableTestGoal;
 import us.ihmc.simulationconstructionset.util.simulationRunner.BlockingSimulationRunner.SimulationExceededMaximumTimeException;
-import us.ihmc.simulationconstructionset.util.simulationRunner.ControllerFailureException;
 import us.ihmc.simulationconstructionset.util.simulationRunner.GoalOrientedTestConductor;
 import us.ihmc.tools.MemoryTools;
 import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
@@ -59,8 +59,7 @@ public abstract class QuadrupedXGaitTurning720Test implements QuadrupedMultiRobo
    @Test(timeout = 200000)
    public void rotate720InPlaceRight() throws SimulationExceededMaximumTimeException, ControllerFailureException, IOException
    {
-      QuadrupedTestBehaviors.standUp(conductor, variables);
-      QuadrupedTestBehaviors.squareUp(conductor, variables);
+      QuadrupedTestBehaviors.readyXGait(conductor, variables);
       
       variables.getUserTrigger().set(QuadrupedForceControllerRequestedEvent.REQUEST_XGAIT);
       variables.getYoPlanarVelocityInputZ().set(-0.5);
@@ -88,8 +87,7 @@ public abstract class QuadrupedXGaitTurning720Test implements QuadrupedMultiRobo
    @Test(timeout = 200000)
    public void rotate720InPlaceLeft() throws SimulationExceededMaximumTimeException, ControllerFailureException, IOException
    {
-      QuadrupedTestBehaviors.standUp(conductor, variables);
-      QuadrupedTestBehaviors.squareUp(conductor, variables);
+      QuadrupedTestBehaviors.readyXGait(conductor, variables);
       
       variables.getUserTrigger().set(QuadrupedForceControllerRequestedEvent.REQUEST_XGAIT);
       variables.getYoPlanarVelocityInputZ().set(0.5);

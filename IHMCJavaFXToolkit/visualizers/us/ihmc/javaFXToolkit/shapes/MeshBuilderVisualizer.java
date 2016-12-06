@@ -15,9 +15,8 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.MeshView;
 import javafx.stage.Stage;
-import us.ihmc.graphics3DAdapter.graphics.MeshDataGenerator;
+import us.ihmc.graphics3DDescription.MeshDataGenerator;
 import us.ihmc.javaFXToolkit.cameraControllers.FocusBasedCameraMouseEventHandler;
-import us.ihmc.javaFXToolkit.graphics.JavaFXMeshDataInterpreter;
 import us.ihmc.robotics.random.RandomTools;
 
 public class MeshBuilderVisualizer extends Application
@@ -43,7 +42,7 @@ public class MeshBuilderVisualizer extends Application
 //      JavaFXCoordinateSystem worldCoordinateSystem = new JavaFXCoordinateSystem(0.3);
 //      rootNode.getChildren().add(worldCoordinateSystem);
 
-      MeshBuilder meshBuilder = new MeshBuilder();
+      JavaFXMeshBuilder meshBuilder = new JavaFXMeshBuilder();
       switch (MESH_TO_DISPLAY)
       {
       case BOX:
@@ -77,7 +76,7 @@ public class MeshBuilderVisualizer extends Application
       primaryStage.show();
    }
 
-   public void addRandomBoxes(MeshBuilder meshBuilder)
+   public void addRandomBoxes(JavaFXMeshBuilder meshBuilder)
    {
       int count = 0;
       for (float x = -5.0f; x <= 5.0f; x += 0.055f)
@@ -91,7 +90,7 @@ public class MeshBuilderVisualizer extends Application
       System.out.println("Number of boxes: " + count);
    }
 
-   private void addLines(MeshBuilder meshBuilder)
+   private void addLines(JavaFXMeshBuilder meshBuilder)
    {
       Point3d start = new Point3d(0.3, 0.0, -0.);
       Point3d end = new Point3d(0.0, 0.3, 0.0);
@@ -99,7 +98,7 @@ public class MeshBuilderVisualizer extends Application
       meshBuilder.addLine(start, end, lineWidth);
    }
 
-   private void addCylinders(MeshBuilder meshBuilder)
+   private void addCylinders(JavaFXMeshBuilder meshBuilder)
    {
       Point3d cylinderPosition = new Point3d(1.0, 0.0, 0.0);
       double height = 0.3;
@@ -109,7 +108,7 @@ public class MeshBuilderVisualizer extends Application
       meshBuilder.addMesh(MeshDataGenerator.Cylinder(radius, height, 64));
    }
 
-   private void addCones(MeshBuilder meshBuilder)
+   private void addCones(JavaFXMeshBuilder meshBuilder)
    {
       Point3d conePosition = new Point3d(0.4, 0.0, 0.0);
       double height = 0.3;

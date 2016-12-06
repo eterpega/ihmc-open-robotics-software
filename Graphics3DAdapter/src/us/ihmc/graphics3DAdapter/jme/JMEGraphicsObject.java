@@ -22,27 +22,27 @@ import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 
 import jme3tools.optimize.GeometryBatchFactory;
-import us.ihmc.graphics3DAdapter.HeightMap;
 import us.ihmc.graphics3DAdapter.graphics.Graphics3DInstructionExecutor;
-import us.ihmc.graphics3DAdapter.graphics.Graphics3DObject;
-import us.ihmc.graphics3DAdapter.graphics.MeshDataHolder;
-import us.ihmc.graphics3DAdapter.graphics.appearances.AppearanceDefinition;
-import us.ihmc.graphics3DAdapter.graphics.appearances.YoAppearanceRGBColor;
-import us.ihmc.graphics3DAdapter.graphics.instructions.Graphics3DAddExtrusionInstruction;
-import us.ihmc.graphics3DAdapter.graphics.instructions.Graphics3DAddHeightMapInstruction;
-import us.ihmc.graphics3DAdapter.graphics.instructions.Graphics3DAddMeshDataInstruction;
-import us.ihmc.graphics3DAdapter.graphics.instructions.Graphics3DAddModelFileInstruction;
-import us.ihmc.graphics3DAdapter.graphics.instructions.Graphics3DInstruction;
-import us.ihmc.graphics3DAdapter.graphics.instructions.listeners.AppearanceChangedListener;
-import us.ihmc.graphics3DAdapter.graphics.instructions.listeners.ExtrusionChangedListener;
-import us.ihmc.graphics3DAdapter.graphics.instructions.listeners.MeshChangedListener;
-import us.ihmc.graphics3DAdapter.graphics.instructions.listeners.ScaleChangedListener;
-import us.ihmc.graphics3DAdapter.graphics.instructions.primitives.Graphics3DRotateInstruction;
-import us.ihmc.graphics3DAdapter.graphics.instructions.primitives.Graphics3DScaleInstruction;
-import us.ihmc.graphics3DAdapter.graphics.instructions.primitives.Graphics3DTranslateInstruction;
 import us.ihmc.graphics3DAdapter.jme.terrain.JMEHeightMapTerrain;
 import us.ihmc.graphics3DAdapter.jme.util.JMEDataTypeUtils;
 import us.ihmc.graphics3DAdapter.tralala.ShapeUtilities;
+import us.ihmc.graphics3DDescription.Graphics3DObject;
+import us.ihmc.graphics3DDescription.HeightMap;
+import us.ihmc.graphics3DDescription.MeshDataHolder;
+import us.ihmc.graphics3DDescription.appearance.AppearanceDefinition;
+import us.ihmc.graphics3DDescription.appearance.YoAppearanceRGBColor;
+import us.ihmc.graphics3DDescription.instructions.Graphics3DAddExtrusionInstruction;
+import us.ihmc.graphics3DDescription.instructions.Graphics3DAddHeightMapInstruction;
+import us.ihmc.graphics3DDescription.instructions.Graphics3DAddMeshDataInstruction;
+import us.ihmc.graphics3DDescription.instructions.Graphics3DAddModelFileInstruction;
+import us.ihmc.graphics3DDescription.instructions.Graphics3DInstruction;
+import us.ihmc.graphics3DDescription.instructions.listeners.AppearanceChangedListener;
+import us.ihmc.graphics3DDescription.instructions.listeners.ExtrusionChangedListener;
+import us.ihmc.graphics3DDescription.instructions.listeners.MeshChangedListener;
+import us.ihmc.graphics3DDescription.instructions.listeners.ScaleChangedListener;
+import us.ihmc.graphics3DDescription.instructions.primitives.Graphics3DRotateInstruction;
+import us.ihmc.graphics3DDescription.instructions.primitives.Graphics3DScaleInstruction;
+import us.ihmc.graphics3DDescription.instructions.primitives.Graphics3DTranslateInstruction;
 import us.ihmc.robotics.geometry.RotationTools;
 
 public class JMEGraphicsObject extends Graphics3DInstructionExecutor
@@ -404,7 +404,7 @@ public class JMEGraphicsObject extends Graphics3DInstructionExecutor
       AppearanceDefinition appearance = graphics3dObjectAddMeshData.getAppearance();
 
       Mesh mesh = JMEMeshDataInterpreter.interpretMeshData(meshData);
-      Geometry geometry = new Geometry("MeshData", mesh);
+      Geometry geometry = new Geometry(meshData.getName()+"_Geometry", mesh);
       setGeometryMaterialBasedOnAppearance(geometry, appearance);
 
       final Node meshHolder = new Node();
@@ -418,8 +418,6 @@ public class JMEGraphicsObject extends Graphics3DInstructionExecutor
 
          public void meshChanged(final MeshDataHolder newMesh)
          {
-            if (newMesh == null) return;
-
             checkIfNotImmutable();
 
             application.enqueue(new Callable<Object>()
@@ -427,6 +425,9 @@ public class JMEGraphicsObject extends Graphics3DInstructionExecutor
                public Object call() throws Exception
                {
                   meshHolder.detachAllChildren();
+                  if (newMesh == null)
+                     return null;
+
                   Mesh mesh = JMEMeshDataInterpreter.interpretMeshData(newMesh);
                   Geometry geometry = new Geometry("MeshData", mesh);
                   setGeometryMaterialBasedOnAppearance(geometry, graphics3dObjectAddMeshData.getAppearance());
@@ -434,7 +435,6 @@ public class JMEGraphicsObject extends Graphics3DInstructionExecutor
                   return null;
                }
             });
-
          }
       });
    }

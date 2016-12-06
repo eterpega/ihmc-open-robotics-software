@@ -4,9 +4,11 @@ import javax.vecmath.AxisAngle4d;
 import javax.vecmath.Matrix3d;
 import javax.vecmath.Point2d;
 import javax.vecmath.Point3d;
+import javax.vecmath.Point3f;
 import javax.vecmath.Quat4d;
+import javax.vecmath.Quat4f;
 import javax.vecmath.Tuple3d;
-import javax.vecmath.Vector3d;
+import javax.vecmath.Tuple3f;
 
 import us.ihmc.robotics.geometry.RigidBodyTransform;
 import us.ihmc.robotics.geometry.interfaces.GeometryObject;
@@ -23,6 +25,12 @@ public class Pose implements GeometryObject<Pose>
    }
    
    public Pose(Point3d position, Quat4d orientation)
+   {
+      this.position = new TransformablePoint3d(position);
+      this.orientation = new TransformableQuat4d(orientation);
+   }
+   
+   public Pose(Point3f position, Quat4f orientation)
    {
       this.position = new TransformablePoint3d(position);
       this.orientation = new TransformableQuat4d(orientation);
@@ -145,7 +153,7 @@ public class Pose implements GeometryObject<Pose>
    {
       position.interpolate(pose1.position, pose2.position, alpha);
       orientation.interpolate(pose1.orientation, pose2.orientation, alpha);
-      orientation.normalizeAndLimitToPiMinusPi();
+      orientation.normalize();
    }
 
    public String printOutPosition()
@@ -158,7 +166,19 @@ public class Pose implements GeometryObject<Pose>
       return orientation.toString();
    }
 
+   public void setPose(RigidBodyTransform transform)
+   {
+      transform.getTranslation(position);
+      transform.getRotation(orientation);
+   }
+
    public void setPose(Tuple3d position, Quat4d orientation)
+   {
+      setPosition(position);
+      setOrientation(orientation);
+   }
+
+   public void setPose(Tuple3f position, Quat4f orientation)
    {
       setPosition(position);
       setOrientation(orientation);
@@ -175,18 +195,20 @@ public class Pose implements GeometryObject<Pose>
       this.position.set(position);
    }
 
+   public void setPosition(Tuple3f position)
+   {
+      this.position.set(position);
+   }
+
    public void setXY(Point2d point)
    {
       setX(point.getX());
       setY(point.getY());     
    }
    
-   private final Vector3d tempVector = new Vector3d();
-
    public void getPose(RigidBodyTransform transformToPack)
    {
-      position.get(tempVector);
-      transformToPack.set(orientation, tempVector);
+      transformToPack.set(orientation, position);
    }
    
    public void getPosition(Tuple3d tupleToPack)
@@ -199,9 +221,19 @@ public class Pose implements GeometryObject<Pose>
       getPose(transformToPack);
    }
 
-   public void setOrientation(Quat4d quat4d)
+   public void setOrientation(double qx, double qy, double qz, double qs)
    {
-      this.orientation.setOrientation(quat4d);
+      this.orientation.set(qx, qy, qz, qs);
+   }
+
+   public void setOrientation(Quat4d quaternion)
+   {
+      this.orientation.setOrientation(quaternion);
+   }
+
+   public void setOrientation(Quat4f quaternion)
+   {
+      this.orientation.setOrientation(quaternion);
    }
    
    public void setOrientation(Matrix3d matrix3d)

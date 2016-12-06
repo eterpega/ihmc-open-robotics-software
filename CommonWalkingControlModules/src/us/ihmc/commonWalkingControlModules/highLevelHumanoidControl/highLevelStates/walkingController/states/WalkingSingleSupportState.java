@@ -27,6 +27,7 @@ public class WalkingSingleSupportState extends SingleSupportState
 
    private Footstep nextFootstep;
    private final FramePose actualFootPoseInWorld = new FramePose(worldFrame);
+   private final FramePose desiredFootPoseInWorld = new FramePose(worldFrame);
    private final FramePoint nextExitCMP = new FramePoint();
 
    private final HighLevelHumanoidControllerToolbox momentumBasedController;
@@ -69,19 +70,35 @@ public class WalkingSingleSupportState extends SingleSupportState
       super.doAction();
 
       boolean icpErrorIsTooLarge = balanceManager.getICPErrorMagnitude() > icpErrorThresholdToSpeedUpSwing.getDoubleValue();
+      boolean requestSwingSpeedUp = icpErrorIsTooLarge;
 
-      // todo figure out a way of combining these two modules
-      boolean footstepIsBeingAdjusted = false;
-      if (balanceManager.useICPOptimization())
+      if (walkingMessageHandler.hasRequestedFootstepAdjustment())
       {
-         footstepIsBeingAdjusted = balanceManager.checkAndUpdateFootstepFromICPOptimization(nextFootstep);
-
-         if (footstepIsBeingAdjusted)
+         boolean footstepHasBeenAdjusted = walkingMessageHandler.pollRequestedFootstepAdjustment(nextFootstep);
+         if (footstepHasBeenAdjusted)
          {
+            walkingMessageHandler.updateVisualizationAfterFootstepAdjustement(nextFootstep);
             failureDetectionControlModule.setNextFootstep(nextFootstep);
             updateFootstepParameters();
 
-            feetManager.replanSwingTrajectory(swingSide, nextFootstep, walkingMessageHandler.getSwingTime());
+            feetManager.replanSwingTrajectory(swingSide, nextFootstep, walkingMessageHandler.getSwingTime(), true);
+
+            balanceManager.updateICPPlanForSingleSupportDisturbances();
+         }
+
+      }
+      else if (balanceManager.useICPOptimization()) // TODO figure out a way of combining the two following modules
+      {
+         boolean footstepIsBeingAdjusted = balanceManager.checkAndUpdateFootstepFromICPOptimization(nextFootstep);
+
+         if (footstepIsBeingAdjusted)
+         {
+            requestSwingSpeedUp = true;
+            walkingMessageHandler.updateVisualizationAfterFootstepAdjustement(nextFootstep);
+            failureDetectionControlModule.setNextFootstep(nextFootstep);
+            updateFootstepParameters();
+
+            feetManager.replanSwingTrajectory(swingSide, nextFootstep, walkingMessageHandler.getSwingTime(), true);
 
             balanceManager.updateICPPlanForSingleSupportDisturbances();
          }
@@ -91,10 +108,12 @@ public class WalkingSingleSupportState extends SingleSupportState
          boolean footstepHasBeenAdjusted = balanceManager.checkAndUpdateFootstep(nextFootstep);
          if (footstepHasBeenAdjusted)
          {
+            requestSwingSpeedUp = true;
+            walkingMessageHandler.updateVisualizationAfterFootstepAdjustement(nextFootstep);
             failureDetectionControlModule.setNextFootstep(nextFootstep);
             updateFootstepParameters();
 
-            feetManager.replanSwingTrajectory(swingSide, nextFootstep, walkingMessageHandler.getSwingTime());
+            feetManager.replanSwingTrajectory(swingSide, nextFootstep, walkingMessageHandler.getSwingTime(), false);
 
             walkingMessageHandler.reportWalkingAbortRequested();
             walkingMessageHandler.clearFootsteps();
@@ -106,7 +125,7 @@ public class WalkingSingleSupportState extends SingleSupportState
          }
       }
 
-      if (icpErrorIsTooLarge || balanceManager.isRecovering() || footstepIsBeingAdjusted)
+      if (requestSwingSpeedUp)
       {
          double swingTimeRemaining = requestSwingSpeedUpIfNeeded();
          balanceManager.updateSwingTimeRemaining(swingTimeRemaining);
@@ -162,7 +181,13 @@ public class WalkingSingleSupportState extends SingleSupportState
       }
 
       feetManager.requestSwing(swingSide, nextFootstep, walkingMessageHandler.getSwingTime());
-      walkingMessageHandler.reportFootstepStarted(swingSide);
+
+      nextFootstep.getPose(desiredFootPoseInWorld);
+      desiredFootPoseInWorld.changeFrame(worldFrame);
+
+      actualFootPoseInWorld.setToZero(fullRobotModel.getEndEffectorFrame(swingSide, LimbName.LEG));
+      actualFootPoseInWorld.changeFrame(worldFrame);
+      walkingMessageHandler.reportFootstepStarted(swingSide, desiredFootPoseInWorld, actualFootPoseInWorld);
    }
 
    @Override

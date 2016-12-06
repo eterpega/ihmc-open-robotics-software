@@ -15,7 +15,7 @@ import javafx.scene.paint.Material;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.MeshView;
 import javafx.stage.Stage;
-import us.ihmc.graphics3DAdapter.graphics.MeshDataGenerator;
+import us.ihmc.graphics3DDescription.MeshDataGenerator;
 import us.ihmc.javaFXToolkit.cameraControllers.FocusBasedCameraMouseEventHandler;
 import us.ihmc.javaFXToolkit.graphics.JavaFXMeshDataInterpreter;
 import us.ihmc.robotics.geometry.ConvexPolygon2d;
@@ -119,6 +119,12 @@ public class MeshDataGeneratorVisualizer extends Application
       capsule.setTranslateX(0.0);
       capsule.setTranslateY(0.0);
       rootNode.getChildren().add(capsule);
+
+      MeshView tetrahedron = new MeshView(JavaFXMeshDataInterpreter.interpretMeshData(MeshDataGenerator.Tetrahedron(0.3)));
+      tetrahedron.setMaterial(defaultMaterial);
+      tetrahedron.setTranslateX(-1.0);
+      tetrahedron.setTranslateY(1.0);
+      rootNode.getChildren().add(tetrahedron);
 
       primaryStage.setMaximized(true);
       primaryStage.setScene(scene);

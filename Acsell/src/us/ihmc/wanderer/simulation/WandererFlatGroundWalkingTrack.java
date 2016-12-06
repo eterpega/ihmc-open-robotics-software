@@ -3,16 +3,16 @@ package us.ihmc.wanderer.simulation;
 import java.io.IOException;
 
 import net.java.games.input.Component;
-import us.ihmc.humanoidRobotics.HumanoidFloatingRootJointRobot;
+import us.ihmc.avatar.DRCFlatGroundWalkingTrack;
+import us.ihmc.avatar.initialSetup.DRCGuiInitialSetup;
+import us.ihmc.avatar.initialSetup.DRCRobotInitialSetup;
+import us.ihmc.avatar.initialSetup.DRCSCSInitialSetup;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.WalkingProvider;
-import us.ihmc.darpaRoboticsChallenge.DRCFlatGroundWalkingTrack;
-import us.ihmc.darpaRoboticsChallenge.DRCGuiInitialSetup;
-import us.ihmc.darpaRoboticsChallenge.DRCSCSInitialSetup;
-import us.ihmc.darpaRoboticsChallenge.initialSetup.DRCRobotInitialSetup;
 import us.ihmc.graphics3DAdapter.GroundProfile3D;
 import us.ihmc.robotics.dataStructures.YoVariableHolder;
 import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
 import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.simulationconstructionset.HumanoidFloatingRootJointRobot;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
 import us.ihmc.simulationconstructionset.joystick.BooleanYoVariableJoystickEventListener;
 import us.ihmc.simulationconstructionset.joystick.DoubleYoVariableJoystickEventListener;
@@ -51,8 +51,8 @@ public class WandererFlatGroundWalkingTrack
       if (USE_JOYSTICK_CONTROLLER)
       {
          setupJoyStick(scs);
-         flatGroundWalkingTrack.getDrcSimulation().start();
-         flatGroundWalkingTrack.getDrcSimulation().simulate();
+         flatGroundWalkingTrack.getAvatarSimulation().start();
+         flatGroundWalkingTrack.getAvatarSimulation().simulate();
       }
    }
 

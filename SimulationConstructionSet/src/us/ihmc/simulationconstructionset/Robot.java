@@ -13,7 +13,8 @@ import javax.vecmath.Vector3d;
 
 import us.ihmc.graphics3DAdapter.camera.CameraMountInterface;
 import us.ihmc.graphics3DAdapter.camera.CameraMountList;
-import us.ihmc.graphics3DAdapter.graphics.Graphics3DObject;
+import us.ihmc.graphics3DDescription.Graphics3DObject;
+import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.robotics.dataStructures.YoVariableHolder;
 import us.ihmc.robotics.dataStructures.listener.RewoundListener;
 import us.ihmc.robotics.dataStructures.registry.NameSpace;
@@ -21,7 +22,7 @@ import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
 import us.ihmc.robotics.dataStructures.variable.YoVariable;
 import us.ihmc.robotics.dataStructures.variable.YoVariableList;
-import us.ihmc.simulationconstructionset.robotController.RobotController;
+import us.ihmc.robotics.robotController.RobotController;
 import us.ihmc.simulationconstructionset.robotdefinition.ExternalForcePointDefinitionFixedFrame;
 import us.ihmc.simulationconstructionset.robotdefinition.GroundContactDefinitionFixedFrame;
 import us.ihmc.simulationconstructionset.robotdefinition.JointDefinitionFixedFrame;
@@ -29,7 +30,6 @@ import us.ihmc.simulationconstructionset.robotdefinition.JointDefinitionFixedFra
 import us.ihmc.simulationconstructionset.robotdefinition.RobotDefinitionFixedFrame;
 import us.ihmc.simulationconstructionset.simulatedSensors.LidarMount;
 import us.ihmc.simulationconstructionset.simulatedSensors.WrenchCalculatorInterface;
-import us.ihmc.simulationconstructionset.yoUtilities.graphics.YoGraphicsListRegistry;
 
 /**
  * <p>Title: Robot</p>

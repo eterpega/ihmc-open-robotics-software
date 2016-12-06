@@ -8,6 +8,7 @@ import us.ihmc.commonWalkingControlModules.trajectories.PushRecoveryTrajectoryGe
 import us.ihmc.commonWalkingControlModules.trajectories.SoftTouchdownPositionTrajectoryGenerator;
 import us.ihmc.commonWalkingControlModules.trajectories.TwoWaypointPositionTrajectoryGenerator;
 import us.ihmc.commonWalkingControlModules.trajectories.TwoWaypointSwingGenerator;
+import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.humanoidRobotics.bipedSupportPolygons.ContactableFoot;
 import us.ihmc.humanoidRobotics.footstep.Footstep;
 import us.ihmc.robotics.MathTools;
@@ -21,7 +22,6 @@ import us.ihmc.robotics.geometry.FramePoint2d;
 import us.ihmc.robotics.geometry.FramePose;
 import us.ihmc.robotics.geometry.FrameVector;
 import us.ihmc.robotics.geometry.RigidBodyTransform;
-import us.ihmc.robotics.math.frames.YoFramePoint;
 import us.ihmc.robotics.math.frames.YoFrameVector;
 import us.ihmc.robotics.math.trajectories.PositionTrajectoryGenerator;
 import us.ihmc.robotics.math.trajectories.VelocityConstrainedOrientationTrajectoryGenerator;
@@ -42,12 +42,11 @@ import us.ihmc.robotics.trajectories.providers.SettableDoubleProvider;
 import us.ihmc.robotics.trajectories.providers.TrajectoryParameters;
 import us.ihmc.robotics.trajectories.providers.TrajectoryParametersProvider;
 import us.ihmc.robotics.trajectories.providers.VectorProvider;
-import us.ihmc.simulationconstructionset.yoUtilities.graphics.YoGraphicsListRegistry;
 
 public class SwingState extends AbstractUnconstrainedState
 {
    private final boolean useNewSwingTrajectoyOptimization;
-   private static final boolean CONTROL_TOE = false;
+   private final boolean controlToe;
 
    private final BooleanYoVariable replanTrajectory;
    private final BooleanYoVariable doContinuousReplanning;
@@ -109,6 +108,7 @@ public class SwingState extends AbstractUnconstrainedState
       controlDT = footControlHelper.getMomentumBasedController().getControlDT();
 
       String namePrefix = robotSide.getCamelCaseNameForStartOfExpression() + "Foot";
+      WalkingControllerParameters walkingControllerParameters = footControlHelper.getWalkingControllerParameters();
 
       finalConfigurationProvider = new YoSE3ConfigurationProvider(namePrefix + "SwingFinal", worldFrame, registry);
       finalSwingHeightOffset = new DoubleYoVariable(namePrefix + "SwingFinalHeightOffset", registry);
@@ -122,13 +122,13 @@ public class SwingState extends AbstractUnconstrainedState
 
       // todo make a smarter distinction on this as a way to work with the push recovery module
       doContinuousReplanning = new BooleanYoVariable(namePrefix + "DoContinuousReplanning", registry);
-      doContinuousReplanning.set(footControlHelper.getWalkingControllerParameters().useOptimizationBasedICPController());
 
       footFrame = contactableFoot.getFrameAfterParentJoint();
       toeFrame = createToeFrame(robotSide);
 
-      controlFrame = CONTROL_TOE ? toeFrame : footFrame;
-      stanceFootFrame = CONTROL_TOE ? createToeFrame(robotSide.getOppositeSide()) : momentumBasedController.getReferenceFrames().getFootFrame(robotSide.getOppositeSide());
+      controlToe = walkingControllerParameters.controlToeDuringSwing();
+      controlFrame = controlToe ? toeFrame : footFrame;
+      stanceFootFrame = controlToe ? createToeFrame(robotSide.getOppositeSide()) : momentumBasedController.getReferenceFrames().getFootFrame(robotSide.getOppositeSide());
 
       TwistCalculator twistCalculator = momentumBasedController.getTwistCalculator();
       RigidBody rigidBody = contactableFoot.getRigidBody();
@@ -142,12 +142,13 @@ public class SwingState extends AbstractUnconstrainedState
       PositionTrajectoryGenerator touchdownTrajectoryGenerator = new SoftTouchdownPositionTrajectoryGenerator(namePrefix + "Touchdown", worldFrame,
             finalConfigurationProvider, touchdownVelocityProvider, touchdownAccelerationProvider, swingTimeProvider, registry);
 
-      WalkingControllerParameters walkingControllerParameters = footControlHelper.getWalkingControllerParameters();
-      double maxSwingHeightFromStanceFoot;
+      double maxSwingHeightFromStanceFoot = 0.0;
+      double minSwingHeightFromStanceFoot = 0.0;
       if (walkingControllerParameters != null)
+      {
          maxSwingHeightFromStanceFoot = walkingControllerParameters.getMaxSwingHeightFromStanceFoot();
-      else
-         maxSwingHeightFromStanceFoot = 0.0;
+         minSwingHeightFromStanceFoot = walkingControllerParameters.getMinSwingHeightFromStanceFoot();
+      }
 
       this.touchdownVelocityProvider = touchdownVelocityProvider;
 
@@ -157,7 +158,7 @@ public class SwingState extends AbstractUnconstrainedState
       useNewSwingTrajectoyOptimization = walkingControllerParameters.useSwingTrajectoryOptimizer();
       if (useNewSwingTrajectoyOptimization)
       {
-         swingTrajectoryGeneratorNew = new TwoWaypointSwingGenerator(namePrefix + "SwingNew", maxSwingHeightFromStanceFoot, registry, yoGraphicsListRegistry);
+         swingTrajectoryGeneratorNew = new TwoWaypointSwingGenerator(namePrefix + "SwingNew", minSwingHeightFromStanceFoot, maxSwingHeightFromStanceFoot, registry, yoGraphicsListRegistry);
          swingTrajectoryGenerator = null;
 
          positionTrajectoryGenerators.add(swingTrajectoryGeneratorNew);
@@ -368,7 +369,7 @@ public class SwingState extends AbstractUnconstrainedState
    public void setFootstep(Footstep footstep, double swingTime)
    {
       swingTimeProvider.setValue(swingTime);
-      if (CONTROL_TOE)
+      if (controlToe)
       {
          computeToeDesiredPose(footstep, newFootstepPose);
       }
@@ -414,12 +415,13 @@ public class SwingState extends AbstractUnconstrainedState
       desiredToePoseToPack.setPoseIncludingFrame(worldFrame, toePose);
    }
 
-   public void replanTrajectory(Footstep newFootstep, double swingTime)
+   public void replanTrajectory(Footstep newFootstep, double swingTime, boolean continuousReplan)
    {
       setFootstep(newFootstep, swingTime);
       computeSwingTimeRemaining();
 
-      this.replanTrajectory.set(true);
+      replanTrajectory.set(true);
+      doContinuousReplanning.set(continuousReplan);
    }
 
    private void computeSwingTimeRemaining()
