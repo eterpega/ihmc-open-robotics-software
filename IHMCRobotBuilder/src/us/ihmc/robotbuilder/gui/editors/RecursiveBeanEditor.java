@@ -7,6 +7,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.TreeItem;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
@@ -134,6 +135,7 @@ public class RecursiveBeanEditor<T> extends Editor<T>
       InnerBeanEditor(Property<U> property, Factory factory)
       {
          super(property);
+         container.setHgap(10);
          innerEditor = Lazy.of(() -> new ImmutableEditor<>(property, factory));
          Button edit = new Button("Edit...", new FontAwesomeLabel("\uf040"));
          edit.setOnAction(e ->
@@ -141,6 +143,15 @@ public class RecursiveBeanEditor<T> extends Editor<T>
                              editorStack.push(Tuple.of(new SimpleObjectProperty<>(property.getName()), innerEditor.get()));
                              updateEditorState();
                           });
+         U value = property.getValue();
+         if (value != null)
+         {
+            String text = objectName(value);
+            if (text.length() > 25)
+               text = text.substring(0, 25) + "...";
+            Label textLabel = new Label(text);
+            container.getChildren().add(textLabel);
+         }
          container.getChildren().add(edit);
       }
 
