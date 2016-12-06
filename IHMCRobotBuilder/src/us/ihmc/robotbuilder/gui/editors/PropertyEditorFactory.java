@@ -7,6 +7,7 @@ import us.ihmc.robotbuilder.gui.Editor;
 import us.ihmc.robotics.immutableRobotDescription.graphics.TransformDescription;
 
 import javax.vecmath.Vector3d;
+import java.awt.Color;
 import java.util.Optional;
 
 /**
@@ -56,6 +57,12 @@ public class PropertyEditorFactory implements Editor.Factory
       {
          //noinspection unchecked
          return Optional.of(new OptionalEditor<>(clazz, (Property<Optional<Object>>) value, this, new CreatorFactory()));
+      }
+
+      if (Color.class.isAssignableFrom(clazz))
+      {
+         //noinspection unchecked
+         return Optional.of(new ColorEditor((Property<Color>)value));
       }
 
       return Optional.empty();
