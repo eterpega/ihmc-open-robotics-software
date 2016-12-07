@@ -208,4 +208,8 @@ public class PacketCommunicator
       return description;
    }
 
+   public static void main(String[] args)
+   {
+      System.out.println(2097152 * 20);
+   }
 }

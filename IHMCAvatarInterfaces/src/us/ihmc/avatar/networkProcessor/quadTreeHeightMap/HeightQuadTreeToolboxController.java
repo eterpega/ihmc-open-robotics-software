@@ -106,8 +106,8 @@ public class HeightQuadTreeToolboxController extends ToolboxController
       updateRobotContactPoints();
 
       // Wait until we receive some contact points.
-      if (contactPoints.isEmpty())
-         return;
+//      if (contactPoints.isEmpty())
+//         return;
 
       if (commandInputManager.isNewCommandAvailable(HeightQuadTreeToolboxRequestCommand.class))
       {
