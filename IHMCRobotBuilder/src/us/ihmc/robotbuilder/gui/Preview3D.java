@@ -119,8 +119,6 @@ public class Preview3D extends BorderPane
    {
       Graphics3DNode result = new Graphics3DNode(node, children);
       applyDifferencesToItem(result, null, node.getValue());
-      if (result.graphicsGroup != null && !result.graphicsGroup.getBoundsInLocal().isEmpty())
-         result.graphicsGroup.addEventHandler(MouseEvent.MOUSE_CLICKED, this::handleGraphicsClick);
       return result;
    }
 
@@ -302,7 +300,7 @@ public class Preview3D extends BorderPane
       return new Affine(transformDescription.toDoubleArrayRowMajor(), MatrixType.MT_3D_4x4, 0);
    }
 
-   private static class Graphics3DNode extends Group
+   private class Graphics3DNode extends Group
    {
       private Tree<JointDescription> originalTree;
       private @Nullable Group graphicsGroup;
@@ -338,7 +336,10 @@ public class Preview3D extends BorderPane
          getChildren().add(graphicsGroup);
          this.graphicsGroup = graphicsGroup;
          if (graphicsGroup != null && !graphicsGroup.getBoundsInLocal().isEmpty())
+         {
             Tooltip.install(graphicsGroup, tooltip);
+            graphicsGroup.addEventHandler(MouseEvent.MOUSE_CLICKED, Preview3D.this::handleGraphicsClick);
+         }
       }
 
       @Override public String toString()
