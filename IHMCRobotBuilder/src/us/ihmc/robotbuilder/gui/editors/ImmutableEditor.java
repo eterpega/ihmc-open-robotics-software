@@ -16,9 +16,11 @@ import us.ihmc.robotbuilder.gui.ModifiableProperty;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Objects;
 
 import static java.lang.reflect.Modifier.isPublic;
 import static java.lang.reflect.Modifier.isStatic;
+import static us.ihmc.robotbuilder.util.ReflectionHelpers.getGenericParameters;
 import static us.ihmc.robotics.util.FunctionalObservableValue.functional;
 import static us.ihmc.robotics.util.NoCycleProperty.noCycle;
 
@@ -39,7 +41,7 @@ public class ImmutableEditor<T> extends Editor<T>
       this.editorFactory = editorFactory;
 
       functional(valueProperty())
-            .filter(newValue -> newValue != null)
+            .filter(Objects::nonNull)
             .consume(this::updateUIFromBean);
 
       editor.setVgap(5);
@@ -58,7 +60,7 @@ public class ImmutableEditor<T> extends Editor<T>
       properties = getProperties(bean.getClass());
       //noinspection OptionalGetWithoutIsPresent
       properties
-            .map(property -> Tuple.of(property, editorFactory.create(property.getValueType(), property.value())))
+            .map(property -> Tuple.of(property, editorFactory.create(property.getValueType(), property.genericTypes, property.value())))
             .filter(propertyAndEditor -> propertyAndEditor._2.isPresent())
             .map(propertyAndEditor -> Tuple.of(propertyAndEditor._1, propertyAndEditor._2.get()))
             .zipWithIndex()
@@ -95,7 +97,7 @@ public class ImmutableEditor<T> extends Editor<T>
                          return new ModifiableBeanProperty(propertyName, beanClass, (Class)getMethod.getReturnType(), getMethod, setMethod);
                       return null;
                    })
-                   .filter(item -> item != null);
+                   .filter(Objects::nonNull);
    }
 
    private static boolean isGetter(Method method)
@@ -120,6 +122,7 @@ public class ImmutableEditor<T> extends Editor<T>
    {
       private final String name;
       private final Class<Object> valueType;
+      private final java.util.List<Class<?>> genericTypes;
       private final Property<Object> valueProperty = new SimpleObjectProperty<Object>() {
          @Override public String getName()
          {
@@ -138,6 +141,8 @@ public class ImmutableEditor<T> extends Editor<T>
       {
          this.name = name;
          this.valueType = valueType;
+         this.genericTypes = getGenericParameters(getter);
+
 
          propertyChangeListener = (observable, oldValue, newValue) -> {
             if (beanProperty().getValue() == null || !beanProperty().getValue().getClass().equals(beanType))

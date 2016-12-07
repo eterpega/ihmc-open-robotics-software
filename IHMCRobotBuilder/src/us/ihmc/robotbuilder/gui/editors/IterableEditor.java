@@ -33,10 +33,12 @@ public class IterableEditor<T> extends Editor<Iterable<T>>
    private final Editor.Factory editorFactory;
    private final TitledPane editorContainer = new TitledPane();
    private ArrayList<T> value = new ArrayList<>();
+   private final Class<T> itemType;
 
-   public IterableEditor(Property<Iterable<T>> valueProperty, Editor.Factory editorFactory)
+   public IterableEditor(Property<Iterable<T>> valueProperty, Class<T> itemType, Editor.Factory editorFactory)
    {
       super(noCycle(valueProperty));
+      this.itemType = itemType;
       this.editorFactory = editorFactory;
 
       editorContainer.setExpanded(false);
@@ -110,7 +112,7 @@ public class IterableEditor<T> extends Editor<Iterable<T>>
                         addButton.setOnAction(event ->
                                               {
                                                  CreatorFactory factory = new CreatorFactory();
-                                                 factory.create(value.get(0).getClass()).map(Creator::create).map(future -> future.onSuccess(newValueOpt -> {
+                                                 factory.create(itemType, Collections.emptyList()).map(Creator::create).map(future -> future.onSuccess(newValueOpt -> {
                                                     newValueOpt.ifPresent(newValue1 -> {
                                                        value.add((T) newValue1);
                                                        updateValue();
@@ -157,7 +159,7 @@ public class IterableEditor<T> extends Editor<Iterable<T>>
                                   });
 
          //noinspection unchecked
-         innerEditor = (Editor<T>)editorFactory.create(itemProperty.getValue().getClass(), itemProperty)
+         innerEditor = (Editor<T>)editorFactory.create(itemProperty.getValue().getClass(), Collections.emptyList(), itemProperty)
                                     .orElse(new DefaultEditor<>(itemProperty));
 
          Node[] nodes = {remove, moveUp, moveDown, innerEditor.getEditor()};

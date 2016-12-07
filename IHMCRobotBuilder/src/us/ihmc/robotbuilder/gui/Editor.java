@@ -4,6 +4,8 @@ import javafx.beans.property.Property;
 import javafx.scene.Node;
 import javafx.scene.control.Control;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -48,6 +50,6 @@ public abstract class Editor<T>
 
    public interface Factory
    {
-      Optional<Editor<?>> create(Class<?> clazz, Property<?> property);
+      Optional<Editor<?>> create(Class<?> clazz, List<Class<?>> genericParameters, Property<?> property);
    }
 }

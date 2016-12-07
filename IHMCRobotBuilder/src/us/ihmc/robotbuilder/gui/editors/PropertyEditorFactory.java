@@ -8,6 +8,7 @@ import us.ihmc.robotics.immutableRobotDescription.graphics.TransformDescription;
 
 import javax.vecmath.Vector3d;
 import java.awt.Color;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -15,7 +16,7 @@ import java.util.Optional;
  */
 public class PropertyEditorFactory implements Editor.Factory
 {
-   @Override public Optional<Editor<?>> create(Class<?> clazz, Property<?> value)
+   @Override public Optional<Editor<?>> create(Class<?> clazz, List<Class<?>> genericParameters, Property<?> value)
    {
       if (String.class.equals(clazz))
       {
@@ -49,8 +50,9 @@ public class PropertyEditorFactory implements Editor.Factory
 
       if (Iterable.class.isAssignableFrom(clazz))
       {
+         Class<?> itemType = genericParameters.size() > 0 ? genericParameters.get(0) : Object.class;
          //noinspection unchecked
-         return Optional.of(new IterableEditor<>((Property<Iterable<Object>>) value, this));
+         return Optional.of(new IterableEditor<>((Property<Iterable<Object>>) value, (Class<Object>)itemType, this));
       }
 
       if (Optional.class.isAssignableFrom(clazz))

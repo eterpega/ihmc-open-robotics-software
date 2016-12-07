@@ -9,6 +9,7 @@ import javafx.scene.layout.BorderPane;
 import us.ihmc.robotbuilder.gui.Creator;
 import us.ihmc.robotbuilder.gui.Editor;
 
+import java.util.Collections;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -48,7 +49,7 @@ public class OptionalEditor<T> extends Editor<Optional<T>>
       functional(valueProperty()).flatMapOptional(Function.identity()).consume(editingProperty::setValue);
       functional(editingProperty).map(Optional::ofNullable).consume(valueProperty()::setValue);
 
-      Optional<Creator<T>> creatorOpt = creatorFactory.create(valueType);
+      Optional<Creator<T>> creatorOpt = creatorFactory.create(valueType, Collections.emptyList());
       addButton.setDisable(!creatorOpt.isPresent());
       creatorOpt.ifPresent(creator -> addButton.setOnAction(event -> creator.create().onSuccess(valueProperty()::setValue)));
    }
@@ -59,7 +60,7 @@ public class OptionalEditor<T> extends Editor<Optional<T>>
          return editor;
 
       //noinspection unchecked
-      editor = (Editor<T>)editorFactory.create(valueType, editingProperty).orElse(new DummyEditor<>(editingProperty));
+      editor = (Editor<T>)editorFactory.create(valueType, Collections.emptyList(), editingProperty).orElse(new DummyEditor<>(editingProperty));
       return editor;
    }
 

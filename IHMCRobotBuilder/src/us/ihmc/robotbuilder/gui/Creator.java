@@ -3,6 +3,8 @@ package us.ihmc.robotbuilder.gui;
 import javaslang.concurrent.Future;
 import javaslang.concurrent.Promise;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -56,6 +58,6 @@ public interface Creator<T>
 
    interface Factory
    {
-      <T> Optional<Creator<T>> create(Class<?> clazz);
+      <T> Optional<Creator<T>> create(Class<?> clazz, List<Class<?>> genericParameters);
    }
 }

@@ -8,6 +8,7 @@ import us.ihmc.robotbuilder.gui.Editor;
 import us.ihmc.robotbuilder.gui.Editor.Factory;
 
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -28,10 +29,10 @@ public class CreatorFactory implements Creator.Factory
       this.editorFactory = editorFactory;
    }
 
-   @Override public <T> Optional<Creator<T>> create(Class<?> clazz)
+   @Override public <T> Optional<Creator<T>> create(Class<?> clazz, List<Class<?>> genericParameters)
    {
       Property<T> property = new SimpleObjectProperty<>();
-      @SuppressWarnings("unchecked") Optional<Editor<T>> editorOpt = (Optional<Editor<T>>)(Optional)editorFactory.create(clazz, property);
+      @SuppressWarnings("unchecked") Optional<Editor<T>> editorOpt = (Optional<Editor<T>>)(Optional)editorFactory.create(clazz, genericParameters, property);
       Optional<Creator<T>> creatorOpt = editorOpt.map(editor -> Creator.wrapEditor(editor, new DialogCreatorUI(editor.getEditor())));
       if (creatorOpt.isPresent())
          return creatorOpt;
@@ -42,18 +43,26 @@ public class CreatorFactory implements Creator.Factory
 
    private static <T> Optional<T> builderForImmutablesBean(Class<?> clazz)
    {
-      String builderClassName = clazz.getSimpleName().replace("Immutable", "Modifiable");
-      try
+      String[] builderClassNames = {
+            clazz.getSimpleName().replace("Immutable", "Modifiable"),
+            "Modifiable" + clazz.getSimpleName()
+      };
+
+      for (String builderClassName : builderClassNames)
       {
-         Class<?> builderClass = Class.forName(clazz.getPackage().getName() + "." + builderClassName);
-         Method builderMethod = builderClass.getMethod("create");
-         //noinspection unchecked
-         return Optional.ofNullable((T)builderMethod.invoke(null));
+         try
+         {
+            Class<?> builderClass = Class.forName(clazz.getPackage().getName() + "." + builderClassName);
+            Method builderMethod = builderClass.getMethod("create");
+            //noinspection unchecked
+            return Optional.ofNullable((T)builderMethod.invoke(null));
+         }
+         catch (Exception e)
+         {
+            // continue to the next one
+         }
       }
-      catch (Exception e)
-      {
-         return Optional.empty();
-      }
+      return Optional.empty();
    }
 
    private static <T> Function<Object, Try<T>> beanFinalizerFor(Object builder)

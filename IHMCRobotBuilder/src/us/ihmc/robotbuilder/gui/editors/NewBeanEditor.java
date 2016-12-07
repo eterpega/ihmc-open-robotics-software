@@ -13,18 +13,19 @@ import javaslang.concurrent.Future;
 import javaslang.concurrent.Promise;
 import javaslang.control.Try;
 import org.jetbrains.annotations.NotNull;
-import us.ihmc.robotbuilder.gui.Creator.CreatorUI;
 import us.ihmc.robotbuilder.gui.Editor;
 import us.ihmc.robotbuilder.gui.Editor.Factory;
 import us.ihmc.robotbuilder.gui.ModifiableProperty;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 
 import static java.lang.reflect.Modifier.isPublic;
 import static java.lang.reflect.Modifier.isStatic;
+import static us.ihmc.robotbuilder.util.ReflectionHelpers.getGenericParameters;
 
 /**
  *
@@ -67,7 +68,7 @@ public class NewBeanEditor<Builder, FinalBean>
       List<NewBeanProperty> properties = getProperties(builder.getClass());
       //noinspection OptionalGetWithoutIsPresent
       properties
-            .map(property -> Tuple.of(property, editorFactory.create(property.getValueType(), property.value())))
+            .map(property -> Tuple.of(property, editorFactory.create(property.getValueType(), property.genericTypes, property.value())))
             .filter(propertyAndEditor -> propertyAndEditor._2.isPresent())
             .map(propertyAndEditor -> Tuple.of(propertyAndEditor._1, propertyAndEditor._2.get()))
             .zipWithIndex()
@@ -114,10 +115,10 @@ public class NewBeanEditor<Builder, FinalBean>
                       Method setMethod = findSetter(beanClass, propertyName, getMethod.getReturnType());
                       if (setMethod != null)
                          //noinspection unchecked
-                         return new NewBeanProperty(propertyName, (Class)getMethod.getReturnType(), setMethod);
+                         return new NewBeanProperty(propertyName, (Class)getMethod.getReturnType(), setMethod, getGenericParameters(getMethod));
                       return null;
                    })
-                   .filter(item -> item != null);
+                   .filter(Objects::nonNull);
    }
 
    private static boolean isGetter(Method method)
@@ -142,6 +143,7 @@ public class NewBeanEditor<Builder, FinalBean>
    {
       private final String name;
       private final Class<Object> valueType;
+      private final java.util.List<Class<?>> genericTypes;
       private final Property<Object> valueProperty = new SimpleObjectProperty<Object>() {
          @Override public String getName()
          {
@@ -154,10 +156,11 @@ public class NewBeanEditor<Builder, FinalBean>
          }
       };
 
-      NewBeanProperty(String name, Class<Object> valueType, Method setter)
+      NewBeanProperty(String name, Class<Object> valueType, Method setter, java.util.List<Class<?>> genericTypes)
       {
          this.name = name;
          this.valueType = valueType;
+         this.genericTypes = genericTypes;
 
          ChangeListener<Object> propertyChangeListener = (observable, oldValue, newValue) -> {
             try

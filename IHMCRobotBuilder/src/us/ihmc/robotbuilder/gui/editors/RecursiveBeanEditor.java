@@ -19,9 +19,7 @@ import us.ihmc.robotbuilder.gui.Editor;
 import us.ihmc.robotbuilder.gui.FontAwesomeLabel;
 import us.ihmc.robotics.immutableRobotDescription.NamedObject;
 
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Stack;
+import java.util.*;
 
 import static us.ihmc.robotics.util.FunctionalObservableValue.functional;
 import static us.ihmc.robotics.util.NoCycleProperty.noCycle;
@@ -121,9 +119,9 @@ public class RecursiveBeanEditor<T> extends Editor<T>
 
    private class RecursiveEditorFactory extends PropertyEditorFactory
    {
-      @Override public Optional<Editor<?>> create(Class<?> clazz, Property<?> value)
+      @Override public Optional<Editor<?>> create(Class<?> clazz, List<Class<?>> genericParameters, Property<?> value)
       {
-         return Optional.of(super.create(clazz, value).orElse(new InnerBeanEditor<>(value, this)));
+         return Optional.of(super.create(clazz, genericParameters, value).orElse(new InnerBeanEditor<>(value, this)));
       }
    }
 
