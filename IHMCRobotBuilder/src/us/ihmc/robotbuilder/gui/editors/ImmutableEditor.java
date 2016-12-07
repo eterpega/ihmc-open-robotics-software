@@ -88,7 +88,8 @@ public class ImmutableEditor<T> extends Editor<T>
       final String getPrefix = "get";
       return List.ofAll(Arrays.asList(beanClass.getMethods()))
                    .filter(ImmutableEditor::isGetter)
-                   .distinctBy(Method::getName)
+                   .filter(method -> !method.isSynthetic() && !method.isBridge())
+                   //.distinctBy(Method::getName)
                    .map(getMethod -> {
                       String propertyName = getMethod.getName().substring(getPrefix.length());
                       Method setMethod = findSetter(beanClass, propertyName, getMethod.getReturnType());

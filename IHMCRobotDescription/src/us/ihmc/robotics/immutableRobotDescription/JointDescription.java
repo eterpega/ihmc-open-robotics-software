@@ -2,6 +2,7 @@ package us.ihmc.robotics.immutableRobotDescription;
 
 import org.immutables.value.Value.Default;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public abstract class JointDescription implements NamedObject, LocatedObject, ModifiableObject
@@ -12,7 +13,12 @@ public abstract class JointDescription implements NamedObject, LocatedObject, Mo
 
    public abstract List<ExternalForcePointDescription> getExternalForcePoints();
 
-   public abstract List<KinematicPointDescription> getKinematicPoints();
+   public final List<KinematicPointDescription> getKinematicPoints()
+   {
+      List<KinematicPointDescription> result = new ArrayList<>(getGroundContactPoints());
+      result.addAll(getExternalForcePoints());
+      return result;
+   }
 
    public abstract List<JointWrenchSensorDescription> getWrenchSensors();
 
@@ -51,10 +57,6 @@ public abstract class JointDescription implements NamedObject, LocatedObject, Mo
       Builder addExternalForcePoints(ExternalForcePointDescription element);
 
       Builder addAllExternalForcePoints(Iterable<? extends ExternalForcePointDescription> elements);
-
-      Builder addKinematicPoints(KinematicPointDescription element);
-
-      Builder addAllKinematicPoints(Iterable<? extends KinematicPointDescription> elements);
 
       Builder addWrenchSensors(JointWrenchSensorDescription element);
 

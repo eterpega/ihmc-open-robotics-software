@@ -17,6 +17,7 @@ import us.ihmc.robotbuilder.gui.Editor;
 import us.ihmc.robotbuilder.gui.Editor.Factory;
 import us.ihmc.robotbuilder.gui.ModifiableProperty;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Objects;
@@ -90,13 +91,24 @@ public class NewBeanEditor<Builder, FinalBean>
       Try<FinalBean> finalBean = beanFinalizer.apply(beanBuilder);
       finalBean.onSuccess(value -> promise.success(Optional.of(value)));
       if (finalBean.isFailure())
-         return Optional.of(finalBean.getCause());
+      {
+         return Optional.of(getCause(finalBean.getCause()));
+      }
       return Optional.empty();
    }
 
    private void onCancel() {
       if (!promise.isCompleted())
          promise.success(Optional.empty());
+   }
+
+   private Throwable getCause(Throwable exception)
+   {
+      if (exception instanceof InvocationTargetException)
+         return ((InvocationTargetException) exception).getTargetException();
+      if (exception.getCause() == null)
+         return exception;
+      return getCause(exception.getCause());
    }
 
    private Promise<Optional<FinalBean>> getPromise()
@@ -109,6 +121,7 @@ public class NewBeanEditor<Builder, FinalBean>
       final String getPrefix = "get";
       return List.ofAll(Arrays.asList(beanClass.getMethods()))
                    .filter(NewBeanEditor::isGetter)
+                   .filter(method -> !method.isSynthetic() && !method.isBridge())
                    .distinctBy(Method::getName)
                    .map(getMethod -> {
                       String propertyName = getMethod.getName().substring(getPrefix.length());

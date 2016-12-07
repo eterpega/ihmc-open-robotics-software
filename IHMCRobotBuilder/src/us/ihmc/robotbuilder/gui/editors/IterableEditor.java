@@ -112,13 +112,16 @@ public class IterableEditor<T> extends Editor<Iterable<T>>
                         addButton.setOnAction(event ->
                                               {
                                                  CreatorFactory factory = new CreatorFactory();
-                                                 factory.create(itemType, Collections.emptyList()).map(Creator::create).map(future -> future.onSuccess(newValueOpt -> {
-                                                    newValueOpt.ifPresent(newValue1 -> {
-                                                       value.add((T) newValue1);
-                                                       updateValue();
-                                                    });
-
-                                                 }));
+                                                 factory.create(itemType, Collections.emptyList())
+                                                        .map(Creator::create)
+                                                        .map(future -> future.onSuccess(newItemOpt -> newItemOpt.ifPresent(newItem ->
+                                                          {
+                                                             //noinspection unchecked
+                                                             value.add(
+                                                                   (T) newItem);
+                                                             updateValue();
+                                                          })
+                                                 ));
                                               });
                      });
    }
