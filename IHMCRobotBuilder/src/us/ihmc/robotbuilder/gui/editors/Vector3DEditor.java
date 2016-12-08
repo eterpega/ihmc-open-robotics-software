@@ -52,7 +52,12 @@ public class Vector3DEditor extends Editor<Vector3d>
 
          Arrays.stream(textFields)
                .map(NumberField::valueProperty)
-               .forEach(numberProperty -> numberProperty.addListener((observable, oldValue, newValue) -> valueProperty().setValue(getValue())));
+               .forEach(numberProperty -> numberProperty.addListener((observable, oldValue, newValue) ->
+                                                                     {
+                                                                        Vector3d value = getValue();
+                                                                        if (value != null)
+                                                                           valueProperty().setValue(getValue());
+                                                                     }));
       }
 
       void setValue(Vector3d value)

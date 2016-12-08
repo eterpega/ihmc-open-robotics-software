@@ -4,6 +4,7 @@ import javafx.beans.property.Property;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextField;
 import us.ihmc.robotbuilder.gui.Editor;
+import us.ihmc.robotics.geometry.RigidBodyTransform;
 import us.ihmc.robotics.immutableRobotDescription.graphics.TransformDescription;
 
 import javax.vecmath.Vector3d;
@@ -57,14 +58,21 @@ public class PropertyEditorFactory implements Editor.Factory
 
       if (Optional.class.isAssignableFrom(clazz))
       {
+         Class<?> itemType = genericParameters.size() > 0 ? genericParameters.get(0) : Object.class;
          //noinspection unchecked
-         return Optional.of(new OptionalEditor<>(clazz, (Property<Optional<Object>>) value, this, new CreatorFactory()));
+         return Optional.of(new OptionalEditor<>(itemType, (Property<Optional<Object>>) value, this, new CreatorFactory()));
       }
 
       if (Color.class.isAssignableFrom(clazz))
       {
          //noinspection unchecked
          return Optional.of(new ColorEditor((Property<Color>)value));
+      }
+
+      if (RigidBodyTransform.class.isAssignableFrom(clazz))
+      {
+         //noinspection unchecked
+         return Optional.of(new RigidBodyTransformEditor((Property<RigidBodyTransform>)value));
       }
 
       return Optional.empty();
