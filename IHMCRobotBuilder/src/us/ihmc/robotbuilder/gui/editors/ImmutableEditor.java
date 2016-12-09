@@ -14,13 +14,12 @@ import org.jetbrains.annotations.NotNull;
 import us.ihmc.robotbuilder.gui.Editor;
 import us.ihmc.robotbuilder.gui.ModifiableProperty;
 
-import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.Objects;
+import java.util.function.Supplier;
 
-import static java.lang.reflect.Modifier.isPublic;
-import static java.lang.reflect.Modifier.isStatic;
-import static us.ihmc.robotbuilder.util.ReflectionHelpers.getGenericParameters;
+import static us.ihmc.robotbuilder.util.ReflectionHelpers.ImmutableReflectionProperty;
+import static us.ihmc.robotbuilder.util.ReflectionHelpers.propertiesForBeanWithImmutableSetters;
+import static us.ihmc.robotbuilder.util.ReflectionHelpers.propertiesForImmutableBeanWithBuilderConstructor;
 import static us.ihmc.robotics.util.FunctionalObservableValue.functional;
 import static us.ihmc.robotics.util.NoCycleProperty.noCycle;
 
@@ -29,7 +28,6 @@ import static us.ihmc.robotics.util.NoCycleProperty.noCycle;
  */
 public class ImmutableEditor<T> extends Editor<T>
 {
-   private static final String GET_PREFIX = "get";
    private final GridPane editor = new GridPane();
    private final Editor.Factory editorFactory;
    private List<ModifiableBeanProperty> properties = List.empty();
@@ -60,7 +58,7 @@ public class ImmutableEditor<T> extends Editor<T>
       properties = getProperties(bean.getClass());
       //noinspection OptionalGetWithoutIsPresent
       properties
-            .map(property -> Tuple.of(property, editorFactory.create(property.getValueType(), property.genericTypes, property.value())))
+            .map(property -> Tuple.of(property, editorFactory.create(property.getValueType(), property.getGenericTypes(), property.value())))
             .filter(propertyAndEditor -> propertyAndEditor._2.isPresent())
             .map(propertyAndEditor -> Tuple.of(propertyAndEditor._1, propertyAndEditor._2.get()))
             .zipWithIndex()
@@ -83,51 +81,24 @@ public class ImmutableEditor<T> extends Editor<T>
       return editor;
    }
 
+   @SuppressWarnings("unchecked")
    private List<ModifiableBeanProperty> getProperties(final Class<?> beanClass)
    {
-      final String getPrefix = "get";
-      return List.ofAll(Arrays.asList(beanClass.getMethods()))
-                   .filter(ImmutableEditor::isGetter)
-                   .filter(method -> !method.isSynthetic() && !method.isBridge())
-                   //.distinctBy(Method::getName)
-                   .map(getMethod -> {
-                      String propertyName = getMethod.getName().substring(getPrefix.length());
-                      Method setMethod = findSetter(beanClass, propertyName, getMethod.getReturnType());
-                      if (setMethod != null)
-                         //noinspection unchecked
-                         return new ModifiableBeanProperty(propertyName, beanClass, (Class)getMethod.getReturnType(), getMethod, setMethod);
-                      return null;
-                   })
-                   .filter(Objects::nonNull);
+      java.util.List<ImmutableReflectionProperty<T>> properties = propertiesForBeanWithImmutableSetters((Class<T>) beanClass);
+      if (properties.isEmpty())
+         properties = propertiesForImmutableBeanWithBuilderConstructor((Class<T>)beanClass);
+
+      return List.ofAll(properties)
+            .map(property -> new ModifiableBeanProperty(beanClass, property));
    }
-
-   private static boolean isGetter(Method method)
-   {
-      return isPublic(method.getModifiers()) && !isStatic(method.getModifiers()) &&
-            method.getParameterCount() == 0 && method.getName().startsWith(GET_PREFIX);
-   }
-
-   private static Method findSetter(Class<?> clazz, String propertyName, Class<?> propertyType)
-   {
-      return Arrays.stream(clazz.getMethods())
-                   .filter(method -> method.getName().startsWith("with") || method.getName().startsWith("set"))
-                   .filter(method -> method.getName().contains(propertyName))
-                   .filter(method -> clazz.isAssignableFrom(method.getReturnType()))
-                   .filter(method -> method.getParameterCount() == 1 && method.getParameterTypes()[0].isAssignableFrom(propertyType))
-                   .findFirst().orElse(null);
-   }
-
-
 
    private class ModifiableBeanProperty implements ModifiableProperty<Object>
    {
-      private final String name;
-      private final Class<Object> valueType;
-      private final java.util.List<Class<?>> genericTypes;
+      private final ImmutableReflectionProperty<T> property;
       private final Property<Object> valueProperty = new SimpleObjectProperty<Object>() {
          @Override public String getName()
          {
-            return name;
+            return property.getName();
          }
 
          @Override public Object getBean()
@@ -138,42 +109,25 @@ public class ImmutableEditor<T> extends Editor<T>
       private final ChangeListener<Object> propertyChangeListener;
       private final ChangeListener<T> valueChangeListener;
 
-      ModifiableBeanProperty(String name, Class<?> beanType, Class<Object> valueType, Method getter, Method setter)
+      ModifiableBeanProperty(Class<?> beanType, ImmutableReflectionProperty<T> property)
       {
-         this.name = name;
-         this.valueType = valueType;
-         this.genericTypes = getGenericParameters(getter);
-
+         this.property = property;
 
          propertyChangeListener = (observable, oldValue, newValue) -> {
             if (beanProperty().getValue() == null || !beanProperty().getValue().getClass().equals(beanType))
                return;
-            try
-            {
-               //noinspection unchecked
-               T newBean = (T) setter.invoke(beanProperty().getValue(), newValue);
-               currentlyEditedBean = newBean;
-               beanProperty().setValue(newBean);
-            }
-            catch (Exception e)
-            {
-               throw new RuntimeException(e);
-            }
 
+            currentlyEditedBean = property.getSetter().withValue(beanProperty().getValue(), newValue)
+                                          .getOrElseThrow((Supplier<RuntimeException>)RuntimeException::new);
          };
 
-         valueChangeListener = (observable, oldValue, newValue) ->
+         valueChangeListener = (observable, oldValue, newBean) ->
          {
-            if (!newValue.getClass().equals(beanType))
+            if (!newBean.getClass().equals(beanType))
                return;
-            try
-            {
-               valueProperty.setValue(getter.invoke(newValue));
-            }
-            catch (Exception e)
-            {
-               throw new RuntimeException(e);
-            }
+
+            valueProperty.setValue(property.getGetter().getValue(newBean)
+                                           .getOrElseThrow((Supplier<RuntimeException>)RuntimeException::new));
          };
 
          valueProperty.addListener(propertyChangeListener);
@@ -191,12 +145,13 @@ public class ImmutableEditor<T> extends Editor<T>
 
       @Override public String getName()
       {
-         return name;
+         return property.getName();
       }
 
-      @Override public Class<Object> getValueType()
+      @SuppressWarnings("unchecked") @Override
+      public Class<Object> getValueType()
       {
-         return valueType;
+         return (Class<Object>)property.getType();
       }
 
       @Override public Property<Object> value()
@@ -208,6 +163,11 @@ public class ImmutableEditor<T> extends Editor<T>
       {
          valueProperty.removeListener(propertyChangeListener);
          ImmutableEditor.this.valueProperty().removeListener(valueChangeListener);
+      }
+
+      java.util.List<Class<?>> getGenericTypes()
+      {
+         return property.getGenericTypes();
       }
    }
 }

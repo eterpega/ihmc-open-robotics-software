@@ -33,7 +33,9 @@ sourceSets {
 compileJava {
     sourceCompatibility = "1.8"
     targetCompatibility = "1.8"
+    options.compilerArgs << '-parameters'
 }
+
 version = "${getOpenRoboticsSoftwareProject().version}"
 project.ext.fullVersion = "${getOpenRoboticsSoftwareProject().ext.fullVersion}"
 project.ext.vcsUrl = "${getOpenRoboticsSoftwareProject().ext.vcsUrl}"

@@ -18,22 +18,18 @@ import us.ihmc.robotbuilder.gui.Editor.Factory;
 import us.ihmc.robotbuilder.gui.ModifiableProperty;
 
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
-import static java.lang.reflect.Modifier.isPublic;
-import static java.lang.reflect.Modifier.isStatic;
-import static us.ihmc.robotbuilder.util.ReflectionHelpers.getGenericParameters;
+import static us.ihmc.robotbuilder.util.ReflectionHelpers.MutableReflectionProperty;
+import static us.ihmc.robotbuilder.util.ReflectionHelpers.propertiesForBeanWithMutableSetters;
 
 /**
  *
  */
 public class NewBeanEditor<Builder, FinalBean>
 {
-   private static final String GET_PREFIX = "get";
    private final GridPane editor = new GridPane();
    private final Factory editorFactory;
    private final Builder beanBuilder;
@@ -69,7 +65,7 @@ public class NewBeanEditor<Builder, FinalBean>
       List<NewBeanProperty> properties = getProperties(builder.getClass());
       //noinspection OptionalGetWithoutIsPresent
       properties
-            .map(property -> Tuple.of(property, editorFactory.create(property.getValueType(), property.genericTypes, property.value())))
+            .map(property -> Tuple.of(property, editorFactory.create(property.getValueType(), property.getGenericTypes(), property.value())))
             .filter(propertyAndEditor -> propertyAndEditor._2.isPresent())
             .map(propertyAndEditor -> Tuple.of(propertyAndEditor._1, propertyAndEditor._2.get()))
             .zipWithIndex()
@@ -118,49 +114,18 @@ public class NewBeanEditor<Builder, FinalBean>
 
    private List<NewBeanProperty> getProperties(final Class<?> beanClass)
    {
-      final String getPrefix = "get";
-      return List.ofAll(Arrays.asList(beanClass.getMethods()))
-                   .filter(NewBeanEditor::isGetter)
-                   .filter(method -> !method.isSynthetic() && !method.isBridge())
-                   .distinctBy(Method::getName)
-                   .map(getMethod -> {
-                      String propertyName = getMethod.getName().substring(getPrefix.length());
-                      Method setMethod = findSetter(beanClass, propertyName, getMethod.getReturnType());
-                      if (setMethod != null)
-                         //noinspection unchecked
-                         return new NewBeanProperty(propertyName, (Class)getMethod.getReturnType(), setMethod, getGenericParameters(getMethod));
-                      return null;
-                   })
-                   .filter(Objects::nonNull);
+      //noinspection unchecked
+      return List.ofAll(propertiesForBeanWithMutableSetters((Class<Builder>)beanClass))
+            .map(NewBeanProperty::new);
    }
-
-   private static boolean isGetter(Method method)
-   {
-      return isPublic(method.getModifiers()) && !isStatic(method.getModifiers()) &&
-            method.getParameterCount() == 0 && method.getName().startsWith(GET_PREFIX);
-   }
-
-   private static Method findSetter(Class<?> clazz, String propertyName, Class<?> propertyType)
-   {
-      return Arrays.stream(clazz.getMethods())
-                   .filter(method -> method.getName().startsWith("set"))
-                   .filter(method -> method.getName().contains(propertyName))
-                   .filter(method -> clazz.isAssignableFrom(method.getReturnType()))
-                   .filter(method -> method.getParameterCount() == 1 && method.getParameterTypes()[0].isAssignableFrom(propertyType))
-                   .findFirst().orElse(null);
-   }
-
-
 
    private class NewBeanProperty implements ModifiableProperty<Object>
    {
-      private final String name;
-      private final Class<Object> valueType;
-      private final java.util.List<Class<?>> genericTypes;
+      private final MutableReflectionProperty<Builder> property;
       private final Property<Object> valueProperty = new SimpleObjectProperty<Object>() {
          @Override public String getName()
          {
-            return name;
+            return property.getName();
          }
 
          @Override public Object getBean()
@@ -169,41 +134,36 @@ public class NewBeanEditor<Builder, FinalBean>
          }
       };
 
-      NewBeanProperty(String name, Class<Object> valueType, Method setter, java.util.List<Class<?>> genericTypes)
+      NewBeanProperty(MutableReflectionProperty<Builder> property)
       {
-         this.name = name;
-         this.valueType = valueType;
-         this.genericTypes = genericTypes;
+         this.property = property;
 
-         ChangeListener<Object> propertyChangeListener = (observable, oldValue, newValue) -> {
-            try
-            {
-               //noinspection unchecked
-               setter.invoke(beanBuilder, newValue);
-            }
-            catch (Exception e)
-            {
-               throw new RuntimeException(e);
-            }
-
-         };
+         ChangeListener<Object> propertyChangeListener = (observable, oldValue, newValue) ->
+               property.getSetter().withValue(beanBuilder, newValue)
+                                   .getOrElseThrow((Supplier<RuntimeException>)RuntimeException::new);
 
          valueProperty.addListener(propertyChangeListener);
       }
 
       @Override public String getName()
       {
-         return name;
+         return property.getName();
       }
 
       @Override public Class<Object> getValueType()
       {
-         return valueType;
+         //noinspection unchecked
+         return (Class<Object>)property.getType();
       }
 
       @Override public Property<Object> value()
       {
          return valueProperty;
+      }
+
+      java.util.List<Class<?>> getGenericTypes()
+      {
+         return property.getGenericTypes();
       }
    }
 }
