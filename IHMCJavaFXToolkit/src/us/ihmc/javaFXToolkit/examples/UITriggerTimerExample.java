@@ -4,7 +4,7 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.stage.Stage;
-import us.ihmc.javaFXToolkit.uiSplitModel.UITriggerTimer;
+import us.ihmc.javaFXToolkit.framework.uiSplitModel.UITriggerTimer;
 
 import java.util.concurrent.TimeUnit;
 

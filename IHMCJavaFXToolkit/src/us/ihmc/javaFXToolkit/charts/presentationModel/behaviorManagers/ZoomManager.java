@@ -222,7 +222,6 @@ public class ZoomManager
       return enableHorizontalSelectionZoom;
    }
 
-
    public SimpleBooleanProperty enableVerticalSelectionZoomProperty()
    {
       return enableVerticalSelectionZoom;

@@ -22,7 +22,7 @@ public class DataForDisplay
    {
       if(xValues.length != yValues.length )
       {
-         throw new IllegalArgumentException(" xValues[] and yValues[] number of entries do not match");
+         throw new IllegalArgumentException(" xValues[] and yValues[] number of entries do not match: xValues length = "+ xValues.length + " yValues length = "+ yValues.length);
       }
       else if(xValues.length == 0)
       {

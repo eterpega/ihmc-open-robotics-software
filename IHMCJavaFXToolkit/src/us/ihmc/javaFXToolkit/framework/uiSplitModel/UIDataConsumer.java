@@ -1,10 +1,9 @@
-package us.ihmc.javaFXToolkit.uiSplitModel;
+package us.ihmc.javaFXToolkit.framework.uiSplitModel;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import us.ihmc.javaFXToolkit.framework.data.UIVariable;
 import us.ihmc.javaFXToolkit.framework.data.dataProviders.BufferedUIDataProvider;
-import us.ihmc.javaFXToolkit.framework.data.dataProviders.UIDataProviderState;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 

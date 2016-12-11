@@ -16,30 +16,36 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import us.ihmc.javaFXToolkit.charts.LineChartPane;
 import us.ihmc.javaFXToolkit.charts.dataModel.dataManagers.DataSeriesManager;
+import us.ihmc.javaFXToolkit.framework.data.dataStructures.BufferedUIVariableDataWriter;
 import us.ihmc.javaFXToolkit.framework.data.dataStructures.ConcurrentBufferedUIVariable;
 import us.ihmc.javaFXToolkit.framework.data.DoubleUIVariable;
-import us.ihmc.javaFXToolkit.uiSplitModel.UITriggerTimer;
+import us.ihmc.javaFXToolkit.framework.uiSplitModel.UITriggerTimer;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 
 /**
 
  */
-public class DynamicChartExample extends Application
+public class BufferedVariablesDynamicChartExample extends Application
 {
 
+   public static final int DATA_QUEUE_MAX_NUMBER_OF_ITEMS = 100;
+   public static final double DATA_QUEUE_MAX_DELAY_MS = 1000.0;
+
    public static final int BUFFER_SIZE = 5000;
+
 
    /*
     * Data Generator fields
     */
-   private static final int GENERATOR_PERIOD_MS = 10;
-   private UITriggerTimer generatorTimer = new UITriggerTimer("GeneratorTimer", GENERATOR_PERIOD_MS, TimeUnit.MILLISECONDS);
+   public static final int GENERATOR_PERIOD_MS = 10;
 
-   public static final int DATA_QUEUE_MAX_NUMBER_OF_ITEMS = 100;
-   public static final double DATA_QUEUE_MAX_DELAY_MS = 1000.0;
+   private UITriggerTimer generatorTimer = new UITriggerTimer("GeneratorTimer", GENERATOR_PERIOD_MS, TimeUnit.MILLISECONDS);
    private ConcurrentLinkedQueue<double[]> dataQueue = new ConcurrentLinkedQueue<double[]>();
 
    /*
@@ -47,6 +53,7 @@ public class DynamicChartExample extends Application
     */
 
    private static final int ANIMATION_PERIOD_MS = 50;
+
    private UITriggerTimer animationTimer = new UITriggerTimer("AnimationTimer", ANIMATION_PERIOD_MS, TimeUnit.MILLISECONDS);
    private LineChart<Number, Number> lineChart;
    private DataSeriesManager dataSeriesManager;
@@ -55,19 +62,49 @@ public class DynamicChartExample extends Application
     * Readable variables populated by the generator, read by the TimeSeriesManager and rendered on chart
     */
 
+   public static final int MAX_NUMBER_RANDOM_VARIABLES = 10;
+
    private DoubleUIVariable time = new DoubleUIVariable("Time", 0.0);
-   private DoubleUIVariable variableA = new DoubleUIVariable("VariableA", 0.0);
-   private DoubleUIVariable variableB = new DoubleUIVariable("VariableB", 0.0);
-   private DoubleUIVariable variableC = new DoubleUIVariable("VariableC", 0.0);
-   private DoubleUIVariable variableD = new DoubleUIVariable("VariableD", 0.0);
-
    private ConcurrentBufferedUIVariable bufferedVariableTime = new ConcurrentBufferedUIVariable(time, BUFFER_SIZE);
-   private ConcurrentBufferedUIVariable bufferedVariableA = new ConcurrentBufferedUIVariable(variableA, BUFFER_SIZE);
-   private ConcurrentBufferedUIVariable bufferedVariableB = new ConcurrentBufferedUIVariable(variableB, BUFFER_SIZE);
-   private ConcurrentBufferedUIVariable bufferedVariableC = new ConcurrentBufferedUIVariable(variableC, BUFFER_SIZE);
-   private ConcurrentBufferedUIVariable bufferedVariableD = new ConcurrentBufferedUIVariable(variableD, BUFFER_SIZE);
 
+   private List<ConcurrentBufferedUIVariable> randomBufferedUIVariables = Collections.synchronizedList(new ArrayList<>());
 
+   private int diplayedVariablesCount = 0;
+
+   private void addRandomVariableToPlot()
+   {
+
+      String variableName = "var" + randomBufferedUIVariables.size();
+      DoubleUIVariable doubleUIVariable = new DoubleUIVariable(variableName, 0.0);
+      ConcurrentBufferedUIVariable randomVariable = new ConcurrentBufferedUIVariable(doubleUIVariable, BUFFER_SIZE);
+      randomBufferedUIVariables.add(randomVariable);
+
+      diplayedVariablesCount++;
+
+      if (diplayedVariablesCount > MAX_NUMBER_RANDOM_VARIABLES)
+      {
+         diplayedVariablesCount = MAX_NUMBER_RANDOM_VARIABLES;
+         return;
+      }
+
+      System.out.println(" displayed variable count " + diplayedVariablesCount);
+      dataSeriesManager.addPlotVariableToAxisY(randomVariable.getName(), randomVariable);
+
+   }
+
+   private void removeLastRandomVariable()
+   {
+      if (diplayedVariablesCount == 0)
+      {
+         return;
+      }
+
+      ConcurrentBufferedUIVariable variable = randomBufferedUIVariables.get(diplayedVariablesCount - 1);
+      System.out.println("removeLastRandomVariable index =  " + (diplayedVariablesCount - 1));
+      dataSeriesManager.removeVariableFromAxisY(variable.getName());
+      diplayedVariablesCount--;
+
+   }
 
    /*
     * Fields for visualization and control of example
@@ -113,10 +150,8 @@ public class DynamicChartExample extends Application
          dataQueue.clear();
 
          bufferedVariableTime.reset();
-         bufferedVariableA.reset();
-         bufferedVariableB.reset();
-         bufferedVariableC.reset();
-         bufferedVariableD.reset();
+         // Example:         bufferedVariableA.reset();
+         randomBufferedUIVariables.forEach(BufferedUIVariableDataWriter::reset);
 
          dataSeriesManager.clearDataInAllSeries();
       }
@@ -151,23 +186,19 @@ public class DynamicChartExample extends Application
       /* TimeSeriesManager takes care of adding/removing plot variables as well as reading their content and rendering them on the chart */
       dataSeriesManager = new DataSeriesManager(lineChart, bufferedVariableTime.getName(), bufferedVariableTime);
 
-       /* Add plot variables to the chart (can be done at runtime) */
-      dataSeriesManager.addPlotVariableToAxisY(bufferedVariableA.getName(), bufferedVariableA);
-      dataSeriesManager.addPlotVariableToAxisY(bufferedVariableB.getName(), bufferedVariableB);
-      //      timeSeriesManager.addPlotVariableToAxisY(bufferedVariableC.getName(), bufferedVariableC);
-      //      timeSeriesManager.addPlotVariableToAxisY(bufferedVariableD.getName(), bufferedVariableD);
-
       /* Data Generator update */
 
-      generatorTimer.trigger.addListener(observable -> {
-         generateNewDataEntry();
-      });
+      generatorTimer.trigger.addListener(observable ->
+                                         {
+                                            generateNewFakeDataEntry();
+                                         });
 
 
       /* Chart Data Plot Update */
-      animationTimer.trigger.addListener(observable -> {
-         updateChart();
-      });
+      animationTimer.trigger.addListener(observable ->
+                                         {
+                                            updateChart();
+                                         });
 
 
 
@@ -186,13 +217,15 @@ public class DynamicChartExample extends Application
       progressBar.setPrefWidth(200);
       final Label queueSizeLabel = new Label("  ...");
 
-      dataQueueCurrentSize.addListener(observable -> {
-         double progress = dataQueueCurrentSize.get() / Double.valueOf(DATA_QUEUE_MAX_NUMBER_OF_ITEMS);
-         Platform.runLater(() -> {
-            progressBar.setProgress(progress);
-            queueSizeLabel.setText(" " + dataQueueCurrentSize.get() + " items");
-         });
-      });
+      dataQueueCurrentSize.addListener(observable ->
+                                       {
+                                          double progress = dataQueueCurrentSize.get() / Double.valueOf(DATA_QUEUE_MAX_NUMBER_OF_ITEMS);
+                                          Platform.runLater(() ->
+                                                            {
+                                                               progressBar.setProgress(progress);
+                                                               queueSizeLabel.setText(" " + dataQueueCurrentSize.get() + " items");
+                                                            });
+                                       });
 
       flowPane.getChildren().addAll(dataQueueLabel, progressBar, queueSizeLabel);
       verticalBox.getChildren().addAll(flowPane);
@@ -202,13 +235,15 @@ public class DynamicChartExample extends Application
       ProgressBar delayProgressBar = new ProgressBar(0.0);
       delayProgressBar.setPrefWidth(200);
       final Label queueDelayLabel = new Label("  ...");
-      delay.addListener(observable -> {
-         Platform.runLater(() -> {
-            queueDelayLabel.setText(delay.get() / DATA_QUEUE_MAX_DELAY_MS + " ms ");
-            delayProgressBar.setProgress(delay.get() / DATA_QUEUE_MAX_DELAY_MS);
-         });
+      delay.addListener(observable ->
+                        {
+                           Platform.runLater(() ->
+                                             {
+                                                queueDelayLabel.setText(delay.get() / DATA_QUEUE_MAX_DELAY_MS + " ms ");
+                                                delayProgressBar.setProgress(delay.get() / DATA_QUEUE_MAX_DELAY_MS);
+                                             });
 
-      });
+                        });
 
       flowPane.getChildren().addAll(dataQueueLabel, delayProgressBar, queueDelayLabel);
       verticalBox.getChildren().addAll(flowPane);
@@ -216,40 +251,57 @@ public class DynamicChartExample extends Application
       borderPane.setBottom(verticalBox);
 
       primaryStage.setScene(new Scene(borderPane));
-      primaryStage.setOnCloseRequest(observable -> {
-         decoratedChart.closeChildrenWindows();
-      });
+      primaryStage.setOnCloseRequest(observable ->
+                                     {
+                                        decoratedChart.closeChildrenWindows();
+                                     });
+
+      Button addEntryButton = new Button("Add Single Entry");
+      addEntryButton.setOnAction(event ->
+                                 {
+                                    generateNewFakeDataEntry();
+                                    updateChart();
+                                 });
+
+
+      Button addVariableButton = new Button("Add Random Variable");
+      addVariableButton.setOnAction(event -> addRandomVariableToPlot());
+
+      Button removeVariableButton = new Button("Remove last Random Variable");
+      removeVariableButton.setOnAction(event -> removeLastRandomVariable());
+
 
       Button simulateButton = new Button("Start Timer");
 
-      simulateButton.setOnAction(event -> {
-         if (isPaused) // start timer
-         {
-            reset();
-            simulateButton.setText("Stop Timer");
-            generatorTimer.startTimer();
-            animationTimer.startTimer();
-            timestampStart = System.currentTimeMillis();
-            isPaused = false;
-         }
-         else // stop timer
-         {
-            simulateButton.setText("Start Timer");
-            generatorTimer.stopTimer();
-            animationTimer.stopTimer();
-            isPaused = true;
-         }
+      simulateButton.setOnAction(event ->
+                                 {
+                                    if (isPaused) // start timer
+                                    {
+                                       addVariableButton.disableProperty().setValue(true);
+                                       removeVariableButton.disableProperty().setValue(true);
+                                       reset();
+                                       simulateButton.setText("Stop Timer");
+                                       generatorTimer.startTimer();
+                                       animationTimer.startTimer();
+                                       timestampStart = System.currentTimeMillis();
+                                       isPaused = false;
+                                    }
+                                    else // stop timer
+                                    {
+                                       addVariableButton.disableProperty().setValue(false);
+                                       removeVariableButton.disableProperty().setValue(false);
+                                       simulateButton.setText("Start Timer");
+                                       generatorTimer.stopTimer();
+                                       animationTimer.stopTimer();
+                                       isPaused = true;
+                                    }
 
-      });
+                                 });
 
-      Button addEntryButton = new Button("Add Single Entry");
-      addEntryButton.setOnAction(event -> {
-         generateNewDataEntry();
-         updateChart();
-      });
+
 
       FlowPane flowPaneButtons = new FlowPane();
-      flowPaneButtons.getChildren().addAll(simulateButton, addEntryButton);
+      flowPaneButtons.getChildren().addAll(simulateButton, addEntryButton, addVariableButton, removeVariableButton);
 
       borderPane.setTop(flowPaneButtons);
 
@@ -289,16 +341,17 @@ public class DynamicChartExample extends Application
    }
 
    // periodic
-   private void generateNewDataEntry()
+   private void generateNewFakeDataEntry()
    {
       currentTimeMs = System.currentTimeMillis() - timestampStart;
 
-      double signal = currentIteration % 2 == 0 ? 1 : -1;
-      double signal20Hz = currentIteration % 10 >= 5 ? 1 : -1;
+      double[] data = new double[MAX_NUMBER_RANDOM_VARIABLES + 1];
 
-      double[] data = new double[] { currentIteration, signal, signal20Hz, signal, signal20Hz };
+      data[0] = currentIteration;
+      for (int i = 1; i < data.length; i++)
+         data[i] = Math.sin(currentIteration / (10.0 * i) * Math.PI);
 
-      dataQueue.offer(data); // time, variableA, variableB, variableC, variableD
+      dataQueue.offer(data); // For visualization purposes only: time, first variable with steps for each iteration and then just bunch of data
 
       incrementDataQueueCurrentSize();
 
@@ -317,10 +370,9 @@ public class DynamicChartExample extends Application
          delay.set(beginningQueueTimestamp - data[0]);
 
          bufferedVariableTime.storeValueAsDoubleInBuffer(data[0]);
-         bufferedVariableA.storeValueAsDoubleInBuffer(data[1]);
-         bufferedVariableB.storeValueAsDoubleInBuffer(data[2]);
-         //         bufferedVariableC.storeValueAsDoubleInBuffer(data[3]);
-         //         bufferedVariableD.storeValueAsDoubleInBuffer(data[4]);
+         int index = 1;
+         for (ConcurrentBufferedUIVariable variable : randomBufferedUIVariables)
+            variable.storeValueAsDoubleInBuffer(data[index++]);
 
          consumedItemsCount.set(consumedItemsCount.get() + 1);
       }

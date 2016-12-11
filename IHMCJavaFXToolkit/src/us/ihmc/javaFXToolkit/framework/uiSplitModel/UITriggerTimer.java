@@ -1,4 +1,4 @@
-package us.ihmc.javaFXToolkit.uiSplitModel;
+package us.ihmc.javaFXToolkit.framework.uiSplitModel;
 
 import us.ihmc.javaFXToolkit.framework.data.BooleanUIVariable;
 import us.ihmc.javaFXToolkit.framework.threadTools.DaemonThreadFactory;

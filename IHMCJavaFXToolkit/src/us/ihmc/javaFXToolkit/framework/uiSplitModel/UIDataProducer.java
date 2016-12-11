@@ -1,4 +1,4 @@
-package us.ihmc.javaFXToolkit.uiSplitModel;
+package us.ihmc.javaFXToolkit.framework.uiSplitModel;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;

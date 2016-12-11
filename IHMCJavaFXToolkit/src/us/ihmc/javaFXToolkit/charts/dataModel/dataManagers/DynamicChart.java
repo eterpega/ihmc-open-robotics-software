@@ -77,6 +77,8 @@ public class DynamicChart
     */
    public void commitDataForDisplay(String name, double[] xData, double[] yData)
    {
+      if (dataSeriesMap.get(name) == null)
+         throw new RuntimeException("The data series called \" " + name + "\" does not exist.");
 
       DataForDisplay dataForDisplay = new DataForDisplay(dataSeriesMap.get(name), xData, yData);
       newValuesToPlotQueue.offer(dataForDisplay);
@@ -91,21 +93,22 @@ public class DynamicChart
       if (newValuesToPlotQueue.isEmpty())
          return;
 
-      Platform.runLater(() -> { //TODO reduce too many calls of run later, try to use bind on data or make sure thread is completed before next call to
+      Platform.runLater(() ->
+                        { //TODO reduce too many calls of run later, try to use bind on data or make sure thread is completed before next call to
 
-         if (!Platform.isFxApplicationThread())
-         {
-            throw new IllegalStateException("Method renderDataOnCharts() not on JavaFx application thread");
-         }
+                           if (!Platform.isFxApplicationThread())
+                           {
+                              throw new IllegalStateException("Method renderDataOnCharts() not on JavaFx application thread");
+                           }
 
-         // look up the data contained in new Values to chart list and uses data for display to add data to the series
-         DataForDisplay dataForDisplay;
-         while ((dataForDisplay = newValuesToPlotQueue.poll()) != null)
-         {
-            addDataToSeries(dataForDisplay);
-            setDataSeriesBoundsValues(dataForDisplay);
-         }
-      });
+                           // look up the data contained in new Values to chart list and uses data for display to add data to the series
+                           DataForDisplay dataForDisplay;
+                           while ((dataForDisplay = newValuesToPlotQueue.poll()) != null)
+                           {
+                              addDataToSeries(dataForDisplay);
+                              setDataSeriesBoundsValues(dataForDisplay);
+                           }
+                        });
    }
 
    private void setDataSeriesBoundsValues(DataForDisplay dataForDisplay)
@@ -119,10 +122,10 @@ public class DynamicChart
       allPointsUpperBoundX.set(Math.max(allPointsUpperBoundX.get(), dataForDisplay.xMax));
       allPointsLowerBoundY.set(Math.min(allPointsLowerBoundY.get(), dataForDisplay.yMin));
       allPointsUpperBoundY.set(Math.max(allPointsUpperBoundY.get(), dataForDisplay.yMax));
-//
-//      System.out.println(" xMin " + dataForDisplay.xMin + " xmax " + dataForDisplay.xMax + " ymin " + dataForDisplay.yMin + " ymax " + dataForDisplay.yMax);
-//      System.out.println(" xMIN " + allPointsLowerBoundX.get() + " xMAX " + allPointsUpperBoundX.get() + " yMIN " + allPointsLowerBoundY.get() + " yMAX "
-//            + allPointsUpperBoundY.get());
+      //
+      //      System.out.println(" xMin " + dataForDisplay.xMin + " xmax " + dataForDisplay.xMax + " ymin " + dataForDisplay.yMin + " ymax " + dataForDisplay.yMax);
+      //      System.out.println(" xMIN " + allPointsLowerBoundX.get() + " xMAX " + allPointsUpperBoundX.get() + " yMIN " + allPointsLowerBoundY.get() + " yMAX "
+      //            + allPointsUpperBoundY.get());
    }
 
    private void addDataToSeries(DataForDisplay dataForDisplay)
@@ -139,9 +142,9 @@ public class DynamicChart
    private void addDataToSeries(XYChart.Series series, double[] X, double[] Y)
    {
 
-//      System.out.println("Adding data to series X:"+ Arrays.toString(X));
-//      System.out.println("Adding data to series Y:"+ Arrays.toString(Y));
-//      System.out.println();
+      //      System.out.println("Adding data to series X:"+ Arrays.toString(X));
+      //      System.out.println("Adding data to series Y:"+ Arrays.toString(Y));
+      //      System.out.println();
 
       int newDataSize = X.length;
       int size = series.getData().size();
@@ -171,9 +174,9 @@ public class DynamicChart
       series.getData().addAll(dataPoints);
    }
 
-   public void addDataSeries(String name)
+   public void addNewDataSeries(String name)
    {
-      if (!dataSeriesMap.contains(name))
+      if (dataSeriesMap.get(name) == null)
       {
          XYChart.Series<Number, Number> dataSeries = new XYChart.Series<>();
          dataSeries.setName(name);
@@ -185,12 +188,12 @@ public class DynamicChart
 
    public void removeDataSeries(String name)
    {
-      if (dataSeriesMap.contains(name))
+      if (dataSeriesMap.get(name) != null)
       {
+         System.out.println("Removing Data Series: " + name);
          lineChart.getData().remove(dataSeriesMap.get(name));
          dataSeriesMap.remove(name);
       }
-
    }
 
    public void clearDataSeries(String name)
@@ -204,13 +207,10 @@ public class DynamicChart
       {
          clearDataSeries(series);
       }
-
    }
 
    private void clearDataSeries(XYChart.Series series) // TODO  Preferably not to be done while adding Data?
    {
-
-
       synchronized (series)
       {
          ObservableList<XYChart.Data<Number, Number>> oldDataPoints = series.getData();
@@ -230,7 +230,6 @@ public class DynamicChart
          allPointsUpperBoundX.set(0);
          allPointsLowerBoundY.set(0);
          allPointsUpperBoundY.set(0);
-
 
          chartBufferFillCount.set(0);
       }

@@ -83,7 +83,7 @@ public class DataSeriesManager implements ChartPlotVariablesManager
       if (!plotVariableConcurrentHashMap.contains(name))
       {
          plotVariableConcurrentHashMap.put(name, plotVariable);
-         dynamicChart.addDataSeries(name);
+         dynamicChart.addNewDataSeries(name);
       }
    }
 
@@ -255,12 +255,29 @@ public class DataSeriesManager implements ChartPlotVariablesManager
          throw new RuntimeException(" Not a valid range.  leftIndex:  " + leftIndex + " rightIndex: " + rightIndex);
       }
 
-      double[] xData = xAxisTimeStamp.dataHolder.get(leftIndex, length);
-      for (PlotVariable plotVariable : plotVariableConcurrentHashMap.values())
+      int capacity = xAxisTimeStamp.dataHolder.getCapacity();
+      int readPosition = xAxisTimeStamp.dataHolder.getReadPosition();
+      int fillCount = xAxisTimeStamp.dataHolder.getFillCount();
+      int overwriteCount = xAxisTimeStamp.dataHolder.getOverwriteCount();
+
+
+      try
       {
-         double[] yData = plotVariable.dataHolder.get(leftIndex, length);
-         dynamicChart.commitDataForDisplay(plotVariable.name, xData, yData);
+
+         double[] xData = xAxisTimeStamp.dataHolder.get(leftIndex, length);
+         for (PlotVariable plotVariable : plotVariableConcurrentHashMap.values())
+         {
+            double[] yData = plotVariable.dataHolder.get(leftIndex, length);
+            dynamicChart.commitDataForDisplay(plotVariable.name, xData, yData);
+         }
+
       }
+      catch (Exception e)
+      {
+         System.out.println("Left index "+ leftIndex +" length " + length + " capacity =  "+ capacity + " read position =  "+ readPosition + " fillcount " + fillCount + " overwriteCount "+ overwriteCount );
+         e.printStackTrace();
+      }
+
    }
 
    public void renderDataOnChart()
