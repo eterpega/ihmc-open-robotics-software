@@ -9,5 +9,5 @@
 <listEntry value=":IHMCOpenRoboticsSoftware:Valkyrie:clean"/>
 <listEntry value=":IHMCOpenRoboticsSoftware:Valkyrie:deploy"/>
 </listAttribute>
-<stringAttribute key="working_dir" value="${workspace_loc:/_IHMCRobotics}"/>
+<stringAttribute key="working_dir" value="${workspace_loc:/_OperatorWorkspace}"/>
 </launchConfiguration>

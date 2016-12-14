@@ -28,7 +28,7 @@ import us.ihmc.sensorProcessing.stateEstimation.StateEstimatorParameters;
 
 public class ValkyrieStateEstimatorParameters extends StateEstimatorParameters
 {
-   private static final boolean DEBUG_VELOCITY_WITH_FD = false;
+   private static final boolean DEBUG_VELOCITY_WITH_FD = true;
 
    private final boolean runningOnRealRobot;
 

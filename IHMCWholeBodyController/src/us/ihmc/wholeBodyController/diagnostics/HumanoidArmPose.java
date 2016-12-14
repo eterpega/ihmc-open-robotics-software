@@ -153,8 +153,6 @@ public enum HumanoidArmPose
       case ARM_STRAIGHT_DOWN:
          return symmetricArmPose(0.0, 1.4, 0.0, 0.0, robotSide);
 
-      case ARM_NINETY:
-          return symmetricArmPose(0.0, 0.0, 0.0, 0.0, robotSide);
       case ARM_NINETY_ELBOW_DOWN:
          return symmetricArmPose(0.0, 0.0, halfPi, halfPi, robotSide);
       case ARM_NINETY_ELBOW_DOWN2:
@@ -288,8 +286,6 @@ public enum HumanoidArmPose
       case ARM_STRAIGHT_DOWN:
          return new double[] {0.0000, -0.0000, -1.0708};
 
-      case ARM_NINETY:
-          return new double[] {0.4636, -1.5708, -1.1071};
       case ARM_NINETY_ELBOW_DOWN:
          return new double[] {-0.4636, 1.5708, -1.1071};
       case ARM_NINETY_ELBOW_DOWN2:

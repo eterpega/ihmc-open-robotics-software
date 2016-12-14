@@ -22,8 +22,8 @@ public class ValkyrieNetworkProcessor
       networkModuleParams.enableControllerCommunicator(true);
       networkModuleParams.enableLocalControllerCommunicator(false);
       networkModuleParams.enableUiModule(true);
-      networkModuleParams.enableBehaviorModule(false);
-      networkModuleParams.enableBehaviorVisualizer(false);
+      networkModuleParams.enableBehaviorModule(true);
+      networkModuleParams.enableBehaviorVisualizer(true);
 
 //      uncomment these for the sensors
       URI rosuri = NetworkParameters.getROSURI();
@@ -31,7 +31,7 @@ public class ValkyrieNetworkProcessor
       {
          networkModuleParams.enableRosModule(true);
          networkModuleParams.setRosUri(rosuri);
-         networkModuleParams.enableSensorModule(true);
+         networkModuleParams.enableSensorModule(false);
          System.out.println("ROS_MASTER_URI="+rosuri);
       }
       
