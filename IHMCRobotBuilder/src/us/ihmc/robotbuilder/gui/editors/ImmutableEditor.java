@@ -119,6 +119,7 @@ public class ImmutableEditor<T> extends Editor<T>
 
             currentlyEditedBean = property.getSetter().withValue(beanProperty().getValue(), newValue)
                                           .getOrElseThrow((Supplier<RuntimeException>)RuntimeException::new);
+            beanProperty().setValue(currentlyEditedBean);
          };
 
          valueChangeListener = (observable, oldValue, newBean) ->

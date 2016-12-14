@@ -1,7 +1,6 @@
 package us.ihmc.robotbuilder.util;
 
 import javaslang.Tuple;
-import javaslang.Value;
 import javaslang.collection.HashMap;
 import javaslang.control.Option;
 import javaslang.control.Try;
@@ -10,9 +9,12 @@ import java.lang.reflect.*;
 import java.util.*;
 import java.util.function.IntFunction;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.lang.reflect.Modifier.isPublic;
 import static java.lang.reflect.Modifier.isStatic;
+import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Methods facilitating the use of reflection in Java.
@@ -28,7 +30,7 @@ public class ReflectionHelpers
     * @param getter field getter
     * @return generic parameters
     */
-   private static List<Class<?>> getGenericParameters(Method getter)
+   public static List<Class<?>> getGenericParameters(Method getter)
    {
       Type returnType = getter.getGenericReturnType();
       if (returnType instanceof ParameterizedType)
@@ -37,23 +39,33 @@ public class ReflectionHelpers
          return Arrays.stream(genericType.getActualTypeArguments())
                       .filter(type -> type instanceof Class)
                       .map(type -> (Class<?>)type)
-                      .collect(Collectors.toList());
+                      .collect(toList());
       }
-      return Collections.emptyList();
+      return emptyList();
    }
 
-   private static javaslang.collection.List<Method> listGetters(Class<?> bean)
+   /**
+    * Gets the list of getters of the given Java class.
+    * @param bean class to analyze
+    * @return list of getters
+    */
+   public static List<Method> listGetters(Class<?> bean)
    {
-      return javaslang.collection.List.ofAll(Arrays.asList(bean.getMethods()))
-                                      .filter(ReflectionHelpers::isGetter)
-                                      .filter(method -> !method.isSynthetic() && !method.isBridge());
+      return Arrays.stream(bean.getMethods())
+                   .filter(ReflectionHelpers::isGetter)
+                   .collect(toList());
    }
 
-
-   private static boolean isGetter(Method method)
+   /**
+    * Checks whether the given {@link Method} is a getter.
+    * @param method method
+    * @return true if the method is a getter, false otherwise
+    */
+   public static boolean isGetter(Method method)
    {
       return isPublic(method.getModifiers()) && !isStatic(method.getModifiers()) &&
-            method.getParameterCount() == 0 && method.getName().startsWith(GET_PREFIX) && !method.getName().equals("getClass");
+            method.getParameterCount() == 0 && method.getName().startsWith(GET_PREFIX) &&
+            !method.isSynthetic() && !method.isBridge();
    }
 
    private static Optional<Method> findSetter(Class<?> clazz, String propertyName, Class<?> propertyType, Class<?> expectedReturnType, String[] prefixes)
@@ -66,10 +78,16 @@ public class ReflectionHelpers
                    .findFirst();
    }
 
-
+   /**
+    * Get properties for an immutable Java class that uses the getProperty/withProperty style.
+    * @param clazz class
+    * @param <Bean> class type
+    * @return list of properties (getProperty/withProperty pairs)
+    */
    public static <Bean> List<ImmutableReflectionProperty<Bean>> propertiesForBeanWithImmutableSetters(Class<Bean> clazz)
    {
       return listGetters(clazz)
+            .stream()
             .map(getMethod -> {
                String propertyName = propertyNameFromGetter(getMethod);
                return findSetter(clazz, propertyName, getMethod.getReturnType(), clazz, new String[] {"with", "set"})
@@ -77,12 +95,19 @@ public class ReflectionHelpers
             })
             .filter(Optional::isPresent)
             .map(Optional::get)
-            .toJavaList();
+            .collect(toList());
    }
 
+   /**
+    * Returns the list of properties for a mutable Java class that uses the getProperty/setProperty style.
+    * @param clazz class
+    * @param <Bean> class type
+    * @return list of properties (getProperty/setProperty pairs)
+    */
    public static <Bean> List<MutableReflectionProperty<Bean>> propertiesForBeanWithMutableSetters(Class<Bean> clazz)
    {
       return listGetters(clazz)
+            .stream()
             .map(getMethod -> {
                String propertyName = propertyNameFromGetter(getMethod);
                return findSetter(clazz, propertyName, getMethod.getReturnType(), null, new String[]{"set"})
@@ -90,20 +115,33 @@ public class ReflectionHelpers
             })
             .filter(Optional::isPresent)
             .map(Optional::get)
-            .toJavaList();
+            .collect(toList());
    }
 
+   /**
+    * Returns the list of properties for an immutable Java class that uses the getProperty/Constructor taking all properties style.
+    * @param clazz class
+    * @param <Bean> class type
+    * @return list of properties (that are settable in the constructor)
+    */
    public static <Bean> List<ImmutableReflectionProperty<Bean>> propertiesForImmutableBeanWithBuilderConstructor(Class<Bean> clazz)
    {
-      javaslang.collection.List<Method> getters = listGetters(clazz);
+      List<Method> getters = listGetters(clazz);
       Optional<Constructor<Bean>> constructorOpt =
-            findBuilderConstructor(clazz, getters.map(ReflectionHelpers::propertyNameFromGetter).toJavaList());
+            findBuilderConstructor(clazz, getters.stream().map(ReflectionHelpers::propertyNameFromGetter).collect(toList()));
 
-      return constructorOpt.map(constructor -> getters.filter(getter -> hasConstructorProperty(constructor, propertyNameFromGetter(getter))).map(getter -> {
+      return constructorOpt.map(constructor -> getPropertiesFromConstructorAndGetters(getters, constructor))
+                           .map(stream -> stream.collect(toList()))
+                           .orElse(emptyList());
+   }
+
+   private static <Bean> Stream<ImmutableReflectionProperty<Bean>> getPropertiesFromConstructorAndGetters(List<Method> getters, Constructor<Bean> constructor)
+   {
+      return getters.stream().filter(getter -> hasConstructorProperty(constructor, propertyNameFromGetter(getter))).map(getter -> {
          String propertyName = propertyNameFromGetter(getter);
-         ReflectedSetter<Bean, Bean> setter = (bean, value) -> createBeanWithChangedAttribute(constructor, bean, getters.toJavaList(), propertyName, value);
+         ReflectedSetter<Bean, Bean> setter = (bean, value) -> createBeanWithChangedAttribute(constructor, bean, getters, propertyName, value);
          return new ImmutableReflectionProperty<>(propertyName, getter.getReturnType(), getGenericParameters(getter), wrapGetter(getter), setter);
-      })).map(Value::toJavaList).orElse(Collections.emptyList());
+      });
    }
 
    private static <Bean> Try<Bean> createBeanWithChangedAttribute(Constructor<Bean> constructor, Bean sourceBean, List<Method> getters, String propertyName, Object newPropertyValue)
@@ -147,8 +185,9 @@ public class ReflectionHelpers
       //noinspection unchecked
       return (Optional)
             Arrays.stream(clazz.getDeclaredConstructors())
-            .filter(constructor -> hasConstructorAllProperties(constructor, transformedPropertyNames))
-            .findFirst();
+                  .sorted((c1, c2) -> -Integer.compare(c1.getParameterCount(), c2.getParameterCount()))
+                  .filter(constructor -> hasConstructorAllProperties(constructor, transformedPropertyNames))
+                  .findFirst();
    }
 
    private static boolean hasConstructorAllProperties(Constructor<?> constructor, Set<String> propertyNames)
@@ -190,11 +229,22 @@ public class ReflectionHelpers
       return getter.getName().substring(GET_PREFIX.length());
    }
 
+   /**
+    * Wraps reflection call to a setter into a functional interface for
+    * better readability and error handling.
+    * @param <BeanClass> base class type
+    * @param <SetterReturnType> setter return type (usually either BeanClass or Void)
+    */
    public interface ReflectedSetter<BeanClass, SetterReturnType>
    {
       Try<SetterReturnType> withValue(BeanClass object, Object value);
    }
 
+   /**
+    * Wraps reflection call to a getter into a functional interface for
+    * better readability and error handling.
+    * @param <BeanClass> base class type
+    */
    public interface ReflectedGetter<BeanClass>
    {
       Try<Object> getValue(BeanClass object);
@@ -244,6 +294,10 @@ public class ReflectionHelpers
       }
    }
 
+   /**
+    * Wraps a getter & setter into a modifiable property.
+    * @param <BeanClass> bean class
+    */
    public static class MutableReflectionProperty<BeanClass> extends ReflectionProperty<BeanClass, Void>
    {
 
@@ -254,6 +308,10 @@ public class ReflectionHelpers
       }
    }
 
+   /**
+    * Wraps a getter & immutable setter into a modifiable property.
+    * @param <BeanClass> bean class
+    */
    public static class ImmutableReflectionProperty<BeanClass> extends ReflectionProperty<BeanClass, BeanClass>
    {
 
