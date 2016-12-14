@@ -238,7 +238,7 @@ public class WalkingMessageHandler
 
    public void reportFootstepStarted(RobotSide robotSide)
    {
-      statusOutputManager.reportStatusMessage(new FootstepStatus(FootstepStatus.Status.STARTED, currentFootstepIndex.getIntegerValue()));
+      statusOutputManager.reportStatusMessage(new FootstepStatus(FootstepStatus.Status.STARTED, currentFootstepIndex.getIntegerValue(), robotSide));
    }
 
    public void reportFootstepCompleted(RobotSide robotSide, FramePose actualFootPoseInWorld)

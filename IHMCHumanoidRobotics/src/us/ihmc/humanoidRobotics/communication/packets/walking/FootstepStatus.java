@@ -17,7 +17,7 @@ import us.ihmc.robotics.robotSide.RobotSide;
  * Date: 1/18/13
  */
 @RosMessagePacket(documentation = "This message gives the status of the current footstep from the controller as well as the position\n"
-                                  + "and orientation of the footstep in world cooredinates. ",
+                                  + "and orientation of the footstep in world coordinates. ",
                   rosPackage = RosMessagePacket.CORE_IHMC_PACKAGE,
                   topic = "/output/footstep_status")
 public class FootstepStatus extends StatusPacket<FootstepStatus>
@@ -51,21 +51,17 @@ public class FootstepStatus extends StatusPacket<FootstepStatus>
 
    public FootstepStatus(Status status, int footstepIndex)
    {
-      this.status = status;
-      this.footstepIndex = footstepIndex;
-      this.actualFootPositionInWorld = null;
-      this.actualFootOrientationInWorld = null;
-      this.robotSide = null;
+      this(status, footstepIndex, null, null, null);
+   }
+
+   public FootstepStatus(Status status, int footstepIndex, RobotSide robotSide)
+   {
+      this(status, footstepIndex, null, null, robotSide);
    }
 
    public FootstepStatus(Status status, int footstepIndex, Point3d actualFootPositionInWorld, Quat4d actualFootOrientationInWorld)
    {
-      this.status = status;
-      this.footstepIndex = footstepIndex;
-      this.actualFootPositionInWorld = actualFootPositionInWorld;
-      this.actualFootOrientationInWorld = actualFootOrientationInWorld;
-      
-      this.robotSide = null;
+      this(status, footstepIndex, actualFootPositionInWorld, actualFootOrientationInWorld, null);
    }
    
    public FootstepStatus(Status status, int footstepIndex, Point3d actualFootPositionInWorld, Quat4d actualFootOrientationInWorld,RobotSide robotSide)
