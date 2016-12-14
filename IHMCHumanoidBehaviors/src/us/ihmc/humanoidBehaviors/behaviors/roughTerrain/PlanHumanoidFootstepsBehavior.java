@@ -17,6 +17,7 @@ import us.ihmc.footstepPlanning.FootstepPlan;
 import us.ihmc.footstepPlanning.FootstepPlannerGoal;
 import us.ihmc.footstepPlanning.FootstepPlannerGoalType;
 import us.ihmc.footstepPlanning.SimpleFootstep;
+import us.ihmc.footstepPlanning.graphSearch.BipedalFootstepPlannerParameters;
 import us.ihmc.footstepPlanning.graphSearch.PlanarRegionBipedalFootstepPlanner;
 import us.ihmc.footstepPlanning.graphSearch.PlanarRegionBipedalFootstepPlannerVisualizer;
 import us.ihmc.humanoidBehaviors.behaviors.AbstractBehavior;
@@ -58,7 +59,7 @@ public class PlanHumanoidFootstepsBehavior extends AbstractBehavior
    private final BooleanYoVariable foundPlan = new BooleanYoVariable(prefix + "FoundPlan", registry);
    private final BooleanYoVariable requestedPlanarRegion = new BooleanYoVariable(prefix + "RequestedPlanarRegion", registry);
    private final DoubleYoVariable shorterGoalLength = new DoubleYoVariable(prefix + "ShorterGoalLength", registry);
-   
+
    private final EnumYoVariable<RobotSide> nextSideToSwing;
 
    private final PlanarRegionBipedalFootstepPlanner footstepPlanner;
@@ -79,7 +80,7 @@ public class PlanHumanoidFootstepsBehavior extends AbstractBehavior
    private final YoTimer plannerTimer;
 
    public PlanHumanoidFootstepsBehavior(DoubleYoVariable yoTime, CommunicationBridge behaviorCommunicationBridge, FullHumanoidRobotModel fullRobotModel,
-                                        HumanoidReferenceFrames referenceFrames, FiducialDetectorBehaviorService fiducialDetectorBehaviorService)
+                                        HumanoidReferenceFrames referenceFrames)
    {
       super(PlanHumanoidFootstepsBehavior.class.getSimpleName(), behaviorCommunicationBridge);
 
@@ -99,37 +100,40 @@ public class PlanHumanoidFootstepsBehavior extends AbstractBehavior
       footstepPlannerGoalPose = new YoFramePose(prefix + "FootstepGoalPose", ReferenceFrame.getWorldFrame(), registry);
       footstepPlannerInitialStepPose = new YoFramePose(prefix + "InitialStepPose", ReferenceFrame.getWorldFrame(), registry);
 
-      behaviorCommunicationBridge.attachNetworkListeningQueue(planarRegionsListQueue, PlanarRegionsListMessage.class);
-      
+      attachNetworkListeningQueue(planarRegionsListQueue, PlanarRegionsListMessage.class);
+
       requestedPlanarRegion.set(false);
    }
 
    private PlanarRegionBipedalFootstepPlanner createFootstepPlanner()
    {
-      PlanarRegionBipedalFootstepPlanner planner = new PlanarRegionBipedalFootstepPlanner(registry);
+      BipedalFootstepPlannerParameters parameters = new BipedalFootstepPlannerParameters(registry);
 
-      planner.setMaximumStepReach(0.65); //0.55); //(0.4);
-      planner.setMaximumStepZ(0.25); //0.4); //0.25);
-      
+      parameters.setMaximumStepReach(0.65); //0.55); //(0.4);
+      parameters.setMaximumStepZ(0.25); //0.4); //0.25);
+
       // Atlas has ankle pitch range of motion limits, which hit when taking steps forward and down. Similar to a human.
-      // Whereas a human gets on its toes nicely to avoid the limits, this is challenging with a robot. 
-      // So for now, have reall conservative forward and down limits on height.
-      planner.setMaximumStepXWhenForwardAndDown(0.2);
-      planner.setMaximumStepZWhenForwardAndDown(0.10);
-      
-      planner.setMaximumStepYaw(0.15); //0.25);
-      planner.setMinimumStepWidth(0.15);
-      planner.setMinimumFootholdPercent(0.95);
+      // Whereas a human gets on its toes nicely to avoid the limits, this is challenging with a robot.
+      // So for now, have really conservative forward and down limits on height.
+      parameters.setMaximumStepXWhenForwardAndDown(0.2);
+      parameters.setMaximumStepWidth(0.4);
+      parameters.setMaximumStepZWhenForwardAndDown(0.10);
 
-      planner.setWiggleInsideDelta(0.02); //0.08);
-      planner.setMaximumXYWiggleDistance(1.0);
-      planner.setMaximumYawWiggle(0.1);
+      parameters.setMaximumStepYaw(0.15); //0.25);
+      parameters.setMinimumStepWidth(0.15);
+      parameters.setMinimumFootholdPercent(0.95);
 
-      planner.setRejectIfCannotFullyWiggleInside(true);
+      parameters.setWiggleInsideDelta(0.02); //0.08);
+      parameters.setMaximumXYWiggleDistance(1.0);
+      parameters.setMaximumYawWiggle(0.1);
+
+      parameters.setRejectIfCannotFullyWiggleInside(true);
 
       double idealFootstepLength = 0.45; //0.3; //0.4;
       double idealFootstepWidth = 0.26; //0.2; //0.25;
-      planner.setIdealFootstep(idealFootstepLength, idealFootstepWidth);
+      parameters.setIdealFootstep(idealFootstepLength, idealFootstepWidth);
+
+      PlanarRegionBipedalFootstepPlanner planner = new PlanarRegionBipedalFootstepPlanner(parameters, registry);
 
       SideDependentList<ConvexPolygon2d> footPolygonsInSoleFrame = createDefaultFootPolygons();
       planner.setFeetPolygons(footPolygonsInSoleFrame);
@@ -142,12 +146,12 @@ public class PlanHumanoidFootstepsBehavior extends AbstractBehavior
    {
       SideDependentList<ConvexPolygon2d> footPolygonsInSoleFrame = footstepPlanner.getFootPolygonsInSoleFrame();
       PlanarRegionBipedalFootstepPlannerVisualizer listener = PlanarRegionBipedalFootstepPlannerVisualizerFactory.createWithSimulationConstructionSet(0.01,
-                                                                                                                                                               footPolygonsInSoleFrame);
+                                                                                                                                                      footPolygonsInSoleFrame);
 
-      
+
       SimulationConstructionSet scs = (SimulationConstructionSet) listener.getTickAndUpdatable();
-//      scs.setCameraFix(-6.0, 0.0, 0.0);
-//      scs.setCameraPosition(-11.0, 0.0, 8.0);
+      //      scs.setCameraFix(-6.0, 0.0, 0.0);
+      //      scs.setCameraPosition(-11.0, 0.0, 8.0);
 
       footstepPlanner.setBipedalFootstepPlannerListener(listener);
    }
@@ -156,9 +160,9 @@ public class PlanHumanoidFootstepsBehavior extends AbstractBehavior
    {
       SideDependentList<ConvexPolygon2d> footPolygonsInSoleFrame = footstepPlanner.getFootPolygonsInSoleFrame();
       PlanarRegionBipedalFootstepPlannerVisualizer listener = PlanarRegionBipedalFootstepPlannerVisualizerFactory.createWithYoVariableServer(0.01,
-                                                                                                                                                      fullRobotModel,
-                                                                                                                                                      logModelProvider,
-                                                                                                                                                      footPolygonsInSoleFrame);
+                                                                                                                                             fullRobotModel,
+                                                                                                                                             logModelProvider,
+                                                                                                                                             footPolygonsInSoleFrame, "Behavior_");
 
       footstepPlanner.setBipedalFootstepPlannerListener(listener);
    }
@@ -182,7 +186,7 @@ public class PlanHumanoidFootstepsBehavior extends AbstractBehavior
    }
 
    private int failIndex = 0;
-   
+
    @Override
    public void doControl()
    {

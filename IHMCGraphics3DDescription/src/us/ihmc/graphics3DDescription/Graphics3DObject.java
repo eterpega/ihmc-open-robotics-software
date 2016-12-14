@@ -281,6 +281,50 @@ public class Graphics3DObject
 
       return graphics3DScale;
    }
+   
+   
+   /**
+    * Scales the origin coordinate system by the specified scale factor. This will scale existing
+    * graphics and all graphics added after calling this function till identity() is called. 
+    * 
+    * 
+    * @param scaleFactor Factor by which the graphics object system is scaled.  For example, 0.5 would
+    * reduce future objects size by 50% whereas 2 would double it.
+    * @return
+    */
+   public void preScale(double scaleFactor)
+   {
+      preScale(new Vector3d(scaleFactor, scaleFactor, scaleFactor));
+   }
+   
+   /**
+    * Scales the origin coordinate system by the specified scale factor. This will scale existing
+    * graphics and all graphics added after calling this function. The components of the vector indicate
+    * scale factors in each dimension.
+    * 
+    * @param scaleFactors Vector3d describing the scaling factors in each dimension
+    * @return
+    */
+   public void preScale(Vector3d scaleFactors)
+   {
+      
+      
+      ArrayList<Graphics3DPrimitiveInstruction> newInstructions = new ArrayList<>();
+      newInstructions.add(new Graphics3DScaleInstruction(scaleFactors));
+      
+      for(int i = 0; i < graphics3DInstructions.size(); i++)
+      {
+         Graphics3DPrimitiveInstruction instruction = graphics3DInstructions.get(i);
+         newInstructions.add(instruction);
+         if(instruction instanceof Graphics3DIdentityInstruction)
+         {
+            newInstructions.add(new Graphics3DScaleInstruction(scaleFactors));
+
+         }
+      }
+      
+      graphics3DInstructions = newInstructions;
+   }
 
    /**
     * Resets the coordinate system to the joint origin.  This clears all rotations, translations,
@@ -375,10 +419,10 @@ public class Graphics3DObject
    }
 
    public Graphics3DAddModelFileInstruction addModelFile(String fileName, String submesh, boolean centerSubmesh, List<String> resourceDirectories,
-           AppearanceDefinition app)
+         AppearanceDefinition app)
    {
       Graphics3DAddModelFileInstruction graphics3dAddModelFileInstruction = new Graphics3DAddModelFileInstruction(fileName, submesh, centerSubmesh, app,
-                                                                               resourceDirectories);
+            resourceDirectories);
       graphics3DInstructions.add(graphics3dAddModelFileInstruction);
 
       return graphics3dAddModelFileInstruction;
@@ -408,7 +452,7 @@ public class Graphics3DObject
     * @param length the length in meters of each axis arrow.
     */
    public void addCoordinateSystem(double length, AppearanceDefinition xAxisAppearance, AppearanceDefinition yAxisAppearance,
-                                   AppearanceDefinition zAxisAppearance, AppearanceDefinition arrowAppearance)
+         AppearanceDefinition zAxisAppearance, AppearanceDefinition arrowAppearance)
    {
       rotate(Math.PI / 2.0, Axis.Y);
       addArrow(length, YoAppearance.Red(), arrowAppearance);
@@ -610,7 +654,7 @@ public class Graphics3DObject
 
    public Graphics3DAddMeshDataInstruction addCapsule(double radius, double height, AppearanceDefinition capsuleAppearance)
    {
-      MeshDataHolder meshData = MeshDataGenerator.Capsule(height-2.0*radius, radius, radius, radius, CAPSULE_RESOLUTION, CAPSULE_RESOLUTION);
+      MeshDataHolder meshData = MeshDataGenerator.Capsule(height - 2.0 * radius, radius, radius, radius, CAPSULE_RESOLUTION, CAPSULE_RESOLUTION);
       return addMeshData(meshData, capsuleAppearance);
    }
 
@@ -618,7 +662,10 @@ public class Graphics3DObject
    {
       // The subsequent classes do not accept null, just create an empty mesh in that case
       if (meshData == null)
+      {
          meshData = new MeshDataHolder(new Point3f[0], new TexCoord2f[0], new int[0], new Vector3f[0]);
+         meshData.setName("nullMesh");
+      }
       Graphics3DAddMeshDataInstruction instruction = new Graphics3DAddMeshDataInstruction(meshData, meshAppearance);
       graphics3DInstructions.add(instruction);
 
@@ -902,7 +949,7 @@ public class Graphics3DObject
     * @param arcTorusApp Appearance to be used with the new arctorus.  See {@link YoAppearance YoAppearance} for implementations.
     */
    public Graphics3DAddMeshDataInstruction addArcTorus(double startAngle, double endAngle, double majorRadius, double minorRadius,
-           AppearanceDefinition arcTorusApp)
+         AppearanceDefinition arcTorusApp)
    {
       MeshDataHolder meshData = MeshDataGenerator.ArcTorus(startAngle, endAngle, majorRadius, minorRadius, RESOLUTION);
 
@@ -1019,7 +1066,7 @@ public class Graphics3DObject
    public void addPlanarRegionsList(PlanarRegionsList planarRegions, AppearanceDefinition... appearances)
    {
       int numberOfPlanarRegions = planarRegions.getNumberOfPlanarRegions();
-      for (int i=0; i<numberOfPlanarRegions; i++)
+      for (int i = 0; i < numberOfPlanarRegions; i++)
       {
          addPlanarRegion(planarRegions.getPlanarRegion(i), appearances[i % appearances.length]);
       }
@@ -1050,7 +1097,7 @@ public class Graphics3DObject
 
       transform(transform);
 
-      for (int i=0; i<numberOfConvexPolygons; i++)
+      for (int i = 0; i < numberOfConvexPolygons; i++)
       {
          ConvexPolygon2d convexPolygon = planarRegion.getConvexPolygon(i);
          addPolygon(convexPolygon, appearances[i % appearances.length]);
@@ -1093,7 +1140,6 @@ public class Graphics3DObject
    {
       return addPolygon(polygonPoints, yoAppearance);
    }
-
 
    public Graphics3DAddMeshDataInstruction addExtrudedPolygon(ConvexPolygon2d convexPolygon2d, double height)
    {
@@ -1151,7 +1197,6 @@ public class Graphics3DObject
       this.identity();
    }
 
-
    public Graphics3DInstruction addTeaPot(AppearanceDefinition appearance)
    {
       return addModelFile("models/Teapot.obj", appearance);
@@ -1166,7 +1211,7 @@ public class Graphics3DObject
    }
 
    public void notifySelectedListeners(Graphics3DNode graphics3dNode, ModifierKeyInterface modifierKeyHolder, Point3d location, Point3d cameraPosition,
-           Quat4d cameraRotation)
+         Quat4d cameraRotation)
    {
       if (selectedListeners != null)
       {

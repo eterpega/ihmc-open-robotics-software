@@ -263,6 +263,7 @@ public class YoGraphicPlanarRegionsList extends YoGraphic implements RemoteYoGra
       if (currentMeshIndex.getIntegerValue() == -1)
          return;
       MeshDataHolder polygonMesh = createCurrentMesh();
+      polygonMesh.setName("PlanarRegion");
       AppearanceDefinition appearance = getCurrentAppearance();
 
       Graphics3DAddMeshDataInstruction instructionToUpdate = meshBuffer.get(currentMeshIndex.getIntegerValue());
@@ -409,6 +410,13 @@ public class YoGraphicPlanarRegionsList extends YoGraphic implements RemoteYoGra
     */
    public void submitPlanarRegionsListToRender(PlanarRegionsList planarRegionsList)
    {
+      if (planarRegionsList == null)
+      {
+         //TODO: Clear the viz when the planarRegionsList is null;
+         
+         return;
+      }
+
       if (planarRegionsListsDeque.size() > MAX_PLANAR_REGIONS_LIST_DEQUE_SIZE)
          return;
 

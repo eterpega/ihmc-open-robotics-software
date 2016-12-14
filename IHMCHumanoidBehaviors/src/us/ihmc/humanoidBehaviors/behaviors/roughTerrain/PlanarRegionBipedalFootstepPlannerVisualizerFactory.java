@@ -18,16 +18,16 @@ public class PlanarRegionBipedalFootstepPlannerVisualizerFactory
 {
    public static PlanarRegionBipedalFootstepPlannerVisualizer createWithYoVariableServer(double dtForViz, FullRobotModel fullRobotModel,
                                                                                          LogModelProvider logModelProvider,
-                                                                                         SideDependentList<ConvexPolygon2d> footPolygonsInSoleFrame)
+                                                                                         SideDependentList<ConvexPolygon2d> footPolygonsInSoleFrame, String namePrefix)
    {
       YoVariableRegistry registry = new YoVariableRegistry(PlanarRegionBipedalFootstepPlannerVisualizerFactory.class.getSimpleName());
       YoGraphicsListRegistry graphicsListRegistry = new YoGraphicsListRegistry();
 
-      PlanarRegionBipedalFootstepPlannerVisualizer footstepPlannerVisualizer = new PlanarRegionBipedalFootstepPlannerVisualizer(footPolygonsInSoleFrame,
+      PlanarRegionBipedalFootstepPlannerVisualizer footstepPlannerVisualizer = new PlanarRegionBipedalFootstepPlannerVisualizer(10, footPolygonsInSoleFrame,
                                                                                                                                 registry, graphicsListRegistry);
 
       PeriodicThreadScheduler scheduler = new PeriodicNonRealtimeThreadScheduler("PlannerScheduler");
-      YoVariableServer yoVariableServer = new YoVariableServer(PlanarRegionBipedalFootstepPlannerVisualizerFactory.class, scheduler, logModelProvider,
+      YoVariableServer yoVariableServer = new YoVariableServer(namePrefix + PlanarRegionBipedalFootstepPlannerVisualizerFactory.class.getSimpleName(), scheduler, logModelProvider,
                                                                LogSettings.FOOTSTEP_PLANNER, dtForViz);
       yoVariableServer.setSendKeepAlive(true);
       footstepPlannerVisualizer.setTickAndUpdatable(yoVariableServer);
@@ -44,7 +44,7 @@ public class PlanarRegionBipedalFootstepPlannerVisualizerFactory
       YoVariableRegistry registry = new YoVariableRegistry(PlanarRegionBipedalFootstepPlannerVisualizerFactory.class.getSimpleName());
       YoGraphicsListRegistry graphicsListRegistry = new YoGraphicsListRegistry();
 
-      PlanarRegionBipedalFootstepPlannerVisualizer footstepPlannerVisualizer = new PlanarRegionBipedalFootstepPlannerVisualizer(footPolygonsInSoleFrame,
+      PlanarRegionBipedalFootstepPlannerVisualizer footstepPlannerVisualizer = new PlanarRegionBipedalFootstepPlannerVisualizer(10, footPolygonsInSoleFrame,
                                                                                                                                 registry, graphicsListRegistry);
       SimulationConstructionSet scs = new SimulationConstructionSet(new Robot("Test"));
 

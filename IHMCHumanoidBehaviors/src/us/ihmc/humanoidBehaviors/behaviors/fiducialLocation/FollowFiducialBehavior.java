@@ -1,15 +1,6 @@
 package us.ihmc.humanoidBehaviors.behaviors.fiducialLocation;
 
-import javax.vecmath.AxisAngle4d;
-import javax.vecmath.Point2d;
-import javax.vecmath.Point3d;
-import javax.vecmath.Quat4d;
-import javax.vecmath.Vector3d;
-
-import us.ihmc.communication.packets.PacketDestination;
-import us.ihmc.communication.packets.PlanarRegionMessageConverter;
-import us.ihmc.communication.packets.PlanarRegionsListMessage;
-import us.ihmc.communication.packets.RequestPlanarRegionsListMessage;
+import us.ihmc.communication.packets.*;
 import us.ihmc.communication.packets.RequestPlanarRegionsListMessage.RequestType;
 import us.ihmc.communication.packets.TextToSpeechPacket;
 import us.ihmc.communication.packets.UIPositionCheckerPacket;
@@ -18,17 +9,19 @@ import us.ihmc.footstepPlanning.FootstepPlanner;
 import us.ihmc.footstepPlanning.FootstepPlannerGoal;
 import us.ihmc.footstepPlanning.FootstepPlannerGoalType;
 import us.ihmc.footstepPlanning.SimpleFootstep;
+import us.ihmc.footstepPlanning.graphSearch.BipedalFootstepPlannerParameters;
+import us.ihmc.footstepPlanning.*;
 import us.ihmc.footstepPlanning.graphSearch.PlanarRegionBipedalFootstepPlanner;
 import us.ihmc.humanoidBehaviors.behaviors.AbstractBehavior;
-import us.ihmc.humanoidBehaviors.behaviors.behaviorServices.FiducialDetectorBehaviorService;
+import us.ihmc.humanoidBehaviors.behaviors.goalLocation.GoalDetectorBehaviorService;
 import us.ihmc.humanoidBehaviors.communication.CommunicationBridge;
 import us.ihmc.humanoidBehaviors.communication.ConcurrentListeningQueue;
 import us.ihmc.humanoidRobotics.communication.packets.ExecutionMode;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataListMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage;
+import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage.FootstepOrigin;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepStatus;
 import us.ihmc.humanoidRobotics.communication.packets.walking.HeadTrajectoryMessage;
-import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage.FootstepOrigin;
 import us.ihmc.humanoidRobotics.frames.HumanoidReferenceFrames;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
@@ -43,12 +36,13 @@ import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.tools.time.Timer;
 
+import javax.vecmath.*;
+
 public class FollowFiducialBehavior extends AbstractBehavior
 {
    private final String prefix = "followFiducial";
 
-   private final FiducialDetectorBehaviorService fiducialDetectorBehaviorService;
-   private final long fiducialToTrack;
+   private final GoalDetectorBehaviorService fiducialDetectorBehaviorService;
    private final FullHumanoidRobotModel fullRobotModel;
    private final HumanoidReferenceFrames referenceFrames;
 
@@ -86,16 +80,14 @@ public class FollowFiducialBehavior extends AbstractBehavior
    private final Timer footstepSentTimer = new Timer();
 
    public FollowFiducialBehavior(CommunicationBridge behaviorCommunicationBridge, FullHumanoidRobotModel fullRobotModel,
-         HumanoidReferenceFrames referenceFrames, FiducialDetectorBehaviorService fiducialDetectorBehaviorService, long fiducialToTrack)
+                                 HumanoidReferenceFrames referenceFrames, GoalDetectorBehaviorService goalDetectorBehaviorService)
    {
-      super(FollowFiducialBehavior.class.getSimpleName(), behaviorCommunicationBridge);
+      super(FollowFiducialBehavior.class.getSimpleName() + "_" + goalDetectorBehaviorService.getClass().getSimpleName(), behaviorCommunicationBridge);
 
-      this.fiducialToTrack = fiducialToTrack;
       this.fullRobotModel = fullRobotModel;
       this.referenceFrames = referenceFrames;
 
-      this.fiducialDetectorBehaviorService = fiducialDetectorBehaviorService;
-      fiducialDetectorBehaviorService.setTargetIDToLocate(this.fiducialToTrack);
+      this.fiducialDetectorBehaviorService = goalDetectorBehaviorService;
       addBehaviorService(fiducialDetectorBehaviorService);
 
       headPitchToFindFucdicial.set(1.0);
@@ -136,19 +128,21 @@ public class FollowFiducialBehavior extends AbstractBehavior
 
    private FootstepPlanner createFootstepPlanner()
    {
-      PlanarRegionBipedalFootstepPlanner planner = new PlanarRegionBipedalFootstepPlanner(registry);
-
-      planner.setMaximumStepReach(0.4);
-      planner.setMaximumStepZ(0.25);
-      planner.setMaximumStepXWhenForwardAndDown(0.25);
-      planner.setMaximumStepZWhenForwardAndDown(0.25);
-      planner.setMaximumStepYaw(0.25);
-      planner.setMinimumStepWidth(0.15);
-      planner.setMinimumFootholdPercent(0.8);
+      BipedalFootstepPlannerParameters parameters = new BipedalFootstepPlannerParameters(registry);
+      parameters.setMaximumStepReach(0.4);
+      parameters.setMaximumStepZ(0.25);
+      parameters.setMaximumStepXWhenForwardAndDown(0.25);
+      parameters.setMaximumStepZWhenForwardAndDown(0.25);
+      parameters.setMaximumStepYaw(0.25);
+      parameters.setMaximumStepWidth(0.4);
+      parameters.setMinimumStepWidth(0.15);
+      parameters.setMinimumFootholdPercent(0.8);
 
       double idealFootstepLength = 0.4;
       double idealFootstepWidth = 0.25;
-      planner.setIdealFootstep(idealFootstepLength, idealFootstepWidth);
+      parameters.setIdealFootstep(idealFootstepLength, idealFootstepWidth);
+
+      PlanarRegionBipedalFootstepPlanner planner = new PlanarRegionBipedalFootstepPlanner(parameters, registry);
 
       SideDependentList<ConvexPolygon2d> footPolygonsInSoleFrame = createDefaultFootPolygons();
       planner.setFeetPolygons(footPolygonsInSoleFrame);
@@ -211,7 +205,7 @@ public class FollowFiducialBehavior extends AbstractBehavior
       //         return;
       //      }
 
-      if (!fiducialDetectorBehaviorService.getTargetIDHasBeenLocated())
+      if (!fiducialDetectorBehaviorService.getGoalHasBeenLocated())
       {
          sendTextToSpeechPacket("Fiducial not located.");
          footstepSentTimer.reset();
@@ -221,7 +215,7 @@ public class FollowFiducialBehavior extends AbstractBehavior
 
       pitchHeadToCenterFiducial();
 
-      fiducialDetectorBehaviorService.getReportedFiducialPoseWorldFrame(tempFootstepPlannerGoalPose);
+      fiducialDetectorBehaviorService.getReportedGoalPoseWorldFrame(tempFootstepPlannerGoalPose);
       setGoalAndInitialStanceFootToBeClosestToGoal(tempFootstepPlannerGoalPose);
 
       footstepPlanner.plan();

@@ -3,10 +3,13 @@ package us.ihmc.graphics3DDescription;
 import java.util.List;
 
 import javax.vecmath.AxisAngle4d;
+import javax.vecmath.Point2d;
 import javax.vecmath.Point3d;
 import javax.vecmath.Point3f;
 import javax.vecmath.Tuple3d;
 import javax.vecmath.Tuple3f;
+
+import us.ihmc.robotics.geometry.RigidBodyTransform;
 
 public class MeshDataBuilder
 {
@@ -60,6 +63,11 @@ public class MeshDataBuilder
       addMesh(MeshDataGenerator.Sphere(radius, DEFAULT_RES, DEFAULT_RES));
    }
 
+   public void addSphere(double radius, Tuple3d offset)
+   {
+      addMesh(MeshDataGenerator.Sphere(radius, DEFAULT_RES, DEFAULT_RES), offset);
+   }
+
    public void addSphere(float radius, Tuple3f offset)
    {
       addMesh(MeshDataGenerator.Sphere(radius, DEFAULT_RES, DEFAULT_RES), offset);
@@ -72,6 +80,11 @@ public class MeshDataBuilder
    public void addPolygon(List<Point3d> polygon)
    {
       addMesh(MeshDataGenerator.Polygon(polygon));
+   }
+
+   public void addPolygon(RigidBodyTransform transformToWorld, List<Point2d> polygon)
+   {
+      addMesh(MeshDataGenerator.Polygon(transformToWorld, polygon));
    }
 
    public void addCube(float size, Tuple3f cubeOffset)
@@ -132,6 +145,11 @@ public class MeshDataBuilder
    public void addCone(float height, float radius, Tuple3f offset)
    {
       addMesh(MeshDataGenerator.Cone(radius, height, DEFAULT_RES), offset);
+   }
+
+   public void addLine(Tuple3f start, Point3f end, float lineWidth)
+   {
+      addMesh(MeshDataGenerator.Line(start.getX(), start.getY(), start.getZ(), end.getX(), end.getY(), end.getZ(), lineWidth));
    }
 
    public void addLine(float x0, float y0, float z0, float xf, float yf, float zf, float lineWidth)

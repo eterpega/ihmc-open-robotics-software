@@ -1,15 +1,12 @@
 package us.ihmc.robotics.geometry;
 
+import us.ihmc.robotics.MathTools;
+import us.ihmc.robotics.random.RandomTools;
+
+import javax.vecmath.*;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.vecmath.Point2d;
-import javax.vecmath.Point3d;
-import javax.vecmath.Point3f;
-import javax.vecmath.Vector3d;
-import javax.vecmath.Vector3f;
-
-import us.ihmc.robotics.MathTools;
+import java.util.Random;
 
 public class PlanarRegion
 {
@@ -95,9 +92,55 @@ public class PlanarRegion
    }
 
    /**
-    * Verify if the given polygon intersects this region projected onto the XY-plane.
+    * Check if the given lineSegment intersects this region projected onto the XY-plane.
+    * @param lineSegmentInWorld
+    * @return true if the lineSegment intersects this PlanarRegion.
+    */
+   public boolean isLineSegmentIntersecting(LineSegment2d lineSegmentInWorld)
+   {
+      // Instead of projecting all the polygons of this region onto the world XY-plane,
+      // the given lineSegment is projected along the z-world axis to be snapped onto plane.
+      LineSegment2d projectedLineSegment = projectLineSegmentVerticallyToRegion(lineSegmentInWorld);
+
+      // Now, just need to go through each polygon of this region and see there is at least one intersection
+      for (int i = 0; i < getNumberOfConvexPolygons(); i++)
+      {
+         ConvexPolygon2d polygonToCheck = convexPolygons.get(i);
+         Point2d[] intersectionPoints = polygonToCheck.intersectionWith(projectedLineSegment);
+         if ((intersectionPoints != null) && (intersectionPoints.length > 0) && (intersectionPoints[0] != null))
+            return true;
+      }
+      // Did not find any intersection
+      return false;
+   }
+
+   /**
+    * Returns all of the intersections when the convexPolygon is projected vertically onto this PlanarRegion.
+    * @param convexPolygonInWorld Polygon to project vertically.
+    * @param intersectionsInPlaneFrameToPack ArrayList of ConvexPolygon2d to pack with the intersections.
+    */
+   public void getLineSegmentIntersectionsWhenProjectedVertically(LineSegment2d lineSegmentInWorld, ArrayList<Point2d[]> intersectionsInPlaneFrameToPack)
+   {
+      // Instead of projecting all the polygons of this region onto the world XY-plane,
+      // the given lineSegment is projected along the z-world axis to be snapped onto plane.
+      LineSegment2d projectedLineSegment = projectLineSegmentVerticallyToRegion(lineSegmentInWorld);
+
+      // Now, just need to go through each polygon of this region and see there is at least one intersection
+      for (int i = 0; i < getNumberOfConvexPolygons(); i++)
+      {
+         Point2d[] intersectionPoints = convexPolygons.get(i).intersectionWith(projectedLineSegment);
+
+         if ((intersectionPoints != null) && (intersectionPoints.length > 0) && (intersectionPoints[0] != null))
+         {
+            intersectionsInPlaneFrameToPack.add(intersectionPoints);
+         }
+      }
+   }
+
+   /**
+    * Check if the given polygon intersects this region projected onto the XY-plane.
     * @param convexPolygon2d
-    * @return
+    * @return true if the polygon intersects this PlanarRegion.
     */
    public boolean isPolygonIntersecting(ConvexPolygon2d convexPolygon2d)
    {
@@ -146,12 +189,36 @@ public class PlanarRegion
     * @param convexPolygon2d Polygon to snap.
     * @param snappingTransform RigidBodyTransform that snaps the polygon onto this region. Must have same surface normal as this region.
     * @param intersectionsToPack ArrayList of ConvexPolygon2d to pack with the intersections.
+    * @return intersectionArea Total area of intersections
     */
-   public void getPolygonIntersectionsWhenSnapped(ConvexPolygon2d convexPolygon2d, RigidBodyTransform snappingTransform,
-         ArrayList<ConvexPolygon2d> intersectionsToPack)
+   public double getPolygonIntersectionAreaWhenSnapped(ConvexPolygon2d convexPolygon2d, RigidBodyTransform snappingTransform)
+   {
+      return getPolygonIntersectionAreaWhenSnapped(convexPolygon2d, snappingTransform, null);
+   }
+   
+   /**
+    * Returns all of the intersections when the convexPolygon is snapped onto this PlanarRegion with the snappingTransform.
+    * @param convexPolygon2d Polygon to snap.
+    * @param snappingTransform RigidBodyTransform that snaps the polygon onto this region. Must have same surface normal as this region.
+    * @param intersectionsToPack ArrayList of ConvexPolygon2d to pack with the intersections.
+    * @return intersectionArea Total area of intersections
+    */
+   public double getPolygonIntersectionAreaWhenSnapped(ConvexPolygon2d convexPolygon2d, RigidBodyTransform snappingTransform,
+         ConvexPolygon2d intersectionPolygonToPack)
    {
       ConvexPolygon2d projectedPolygon = snapPolygonIntoRegionAndChangeFrameToRegionFrame(convexPolygon2d, snappingTransform);
+      double intersectionArea = 0.0;
+      
+      if (intersectionPolygonToPack != null)
+      {
+         intersectionPolygonToPack.clear();
+      }
 
+      RigidBodyTransform inverseSnappingTransform = new RigidBodyTransform(snappingTransform);
+      inverseSnappingTransform.invert();
+      RigidBodyTransform regionToPolygonTransform = new RigidBodyTransform();
+      regionToPolygonTransform.multiply(inverseSnappingTransform, fromLocalToWorldTransform);
+      
       // Now, just need to go through each polygon of this region and see there is at least one intersection
       for (int i = 0; i < getNumberOfConvexPolygons(); i++)
       {
@@ -159,9 +226,22 @@ public class PlanarRegion
 
          if (intersectingPolygon != null)
          {
-            intersectionsToPack.add(intersectingPolygon);
+            intersectionArea += intersectingPolygon.getArea();
+            
+            if (intersectionPolygonToPack != null)
+            {
+               intersectingPolygon.applyTransformAndProjectToXYPlane(regionToPolygonTransform);
+               intersectionPolygonToPack.addVertices(intersectingPolygon);
+            }
          }
       }
+      
+      if (intersectionPolygonToPack != null)
+      {
+         intersectionPolygonToPack.update();
+      }
+      
+      return intersectionArea;
    }
 
    /**
@@ -220,6 +300,44 @@ public class PlanarRegion
       return projectedPolygon;
    }
 
+   
+   /**
+    * Projects the input LineSegment2d to the plane defined by this PlanarRegion by translating each vertex in world z.
+    * Then puts each vertex in local frame. In doing so, the length of the rotated lineSegment will actually increase on tilted PlanarRegions.
+    * @param lineSegmentInWorld LineSegment2d to project
+    * @return new projected LineSegment2d
+    */
+   private LineSegment2d projectLineSegmentVerticallyToRegion(LineSegment2d lineSegmentInWorld)
+   {
+      Point2d[] snappedEndpoints = new Point2d[2];
+
+      Point2d originalVertex = lineSegmentInWorld.getFirstEndpoint();
+      Point3d snappedVertex3d = new Point3d();
+
+      // Find the vertex 3d that is snapped to the plane following z-world.
+      snappedVertex3d.setX(originalVertex.getX());
+      snappedVertex3d.setY(originalVertex.getY());
+      snappedVertex3d.setZ(getPlaneZGivenXY(originalVertex.getX(), originalVertex.getY()));
+
+      // Transform to local coordinates
+      fromWorldToLocalTransform.transform(snappedVertex3d);
+      snappedEndpoints[0] = new Point2d(snappedVertex3d.getX(), snappedVertex3d.getY());
+
+      originalVertex = lineSegmentInWorld.getSecondEndpoint();
+
+      // Find the vertex 3d that is snapped to the plane following z-world.
+      snappedVertex3d.setX(originalVertex.getX());
+      snappedVertex3d.setY(originalVertex.getY());
+      snappedVertex3d.setZ(getPlaneZGivenXY(originalVertex.getX(), originalVertex.getY()));
+
+      // Transform to local coordinates
+      fromWorldToLocalTransform.transform(snappedVertex3d);
+      snappedEndpoints[1] = new Point2d(snappedVertex3d.getX(), snappedVertex3d.getY());
+
+      LineSegment2d projectedLineSegment = new LineSegment2d(snappedEndpoints);
+      return projectedLineSegment;
+   }
+   
    /**
     * Computes if the point is in the region projected onto the world xy-plane.
     * Note that the z-coordinate of the query is ignored.
@@ -256,7 +374,7 @@ public class PlanarRegion
 
       fromWorldToLocalTransform.transform(localPoint);
 
-      return isPointInside(new Point2d(localPoint.getX(), localPoint.getY()));
+      return isPointInside(localPoint.getX(), localPoint.getY());
    }
 
    /**
@@ -273,7 +391,47 @@ public class PlanarRegion
       if (!MathTools.isInsideBoundsInclusive(localPoint.getZ(), maximumOrthogonalDistance))
          return false;
       else
-         return isPointInside(new Point2d(localPoint.getX(), localPoint.getY()));
+         return isPointInside(localPoint.getX(), localPoint.getY());
+   }
+
+   /**
+    * Checks to see if a given point is on the plane or above it by the specified distance.
+    *
+    * @param point3dInWorld the point to check
+    * @param distanceFromPlane The distance above the plane that the point is allowed to be
+    * @return True if the point is on the plane or no more than distanceFromPlane above it.
+    */
+   public boolean isPointOnOrSlightlyAbove(Point3d point3dInWorld, double distanceFromPlane)
+   {
+      MathTools.checkIfPositive(distanceFromPlane);
+      Point3d localPoint = new Point3d();
+      fromWorldToLocalTransform.transform(point3dInWorld, localPoint);
+
+      boolean onOrAbove = localPoint.getZ() >= 0.0;
+      boolean withinDistance = localPoint.getZ() < distanceFromPlane;
+      boolean isInsideXY = isPointInside(localPoint.getX(), localPoint.getY());
+
+      return onOrAbove && withinDistance && isInsideXY;
+   }
+
+   /**
+    * Checks to see if a given point is on the plane or below it by the specified distance.
+    *
+    * @param point3dInWorld the point to check
+    * @param distanceFromPlane The distance below the plane that the point is allowed to be
+    * @return True if the point is on the plane or no more than distanceFromPlane below it.
+    */
+   public boolean isPointOnOrSlightlyBelow(Point3d point3dInWorld, double distanceFromPlane)
+   {
+      MathTools.checkIfPositive(distanceFromPlane);
+      Point3d localPoint = new Point3d();
+      fromWorldToLocalTransform.transform(point3dInWorld, localPoint);
+
+      boolean onOrBelow = localPoint.getZ() <= 0.0;
+      boolean withinDistance = localPoint.getZ() > (distanceFromPlane * -1.0);
+      boolean isInsideXY = isPointInside(localPoint.getX(), localPoint.getY());
+
+      return onOrBelow && withinDistance && isInsideXY;
    }
 
    /**
@@ -283,9 +441,21 @@ public class PlanarRegion
     */
    public boolean isPointInside(Point2d point2dInLocal)
    {
+      return isPointInside(point2dInLocal.x, point2dInLocal.y);
+   }
+
+   /**
+    * Given a 2D point expressed in the plane local frame, computes whether the point is in this region.
+    *
+    * @param xCoordinateInLocal x Coordinate of the 2D point in planar region local frame
+    * @param yCoordinateInLocal y Coordinate of the 2D point in planar region local frame
+    * @return true if the point is inside this region, false otherwise.
+    */
+   public boolean isPointInside(double xCoordinateInLocal, double yCoordinateInLocal)
+   {
       for (int i = 0; i < convexPolygons.size(); i++)
       {
-         if (convexPolygons.get(i).isPointInside(point2dInLocal))
+         if (convexPolygons.get(i).isPointInside(xCoordinateInLocal, yCoordinateInLocal))
             return true;
       }
       return false;
@@ -581,4 +751,26 @@ public class PlanarRegion
    {
       return convexHull;
    }
+
+   public static PlanarRegion generatePlanarRegionFromRandomPolygonsWithRandomTransform(Random random, int numberOfRandomlyGeneratedPolygons,
+         double maxAbsoluteXYForPolygons, int numberOfPossiblePointsForPolygons)
+   {
+      List<ConvexPolygon2d> regionConvexPolygons = new ArrayList<>();
+
+      for (int i = 0; i < numberOfRandomlyGeneratedPolygons; i++)
+      {
+         ConvexPolygon2d randomPolygon = ConvexPolygon2d.generateRandomConvexPolygon2d(random, maxAbsoluteXYForPolygons, numberOfPossiblePointsForPolygons);
+         regionConvexPolygons.add(randomPolygon);
+      }
+
+      for (ConvexPolygon2d convexPolygon : regionConvexPolygons)
+         convexPolygon.update();
+
+      Vector3d randomTranslation = RandomTools.generateRandomVector(random, 10.0);
+      Quat4d randomOrientation = RandomTools.generateRandomQuaternion(random, Math.toRadians(45.0));
+      RigidBodyTransform regionTransform = new RigidBodyTransform(randomOrientation, randomTranslation);
+
+      return new PlanarRegion(regionTransform, regionConvexPolygons);
+   }
+
 }
