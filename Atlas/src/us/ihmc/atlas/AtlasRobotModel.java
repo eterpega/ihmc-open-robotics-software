@@ -87,6 +87,11 @@ import us.ihmc.wholeBodyController.parameters.DefaultArmConfigurations;
 
 public class AtlasRobotModel implements DRCRobotModel, SDFDescriptionMutator
 {
+   public final static boolean SCALE_ATLAS = false;
+   private final static double DESIRED_ATLAS_HEIGHT = 0.66;
+   private final static double DESIRED_ATLAS_WEIGHT = 15;
+   
+   
    private final double HARDSTOP_RESTRICTION_ANGLE = Math.toRadians(5.0);
 
    private final AtlasRobotVersion selectedVersion;
@@ -104,6 +109,7 @@ public class AtlasRobotModel implements DRCRobotModel, SDFDescriptionMutator
 
    private final JaxbSDFLoader loader;
 
+   private final AtlasPhysicalProperties atlasPhysicalProperties;
    private final AtlasJointMap jointMap;
    private final AtlasSensorInformation sensorInformation;
    private final AtlasArmControllerParameters armControllerParameters;
@@ -111,8 +117,6 @@ public class AtlasRobotModel implements DRCRobotModel, SDFDescriptionMutator
    private final AtlasICPOptimizationParameters icpOptimizationParameters;
    private final AtlasWalkingControllerParameters walkingControllerParameters;
    private final AtlasStateEstimatorParameters stateEstimatorParameters;
-   private final AtlasRobotMultiContactControllerParameters multiContactControllerParameters;
-   private final AtlasDrivingControllerParameters drivingControllerParameters;
    private final AtlasDefaultArmConfigurations defaultArmConfigurations;
    private final AtlasFootstepSnappingParameters snappingParameters;
 
@@ -122,8 +126,17 @@ public class AtlasRobotModel implements DRCRobotModel, SDFDescriptionMutator
 
    public AtlasRobotModel(AtlasRobotVersion atlasVersion, DRCRobotModel.RobotTarget target, boolean headless)
    {
+      if(SCALE_ATLAS)
+      {
+         atlasPhysicalProperties  = new AtlasPhysicalProperties(DESIRED_ATLAS_HEIGHT, DESIRED_ATLAS_WEIGHT);
+      }
+      else
+      {
+         atlasPhysicalProperties = new AtlasPhysicalProperties();
+      }
+      
       selectedVersion = atlasVersion;
-      jointMap = new AtlasJointMap(selectedVersion);
+      jointMap = new AtlasJointMap(selectedVersion, atlasPhysicalProperties);
       this.target = target;
 
       this.loader = DRCRobotSDFLoader.loadDRCRobot(selectedVersion.getResourceDirectories(), selectedVersion.getSdfFileAsStream(), this);
@@ -134,14 +147,12 @@ public class AtlasRobotModel implements DRCRobotModel, SDFDescriptionMutator
       }
 
       boolean runningOnRealRobot = target == DRCRobotModel.RobotTarget.REAL_ROBOT;
-      capturePointPlannerParameters = new AtlasCapturePointPlannerParameters();
+      capturePointPlannerParameters = new AtlasCapturePointPlannerParameters(atlasPhysicalProperties);
       icpOptimizationParameters = new AtlasICPOptimizationParameters(runningOnRealRobot);
       sensorInformation = new AtlasSensorInformation(target);
       armControllerParameters = new AtlasArmControllerParameters(runningOnRealRobot, jointMap);
       walkingControllerParameters = new AtlasWalkingControllerParameters(target, jointMap);
       stateEstimatorParameters = new AtlasStateEstimatorParameters(jointMap, sensorInformation, runningOnRealRobot, getEstimatorDT());
-      multiContactControllerParameters = new AtlasRobotMultiContactControllerParameters(jointMap);
-      drivingControllerParameters = new AtlasDrivingControllerParameters(jointMap);
       defaultArmConfigurations = new AtlasDefaultArmConfigurations();
       snappingParameters = new AtlasFootstepSnappingParameters();
 
@@ -187,7 +198,7 @@ public class AtlasRobotModel implements DRCRobotModel, SDFDescriptionMutator
    @Override
    public AtlasPhysicalProperties getPhysicalProperties()
    {
-      return new AtlasPhysicalProperties();
+      return atlasPhysicalProperties;
    }
 
    @Override
@@ -226,18 +237,6 @@ public class AtlasRobotModel implements DRCRobotModel, SDFDescriptionMutator
    }
 
    @Override
-   public WalkingControllerParameters getMultiContactControllerParameters()
-   {
-      return multiContactControllerParameters;
-   }
-
-   @Override
-   public ScsCollisionConfigure getPhysicsConfigure(FloatingRootJointRobot sdfRobot)
-   {
-      return new AtlasPhysicsEngineConfiguration(getJointMap(), sdfRobot);
-   }
-
-   @Override
    public AtlasContactPointParameters getContactPointParameters()
    {
       return jointMap.getContactPointParameters();
@@ -253,7 +252,6 @@ public class AtlasRobotModel implements DRCRobotModel, SDFDescriptionMutator
       jointMap.getContactPointParameters().addMoreFootContactPointsSimOnly(nContactPointsX, nContactPointsY, edgePointsOnly);
    }
 
-   @Override
    public void setJointDamping(FloatingRootJointRobot simulatedRobot)
    {
       AtlasDampingParameters.setDampingParameters(simulatedRobot, getDRCHandType(), getJointMap());
@@ -279,13 +277,7 @@ public class AtlasRobotModel implements DRCRobotModel, SDFDescriptionMutator
 
       return null;
    }
-
-   @Override
-   public WalkingControllerParameters getDrivingControllerParameters()
-   {
-      return drivingControllerParameters;
-   }
-
+   
    @Override
    public DRCRobotSensorInformation getSensorInformation()
    {
@@ -331,14 +323,15 @@ public class AtlasRobotModel implements DRCRobotModel, SDFDescriptionMutator
    @Override
    public HumanoidFloatingRootJointRobot createHumanoidFloatingRootJointRobot(boolean createCollisionMeshes)
    {
-      boolean useCollisionMeshes = false;
-      boolean enableTorqueVelocityLimits = false;
-      AtlasJointMap jointMap = getJointMap();
-      boolean enableJointDamping = getEnableJointDamping();
+//      boolean useCollisionMeshes = false;
+//      boolean enableTorqueVelocityLimits = false;
+//      AtlasJointMap jointMap = getJointMap();
+//      boolean enableJointDamping = getEnableJointDamping();
+//
+//      RobotDescription robotDescription = loader.createRobotDescription(jointMap, useCollisionMeshes, enableTorqueVelocityLimits, enableJointDamping);
 
-      RobotDescription robotDescription = loader.createRobotDescription(jointMap, useCollisionMeshes, enableTorqueVelocityLimits, enableJointDamping);
-
-      return new HumanoidFloatingRootJointRobot(robotDescription, jointMap);
+      HumanoidFloatingRootJointRobot humanoidFloatingRootJointRobot = new HumanoidFloatingRootJointRobot(robotDescription, jointMap);
+      return humanoidFloatingRootJointRobot;
    }
 
    @Override

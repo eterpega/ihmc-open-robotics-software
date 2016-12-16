@@ -80,5 +80,8 @@
 **/Network Trash Folder
 **/Temporary Items
 **/.apdisk
-
-!**/gradle-wrapper.jar
+**/gradle-wrapper.jar
+**/gradle-wrapper.properties
+**/gradlew
+**/gradlew.bat
+**/rebel.xml

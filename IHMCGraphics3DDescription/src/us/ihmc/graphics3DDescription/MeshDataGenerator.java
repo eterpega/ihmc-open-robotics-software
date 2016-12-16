@@ -25,6 +25,17 @@ public class MeshDataGenerator
    private static final float TwoPi = 2.0f * (float) Math.PI;
    private static final float HalfPi = (float) Math.PI / 2.0f;
 
+   private static final float SQRT3 = (float) Math.sqrt(3.0);
+   private static final float SQRT6 = (float) Math.sqrt(6.0);
+   private static final float HALF_SQRT3 = SQRT3 / 2.0f;
+   private static final float THIRD_SQRT3 = SQRT3 / 3.0f;
+   private static final float FOURTH_SQRT3 = SQRT3 / 4.0f;
+   private static final float SIXTH_SQRT3 = SQRT3 / 6.0f;
+   private static final float THIRD_SQRT6 = SQRT6 / 3.0f;
+   private static final float FOURTH_SQRT6 = SQRT6 / 4.0f;
+
+   private static final float ONE_THIRD = 1.0f / 3.0f;
+
    private MeshDataGenerator()
    {
       // Prevent an object being generated.
@@ -181,6 +192,26 @@ public class MeshDataGenerator
          Point2d vertex = polygonPoints[i];
          points[i] = new Point3f((float) vertex.getX(), (float) vertex.getY(), 0.0f);
       }
+      return Polygon(points);
+   }
+
+   /**
+    * Create a triangle mesh for the given polygon.
+    * @param polygonTransformToWorld transform to use to obtain polygon 3D coordinates in world.
+    * @param convexPolygon the polygon to create a mesh from.
+    * @return the created triangle mesh.
+    */
+   public static MeshDataHolder Polygon(RigidBodyTransform polygonTransformToWorld, List<Point2d> convexPolygon)
+   {
+      Point3f[] points = new Point3f[convexPolygon.size()];
+      int reverseIndex = convexPolygon.size();
+      for (int i = 0; i < convexPolygon.size(); i++)
+      {
+         Point2d vertex = convexPolygon.get(--reverseIndex);
+         points[i] = new Point3f((float) vertex.getX(), (float) vertex.getY(), 0.0f);
+         polygonTransformToWorld.transform(points[i]);
+      }
+
       return Polygon(points);
    }
 
@@ -1566,6 +1597,11 @@ public class MeshDataGenerator
       return Line(point0.getX(), point0.getY(), point0.getZ(), point1.getX(), point1.getY(), point1.getZ(), width);
    }
 
+   public static MeshDataHolder Line(Point3f point0, Point3f point1, float width)
+   {
+      return Line(point0.getX(), point0.getY(), point0.getZ(), point1.getX(), point1.getY(), point1.getZ(), width);
+   }
+
    public static MeshDataHolder Line(double x0, double y0, double z0, double x1, double y1, double z1, double width)
    {
       return Line((float) x0, (float) y0, (float) z0, (float) x1, (float) y1, (float) z1, (float) width);
@@ -1811,6 +1847,9 @@ public class MeshDataGenerator
       return Tetrahedron((float) edgeLength);
    }
 
+   private static final float TETRAHEDRON_FACE_EDGE_FACE_ANGLE = (float) Math.acos(ONE_THIRD);
+   private static final float TETRAHEDRON_SINE_FACE_EDGE_FACE_ANGLE = (float) Math.sin(TETRAHEDRON_FACE_EDGE_FACE_ANGLE);
+
    public static MeshDataHolder Tetrahedron(float edgeLength)
    {
       /*
@@ -1822,24 +1861,26 @@ public class MeshDataGenerator
        * 2 ------ 1
        *
        */
-      float height = (float) Math.sqrt(6.0f) / 3.0f * edgeLength;
-      float sqrt3 = (float) Math.sqrt(3.0f);
+      float height = THIRD_SQRT6 * edgeLength;
+      float topHeight = FOURTH_SQRT6 * edgeLength;
+      float baseHeight = topHeight - height;
 
-      float cosFaceEdgeFace = 1.0f / 3.0f;
-      float faceEdgeFaceAngle = (float) Math.acos(cosFaceEdgeFace);
-      float sinFaceEdgeFace = (float) Math.sin(faceEdgeFaceAngle);
+      float halfEdgeLength = 0.5f * edgeLength;
+
+      float cosFaceEdgeFace = ONE_THIRD;
+      float sinFaceEdgeFace = TETRAHEDRON_SINE_FACE_EDGE_FACE_ANGLE;
 
       float cosEdgeVertexEdge = 0.5f;
-      float sinEdgeVertexEdge = sqrt3 / 2.0f;
+      float sinEdgeVertexEdge = HALF_SQRT3;
 
-      Point3f topVertex = new Point3f(0.0f, 0.0f, height);
-      Point3f baseVertex0 = new Point3f(  edgeLength * sqrt3 / 3.0f, 0.0f, 0.0f);
-      Point3f baseVertex1 = new Point3f(- edgeLength * sqrt3 / 6.0f,  edgeLength / 2.0f, 0.0f);
-      Point3f baseVertex2 = new Point3f(- edgeLength * sqrt3 / 6.0f, - edgeLength / 2.0f, 0.0f);
+      Point3f topVertex = new Point3f(0.0f, 0.0f, topHeight);
+      Point3f baseVertex0 = new Point3f(  edgeLength * THIRD_SQRT3, 0.0f, baseHeight);
+      Point3f baseVertex1 = new Point3f(- edgeLength * SIXTH_SQRT3,  halfEdgeLength, baseHeight);
+      Point3f baseVertex2 = new Point3f(- edgeLength * SIXTH_SQRT3, - halfEdgeLength, baseHeight);
 
       TexCoord2f baseTex0 = new TexCoord2f(0.5f, 1.0f);
-      TexCoord2f baseTex1 = new TexCoord2f(0.75f, 1.0f - sqrt3 / 4.0f);
-      TexCoord2f baseTex2 = new TexCoord2f(0.25f, 1.0f - sqrt3 / 4.0f);
+      TexCoord2f baseTex1 = new TexCoord2f(0.75f, 1.0f - FOURTH_SQRT3);
+      TexCoord2f baseTex2 = new TexCoord2f(0.25f, 1.0f - FOURTH_SQRT3);
 
       Vector3f frontNormal = new Vector3f(- sinFaceEdgeFace, 0.0f, cosFaceEdgeFace);
       Vector3f rightNormal = new Vector3f(sinFaceEdgeFace * sinEdgeVertexEdge, sinFaceEdgeFace * cosEdgeVertexEdge, cosFaceEdgeFace);
@@ -1859,7 +1900,7 @@ public class MeshDataGenerator
       texCoords[1] = new TexCoord2f(baseTex1);
       normals[1] = new Vector3f(frontNormal);
       vertices[2] = new Point3f(topVertex);
-      texCoords[2] = new TexCoord2f(0.50f, 1.0f - sqrt3 / 2.0f);
+      texCoords[2] = new TexCoord2f(0.50f, 1.0f - HALF_SQRT3);
       normals[2] = new Vector3f(frontNormal);
 
       // Right face

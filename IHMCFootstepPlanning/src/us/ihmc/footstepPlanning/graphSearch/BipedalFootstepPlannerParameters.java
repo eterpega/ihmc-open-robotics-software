@@ -18,6 +18,7 @@ public class BipedalFootstepPlannerParameters
    private final DoubleYoVariable maximumStepYaw = new DoubleYoVariable("maximumStepYaw", registry);
    private final DoubleYoVariable maximumStepWidth = new DoubleYoVariable("maximumStepWidth", registry);
    private final DoubleYoVariable minimumStepWidth = new DoubleYoVariable("minimumStepWidth", registry);
+   private final DoubleYoVariable minimumStepLength = new DoubleYoVariable("minimumStepLength", registry);
 
    private final DoubleYoVariable maximumStepXWhenForwardAndDown = new DoubleYoVariable("maximumStepXWhenForwardAndDown", registry);
    private final DoubleYoVariable maximumStepZWhenForwardAndDown = new DoubleYoVariable("maximumStepZWhenForwardAndDown", registry);
@@ -29,10 +30,13 @@ public class BipedalFootstepPlannerParameters
    private final DoubleYoVariable maximumXYWiggleDistance = new DoubleYoVariable("maximumXYWiggleDistance", registry);
    private final DoubleYoVariable maximumYawWiggle = new DoubleYoVariable("maximumYawWiggle", registry);
 
+   private final DoubleYoVariable cliffHeightToShiftAwayFrom = new DoubleYoVariable("cliffHeightToShiftAwayFrom", registry);
+   private final DoubleYoVariable minimumDistanceFromCliffBottoms = new DoubleYoVariable("minimumDistanceFromCliffBottoms", registry);
+
    private double minimumSurfaceNormalZ = 0.7;
    private double maximumZPenetrationOnVRegions = 0.008;
 
-   BipedalFootstepPlannerParameters(YoVariableRegistry parentRegistry)
+   public BipedalFootstepPlannerParameters(YoVariableRegistry parentRegistry)
    {
       parentRegistry.addChild(registry);
 
@@ -81,6 +85,11 @@ public class BipedalFootstepPlannerParameters
    {
       this.maximumStepWidth.set(maximumStepWidth);
    }
+   
+   public void setMinimumStepLength(double minimumStepLength)
+   {
+      this.minimumStepLength.set(minimumStepLength);
+   }
 
    public void setMinimumFootholdPercent(double minimumFootholdPercent)
    {
@@ -106,6 +115,11 @@ public class BipedalFootstepPlannerParameters
    public void setMaximumYawWiggle(double maximumYawWiggle)
    {
       this.maximumYawWiggle.set(maximumYawWiggle);
+   }
+
+   public void setWiggleIntoConvexHullOfPlanarRegions(boolean wiggleIntoConvexHullOfPlanarRegions)
+   {
+      this.wiggleIntoConvexHullOfPlanarRegions.set(wiggleIntoConvexHullOfPlanarRegions);      
    }
 
    public double getIdealFootstepWidth()
@@ -136,6 +150,11 @@ public class BipedalFootstepPlannerParameters
    public double getMinimumStepWidth()
    {
       return minimumStepWidth.getDoubleValue();
+   }
+
+   public double getMinimumStepLength()
+   {
+      return minimumStepLength.getDoubleValue();
    }
 
    public double getMaximumStepXWhenForwardAndDown()
@@ -192,4 +211,26 @@ public class BipedalFootstepPlannerParameters
    {
       return maximumStepWidth.getDoubleValue();
    }
+
+   public double getCliffHeightToShiftAwayFrom()
+   {
+      return cliffHeightToShiftAwayFrom.getDoubleValue();
+   }
+
+   public void setCliffHeightToShiftAwayFrom(double cliffHeightToShiftAwayFrom)
+   {
+      this.cliffHeightToShiftAwayFrom.set(cliffHeightToShiftAwayFrom);
+   }
+
+   public double getMinimumDistanceFromCliffBottoms()
+   {
+      return minimumDistanceFromCliffBottoms.getDoubleValue();
+   }
+
+   public void setMinimumDistanceFromCliffBottoms(double minimumDistanceFromCliffBottoms)
+   {
+      this.minimumDistanceFromCliffBottoms.set(minimumDistanceFromCliffBottoms);
+   }
+
+
 }

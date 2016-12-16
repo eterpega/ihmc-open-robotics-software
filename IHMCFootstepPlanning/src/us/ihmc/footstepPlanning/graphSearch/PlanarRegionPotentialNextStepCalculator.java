@@ -14,8 +14,11 @@ import us.ihmc.footstepPlanning.FootstepPlannerGoalType;
 import us.ihmc.footstepPlanning.polygonSnapping.PlanarRegionsListPolygonSnapper;
 import us.ihmc.footstepPlanning.polygonWiggling.PolygonWiggler;
 import us.ihmc.footstepPlanning.polygonWiggling.WiggleParameters;
+import us.ihmc.footstepPlanning.scoring.BipedalStepAdjustmentCostCalculator;
+import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.robotics.MathTools;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
+import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
 import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
 import us.ihmc.robotics.geometry.AngleTools;
 import us.ihmc.robotics.geometry.ConvexPolygon2d;
@@ -34,6 +37,8 @@ public class PlanarRegionPotentialNextStepCalculator
    private final DoubleYoVariable footArea = new DoubleYoVariable("footArea", registry);
    private final DoubleYoVariable totalArea = new DoubleYoVariable("totalArea", registry);
    private final DoubleYoVariable stepReach = new DoubleYoVariable("stepReach", registry);
+   
+   private final BooleanYoVariable enableStepAdjustmentCosts;
 
    private final BipedalFootstepPlannerParameters parameters;
 
@@ -52,13 +57,23 @@ public class PlanarRegionPotentialNextStepCalculator
 
    private BipedalFootstepPlannerListener listener;
 
-   private final BipedalStepScorer bipedalStepScorer;
+   private final BipedalStepAdjustmentCostCalculator stepAdjustmentCostCalculator;
+   private final IncreasingCostEachStepProvider increasingCostEachStepProvider;
+   private final PlanarRegionBaseOfCliffAvoider baseOfCliffAvoider;
 
-   PlanarRegionPotentialNextStepCalculator(BipedalFootstepPlannerParameters parameters, BipedalStepScorer bipedalStepScorer, YoVariableRegistry parentRegistry)
+   PlanarRegionPotentialNextStepCalculator(BipedalFootstepPlannerParameters parameters, YoVariableRegistry parentRegistry, YoGraphicsListRegistry yoGraphicsListRegistry)
    {
       this.parameters = parameters;
+      
+      baseOfCliffAvoider = new PlanarRegionBaseOfCliffAvoider(registry, yoGraphicsListRegistry); 
+
+      enableStepAdjustmentCosts = new BooleanYoVariable("enablePenalizationHeatmapScoring", registry);
+      enableStepAdjustmentCosts.set(true);
+
+      stepAdjustmentCostCalculator = new BipedalStepAdjustmentCostCalculator(parentRegistry, null);
+      increasingCostEachStepProvider = new IncreasingCostEachStepProvider();
+
       parentRegistry.addChild(registry);
-      this.bipedalStepScorer = bipedalStepScorer;
    }
 
    public void setFeetPolygons(SideDependentList<ConvexPolygon2d> footPolygonsInSoleFrame)
@@ -232,14 +247,14 @@ public class PlanarRegionPotentialNextStepCalculator
       return null;
    }
 
-   public ArrayList<BipedalFootstepPlannerNode> computeChildrenNodes(BipedalFootstepPlannerNode nodeToExpand)
+   public ArrayList<BipedalFootstepPlannerNode> computeChildrenNodes(BipedalFootstepPlannerNode nodeToExpand, double smallestCostToGoal)
    {
       ArrayList<BipedalFootstepPlannerNode> nodesToAdd = new ArrayList<>();
 
       BipedalFootstepPlannerNode goalNode = computeGoalNodeIfGoalIsReachable(nodeToExpand);
       if (goalNode != null)
       {
-         boolean acceptable = checkIfNodeAcceptableScoreAndAddToList(goalNode, nodesToAdd, new Vector3d(), 0.0);
+         boolean acceptable = checkIfNodeAcceptableCostAndAddToList(goalNode, nodesToAdd, new Vector3d(), 0.0, smallestCostToGoal);
          if (acceptable)
             return nodesToAdd;
       }
@@ -255,10 +270,6 @@ public class PlanarRegionPotentialNextStepCalculator
       currentToGoalVector.sub(goalPosition, currentPosition);
 
       double distance = currentToGoalVector.length();
-
-      double idealFootstepLength = parameters.getIdealFootstepLength();
-      double idealFootstepWidth = parameters.getIdealFootstepWidth();
-
       Vector3d idealStepVector = computeIdealStepVector(parameters, soleZUpTransform, nextSide, currentToGoalVector);
 
       Point3d idealStepLocationInWorld = new Point3d(idealStepVector);
@@ -288,7 +299,7 @@ public class PlanarRegionPotentialNextStepCalculator
       BipedalFootstepPlannerNode childNode = createAndAddNextNodeGivenStep(soleZUpTransform, nodeToExpand, idealStepVector, idealStepYaw);
       seeIfNodeIsAtGoal(childNode);
 
-      checkIfNodeAcceptableScoreAndAddToList(childNode, nodesToAdd, idealStepVector, idealStepYaw);
+      checkIfNodeAcceptableCostAndAddToList(childNode, nodesToAdd, idealStepVector, idealStepYaw, smallestCostToGoal);
 
       for (double xStep = idealStepVector.getX() / 2.0; xStep < 1.6 * idealStepVector.getX(); xStep = xStep + idealStepVector.getX() / 4.0)
       {
@@ -302,28 +313,29 @@ public class PlanarRegionPotentialNextStepCalculator
 
                seeIfNodeIsAtGoal(childNode);
 
-               checkIfNodeAcceptableScoreAndAddToList(childNode, nodesToAdd, idealStepVector, idealStepYaw);
+               checkIfNodeAcceptableCostAndAddToList(childNode, nodesToAdd, idealStepVector, idealStepYaw, smallestCostToGoal);
             }
          }
       }
 
       // Add a side step.
-      double xStep = 0.0;
+      double xStep = 1.001 * Math.max(0.0, parameters.getMinimumStepLength());
       double yStep = parameters.getIdealFootstepWidth();
       Vector3d nextStepVector = new Vector3d(xStep, currentSide.negateIfLeftSide(yStep), 0.0);
       double nextStepYaw = idealStepYaw;
       childNode = createAndAddNextNodeGivenStep(soleZUpTransform, nodeToExpand, nextStepVector, nextStepYaw);
 
       seeIfNodeIsAtGoal(childNode);
-      checkIfNodeAcceptableScoreAndAddToList(childNode, nodesToAdd, idealStepVector, idealStepYaw);
+      checkIfNodeAcceptableCostAndAddToList(childNode, nodesToAdd, idealStepVector, idealStepYaw, smallestCostToGoal);
 
-      NodeScoreComparator nodeScoreComparator = new NodeScoreComparator();
+      NodeCostComparator nodeCostComparator = new NodeCostComparator();
 
-      Collections.sort(nodesToAdd, nodeScoreComparator);
+      Collections.sort(nodesToAdd, nodeCostComparator);
       return nodesToAdd;
    }
 
-   private static Vector3d computeIdealStepVector(BipedalFootstepPlannerParameters parameters, RigidBodyTransform soleZUpTransform, RobotSide nextSide, Vector3d currentToGoalInWorld)
+   private static Vector3d computeIdealStepVector(BipedalFootstepPlannerParameters parameters, RigidBodyTransform soleZUpTransform, RobotSide nextSide,
+                                                  Vector3d currentToGoalInWorld)
    {
       double distanceToGoal = currentToGoalInWorld.length();
 
@@ -375,43 +387,60 @@ public class PlanarRegionPotentialNextStepCalculator
    private final RigidBodyTransform rightSoleTransform = new RigidBodyTransform();
    private final SideDependentList<RigidBodyTransform> soleTransforms = new SideDependentList<>(leftSoleTransform, rightSoleTransform);
 
-   double spoofScore = 0.0;
-
-   private boolean checkIfNodeAcceptableScoreAndAddToList(BipedalFootstepPlannerNode node, ArrayList<BipedalFootstepPlannerNode> nodesToAdd, Vector3d idealStepVector, double idealStepYaw)
+   private boolean checkIfNodeAcceptableCostAndAddToList(BipedalFootstepPlannerNode node, ArrayList<BipedalFootstepPlannerNode> nodesToAdd,
+                                                          Vector3d idealStepVector, double idealStepYaw, double smallestCostToGoal)
    {
-      boolean acceptable = checkNodeAcceptableToExpand(node);
+      notifyListenerNodeUnderConsideration(node);
 
-      node.setSingleStepScore(spoofScore);
-      spoofScore = spoofScore - 1.0;
-
-      BipedalFootstepPlannerNode parentNode = node.getParentNode();
-
-      if (parentNode == null)
-      {
-         node.setSingleStepScore(0.0);
-      }
-      else
-      {
-         node.getSoleTransform(soleTransforms.get(node.getRobotSide()));
-         parentNode.getSoleTransform(soleTransforms.get(parentNode.getRobotSide()));
-
-         RigidBodyTransform nodeTransform = new RigidBodyTransform();
-         node.getSoleTransform(nodeTransform);
-         FramePose candidateFootPose = new FramePose(ReferenceFrame.getWorldFrame(), nodeTransform);
-         FramePose stanceFootPose = new FramePose(ReferenceFrame.getWorldFrame(), soleTransforms.get(node.getRobotSide().getOppositeSide()));
-         FramePose swingStartFootPose = new FramePose(ReferenceFrame.getWorldFrame(), soleTransforms.get(node.getRobotSide()));
-         FramePose idealFootstepPose = new FramePose(ReferenceFrame.getWorldFrame());
-         idealFootstepPose.set(stanceFootPose);
-         idealFootstepPose.translate(idealStepVector);
-         idealFootstepPose.setYawPitchRoll(idealStepYaw, 0.0, 0.0);
-         Point3d swingFootGoal = goalPositions.get(node.getRobotSide());
-         double score = bipedalStepScorer.scoreFootstep(stanceFootPose, swingStartFootPose, idealFootstepPose, candidateFootPose, swingFootGoal);
-         node.setSingleStepScore(score);
-      }
+      boolean acceptable = snapNodeAndCheckIfAcceptableToExpand(node);
 
       if (acceptable)
       {
-         nodesToAdd.add(node);
+         BipedalFootstepPlannerNode parentNode = node.getParentNode();
+
+         if (parentNode == null)
+         {
+            node.setSingleStepCost(0.0);
+         }
+         else
+         {
+            node.getSoleTransform(soleTransforms.get(node.getRobotSide()));
+            parentNode.getSoleTransform(soleTransforms.get(parentNode.getRobotSide()));
+
+            RigidBodyTransform nodeTransform = new RigidBodyTransform();
+            node.getSoleTransform(nodeTransform);
+            FramePose candidateFootPose = new FramePose(ReferenceFrame.getWorldFrame(), nodeTransform);
+
+            RigidBodyTransform stanceFootTransform = soleTransforms.get(node.getRobotSide().getOppositeSide());
+            RigidBodyTransform swingStartFootTransform = soleTransforms.get(node.getRobotSide());
+
+            FramePose stanceFootPose = new FramePose(ReferenceFrame.getWorldFrame(), stanceFootTransform);
+            FramePose swingStartFootPose = new FramePose(ReferenceFrame.getWorldFrame(), swingStartFootTransform);
+
+            RigidBodyTransform idealStepTransform = getTransformFromStepToWorld(stanceFootTransform, idealStepVector, idealStepYaw);
+            FramePose idealFootstepPose = new FramePose(ReferenceFrame.getWorldFrame(), idealStepTransform);
+
+            double cost;
+            if (enableStepAdjustmentCosts.getBooleanValue())
+            {
+               cost = stepAdjustmentCostCalculator.calculateCost(stanceFootPose, swingStartFootPose, idealFootstepPose, candidateFootPose, node.getPercentageOfFoothold());
+            }
+            else
+            {
+               cost = increasingCostEachStepProvider.calculateCost(stanceFootPose, swingStartFootPose, idealFootstepPose, candidateFootPose, node.getPercentageOfFoothold());
+            }
+
+            node.setSingleStepCost(cost);
+         }
+
+         if (node.getCostToHereFromStart() < smallestCostToGoal)
+            nodesToAdd.add(node);
+         else
+            return false;
+      }
+      else
+      {
+         node.setSingleStepCost(Double.POSITIVE_INFINITY);
       }
 
       return acceptable;
@@ -419,6 +448,18 @@ public class PlanarRegionPotentialNextStepCalculator
 
    private BipedalFootstepPlannerNode createAndAddNextNodeGivenStep(RigidBodyTransform soleZUpTransform, BipedalFootstepPlannerNode nodeToExpand,
                                                                     Vector3d stepVectorInSoleFrame, double stepYaw)
+   {
+      RigidBodyTransform nextTransform = getTransformFromStepToWorld(soleZUpTransform, stepVectorInSoleFrame, stepYaw);
+
+      RobotSide nextSide = nodeToExpand.getRobotSide().getOppositeSide();
+
+      BipedalFootstepPlannerNode childNode = new BipedalFootstepPlannerNode(nextSide, nextTransform);
+      childNode.setParentNode(nodeToExpand);
+      nodeToExpand.addChild(childNode);
+      return childNode;
+   }
+
+   private RigidBodyTransform getTransformFromStepToWorld(RigidBodyTransform soleZUpTransform, Vector3d stepVectorInSoleFrame, double stepYaw)
    {
       Point3d stepLocationInWorld = new Point3d(stepVectorInSoleFrame);
       soleZUpTransform.transform(stepLocationInWorld);
@@ -431,13 +472,7 @@ public class PlanarRegionPotentialNextStepCalculator
       RigidBodyTransform nextTransform = new RigidBodyTransform();
       nextTransform.setRotationEulerAndZeroTranslation(stepRotationEulerInWorld);
       nextTransform.setTranslation(stepLocationInWorld.getX(), stepLocationInWorld.getY(), stepLocationInWorld.getZ());
-
-      RobotSide nextSide = nodeToExpand.getRobotSide().getOppositeSide();
-
-      BipedalFootstepPlannerNode childNode = new BipedalFootstepPlannerNode(nextSide, nextTransform);
-      childNode.setParentNode(nodeToExpand);
-      nodeToExpand.addChild(childNode);
-      return childNode;
+      return nextTransform;
    }
 
    private void seeIfNodeIsAtGoal(BipedalFootstepPlannerNode childNode)
@@ -485,9 +520,9 @@ public class PlanarRegionPotentialNextStepCalculator
       transform.setM22(zAxis.getZ());
    }
 
-   private boolean checkNodeAcceptableToExpand(BipedalFootstepPlannerNode nodeToExpand)
+   protected boolean snapNodeAndCheckIfAcceptableToExpand(BipedalFootstepPlannerNode nodeToExpand)
    {
-      notifyListenerNodeSelectedForExpansion(nodeToExpand);
+      nodeToExpand.removePitchAndRoll();
 
       if (nodeToExpand != startNode) // StartNode is from an actual footstep, so we don't need to snap it...
       {
@@ -495,7 +530,6 @@ public class PlanarRegionPotentialNextStepCalculator
          boolean snapSucceded = snapToPlanarRegionAndCheckIfGoodSnap(nodeToExpand);
          if (!snapSucceded)
             return false;
-         ;
 
          boolean goodFootstep = checkIfGoodFootstep(nodeToExpand);
          if (!goodFootstep)
@@ -507,6 +541,8 @@ public class PlanarRegionPotentialNextStepCalculator
                return false;
          }
       }
+
+      notifyListenerNodeUnderConsiderationWasSuccessful(nodeToExpand);
 
       return true;
    }
@@ -526,7 +562,23 @@ public class PlanarRegionPotentialNextStepCalculator
          if (((robotSide == RobotSide.LEFT) && (stepFromParentInSoleFrame.getY() < minimumStepWidth))
                || ((robotSide == RobotSide.RIGHT) && (stepFromParentInSoleFrame.getY() > -minimumStepWidth)))
          {
-            notifyListenerNodeForExpansionWasRejected(nodeToExpand, BipedalFootstepPlannerNodeRejectionReason.STEP_NOT_WIDE_ENOUGH);
+            notifyListenerNodeUnderConsiderationWasRejected(nodeToExpand, BipedalFootstepPlannerNodeRejectionReason.STEP_NOT_WIDE_ENOUGH);
+            return false;
+         }
+
+         double maximumStepWidth = parameters.getMaximumStepWidth();
+
+         if (((robotSide == RobotSide.LEFT) && (stepFromParentInSoleFrame.getY() > maximumStepWidth))
+               || ((robotSide == RobotSide.RIGHT) && (stepFromParentInSoleFrame.getY() < -maximumStepWidth)))
+         {
+            notifyListenerNodeUnderConsiderationWasRejected(nodeToExpand, BipedalFootstepPlannerNodeRejectionReason.STEP_TOO_WIDE);
+            return false;
+         }
+
+         double minimumStepLength = parameters.getMinimumStepLength();
+         if (stepFromParentInSoleFrame.getX() < minimumStepLength)
+         {
+            notifyListenerNodeUnderConsiderationWasRejected(nodeToExpand, BipedalFootstepPlannerNodeRejectionReason.STEP_NOT_LONG_ENOUGH);
             return false;
          }
 
@@ -539,21 +591,21 @@ public class PlanarRegionPotentialNextStepCalculator
 
          if (Math.abs(stepFromParentInWorld.getZ()) > parameters.getMaximumStepZ())
          {
-            notifyListenerNodeForExpansionWasRejected(nodeToExpand, BipedalFootstepPlannerNodeRejectionReason.STEP_TOO_HIGH_OR_LOW);
+            notifyListenerNodeUnderConsiderationWasRejected(nodeToExpand, BipedalFootstepPlannerNodeRejectionReason.STEP_TOO_HIGH_OR_LOW);
             return false;
          }
 
          if ((stepFromParentInSoleFrame.getX() > parameters.getMaximumStepXWhenForwardAndDown())
                && (stepFromParentInWorld.getZ() < -Math.abs(parameters.getMaximumStepZWhenForwardAndDown())))
          {
-            notifyListenerNodeForExpansionWasRejected(nodeToExpand, BipedalFootstepPlannerNodeRejectionReason.STEP_TOO_FORWARD_AND_DOWN);
+            notifyListenerNodeUnderConsiderationWasRejected(nodeToExpand, BipedalFootstepPlannerNodeRejectionReason.STEP_TOO_FORWARD_AND_DOWN);
             return false;
          }
 
          stepReach.set(stepFromParentInWorld.length());
          if (stepReach.getDoubleValue() > parameters.getMaximumStepReach())
          {
-            notifyListenerNodeForExpansionWasRejected(nodeToExpand, BipedalFootstepPlannerNodeRejectionReason.STEP_TOO_FAR);
+            notifyListenerNodeUnderConsiderationWasRejected(nodeToExpand, BipedalFootstepPlannerNodeRejectionReason.STEP_TOO_FAR);
             return false;
          }
       }
@@ -573,11 +625,14 @@ public class PlanarRegionPotentialNextStepCalculator
 
       BipedalFootstepPlannerNode grandParentNode = parentNode.getParentNode();
       if (grandParentNode == null)
+      {
+         //TODO: How to check in place step when first step?
          return true;
+      }
 
       if (grandParentNode.epsilonEquals(nodeToExpand, 1e-1))
       {
-         notifyListenerNodeForExpansionWasRejected(nodeToExpand, BipedalFootstepPlannerNodeRejectionReason.STEP_IN_PLACE);
+         notifyListenerNodeUnderConsiderationWasRejected(nodeToExpand, BipedalFootstepPlannerNodeRejectionReason.STEP_IN_PLACE);
          return false;
       }
 
@@ -593,36 +648,44 @@ public class PlanarRegionPotentialNextStepCalculator
 
          if (nodeToExpandSnapTransform == null)
          {
-            //            notifyListenerNodeForExpansionWasRejected(nodeToExpand, BipedalFootstepPlannerNodeRejectionReason.BAD_SNAP_OR_WIGGLE);
             return false;
          }
 
          nodeToExpand.transformSoleTransformWithSnapTransformFromZeroZ(nodeToExpandSnapTransform, planarRegion);
 
-         RigidBodyTransform nodeToExpandTransform = new RigidBodyTransform();
-         nodeToExpand.getSoleTransform(nodeToExpandTransform);
-         RigidBodyTransform soleTransform = new RigidBodyTransform();
-         nodeToExpand.getSoleTransform(soleTransform);
-         ConvexPolygon2d snappedPolygon = footPolygonsInSoleFrame.get(nodeToExpand.getRobotSide());
-         snappedPolygon.update();
-         footArea.set(snappedPolygon.getArea());
+         baseOfCliffAvoider.shiftAwayFromCliffBottoms(parameters, planarRegionsList, nodeToExpand);
 
-         ArrayList<ConvexPolygon2d> polygonIntersectionsOnPlanarRegion = new ArrayList<>();
-         planarRegion.getPolygonIntersectionsWhenSnapped(snappedPolygon, nodeToExpandTransform, polygonIntersectionsOnPlanarRegion);
-
-         totalArea.set(0.0);
-         for (int i = 0; i < polygonIntersectionsOnPlanarRegion.size(); i++)
-         {
-            ConvexPolygon2d intersectionPolygon = polygonIntersectionsOnPlanarRegion.get(i);
-            intersectionPolygon.update();
-            totalArea.add(intersectionPolygon.getArea());
-         }
-
-         if (totalArea.getDoubleValue() < parameters.getMinimumFootholdPercent() * footArea.getDoubleValue())
-         {
-            notifyListenerNodeForExpansionWasRejected(nodeToExpand, BipedalFootstepPlannerNodeRejectionReason.NOT_ENOUGH_AREA);
+         boolean isEnoughArea = checkIfEnoughArea(nodeToExpand, planarRegion);
+         if (!isEnoughArea)
             return false;
+      }
+
+      return true;
+   }
+
+   private boolean checkIfEnoughArea(BipedalFootstepPlannerNode nodeToExpand, PlanarRegion planarRegion)
+   {
+      RigidBodyTransform nodeToExpandTransform = new RigidBodyTransform();
+      nodeToExpand.getSoleTransform(nodeToExpandTransform);
+
+      ConvexPolygon2d snappedPolygon = footPolygonsInSoleFrame.get(nodeToExpand.getRobotSide());
+      snappedPolygon.update();
+      footArea.set(snappedPolygon.getArea());
+
+         ConvexPolygon2d footholdPolygon = new ConvexPolygon2d();
+         totalArea.set(planarRegion.getPolygonIntersectionAreaWhenSnapped(snappedPolygon, nodeToExpandTransform, footholdPolygon));
+
+         nodeToExpand.setPercentageOfFoothold(totalArea.getDoubleValue() / footArea.getDoubleValue());
+
+         if (nodeToExpand.isPartialFoothold())
+         {
+            nodeToExpand.setPartialFootholdPolygon(footholdPolygon);
          }
+
+      if (totalArea.getDoubleValue() < parameters.getMinimumFootholdPercent() * footArea.getDoubleValue())
+      {
+         notifyListenerNodeUnderConsiderationWasRejected(nodeToExpand, BipedalFootstepPlannerNodeRejectionReason.NOT_ENOUGH_AREA);
+         return false;
       }
 
       return true;
@@ -640,6 +703,11 @@ public class PlanarRegionPotentialNextStepCalculator
       RigidBodyTransform soleTransformBeforeSnap = new RigidBodyTransform();
 
       bipedalFootstepPlannerNode.getSoleTransform(soleTransformBeforeSnap);
+      if (!isTransformZUp(soleTransformBeforeSnap))
+      {
+         throw new RuntimeException("Node needs to be flat (no pitch or roll) before calling this! bipedalFootstepPlannerNode = \n"
+               + bipedalFootstepPlannerNode);
+      }
 
       ConvexPolygon2d currentFootPolygon = new ConvexPolygon2d(footPolygonsInSoleFrame.get(nodeSide));
       currentFootPolygon.applyTransformAndProjectToXYPlane(soleTransformBeforeSnap);
@@ -648,19 +716,20 @@ public class PlanarRegionPotentialNextStepCalculator
                                                                                                         planarRegionToPack);
       if (snapTransform == null)
       {
-         notifyListenerNodeForExpansionWasRejected(bipedalFootstepPlannerNode, BipedalFootstepPlannerNodeRejectionReason.COULD_NOT_SNAP);
+         notifyListenerNodeUnderConsiderationWasRejected(bipedalFootstepPlannerNode, BipedalFootstepPlannerNodeRejectionReason.COULD_NOT_SNAP);
          return null;
       }
 
       if (Math.abs(snapTransform.getM22()) < parameters.getMinimumSurfaceNormalZ())
       {
-         notifyListenerNodeForExpansionWasRejected(bipedalFootstepPlannerNode, BipedalFootstepPlannerNodeRejectionReason.SURFACE_NORMAL_TOO_STEEP_TO_SNAP);
+         notifyListenerNodeUnderConsiderationWasRejected(bipedalFootstepPlannerNode,
+                                                         BipedalFootstepPlannerNodeRejectionReason.SURFACE_NORMAL_TOO_STEEP_TO_SNAP);
          return null;
       }
 
       BipedalFootstepPlannerNode nodeAfterSnap = new BipedalFootstepPlannerNode(bipedalFootstepPlannerNode);
       nodeAfterSnap.transformSoleTransformWithSnapTransformFromZeroZ(snapTransform, planarRegionToPack);
-      notifyListenerNodeSnappedAndStillSelectedForExpansion(nodeAfterSnap);
+      //      notifyListenerNodeSnappedAndStillSelectedForExpansion(nodeAfterSnap);
 
       WiggleParameters wiggleParameters = new WiggleParameters();
       wiggleParameters.deltaInside = wiggleInsideDelta;
@@ -684,9 +753,9 @@ public class PlanarRegionPotentialNextStepCalculator
 
       if (wiggleTransformLocalToLocal == null)
       {
-         notifyListenerNodeForExpansionWasRejected(nodeAfterSnap, BipedalFootstepPlannerNodeRejectionReason.COULD_NOT_WIGGLE_INSIDE);
+         notifyListenerNodeUnderConsiderationWasRejected(nodeAfterSnap, BipedalFootstepPlannerNodeRejectionReason.COULD_NOT_WIGGLE_INSIDE);
 
-         //TODO: Possibly have different node scores depending on how firm on ground they are.
+         //TODO: Possibly have different node costs depending on how firm on ground they are.
          if (parameters.getRejectIfCannotFullyWiggleInside())
          {
             return null;
@@ -771,8 +840,8 @@ public class PlanarRegionPotentialNextStepCalculator
 
                   if (zPenetration > parameters.getMaximumZPenetrationOnVRegions())
                   {
-                     notifyListenerNodeForExpansionWasRejected(bipedalFootstepPlannerNode,
-                                                               BipedalFootstepPlannerNodeRejectionReason.TOO_MUCH_PENETRATION_AFTER_WIGGLE);
+                     notifyListenerNodeUnderConsiderationWasRejected(bipedalFootstepPlannerNode,
+                                                                     BipedalFootstepPlannerNodeRejectionReason.TOO_MUCH_PENETRATION_AFTER_WIGGLE);
                      return null;
                   }
                }
@@ -783,27 +852,32 @@ public class PlanarRegionPotentialNextStepCalculator
       return snapAndWiggleTransform;
    }
 
-   private void notifyListenerNodeSnappedAndStillSelectedForExpansion(BipedalFootstepPlannerNode nodeAfterSnap)
+   private boolean isTransformZUp(RigidBodyTransform soleTransformBeforeSnap)
+   {
+      return Math.abs(soleTransformBeforeSnap.getM22() - 1.0) < 1e-4;
+   }
+
+   private void notifyListenerNodeUnderConsideration(BipedalFootstepPlannerNode nodeToExpand)
    {
       if (listener != null)
       {
-         listener.nodeSelectedForExpansion(nodeAfterSnap);
+         listener.nodeUnderConsideration(nodeToExpand);
       }
    }
 
-   private void notifyListenerNodeSelectedForExpansion(BipedalFootstepPlannerNode nodeToExpand)
+   private void notifyListenerNodeUnderConsiderationWasSuccessful(BipedalFootstepPlannerNode node)
    {
       if (listener != null)
       {
-         listener.nodeSelectedForExpansion(nodeToExpand);
+         listener.nodeUnderConsiderationWasSuccessful(node);
       }
    }
 
-   private void notifyListenerNodeForExpansionWasRejected(BipedalFootstepPlannerNode nodeToExpand, BipedalFootstepPlannerNodeRejectionReason reason)
+   private void notifyListenerNodeUnderConsiderationWasRejected(BipedalFootstepPlannerNode nodeToExpand, BipedalFootstepPlannerNodeRejectionReason reason)
    {
       if (listener != null)
       {
-         listener.nodeForExpansionWasRejected(nodeToExpand, reason);
+         listener.nodeUnderConsiderationWasRejected(nodeToExpand, reason);
       }
    }
 
@@ -812,18 +886,19 @@ public class PlanarRegionPotentialNextStepCalculator
       return goalPositions.get(robotSide);
    }
 
-   private class NodeScoreComparator implements Comparator<BipedalFootstepPlannerNode>
+   private class NodeCostComparator implements Comparator<BipedalFootstepPlannerNode>
    {
       @Override
       public int compare(BipedalFootstepPlannerNode nodeOne, BipedalFootstepPlannerNode nodeTwo)
       {
-         boolean greaterThan = nodeOne.getSingleStepScore() > nodeTwo.getSingleStepScore();
-         if (greaterThan)
-            return 1;
-
-         else
+         if (nodeOne.getSingleStepCost() > nodeTwo.getSingleStepCost())
+         {
             return -1;
+         }
+         else
+         {
+            return 1;
+         }
       }
-
    }
 }

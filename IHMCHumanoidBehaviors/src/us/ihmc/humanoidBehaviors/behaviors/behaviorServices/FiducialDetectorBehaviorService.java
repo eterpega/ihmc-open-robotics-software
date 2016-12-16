@@ -1,6 +1,7 @@
 package us.ihmc.humanoidBehaviors.behaviors.behaviorServices;
 
 import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.humanoidBehaviors.behaviors.goalLocation.GoalDetectorBehaviorService;
 import us.ihmc.humanoidBehaviors.communication.CommunicationBridgeInterface;
 import us.ihmc.humanoidBehaviors.communication.ConcurrentListeningQueue;
 import us.ihmc.humanoidRobotics.communication.packets.sensing.VideoPacket;
@@ -10,9 +11,9 @@ import us.ihmc.robotics.geometry.FramePose;
 import us.ihmc.robotics.geometry.RigidBodyTransform;
 import us.ihmc.tools.thread.ThreadTools;
 
-public class FiducialDetectorBehaviorService extends ThreadedBehaviorService
+public class FiducialDetectorBehaviorService extends GoalDetectorBehaviorService
 {
-   private static final double DEFAULT_FIDUCIAL_SIZE = 0.16;
+   private static final double DEFAULT_FIDUCIAL_SIZE = 0.22;
    private static final double DEFAULT_FIELD_OF_VIEW_X_IN_RADIANS = Math.toRadians(80.0);
    private static final double DEFAULT_FIELD_OF_VIEW_Y_IN_RADIANS = Math.toRadians(45.0);
    
@@ -77,7 +78,8 @@ public class FiducialDetectorBehaviorService extends ThreadedBehaviorService
       }
    }
 
-   public boolean getTargetIDHasBeenLocated()
+   @Override
+   public boolean getGoalHasBeenLocated()
    {
       synchronized (fiducialDetectorFromCameraImagesConch)
       {
@@ -85,7 +87,8 @@ public class FiducialDetectorBehaviorService extends ThreadedBehaviorService
       }
    }
 
-   public void getReportedFiducialPoseWorldFrame(FramePose framePoseToPack)
+   @Override
+   public void getReportedGoalPoseWorldFrame(FramePose framePoseToPack)
    {
       synchronized (fiducialDetectorFromCameraImagesConch)
       {
@@ -112,5 +115,11 @@ public class FiducialDetectorBehaviorService extends ThreadedBehaviorService
    {
       super.destroy();
       locationEnabled.set(false);
+   }
+
+   @Override
+   public void initialize()
+   {
+      fiducialDetectorFromCameraImages.reset();
    }
 }

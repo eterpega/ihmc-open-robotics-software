@@ -703,6 +703,82 @@ public class DefaultCommonAvatarEnvironment implements CommonAvatarEnvironmentIn
       combinedTerrainObject.addTerrainObject(truss);
    }
 
+   public static CombinedTerrainObject3D setUpShortCinderBlockField(String name, double courseAngle, double startDistance)
+   {
+      CombinedTerrainObject3D combinedTerrainObject = new CombinedTerrainObject3D(name);
+
+      int nBlocksWide = 4;
+      int nBlocksLong = 4;
+
+      double[][] blockAngle;
+      int[][] blockHeight;
+      BLOCKTYPE[][] blockType;
+
+      blockHeight = new int[][]
+            {
+                  {0, 0, 0, 0},
+                  {0, 0, 0, 0},
+                  {0, 0, 0, 0},
+                  {0, 0, 0, 0}
+            };
+
+      blockType = new BLOCKTYPE[][]
+            {
+                  {BLOCKTYPE.UPRIGHTSKEW, BLOCKTYPE.FLAT, BLOCKTYPE.FLAT, BLOCKTYPE.UPRIGHTSKEW},
+                  {BLOCKTYPE.UPRIGHTSKEW, BLOCKTYPE.ANGLED, BLOCKTYPE.ANGLED, BLOCKTYPE.UPRIGHTSKEW},
+                  {BLOCKTYPE.UPRIGHTSKEW, BLOCKTYPE.ANGLED, BLOCKTYPE.ANGLED, BLOCKTYPE.UPRIGHTSKEW},
+                  {BLOCKTYPE.UPRIGHTSKEW, BLOCKTYPE.FLAT, BLOCKTYPE.FLAT, BLOCKTYPE.UPRIGHTSKEW},
+            };
+
+      blockAngle = new double[][]
+            {
+                  {0.0, 0.0, 0.0, 0.0},
+                  {0.0, 90.0, 90.0, 0.0},
+                  {0.0, -90.0, -90.0, 0.0},
+                  {0.0, 0.0, 0.0, 0.0},
+            };
+
+      startDistance += cinderBlockLength / 2;
+
+      for (int i = 0; i < nBlocksLong; i++)
+      {
+         for (int j = 0; j < nBlocksWide; j++)
+         {
+            double xCenter = startDistance + i * cinderBlockLength;
+            double yCenter = (nBlocksWide * cinderBlockLength) / 2 - j * cinderBlockLength - cinderBlockLength / 2;
+            double[] point = {xCenter, yCenter};
+            double[] rotatedPoint = rotateAroundOrigin(point, courseAngle);
+
+            int h = blockHeight[i][j];
+            double deg = blockAngle[i][j] + courseAngle;
+            switch (blockType[i][j])
+            {
+            case FLAT:
+               setUpCinderBlockSquare(combinedTerrainObject, rotatedPoint, h, deg);
+
+               break;
+
+            case FLATSKEW:
+               setUpFlatSkewedBlockSquare(combinedTerrainObject, rotatedPoint, h, deg);
+
+               break;
+
+            case UPRIGHTSKEW:
+               setUpSkewedUprightBlockSquare(combinedTerrainObject, rotatedPoint, h, deg);
+
+               break;
+
+            case ANGLED:
+               setUpRampBlock(combinedTerrainObject, rotatedPoint, h, deg);
+
+               break;
+            }
+         }
+      }
+
+      return combinedTerrainObject;
+   }
+
    public static CombinedTerrainObject3D setUpCinderBlockFieldActual(String name, double courseAngle, double startDistance)
    {
       return setUpCinderBlockFieldActual(name, courseAngle, startDistance, null);
@@ -1639,6 +1715,22 @@ public class DefaultCommonAvatarEnvironment implements CommonAvatarEnvironmentIn
       RotatableBoxTerrainObject newBox = new RotatableBoxTerrainObject(new Box3d(location, boxSideLength, boxSideLength, boxSideLength), fiducialTexture);
       fiducualTerrainObject.addTerrainObject(newBox);
       return fiducualTerrainObject;
+   }
+
+   public static CombinedTerrainObject3D addValveTextureBox(Vector3d position, double yaw)
+   {
+      YoAppearanceTexture valveTexture = new YoAppearanceTexture("/images/red-valve.jpg");
+      double boxSideLength = 1.0;
+
+      CombinedTerrainObject3D valveTerrainObject = new CombinedTerrainObject3D("ValveBox");
+
+      RigidBodyTransform location = new RigidBodyTransform();
+      location.setRotationEulerAndZeroTranslation(Math.toRadians(90.0), 0.0, yaw - Math.toRadians(90.0));
+      location.setTranslation(position);
+
+      RotatableBoxTerrainObject newBox = new RotatableBoxTerrainObject(new Box3d(location, boxSideLength, boxSideLength, boxSideLength), valveTexture);
+      valveTerrainObject.addTerrainObject(newBox);
+      return valveTerrainObject;
    }
 
    @Override

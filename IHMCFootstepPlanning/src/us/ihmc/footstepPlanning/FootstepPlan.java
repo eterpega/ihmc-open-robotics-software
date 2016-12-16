@@ -11,6 +11,8 @@ import us.ihmc.robotics.robotSide.RobotSide;
 
 public class FootstepPlan
 {
+   private final ArrayList<SimpleFootstep> footsteps = new ArrayList<>();
+
    public FootstepPlan()
    {
    }
@@ -26,15 +28,17 @@ public class FootstepPlan
          node.getSoleTransform(soleTransform);
 
          FramePose framePose = new FramePose(ReferenceFrame.getWorldFrame(), soleTransform);
-         addFootstep(node.getRobotSide(), framePose);
+         SimpleFootstep simpleFootstep = addFootstep(node.getRobotSide(), framePose);
+         if (node.isPartialFoothold())
+         {
+            simpleFootstep.setFoothold(node.getPartialFootholdPolygon());
+         }
 
          node = node.getParentNode();
       }
 
       reverse();
    }
-
-   private final ArrayList<SimpleFootstep> footsteps = new ArrayList<>();
 
    public int getNumberOfSteps()
    {
@@ -51,9 +55,11 @@ public class FootstepPlan
       footsteps.add(footstep);
    }
 
-   public void addFootstep(RobotSide robotSide, FramePose soleFramePose)
+   public SimpleFootstep addFootstep(RobotSide robotSide, FramePose soleFramePose)
    {
-      footsteps.add(new SimpleFootstep(robotSide, soleFramePose));
+      SimpleFootstep simpleFootstep = new SimpleFootstep(robotSide, soleFramePose);
+      footsteps.add(simpleFootstep);
+      return simpleFootstep;
    }
 
    public void reverse()

@@ -3,10 +3,12 @@ package us.ihmc.footstepPlanning.graphSearch;
 import java.util.ArrayList;
 
 import javax.vecmath.Point3d;
+import javax.vecmath.Vector2d;
 import javax.vecmath.Vector3d;
 
 import us.ihmc.robotics.MathTools;
 import us.ihmc.robotics.geometry.AngleTools;
+import us.ihmc.robotics.geometry.ConvexPolygon2d;
 import us.ihmc.robotics.geometry.PlanarRegion;
 import us.ihmc.robotics.geometry.RigidBodyTransform;
 import us.ihmc.robotics.robotSide.RobotSide;
@@ -17,17 +19,18 @@ public class BipedalFootstepPlannerNode
    private RigidBodyTransform soleTransform = new RigidBodyTransform();
    private BipedalFootstepPlannerNode parentNode;
 
-   private ArrayList<BipedalFootstepPlannerNode> childrenNodes;
-   private double costFromParent;
-   private double costToHereFromStart;
+   private ArrayList<BipedalFootstepPlannerNode> childrenNodes = new ArrayList<>();
    private double estimatedCostToGoal;
 
-   private static final double XY_DISTANCE_THRESHOLD_TO_CONSIDER_NODES_EQUAL = 0.02;
-   private static final double YAW_ROTATION_THRESHOLD_TO_CONSIDER_NODES_EQUAL = 0.04;
+   private static final double XY_DISTANCE_THRESHOLD_TO_CONSIDER_NODES_EQUAL = 0.05;
+   private static final double YAW_ROTATION_THRESHOLD_TO_CONSIDER_NODES_EQUAL = Math.toRadians(5.0);
 
    private boolean isAtGoal = false;
+   private boolean isDead = false;
 
-   private double singleStepScore;
+   private double singleStepCost;
+   private double percentageOfFoothold = 1.0;
+   private ConvexPolygon2d partialFootholdPolygon;
 
    public BipedalFootstepPlannerNode(RobotSide footstepSide, RigidBodyTransform soleTransform)
    {
@@ -40,14 +43,14 @@ public class BipedalFootstepPlannerNode
       this(nodeToCopy.footstepSide, nodeToCopy.soleTransform);
    }
 
-   public double getSingleStepScore()
+   public double getSingleStepCost()
    {
-      return singleStepScore;
+      return singleStepCost;
    }
 
-   public void setSingleStepScore(double singleStepScore)
+   public void setSingleStepCost(double singleStepCost)
    {
-      this.singleStepScore = singleStepScore;
+      this.singleStepCost = singleStepCost;
    }
 
    public RigidBodyTransform getTransformToParent()
@@ -105,6 +108,36 @@ public class BipedalFootstepPlannerNode
       soleTransform.multiply(snapTransform, soleTransform);
    }
 
+   public void shiftInSoleFrame(Vector2d shiftVector)
+   {
+      RigidBodyTransform shiftTransform = new RigidBodyTransform();
+      shiftTransform.setTranslation(new Vector3d(shiftVector.getX(), shiftVector.getY(), 0.0));
+      soleTransform.multiply(soleTransform, shiftTransform);
+   }
+
+   public void removePitchAndRoll()
+   {
+      if (Math.abs(soleTransform.getM22() - 1.0) < 1e-4) return;
+      double m00 = soleTransform.getM00();
+      double m10 = soleTransform.getM10();
+
+      double magnitude = Math.sqrt(m00*m00 + m10*m10);
+      m00 = m00 / magnitude;
+      m10 = m10 / magnitude;
+
+      soleTransform.setM00(m00);
+      soleTransform.setM10(m10);
+      soleTransform.setM20(0.0);
+
+      soleTransform.setM01(-m10);
+      soleTransform.setM11(m00);
+      soleTransform.setM21(0.0);
+
+      soleTransform.setM02(0.0);
+      soleTransform.setM12(0.0);
+      soleTransform.setM22(1.0);
+   }
+
    public BipedalFootstepPlannerNode getParentNode()
    {
       return parentNode;
@@ -125,29 +158,26 @@ public class BipedalFootstepPlannerNode
       this.childrenNodes.add(childNode);
    }
 
+   public void setToDead()
+   {
+      isDead = true;
+   }
+
+   public boolean isDead()
+   {
+      return isDead;
+   }
+
    public void getChildren(ArrayList<BipedalFootstepPlannerNode> childrenNodesToPack)
    {
       childrenNodesToPack.addAll(childrenNodes);
    }
 
-   public double getCostFromParent()
-   {
-      return costFromParent;
-   }
-
-   public void setCostFromParent(double costFromParent)
-   {
-      this.costFromParent = costFromParent;
-   }
-
    public double getCostToHereFromStart()
    {
-      return costToHereFromStart;
-   }
-
-   public void setCostToHereFromStart(double costToHereFromStart)
-   {
-      this.costToHereFromStart = costToHereFromStart;
+      if (parentNode == null)
+         return getSingleStepCost();
+      return getSingleStepCost() + parentNode.getCostToHereFromStart();
    }
 
    public double getEstimatedCostToGoal()
@@ -189,17 +219,17 @@ public class BipedalFootstepPlannerNode
 
          tempPointA.sub(tempPointB);
          tempPointA.setZ(0.0);
-         
+
          if (!(tempPointA.length() < 1e-10)) return false;
-         
-         
+
+
          this.soleTransform.getRotationEuler(tempRotationVectorA);
          double thisYaw = MathTools.roundToGivenPrecisionForAngle(tempRotationVectorA.getZ(), YAW_ROTATION_THRESHOLD_TO_CONSIDER_NODES_EQUAL);
 
          otherNode.soleTransform.getRotationEuler(tempRotationVectorB);
-         double otherYaw = MathTools.roundToGivenPrecisionForAngle(tempRotationVectorB.getZ(), YAW_ROTATION_THRESHOLD_TO_CONSIDER_NODES_EQUAL);  
+         double otherYaw = MathTools.roundToGivenPrecisionForAngle(tempRotationVectorB.getZ(), YAW_ROTATION_THRESHOLD_TO_CONSIDER_NODES_EQUAL);
 
-         
+
 //         tempRotationVectorA.sub(tempRotationVectorB);
          double yawDifference = Math.abs(AngleTools.computeAngleDifferenceMinusPiToPi(thisYaw, otherYaw));
          if (!(yawDifference < 1e-10)) return false;
@@ -217,7 +247,7 @@ public class BipedalFootstepPlannerNode
       this.soleTransform.getRotationEuler(tempRotationVectorA);
       MathTools.roundToGivenPrecisionForAngles(tempRotationVectorA, YAW_ROTATION_THRESHOLD_TO_CONSIDER_NODES_EQUAL);
 
-      int result = getRobotSide().hashCode();
+      int result = getRobotSide() == null ? 0 : getRobotSide().hashCode();
       result = 3 * result + (int) Math.round(tempPointA.getX() / XY_DISTANCE_THRESHOLD_TO_CONSIDER_NODES_EQUAL);
       result = 3 * result + (int) Math.round(tempPointA.getY() / XY_DISTANCE_THRESHOLD_TO_CONSIDER_NODES_EQUAL);
 //      result = 3 * result + (int) Math.round(tempRotationVectorA.getX() / YAW_ROTATION_THRESHOLD_TO_CONSIDER_NODES_EQUAL);
@@ -242,10 +272,35 @@ public class BipedalFootstepPlannerNode
 
       return true;
    }
-   
+
    public String toString()
    {
       return soleTransform.toString();
    }
 
+   public boolean isPartialFoothold()
+   {
+      return MathTools.isPreciselyLessThan(percentageOfFoothold, 1.0, 1e-3);
+   }
+
+   public double getPercentageOfFoothold()
+   {
+      return percentageOfFoothold;
+   }
+
+   public void setPercentageOfFoothold(double percentageOfFoothold)
+   {
+      this.percentageOfFoothold = percentageOfFoothold;
+   }
+
+
+   public ConvexPolygon2d getPartialFootholdPolygon()
+   {
+      return partialFootholdPolygon;
+   }
+
+   public void setPartialFootholdPolygon(ConvexPolygon2d partialFootholdPolygon)
+   {
+      this.partialFootholdPolygon = partialFootholdPolygon;
+   }
 }

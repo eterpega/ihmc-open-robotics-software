@@ -1,5 +1,6 @@
 package us.ihmc.javaFXToolkit.shapes;
 
+import java.util.Arrays;
 import java.util.List;
 
 import javax.vecmath.AxisAngle4d;
@@ -17,6 +18,7 @@ import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Mesh;
 import us.ihmc.graphics3DDescription.MeshDataGenerator;
 import us.ihmc.graphics3DDescription.MeshDataHolder;
+import us.ihmc.robotics.MathTools;
 import us.ihmc.robotics.geometry.ConvexPolygon2d;
 import us.ihmc.robotics.geometry.RigidBodyTransform;
 
@@ -157,6 +159,30 @@ public class JavaFXMultiColorMeshBuilder
       addMesh(MeshDataGenerator.Line(start, end, lineWidth), color);
    }
 
+   public void addLine(Point3d start, Point3d end, double lineWidth, Color startColor, Color endColor)
+   {
+      addLine(new Point3f(start), new Point3f(end), (float) lineWidth, startColor, endColor);
+   }
+
+   public void addLine(Point3f start, Point3f end, float lineWidth, Color startColor, Color endColor)
+   {
+      MeshDataHolder lineMeshData = MeshDataGenerator.Line(start, end, lineWidth);
+      float expectedDistance = 2.0f * lineWidth * lineWidth;
+
+      Point3f[] vertices = lineMeshData.getVertices();
+      TexCoord2f[] texturePoints = lineMeshData.getTexturePoints();
+
+      for (int i = 0; i < vertices.length; i++)
+      {
+         if (MathTools.epsilonEquals(vertices[i].distanceSquared(start), expectedDistance, 1.0e-5))
+            texturePoints[i].set(colorPalette.getTextureLocation(startColor));
+         else
+            texturePoints[i].set(colorPalette.getTextureLocation(endColor));
+      }
+
+      meshBuilder.addMesh(lineMeshData);
+   }
+
    public void addMultiLine(Point3d[] points, double lineWidth, Color color, boolean close)
    {
       if (points.length < 2)
@@ -175,6 +201,11 @@ public class JavaFXMultiColorMeshBuilder
          Point3d end = points[0];
          addLine(start, end, lineWidth, color);
       }
+   }
+
+   public void addMultiLine(RigidBodyTransform transform, Point2d[] points, double lineWidth, Color color, boolean close)
+   {
+      addMultiLine(transform, Arrays.asList(points), lineWidth, color, close);
    }
 
    public void addMultiLine(RigidBodyTransform transform, List<Point2d> points, double lineWidth, Color color, boolean close)
