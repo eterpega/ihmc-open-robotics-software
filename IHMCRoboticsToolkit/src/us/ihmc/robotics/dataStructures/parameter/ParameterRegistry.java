@@ -120,7 +120,10 @@ public class ParameterRegistry
       }
    }
 
-   void register(Parameter parameter)
+   /**
+    * Adds a packet to the register. If using {@link ParameterFactory} this is done for you -- you shouldn't need to use this method.
+    */
+   public void register(Parameter parameter)
    {
       Preconditions.checkNotNull(parameter, "Registered parameter cannot be null");
 
