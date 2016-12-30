@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+<?import us.ihmc.tuner.slider.NumericTextField?>
+
+<fx:root type="VBox" fx:id="root" alignment="TOP_CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="220.0" prefWidth="100.0" xmlns="http://javafx.com/javafx/8.0.102-ea" xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <NumericTextField fx:id="maxText" alignment="CENTER" maxHeight="22.0" maxWidth="50.0" prefHeight="22.0" prefWidth="50.0">
+            <font>
+                <Font size="10.0" />
+            </font>
+        </NumericTextField>
+        <HBox alignment="CENTER" VBox.vgrow="ALWAYS">
+            <children>
+                <Slider fx:id="slider" blockIncrement="0.1" focusTraversable="false" majorTickUnit="0.5" max="1.0" minorTickCount="5" orientation="VERTICAL" showTickMarks="true" BorderPane.alignment="CENTER" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
+                    <HBox.margin>
+                        <Insets bottom="10.0" top="10.0" />
+                    </HBox.margin>
+                    <padding>
+                        <Insets left="5.0" right="5.0" />
+                    </padding>
+                </Slider>
+                <NumericTextField fx:id="sliderText" alignment="CENTER" maxHeight="22.0" maxWidth="50.0" prefHeight="22.0" prefWidth="50.0" promptText="?">
+                    <font>
+                        <Font size="10.0" />
+                    </font>
+                </NumericTextField>
+            </children>
+        </HBox>
+        <NumericTextField fx:id="minText" alignment="CENTER" maxHeight="22.0" maxWidth="50.0" prefHeight="22.0" prefWidth="50.0">
+            <font>
+                <Font size="10.0" />
+            </font>
+        </NumericTextField>
+        <Label fx:id="nameLabel">
+         <tooltip>
+            <Tooltip />
+         </tooltip></Label>
+    </children>
+</fx:root>
