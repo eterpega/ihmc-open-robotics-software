@@ -86,4 +86,6 @@ public abstract class Parameter
          changeListeners.get(i).onChange(this);
       }
    }
+
+   public abstract void accept(ParameterVisitor visitor);
 }

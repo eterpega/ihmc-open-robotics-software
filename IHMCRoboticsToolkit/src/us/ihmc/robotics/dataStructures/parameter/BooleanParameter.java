@@ -39,5 +39,11 @@ public class BooleanParameter extends Parameter
    {
       return Boolean.toString(value);
    }
+
+   @Override
+   public void accept(ParameterVisitor visitor)
+   {
+      visitor.visitBoolean(this);
+   }
 }
 

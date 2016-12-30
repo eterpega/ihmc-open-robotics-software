@@ -45,5 +45,11 @@ public class IntegerParameter extends Parameter
    {
       return Integer.toString(value);
    }
+
+   @Override
+   public void accept(ParameterVisitor visitor)
+   {
+      visitor.visitInteger(this);
+   }
 }
 

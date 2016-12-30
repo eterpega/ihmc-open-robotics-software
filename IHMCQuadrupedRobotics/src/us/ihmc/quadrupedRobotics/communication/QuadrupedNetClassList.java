@@ -7,6 +7,14 @@ import javax.vecmath.Quat4d;
 import javax.vecmath.Vector3d;
 
 import us.ihmc.communication.packets.DetectedFacesPacket;
+import us.ihmc.communication.packets.ParameterListPacket;
+import us.ihmc.communication.packets.RequestParameterListPacket;
+import us.ihmc.communication.packets.SetBooleanParameterPacket;
+import us.ihmc.communication.packets.SetDoubleArrayParameterPacket;
+import us.ihmc.communication.packets.SetDoubleParameterPacket;
+import us.ihmc.communication.packets.SetIntegerArrayParameterPacket;
+import us.ihmc.communication.packets.SetIntegerParameterPacket;
+import us.ihmc.communication.packets.SetStringParameterPacket;
 import us.ihmc.humanoidRobotics.kryo.IHMCCommunicationKryoNetClassList;
 import us.ihmc.quadrupedRobotics.communication.packets.BodyAngularRatePacket;
 import us.ihmc.quadrupedRobotics.communication.packets.BodyOrientationPacket;
@@ -21,22 +29,17 @@ import us.ihmc.quadrupedRobotics.communication.packets.QuadrupedTimedStepPacket;
 import us.ihmc.quadrupedRobotics.communication.packets.QuadrupedXGaitSettingsPacket;
 import us.ihmc.quadrupedRobotics.controller.force.QuadrupedForceControllerRequestedEvent;
 import us.ihmc.quadrupedRobotics.controller.force.QuadrupedForceControllerState;
-import us.ihmc.robotics.dataStructures.parameter.BooleanParameter;
-import us.ihmc.robotics.dataStructures.parameter.DoubleArrayParameter;
-import us.ihmc.robotics.dataStructures.parameter.DoubleParameter;
-import us.ihmc.robotics.dataStructures.parameter.IntegerParameter;
-import us.ihmc.communication.packets.ParameterListPacket;
-import us.ihmc.communication.packets.RequestParameterListPacket;
-import us.ihmc.communication.packets.SetBooleanParameterPacket;
-import us.ihmc.communication.packets.SetDoubleArrayParameterPacket;
-import us.ihmc.communication.packets.SetDoubleParameterPacket;
-import us.ihmc.communication.packets.SetStringParameterPacket;
-import us.ihmc.robotics.dataStructures.parameter.StringParameter;
 import us.ihmc.quadrupedRobotics.planning.QuadrupedSoleWaypointList;
 import us.ihmc.quadrupedRobotics.planning.QuadrupedTimedStep;
 import us.ihmc.quadrupedRobotics.planning.QuadrupedXGaitSettings;
 import us.ihmc.quadrupedRobotics.planning.SoleWaypoint;
 import us.ihmc.quadrupedRobotics.util.TimeInterval;
+import us.ihmc.robotics.dataStructures.parameter.BooleanParameter;
+import us.ihmc.robotics.dataStructures.parameter.DoubleArrayParameter;
+import us.ihmc.robotics.dataStructures.parameter.DoubleParameter;
+import us.ihmc.robotics.dataStructures.parameter.IntegerArrayParameter;
+import us.ihmc.robotics.dataStructures.parameter.IntegerParameter;
+import us.ihmc.robotics.dataStructures.parameter.StringParameter;
 import us.ihmc.robotics.partNames.QuadrupedJointName;
 import us.ihmc.robotics.robotSide.QuadrantDependentList;
 import us.ihmc.robotics.robotSide.RobotQuadrant;
@@ -98,6 +101,14 @@ public class QuadrupedNetClassList extends IHMCCommunicationKryoNetClassList
       registerPacketField(String.class);
       registerPacketField(double.class);
 
+      registerPacketClass(SetIntegerArrayParameterPacket.class);
+      registerPacketField(String.class);
+      registerPacketField(int[].class);
+
+      registerPacketClass(SetIntegerParameterPacket.class);
+      registerPacketField(String.class);
+      registerPacketField(int.class);
+
       registerPacketClass(SetStringParameterPacket.class);
       registerPacketField(String.class);
 
@@ -113,6 +124,7 @@ public class QuadrupedNetClassList extends IHMCCommunicationKryoNetClassList
       registerPacketField(BooleanParameter.class);
       registerPacketField(DoubleArrayParameter.class);
       registerPacketField(DoubleParameter.class);
+      registerPacketField(IntegerArrayParameter.class);
       registerPacketField(IntegerParameter.class);
       registerPacketField(StringParameter.class);
 

@@ -3,7 +3,7 @@ package us.ihmc.robotics.dataStructures.parameter;
 import com.google.common.primitives.Doubles;
 import org.apache.commons.lang3.StringUtils;
 
-public class DoubleArrayParameter extends Parameter
+public class DoubleArrayParameter extends ArrayParameter
 {
    private double[] value;
 
@@ -42,6 +42,12 @@ public class DoubleArrayParameter extends Parameter
    }
 
    @Override
+   public int length()
+   {
+      return value.length;
+   }
+
+   @Override
    public boolean tryLoadValue(String value)
    {
       try
@@ -71,5 +77,11 @@ public class DoubleArrayParameter extends Parameter
    String dumpValue()
    {
       return Doubles.join(",", value);
+   }
+
+   @Override
+   public void accept(ParameterVisitor visitor)
+   {
+      visitor.visitDoubleArray(this);
    }
 }

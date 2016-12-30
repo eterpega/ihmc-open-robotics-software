@@ -45,5 +45,11 @@ public class DoubleParameter extends Parameter
    {
       return Double.toString(value);
    }
+
+   @Override
+   public void accept(ParameterVisitor visitor)
+   {
+      visitor.visitDouble(this);
+   }
 }
 

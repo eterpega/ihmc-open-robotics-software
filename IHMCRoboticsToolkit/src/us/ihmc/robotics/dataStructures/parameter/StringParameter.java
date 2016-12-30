@@ -39,5 +39,11 @@ public class StringParameter extends Parameter
    {
       return value;
    }
+
+   @Override
+   public void accept(ParameterVisitor visitor)
+   {
+      visitor.visitString(this);
+   }
 }
 

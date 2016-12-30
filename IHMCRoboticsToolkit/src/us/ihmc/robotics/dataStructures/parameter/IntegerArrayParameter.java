@@ -3,7 +3,7 @@ package us.ihmc.robotics.dataStructures.parameter;
 import com.google.common.primitives.Ints;
 import org.apache.commons.lang3.StringUtils;
 
-public class IntegerArrayParameter extends Parameter
+public class IntegerArrayParameter extends ArrayParameter
 {
    private int[] value;
 
@@ -42,6 +42,12 @@ public class IntegerArrayParameter extends Parameter
    }
 
    @Override
+   public int length()
+   {
+      return value.length;
+   }
+
+   @Override
    public boolean tryLoadValue(String value)
    {
       try
@@ -71,5 +77,11 @@ public class IntegerArrayParameter extends Parameter
    String dumpValue()
    {
       return Ints.join(",", value);
+   }
+
+   @Override
+   public void accept(ParameterVisitor visitor)
+   {
+      visitor.visitIntegerArray(this);
    }
 }
