@@ -11,11 +11,9 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
-<?import us.ihmc.tuner.slider.NumericParameterSlider?>
 <?import us.ihmc.tuner.slider.ParmeterSliderProxy?>
 <?import us.ihmc.tuner.tree.ParameterTree?>
 
-<?import us.ihmc.tuner.slider.BooleanParameterSlider?>
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" xmlns="http://javafx.com/javafx/8.0.102-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="us.ihmc.tuner.ParameterTunerController">
     <children>
         <VBox prefHeight="400.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
