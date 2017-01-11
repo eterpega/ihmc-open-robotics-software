@@ -87,7 +87,13 @@ public class PlanarRegionBipedalFootstepPlanner implements FootstepPlanner
    public void setFeetPolygons(SideDependentList<ConvexPolygon2d> footPolygonsInSoleFrame)
    {
       this.footPolygonsInSoleFrame = footPolygonsInSoleFrame;
-      planarRegionPotentialNextStepCalculator.setFeetPolygons(footPolygonsInSoleFrame);
+      planarRegionPotentialNextStepCalculator.setFeetPolygons(footPolygonsInSoleFrame, footPolygonsInSoleFrame);
+   }
+
+   public void setFeetPolygons(SideDependentList<ConvexPolygon2d> footPolygonsInSoleFrame, SideDependentList<ConvexPolygon2d> controllerPolygonsInSoleFrame)
+   {
+      this.footPolygonsInSoleFrame = footPolygonsInSoleFrame;
+      planarRegionPotentialNextStepCalculator.setFeetPolygons(footPolygonsInSoleFrame, controllerPolygonsInSoleFrame);
    }
 
    public SideDependentList<ConvexPolygon2d> getFootPolygonsInSoleFrame()
@@ -237,6 +243,7 @@ public class PlanarRegionBipedalFootstepPlanner implements FootstepPlanner
          {
             double cost1 = o1.getCostToHereFromStart();
             double cost2 = o2.getCostToHereFromStart();
+            if(cost1 == cost2) return 0;
             return cost1 < cost2 ? -1 : 1;
          }
       });

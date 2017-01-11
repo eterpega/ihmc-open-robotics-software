@@ -55,10 +55,12 @@ public abstract class FootstepPlannerOnRoughTerrainTest implements PlanningTest
    {
       double startX = 0.0;
       double startY = 0.0;
+      double cinderBlockHeight = 0.15;
       double cinderBlockSize = 0.4;
       int courseWidthXInNumberOfBlocks = 21;
       int courseLengthYInNumberOfBlocks = 6;
-      PlanarRegionsList cinderBlockField = PlanarRegionsListExamples.generateCinderBlockField(startX, startY, cinderBlockSize, courseWidthXInNumberOfBlocks, courseLengthYInNumberOfBlocks);
+      double heightVariation = 0.1;
+      PlanarRegionsList cinderBlockField = PlanarRegionsListExamples.generateCinderBlockField(startX, startY, cinderBlockSize, cinderBlockHeight, courseWidthXInNumberOfBlocks, courseLengthYInNumberOfBlocks, heightVariation);
 
       FramePose goalPose = new FramePose(worldFrame);
       goalPose.setPosition(9.0, 0.0, 0.0);
@@ -401,6 +403,28 @@ public abstract class FootstepPlannerOnRoughTerrainTest implements PlanningTest
       // run the test
       PlanarRegionsList planarRegionsList = generator.getPlanarRegionsList();
       FootstepPlan footstepPlan = PlanningTestTools.runPlanner(getPlanner(), initialStanceFootPose, initialStanceSide, goalPose, planarRegionsList, assertPlannerReturnedResult);
+      if (visualize())
+         PlanningTestTools.visualizeAndSleep(planarRegionsList, footstepPlan, goalPose);
+      assertTrue(PlanningTestTools.isGoalNextToLastStep(goalPose, footstepPlan));
+   }
+
+   public void testWalkingAroundBox()
+   {
+      PlanarRegionsListGenerator generator = new PlanarRegionsListGenerator();
+      generator.translate(2.0, 0.0, 0.0001);
+      generator.addRectangle(5.0, 5.0);
+      generator.addCubeReferencedAtBottomMiddle(1.0, 1.0, 1.0);
+      PlanarRegionsList planarRegionsList = generator.getPlanarRegionsList();
+
+      // define start and goal conditions
+      FramePose initialStanceFootPose = new FramePose(worldFrame);
+      initialStanceFootPose.setPosition(0.0, 0.15, 0.0);
+      RobotSide initialStanceSide = RobotSide.LEFT;
+      FramePose goalPose = new FramePose(worldFrame);
+      goalPose.setPosition(4.0, 0.0, 0.0);
+
+      FootstepPlan footstepPlan = PlanningTestTools.runPlanner(getPlanner(), initialStanceFootPose, initialStanceSide, goalPose, planarRegionsList,
+            !visualize());
       if (visualize())
          PlanningTestTools.visualizeAndSleep(planarRegionsList, footstepPlan, goalPose);
       assertTrue(PlanningTestTools.isGoalNextToLastStep(goalPose, footstepPlan));
