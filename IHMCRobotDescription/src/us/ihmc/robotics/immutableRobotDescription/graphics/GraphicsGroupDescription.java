@@ -2,12 +2,12 @@ package us.ihmc.robotics.immutableRobotDescription.graphics;
 
 import org.immutables.value.Value.Default;
 import org.immutables.value.Value.Immutable;
-import us.ihmc.graphics3DDescription.Graphics3DObject;
-import us.ihmc.graphics3DDescription.instructions.*;
-import us.ihmc.graphics3DDescription.instructions.primitives.Graphics3DIdentityInstruction;
-import us.ihmc.graphics3DDescription.instructions.primitives.Graphics3DRotateInstruction;
-import us.ihmc.graphics3DDescription.instructions.primitives.Graphics3DScaleInstruction;
-import us.ihmc.graphics3DDescription.instructions.primitives.Graphics3DTranslateInstruction;
+import us.ihmc.graphicsDescription.Graphics3DObject;
+import us.ihmc.graphicsDescription.instructions.*;
+import us.ihmc.graphicsDescription.instructions.primitives.Graphics3DIdentityInstruction;
+import us.ihmc.graphicsDescription.instructions.primitives.Graphics3DRotateInstruction;
+import us.ihmc.graphicsDescription.instructions.primitives.Graphics3DScaleInstruction;
+import us.ihmc.graphicsDescription.instructions.primitives.Graphics3DTranslateInstruction;
 
 import java.util.Collections;
 import java.util.List;

@@ -2,7 +2,7 @@ package us.ihmc.robotics.immutableRobotDescription.graphics;
 
 import org.immutables.value.Value.Default;
 import org.immutables.value.Value.Immutable;
-import us.ihmc.graphics3DDescription.HeightMap;
+import us.ihmc.graphicsDescription.HeightMap;
 
 import javax.vecmath.Vector2f;
 import javax.vecmath.Vector3f;

@@ -165,9 +165,10 @@ public class View3DFactory
       setCamera(camera);
 
       Vector3d up = new Vector3d(0.0, 0.0, 1.0);
+      Vector3d forward = new Vector3d(1.0, 0.0, 0.0);
       ReadOnlyDoubleProperty widthProperty = widthProperty();
       ReadOnlyDoubleProperty heightProperty = heightProperty();
-      FocusBasedCameraMouseEventHandler cameraController = new FocusBasedCameraMouseEventHandler(widthProperty, heightProperty, camera, up);
+      FocusBasedCameraMouseEventHandler cameraController = new FocusBasedCameraMouseEventHandler(widthProperty, heightProperty, camera, up, forward);
       if (enableShiftClickFocusTranslation)
          cameraController.enableShiftClickFocusTranslation();
       addEventHandler(Event.ANY, cameraController);
@@ -226,7 +227,7 @@ public class View3DFactory
     * Add a set of nodes to the 3D view.
     * @param nodes the nodes to display.
     */
-   public void addNodesToView(Iterable<Node> nodes)
+   public void addNodesToView(Iterable<? extends Node> nodes)
    {
       nodes.forEach(this::addNodeToView);
    }
@@ -272,6 +273,19 @@ public class View3DFactory
    public SubScene getSubScene()
    {
       return subScene;
+   }
+
+   /**
+    * <p> Only available for sub-scene creation. </p>
+    * Wrap the sub-scene in a {@link Pane}, bind its size properties to the Pane, and returns it.
+    * It is the preferred option when creating a UI with several elements.
+    * @return the the Pane in which the sub-scene is wrapped.
+    */
+   public Pane getSubSceneWrappedInsidePane()
+   {
+      Pane pane = new Pane(subScene);
+      bindSubSceneSizeToPaneSize(pane);
+      return pane;
    }
 
    /**

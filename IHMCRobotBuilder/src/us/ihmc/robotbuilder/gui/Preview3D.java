@@ -78,7 +78,9 @@ public class Preview3D extends BorderPane
          double locationX = newCamera.getLocalToSceneTransform().getTx();
          double locationY = newCamera.getLocalToSceneTransform().getTy();
          double locationZ = newCamera.getLocalToSceneTransform().getTz();
-         FocusBasedCameraMouseEventHandler cameraController = new FocusBasedCameraMouseEventHandler(subScene.widthProperty(), subScene.heightProperty(), newCamera, new Vector3d(0, 0, 1));
+         Vector3d up = new Vector3d(0, 0, 1);
+         Vector3d forward = new Vector3d(1, 0, 0);
+         FocusBasedCameraMouseEventHandler cameraController = new FocusBasedCameraMouseEventHandler(subScene.widthProperty(), subScene.heightProperty(), newCamera, up, forward);
 
          Optional<Bounds> boundsOpt = sceneRoot.map(Node::getBoundsInParent);
          cameraController.getTranslate().setX(boundsOpt.map(bbox -> 0.5 * (bbox.getMinX() + bbox.getMaxX())).orElse(0.0));

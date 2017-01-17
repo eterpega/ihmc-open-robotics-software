@@ -2,7 +2,7 @@ package us.ihmc.robotics.immutableRobotDescription.graphics;
 
 import org.immutables.value.Value.Immutable;
 import org.jetbrains.annotations.Nullable;
-import us.ihmc.graphics3DDescription.MeshDataHolder;
+import us.ihmc.graphicsDescription.MeshDataHolder;
 
 import javax.vecmath.Vector2f;
 import javax.vecmath.Vector3f;
