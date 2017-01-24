@@ -1,8 +1,8 @@
 package us.ihmc.urdfLoader;
 
-import us.ihmc.urdfLoader.xmlDescription.Joint;
-import us.ihmc.urdfLoader.xmlDescription.Link;
-import us.ihmc.urdfLoader.xmlDescription.Robot;
+import us.ihmc.urdfLoader.xmlDescription.URDFJoint;
+import us.ihmc.urdfLoader.xmlDescription.URDFLink;
+import us.ihmc.urdfLoader.xmlDescription.URDFRobot;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -19,7 +19,7 @@ public class URDFLoadingTest
       JAXBContext jaxbContext = JAXBContext.newInstance("us.ihmc.urdfLoader.xmlDescription");
       Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
 
-      Robot robot = (Robot) unmarshaller.unmarshal(URDFLoadingTest.class.getClassLoader().getResource("urdfRobotTest.urdf"));
+      URDFRobot robot = (URDFRobot) unmarshaller.unmarshal(URDFLoadingTest.class.getClassLoader().getResource("urdfRobotTest.urdf"));
 
       System.out.println("Robot name: " + robot.getName());
 
@@ -27,16 +27,16 @@ public class URDFLoadingTest
 
       for (Object obj : jointAndLinkAndMaterial)
       {
-         if(obj instanceof Link)
+         if(obj instanceof URDFLink)
          {
-            Link link = (Link) obj;
+            URDFLink link = (URDFLink) obj;
 
             System.out.println("Link: " + link.getName());
          }
 
-         if(obj instanceof Joint)
+         if(obj instanceof URDFJoint)
          {
-            Joint joint = (Joint) obj;
+            URDFJoint joint = (URDFJoint) obj;
 
             System.out.println("Joint: " + joint.getName());
             System.out.println("Parent link: " + joint.getParent().getLink());
