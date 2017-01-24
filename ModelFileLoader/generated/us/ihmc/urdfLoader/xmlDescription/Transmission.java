@@ -54,28 +54,28 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(name = "transmission", namespace = "http://www.ros.org", propOrder = {
     "leftActuatorAndRightActuatorAndFlexJoint"
 })
-@Generated(value = "com.sun.tools.internal.xjc.Driver", date = "2017-01-24T03:26:12-06:00", comments = "JAXB RI v2.2.8-b130911.1802")
+@Generated(value = "com.sun.tools.internal.xjc.Driver", date = "2017-01-24T03:35:46-06:00", comments = "JAXB RI v2.2.8-b130911.1802")
 public class Transmission {
 
     @XmlElementRefs({
+        @XmlElementRef(name = "leftActuator", namespace = "http://www.ros.org", type = JAXBElement.class, required = false),
+        @XmlElementRef(name = "rollJoint", namespace = "http://www.ros.org", type = JAXBElement.class, required = false),
         @XmlElementRef(name = "rightActuator", namespace = "http://www.ros.org", type = JAXBElement.class, required = false),
+        @XmlElementRef(name = "passive_joint", namespace = "http://www.ros.org", type = JAXBElement.class, required = false),
         @XmlElementRef(name = "use_simulated_gripper_joint", namespace = "http://www.ros.org", type = JAXBElement.class, required = false),
+        @XmlElementRef(name = "mechanicalReduction", namespace = "http://www.ros.org", type = JAXBElement.class, required = false),
         @XmlElementRef(name = "gap_joint", namespace = "http://www.ros.org", type = JAXBElement.class, required = false),
         @XmlElementRef(name = "actuator", namespace = "http://www.ros.org", type = JAXBElement.class, required = false),
-        @XmlElementRef(name = "leftActuator", namespace = "http://www.ros.org", type = JAXBElement.class, required = false),
-        @XmlElementRef(name = "flexJoint", namespace = "http://www.ros.org", type = JAXBElement.class, required = false),
         @XmlElementRef(name = "joint", namespace = "http://www.ros.org", type = JAXBElement.class, required = false),
-        @XmlElementRef(name = "passive_joint", namespace = "http://www.ros.org", type = JAXBElement.class, required = false),
-        @XmlElementRef(name = "mechanicalReduction", namespace = "http://www.ros.org", type = JAXBElement.class, required = false),
-        @XmlElementRef(name = "rollJoint", namespace = "http://www.ros.org", type = JAXBElement.class, required = false)
+        @XmlElementRef(name = "flexJoint", namespace = "http://www.ros.org", type = JAXBElement.class, required = false)
     })
-    @Generated(value = "com.sun.tools.internal.xjc.Driver", date = "2017-01-24T03:26:12-06:00", comments = "JAXB RI v2.2.8-b130911.1802")
+    @Generated(value = "com.sun.tools.internal.xjc.Driver", date = "2017-01-24T03:35:46-06:00", comments = "JAXB RI v2.2.8-b130911.1802")
     protected List<JAXBElement<?>> leftActuatorAndRightActuatorAndFlexJoint;
     @XmlAttribute(name = "name", required = true)
-    @Generated(value = "com.sun.tools.internal.xjc.Driver", date = "2017-01-24T03:26:12-06:00", comments = "JAXB RI v2.2.8-b130911.1802")
+    @Generated(value = "com.sun.tools.internal.xjc.Driver", date = "2017-01-24T03:35:46-06:00", comments = "JAXB RI v2.2.8-b130911.1802")
     protected String name;
     @XmlAttribute(name = "type", required = true)
-    @Generated(value = "com.sun.tools.internal.xjc.Driver", date = "2017-01-24T03:26:12-06:00", comments = "JAXB RI v2.2.8-b130911.1802")
+    @Generated(value = "com.sun.tools.internal.xjc.Driver", date = "2017-01-24T03:35:46-06:00", comments = "JAXB RI v2.2.8-b130911.1802")
     protected String type;
 
     /**
@@ -97,19 +97,19 @@ public class Transmission {
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link JAXBElement }{@code <}{@link ActuatorTransmission }{@code >}
+     * {@link JAXBElement }{@code <}{@link ActuatorTransmission }{@code >}
+     * {@link JAXBElement }{@code <}{@link ActuatorTransmission }{@code >}
+     * {@link JAXBElement }{@code <}{@link PassiveJointTransmission }{@code >}
      * {@link JAXBElement }{@code <}{@link Transmission.UseSimulatedGripperJoint }{@code >}
+     * {@link JAXBElement }{@code <}{@link Double }{@code >}
      * {@link JAXBElement }{@code <}{@link GapJointTransmission }{@code >}
      * {@link JAXBElement }{@code <}{@link Name }{@code >}
-     * {@link JAXBElement }{@code <}{@link ActuatorTransmission }{@code >}
-     * {@link JAXBElement }{@code <}{@link ActuatorTransmission }{@code >}
      * {@link JAXBElement }{@code <}{@link Name }{@code >}
-     * {@link JAXBElement }{@code <}{@link PassiveJointTransmission }{@code >}
-     * {@link JAXBElement }{@code <}{@link Double }{@code >}
      * {@link JAXBElement }{@code <}{@link ActuatorTransmission }{@code >}
      * 
      * 
      */
-    @Generated(value = "com.sun.tools.internal.xjc.Driver", date = "2017-01-24T03:26:12-06:00", comments = "JAXB RI v2.2.8-b130911.1802")
+    @Generated(value = "com.sun.tools.internal.xjc.Driver", date = "2017-01-24T03:35:46-06:00", comments = "JAXB RI v2.2.8-b130911.1802")
     public List<JAXBElement<?>> getLeftActuatorAndRightActuatorAndFlexJoint() {
         if (leftActuatorAndRightActuatorAndFlexJoint == null) {
             leftActuatorAndRightActuatorAndFlexJoint = new ArrayList<JAXBElement<?>>();
@@ -125,7 +125,7 @@ public class Transmission {
      *     {@link String }
      *     
      */
-    @Generated(value = "com.sun.tools.internal.xjc.Driver", date = "2017-01-24T03:26:12-06:00", comments = "JAXB RI v2.2.8-b130911.1802")
+    @Generated(value = "com.sun.tools.internal.xjc.Driver", date = "2017-01-24T03:35:46-06:00", comments = "JAXB RI v2.2.8-b130911.1802")
     public String getName() {
         return name;
     }
@@ -138,7 +138,7 @@ public class Transmission {
      *     {@link String }
      *     
      */
-    @Generated(value = "com.sun.tools.internal.xjc.Driver", date = "2017-01-24T03:26:12-06:00", comments = "JAXB RI v2.2.8-b130911.1802")
+    @Generated(value = "com.sun.tools.internal.xjc.Driver", date = "2017-01-24T03:35:46-06:00", comments = "JAXB RI v2.2.8-b130911.1802")
     public void setName(String value) {
         this.name = value;
     }
@@ -151,7 +151,7 @@ public class Transmission {
      *     {@link String }
      *     
      */
-    @Generated(value = "com.sun.tools.internal.xjc.Driver", date = "2017-01-24T03:26:12-06:00", comments = "JAXB RI v2.2.8-b130911.1802")
+    @Generated(value = "com.sun.tools.internal.xjc.Driver", date = "2017-01-24T03:35:46-06:00", comments = "JAXB RI v2.2.8-b130911.1802")
     public String getType() {
         return type;
     }
@@ -164,7 +164,7 @@ public class Transmission {
      *     {@link String }
      *     
      */
-    @Generated(value = "com.sun.tools.internal.xjc.Driver", date = "2017-01-24T03:26:12-06:00", comments = "JAXB RI v2.2.8-b130911.1802")
+    @Generated(value = "com.sun.tools.internal.xjc.Driver", date = "2017-01-24T03:35:46-06:00", comments = "JAXB RI v2.2.8-b130911.1802")
     public void setType(String value) {
         this.type = value;
     }
@@ -188,7 +188,7 @@ public class Transmission {
      */
     @XmlAccessorType(XmlAccessType.FIELD)
     @XmlType(name = "")
-    @Generated(value = "com.sun.tools.internal.xjc.Driver", date = "2017-01-24T03:26:12-06:00", comments = "JAXB RI v2.2.8-b130911.1802")
+    @Generated(value = "com.sun.tools.internal.xjc.Driver", date = "2017-01-24T03:35:46-06:00", comments = "JAXB RI v2.2.8-b130911.1802")
     public static class UseSimulatedGripperJoint {
 
 
