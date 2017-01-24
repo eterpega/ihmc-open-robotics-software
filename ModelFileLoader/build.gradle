@@ -32,6 +32,14 @@ repositories {
     }
 }
 
+sourceSets {
+    main {
+        java {
+            srcDirs += "generated"
+        }
+    }
+}
+
 def strings = ['ihmc', 'robotics']
 ihmc.configureForIHMCOpenSourceBintrayPublish(false, "mavenJava", "maven-release", strings)
 
