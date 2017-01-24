@@ -9,6 +9,7 @@
             <jxb:nameXmlTransform>
                 <jxb:typeName prefix="URDF"/>
                 <jxb:anonymousTypeName prefix="URDF"/>
+                <jxb:elementName prefix="URDF"/>
             </jxb:nameXmlTransform>
         </jxb:schemaBindings>
     </jxb:bindings>
