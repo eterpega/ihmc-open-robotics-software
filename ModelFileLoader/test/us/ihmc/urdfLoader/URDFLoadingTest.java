@@ -1,8 +1,8 @@
 package us.ihmc.urdfLoader;
 
-import us.ihmc.urdfLoader.xmlDescription.URDFJoint;
-import us.ihmc.urdfLoader.xmlDescription.URDFLink;
-import us.ihmc.urdfLoader.xmlDescription.URDFRobot;
+import us.ihmc.modelFileLoaders.urdfLoader.xmlDescription.URDFJoint;
+import us.ihmc.modelFileLoaders.urdfLoader.xmlDescription.URDFLink;
+import us.ihmc.modelFileLoaders.urdfLoader.xmlDescription.URDFRobot;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
