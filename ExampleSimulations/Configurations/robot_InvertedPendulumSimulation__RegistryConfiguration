@@ -1,0 +1,4 @@
+root*false*false
+root.robot*false*false
+root.robot.LinearGroundContactModel*false*false
+root.robot.InvertedPendulumController*false*false
