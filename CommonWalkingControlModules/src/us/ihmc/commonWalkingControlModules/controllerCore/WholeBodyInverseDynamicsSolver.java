@@ -69,6 +69,8 @@ public class WholeBodyInverseDynamicsSolver
    // Need to review the computation of the achieved linear momentum rate or of the achieved CMP. (Sylvain)
    private final YoFrameVector yoAchievedMomentumRateLinear;
    private final FrameVector achievedMomentumRateLinear = new FrameVector();
+   private final YoFrameVector yoAchievedMomentumRateAngular;
+   private final FrameVector achievedMomentumRateAngular = new FrameVector();
 
    private final Wrench residualRootJointWrench = new Wrench();
    private final FrameVector residualRootJointForce = new FrameVector();
@@ -106,6 +108,7 @@ public class WholeBodyInverseDynamicsSolver
 
       yoDesiredMomentumRateLinear = toolbox.getYoDesiredMomentumRateLinear();
       yoAchievedMomentumRateLinear = toolbox.getYoAchievedMomentumRateLinear();
+      yoAchievedMomentumRateAngular = toolbox.getYoAchievedMomentumRateAngular();
 
       yoResidualRootJointForce = toolbox.getYoResidualRootJointForce();
       yoResidualRootJointTorque = toolbox.getYoResidualRootJointTorque();
@@ -150,6 +153,8 @@ public class WholeBodyInverseDynamicsSolver
 
       yoAchievedMomentumRateLinear.set(centroidalMomentumRateSolution.getLinearPart());
       yoAchievedMomentumRateLinear.getFrameTupleIncludingFrame(achievedMomentumRateLinear);
+      yoAchievedMomentumRateAngular.set(centroidalMomentumRateSolution.getAngularPart());
+      yoAchievedMomentumRateAngular.getFrameTupleIncludingFrame(achievedMomentumRateAngular);
 
       for (int i = 0; i < rigidBodiesWithExternalWrench.size(); i++)
       {
@@ -261,6 +266,11 @@ public class WholeBodyInverseDynamicsSolver
    public FrameVector getAchievedMomentumRateLinear()
    {
       return achievedMomentumRateLinear;
+   }
+
+   public FrameVector getAchievedMomentumRateAngular()
+   {
+      return achievedMomentumRateAngular;
    }
 
    public InverseDynamicsJoint[] getJointsToOptimizeFors()
