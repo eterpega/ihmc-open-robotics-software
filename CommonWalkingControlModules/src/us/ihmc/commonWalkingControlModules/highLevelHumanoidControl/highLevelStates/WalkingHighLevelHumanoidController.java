@@ -1,12 +1,11 @@
 package us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.highLevelStates;
 
-import us.ihmc.robotModels.FullHumanoidRobotModel;
-import us.ihmc.robotics.partNames.ArmJointName;
 import us.ihmc.commonWalkingControlModules.bipedSupportPolygons.YoPlaneContactState;
+import us.ihmc.commonWalkingControlModules.configurations.CapturePointPlannerParameters;
 import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParameters;
-import us.ihmc.commonWalkingControlModules.controlModules.ChestOrientationManager;
 import us.ihmc.commonWalkingControlModules.controlModules.PelvisOrientationManager;
 import us.ihmc.commonWalkingControlModules.controlModules.WalkingFailureDetectionControlModule;
+import us.ihmc.commonWalkingControlModules.controlModules.chest.ChestOrientationManager;
 import us.ihmc.commonWalkingControlModules.controlModules.foot.FeetManager;
 import us.ihmc.commonWalkingControlModules.controlModules.head.HeadOrientationManager;
 import us.ihmc.commonWalkingControlModules.controllerCore.WholeBodyControllerCoreMode;
@@ -46,6 +45,7 @@ import us.ihmc.communication.controllerAPI.StatusMessageOutputManager;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.humanoidRobotics.bipedSupportPolygons.ContactablePlaneBody;
 import us.ihmc.humanoidRobotics.communication.packets.dataobjects.HighLevelState;
+import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
 import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
@@ -53,6 +53,7 @@ import us.ihmc.robotics.geometry.FramePoint2d;
 import us.ihmc.robotics.geometry.FrameVector;
 import us.ihmc.robotics.geometry.FrameVector2d;
 import us.ihmc.robotics.lists.RecyclingArrayList;
+import us.ihmc.robotics.partNames.ArmJointName;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
@@ -107,6 +108,8 @@ public class WalkingHighLevelHumanoidController extends HighLevelBehavior
 
    private final BooleanYoVariable enablePushRecoveryOnFailure = new BooleanYoVariable("enablePushRecoveryOnFailure", registry);
 
+   private final BooleanYoVariable allowUpperBodyMotionDuringLocomotion = new BooleanYoVariable("allowUpperBodyMotionDuringLocomotion", registry);
+
    private final CommandInputManager commandInputManager;
    private final StatusMessageOutputManager statusOutputManager;
    private final WalkingCommandConsumer commandConsumer;
@@ -120,7 +123,7 @@ public class WalkingHighLevelHumanoidController extends HighLevelBehavior
 
    public WalkingHighLevelHumanoidController(CommandInputManager commandInputManager, StatusMessageOutputManager statusOutputManager,
          HighLevelControlManagerFactory managerFactory, WalkingControllerParameters walkingControllerParameters,
-         HighLevelHumanoidControllerToolbox momentumBasedController)
+         CapturePointPlannerParameters capturePointPlannerParameters, HighLevelHumanoidControllerToolbox momentumBasedController)
    {
       super(controllerState);
 
@@ -151,6 +154,7 @@ public class WalkingHighLevelHumanoidController extends HighLevelBehavior
       this.commandInputManager = commandInputManager;
       this.statusOutputManager = statusOutputManager;
 
+      allowUpperBodyMotionDuringLocomotion.set(walkingControllerParameters.allowUpperBodyMotionDuringLocomotion());
 
       hasWalkingControllerBeenInitialized.set(false);
 
@@ -158,7 +162,8 @@ public class WalkingHighLevelHumanoidController extends HighLevelBehavior
 
       double defaultTransferTime = walkingControllerParameters.getDefaultTransferTime();
       double defaultSwingTime = walkingControllerParameters.getDefaultSwingTime();
-      walkingMessageHandler = new WalkingMessageHandler(defaultTransferTime, defaultSwingTime, feet, statusOutputManager, yoGraphicsListRegistry, registry);
+      double defaultInitialTransferTime = walkingControllerParameters.getDefaultInitialTransferTime();
+      walkingMessageHandler = new WalkingMessageHandler(defaultTransferTime, defaultSwingTime, defaultInitialTransferTime, feet, statusOutputManager, yoTime, yoGraphicsListRegistry, registry);
 
       commandConsumer = new WalkingCommandConsumer(commandInputManager, statusOutputManager, momentumBasedController, walkingMessageHandler, managerFactory, walkingControllerParameters, registry);
 
@@ -192,7 +197,9 @@ public class WalkingHighLevelHumanoidController extends HighLevelBehavior
 
       for (RobotSide transferToSide : RobotSide.values)
       {
-         TransferToWalkingSingleSupportState transferState = new TransferToWalkingSingleSupportState(transferToSide, walkingMessageHandler, momentumBasedController, managerFactory, failureDetectionControlModule, registry);
+         double minimumTransferTime = walkingControllerParameters.getMinimumTransferTime();
+         TransferToWalkingSingleSupportState transferState = new TransferToWalkingSingleSupportState(transferToSide, walkingMessageHandler,
+               momentumBasedController, managerFactory, failureDetectionControlModule, minimumTransferTime, registry);
          walkingTransferStates.put(transferToSide, transferState);
          stateMachine.addState(transferState);
       }
@@ -481,6 +488,8 @@ public class WalkingHighLevelHumanoidController extends HighLevelBehavior
 
       if (headOrientationManager != null)
          headOrientationManager.submitNewNeckJointDesiredConfiguration(controllerCoreOutput.getLowLevelOneDoFJointDesiredDataHolder());
+      if (chestOrientationManager != null)
+         chestOrientationManager.submitNewSpineJointDesiredConfiguration(controllerCoreOutput.getLowLevelOneDoFJointDesiredDataHolder());
 
       controllerCoreOutput.getLinearMomentumRate(achievedLinearMomentumRate);
       balanceManager.computeAchievedCMP(achievedLinearMomentumRate);
@@ -495,8 +504,8 @@ public class WalkingHighLevelHumanoidController extends HighLevelBehavior
       commandConsumer.consumeStopAllTrajectoryCommands();
       commandConsumer.consumeFootCommands();
       commandConsumer.consumeAbortWalkingCommands(abortWalkingRequested);
-      commandConsumer.consumePelvisCommands(currentState);
-      commandConsumer.consumeManipulationCommands(currentState);
+      commandConsumer.consumePelvisCommands(currentState, allowUpperBodyMotionDuringLocomotion.getBooleanValue());
+      commandConsumer.consumeManipulationCommands(currentState, allowUpperBodyMotionDuringLocomotion.getBooleanValue());
       commandConsumer.handleAutomaticManipulationAbortOnICPError(currentState);
 
       updateFailureDetection();
@@ -639,7 +648,10 @@ public class WalkingHighLevelHumanoidController extends HighLevelBehavior
       }
 
       if (chestOrientationManager != null)
+      {
          controllerCoreCommand.addFeedbackControlCommand(chestOrientationManager.getFeedbackControlCommand());
+         controllerCoreCommand.addInverseDynamicsCommand(chestOrientationManager.getInverseDynamicsCommand());
+      }
 
       controllerCoreCommand.addFeedbackControlCommand(pelvisOrientationManager.getFeedbackControlCommand());
 
