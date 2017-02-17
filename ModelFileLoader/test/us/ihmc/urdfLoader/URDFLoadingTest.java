@@ -19,7 +19,7 @@ public class URDFLoadingTest
       JAXBContext jaxbContext = JAXBContext.newInstance("us.ihmc.urdfLoader.xmlDescription");
       Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
 
-      URDFRobot robot = (URDFRobot) unmarshaller.unmarshal(URDFLoadingTest.class.getClassLoader().getResource("urdfRobotTest.urdf"));
+      URDFRobot robot = (URDFRobot) unmarshaller.unmarshal(URDFLoadingTest.class.getClassLoader().getResourceAsStream("urdfRobotTest.urdf"));
 
       System.out.println("Robot name: " + robot.getName());
 

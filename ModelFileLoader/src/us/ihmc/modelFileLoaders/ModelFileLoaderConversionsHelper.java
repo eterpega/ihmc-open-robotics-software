@@ -6,9 +6,57 @@ import us.ihmc.euclid.tuple2D.Vector2D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.modelFileLoaders.SdfLoader.xmlDescription.SDFInertia;
 import us.ihmc.robotics.dataStructures.MutableColor;
+import us.ihmc.modelFileLoaders.urdfLoader.xmlDescription.URDFJoint;
+import us.ihmc.modelFileLoaders.urdfLoader.xmlDescription.URDFLink;
+import us.ihmc.modelFileLoaders.urdfLoader.xmlDescription.URDFRobot;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ModelFileLoaderConversionsHelper
 {
+
+   public static List<URDFJoint> getAllJointsFromURDFRobot(URDFRobot urdfRobot)
+   {
+      ArrayList<URDFJoint> ret = new ArrayList<>();
+
+      for (Object o : urdfRobot.getJointAndLinkAndMaterial())
+      {
+         if(o instanceof URDFJoint)
+         {
+            ret.add((URDFJoint) o);
+         }
+      }
+
+      return ret;
+   }
+
+   public static List<URDFLink> getAllLinksFromURDFRobot(URDFRobot urdfRobot)
+   {
+      ArrayList<URDFLink> ret = new ArrayList<>();
+
+      for (Object o : urdfRobot.getJointAndLinkAndMaterial())
+      {
+         if(o instanceof URDFLink)
+         {
+            ret.add((URDFLink) o);
+         }
+      }
+
+      return ret;
+   }
+
+   public static List<URDFLink> getRootLinksFromURDFLinks(List<URDFLink> urdfLinks)
+   {
+      ArrayList<URDFLink> ret = new ArrayList<>();
+
+      for (URDFLink urdfLink : urdfLinks)
+      {
+//         System.out.println(urdfLink.ge);
+      }
+
+      return ret;
+   }
 
    public static String sanitizeJointName(String dirtyName)
    {
