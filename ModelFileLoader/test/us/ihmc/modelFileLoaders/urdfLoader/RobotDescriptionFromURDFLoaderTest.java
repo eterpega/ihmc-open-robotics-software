@@ -12,7 +12,7 @@ import us.ihmc.robotics.robotDescription.RobotDescription;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
-import java.io.InputStream;
+import java.net.URL;
 import java.util.List;
 
 import static org.junit.Assert.fail;
@@ -28,7 +28,7 @@ public class RobotDescriptionFromURDFLoaderTest
    private static final JointNameMap jointNameMap = null;
 
    private RobotDescriptionFromURDFLoader loader;
-   private InputStream robotModelInputStream;
+   private URL robotModelURL;
    private JAXBContext jaxbContext;
    private Unmarshaller unmarshaller;
    private URDFRobot rawURDFRobot;
@@ -37,18 +37,18 @@ public class RobotDescriptionFromURDFLoaderTest
    public void setup() throws JAXBException
    {
       loader = new RobotDescriptionFromURDFLoader();
-      robotModelInputStream = getClass().getClassLoader().getResourceAsStream("urdfRobotTest.urdf");
+      robotModelURL = getClass().getClassLoader().getResource("urdfRobotTest.urdf");
 
-      jaxbContext = JAXBContext.newInstance("us.ihmc.modelFileLoaders.urdfLoader.xmlDescription");
-      unmarshaller = jaxbContext.createUnmarshaller();
-      rawURDFRobot = (URDFRobot) unmarshaller.unmarshal(getClass().getClassLoader().getResourceAsStream("urdfRobotTest.urdf"));
+//      jaxbContext = JAXBContext.newInstance("us.ihmc.modelFileLoaders.urdfLoader.xmlDescription");
+//      unmarshaller = jaxbContext.createUnmarshaller();
+//      rawURDFRobot = (URDFRobot) unmarshaller.unmarshal(getClass().getClassLoader().getResource("urdfRobotTest.urdf"));
    }
 
    @After
    public void teardown()
    {
       loader = null;
-      robotModelInputStream = null;
+      robotModelURL = null;
       jaxbContext = null;
       unmarshaller = null;
       rawURDFRobot = null;
@@ -58,7 +58,7 @@ public class RobotDescriptionFromURDFLoaderTest
    @Test(timeout = 30000)
    public void testSDFRobotVersusURDFRobot()
    {
-      RobotDescription robotDescription = loader.loadRobotDescriptionFromURDF(modelName, robotModelInputStream, resourceDirectories, jointNameMap, true);
+      RobotDescription robotDescription = loader.loadRobotDescriptionFromURDF(modelName, robotModelURL, resourceDirectories, jointNameMap, true);
       fail();
    }
 }
