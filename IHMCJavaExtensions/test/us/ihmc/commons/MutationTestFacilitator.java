@@ -22,6 +22,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.pitest.mutationtest.commandline.MutationCoverageReport;
 
+import us.ihmc.commons.exception.DefaultExceptionHandler;
+import us.ihmc.commons.nio.WriteOption;
 import us.ihmc.tools.io.files.BasicPathVisitor;
 import us.ihmc.tools.io.files.FileTools;
 import us.ihmc.tools.io.files.PathTools;
@@ -154,7 +156,7 @@ public class MutationTestFacilitator
                   long difference = currentDate.getTime() - directoryDate.getTime();
                   if (TimeUnit.HOURS.convert(difference, TimeUnit.MILLISECONDS) > NUMBER_OF_HOURS_BEFORE_EXPIRATION)
                   {
-                     FileTools.deleteDirectory(path);
+                     FileTools.deleteQuietly(path);
                   }
                }
                catch (ParseException e)
@@ -229,13 +231,13 @@ public class MutationTestFacilitator
                   Path newPath = Paths.get(REPORT_DIRECTORY_NAME, lastDirectoryName, newPathName);
 
                   Path indexPath = Paths.get(REPORT_DIRECTORY_NAME, lastDirectoryName, "index.html");
-                  List<String> lines = FileTools.readAllLines(indexPath);
+                  List<String> lines = FileTools.readAllLines(indexPath, DefaultExceptionHandler.PRINT_STACKTRACE);
                   ArrayList<String> newLines = new ArrayList<>();
                   for (String originalLine : lines)
                   {
                      newLines.add(originalLine.replaceAll(longPathName, newPathName));
                   }
-                  FileTools.writeAllLines(newLines, indexPath);
+                  FileTools.writeAllLines(newLines, indexPath, WriteOption.TRUNCATE, DefaultExceptionHandler.PRINT_STACKTRACE);
 
                   try
                   {
