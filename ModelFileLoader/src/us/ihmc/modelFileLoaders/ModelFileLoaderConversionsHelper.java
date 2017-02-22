@@ -11,35 +11,41 @@ import us.ihmc.modelFileLoaders.urdfLoader.xmlDescription.URDFLink;
 import us.ihmc.modelFileLoaders.urdfLoader.xmlDescription.URDFRobot;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ModelFileLoaderConversionsHelper
 {
 
-   public static List<URDFJoint> getAllJointsFromURDFRobot(URDFRobot urdfRobot)
+   public static Map<String, URDFJoint> getAllJointsFromURDFRobot(URDFRobot urdfRobot)
    {
-      ArrayList<URDFJoint> ret = new ArrayList<>();
+      HashMap<String, URDFJoint> ret = new HashMap<>();
 
       for (Object o : urdfRobot.getJointAndLinkAndMaterial())
       {
          if(o instanceof URDFJoint)
          {
-            ret.add((URDFJoint) o);
+            URDFJoint urdfJoint = (URDFJoint) o;
+
+            ret.put(urdfJoint.getName(), urdfJoint);
          }
       }
 
       return ret;
    }
 
-   public static List<URDFLink> getAllLinksFromURDFRobot(URDFRobot urdfRobot)
+   public static Map<String, URDFLink> getAllLinksFromURDFRobot(URDFRobot urdfRobot)
    {
-      ArrayList<URDFLink> ret = new ArrayList<>();
+      HashMap<String, URDFLink> ret = new HashMap<>();
 
       for (Object o : urdfRobot.getJointAndLinkAndMaterial())
       {
          if(o instanceof URDFLink)
          {
-            ret.add((URDFLink) o);
+            URDFLink urdfLink = (URDFLink) o;
+
+            ret.put(urdfLink.getName(), urdfLink);
          }
       }
 

@@ -55,28 +55,6 @@ public class RobotDescriptionFromURDFLoader
          URDFRobot urdfRobot = (URDFRobot) coreUnmashaller.unmarshal(modelFileResourceURL);
 
          List<URDFGazebo> gazeboTags = getGazeboExtensions(modelFileResourceURL);
-         List<URDFJoint> allJointsFromURDFRobot = ModelFileLoaderConversionsHelper.getAllJointsFromURDFRobot(urdfRobot);
-         List<URDFLink> allLinksFromURDFRobot = ModelFileLoaderConversionsHelper.getAllLinksFromURDFRobot(urdfRobot);
-
-         System.out.println("joint names: ");
-         for (URDFJoint urdfJoint : allJointsFromURDFRobot)
-         {
-            System.out.println(urdfJoint.getName());
-         }
-         System.out.println();
-
-         System.out.println("link names: ");
-         for (URDFLink urdfLink : allLinksFromURDFRobot)
-         {
-            System.out.println(urdfLink.getName());
-         }
-         System.out.println();
-
-         System.out.println("gazebo extension");
-         for (URDFGazebo urdfGazebo : gazeboTags)
-         {
-            System.out.println(urdfGazebo.getReference());
-         }
       }
       catch (Throwable e)
       {
