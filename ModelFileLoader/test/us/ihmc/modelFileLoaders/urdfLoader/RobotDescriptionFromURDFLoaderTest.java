@@ -24,7 +24,6 @@ public class RobotDescriptionFromURDFLoaderTest
 {
    private static final String modelName = "atlas";
    private static final List<String> resourceDirectories = (List<String>) null;
-   private static final SDFDescriptionMutator mutator = null;
    private static final JointNameMap jointNameMap = null;
 
    private RobotDescriptionFromURDFLoader loader;

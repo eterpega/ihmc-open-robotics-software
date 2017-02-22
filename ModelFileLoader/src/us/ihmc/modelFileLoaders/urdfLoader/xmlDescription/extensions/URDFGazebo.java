@@ -17,25 +17,25 @@ public class URDFGazebo
    private String reference;
 
    // Link extensions:
-   private double dampingFactor;
-   private double maxVel;
-   private double minDepth;
-   private double mu1;
-   private double mu2;
-   private String fdir1;
-   private double kp;
-   private double kd;
-   private boolean selfCollide;
-   private int maxContacts;
-   private double laserRetro;
+   private double dampingFactor = Double.NaN;
+   private double maxVel = Double.NaN;
+   private double minDepth = Double.NaN;
+   private double mu1 = Double.NaN;
+   private double mu2 = Double.NaN;
+   private String fdir1 = null;
+   private double kp = Double.NaN;
+   private double kd = Double.NaN;
+   private boolean selfCollide = false;
+   private int maxContacts = Integer.MIN_VALUE;
+   private double laserRetro = Double.NaN;
 
    // Joint extensions:
-   private double stopCfm;
-   private double stopErp;
-   private boolean provideFeedback;
-   private boolean implicitSpringDamper;
-   private boolean cfmDamping;
-   private double fudgeFactor;
+   private double stopCfm = Double.NaN;
+   private double stopErp = Double.NaN;
+   private boolean provideFeedback = false;
+   private boolean implicitSpringDamper = false;
+   private boolean cfmDamping = false;
+   private double fudgeFactor = Double.NaN;
 
    // All other tags, e.g. all inline SDF elements
    private List<Element> extensions;
