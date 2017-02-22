@@ -1,12 +1,18 @@
 package us.ihmc.modelFileLoaders;
 
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import us.ihmc.euclid.matrix.Matrix3D;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple2D.Vector2D;
 import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
+import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
 import us.ihmc.modelFileLoaders.SdfLoader.xmlDescription.SDFInertia;
 import us.ihmc.modelFileLoaders.urdfLoader.xmlDescription.*;
 import us.ihmc.robotics.dataStructures.MutableColor;
+import us.ihmc.tools.io.printing.PrintTools;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,6 +20,66 @@ import java.util.List;
 
 public class ModelFileLoaderConversionsHelper
 {
+
+   public static Pair<Vector3D, QuaternionReadOnly> getPoseFromURDFPose(String containingElementName, URDFPose pose)
+   {
+      String xyzString = pose.getXyz();
+      String rpyString = pose.getRpy();
+      String[] xyzSplit = xyzString.split(" ");
+      String[] rpySplit = rpyString.split(" ");
+
+      Vector3D position = new Vector3D();
+      Quaternion orientation = new Quaternion();
+
+      if (xyzSplit.length != 3)
+      {
+         reportPoseXYZError(containingElementName);
+         position.set(0.0, 0.0, 0.0);
+      }
+      else
+      {
+         try
+         {
+            double x = Double.parseDouble(xyzSplit[0]);
+            double y = Double.parseDouble(xyzSplit[1]);
+            double z = Double.parseDouble(xyzSplit[2]);
+
+            position.set(x, y, z);
+         }
+         catch (Throwable e)
+         {
+            reportPoseXYZError(containingElementName);
+            position.set(0.0, 0.0, 0.0);
+         }
+      }
+
+      if (rpySplit.length != 3)
+      {
+         reportRPYError(containingElementName);
+      }
+      else
+      {
+         try
+         {
+            double roll = Double.parseDouble(rpySplit[0]);
+            double pitch = Double.parseDouble(rpySplit[1]);
+            double yaw = Double.parseDouble(rpySplit[2]);
+
+            orientation.setYawPitchRoll(yaw, pitch, roll);
+         }
+         catch (Throwable e)
+         {
+            reportRPYError(containingElementName);
+         }
+      }
+
+      return new ImmutablePair<>(position, orientation);
+   }
+
+   public static Pair<Vector3D, QuaternionReadOnly> getPoseFromURDFPose(URDFPose pose)
+   {
+      return getPoseFromURDFPose(null, pose);
+   }
 
    /**
     * <p>Helper method to accomodate the oddities of the JAXB/XJC generated code for URDFRobot.</p>
@@ -74,7 +140,8 @@ public class ModelFileLoaderConversionsHelper
     * @param urdfCollisionsToPack The colleciton of collision defintions to pack
     * @return The Intertial information for the joint, or null if it is not present
     */
-   public static URDFInertial getInertialInformationAndPackVisualsAndCollisionsForURDFLink(URDFLink urdfLink, List<URDFVisual> urdfVisualsToPack, List<URDFCollision> urdfCollisionsToPack)
+   public static URDFInertial getInertialInformationAndPackVisualsAndCollisionsForURDFLink(URDFLink urdfLink, List<URDFVisual> urdfVisualsToPack,
+                                                                                           List<URDFCollision> urdfCollisionsToPack)
    {
       URDFInertial ret = null;
       for (Object o : urdfLink.getInertialOrVisualOrCollision())
@@ -84,12 +151,12 @@ public class ModelFileLoaderConversionsHelper
             ret = (URDFInertial) o;
          }
 
-         if(o instanceof URDFVisual)
+         if (o instanceof URDFVisual)
          {
             urdfVisualsToPack.add((URDFVisual) o);
          }
 
-         if(o instanceof URDFCollision)
+         if (o instanceof URDFCollision)
          {
             urdfCollisionsToPack.add((URDFCollision) o);
          }
@@ -199,5 +266,31 @@ public class ModelFileLoaderConversionsHelper
          inertia.setM22(izz);
       }
       return inertia;
+   }
+
+   private static void reportRPYError(String containingElementName)
+   {
+      StringBuilder errorString = new StringBuilder();
+
+      errorString.append("Improperly formatted RPY component for pose, using identity.");
+      if (containingElementName != null)
+      {
+         errorString.append(" Containing Element: ").append(containingElementName);
+      }
+
+      PrintTools.warn(ModelFileLoaderConversionsHelper.class, errorString.toString());
+   }
+
+   private static void reportPoseXYZError(String containingElementName)
+   {
+      StringBuilder errorString = new StringBuilder();
+
+      errorString.append("Improperly formatted XYZ component for pose, using (0, 0, 0).");
+      if (containingElementName != null)
+      {
+         errorString.append(" Containing Element: ").append(containingElementName);
+      }
+
+      PrintTools.warn(ModelFileLoaderConversionsHelper.class, errorString.toString());
    }
 }

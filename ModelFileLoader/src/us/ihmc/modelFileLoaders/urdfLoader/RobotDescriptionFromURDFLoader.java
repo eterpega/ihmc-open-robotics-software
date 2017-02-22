@@ -1,7 +1,10 @@
 package us.ihmc.modelFileLoaders.urdfLoader;
 
+import org.apache.commons.lang3.tuple.Pair;
 import us.ihmc.euclid.matrix.Matrix3D;
-import us.ihmc.euclid.matrix.RotationMatrix;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
 import us.ihmc.modelFileLoaders.ModelFileLoaderConversionsHelper;
 import us.ihmc.modelFileLoaders.urdfLoader.xmlDescription.*;
 import us.ihmc.modelFileLoaders.urdfLoader.xmlDescription.extensions.URDFGazebo;
@@ -64,7 +67,8 @@ public class RobotDescriptionFromURDFLoader
          HashMap<String, URDFMaterialGlobal> allGlobalMaterialsFromURDFRobot = new HashMap<>();
          HashMap<String, URDFTransmission> allTransmissionFromURDFRobot = new HashMap<>();
 
-         ModelFileLoaderConversionsHelper.getGlobalLinksJointsMaterialsAndTransmissionFromURDFRobot(urdfRobot, allJointsFromURDFRobot, allLinksFromURDFRobot, allGlobalMaterialsFromURDFRobot,
+         ModelFileLoaderConversionsHelper.getGlobalLinksJointsMaterialsAndTransmissionFromURDFRobot(urdfRobot, allJointsFromURDFRobot, allLinksFromURDFRobot,
+                                                                                                    allGlobalMaterialsFromURDFRobot,
                                                                                                     allTransmissionFromURDFRobot);
 
          for (Map.Entry<String, URDFLink> stringURDFLinkEntry : allLinksFromURDFRobot.entrySet())
@@ -77,8 +81,32 @@ public class RobotDescriptionFromURDFLoader
             ArrayList<URDFVisual> linkVisuals = new ArrayList<>();
             ArrayList<URDFCollision> linkCollisions = new ArrayList<>();
 
-            URDFInertial inertialInformationForURDFLink = ModelFileLoaderConversionsHelper.getInertialInformationAndPackVisualsAndCollisionsForURDFLink(link, linkVisuals, linkCollisions);
+            URDFInertial inertialInformationForURDFLink = ModelFileLoaderConversionsHelper
+                  .getInertialInformationAndPackVisualsAndCollisionsForURDFLink(link, linkVisuals, linkCollisions);
             setupInertialInformationForLink(linkName, linkDescription, inertialInformationForURDFLink);
+
+            for (URDFVisual linkVisual : linkVisuals)
+            {
+               URDFPose origin = linkVisual.getOrigin();
+
+               Vector3D centerOfMassOffset;
+               QuaternionReadOnly visualRotation;
+
+               if (origin != null)
+               {
+                  Pair<Vector3D, QuaternionReadOnly> poseFromURDFPose = ModelFileLoaderConversionsHelper.getPoseFromURDFPose(linkName, origin);
+                  centerOfMassOffset = poseFromURDFPose.getLeft();
+                  visualRotation = poseFromURDFPose.getRight();
+               }
+               else
+               {
+                  centerOfMassOffset = new Vector3D();
+                  visualRotation = new Quaternion();
+               }
+
+               URDFGeometry geometry = linkVisual.getGeometry();
+               URDFMaterial material = linkVisual.getMaterial();
+            }
          }
 
          for (Map.Entry<String, URDFJoint> stringURDFJointEntry : allJointsFromURDFRobot.entrySet())
@@ -113,9 +141,23 @@ public class RobotDescriptionFromURDFLoader
          URDFInertia inertia = inertialInformationForURDFLink.getInertia();
          URDFPose origin = inertialInformationForURDFLink.getOrigin();
 
-         parseMassProperties(linkName, linkDescription, mass, origin);
+         Vector3D centerOfMassOffset;
+         QuaternionReadOnly linkInertiaRotation;
+         if (origin != null)
+         {
+            Pair<Vector3D, QuaternionReadOnly> poseFromURDFPose = ModelFileLoaderConversionsHelper.getPoseFromURDFPose(linkName, origin);
+            centerOfMassOffset = poseFromURDFPose.getLeft();
+            linkInertiaRotation = poseFromURDFPose.getRight();
+         }
+         else
+         {
+            centerOfMassOffset = new Vector3D();
+            linkInertiaRotation = new Quaternion();
+         }
 
-         parseInertiaProperties(linkName, linkDescription, inertia, origin);
+         parseMassProperties(linkName, linkDescription, mass, centerOfMassOffset);
+
+         parseInertiaProperties(linkName, linkDescription, inertia, linkInertiaRotation);
       }
       else
       {
@@ -126,9 +168,8 @@ public class RobotDescriptionFromURDFLoader
       }
    }
 
-   private void parseInertiaProperties(String linkName, LinkDescription linkDescription, URDFInertia inertia, URDFPose origin)
+   private void parseInertiaProperties(String linkName, LinkDescription linkDescription, URDFInertia inertia, QuaternionReadOnly rotation)
    {
-      RotationMatrix rotationMatrix = new RotationMatrix();
       Matrix3D momentOfInertia = new Matrix3D();
 
       if (inertia != null)
@@ -136,71 +177,19 @@ public class RobotDescriptionFromURDFLoader
          momentOfInertia.set(inertia.getIxx(), inertia.getIxy(), inertia.getIxz(), inertia.getIxy(), inertia.getIyy(), inertia.getIyz(), inertia.getIxz(),
                              inertia.getIyz(), inertia.getIzz());
 
-         if (origin != null)
-         {
-            String rpyString = origin.getRpy();
-            String[] rpySplit = rpyString.split(" ");
-
-            if (rpySplit == null || rpySplit.length != 3)
-            {
-               PrintTools.warn(this, "Improperly formatted Intertial pose RPY values for link " + linkName + ", skipping transformation");
-            }
-            else
-            {
-               try
-               {
-                  double roll = Double.parseDouble(rpySplit[0]);
-                  double pitch = Double.parseDouble(rpySplit[1]);
-                  double yaw = Double.parseDouble(rpySplit[2]);
-
-                  rotationMatrix.setYawPitchRoll(yaw, pitch, roll);
-               }
-               catch (Throwable e)
-               {
-                  PrintTools.warn(this, "Improperly formatted Intertial pose RPY values for link " + linkName + ", skipping transformation");
-               }
-            }
-         }
-
-         rotationMatrix.transform(momentOfInertia);
+         rotation.transform(momentOfInertia);
          linkDescription.setMomentOfInertia(momentOfInertia);
       }
    }
 
-   private void parseMassProperties(String linkName, LinkDescription linkDescription, URDFMass mass, URDFPose origin)
+   private void parseMassProperties(String linkName, LinkDescription linkDescription, URDFMass mass, Vector3D centerOfMassOffset)
    {
       if (mass != null)
       {
          linkDescription.setMass(mass.getValue());
       }
 
-      if (origin != null)
-      {
-         String xyzString = origin.getXyz();
-         String[] xyzSplit = xyzString.split(" ");
-
-         if (xyzSplit == null || xyzSplit.length != 3)
-         {
-            PrintTools.warn(this, "Improperly formatted Intertial pose xyz values for link " + linkName + ", skipping offset");
-         }
-         else
-         {
-            try
-            {
-               {
-                  double x = Double.parseDouble(xyzSplit[0]);
-                  double y = Double.parseDouble(xyzSplit[1]);
-                  double z = Double.parseDouble(xyzSplit[2]);
-
-                  linkDescription.setCenterOfMassOffset(x, y, z);
-               }
-            }
-            catch (Throwable e)
-            {
-               PrintTools.warn(this, "Improperly formatted Intertial pose xyz values for link " + linkName + ", skipping offset");
-            }
-         }
-      }
+      linkDescription.setCenterOfMassOffset(centerOfMassOffset);
    }
 
    private List<URDFGazebo> getGazeboExtensions(URL modelFileResourceURL) throws XMLStreamException, IOException, JAXBException
