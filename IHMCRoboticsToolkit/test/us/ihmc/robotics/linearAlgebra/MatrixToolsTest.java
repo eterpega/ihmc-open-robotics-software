@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Random;
 
 import org.ejml.data.DenseMatrix64F;
+import org.ejml.data.Matrix;
 import org.ejml.ops.CommonOps;
 import org.ejml.ops.MatrixFeatures;
 import org.ejml.ops.RandomMatrices;
@@ -26,6 +27,8 @@ import static org.junit.Assert.*;
 
 public class MatrixToolsTest
 {
+   private static final int ITERATIONS = 1000;
+
    @ContinuousIntegrationTest(estimatedDuration = 0.0)
    @Test(timeout = 30000)
    public void testSetToNaNDenseMatrix()
@@ -59,13 +62,53 @@ public class MatrixToolsTest
    }
 
    @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test(timeout = 30000, expected = NullPointerException.class)
+   public void testFindMaxElementIndexVectorNull()
+   {
+      MatrixTools.findMaxElementIndex(null, 1, 5);
+   }
+
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test(timeout = 30000, expected = RuntimeException.class)
+   public void testFindMaxElementIndexVectorWithStartIndexLargerThenEndIndex()
+   {
+      double[] test = new double[]{ 1.0, 2.0, 3.0, 2.0, 4.0, -2.0 };
+      MatrixTools.findMaxElementIndex(test, 3, 1);
+   }
+
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test(timeout = 30000, expected = RuntimeException.class)
+   public void testFindMaxElementIndexVectorWithEndIndexLargerThenLengthM()
+   {
+      double[] test = new double[]{ 1.0, 2.0, 3.0, 2.0, 4.0, -2.0 };
+      MatrixTools.findMaxElementIndex(test, 0, test.length+1);
+   }
+
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test(timeout = 30000, expected = RuntimeException.class)
+   public void testFindMaxElementIndexVectorWithStartIndexSmallerThenZero()
+   {
+      double[] test = new double[]{ 1.0, 2.0, 3.0, 2.0, 4.0, -2.0 };
+      MatrixTools.findMaxElementIndex(test, -1, 3);
+   }
+
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
    @Test(timeout = 30000)
    public void testFindMaxElementIndexVector()
    {
       double[] test = new double[]{ 1.0, 2.0, 3.0, 2.0, 4.0, -2.0 };
-
       assertEquals(4, MatrixTools.findMaxElementIndex(test, 0, test.length));
       assertEquals(2, MatrixTools.findMaxElementIndex(test, 1, 4));
+
+      test = new double[]{ 2.0 };
+      assertEquals(0, MatrixTools.findMaxElementIndex(test, 0, 1));
+   }
+
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test(timeout = 30000, expected = NullPointerException.class)
+   public void testFindMaxElementIndexDenseMatrixNull()
+   {
+      MatrixTools.findMaxElementIndex(null);
    }
 
    @ContinuousIntegrationTest(estimatedDuration = 0.0)
@@ -74,9 +117,53 @@ public class MatrixToolsTest
    {
       double[][] vals = new double[][]{ { 1.0, 2.0, 3.0 }, { 2.0, -2.0, 4.0 }, { -3.0, 2.0, 4.0 } };
       DenseMatrix64F test = new DenseMatrix64F(vals);
+      assertArrayEquals(new int[]{1, 2}, MatrixTools.findMaxElementIndex(test));
 
-      int[] res = new int[]{1, 2};
-      assertArrayEquals(res, MatrixTools.findMaxElementIndex(test));
+      vals = new double[][]{ { 1.0, 2.0, 3.0 }};
+      test = new DenseMatrix64F(vals);
+      assertArrayEquals(new int[]{0, 2}, MatrixTools.findMaxElementIndex(test));
+
+      vals = new double[][]{ { 3.0 }, { 2.0 }, { 3.0 } };
+      test = new DenseMatrix64F(vals);
+      assertArrayEquals(new int[]{0, 0}, MatrixTools.findMaxElementIndex(test));
+   }
+
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test(timeout = 30000, expected = NullPointerException.class)
+   public void testFindMaxElementIndexDenseMatrixToPackNull()
+   {
+      int[] maxIndex = new int[2];
+      MatrixTools.findMaxElementIndex(null, maxIndex);
+   }
+
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test(timeout = 30000, expected = NullPointerException.class)
+   public void testFindMaxElementIndexDenseMatrixToPackNullMaxIndex()
+   {
+      double[][] vals = new double[][]{ { 1.0, 2.0, 3.0 }, { 2.0, -2.0, 4.0 }, { -3.0, 2.0, 4.0 } };
+      DenseMatrix64F test = new DenseMatrix64F(vals);
+      MatrixTools.findMaxElementIndex(test, null);
+   }
+
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test(timeout = 30000)
+   public void testFindMaxElementIndexDenseMatrixToPack()
+   {
+      double[][] vals = new double[][]{ { 1.0, 2.0, 3.0 }, { 2.0, -2.0, 4.0 }, { -3.0, 2.0, 4.0 } };
+      DenseMatrix64F test = new DenseMatrix64F(vals);
+      int[] maxIndex = new int[2];
+      MatrixTools.findMaxElementIndex(test, maxIndex);
+      assertArrayEquals(new int[]{1, 2}, maxIndex);
+
+      vals = new double[][]{ { 1.0, 2.0, 3.0 }};
+      test = new DenseMatrix64F(vals);
+      MatrixTools.findMaxElementIndex(test, maxIndex);
+      assertArrayEquals(new int[]{0, 2}, maxIndex);
+
+      vals = new double[][]{ { 3.0 }, { 2.0 }, { 3.0 } };
+      test = new DenseMatrix64F(vals);
+      MatrixTools.findMaxElementIndex(test, maxIndex);
+      assertArrayEquals(new int[]{0, 0}, maxIndex);
    }
 
    @ContinuousIntegrationTest(estimatedDuration = 0.0)

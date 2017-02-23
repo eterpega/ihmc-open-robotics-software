@@ -234,6 +234,11 @@ public class MatrixTools
     */
    public static int findMaxElementIndex(double m[], int startIndex, int endIndex)
    {
+      if (m == null) throw new NullPointerException("m cannot be null");
+      if (startIndex >= endIndex) throw new RuntimeException("endIndex has to be bigger then startIndex.");
+      if (endIndex > m.length) throw new RuntimeException("endIndex can't be larger then the length of m.");
+      if (startIndex < 0) throw new RuntimeException("StartIndex has to be greater or equal to zero.");
+
       double maxVal = Double.NEGATIVE_INFINITY;
       int maxIndex = -1;
       for (int i = startIndex; i < endIndex; i++)
@@ -250,11 +255,28 @@ public class MatrixTools
    /**
     *  find the index of the first largest element in a DenseMatrix64F
     *  returns [rowIndex, columnIndex] of largest element
+    *
+    *  WARNING: This method generates garbage.
     */
    public static int[] findMaxElementIndex(DenseMatrix64F m)
    {
+      int[] maxIndex = new int[2];
+      findMaxElementIndex(m, maxIndex);
+      return maxIndex;
+   }
+
+   /**
+    *  find the index of the first largest element in a DenseMatrix64F
+    *  stores [rowIndex, columnIndex] of largest element in maxIndexToPack
+    */
+   public static void findMaxElementIndex(DenseMatrix64F m, int[] maxIndexToPack)
+   {
+      if (m == null || maxIndexToPack == null) throw new NullPointerException("m and/or maxIndexToPack cannot be null.");
+      if (maxIndexToPack.length != 2) throw new RuntimeException("maxIndexToPack should have a length of 2.");
+
       double maxVal = Double.NEGATIVE_INFINITY;
-      int[] maxIndex = {-1, -1};
+      maxIndexToPack[0] = -1;
+      maxIndexToPack[1] = -1;
       for (int i = 0; i < m.getNumRows(); i++)
       {
          for (int j = 0; j < m.getNumCols(); j++)
@@ -262,12 +284,11 @@ public class MatrixTools
             if (m.get(i, j) > maxVal)
             {
                maxVal = m.get(i, j);
-               maxIndex[0] = i;
-               maxIndex[1] = j;
+               maxIndexToPack[0] = i;
+               maxIndexToPack[1] = j;
             }
          }
       }
-      return maxIndex;
    }
 
    /**
