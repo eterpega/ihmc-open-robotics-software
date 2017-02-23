@@ -248,6 +248,29 @@ public class MatrixTools
    }
 
    /**
+    *  find the index of the first largest element in a DenseMatrix64F
+    *  returns [rowIndex, columnIndex] of largest element
+    */
+   public static int[] findMaxElementIndex(DenseMatrix64F m)
+   {
+      double maxVal = Double.NEGATIVE_INFINITY;
+      int[] maxIndex = {-1, -1};
+      for (int i = 0; i < m.getNumRows(); i++)
+      {
+         for (int j = 0; j < m.getNumCols(); j++)
+         {
+            if (m.get(i, j) > maxVal)
+            {
+               maxVal = m.get(i, j);
+               maxIndex[0] = i;
+               maxIndex[1] = j;
+            }
+         }
+      }
+      return maxIndex;
+   }
+
+   /**
     * AtGA = A' * G * A
     * 
     * if AtGA is null, a new Matrix will be allocated and returned

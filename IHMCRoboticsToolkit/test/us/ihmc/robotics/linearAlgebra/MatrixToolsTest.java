@@ -1,9 +1,5 @@
 package us.ihmc.robotics.linearAlgebra;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Random;
@@ -25,6 +21,8 @@ import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.random.RandomTools;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
+
+import static org.junit.Assert.*;
 
 public class MatrixToolsTest
 {
@@ -58,6 +56,27 @@ public class MatrixToolsTest
             assertEquals(0.0, test.get(i, j), 1e-34);
          }
       }
+   }
+
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test(timeout = 30000)
+   public void testFindMaxElementIndexVector()
+   {
+      double[] test = new double[]{ 1.0, 2.0, 3.0, 2.0, 4.0, -2.0 };
+
+      assertEquals(4, MatrixTools.findMaxElementIndex(test, 0, test.length));
+      assertEquals(2, MatrixTools.findMaxElementIndex(test, 1, 4));
+   }
+
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test(timeout = 30000)
+   public void testFindMaxElementIndexDenseMatrix()
+   {
+      double[][] vals = new double[][]{ { 1.0, 2.0, 3.0 }, { 2.0, -2.0, 4.0 }, { -3.0, 2.0, 4.0 } };
+      DenseMatrix64F test = new DenseMatrix64F(vals);
+
+      int[] res = new int[]{1, 2};
+      assertArrayEquals(res, MatrixTools.findMaxElementIndex(test));
    }
 
    @ContinuousIntegrationTest(estimatedDuration = 0.0)
