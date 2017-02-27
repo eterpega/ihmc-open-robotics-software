@@ -3,13 +3,18 @@ package us.ihmc.modelFileLoaders.urdfLoader;
 import org.apache.commons.lang3.tuple.Pair;
 import us.ihmc.euclid.matrix.Matrix3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
+import us.ihmc.graphicsDescription.MeshDataHolder;
+import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
+import us.ihmc.graphicsDescription.appearance.YoAppearance;
 import us.ihmc.modelFileLoaders.ModelFileLoaderConversionsHelper;
 import us.ihmc.modelFileLoaders.urdfLoader.xmlDescription.*;
 import us.ihmc.modelFileLoaders.urdfLoader.xmlDescription.extensions.URDFGazebo;
 import us.ihmc.robotics.partNames.JointNameMap;
 import us.ihmc.robotics.robotDescription.LinkDescription;
+import us.ihmc.robotics.robotDescription.LinkGraphicsDescription;
 import us.ihmc.robotics.robotDescription.RobotDescription;
 import us.ihmc.tools.io.printing.PrintTools;
 
@@ -85,38 +90,73 @@ public class RobotDescriptionFromURDFLoader
                   .getInertialInformationAndPackVisualsAndCollisionsForURDFLink(link, linkVisuals, linkCollisions);
             setupInertialInformationForLink(linkName, linkDescription, inertialInformationForURDFLink);
 
+            LinkGraphicsDescription linkGraphicsDescription = new LinkGraphicsDescription();
+
             for (URDFVisual linkVisual : linkVisuals)
             {
                URDFPose origin = linkVisual.getOrigin();
 
-               Vector3D centerOfMassOffset;
+               Vector3D visualTranslation;
                QuaternionReadOnly visualRotation;
 
                if (origin != null)
                {
                   Pair<Vector3D, QuaternionReadOnly> poseFromURDFPose = ModelFileLoaderConversionsHelper.getPoseFromURDFPose(linkName, origin);
-                  centerOfMassOffset = poseFromURDFPose.getLeft();
+                  visualTranslation = poseFromURDFPose.getLeft();
                   visualRotation = poseFromURDFPose.getRight();
                }
                else
                {
-                  centerOfMassOffset = new Vector3D();
+                  visualTranslation = new Vector3D();
                   visualRotation = new Quaternion();
                }
 
+               linkGraphicsDescription.translate(visualTranslation);
+               linkGraphicsDescription.rotate(visualRotation);
+
+               AppearanceDefinition appearanceDefinition = getAppearanceDefinitionForLinkVisual(resourceDirectories, allGlobalMaterialsFromURDFRobot, linkVisual);
+
                URDFGeometry geometry = linkVisual.getGeometry();
-               URDFMaterial material = linkVisual.getMaterial();
+               if (geometry.getBox() != null)
+               {
+                  URDFBox boxGeometry = geometry.getBox();
+                  Tuple3DReadOnly dimensionsFromURDFBoxGeometry = ModelFileLoaderConversionsHelper.getDimensionsFromURDFBoxGeometry(boxGeometry);
+
+                  linkGraphicsDescription
+                        .addCube(dimensionsFromURDFBoxGeometry.getX(), dimensionsFromURDFBoxGeometry.getY(), dimensionsFromURDFBoxGeometry.getZ(), true,
+                                 appearanceDefinition);
+               }
+               else if (geometry.getCylinder() != null)
+               {
+                  URDFCylinder cylinderGeometry = geometry.getCylinder();
+                  double length = cylinderGeometry.getLength();
+                  double radius = cylinderGeometry.getRadius();
+
+                  //TODO verify this. URDF defines cylinders as centered but we define them from their base. Just need to sanity check this.
+                  linkGraphicsDescription.translate(0.0, 0.0, length / 2);
+                  linkGraphicsDescription.addCylinder(length, radius, appearanceDefinition);
+               }
+               else if(geometry.getSphere() != null)
+               {
+                  URDFSphere sphereGometry = geometry.getSphere();
+
+                  linkGraphicsDescription.addSphere(sphereGometry.getRadius(), appearanceDefinition);
+               }
+               else if(geometry.getMesh() != null)
+               {
+                  URDFMesh mesh = geometry.getMesh();
+                  String filename = mesh.getFilename();
+                  String scale = mesh.getScale();
+
+                  //TODO this
+                  linkGraphicsDescription.addMeshData(null, appearanceDefinition);
+               }
             }
          }
 
          for (Map.Entry<String, URDFJoint> stringURDFJointEntry : allJointsFromURDFRobot.entrySet())
          {
             System.out.println(stringURDFJointEntry.getKey());
-         }
-
-         for (Map.Entry<String, URDFMaterialGlobal> stringURDFMaterialGlobalEntry : allGlobalMaterialsFromURDFRobot.entrySet())
-         {
-            System.out.println(stringURDFMaterialGlobalEntry.getKey());
          }
 
          for (Map.Entry<String, URDFTransmission> stringURDFTransmissionEntry : allTransmissionFromURDFRobot.entrySet())
@@ -131,6 +171,30 @@ public class RobotDescriptionFromURDFLoader
       }
 
       return robotDescription;
+   }
+
+   private AppearanceDefinition getAppearanceDefinitionForLinkVisual(List<String> resourceDirectories, HashMap<String, URDFMaterialGlobal> allGlobalMaterialsFromURDFRobot,
+                                                                     URDFVisual linkVisual)
+   {
+      AppearanceDefinition appearanceDefinition;
+      if (linkVisual.getMaterial() != null)
+      {
+         URDFMaterial material = linkVisual.getMaterial();
+         if (allGlobalMaterialsFromURDFRobot.containsKey(material.getName()))
+         {
+            appearanceDefinition = ModelFileLoaderConversionsHelper
+                  .getAppearanceFromURDFMaterialGlobal(resourceDirectories, allGlobalMaterialsFromURDFRobot.get(material.getName()));
+         }
+         else
+         {
+            appearanceDefinition = ModelFileLoaderConversionsHelper.getAppearanceFromURDFMaterial(resourceDirectories, material);
+         }
+      }
+      else
+      {
+         appearanceDefinition = YoAppearance.Gold();
+      }
+      return appearanceDefinition;
    }
 
    private void setupInertialInformationForLink(String linkName, LinkDescription linkDescription, URDFInertial inertialInformationForURDFLink)

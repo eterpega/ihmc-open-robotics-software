@@ -6,20 +6,39 @@ import us.ihmc.euclid.matrix.Matrix3D;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple2D.Vector2D;
 import us.ihmc.euclid.tuple3D.Vector3D;
-import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
+import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
+import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
+import us.ihmc.graphicsDescription.appearance.YoAppearance;
+import us.ihmc.graphicsDescription.appearance.YoAppearanceRGBColor;
+import us.ihmc.graphicsDescription.appearance.YoAppearanceTexture;
 import us.ihmc.modelFileLoaders.SdfLoader.xmlDescription.SDFInertia;
 import us.ihmc.modelFileLoaders.urdfLoader.xmlDescription.*;
 import us.ihmc.robotics.dataStructures.MutableColor;
 import us.ihmc.tools.io.printing.PrintTools;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 public class ModelFileLoaderConversionsHelper
 {
+
+   public static AppearanceDefinition getAppearanceFromURDFMaterial(List<String> resourceDirectories, URDFMaterial material)
+   {
+      String name = material.getName();
+      URDFTexture texture = material.getTexture();
+      URDFColor color = material.getColor();
+      return getAppearanceDefinition(resourceDirectories, texture, color, name);
+   }
+
+   public static AppearanceDefinition getAppearanceFromURDFMaterialGlobal(List<String> resourceDirectories, URDFMaterialGlobal material)
+   {
+      String name = material.getName();
+      URDFTexture texture = material.getTexture();
+      URDFColor color = material.getColor();
+      return getAppearanceDefinition(resourceDirectories, texture, color, name);
+   }
 
    public static Pair<Vector3D, QuaternionReadOnly> getPoseFromURDFPose(String containingElementName, URDFPose pose)
    {
@@ -74,6 +93,37 @@ public class ModelFileLoaderConversionsHelper
       }
 
       return new ImmutablePair<>(position, orientation);
+   }
+
+   public static Tuple3DReadOnly getDimensionsFromURDFBoxGeometry(URDFBox boxGeometry)
+   {
+      Vector3D dimensions = new Vector3D();
+      String size = boxGeometry.getSize();
+      String[] sizeSplit = size.split(" ");
+
+      if (sizeSplit.length != 3)
+      {
+         PrintTools.warn(ModelFileLoaderConversionsHelper.class, "Improperly formatted size string for Box geometry: [" + size + "], using unit cube");
+         dimensions.set(1.0, 1.0, 1.0);
+      }
+      else
+      {
+         try
+         {
+            double x = Double.parseDouble(sizeSplit[0]);
+            double y = Double.parseDouble(sizeSplit[1]);
+            double z = Double.parseDouble(sizeSplit[2]);
+
+            dimensions.set(x, y, z);
+         }
+         catch (Throwable e)
+         {
+            PrintTools.warn(ModelFileLoaderConversionsHelper.class, "Improperly formatted size string for Box geometry: [" + size + "], using unit cube");
+            dimensions.set(1.0, 1.0, 1.0);
+         }
+      }
+
+      return dimensions;
    }
 
    public static Pair<Vector3D, QuaternionReadOnly> getPoseFromURDFPose(URDFPose pose)
@@ -165,16 +215,45 @@ public class ModelFileLoaderConversionsHelper
       return ret;
    }
 
-   public static List<URDFLink> getRootLinksFromURDFLinks(List<URDFLink> urdfLinks)
+   private static AppearanceDefinition getAppearanceDefinition(List<String> resourceDirectories, URDFTexture texture, URDFColor color, String materialName)
    {
-      ArrayList<URDFLink> ret = new ArrayList<>();
-
-      for (URDFLink urdfLink : urdfLinks)
+      if (texture != null)
       {
-         //         System.out.println(urdfLink.ge);
+         //TODO look up the actual buffered image using the resource directores
+         return new YoAppearanceTexture(texture.getFilename());
       }
 
-      return ret;
+      if (color != null)
+      {
+         String rgbaString = color.getRgba();
+         String[] rgbaSplit = rgbaString.split(" ");
+         if(rgbaSplit.length != 4)
+         {
+            reportRGBAColorError(materialName);
+         }
+         else
+         {
+            try
+            {
+               {
+                  double r = Double.parseDouble(rgbaSplit[0]);
+                  double g = Double.parseDouble(rgbaSplit[1]);
+                  double b = Double.parseDouble(rgbaSplit[2]);
+                  double a = Double.parseDouble(rgbaSplit[3]);
+
+                  return new YoAppearanceRGBColor(r, g, b, a);
+               }
+            }
+            catch(Throwable e)
+            {
+               reportRGBAColorError(materialName);
+               return YoAppearance.Gold();
+            }
+         }
+         return YoAppearance.RGBColor(0.0, 0.0, 0.0, 0.0);
+      }
+
+      return YoAppearance.Gold();
    }
 
    public static String sanitizeJointName(String dirtyName)
@@ -266,6 +345,19 @@ public class ModelFileLoaderConversionsHelper
          inertia.setM22(izz);
       }
       return inertia;
+   }
+
+   private static void reportRGBAColorError(String materialName)
+   {
+      StringBuilder errorString = new StringBuilder();
+
+      errorString.append("Improperly formatted RGBA component for color material, using YoAppearance.Gold().");
+      if(materialName != null)
+      {
+         errorString.append(" URDFMaterial Name: " ).append(materialName);
+      }
+
+      PrintTools.warn(ModelFileLoaderConversionsHelper.class, errorString.toString());
    }
 
    private static void reportRPYError(String containingElementName)

@@ -17,6 +17,7 @@ import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.Vector3D32;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
+import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
 import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
 import us.ihmc.graphicsDescription.appearance.YoAppearance;
@@ -263,6 +264,13 @@ public class Graphics3DObject
    {
       RotationMatrix rotation = new RotationMatrix();
       rotation.set(rotationAxisAngle);
+      rotate(rotation);
+   }
+
+   public void rotate(QuaternionReadOnly rotationQuaternion)
+   {
+      RotationMatrix rotation = new RotationMatrix();
+      rotation.set(rotationQuaternion);
       rotate(rotation);
    }
 
