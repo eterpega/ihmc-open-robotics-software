@@ -13,6 +13,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.fail;
@@ -23,7 +24,7 @@ import static org.junit.Assert.fail;
 public class RobotDescriptionFromURDFLoaderTest
 {
    private static final String modelName = "atlas";
-   private static final List<String> resourceDirectories = (List<String>) null;
+   private static List<String> resourceDirectories = (List<String>) null;
    private static final JointNameMap jointNameMap = null;
 
    private RobotDescriptionFromURDFLoader loader;
@@ -37,6 +38,9 @@ public class RobotDescriptionFromURDFLoaderTest
    {
       loader = new RobotDescriptionFromURDFLoader();
       robotModelURL = getClass().getClassLoader().getResource("urdfRobotTest.urdf");
+
+      resourceDirectories = new ArrayList<>();
+      resourceDirectories.add("textures");
 
 //      jaxbContext = JAXBContext.newInstance("us.ihmc.modelFileLoaders.urdfLoader.xmlDescription");
 //      unmarshaller = jaxbContext.createUnmarshaller();

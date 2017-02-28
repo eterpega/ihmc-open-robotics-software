@@ -2,6 +2,7 @@ package us.ihmc.modelFileLoaders;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.skife.url.UrlSchemeRegistry;
 import us.ihmc.euclid.matrix.Matrix3D;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple2D.Vector2D;
@@ -15,16 +16,35 @@ import us.ihmc.graphicsDescription.appearance.YoAppearanceRGBColor;
 import us.ihmc.graphicsDescription.appearance.YoAppearanceTexture;
 import us.ihmc.modelFileLoaders.SdfLoader.xmlDescription.SDFInertia;
 import us.ihmc.modelFileLoaders.urdfLoader.xmlDescription.*;
+import us.ihmc.modelFileLoaders.url.handlers.GazeboModelHandler;
+import us.ihmc.modelFileLoaders.url.handlers.ROSPackageHandler;
 import us.ihmc.robotics.dataStructures.MutableColor;
 import us.ihmc.tools.io.printing.PrintTools;
 
+import javax.imageio.ImageIO;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 
 public class ModelFileLoaderConversionsHelper
 {
+   static
+   {
+      UrlSchemeRegistry.register("package", ROSPackageHandler.class);
+      UrlSchemeRegistry.register("model", GazeboModelHandler.class);
+   }
 
    public static AppearanceDefinition getAppearanceFromURDFMaterial(List<String> resourceDirectories, URDFMaterial material)
+         throws IOException, URISyntaxException
    {
       String name = material.getName();
       URDFTexture texture = material.getTexture();
@@ -33,6 +53,7 @@ public class ModelFileLoaderConversionsHelper
    }
 
    public static AppearanceDefinition getAppearanceFromURDFMaterialGlobal(List<String> resourceDirectories, URDFMaterialGlobal material)
+         throws IOException, URISyntaxException
    {
       String name = material.getName();
       URDFTexture texture = material.getTexture();
@@ -216,44 +237,143 @@ public class ModelFileLoaderConversionsHelper
    }
 
    private static AppearanceDefinition getAppearanceDefinition(List<String> resourceDirectories, URDFTexture texture, URDFColor color, String materialName)
+         throws IOException, URISyntaxException
    {
       if (texture != null)
       {
-         //TODO look up the actual buffered image using the resource directores
-         return new YoAppearanceTexture(texture.getFilename());
+         return getTextureAppearanceDefinition(resourceDirectories, texture);
       }
 
       if (color != null)
       {
-         String rgbaString = color.getRgba();
-         String[] rgbaSplit = rgbaString.split(" ");
-         if(rgbaSplit.length != 4)
-         {
-            reportRGBAColorError(materialName);
-         }
-         else
-         {
-            try
-            {
-               {
-                  double r = Double.parseDouble(rgbaSplit[0]);
-                  double g = Double.parseDouble(rgbaSplit[1]);
-                  double b = Double.parseDouble(rgbaSplit[2]);
-                  double a = Double.parseDouble(rgbaSplit[3]);
-
-                  return new YoAppearanceRGBColor(r, g, b, a);
-               }
-            }
-            catch(Throwable e)
-            {
-               reportRGBAColorError(materialName);
-               return YoAppearance.Gold();
-            }
-         }
-         return YoAppearance.RGBColor(0.0, 0.0, 0.0, 0.0);
+         return getColorAppearanceDefinition(color, materialName);
       }
 
-      return YoAppearance.Gold();
+      return null;
+   }
+
+   private static AppearanceDefinition getColorAppearanceDefinition(URDFColor color, String materialName)
+   {
+      String rgbaString = color.getRgba();
+      String[] rgbaSplit = rgbaString.split(" ");
+      if (rgbaSplit.length != 4)
+      {
+         reportRGBAColorError(materialName);
+      }
+      else
+      {
+         try
+         {
+            {
+               double r = Double.parseDouble(rgbaSplit[0]);
+               double g = Double.parseDouble(rgbaSplit[1]);
+               double b = Double.parseDouble(rgbaSplit[2]);
+               double a = Double.parseDouble(rgbaSplit[3]);
+
+               return new YoAppearanceRGBColor(r, g, b, a);
+            }
+         }
+         catch (Throwable e)
+         {
+            reportRGBAColorError(materialName);
+            return YoAppearance.Gold();
+         }
+      }
+      return YoAppearance.RGBColor(0.0, 0.0, 0.0, 0.0);
+   }
+
+   private static AppearanceDefinition getTextureAppearanceDefinition(List<String> resourceDirectories, URDFTexture texture)
+         throws IOException, URISyntaxException
+   {
+      String textureFilename = texture.getFilename();
+      InputStream inputStream;
+
+      URL baseURL = new URL(textureFilename);
+      inputStream = baseURL.openStream();
+
+      if(inputStream == null)
+      {
+         inputStream = attempToLocateTextureViaURL(resourceDirectories, baseURL);
+      }
+
+      if(inputStream == null)
+      {
+         inputStream = attemptToLocateTextureOnFilesystem(resourceDirectories, textureFilename);
+      }
+
+      if(inputStream == null)
+      {
+         PrintTools.warn(ModelFileLoaderConversionsHelper.class, "Couldn't locate the following texture: " + texture.getFilename() + ", using YoAppearance.Gold()");
+         return YoAppearance.Gold();
+      }
+
+      return new YoAppearanceTexture(ImageIO.read(inputStream));
+   }
+
+   private static InputStream attemptToLocateTextureOnFilesystem(List<String> resourceDirectories, String textureFilename)
+         throws FileNotFoundException
+   {
+      InputStream ret = null;
+      Path path = Paths.get(textureFilename);
+
+      if(Files.exists(path))
+      {
+         ret = new FileInputStream(path.toFile());
+      }
+      else
+      {
+         for (String resourceDirectory : resourceDirectories)
+         {
+            Path pathWithResourceDirectoryPrepended = Paths.get(resourceDirectory, textureFilename);
+
+            if(Files.exists(pathWithResourceDirectoryPrepended))
+            {
+               ret = new FileInputStream(pathWithResourceDirectoryPrepended.toFile());
+            }
+         }
+      }
+      return ret;
+   }
+
+   private static InputStream attempToLocateTextureViaURL(List<String> resourceDirectories, URL baseURL)
+         throws URISyntaxException, IOException
+   {
+      InputStream ret = null;
+      if (resourceDirectories != null)
+      {
+         for (String resourceDirectory : resourceDirectories)
+         {
+            StringBuilder newStringToTry = new StringBuilder(baseURL.getProtocol());
+            URI urlAsURI = baseURL.toURI();
+            if (!urlAsURI.isOpaque())
+            {
+               newStringToTry.append(":");
+               if (urlAsURI.isAbsolute())
+               {
+                  newStringToTry.append("//");
+               }
+            }
+
+            newStringToTry.append(resourceDirectory);
+
+            if (!resourceDirectory.endsWith("/"))
+            {
+               newStringToTry.append("/");
+            }
+
+            newStringToTry.append(baseURL.getAuthority()).append(baseURL.getPath());
+
+            URL newURLToTry = new URL(newStringToTry.toString());
+
+            ret = newURLToTry.openStream();
+
+            if(ret != null)
+            {
+               break;
+            }
+         }
+      }
+      return ret;
    }
 
    public static String sanitizeJointName(String dirtyName)
@@ -352,9 +472,9 @@ public class ModelFileLoaderConversionsHelper
       StringBuilder errorString = new StringBuilder();
 
       errorString.append("Improperly formatted RGBA component for color material, using YoAppearance.Gold().");
-      if(materialName != null)
+      if (materialName != null)
       {
-         errorString.append(" URDFMaterial Name: " ).append(materialName);
+         errorString.append(" URDFMaterial Name: ").append(materialName);
       }
 
       PrintTools.warn(ModelFileLoaderConversionsHelper.class, errorString.toString());

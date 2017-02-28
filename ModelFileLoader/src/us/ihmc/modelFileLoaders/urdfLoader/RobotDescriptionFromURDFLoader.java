@@ -6,7 +6,6 @@ import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
-import us.ihmc.graphicsDescription.MeshDataHolder;
 import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
 import us.ihmc.graphicsDescription.appearance.YoAppearance;
 import us.ihmc.modelFileLoaders.ModelFileLoaderConversionsHelper;
@@ -28,6 +27,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.transform.stream.StreamSource;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,8 +39,8 @@ import java.util.Map;
  */
 public class RobotDescriptionFromURDFLoader
 {
-   private final JAXBContext coreContext;
-   private final Unmarshaller coreUnmashaller;
+   private final JAXBContext urdfRobotContext;
+   private final Unmarshaller urdfRobortUnmarshaller;
    private String modelName;
    private List<String> resourceDirectories;
 
@@ -48,8 +48,8 @@ public class RobotDescriptionFromURDFLoader
    {
       try
       {
-         coreContext = JAXBContext.newInstance("us.ihmc.modelFileLoaders.urdfLoader.xmlDescription");
-         coreUnmashaller = coreContext.createUnmarshaller();
+         urdfRobotContext = JAXBContext.newInstance("us.ihmc.modelFileLoaders.urdfLoader.xmlDescription");
+         urdfRobortUnmarshaller = urdfRobotContext.createUnmarshaller();
       }
       catch (JAXBException e)
       {
@@ -64,7 +64,7 @@ public class RobotDescriptionFromURDFLoader
       try
       {
          robotDescription = new RobotDescription(modelName);
-         URDFRobot urdfRobot = (URDFRobot) coreUnmashaller.unmarshal(modelFileResourceURL);
+         URDFRobot urdfRobot = (URDFRobot) urdfRobortUnmarshaller.unmarshal(modelFileResourceURL);
          List<URDFGazebo> gazeboTags = getGazeboExtensions(modelFileResourceURL);
 
          HashMap<String, URDFJoint> allJointsFromURDFRobot = new HashMap<>();
@@ -88,6 +88,7 @@ public class RobotDescriptionFromURDFLoader
 
             URDFInertial inertialInformationForURDFLink = ModelFileLoaderConversionsHelper
                   .getInertialInformationAndPackVisualsAndCollisionsForURDFLink(link, linkVisuals, linkCollisions);
+
             setupInertialInformationForLink(linkName, linkDescription, inertialInformationForURDFLink);
 
             LinkGraphicsDescription linkGraphicsDescription = new LinkGraphicsDescription();
@@ -156,12 +157,12 @@ public class RobotDescriptionFromURDFLoader
 
          for (Map.Entry<String, URDFJoint> stringURDFJointEntry : allJointsFromURDFRobot.entrySet())
          {
-            System.out.println(stringURDFJointEntry.getKey());
+//            System.out.println(stringURDFJointEntry.getKey());
          }
 
          for (Map.Entry<String, URDFTransmission> stringURDFTransmissionEntry : allTransmissionFromURDFRobot.entrySet())
          {
-            System.out.println(stringURDFTransmissionEntry.getKey());
+//            System.out.println(stringURDFTransmissionEntry.getKey());
          }
       }
       catch (Throwable e)
@@ -176,24 +177,35 @@ public class RobotDescriptionFromURDFLoader
    private AppearanceDefinition getAppearanceDefinitionForLinkVisual(List<String> resourceDirectories, HashMap<String, URDFMaterialGlobal> allGlobalMaterialsFromURDFRobot,
                                                                      URDFVisual linkVisual)
    {
-      AppearanceDefinition appearanceDefinition;
+      AppearanceDefinition appearanceDefinition = null;
       if (linkVisual.getMaterial() != null)
       {
          URDFMaterial material = linkVisual.getMaterial();
          if (allGlobalMaterialsFromURDFRobot.containsKey(material.getName()))
          {
-            appearanceDefinition = ModelFileLoaderConversionsHelper
-                  .getAppearanceFromURDFMaterialGlobal(resourceDirectories, allGlobalMaterialsFromURDFRobot.get(material.getName()));
+            try
+            {
+               appearanceDefinition = ModelFileLoaderConversionsHelper
+                     .getAppearanceFromURDFMaterialGlobal(resourceDirectories, allGlobalMaterialsFromURDFRobot.get(material.getName()));
+            }
+            catch (IOException | URISyntaxException e)
+            {
+               e.printStackTrace();
+            }
          }
          else
          {
-            appearanceDefinition = ModelFileLoaderConversionsHelper.getAppearanceFromURDFMaterial(resourceDirectories, material);
+            try
+            {
+               appearanceDefinition = ModelFileLoaderConversionsHelper.getAppearanceFromURDFMaterial(resourceDirectories, material);
+            }
+            catch (IOException | URISyntaxException e)
+            {
+               e.printStackTrace();
+            }
          }
       }
-      else
-      {
-         appearanceDefinition = YoAppearance.Gold();
-      }
+
       return appearanceDefinition;
    }
 
@@ -261,7 +273,7 @@ public class RobotDescriptionFromURDFLoader
       XMLInputFactory xmlInputFactory = XMLInputFactory.newFactory();
       XMLStreamReader xmlStreamReader = xmlInputFactory.createXMLStreamReader(new StreamSource(modelFileResourceURL.openStream()));
       ArrayList<URDFGazebo> gazeboTags = new ArrayList<>();
-      Unmarshaller unmarshaller = JAXBContext.newInstance(URDFGazebo.class).createUnmarshaller();
+      Unmarshaller gazeboExtensionUnmarshaller = JAXBContext.newInstance(URDFGazebo.class).createUnmarshaller();
 
       int eventType = xmlStreamReader.next();
       while (xmlStreamReader.hasNext())
@@ -270,7 +282,7 @@ public class RobotDescriptionFromURDFLoader
          {
             if (xmlStreamReader.getLocalName().equals("gazebo"))
             {
-               JAXBElement<URDFGazebo> unmarshal = unmarshaller.unmarshal(xmlStreamReader, URDFGazebo.class);
+               JAXBElement<URDFGazebo> unmarshal = gazeboExtensionUnmarshaller.unmarshal(xmlStreamReader, URDFGazebo.class);
 
                gazeboTags.add(unmarshal.getValue());
             }

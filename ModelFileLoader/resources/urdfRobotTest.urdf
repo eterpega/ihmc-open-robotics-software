@@ -1932,7 +1932,8 @@
         <mesh filename="package://multisense_sl_description/meshes/head.dae"/>
       </geometry>
       <material name="">
-        <color rgba="0.9098 0.44314 0.031373 1"/>
+        <!--<color rgba="0.9098 0.44314 0.031373 1"/>-->
+        <texture filename="package://atlas_cage_and_camera_diffuse_flat.jpg"/>
       </material>
     </visual>
     <collision>
