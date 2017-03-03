@@ -1,8 +1,11 @@
 package us.ihmc.commonWalkingControlModules.instantaneousCapturePoint;
 
-import static us.ihmc.graphicsDescription.appearance.YoAppearance.*;
-
-import javax.vecmath.Vector3d;
+import static us.ihmc.graphicsDescription.appearance.YoAppearance.Beige;
+import static us.ihmc.graphicsDescription.appearance.YoAppearance.Black;
+import static us.ihmc.graphicsDescription.appearance.YoAppearance.BlueViolet;
+import static us.ihmc.graphicsDescription.appearance.YoAppearance.DarkRed;
+import static us.ihmc.graphicsDescription.appearance.YoAppearance.Purple;
+import static us.ihmc.graphicsDescription.appearance.YoAppearance.Yellow;
 
 import us.ihmc.commonWalkingControlModules.bipedSupportPolygons.BipedSupportPolygons;
 import us.ihmc.commonWalkingControlModules.captureRegion.PushRecoveryControlModule;
@@ -13,9 +16,10 @@ import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamic
 import us.ihmc.commonWalkingControlModules.instantaneousCapturePoint.icpOptimization.ICPOptimizationParameters;
 import us.ihmc.commonWalkingControlModules.instantaneousCapturePoint.smoothICPGenerator.CapturePointTools;
 import us.ihmc.commonWalkingControlModules.momentumBasedController.HighLevelHumanoidControllerToolbox;
+import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition;
-import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition.GraphicType;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.graphicsDescription.yoGraphics.plotting.YoArtifactPosition;
 import us.ihmc.humanoidRobotics.bipedSupportPolygons.ContactablePlaneBody;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.GoHomeCommand;
@@ -23,6 +27,7 @@ import us.ihmc.humanoidRobotics.communication.controllerAPI.command.PelvisTrajec
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.StopAllTrajectoryCommand;
 import us.ihmc.humanoidRobotics.communication.packets.walking.CapturabilityBasedStatus;
 import us.ihmc.humanoidRobotics.footstep.Footstep;
+import us.ihmc.humanoidRobotics.footstep.FootstepTiming;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotics.MathTools;
 import us.ihmc.robotics.controllers.YoPDGains;
@@ -68,6 +73,7 @@ public class BalanceManager
 
    private final YoFramePoint2d yoPerfectCMP = new YoFramePoint2d("perfectCMP", worldFrame, registry);
    private final YoFramePoint2d yoDesiredCMP = new YoFramePoint2d("desiredCMP", worldFrame, registry);
+
    // TODO It seems that the achieved CMP can be off sometimes.
    // Need to review the computation of the achieved linear momentum rate or of the achieved CMP. (Sylvain)
    private final YoFramePoint2d yoAchievedCMP = new YoFramePoint2d("achievedCMP", worldFrame, registry);
@@ -162,8 +168,7 @@ public class BalanceManager
       icpPlanner = new ICPPlannerWithTimeFreezer(bipedSupportPolygons, contactableFeet, capturePointPlannerParameters, registry, yoGraphicsListRegistry);
       icpPlanner.setMinimumSingleSupportTimeForDisturbanceRecovery(minimumSwingTimeForDisturbanceRecovery);
       icpPlanner.setOmega0(momentumBasedController.getOmega0());
-      icpPlanner.setDefaultSingleSupportTime(walkingControllerParameters.getDefaultSwingTime());
-      icpPlanner.setDefaultDoubleSupportTime(walkingControllerParameters.getDefaultTransferTime());
+      icpPlanner.setFinalTransferTime(walkingControllerParameters.getDefaultTransferTime());
 
       safeDistanceFromSupportEdgesToStopCancelICPPlan.set(0.05);
       distanceToShrinkSupportPolygonWhenHoldingCurrent.set(0.08);
@@ -222,24 +227,24 @@ public class BalanceManager
       parentRegistry.addChild(registry);
    }
 
-   public void setMomentumWeight(Vector3d linearWeight)
+   public void setMomentumWeight(Vector3D linearWeight)
    {
       linearMomentumRateOfChangeControlModule.setMomentumWeight(linearWeight);
    }
 
-   public void setMomentumWeight(Vector3d angularWeight, Vector3d linearWeight)
+   public void setMomentumWeight(Vector3D angularWeight, Vector3D linearWeight)
    {
       linearMomentumRateOfChangeControlModule.setMomentumWeight(angularWeight, linearWeight);
    }
 
-   public void setHighMomentumWeightForRecovery(Vector3d highLinearWeight)
+   public void setHighMomentumWeightForRecovery(Vector3D highLinearWeight)
    {
       linearMomentumRateOfChangeControlModule.setHighMomentumWeightForRecovery(highLinearWeight);
    }
 
-   public void addFootstepToPlan(Footstep footstep)
+   public void addFootstepToPlan(Footstep footstep, FootstepTiming timing)
    {
-      icpPlanner.addFootstepToPlan(footstep);
+      icpPlanner.addFootstepToPlan(footstep, timing);
       linearMomentumRateOfChangeControlModule.addFootstepToPlan(footstep);
    }
 
@@ -261,7 +266,6 @@ public class BalanceManager
    public void clearICPPlan()
    {
       icpPlanner.clearPlan();
-      icpPlanner.clearFinalTransferTime();
       linearMomentumRateOfChangeControlModule.clearPlan();
    }
 
@@ -331,17 +335,17 @@ public class BalanceManager
          linearMomentumRateOfChangeControlModule.setDefaultMomentumWeight();
       }
 
-         linearMomentumRateOfChangeControlModule.setDesiredCenterOfMassHeightAcceleration(desiredCoMHeightAcceleration);
-         linearMomentumRateOfChangeControlModule.setCapturePoint(capturePoint2d);
-         linearMomentumRateOfChangeControlModule.setOmega0(omega0);
-         linearMomentumRateOfChangeControlModule.setDesiredCapturePoint(adjustedDesiredCapturePoint2d);
-         linearMomentumRateOfChangeControlModule.setFinalDesiredCapturePoint(finalDesiredCapturePoint2d);
-         linearMomentumRateOfChangeControlModule.setDesiredCapturePointVelocity(desiredCapturePointVelocity2d);
-         linearMomentumRateOfChangeControlModule.setPerfectCMP(perfectCMP);
-         linearMomentumRateOfChangeControlModule.setSupportLeg(supportLeg);
-         yoDesiredCMP.getFrameTuple2d(desiredCMP);
-         linearMomentumRateOfChangeControlModule.compute(desiredCMP, desiredCMP);
-         yoDesiredCMP.set(desiredCMP);
+      linearMomentumRateOfChangeControlModule.setDesiredCenterOfMassHeightAcceleration(desiredCoMHeightAcceleration);
+      linearMomentumRateOfChangeControlModule.setCapturePoint(capturePoint2d);
+      linearMomentumRateOfChangeControlModule.setOmega0(omega0);
+      linearMomentumRateOfChangeControlModule.setDesiredCapturePoint(adjustedDesiredCapturePoint2d);
+      linearMomentumRateOfChangeControlModule.setFinalDesiredCapturePoint(finalDesiredCapturePoint2d);
+      linearMomentumRateOfChangeControlModule.setDesiredCapturePointVelocity(desiredCapturePointVelocity2d);
+      linearMomentumRateOfChangeControlModule.setPerfectCMP(perfectCMP);
+      linearMomentumRateOfChangeControlModule.setSupportLeg(supportLeg);
+      yoDesiredCMP.getFrameTuple2d(desiredCMP);
+      linearMomentumRateOfChangeControlModule.compute(desiredCMP, desiredCMP);
+      yoDesiredCMP.set(desiredCMP);
    }
 
    public Footstep createFootstepForRecoveringFromDisturbance(RobotSide swingSide, double swingTimeRemaining)
@@ -385,6 +389,11 @@ public class BalanceManager
       yoDesiredCMP.getFrameTuple2dIncludingFrame(desiredCMPToPack);
    }
 
+   public void getPerfectCMP(FramePoint2d desiredCMPToPack)
+   {
+      yoPerfectCMP.getFrameTuple2dIncludingFrame(desiredCMPToPack);
+   }
+
    public void getDesiredICP(FramePoint2d desiredICPToPack)
    {
       yoDesiredCapturePoint.getFrameTuple2dIncludingFrame(desiredICPToPack);
@@ -393,11 +402,6 @@ public class BalanceManager
    public void getDesiredICPVelocity(FrameVector2d desiredICPVelocityToPack)
    {
       yoDesiredICPVelocity.getFrameTuple2dIncludingFrame(desiredICPVelocityToPack);
-   }
-
-   public double getDefaultInitialTransferDuration()
-   {
-      return icpPlanner.getDefaultInitialTransferTime();
    }
 
    public MomentumRateCommand getInverseDynamicsCommand()
@@ -592,13 +596,11 @@ public class BalanceManager
 
    private void setDefaultDoubleSupportTime(double defaultDoubleSupportTime)
    {
-      icpPlanner.setDefaultDoubleSupportTime(defaultDoubleSupportTime);
       linearMomentumRateOfChangeControlModule.setDoubleSupportDuration(defaultDoubleSupportTime);
    }
 
    private void setDefaultSingleSupportTime(double defaultSingleSupportTime)
    {
-      icpPlanner.setDefaultSingleSupportTime(defaultSingleSupportTime);
       linearMomentumRateOfChangeControlModule.setSingleSupportDuration(defaultSingleSupportTime);
    }
 

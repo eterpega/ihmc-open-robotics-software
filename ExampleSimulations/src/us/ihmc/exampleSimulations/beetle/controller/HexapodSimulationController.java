@@ -3,8 +3,6 @@ package us.ihmc.exampleSimulations.beetle.controller;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.vecmath.Point2d;
-
 import us.ihmc.commonWalkingControlModules.bipedSupportPolygons.ContactPointVisualizer;
 import us.ihmc.commonWalkingControlModules.bipedSupportPolygons.ListOfPointsContactablePlaneBody;
 import us.ihmc.commonWalkingControlModules.configurations.JointPrivilegedConfigurationParameters;
@@ -14,6 +12,8 @@ import us.ihmc.commonWalkingControlModules.controllerCore.command.ControllerCore
 import us.ihmc.commonWalkingControlModules.controllerCore.command.feedbackController.FeedbackControlCommandList;
 import us.ihmc.commonWalkingControlModules.momentumBasedController.GeometricJacobianHolder;
 import us.ihmc.commonWalkingControlModules.momentumBasedController.optimization.MomentumOptimizationSettings;
+import us.ihmc.commons.Conversions;
+import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.exampleSimulations.beetle.footContact.SimulatedPlaneContactStateUpdater;
 import us.ihmc.exampleSimulations.beetle.parameters.HexapodControllerParameters;
 import us.ihmc.exampleSimulations.beetle.parameters.RhinoBeetleJointNameMap;
@@ -36,7 +36,6 @@ import us.ihmc.robotics.screwTheory.OneDoFJoint;
 import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.robotics.screwTheory.ScrewTools;
 import us.ihmc.robotics.screwTheory.TwistCalculator;
-import us.ihmc.robotics.time.TimeTools;
 import us.ihmc.sensorProcessing.simulatedSensors.SDFPerfectSimulatedSensorReader;
 import us.ihmc.simulationToolkit.outputWriters.PerfectSimulatedOutputWriter;
 import us.ihmc.simulationconstructionset.FloatingRootJointRobot;
@@ -81,7 +80,7 @@ public class HexapodSimulationController implements RobotController
       this.referenceFrames = new HexapodReferenceFrames(fullRobotModel, RhinoBeetlePhysicalProperties.getOffsetsFromJointBeforeFootToSoleAlignedWithWorld());
       this.twistCalculator = new TwistCalculator(worldFrame, fullRobotModel.getElevator());
       setupPlaneContactStateUpdaters(fullRobotModel, sdfRobot);
-      
+
       highLevelController = new HexapodHighLevelControlManager(fullRobotModel, referenceFrames, twistCalculator, contactStateUpdaters, jointsToControl, idParameters, vmcParameters, yoGraphicsListRegistry, controllerDt, registry);
 
       FeedbackControlCommandList feedbackControlCommandList = createFeedbackControlTemplate();
@@ -133,8 +132,8 @@ public class HexapodSimulationController implements RobotController
    private WholeBodyControlCoreToolbox makeControllerToolbox()
    {
       //point feet contact points
-      ArrayList<Point2d> contactPointsInSoleFrame = new ArrayList<>();
-      contactPointsInSoleFrame.add(new Point2d());
+      ArrayList<Point2D> contactPointsInSoleFrame = new ArrayList<>();
+      contactPointsInSoleFrame.add(new Point2D());
 
       //Rigid Bodies
       List<ContactablePlaneBody> footContactableBodies = new ArrayList<>();
@@ -168,12 +167,7 @@ public class HexapodSimulationController implements RobotController
 
    private MomentumOptimizationSettings getMomentumOptimizationSettings()
    {
-      MomentumOptimizationSettings momentumOptimizationSettings = new MomentumOptimizationSettings();
-      momentumOptimizationSettings.setNumberOfBasisVectorsPerContactPoint(4);
-      momentumOptimizationSettings.setNumberOfContactableBodies(6);
-      momentumOptimizationSettings.setNumberOfContactPointsPerContactableBody(1);
-
-      return momentumOptimizationSettings;
+      return new HexapodMomentumOptimizationSettings();
    }
 
    @Override
@@ -229,8 +223,8 @@ public class HexapodSimulationController implements RobotController
       controllerCore.submitControllerCoreCommand(controllerCoreCommandList);
       controllerCore.compute();
       outputWriter.write();
-      
+
       totalTimeToCompleteTick.set(System.nanoTime() - startTime);
-      totalTimeToCompleteTickInSeconds.set(TimeTools.nanoSecondstoSeconds(System.nanoTime() - startTime));
+      totalTimeToCompleteTickInSeconds.set(Conversions.nanoSecondstoSeconds(System.nanoTime() - startTime));
    }
 }

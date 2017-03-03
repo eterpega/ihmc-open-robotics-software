@@ -7,13 +7,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map.Entry;
 
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.graphicsDescription.Graphics3DObject;
 import us.ihmc.modelFileLoaders.ModelFileLoaderConversionsHelper;
 import us.ihmc.modelFileLoaders.SdfLoader.xmlDescription.SDFJoint;
 import us.ihmc.modelFileLoaders.SdfLoader.xmlDescription.SDFLink;
 import us.ihmc.modelFileLoaders.SdfLoader.xmlDescription.SDFModel;
 import us.ihmc.modelFileLoaders.SdfLoader.xmlDescription.SDFSensor;
-import us.ihmc.graphicsDescription.Graphics3DObject;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
 import us.ihmc.robotics.robotDescription.CollisionMeshDescription;
 import us.ihmc.robotics.robotDescription.GraphicsObjectsHolder;
 import us.ihmc.robotics.sensors.ContactSensorType;
@@ -156,7 +156,7 @@ public class GeneralizedSDFRobotModel implements GraphicsObjectsHolder
    }
 
    @Override
-   public CollisionMeshDescription getCollisionObject(String name)
+   public ArrayList<CollisionMeshDescription> getCollisionObjects(String name)
    {
       // TODO: SDF collision stuff to RobotDescription collision stuff.
       for(SDFLinkHolder linkHolder : rootLinks)
@@ -164,14 +164,19 @@ public class GeneralizedSDFRobotModel implements GraphicsObjectsHolder
          if(linkHolder.getName().equals(name))
          {
             SDFGraphics3DObject sdfGraphics3DObject = new SDFGraphics3DObject(linkHolder.getCollisions(), resourceDirectories);
-            CollisionMeshDescription collisionMeshDescription = new CollisionMeshDescription();
-            return collisionMeshDescription;
+            ArrayList<CollisionMeshDescription> collisionMeshDescriptions = new ArrayList<CollisionMeshDescription>();
+            
+            //TODO: Figure out and add the collision meshes...
+            return collisionMeshDescriptions;
          }
       }
 
       SDFGraphics3DObject sdfGraphics3DObject = new SDFGraphics3DObject(joints.get(name).getChildLinkHolder().getCollisions(), resourceDirectories);
       CollisionMeshDescription collisionMeshDescription = new CollisionMeshDescription();
-      return collisionMeshDescription;
+      
+      ArrayList<CollisionMeshDescription> collisionMeshDescriptions = new ArrayList<CollisionMeshDescription>();
+      //TODO: Figure out and add the collision meshes...
+      return collisionMeshDescriptions;
    }
 
    @Override

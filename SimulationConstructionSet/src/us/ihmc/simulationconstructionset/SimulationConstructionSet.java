@@ -29,11 +29,10 @@ import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
-import javax.vecmath.Color3f;
-import javax.vecmath.Tuple3d;
 
 import com.jme3.renderer.Camera;
 
+import us.ihmc.euclid.tuple3D.interfaces.Tuple3DBasics;
 import us.ihmc.graphicsDescription.Graphics3DObject;
 import us.ihmc.graphicsDescription.HeightMap;
 import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
@@ -50,6 +49,7 @@ import us.ihmc.jMonkeyEngineToolkit.camera.CameraConfiguration;
 import us.ihmc.jMonkeyEngineToolkit.camera.CaptureDevice;
 import us.ihmc.jMonkeyEngineToolkit.camera.RenderedSceneHandler;
 import us.ihmc.robotics.TickAndUpdatable;
+import us.ihmc.robotics.dataStructures.MutableColor;
 import us.ihmc.robotics.dataStructures.YoVariableHolder;
 import us.ihmc.robotics.dataStructures.listener.RewoundListener;
 import us.ihmc.robotics.dataStructures.listener.YoVariableRegistryChangedListener;
@@ -57,8 +57,8 @@ import us.ihmc.robotics.dataStructures.registry.NameSpace;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 import us.ihmc.robotics.dataStructures.variable.YoVariable;
 import us.ihmc.robotics.dataStructures.variable.YoVariableList;
+import us.ihmc.robotics.robotDescription.RobotDescription;
 import us.ihmc.robotics.stateMachines.conditionBasedStateMachine.StateMachinesJPanel;
-import us.ihmc.robotics.time.GlobalTimer;
 import us.ihmc.robotics.time.RealTimeRateEnforcer;
 import us.ihmc.simulationconstructionset.DataBuffer.RepeatDataBufferEntryException;
 import us.ihmc.simulationconstructionset.commands.AddCameraKeyCommandExecutor;
@@ -97,7 +97,7 @@ import us.ihmc.simulationconstructionset.gui.hierarchyTree.NameSpaceHierarchyTre
 import us.ihmc.simulationconstructionset.gui.tools.SimulationOverheadPlotterFactory;
 import us.ihmc.simulationconstructionset.physics.CollisionHandler;
 import us.ihmc.simulationconstructionset.physics.ScsPhysics;
-import us.ihmc.simulationconstructionset.physics.visualize.DefaultCollisionVisualizer;
+import us.ihmc.simulationconstructionset.physics.collision.DefaultCollisionVisualizer;
 import us.ihmc.simulationconstructionset.robotcommprotocol.GUISideCommandListener;
 import us.ihmc.simulationconstructionset.robotcommprotocol.RobotConnectionGUIUpdater;
 import us.ihmc.simulationconstructionset.robotcommprotocol.RobotSocketConnection;
@@ -262,7 +262,8 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
 
    // private boolean keyPointToggle = false;
 
-   private boolean simulationThreadIsUpAndRunning = false;
+   private boolean hasSimulationThreadStarted = false;
+   private boolean isSimulationThreadRunning = false;
    private boolean isSimulating = false;
    private boolean simulateNoFasterThanRealTime = false;
    private final RealTimeRateEnforcer realTimeRateEnforcer = new RealTimeRateEnforcer();
@@ -416,7 +417,7 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
          this.dynamicGraphicMenuManager = null;
       }
 
-      mySimulation = simulation;
+      this.mySimulation = simulation;
       this.myDataBuffer = mySimulation.getDataBuffer();
       this.simulationSynchronizer = mySimulation.getSimulationSynchronizer();
 
@@ -1131,7 +1132,7 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
     *
     * @param cameraFix coordinates of the fix point.
     */
-   public void setCameraFix(Tuple3d cameraFix)
+   public void setCameraFix(Tuple3DBasics cameraFix)
    {
       if (myGUI != null)
       {
@@ -1159,7 +1160,7 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
     *
     * @param cameraPosition coordinates of the camera.
     */
-   public void setCameraPosition(Tuple3d cameraPosition)
+   public void setCameraPosition(Tuple3DBasics cameraPosition)
    {
       if (myGUI != null)
       {
@@ -1192,7 +1193,7 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
    {
       ThreadTools.startAThread(this, "Simulation Contruction Set");
 
-      while (!this.isSimulationThreadUpAndRunning())
+      while (!this.hasSimulationThreadStarted())
       {
          Thread.yield();
       }
@@ -1296,10 +1297,6 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
       // Destroy the LWJGL Threads. Not sure if need to do Display.destroy() or not.
 //      Display.destroy();
       ThreadTools.interruptLiveThreadsExceptThisOneContaining("LWJGL Timer"); // This kills the silly LWJGL sleeping thread which just sleeps and does nothing else...
-
-      GlobalTimer.clearTimers();
-
-
    }
 
    /**
@@ -1956,6 +1953,54 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
    }
 
    /**
+    * Adds a robot to the simulation using the given RobotDescription
+    * @param robotDescription
+    * @return Robot that was created and added.
+    */
+   public Robot addRobot(RobotDescription robotDescription)
+   {
+      RobotFromDescription robot = new RobotFromDescription(robotDescription);
+      addRobot(robot);
+      return robot; 
+   }
+
+   /**
+    * Adds a robot to this simulation.
+    * @param robot
+    */
+   public void addRobot(Robot robot)
+   {
+      //TODO: Clean this up and clean up setRobot too.
+      
+      YoVariableRegistry robotsYoVariableRegistry = robot.getRobotsYoVariableRegistry();
+      YoVariableRegistry parentRegistry = robotsYoVariableRegistry.getParent();
+      if (parentRegistry != null)
+      {
+         throw new RuntimeException("SimulationConstructionSet.addRobot(). Trying to add robot registry as child to root registry, but it already has a parent registry: " + parentRegistry);
+      }
+
+      boolean notifyListeners = false; // TODO: This is very hackish. If listeners are on, then the variables will be added to the data buffer. But mySimulation.setRobots() in a few lines does that...
+      rootRegistry.addChild(robotsYoVariableRegistry, notifyListeners);
+
+      mySimulation.addRobot(robot);
+
+      // recomputeTiming();
+      this.robots = mySimulation.getRobots();
+
+      if (myGUI != null)
+      {
+         myGUI.addRobot(robot);
+
+         ArrayList<RewoundListener> simulationRewoundListeners = robot.getSimulationRewoundListeners();
+         for (RewoundListener simulationRewoundListener : simulationRewoundListeners)
+         {
+            myDataBuffer.attachSimulationRewoundListener(simulationRewoundListener);
+         }
+         // *** JJC a add variable search panel was removed from here.
+      }
+   }
+
+   /**
     * Set the robot to be used by this simulation.
     *
     * @param robot Robot to be used by the simulation.
@@ -2105,16 +2150,16 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
     */
    public void setBackgroundColor(Color color)
    {
-      setBackgroundColor(new Color3f(color));
+      setBackgroundColor(new MutableColor(color));
    }
 
    /**
     * Set the specified background color
     *
     * @param color Color3f
-    * @see Color3f
+    * @see MutableColor
     */
-   public void setBackgroundColor(Color3f color)
+   public void setBackgroundColor(MutableColor color)
    {
       if (myGUI != null)
       {
@@ -2181,7 +2226,7 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
    public void run()
    {
       // myGUI.setupConfiguration("all", "all", "all", "all");
-
+      
       if (!TESTING_LOAD_STUFF)
       {
          if ((!defaultLoaded) && (myGUI != null))
@@ -2241,19 +2286,20 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
          {
             dynamicGraphicMenuManager.hideAllGraphics();
          }
-
       }
+
+      hasSimulationThreadStarted = true;
+      isSimulationThreadRunning = true;
 
       if (robots == null)
       {
+         isSimulationThreadRunning = false;
          return;
       }
 
       fastTicks = 0;
 
       // t = rob.getVariable("t");
-
-      simulationThreadIsUpAndRunning = true;
 
       // Three state loop, simulation is either playing, running, or waiting
       while (true)
@@ -2326,8 +2372,7 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
          // System.out.println("Tick" + foo);
       }
 
-      simulationThreadIsUpAndRunning = false;
-
+      isSimulationThreadRunning = false;
    }
 
    /**
@@ -2337,7 +2382,7 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
    {
       stopSimulationThread = true;
 
-      while (isSimulationThreadUpAndRunning())
+      while (isSimulationThreadRunning)
       {
          try
          {
@@ -2690,9 +2735,14 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
 
    }
 
-   public boolean isSimulationThreadUpAndRunning()
+   public boolean hasSimulationThreadStarted()
    {
-      return this.simulationThreadIsUpAndRunning;
+      return this.hasSimulationThreadStarted;
+   }
+
+   public boolean isSimulationThreadRunning()
+   {
+      return this.isSimulationThreadRunning;
    }
 
    /**
@@ -4463,16 +4513,6 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
    {
       this.physics = physics;
       mySimulation.initPhysics(physics);
-   }
-
-   public void addForceSensor(WrenchContactPoint sensor)
-   {
-      mySimulation.addForceSensor(sensor);
-   }
-
-   public ArrayList<WrenchContactPoint> getForceSensors()
-   {
-      return mySimulation.getForceSensors();
    }
 
    public void repaintWindows()
