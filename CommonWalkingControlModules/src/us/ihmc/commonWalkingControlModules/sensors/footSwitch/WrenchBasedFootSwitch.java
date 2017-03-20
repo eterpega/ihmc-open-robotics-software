@@ -4,11 +4,11 @@ import java.util.List;
 
 import us.ihmc.commonWalkingControlModules.controlModules.CenterOfPressureResolver;
 import us.ihmc.commonWalkingControlModules.desiredFootStep.DesiredFootstepCalculatorTools;
-import us.ihmc.graphics3DDescription.appearance.AppearanceDefinition;
-import us.ihmc.graphics3DDescription.appearance.YoAppearance;
-import us.ihmc.graphics3DDescription.yoGraphics.BagOfBalls;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicReferenceFrame;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
+import us.ihmc.graphicsDescription.appearance.YoAppearance;
+import us.ihmc.graphicsDescription.yoGraphics.BagOfBalls;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicReferenceFrame;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.humanoidRobotics.bipedSupportPolygons.ContactablePlaneBody;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
@@ -79,7 +79,7 @@ public class WrenchBasedFootSwitch implements HeelSwitch, ToeSwitch
    private double minThresholdX;
    private double maxThresholdX;
    private final boolean showForceSensorFrames = false;
-   private final YoGraphicReferenceFrame dynamicGraphicForceSensorMeasurementFrame, dynamicGraphicForceSensorFootFrame;
+   private final YoGraphicReferenceFrame yoGraphicForceSensorMeasurementFrame, yoGraphicForceSensorFootFrame;
 
    private final AppearanceDefinition redAppearance = YoAppearance.Red();
    private final AppearanceDefinition blueAppearance = YoAppearance.Blue();
@@ -105,17 +105,17 @@ public class WrenchBasedFootSwitch implements HeelSwitch, ToeSwitch
       if (showForceSensorFrames && yoGraphicsListRegistry != null)
       {
          final double scale = 1.0;
-         dynamicGraphicForceSensorMeasurementFrame = new YoGraphicReferenceFrame(forceSensorData.getMeasurementFrame(), registry, .6 * scale,
+         yoGraphicForceSensorMeasurementFrame = new YoGraphicReferenceFrame(forceSensorData.getMeasurementFrame(), registry, .6 * scale,
                YoAppearance.Yellow());
-         dynamicGraphicForceSensorFootFrame = new YoGraphicReferenceFrame(contactablePlaneBody.getFrameAfterParentJoint(), registry, scale,
+         yoGraphicForceSensorFootFrame = new YoGraphicReferenceFrame(contactablePlaneBody.getFrameAfterParentJoint(), registry, scale,
                YoAppearance.AliceBlue());
-         yoGraphicsListRegistry.registerYoGraphic(namePrefix + "MeasFrame", dynamicGraphicForceSensorMeasurementFrame);
-         yoGraphicsListRegistry.registerYoGraphic(namePrefix + "FootFrame", dynamicGraphicForceSensorFootFrame);
+         yoGraphicsListRegistry.registerYoGraphic(namePrefix + "MeasFrame", yoGraphicForceSensorMeasurementFrame);
+         yoGraphicsListRegistry.registerYoGraphic(namePrefix + "FootFrame", yoGraphicForceSensorFootFrame);
       }
       else
       {
-         dynamicGraphicForceSensorMeasurementFrame = null;
-         dynamicGraphicForceSensorFootFrame = null;
+         yoGraphicForceSensorMeasurementFrame = null;
+         yoGraphicForceSensorFootFrame = null;
       }
 
       footForceMagnitude = new DoubleYoVariable(namePrefix + "FootForceMag", registry);
@@ -348,10 +348,10 @@ public class WrenchBasedFootSwitch implements HeelSwitch, ToeSwitch
 
    private void updateSensorVisualizer()
    {
-      if (dynamicGraphicForceSensorMeasurementFrame != null)
-         dynamicGraphicForceSensorMeasurementFrame.update();
-      if (dynamicGraphicForceSensorFootFrame != null)
-         dynamicGraphicForceSensorFootFrame.update();
+      if (yoGraphicForceSensorMeasurementFrame != null)
+         yoGraphicForceSensorMeasurementFrame.update();
+      if (yoGraphicForceSensorFootFrame != null)
+         yoGraphicForceSensorFootFrame.update();
    }
 
    private boolean isForceMagnitudePastThreshold()

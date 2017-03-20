@@ -1,6 +1,6 @@
 package us.ihmc.simulationconstructionset.util.simulationTesting;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 import java.lang.reflect.Field;
 import java.util.AbstractList;
@@ -32,6 +32,7 @@ public class ReflectionSimulationComparer implements SimulationComparer
       comparer = new RecursiveObjectComparer(maxDepth, maxSize);
    }
 
+   @Override
    public boolean compare(SimulationConstructionSet scs0, SimulationConstructionSet scs1)
    {
       try
@@ -80,6 +81,7 @@ public class ReflectionSimulationComparer implements SimulationComparer
       return comparer.getDifferingFields();
    }
 
+   @Override
    public String toString()
    {
       return comparer.toString();

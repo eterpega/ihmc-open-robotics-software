@@ -13,7 +13,6 @@ import com.martiansoftware.jsap.JSAPException;
 import com.martiansoftware.jsap.JSAPResult;
 import com.martiansoftware.jsap.Switch;
 
-import us.ihmc.SdfLoader.GeneralizedSDFRobotModel;
 import us.ihmc.avatar.DRCObstacleCourseStartingLocation;
 import us.ihmc.avatar.DRCStartingLocation;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
@@ -30,11 +29,12 @@ import us.ihmc.communication.net.LocalObjectCommunicator;
 import us.ihmc.communication.packetCommunicator.PacketCommunicator;
 import us.ihmc.communication.packets.PacketDestination;
 import us.ihmc.communication.util.NetworkPorts;
+import us.ihmc.modelFileLoaders.SdfLoader.GeneralizedSDFRobotModel;
 import us.ihmc.utilities.ros.subscriber.AbstractRosTopicSubscriber;
 import us.ihmc.utilities.ros.subscriber.RosTopicSubscriberInterface;
 import us.ihmc.valkyrie.parameters.ValkyrieContactPointParameters;
 import us.ihmc.wholeBodyController.AdditionalSimulationContactPoints;
-import us.ihmc.wholeBodyController.SimulationFootContactPoints;
+import us.ihmc.wholeBodyController.FootContactPoints;
 
 public class OpenHumanoidsSimulator
 {
@@ -72,7 +72,7 @@ public class OpenHumanoidsSimulator
    public OpenHumanoidsSimulator(String model, DRCStartingLocation startingLocation, String nameSpace, String tfPrefix,
          boolean runAutomaticDiagnosticRoutine, boolean disableViz, boolean extra_sim_points, Collection<Class> additionalPacketTypes) throws IOException
    {
-         SimulationFootContactPoints simulationContactPoints = null;
+         FootContactPoints simulationContactPoints = null;
          if (extra_sim_points)
          {
             simulationContactPoints = new AdditionalSimulationContactPoints(8, 3, false, true);
@@ -124,7 +124,7 @@ public class OpenHumanoidsSimulator
 		  simulationStarter.setStartingLocation(startingLocation);
 		  simulationStarter.setInitializeEstimatorToActual(true);
 		  simulationStarter.startSimulation(networkProcessorParameters, false);
-		  simulationStarter.getAvatarSimulation().getSimulationConstructionSet().hideAllDynamicGraphicObjects();
+		  simulationStarter.getAvatarSimulation().getSimulationConstructionSet().hideAllYoGraphics();
 
 
 		  if (REDIRECT_UI_PACKETS_TO_ROS)

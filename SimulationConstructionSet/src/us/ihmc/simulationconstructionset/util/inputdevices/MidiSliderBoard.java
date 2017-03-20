@@ -11,6 +11,7 @@ import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Receiver;
 
+import us.ihmc.commons.PrintTools;
 import us.ihmc.robotics.dataStructures.YoVariableHolder;
 import us.ihmc.robotics.dataStructures.listener.VariableChangedListener;
 import us.ihmc.robotics.dataStructures.variable.EnumYoVariable;
@@ -20,7 +21,6 @@ import us.ihmc.simulationconstructionset.SimulationConstructionSet;
 import us.ihmc.simulationconstructionset.util.inputdevices.MidiControl.ControlType;
 import us.ihmc.simulationconstructionset.util.inputdevices.MidiControl.SliderType;
 import us.ihmc.simulationconstructionset.util.inputdevices.sliderboardVisualizer.MidiSliderBoardConfigurationVisualizer;
-import us.ihmc.tools.io.printing.PrintTools;
 import us.ihmc.tools.thread.CloseableAndDisposable;
 import us.ihmc.tools.thread.CloseableAndDisposableRegistry;
 
@@ -138,6 +138,7 @@ public class MidiSliderBoard implements ExitActionListener, CloseableAndDisposab
             final Object self = this;
             listener = new VariableChangedListener()
             {
+               @Override
                public void variableChanged(YoVariable<?> v)
                {
                   synchronized (self)
@@ -183,6 +184,7 @@ public class MidiSliderBoard implements ExitActionListener, CloseableAndDisposab
 
          addListener(new SliderListener()
          {
+            @Override
             public void valueChanged(MidiControl midiControl)
             {
                if (DEBUG)
@@ -200,6 +202,7 @@ public class MidiSliderBoard implements ExitActionListener, CloseableAndDisposab
       }
    }
 
+   @Override
    public void closeAndDispose()
    {
       closeableAndDisposableRegistry.closeAndDispose();
@@ -1004,6 +1007,7 @@ public class MidiSliderBoard implements ExitActionListener, CloseableAndDisposab
       return new ArrayList<VariableChangedListener>(variableChangedListeners);
    }
 
+   @Override
    public void exitActionPerformed()
    {
       printIfDebug("Exit Action was performed. Closing and disposing " + getClass().getSimpleName());

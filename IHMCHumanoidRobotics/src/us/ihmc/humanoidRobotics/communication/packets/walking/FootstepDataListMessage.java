@@ -5,18 +5,19 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Random;
 
-import javax.vecmath.Quat4d;
-
-import us.ihmc.communication.ros.generators.RosMessagePacket;
-import us.ihmc.communication.ros.generators.RosExportedField;
+import us.ihmc.commons.RandomNumbers;
 import us.ihmc.communication.packets.Packet;
 import us.ihmc.communication.packets.VisualizablePacket;
+import us.ihmc.communication.ros.generators.RosExportedField;
+import us.ihmc.communication.ros.generators.RosMessagePacket;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.humanoidRobotics.communication.TransformableDataObject;
 import us.ihmc.humanoidRobotics.communication.packets.ExecutionMode;
+import us.ihmc.humanoidRobotics.communication.packets.ExecutionTiming;
 import us.ihmc.humanoidRobotics.communication.packets.PacketValidityChecker;
+import us.ihmc.robotics.MathTools;
 import us.ihmc.robotics.geometry.FrameOrientation;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
-import us.ihmc.robotics.random.RandomTools;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
 
@@ -38,12 +39,28 @@ public class FootstepDataListMessage extends Packet<FootstepDataListMessage> imp
          + "\n - The trajectory time and swing time of all queued footsteps will be overwritten with this message's values.")
    public ExecutionMode executionMode = ExecutionMode.OVERRIDE;
 
-   @RosExportedField(documentation = "swingTime is the time spent in single-support when stepping"
-    + "\n - Queueing does not support varying swing times. If execution mode is QUEUE, all queued footsteps' swingTime will be overwritten")
-   public double swingTime = 0.0;
-   @RosExportedField(documentation = "transferTime is the time spent in double-support between steps"
-   + "\n - Queueing does not support varying transfer times. If execution mode is QUEUE, all queued footsteps' transferTime will be overwritten")
-   public double transferTime = 0.0;
+   @RosExportedField(documentation = "When CONTROL_DURATIONS is chosen:"
+         + "\n The controller will try to achieve the swingDuration and the transferDuration specified in the message. If a"
+         + "\n footstep touches down early, the next step will not be affected by this and the whole trajectory might finish"
+         + "\n earlier then expected."
+         + "\nWhen CONTROL_ABSOLUTE_TIMINGS is chosen:"
+         + "\n The controller will compute the expected times for swing start and touchdown and attempt to start a footstep"
+         + "\n at that time. If a footstep touches down early, the following transfer will be extended to make up for this"
+         + "\n time difference and the footstep plan will finish at the expected time.")
+   public ExecutionTiming executionTiming = ExecutionTiming.CONTROL_DURATIONS;
+
+   @RosExportedField(documentation = "The swingDuration is the time a foot is not in ground contact during a step."
+         + "\nEach step in a list of footsteps might have a different swing duration. The value specified here is a default"
+         + "\nvalue, used if a footstep in this list was created without a swingDuration.")
+   public double defaultSwingDuration = 0.0;
+   @RosExportedField(documentation = "The transferDuration is the time spent with the feet in ground contact before a step."
+         + "\nEach step in a list of footsteps might have a different transfer duration. The value specified here is a default"
+         + "\nvalue, used if a footstep in this list was created without a transferDuration.")
+   public double defaultTransferDuration = 0.0;
+
+   @RosExportedField(documentation = "Specifies the time used to return to a stable standing stance after the execution of the"
+         + "\nfootstep list is finished. If the value is negative the defaultTransferDuration will be used.")
+   public double finalTransferDuration = -1.0;
 
    /**
     * Empty constructor for serialization.
@@ -55,36 +72,65 @@ public class FootstepDataListMessage extends Packet<FootstepDataListMessage> imp
    }
 
    /**
-    * 
+    *
     * Set the id of the message to {@link Packet#VALID_MESSAGE_DEFAULT_ID}.
     * @param footstepDataList
-    * @param swingTime
-    * @param transferTime
+    * @param defaultSwingDuration
+    * @param defaultTransferDuration
     * @param executionMode
     */
-   public FootstepDataListMessage(ArrayList<FootstepDataMessage> footstepDataList, double swingTime, double transferTime, ExecutionMode executionMode)
+   public FootstepDataListMessage(ArrayList<FootstepDataMessage> footstepDataList, double defaultSwingDuration, double defaultTransferDuration, ExecutionMode executionMode)
+   {
+      this(footstepDataList, defaultSwingDuration, defaultTransferDuration, defaultTransferDuration, executionMode);
+   }
+
+   /**
+    *
+    * Set the id of the message to {@link Packet#VALID_MESSAGE_DEFAULT_ID}.
+    * @param footstepDataList
+    * @param defaultSwingDuration
+    * @param defaultTransferDuration
+    * @param finalTransferDuration
+    * @param executionMode
+    */
+   public FootstepDataListMessage(ArrayList<FootstepDataMessage> footstepDataList, double defaultSwingDuration, double defaultTransferDuration, double finalTransferDuration,
+         ExecutionMode executionMode)
    {
       setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       if(footstepDataList != null)
       {
          this.footstepDataList = footstepDataList;
       }
-      this.swingTime = swingTime;
-      this.transferTime = transferTime;
+      this.defaultSwingDuration = defaultSwingDuration;
+      this.defaultTransferDuration = defaultTransferDuration;
+      this.finalTransferDuration = finalTransferDuration;
       this.executionMode = executionMode;
    }
 
    /**
-    * 
+    *
     * Set the id of the message to {@link Packet#VALID_MESSAGE_DEFAULT_ID}. Set execution mode to OVERRIDE
-    * @param swingTime
-    * @param transferTime
+    * @param defaultSwingDuration
+    * @param defaultTransferDuration
     */
-   public FootstepDataListMessage(double swingTime, double transferTime)
+   public FootstepDataListMessage(double defaultSwingDuration, double defaultTransferDuration)
+   {
+      this(defaultSwingDuration, defaultTransferDuration, defaultTransferDuration);
+   }
+
+   /**
+    *
+    * Set the id of the message to {@link Packet#VALID_MESSAGE_DEFAULT_ID}. Set execution mode to OVERRIDE
+    * @param defaultSwingDuration
+    * @param defaultTransferDuration
+    * @param finalTransferDuration
+    */
+   public FootstepDataListMessage(double defaultSwingDuration, double defaultTransferDuration, double finalTransferDuration)
    {
       setUniqueId(VALID_MESSAGE_DEFAULT_ID);
-      this.swingTime = swingTime;
-      this.transferTime = transferTime;
+      this.defaultSwingDuration = defaultSwingDuration;
+      this.defaultTransferDuration = defaultTransferDuration;
+      this.finalTransferDuration = finalTransferDuration;
       this.executionMode = ExecutionMode.OVERRIDE;
    }
 
@@ -124,17 +170,27 @@ public class FootstepDataListMessage extends Packet<FootstepDataListMessage> imp
          }
       }
 
-      if (Math.abs(swingTime - otherList.swingTime) > epsilon)
+      if (!MathTools.epsilonEquals(this.defaultSwingDuration, otherList.defaultSwingDuration, epsilon))
       {
          return false;
       }
 
-      if (Math.abs(transferTime - otherList.transferTime) > epsilon)
+      if (!MathTools.epsilonEquals(this.defaultTransferDuration, otherList.defaultTransferDuration, epsilon))
       {
          return false;
       }
 
       if (this.executionMode != otherList.executionMode)
+      {
+         return false;
+      }
+
+      if (this.executionTiming != otherList.executionTiming)
+      {
+         return false;
+      }
+
+      if (!MathTools.epsilonEquals(this.finalTransferDuration, otherList.finalTransferDuration, epsilon))
       {
          return false;
       }
@@ -149,7 +205,7 @@ public class FootstepDataListMessage extends Packet<FootstepDataListMessage> imp
       if (numberOfSteps > 0)
       {
          startingFootstep = this.get(0).getLocation().toString();
-         Quat4d quat4d = this.get(0).getOrientation();
+         Quaternion quat4d = this.get(0).getOrientation();
 
          FrameOrientation frameOrientation = new FrameOrientation(ReferenceFrame.getWorldFrame(), quat4d);
          startingFootstep = startingFootstep + ", ypr= " + Arrays.toString(frameOrientation.getYawPitchRoll());
@@ -166,7 +222,12 @@ public class FootstepDataListMessage extends Packet<FootstepDataListMessage> imp
       }
       else
       {
-         return ("Starting Footstep: " + startingFootstep + "\n\tExecution Mode: " + this.executionMode + "\n\tTransfer Time: " + transferTime + "\n\tSwing Time: " + swingTime + "\n\tSize: " + this.size() + " Footsteps");
+         return ("Starting Footstep: " + startingFootstep + "\n"
+               + "\tExecution Mode: " + this.executionMode + "\n"
+               + "\tExecution Timing: " + this.executionTiming + "\n"
+               + "\tTransfer Duration: " + this.defaultTransferDuration + "\n"
+               + "\tSwing Duration: " + this.defaultSwingDuration + "\n"
+               + "\tSize: " + this.size() + " Footsteps");
       }
    }
 
@@ -177,7 +238,7 @@ public class FootstepDataListMessage extends Packet<FootstepDataListMessage> imp
 
    public FootstepDataListMessage transform(RigidBodyTransform transform)
    {
-      FootstepDataListMessage ret = new FootstepDataListMessage(swingTime, transferTime);
+      FootstepDataListMessage ret = new FootstepDataListMessage(defaultSwingDuration, defaultTransferDuration, finalTransferDuration);
 
       for (FootstepDataMessage footstepData : footstepDataList)
       {
@@ -188,19 +249,34 @@ public class FootstepDataListMessage extends Packet<FootstepDataListMessage> imp
       return ret;
    }
 
-   public void setSwingTime(double swingTime)
+   public void setDefaultSwingDuration(double defaultSwingDuration)
    {
-      this.swingTime = swingTime;
+      this.defaultSwingDuration = defaultSwingDuration;
    }
 
-   public void setTransferTime(double transferTime)
+   public void setDefaultTransferDuration(double defaultTransferDuration)
    {
-      this.transferTime = transferTime;
+      this.defaultTransferDuration = defaultTransferDuration;
+   }
+
+   public void setFinalTransferDuration(double finalTransferDuration)
+   {
+      this.finalTransferDuration = finalTransferDuration;
    }
 
    public void setExecutionMode(ExecutionMode executionMode)
    {
       this.executionMode = executionMode;
+   }
+
+   public void setExecutionTiming(ExecutionTiming executionTiming)
+   {
+      this.executionTiming = executionTiming;
+   }
+
+   public ExecutionTiming getExecutionTiming()
+   {
+      return executionTiming;
    }
 
    public FootstepDataListMessage(Random random)
@@ -212,9 +288,11 @@ public class FootstepDataListMessage extends Packet<FootstepDataListMessage> imp
          footstepDataList.add(new FootstepDataMessage(random));
       }
 
-      this.swingTime = RandomTools.generateRandomDoubleWithEdgeCases(random, 0.1);
-      this.transferTime = RandomTools.generateRandomDoubleWithEdgeCases(random, 0.1);
-      this.executionMode = RandomTools.generateRandomEnum(random, ExecutionMode.class);
+      this.defaultSwingDuration = RandomNumbers.nextDoubleWithEdgeCases(random, 0.1);
+      this.defaultTransferDuration = RandomNumbers.nextDoubleWithEdgeCases(random, 0.1);
+      this.finalTransferDuration = RandomNumbers.nextDoubleWithEdgeCases(random, 0.1);
+      this.executionMode = RandomNumbers.nextEnum(random, ExecutionMode.class);
+      this.executionTiming = RandomNumbers.nextEnum(random, ExecutionTiming.class);
    }
 
    /** {@inheritDoc} */

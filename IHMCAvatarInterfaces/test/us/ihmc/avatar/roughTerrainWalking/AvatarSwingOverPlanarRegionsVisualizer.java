@@ -3,18 +3,17 @@ package us.ihmc.avatar.roughTerrainWalking;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.vecmath.Vector3d;
-
 import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParameters;
 import us.ihmc.commonWalkingControlModules.trajectories.SwingOverPlanarRegionsTrajectoryExpander;
 import us.ihmc.commonWalkingControlModules.trajectories.SwingOverPlanarRegionsTrajectoryExpander.SwingOverPlanarRegionsTrajectoryCollisionType;
-import us.ihmc.graphics3DDescription.Graphics3DObject;
-import us.ihmc.graphics3DDescription.appearance.AppearanceDefinition;
-import us.ihmc.graphics3DDescription.appearance.YoAppearance;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicEllipsoid;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicPolygon;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicPosition;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.graphicsDescription.Graphics3DObject;
+import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
+import us.ihmc.graphicsDescription.appearance.YoAppearance;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicEllipsoid;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPolygon;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 import us.ihmc.robotics.geometry.ConvexPolygon2d;
 import us.ihmc.robotics.geometry.FramePose;
@@ -66,7 +65,7 @@ public class AvatarSwingOverPlanarRegionsVisualizer
       solePose = new YoFramePose("SolePose", WORLD, registry);
       AppearanceDefinition bubble = YoAppearance.LightBlue();
       bubble.setTransparency(0.5);
-      collisionSphere = new YoGraphicEllipsoid("CollisionSphere", solePose.getPosition(), solePose.getOrientation(), bubble, new Vector3d());
+      collisionSphere = new YoGraphicEllipsoid("CollisionSphere", solePose.getPosition(), solePose.getOrientation(), bubble, new Vector3D());
       stanceFootGraphic = new YoGraphicPolygon("StanceFootGraphic", footPolygon.getNumberOfVertices(), registry, 1.0, YoAppearance.Blue());
       swingStartGraphic = new YoGraphicPolygon("SwingStartGraphic", footPolygon.getNumberOfVertices(), registry, 1.0, YoAppearance.Green());
       swingEndGraphic = new YoGraphicPolygon("SwingEndGraphic", footPolygon.getNumberOfVertices(), registry, 1.0, YoAppearance.Yellow());
@@ -154,14 +153,14 @@ public class AvatarSwingOverPlanarRegionsVisualizer
       ThreadTools.sleepForever();
    }
 
-   public void expandTrajectoryOverPlanarRegions(FramePose stanceFootPose, FramePose swingStartPose, FramePose swingEndPose,
+   public double expandTrajectoryOverPlanarRegions(FramePose stanceFootPose, FramePose swingStartPose, FramePose swingEndPose,
                                                  PlanarRegionsList planarRegionsList)
    {
       this.stanceFootPose.set(stanceFootPose);
       this.swingStartPose.set(swingStartPose);
       this.swingEndPose.set(swingEndPose);
       updateFootGraphics();
-      swingOverPlanarRegionsTrajectoryExpander.expandTrajectoryOverPlanarRegions(stanceFootPose, swingStartPose, swingEndPose, planarRegionsList);
+      return swingOverPlanarRegionsTrajectoryExpander.expandTrajectoryOverPlanarRegions(stanceFootPose, swingStartPose, swingEndPose, planarRegionsList);
    }
 
    public SwingOverPlanarRegionsTrajectoryExpander getSwingOverPlanarRegionsTrajectoryExpander()
@@ -180,7 +179,7 @@ public class AvatarSwingOverPlanarRegionsVisualizer
       }
 
       double sphereRadius = swingOverPlanarRegionsTrajectoryExpander.getSphereRadius();
-      collisionSphere.setRadii(new Vector3d(sphereRadius, sphereRadius, sphereRadius));
+      collisionSphere.setRadii(new Vector3D(sphereRadius, sphereRadius, sphereRadius));
       collisionSphere.update();
 
       scs.tickAndUpdate(scs.getTime() + dt);

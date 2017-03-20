@@ -1,6 +1,6 @@
 package us.ihmc.simulationconstructionset.robotController;
 
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 
 
@@ -20,6 +20,7 @@ public interface MultiThreadedRobotControlElement extends Runnable
    /**
     * Do control. This method is called from the controller thread.
     */
+   @Override
    public void run();
    
    /**
@@ -39,9 +40,9 @@ public interface MultiThreadedRobotControlElement extends Runnable
    public String getName();
    
    /**
-    * Get the DynamicGraphicsObjectListRegistry for this controller and adds it to SCS
+    * Get the {@link YoGraphicsListRegistry} for this controller and adds it to SCS
     */
-   public YoGraphicsListRegistry getDynamicGraphicObjectsListRegistry();
+   public YoGraphicsListRegistry getYoGraphicsListRegistry();
    
    /**
     * Get the clock time when this controller should wake up next. This is used in a realtime context where locks are infeasible.

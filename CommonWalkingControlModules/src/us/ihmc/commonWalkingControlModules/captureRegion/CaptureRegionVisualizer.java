@@ -2,8 +2,8 @@ package us.ihmc.commonWalkingControlModules.captureRegion;
 
 import java.awt.Color;
 
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
-import us.ihmc.graphics3DDescription.yoGraphics.plotting.YoArtifactPolygon;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.graphicsDescription.yoGraphics.plotting.YoArtifactPolygon;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 import us.ihmc.robotics.geometry.FrameConvexPolygon2d;
 import us.ihmc.robotics.math.frames.YoFrameConvexPolygon2d;
@@ -29,8 +29,8 @@ public class CaptureRegionVisualizer
 
       yoCaptureRegionPolygon = new YoFrameConvexPolygon2d(caption, "", worldFrame, 30, registry);
 
-      YoArtifactPolygon dynamicGraphicYoPolygonArtifact = new YoArtifactPolygon(caption, yoCaptureRegionPolygon, color, false);
-      yoGraphicsListRegistry.registerArtifact(getClass().getSimpleName(), dynamicGraphicYoPolygonArtifact);
+      YoArtifactPolygon polygonArtifact = new YoArtifactPolygon(caption, yoCaptureRegionPolygon, color, false);
+      yoGraphicsListRegistry.registerArtifact(getClass().getSimpleName(), polygonArtifact);
 
       parentRegistry.addChild(registry);
    }

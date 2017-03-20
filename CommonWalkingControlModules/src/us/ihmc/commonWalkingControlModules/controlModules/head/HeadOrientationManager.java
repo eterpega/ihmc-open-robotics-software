@@ -13,7 +13,6 @@ import us.ihmc.commonWalkingControlModules.controllerCore.command.lowLevel.LowLe
 import us.ihmc.commonWalkingControlModules.controllerCore.command.lowLevel.LowLevelJointDataReadOnly;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.lowLevel.LowLevelOneDoFJointDesiredDataHolder;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.lowLevel.LowLevelOneDoFJointDesiredDataHolderReadOnly;
-import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.manipulation.individual.HandControlModule;
 import us.ihmc.commonWalkingControlModules.momentumBasedController.HighLevelHumanoidControllerToolbox;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.HeadTrajectoryCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.NeckDesiredAccelerationsCommand;
@@ -30,8 +29,8 @@ import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
 import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.robotics.screwTheory.ScrewTools;
-import us.ihmc.robotics.stateMachines.GenericStateMachine;
-import us.ihmc.robotics.stateMachines.StateMachineTools;
+import us.ihmc.robotics.stateMachines.conditionBasedStateMachine.GenericStateMachine;
+import us.ihmc.robotics.stateMachines.conditionBasedStateMachine.StateMachineTools;
 
 public class HeadOrientationManager
 {
@@ -69,11 +68,11 @@ public class HeadOrientationManager
    private final FrameOrientation initialOrientation = new FrameOrientation();
    private final double[] initialJointPositions;
 
-   public HeadOrientationManager(HighLevelHumanoidControllerToolbox momentumBasedController, HeadOrientationControllerParameters headOrientationControllerParameters,
+   public HeadOrientationManager(HighLevelHumanoidControllerToolbox controllerToolbox, HeadOrientationControllerParameters headOrientationControllerParameters,
          YoVariableRegistry parentRegistry)
    {
-      yoTime = momentumBasedController.getYoTime();
-      FullHumanoidRobotModel fullRobotModel = momentumBasedController.getFullRobotModel();
+      yoTime = controllerToolbox.getYoTime();
+      FullHumanoidRobotModel fullRobotModel = controllerToolbox.getFullRobotModel();
 
       stateMachine = new GenericStateMachine<>("headControlState", "headControlState" + "SwitchTime", HeadControlMode.class, yoTime, registry);
 
@@ -278,7 +277,7 @@ public class HeadOrientationManager
    }
 
    /**
-    * In a best effort of having continuity in desireds between states, the low-level data can be used to update the {@link HandControlModule} with 
+    * In a best effort of having continuity in desireds between states, the low-level data can be used to update the {@link HandControlModule} with
     * the most recent desired joint positions and velocities.
     * @param lowLevelOneDoFJointDesiredDataHolder Data that will be used to update the arm desired configuration. Only a read-only access is needed.
     */

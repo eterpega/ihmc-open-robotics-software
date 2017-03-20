@@ -3,9 +3,10 @@ package us.ihmc.commonWalkingControlModules.trajectories;
 import java.util.ArrayList;
 import java.util.EnumMap;
 
-import us.ihmc.graphics3DDescription.appearance.YoAppearance;
-import us.ihmc.graphics3DDescription.yoGraphics.BagOfBalls;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.commons.PrintTools;
+import us.ihmc.graphicsDescription.appearance.YoAppearance;
+import us.ihmc.graphicsDescription.yoGraphics.BagOfBalls;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.robotics.MathTools;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
@@ -17,7 +18,6 @@ import us.ihmc.robotics.lists.RecyclingArrayList;
 import us.ihmc.robotics.math.trajectories.PositionTrajectoryGenerator;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.trajectories.TrajectoryType;
-import us.ihmc.tools.io.printing.PrintTools;
 
 public class TwoWaypointSwingGenerator implements PositionTrajectoryGenerator
 {
@@ -220,7 +220,7 @@ public class TwoWaypointSwingGenerator implements PositionTrajectoryGenerator
       double trajectoryTime = stepTime.getDoubleValue();
       isDone.set(time >= trajectoryTime);
 
-      time = MathTools.clipToMinMax(time, 0.0, trajectoryTime);
+      time = MathTools.clamp(time, 0.0, trajectoryTime);
       timeIntoStep.set(time);
 
       double percent = time / trajectoryTime;
@@ -276,5 +276,11 @@ public class TwoWaypointSwingGenerator implements PositionTrajectoryGenerator
    public static double[] getDefaultWaypointProportions()
    {
       return waypointProportions;
+   }
+
+   public double computeAndGetMaxSpeed()
+   {
+      trajectoryMap.get(trajectoryType.getEnumValue()).computeMaxSpeed();
+      return trajectoryMap.get(trajectoryType.getEnumValue()).getMaxSpeed();
    }
 }

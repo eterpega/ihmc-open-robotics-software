@@ -2,12 +2,8 @@ package us.ihmc.humanoidBehaviors.behaviors.roughTerrain;
 
 import java.util.Random;
 
-import javax.vecmath.Point2d;
-import javax.vecmath.Point3d;
-import javax.vecmath.Quat4d;
-import javax.vecmath.Tuple3d;
-
 import us.ihmc.commonWalkingControlModules.trajectories.SwingOverPlanarRegionsTrajectoryExpander;
+import us.ihmc.commons.PrintTools;
 import us.ihmc.communication.packets.PacketDestination;
 import us.ihmc.communication.packets.PlanarRegionMessageConverter;
 import us.ihmc.communication.packets.PlanarRegionsListMessage;
@@ -15,6 +11,10 @@ import us.ihmc.communication.packets.RequestPlanarRegionsListMessage;
 import us.ihmc.communication.packets.RequestPlanarRegionsListMessage.RequestType;
 import us.ihmc.communication.packets.TextToSpeechPacket;
 import us.ihmc.communication.packets.UIPositionCheckerPacket;
+import us.ihmc.euclid.tuple2D.Point2D;
+import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple3D.interfaces.Tuple3DBasics;
+import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.footstepPlanning.FootstepPlan;
 import us.ihmc.footstepPlanning.FootstepPlannerGoal;
 import us.ihmc.footstepPlanning.FootstepPlannerGoalType;
@@ -22,11 +22,8 @@ import us.ihmc.footstepPlanning.SimpleFootstep;
 import us.ihmc.footstepPlanning.graphSearch.BipedalFootstepPlannerParameters;
 import us.ihmc.footstepPlanning.graphSearch.PlanarRegionBipedalFootstepPlannerVisualizer;
 import us.ihmc.footstepPlanning.graphSearch.SimplePlanarRegionBipedalAnytimeFootstepPlanner;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.humanoidBehaviors.behaviors.AbstractBehavior;
-import us.ihmc.humanoidBehaviors.behaviors.behaviorServices.ConstantGoalDetectorBehaviorService;
-import us.ihmc.humanoidBehaviors.behaviors.behaviorServices.FiducialDetectorBehaviorService;
-import us.ihmc.humanoidBehaviors.behaviors.behaviorServices.ObjectDetectorBehaviorService;
 import us.ihmc.humanoidBehaviors.behaviors.goalLocation.GoalDetectorBehaviorService;
 import us.ihmc.humanoidBehaviors.behaviors.goalLocation.LocateGoalBehavior;
 import us.ihmc.humanoidBehaviors.behaviors.simpleBehaviors.BehaviorAction;
@@ -59,10 +56,9 @@ import us.ihmc.robotics.geometry.PlanarRegionsList;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
-import us.ihmc.robotics.stateMachines.StateTransitionCondition;
-import us.ihmc.robotics.time.YoTimer;
+import us.ihmc.robotics.stateMachines.conditionBasedStateMachine.StateTransitionCondition;
+import us.ihmc.robotics.time.YoStopwatch;
 import us.ihmc.robotics.trajectories.TrajectoryType;
-import us.ihmc.tools.io.printing.PrintTools;
 import us.ihmc.wholeBodyController.RobotContactPointParameters;
 import us.ihmc.wholeBodyController.WholeBodyControllerParameters;
 
@@ -307,13 +303,13 @@ public class AnytimePlannerStateMachineBehavior extends StateMachineBehavior<Any
    public void setGoalPose(FramePose goalPose)
    {
       goalPose.getPosition2dIncludingFrame(this.goalPosition);
-      Tuple3d goalPosition = new Point3d();
+      Tuple3DBasics goalPosition = new Point3D();
       goalPose.getPosition(goalPosition);
 
       FootstepPlannerGoal footstepPlannerGoal = new FootstepPlannerGoal();
       footstepPlannerGoal.setGoalPoseBetweenFeet(goalPose);
 
-      Point2d xyGoal = new Point2d();
+      Point2D xyGoal = new Point2D();
       xyGoal.setX(goalPose.getX());
       xyGoal.setY(goalPose.getY());
       double distanceFromXYGoal = 1.0;
@@ -323,7 +319,7 @@ public class AnytimePlannerStateMachineBehavior extends StateMachineBehavior<Any
       FramePose leftFootPose = new FramePose();
       leftFootPose.setToZero(referenceFrames.getSoleFrame(RobotSide.LEFT));
       leftFootPose.changeFrame(ReferenceFrame.getWorldFrame());
-      sendPacketToUI(new UIPositionCheckerPacket(new Point3d(xyGoal.getX(), xyGoal.getY(), leftFootPose.getZ()), new Quat4d()));
+      sendPacketToUI(new UIPositionCheckerPacket(new Point3D(xyGoal.getX(), xyGoal.getY(), leftFootPose.getZ()), new Quaternion()));
 
       footstepPlanner.setGoal(footstepPlannerGoal);
       footstepPlanner.setInitialStanceFoot(leftFootPose, RobotSide.LEFT);
@@ -332,7 +328,7 @@ public class AnytimePlannerStateMachineBehavior extends StateMachineBehavior<Any
    private class RequestAndWaitForPlanarRegionsListBehavior extends AbstractBehavior
    {
       private final BooleanYoVariable receivedPlanarRegionsList = new BooleanYoVariable(prefix + "ReceivedPlanarRegionsList", registry);
-      private final YoTimer requestNewPlanarRegionsTimer = new YoTimer(yoTime);
+      private final YoStopwatch requestNewPlanarRegionsTimer = new YoStopwatch(yoTime);
       private final DoubleYoVariable planarRegionsResponseTimeout = new DoubleYoVariable(prefix + "PlanarRegionsResponseTimeout", registry);
       private PlanarRegionsList planarRegionsList;
 
@@ -485,8 +481,8 @@ public class AnytimePlannerStateMachineBehavior extends StateMachineBehavior<Any
    private class SendOverFootstepAndWaitForCompletionBehavior extends AbstractBehavior
    {
       private final FramePose tempFirstFootstepPose = new FramePose();
-      private final Point3d tempFootstepPosePosition = new Point3d();
-      private final Quat4d tempFirstFootstepPoseOrientation = new Quat4d();
+      private final Point3D tempFootstepPosePosition = new Point3D();
+      private final Quaternion tempFirstFootstepPoseOrientation = new Quaternion();
       private final FramePose stanceFootPose = new FramePose();
       private final FramePose swingStartPose = new FramePose();
       private final FramePose swingEndPose = new FramePose();
@@ -610,8 +606,8 @@ public class AnytimePlannerStateMachineBehavior extends StateMachineBehavior<Any
                                                                      double transferTime)
       {
          FootstepDataListMessage footstepDataListMessage = new FootstepDataListMessage();
-         footstepDataListMessage.setSwingTime(swingTime);
-         footstepDataListMessage.setTransferTime(transferTime);
+         footstepDataListMessage.setDefaultSwingDuration(swingTime);
+         footstepDataListMessage.setDefaultTransferDuration(transferTime);
          int numSteps = plan.getNumberOfSteps();
          int lastStepIndex = Math.min(startIndex + maxNumberOfStepsToTake + 1, numSteps);
          for (int i = 1 + startIndex; i < lastStepIndex; i++)
@@ -621,8 +617,8 @@ public class AnytimePlannerStateMachineBehavior extends StateMachineBehavior<Any
             tempFirstFootstepPose.getPosition(tempFootstepPosePosition);
             tempFirstFootstepPose.getOrientation(tempFirstFootstepPoseOrientation);
 
-            FootstepDataMessage firstFootstepMessage = new FootstepDataMessage(footstep.getRobotSide(), new Point3d(tempFootstepPosePosition),
-                                                                               new Quat4d(tempFirstFootstepPoseOrientation));
+            FootstepDataMessage firstFootstepMessage = new FootstepDataMessage(footstep.getRobotSide(), new Point3D(tempFootstepPosePosition),
+                                                                               new Quaternion(tempFirstFootstepPoseOrientation));
             firstFootstepMessage.setOrigin(FootstepDataMessage.FootstepOrigin.AT_SOLE_FRAME);
             System.out.println("sending footstep of side " + footstep.getRobotSide());
 
@@ -639,8 +635,8 @@ public class AnytimePlannerStateMachineBehavior extends StateMachineBehavior<Any
                                                                      double transferTime, PlanarRegionsList planarRegionsList)
       {
          FootstepDataListMessage footstepDataListMessage = new FootstepDataListMessage();
-         footstepDataListMessage.setSwingTime(swingTime);
-         footstepDataListMessage.setTransferTime(transferTime);
+         footstepDataListMessage.setDefaultSwingDuration(swingTime);
+         footstepDataListMessage.setDefaultTransferDuration(transferTime);
          int numSteps = plan.getNumberOfSteps();
          int lastStepIndex = Math.min(startIndex + maxNumberOfStepsToTake + 1, numSteps);
          
@@ -652,18 +648,18 @@ public class AnytimePlannerStateMachineBehavior extends StateMachineBehavior<Any
             SimpleFootstep footstep = plan.getFootstep(i);
             footstep.getSoleFramePose(swingEndPose);
 
-            FootstepDataMessage firstFootstepMessage = new FootstepDataMessage(footstep.getRobotSide(), new Point3d(swingEndPose.getPositionUnsafe()),
-                                                                               new Quat4d(swingEndPose.getOrientationUnsafe()));
+            FootstepDataMessage firstFootstepMessage = new FootstepDataMessage(footstep.getRobotSide(), new Point3D(swingEndPose.getPosition()),
+                                                                               new Quaternion(swingEndPose.getOrientation()));
             firstFootstepMessage.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
 
             swingOverPlanarRegionsTrajectoryExpander.expandTrajectoryOverPlanarRegions(stanceFootPose, swingStartPose, swingEndPose, planarRegionsList);
 
             firstFootstepMessage.setTrajectoryType(TrajectoryType.CUSTOM);
-            Point3d waypointOne = new Point3d();
-            Point3d waypointTwo = new Point3d();
+            Point3D waypointOne = new Point3D();
+            Point3D waypointTwo = new Point3D();
             swingOverPlanarRegionsTrajectoryExpander.getExpandedWaypoints().get(0).get(waypointOne);
             swingOverPlanarRegionsTrajectoryExpander.getExpandedWaypoints().get(1).get(waypointTwo);
-            firstFootstepMessage.setTrajectoryWaypoints(new Point3d[] {waypointOne, waypointTwo});
+            firstFootstepMessage.setTrajectoryWaypoints(new Point3D[] {waypointOne, waypointTwo});
             System.out.println("sending footstep of side " + footstep.getRobotSide());
 
             footstepDataListMessage.add(firstFootstepMessage);
@@ -716,10 +712,10 @@ public class AnytimePlannerStateMachineBehavior extends StateMachineBehavior<Any
 
          // make footstep data message
          FootstepDataListMessage footstepDataListMessage = new FootstepDataListMessage();
-         footstepDataListMessage.setSwingTime(swingTime.getDoubleValue());
-         footstepDataListMessage.setTransferTime(transferTime.getDoubleValue());
-         Point3d position = new Point3d();
-         Quat4d orientation = new Quat4d();
+         footstepDataListMessage.setDefaultSwingDuration(swingTime.getDoubleValue());
+         footstepDataListMessage.setDefaultTransferDuration(transferTime.getDoubleValue());
+         Point3D position = new Point3D();
+         Quaternion orientation = new Quaternion();
          stepPose.getPosition(position);
          stepPose.getOrientation(orientation);
          FootstepDataMessage firstFootstepMessage = new FootstepDataMessage(stanceSide.getOppositeSide(), position, orientation);

@@ -1,12 +1,14 @@
 package us.ihmc.simulationconstructionset.gui;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 
 import org.junit.Test;
 
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationPlan;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.continuousIntegration.IntegrationCategory;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
 import us.ihmc.robotics.dataStructures.variable.EnumYoVariable;
@@ -16,9 +18,6 @@ import us.ihmc.simulationconstructionset.SimulationConstructionSet;
 import us.ihmc.simulationconstructionset.SimulationConstructionSetParameters;
 import us.ihmc.simulationconstructionset.examples.FallingBrickRobot;
 import us.ihmc.simulationconstructionset.util.simulationRunner.BlockingSimulationRunner.SimulationExceededMaximumTimeException;
-import us.ihmc.tools.continuousIntegration.IntegrationCategory;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationPlan;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
 
 @ContinuousIntegrationPlan(categories = {IntegrationCategory.UI})
 public class YoEntryBoxTest
@@ -48,6 +47,7 @@ public class YoEntryBoxTest
       {
       }
 
+      @Override
       public void attachRobot(Robot robot)
       {
          registry = new YoVariableRegistry("controllerRegistry");
@@ -64,25 +64,30 @@ public class YoEntryBoxTest
          time = robot.getYoTime();
       }
 
+      @Override
       public void initialize()
       {
       }
 
+      @Override
       public YoVariableRegistry getYoVariableRegistry()
       {
          return registry;
       }
 
+      @Override
       public String getName()
       {
          return name;
       }
 
+      @Override
       public String getDescription()
       {
          return name;
       }
 
+      @Override
       public void doControl()
       {
          switch (badGreekVariable.getEnumValue())

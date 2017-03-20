@@ -4,15 +4,18 @@ import java.util.ArrayList;
 
 import us.ihmc.communication.controllerAPI.command.Command;
 import us.ihmc.humanoidRobotics.communication.packets.ExecutionMode;
+import us.ihmc.humanoidRobotics.communication.packets.ExecutionTiming;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataListMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage;
 import us.ihmc.robotics.lists.RecyclingArrayList;
 
 public class FootstepDataListCommand implements Command<FootstepDataListCommand, FootstepDataListMessage>
 {
-   private double swingTime;
-   private double transferTime = 0.0;
+   private double defaultSwingDuration;
+   private double defaultTransferDuration;
+   private double finalTransferDuration;
    private ExecutionMode executionMode = ExecutionMode.OVERRIDE;
+   private ExecutionTiming executionTiming = ExecutionTiming.CONTROL_DURATIONS;
    private final RecyclingArrayList<FootstepDataCommand> footsteps = new RecyclingArrayList<>(30, FootstepDataCommand.class);
 
    public FootstepDataListCommand()
@@ -23,8 +26,9 @@ public class FootstepDataListCommand implements Command<FootstepDataListCommand,
    @Override
    public void clear()
    {
-      swingTime = 0.0;
-      transferTime = 0.0;
+      defaultSwingDuration = 0.0;
+      defaultTransferDuration = 0.0;
+      finalTransferDuration = 0.0;
       footsteps.clear();
    }
 
@@ -33,9 +37,11 @@ public class FootstepDataListCommand implements Command<FootstepDataListCommand,
    {
       clear();
 
-      swingTime = message.swingTime;
-      transferTime = message.transferTime;
+      defaultSwingDuration = message.defaultSwingDuration;
+      defaultTransferDuration = message.defaultTransferDuration;
+      finalTransferDuration = message.finalTransferDuration;
       executionMode = message.executionMode;
+      executionTiming = message.executionTiming;
       ArrayList<FootstepDataMessage> dataList = message.getDataList();
       if (dataList != null)
       {
@@ -49,9 +55,11 @@ public class FootstepDataListCommand implements Command<FootstepDataListCommand,
    {
       clear();
 
-      swingTime = other.swingTime;
-      transferTime = other.transferTime;
+      defaultSwingDuration = other.defaultSwingDuration;
+      defaultTransferDuration = other.defaultTransferDuration;
+      finalTransferDuration = other.finalTransferDuration;
       executionMode = other.executionMode;
+      executionTiming = other.executionTiming;
       RecyclingArrayList<FootstepDataCommand> otherFootsteps = other.getFootsteps();
       if (otherFootsteps != null)
       {
@@ -70,14 +78,14 @@ public class FootstepDataListCommand implements Command<FootstepDataListCommand,
       footsteps.add().set(footstep);
    }
 
-   public void setSwingTime(double swingTime)
+   public void setDefaultSwingDuration(double defaultSwingDuration)
    {
-      this.swingTime = swingTime;
+      this.defaultSwingDuration = defaultSwingDuration;
    }
 
-   public void setTransferTime(double transferTime)
+   public void setDefaultTransferDuration(double defaultTransferDuration)
    {
-      this.transferTime = transferTime;
+      this.defaultTransferDuration = defaultTransferDuration;
    }
 
    public void setExecutionMode(ExecutionMode executionMode)
@@ -85,14 +93,24 @@ public class FootstepDataListCommand implements Command<FootstepDataListCommand,
       this.executionMode = executionMode;
    }
 
-   public double getSwingTime()
+   public double getDefaultSwingDuration()
    {
-      return swingTime;
+      return defaultSwingDuration;
    }
 
-   public double getTransferTime()
+   public double getDefaultTransferDuration()
    {
-      return transferTime;
+      return defaultTransferDuration;
+   }
+
+   public double getFinalTransferDuration()
+   {
+      return finalTransferDuration;
+   }
+
+   public ExecutionTiming getExecutionTiming()
+   {
+      return executionTiming;
    }
 
    public ExecutionMode getExecutionMode()

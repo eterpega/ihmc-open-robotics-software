@@ -1,13 +1,13 @@
 package us.ihmc.simulationconstructionset.util.simulationRunner;
 
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 
 import org.junit.Test;
 
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
 import us.ihmc.robotics.robotController.RobotController;
@@ -15,7 +15,6 @@ import us.ihmc.simulationconstructionset.Robot;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
 import us.ihmc.simulationconstructionset.SimulationConstructionSetParameters;
 import us.ihmc.simulationconstructionset.UnreasonableAccelerationException;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
 
 public class SimulationRewindabilityVerifierTest
 {
@@ -182,6 +181,7 @@ public class SimulationRewindabilityVerifierTest
          this.robot = robot;
       }
       
+      @Override
       public void doControl()
       {      
          variableOne.set(Math.cos(robot.getTime()));
@@ -190,20 +190,24 @@ public class SimulationRewindabilityVerifierTest
          variableFour.set(1.2);
       }
 
+      @Override
       public YoVariableRegistry getYoVariableRegistry()
       {
          return registry;
       }
 
+      @Override
       public String getName()
       {
         return "Test";
       }
       
+      @Override
       public void initialize()
       {      
       }
 
+      @Override
       public String getDescription()
       {
          return getName();
@@ -221,6 +225,7 @@ public class SimulationRewindabilityVerifierTest
          super(robot);
       }
       
+      @Override
       public void doControl()
       {
          super.doControl();
@@ -249,6 +254,7 @@ public class SimulationRewindabilityVerifierTest
          super(robot);
       }
       
+      @Override
       public void doControl()
       {
          super.doControl();

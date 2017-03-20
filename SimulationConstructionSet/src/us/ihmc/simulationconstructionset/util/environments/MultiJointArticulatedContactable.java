@@ -2,10 +2,10 @@ package us.ihmc.simulationconstructionset.util.environments;
 
 import java.util.ArrayList;
 
-import us.ihmc.graphics3DDescription.appearance.YoAppearance;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicPosition;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicVector;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.graphicsDescription.appearance.YoAppearance;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicVector;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
 import us.ihmc.simulationconstructionset.GroundContactPoint;
 import us.ihmc.simulationconstructionset.Joint;
@@ -28,10 +28,10 @@ public abstract class MultiJointArticulatedContactable implements Contactable
    
    public abstract ArrayList<Joint> getJoints();
    
-   public void createAvailableContactPoints(int groundIdentifier, ArrayList<Integer> totalContactPointsAvailable, double forceVectorScale, boolean addDynamicGraphicForceVectorsForceVectors)
+   public void createAvailableContactPoints(int groundIdentifier, ArrayList<Integer> totalContactPointsAvailable, double forceVectorScale, boolean addYoGraphicForceVectorsForceVectors)
    {
       YoGraphicsListRegistry yoGraphicsListRegistry = null;
-      if (addDynamicGraphicForceVectorsForceVectors) yoGraphicsListRegistry = new YoGraphicsListRegistry();
+      if (addYoGraphicForceVectorsForceVectors) yoGraphicsListRegistry = new YoGraphicsListRegistry();
 
       for(int i = 0; i < totalContactPointsAvailable.size(); i++)
       {         
@@ -53,19 +53,19 @@ public abstract class MultiJointArticulatedContactable implements Contactable
             contactAvailable.set(true);
             contactsAvailable.get(i).add(contactAvailable);
             
-            if (addDynamicGraphicForceVectorsForceVectors)
+            if (addYoGraphicForceVectorsForceVectors)
             {
-               YoGraphicPosition dynamicGraphicPosition = new YoGraphicPosition(name + "Point" + joint.getName() + j, contactPoint.getYoPosition(), 0.02, YoAppearance.Green());
-               YoGraphicVector dynamicGraphicVector = new YoGraphicVector(name + "Force" +joint.getName() + j, contactPoint.getYoPosition(), contactPoint.getYoForce(), forceVectorScale, YoAppearance.Green());
-               yoGraphicsListRegistry.registerYoGraphic(name, dynamicGraphicPosition);
-               yoGraphicsListRegistry.registerYoGraphic(name, dynamicGraphicVector);               
+               YoGraphicPosition yoGraphicPosition = new YoGraphicPosition(name + "Point" + joint.getName() + j, contactPoint.getYoPosition(), 0.02, YoAppearance.Green());
+               YoGraphicVector yoGraphicVector = new YoGraphicVector(name + "Force" +joint.getName() + j, contactPoint.getYoPosition(), contactPoint.getYoForce(), forceVectorScale, YoAppearance.Green());
+               yoGraphicsListRegistry.registerYoGraphic(name, yoGraphicPosition);
+               yoGraphicsListRegistry.registerYoGraphic(name, yoGraphicVector);               
             }
          }
       }
             
-      if (addDynamicGraphicForceVectorsForceVectors)
+      if (addYoGraphicForceVectorsForceVectors)
       {
-         robot.addDynamicGraphicObjectsListRegistry(yoGraphicsListRegistry);
+         robot.addYoGraphicsListRegistry(yoGraphicsListRegistry);
       }
    }
    
@@ -139,6 +139,7 @@ public abstract class MultiJointArticulatedContactable implements Contactable
       return allGroundContactPoints.get(jointIndex).get(contactPointIndex);
    }
    
+   @Override
    public void updateContactPoints()
    {
       robot.update();

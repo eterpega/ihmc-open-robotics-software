@@ -1,18 +1,16 @@
 package us.ihmc.simulationconstructionset.util.environments;
 
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector3d;
-
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.simulationconstructionset.GroundContactPoint;
 import us.ihmc.simulationconstructionset.Joint;
-import us.ihmc.simulationconstructionset.NullJoint;
+import us.ihmc.simulationconstructionset.RigidJoint;
 import us.ihmc.simulationconstructionset.Robot;
 import us.ihmc.simulationconstructionset.util.ground.Contactable;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
 
 public abstract class ContactableStaticRobot extends Robot implements Contactable
 {
-   private static final long serialVersionUID = -3371489685439165270L;
    private final InternalSingleJointArticulatedContactable articulatedContactable;
 
    public ContactableStaticRobot(String name)
@@ -21,7 +19,7 @@ public abstract class ContactableStaticRobot extends Robot implements Contactabl
       articulatedContactable = new InternalSingleJointArticulatedContactable(name, this); 
    }
    
-   public abstract NullJoint getNullJoint();
+   public abstract RigidJoint getNullJoint();
 
    private static class InternalSingleJointArticulatedContactable extends SingleJointArticulatedContactable
    {
@@ -33,47 +31,55 @@ public abstract class ContactableStaticRobot extends Robot implements Contactabl
          this.contactableRobot = robot;
       }
 
-      public boolean isClose(Point3d pointInWorldToCheck)
+      @Override
+      public boolean isClose(Point3D pointInWorldToCheck)
       {
          return contactableRobot.isClose(pointInWorldToCheck);
       }
 
-      public boolean isPointOnOrInside(Point3d pointInWorldToCheck)
+      @Override
+      public boolean isPointOnOrInside(Point3D pointInWorldToCheck)
       {
          return contactableRobot.isPointOnOrInside(pointInWorldToCheck);
       }
 
-      public void closestIntersectionAndNormalAt(Point3d intersectionToPack, Vector3d normalToPack, Point3d pointInWorldToCheck)
+      @Override
+      public void closestIntersectionAndNormalAt(Point3D intersectionToPack, Vector3D normalToPack, Point3D pointInWorldToCheck)
       {
          contactableRobot.closestIntersectionAndNormalAt(intersectionToPack, normalToPack, pointInWorldToCheck);
       }
 
+      @Override
       public Joint getJoint()
       {
          return contactableRobot.getNullJoint();
       }
    }
    
-   public void createAvailableContactPoints(int groupIdentifier, int totalContactPointsAvailable, double forceVectorScale, boolean addDynamicGraphicForceVectorsForceVectors)
+   public void createAvailableContactPoints(int groupIdentifier, int totalContactPointsAvailable, double forceVectorScale, boolean addYoGraphicForceVectorsForceVectors)
    {
-      articulatedContactable.createAvailableContactPoints(groupIdentifier, totalContactPointsAvailable, forceVectorScale, addDynamicGraphicForceVectorsForceVectors);
+      articulatedContactable.createAvailableContactPoints(groupIdentifier, totalContactPointsAvailable, forceVectorScale, addYoGraphicForceVectorsForceVectors);
    }
 
+   @Override
    public int getAndLockAvailableContactPoint()
    {
       return articulatedContactable.getAndLockAvailableContactPoint();
    }
 
+   @Override
    public void unlockContactPoint(GroundContactPoint groundContactPoint)
    {
       articulatedContactable.unlockContactPoint(groundContactPoint);
    }
 
+   @Override
    public GroundContactPoint getLockedContactPoint(int contactPointIndex)
    {
       return articulatedContactable.getLockedContactPoint(contactPointIndex);
    }
 
+   @Override
    public void updateContactPoints()
    {
       articulatedContactable.updateContactPoints();

@@ -4,13 +4,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import javax.vecmath.AxisAngle4d;
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector3d;
-
 import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParameters;
 import us.ihmc.commonWalkingControlModules.controllers.Updatable;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.euclid.axisAngle.AxisAngle;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
 import us.ihmc.robotics.dataStructures.variable.EnumYoVariable;
@@ -21,7 +21,6 @@ import us.ihmc.robotics.geometry.FramePose;
 import us.ihmc.robotics.geometry.FrameVector;
 import us.ihmc.robotics.geometry.PlanarRegion;
 import us.ihmc.robotics.geometry.PlanarRegionsList;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
 import us.ihmc.robotics.geometry.algorithms.SphereWithConvexPolygonIntersector;
 import us.ihmc.robotics.geometry.shapes.FrameSphere3d;
 import us.ihmc.robotics.geometry.shapes.Plane3d;
@@ -62,12 +61,12 @@ public class SwingOverPlanarRegionsTrajectoryExpander
    private final FrameConvexPolygon2d framePlanarRegion;
    private final TransformReferenceFrame planarRegionReferenceFrame;
    private final FramePoint midGroundPoint;
-   private final Vector3d waypointAdjustmentVector;
+   private final Vector3D waypointAdjustmentVector;
    private final Plane3d waypointAdjustmentPlane;
    private final Plane3d swingFloorPlane;
    private final Plane3d swingStartToeFacingSwingEndPlane;
    private final Plane3d swingEndHeelFacingSwingStartPlane;
-   private final AxisAngle4d axisAngle;
+   private final AxisAngle axisAngle;
    private final RigidBodyTransform rigidBodyTransform;
 
    // Boilerplate variables
@@ -130,12 +129,12 @@ public class SwingOverPlanarRegionsTrajectoryExpander
       framePlanarRegion = new FrameConvexPolygon2d();
       planarRegionReferenceFrame = new TransformReferenceFrame("planarRegionReferenceFrame", WORLD);
       midGroundPoint = new FramePoint();
-      waypointAdjustmentVector = new Vector3d();
+      waypointAdjustmentVector = new Vector3D();
       waypointAdjustmentPlane = new Plane3d();
       swingFloorPlane = new Plane3d();
       swingStartToeFacingSwingEndPlane = new Plane3d();
       swingEndHeelFacingSwingStartPlane = new Plane3d();
-      axisAngle = new AxisAngle4d();
+      axisAngle = new AxisAngle();
       rigidBodyTransform = new RigidBodyTransform();
 
       initialVelocity = new FrameVector(WORLD, 0.0, 0.0, 0.0);
@@ -156,7 +155,7 @@ public class SwingOverPlanarRegionsTrajectoryExpander
       maximumAdjustmentDistance.set(maximumSwingHeight - minimumSwingHeight);
    }
 
-   public void expandTrajectoryOverPlanarRegions(FramePose stanceFootPose, FramePose swingStartPose,
+   public double expandTrajectoryOverPlanarRegions(FramePose stanceFootPose, FramePose swingStartPose,
                                                  FramePose swingEndPose, PlanarRegionsList planarRegionsList)
    {
       stanceFootPose.getPositionIncludingFrame(stanceFootPosition);
@@ -194,14 +193,14 @@ public class SwingOverPlanarRegionsTrajectoryExpander
       swingFloorPlane.getNormal().sub(swingStartPosition.getPoint(), swingEndPosition.getPoint());
       rigidBodyTransform.transform(swingFloorPlane.getNormal());
       swingFloorPlane.getNormal().normalize();
-      
+
       swingStartToeFacingSwingEndPlane.setPoint(swingStartPosition.getPoint());
       swingStartToeFacingSwingEndPlane.getNormal().sub(swingEndPosition.getPoint(), swingStartPosition.getPoint());
       swingStartToeFacingSwingEndPlane.getNormal().normalize();
       swingStartToeFacingSwingEndPlane.getNormal().scale(soleToToeLength);
       swingStartToeFacingSwingEndPlane.getPoint().add(swingStartToeFacingSwingEndPlane.getNormal());
       swingStartToeFacingSwingEndPlane.getNormal().normalize();
-      
+
       swingEndHeelFacingSwingStartPlane.setPoint(swingEndPosition.getPoint());
       swingEndHeelFacingSwingStartPlane.getNormal().sub(swingStartPosition.getPoint(), swingEndPosition.getPoint());
       swingEndHeelFacingSwingStartPlane.getNormal().normalize();
@@ -224,6 +223,9 @@ public class SwingOverPlanarRegionsTrajectoryExpander
          updateVisualizer();
          numberOfTriesCounter.countOne();
       }
+
+      double maxSpeed = twoWaypointSwingGenerator.computeAndGetMaxSpeed();
+      return maxSpeed;
    }
 
    private SwingOverPlanarRegionsTrajectoryExpansionStatus tryATrajectory(PlanarRegionsList planarRegionsList)
@@ -242,11 +244,11 @@ public class SwingOverPlanarRegionsTrajectoryExpander
 
          footCollisionSphere.setToZero(WORLD);
          footCollisionSphere.setRadius(soleToToeLength);
-         footCollisionSphere.getSphere3d().setPosition(solePoseReferenceFrame.getPositionUnsafe());
+         footCollisionSphere.getSphere3d().setPosition(solePoseReferenceFrame.getPosition());
 
          footCollisionSphere.changeFrame(WORLD);
 
-         Point3d center = new Point3d();
+         Point3D center = new Point3D();
          footCollisionSphere.getCenter(center);
 
          for (int i = 0; i < planarRegionsList.getNumberOfPlanarRegions(); i++)
@@ -272,7 +274,7 @@ public class SwingOverPlanarRegionsTrajectoryExpander
 
                      if ((swingStartToeFacingSwingEndPlane.isOnOrAbove(sphereWithConvexPolygonIntersector.getClosestPointOnPolygon().getPoint())
                            && swingEndHeelFacingSwingStartPlane.isOnOrAbove(sphereWithConvexPolygonIntersector.getClosestPointOnPolygon().getPoint()))
-                           || midGroundPoint.distance(sphereWithConvexPolygonIntersector.getClosestPointOnPolygon()) < midGroundPoint.distance(solePoseReferenceFrame.getPositionUnsafe()))
+                           || midGroundPoint.distance(sphereWithConvexPolygonIntersector.getClosestPointOnPolygon()) < midGroundPoint.distance(solePoseReferenceFrame.getPosition()))
                      {
                         updateClosestAndMostSevereIntersectionPoint(SwingOverPlanarRegionsTrajectoryCollisionType.CRITICAL_INTERSECTION);
 

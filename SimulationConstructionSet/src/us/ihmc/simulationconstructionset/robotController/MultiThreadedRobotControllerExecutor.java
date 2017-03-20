@@ -5,12 +5,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
+import us.ihmc.robotics.robotController.RobotControllerExecutor;
 import us.ihmc.simulationconstructionset.Robot;
 import us.ihmc.simulationconstructionset.dataBuffer.MirroredYoVariableRegistry;
 import us.ihmc.tools.thread.ThreadTools;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
-import us.ihmc.robotics.robotController.RobotControllerExecutor;
 
 public class MultiThreadedRobotControllerExecutor implements RobotControllerExecutor
 {
@@ -46,6 +46,7 @@ public class MultiThreadedRobotControllerExecutor implements RobotControllerExec
       }
    }
 
+   @Override
    public void waitAndWriteData(long tick)
    {
       if (tick % ticksPerSimulationTick == 0 && !(tick == 0 && skipFirstControlCycle))
@@ -61,7 +62,7 @@ public class MultiThreadedRobotControllerExecutor implements RobotControllerExec
                   robotControlElement.write(System.nanoTime());
                   if(registry!=null)
                           registry.updateMirror();
-                  updateDynamicGraphicObjectListRegistry();
+                  updateYoGraphicsListRegistry();
                }
                else
                {
@@ -82,6 +83,7 @@ public class MultiThreadedRobotControllerExecutor implements RobotControllerExec
       }
    }
 
+   @Override
    public void readData(long tick)
    {
       if (tick % ticksPerSimulationTick == 0 && !(tick == 0 && skipFirstControlCycle))
@@ -90,6 +92,7 @@ public class MultiThreadedRobotControllerExecutor implements RobotControllerExec
       }
    }
 
+   @Override
    public void executeForSimulationTick(long tick)
    {
       if (tick % ticksPerSimulationTick == 0 && !(tick == 0 && skipFirstControlCycle))
@@ -99,11 +102,13 @@ public class MultiThreadedRobotControllerExecutor implements RobotControllerExec
       }
    }
 
+   @Override
    public void initialize()
    {
       robotControlElement.initialize();
    }
    
+   @Override
    public long getTicksPerSimulationTick()
    {
       return ticksPerSimulationTick;
@@ -114,6 +119,7 @@ public class MultiThreadedRobotControllerExecutor implements RobotControllerExec
       long val;
    }
    
+   @Override
    public void stop()
    {
       controlExecutor.shutdownNow();
@@ -122,18 +128,19 @@ public class MultiThreadedRobotControllerExecutor implements RobotControllerExec
 
    private final RigidBodyTransform transformToWorld = new RigidBodyTransform();
 
-   public void updateDynamicGraphicObjectListRegistry()
+   @Override
+   public void updateYoGraphicsListRegistry()
    {
-      if(robotControlElement.getDynamicGraphicObjectsListRegistry() != null)
+      if(robotControlElement.getYoGraphicsListRegistry() != null)
       {
     	  if(registry!=null)
                  registry.updateChangedValues();
          if (simulatedRobot != null)
          {
             simulatedRobot.getRootJoints().get(0).getTransformToWorld(transformToWorld);
-            robotControlElement.getDynamicGraphicObjectsListRegistry().setSimulationTransformToWorld(transformToWorld);
+            robotControlElement.getYoGraphicsListRegistry().setSimulationTransformToWorld(transformToWorld);
          }
-         robotControlElement.getDynamicGraphicObjectsListRegistry().update();
+         robotControlElement.getYoGraphicsListRegistry().update();
       }
    }
 

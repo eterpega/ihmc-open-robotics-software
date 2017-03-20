@@ -29,27 +29,28 @@ import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
-import javax.vecmath.Color3f;
-import javax.vecmath.Tuple3d;
 
 import com.jme3.renderer.Camera;
 
-import us.ihmc.graphics3DAdapter.Graphics3DAdapter;
-import us.ihmc.graphics3DAdapter.Graphics3DBackgroundScaleMode;
-import us.ihmc.graphics3DAdapter.camera.CameraConfiguration;
-import us.ihmc.graphics3DAdapter.camera.CaptureDevice;
-import us.ihmc.graphics3DAdapter.camera.RenderedSceneHandler;
-import us.ihmc.graphics3DDescription.Graphics3DObject;
-import us.ihmc.graphics3DDescription.HeightMap;
-import us.ihmc.graphics3DDescription.appearance.AppearanceDefinition;
-import us.ihmc.graphics3DDescription.appearance.YoAppearance;
-import us.ihmc.graphics3DDescription.input.SelectedListener;
-import us.ihmc.graphics3DDescription.structure.Graphics3DNode;
-import us.ihmc.graphics3DDescription.structure.Graphics3DNodeType;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphic;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsList;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.commons.PrintTools;
+import us.ihmc.euclid.tuple3D.interfaces.Tuple3DBasics;
+import us.ihmc.graphicsDescription.Graphics3DObject;
+import us.ihmc.graphicsDescription.HeightMap;
+import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
+import us.ihmc.graphicsDescription.appearance.YoAppearance;
+import us.ihmc.graphicsDescription.input.SelectedListener;
+import us.ihmc.graphicsDescription.structure.Graphics3DNode;
+import us.ihmc.graphicsDescription.structure.Graphics3DNodeType;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphic;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsList;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.jMonkeyEngineToolkit.Graphics3DAdapter;
+import us.ihmc.jMonkeyEngineToolkit.Graphics3DBackgroundScaleMode;
+import us.ihmc.jMonkeyEngineToolkit.camera.CameraConfiguration;
+import us.ihmc.jMonkeyEngineToolkit.camera.CaptureDevice;
+import us.ihmc.jMonkeyEngineToolkit.camera.RenderedSceneHandler;
 import us.ihmc.robotics.TickAndUpdatable;
+import us.ihmc.robotics.dataStructures.MutableColor;
 import us.ihmc.robotics.dataStructures.YoVariableHolder;
 import us.ihmc.robotics.dataStructures.listener.RewoundListener;
 import us.ihmc.robotics.dataStructures.listener.YoVariableRegistryChangedListener;
@@ -57,8 +58,8 @@ import us.ihmc.robotics.dataStructures.registry.NameSpace;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 import us.ihmc.robotics.dataStructures.variable.YoVariable;
 import us.ihmc.robotics.dataStructures.variable.YoVariableList;
-import us.ihmc.robotics.stateMachines.StateMachinesJPanel;
-import us.ihmc.robotics.time.GlobalTimer;
+import us.ihmc.robotics.robotDescription.RobotDescription;
+import us.ihmc.robotics.stateMachines.conditionBasedStateMachine.StateMachinesJPanel;
 import us.ihmc.robotics.time.RealTimeRateEnforcer;
 import us.ihmc.simulationconstructionset.DataBuffer.RepeatDataBufferEntryException;
 import us.ihmc.simulationconstructionset.commands.AddCameraKeyCommandExecutor;
@@ -85,18 +86,19 @@ import us.ihmc.simulationconstructionset.commands.ToggleKeyPointModeCommandExecu
 import us.ihmc.simulationconstructionset.commands.ToggleKeyPointModeCommandListener;
 import us.ihmc.simulationconstructionset.commands.WriteDataCommandExecutor;
 import us.ihmc.simulationconstructionset.graphics.GraphicsDynamicGraphicsObject;
-import us.ihmc.simulationconstructionset.gui.DynamicGraphicMenuManager;
 import us.ihmc.simulationconstructionset.gui.EventDispatchThreadHelper;
 import us.ihmc.simulationconstructionset.gui.GraphArrayWindow;
 import us.ihmc.simulationconstructionset.gui.StandardGUIActions;
 import us.ihmc.simulationconstructionset.gui.StandardSimulationGUI;
 import us.ihmc.simulationconstructionset.gui.ViewportWindow;
+import us.ihmc.simulationconstructionset.gui.YoGraphicMenuManager;
 import us.ihmc.simulationconstructionset.gui.config.VarGroupList;
 import us.ihmc.simulationconstructionset.gui.dialogConstructors.GUIEnablerAndDisabler;
 import us.ihmc.simulationconstructionset.gui.hierarchyTree.NameSpaceHierarchyTree;
+import us.ihmc.simulationconstructionset.gui.tools.SimulationOverheadPlotterFactory;
 import us.ihmc.simulationconstructionset.physics.CollisionHandler;
 import us.ihmc.simulationconstructionset.physics.ScsPhysics;
-import us.ihmc.simulationconstructionset.physics.visualize.DefaultCollisionVisualizer;
+import us.ihmc.simulationconstructionset.physics.collision.DefaultCollisionVisualizer;
 import us.ihmc.simulationconstructionset.robotcommprotocol.GUISideCommandListener;
 import us.ihmc.simulationconstructionset.robotcommprotocol.RobotConnectionGUIUpdater;
 import us.ihmc.simulationconstructionset.robotcommprotocol.RobotSocketConnection;
@@ -104,10 +106,9 @@ import us.ihmc.simulationconstructionset.robotcommprotocol.SCSRobotGUICommunicat
 import us.ihmc.simulationconstructionset.robotdefinition.RobotDefinitionFixedFrame;
 import us.ihmc.simulationconstructionset.scripts.Script;
 import us.ihmc.simulationconstructionset.synchronization.SimulationSynchronizer;
-import us.ihmc.simulationconstructionset.util.graphics.DynamicGraphicCheckBoxMenuItem;
+import us.ihmc.simulationconstructionset.util.graphics.YoGraphicCheckBoxMenuItem;
 import us.ihmc.tools.TimestampProvider;
 import us.ihmc.tools.gui.GraphicsUpdatable;
-import us.ihmc.tools.io.printing.PrintTools;
 import us.ihmc.tools.thread.ThreadTools;
 
 /**
@@ -236,6 +237,14 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
    private static final boolean TESTING_LOAD_STUFF = false;
 
    /**
+    * If set top true this will print YoVariable hotspots. Those are YoVariableRegistries with more
+    * then the specified number of variables or children.
+    */
+   private static final boolean SHOW_REGISTRY_SIZES_ON_STARTUP = false;
+   private static final int MIN_VARIABLES_FOR_HOTSPOT = 75;
+   private static final int MIN_CHILDREN_FOR_HOTSPOT = 15;
+
+   /**
     * The default size of the data buffer in record steps.
     */
    public static final String rootRegistryName = "root";
@@ -261,7 +270,8 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
 
    // private boolean keyPointToggle = false;
 
-   private boolean simulationThreadIsUpAndRunning = false;
+   private boolean hasSimulationThreadStarted = false;
+   private boolean isSimulationThreadRunning = false;
    private boolean isSimulating = false;
    private boolean simulateNoFasterThanRealTime = false;
    private final RealTimeRateEnforcer realTimeRateEnforcer = new RealTimeRateEnforcer();
@@ -288,7 +298,7 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
 
    private final SimulationConstructionSetParameters parameters;
 
-   private final DynamicGraphicMenuManager dynamicGraphicMenuManager;
+   private final YoGraphicMenuManager yoGraphicMenuManager;
 
    public static SimulationConstructionSet generateSimulationFromDataFile(File chosenFile)
    {
@@ -408,14 +418,14 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
                createFrame(showGUI);
             }
          });
-         this.dynamicGraphicMenuManager = new DynamicGraphicMenuManager();
+         this.yoGraphicMenuManager = new YoGraphicMenuManager();
       }
       else
       {
-         this.dynamicGraphicMenuManager = null;
+         this.yoGraphicMenuManager = null;
       }
 
-      mySimulation = simulation;
+      this.mySimulation = simulation;
       this.myDataBuffer = mySimulation.getDataBuffer();
       this.simulationSynchronizer = mySimulation.getSimulationSynchronizer();
 
@@ -465,28 +475,29 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
 
       mySimulation.getDataBuffer().copyValuesThrough(); // Copy the values through so that anything the user changed during initialization will be YoVariablized, and the default on all graphs.
 
-      attachPlaybackListener(new PlaybackListener() {
+      attachPlaybackListener(new PlaybackListener()
+      {
+         @Override
+         public void indexChanged(int newIndex, double newTime)
+         {
 
-		@Override
-		public void indexChanged(int newIndex, double newTime) {
+         }
 
+         @Override
+         public void stop()
+         {
+            if (myGUI != null && myGUI.getGraphics3dAdapter() != null)
+               myGUI.getGraphics3dAdapter().pause();
+         }
 
-		}
+         @Override
+         public void play(double realTimeRate)
+         {
+            if (myGUI != null && myGUI.getGraphics3dAdapter() != null)
+               myGUI.getGraphics3dAdapter().play();
+         }
+      });
 
-		@Override
-		public void stop() {
-			if (myGUI != null && myGUI.getGraphics3dAdapter() != null)
-				myGUI.getGraphics3dAdapter().pause();
-
-		}
-
-		@Override
-		public void play(double realTimeRate) {
-			if (myGUI != null && myGUI.getGraphics3dAdapter() != null)
-				myGUI.getGraphics3dAdapter().play();
-
-		}
-	});
       if (robots != null)
       {
          for (Robot robot : robots)
@@ -1129,7 +1140,7 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
     *
     * @param cameraFix coordinates of the fix point.
     */
-   public void setCameraFix(Tuple3d cameraFix)
+   public void setCameraFix(Tuple3DBasics cameraFix)
    {
       if (myGUI != null)
       {
@@ -1157,12 +1168,12 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
     *
     * @param cameraPosition coordinates of the camera.
     */
-   public void setCameraPosition(Tuple3d cameraPosition)
+   public void setCameraPosition(Tuple3DBasics cameraPosition)
    {
       if (myGUI != null)
       {
          myGUI.setCameraPosition(cameraPosition);
-      }      
+      }
    }
 
    /**
@@ -1190,7 +1201,10 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
    {
       ThreadTools.startAThread(this, "Simulation Contruction Set");
 
-      while (!this.isSimulationThreadUpAndRunning())
+      if (SHOW_REGISTRY_SIZES_ON_STARTUP)
+         YoVariableRegistry.printSizeRecursively(MIN_VARIABLES_FOR_HOTSPOT, MIN_CHILDREN_FOR_HOTSPOT, rootRegistry);
+
+      while (!this.hasSimulationThreadStarted())
       {
          Thread.yield();
       }
@@ -1294,10 +1308,6 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
       // Destroy the LWJGL Threads. Not sure if need to do Display.destroy() or not.
 //      Display.destroy();
       ThreadTools.interruptLiveThreadsExceptThisOneContaining("LWJGL Timer"); // This kills the silly LWJGL sleeping thread which just sleeps and does nothing else...
-
-      GlobalTimer.clearTimers();
-
-
    }
 
    /**
@@ -1385,7 +1395,7 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
       this.setTime(timeToSetInSeconds);
       this.tickAndUpdate();
    }
-   
+
    /**
     * Increments the data buffer index and updates all of the entries min & max values.  If a GUI exists, its graphs are updated.
     */
@@ -1834,7 +1844,7 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
     * </p>
     *
     * @param cameraConfiguration CameraConfiguration
-    * @see us.ihmc.graphics3DAdapter.camera.CameraConfiguration CameraConfiguration
+    * @see us.ihmc.jMonkeyEngineToolkit.camera.CameraConfiguration CameraConfiguration
     */
    public void setupCamera(CameraConfiguration cameraConfiguration)
    {
@@ -1951,6 +1961,54 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
       }
 
       jFrame.repaint();
+   }
+
+   /**
+    * Adds a robot to the simulation using the given RobotDescription
+    * @param robotDescription
+    * @return Robot that was created and added.
+    */
+   public Robot addRobot(RobotDescription robotDescription)
+   {
+      RobotFromDescription robot = new RobotFromDescription(robotDescription);
+      addRobot(robot);
+      return robot;
+   }
+
+   /**
+    * Adds a robot to this simulation.
+    * @param robot
+    */
+   public void addRobot(Robot robot)
+   {
+      //TODO: Clean this up and clean up setRobot too.
+
+      YoVariableRegistry robotsYoVariableRegistry = robot.getRobotsYoVariableRegistry();
+      YoVariableRegistry parentRegistry = robotsYoVariableRegistry.getParent();
+      if (parentRegistry != null)
+      {
+         throw new RuntimeException("SimulationConstructionSet.addRobot(). Trying to add robot registry as child to root registry, but it already has a parent registry: " + parentRegistry);
+      }
+
+      boolean notifyListeners = false; // TODO: This is very hackish. If listeners are on, then the variables will be added to the data buffer. But mySimulation.setRobots() in a few lines does that...
+      rootRegistry.addChild(robotsYoVariableRegistry, notifyListeners);
+
+      mySimulation.addRobot(robot);
+
+      // recomputeTiming();
+      this.robots = mySimulation.getRobots();
+
+      if (myGUI != null)
+      {
+         myGUI.addRobot(robot);
+
+         ArrayList<RewoundListener> simulationRewoundListeners = robot.getSimulationRewoundListeners();
+         for (RewoundListener simulationRewoundListener : simulationRewoundListeners)
+         {
+            myDataBuffer.attachSimulationRewoundListener(simulationRewoundListener);
+         }
+         // *** JJC a add variable search panel was removed from here.
+      }
    }
 
    /**
@@ -2103,16 +2161,16 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
     */
    public void setBackgroundColor(Color color)
    {
-      setBackgroundColor(new Color3f(color));
+      setBackgroundColor(new MutableColor(color));
    }
 
    /**
     * Set the specified background color
     *
     * @param color Color3f
-    * @see Color3f
+    * @see MutableColor
     */
-   public void setBackgroundColor(Color3f color)
+   public void setBackgroundColor(MutableColor color)
    {
       if (myGUI != null)
       {
@@ -2235,15 +2293,20 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
       {
          if (parameters.getShowWindows()) myGUI.show();
 
-         if (!parameters.getShowYoGraphicObjects() && dynamicGraphicMenuManager != null)
+         if (!parameters.getShowYoGraphicObjects() && yoGraphicMenuManager != null)
          {
-            dynamicGraphicMenuManager.hideAllGraphics();
+            yoGraphicMenuManager.hideAllGraphics();
          }
 
+         this.setYoGraphicsGlobalScale(parameters.getYoGraphicsGlobalScale());
       }
+
+      hasSimulationThreadStarted = true;
+      isSimulationThreadRunning = true;
 
       if (robots == null)
       {
+         isSimulationThreadRunning = false;
          return;
       }
 
@@ -2251,7 +2314,8 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
 
       // t = rob.getVariable("t");
 
-      simulationThreadIsUpAndRunning = true;
+      if (SHOW_REGISTRY_SIZES_ON_STARTUP)
+         YoVariableRegistry.printSizeRecursively(MIN_VARIABLES_FOR_HOTSPOT, MIN_CHILDREN_FOR_HOTSPOT, rootRegistry);
 
       // Three state loop, simulation is either playing, running, or waiting
       while (true)
@@ -2324,8 +2388,7 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
          // System.out.println("Tick" + foo);
       }
 
-      simulationThreadIsUpAndRunning = false;
-
+      isSimulationThreadRunning = false;
    }
 
    /**
@@ -2335,7 +2398,7 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
    {
       stopSimulationThread = true;
 
-      while (isSimulationThreadUpAndRunning())
+      while (isSimulationThreadRunning)
       {
          try
          {
@@ -2688,9 +2751,14 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
 
    }
 
-   public boolean isSimulationThreadUpAndRunning()
+   public boolean hasSimulationThreadStarted()
    {
-      return this.simulationThreadIsUpAndRunning;
+      return this.hasSimulationThreadStarted;
+   }
+
+   public boolean isSimulationThreadRunning()
+   {
+      return this.isSimulationThreadRunning;
    }
 
    /**
@@ -4121,12 +4189,14 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
       standardAllCommandsExecutor.toggleCameraKeyMode();
    }
 
-   public void addExtraJpanel(Component extraPanel, String name)
+   public void addExtraJpanel(Component extraPanel, String name, boolean showOnStart)
    {
-      ExtraPanelConfiguration extraPanelConfig = new ExtraPanelConfiguration(name);
-      extraPanelConfig.setupPanel(extraPanel);
-      extraPanelConfig.setName(name);
-      setupExtraPanel(extraPanelConfig);
+      setupExtraPanel(new ExtraPanelConfiguration(name, extraPanel, showOnStart));
+
+      if (showOnStart)
+      {
+         getStandardSimulationGUI().selectPanel(name);
+      }
    }
 
    public void exportRobotDefinition(Robot robot, File chosenFile)
@@ -4293,16 +4363,27 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
 
       if (yoGraphicsLists == null) return;
 
-      if(dynamicGraphicMenuManager != null)
+      if(yoGraphicMenuManager != null)
       {
-         addCheckBoxesToDynamicGraphicCheckBoxMenuItem(yoGraphicsLists);
+         addCheckBoxesToYoGraphicCheckBoxMenuItem(yoGraphicsLists);
          displayYoGraphicMenu();
       }
 
       yoGraphicListRegistries.add(yoGraphicsListRegistry);
    }
 
-   private void addCheckBoxesToDynamicGraphicCheckBoxMenuItem(final List<YoGraphicsList> yoGraphicsLists)
+   public void setYoGraphicsGlobalScale(double globalScale)
+   {
+      myGUI.setYoGraphicsGlobalScale(globalScale);
+      parameters.setYoGraphicsGlobalScale(globalScale);
+   }
+
+   public double getGlobalYoGraphicsScale()
+   {
+      return myGUI.getYoGraphicsGlobalScale();
+   }
+
+   private void addCheckBoxesToYoGraphicCheckBoxMenuItem(final List<YoGraphicsList> yoGraphicsLists)
    {
       EventDispatchThreadHelper.invokeAndWait(new Runnable()
       {
@@ -4320,14 +4401,21 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
                String label = yoGraphicsList.getLabel();
                ArrayList<YoGraphic> yoGraphics = yoGraphicsList.getYoGraphics();
                boolean selectedState = yoGraphicsList.checkAllYoGraphicsAreShowing();
-               DynamicGraphicCheckBoxMenuItem checkBox = new DynamicGraphicCheckBoxMenuItem(label, yoGraphics, selectedState);
-               dynamicGraphicMenuManager.addCheckBox(checkBox);
+               YoGraphicCheckBoxMenuItem checkBox = new YoGraphicCheckBoxMenuItem(label, yoGraphics, selectedState);
+               yoGraphicMenuManager.addCheckBox(checkBox);
             }
          }
       });
    }
 
-   public void hideAllDynamicGraphicObjects()
+   public SimulationOverheadPlotterFactory createSimulationOverheadPlotterFactory()
+   {
+      SimulationOverheadPlotterFactory simulationOverheadPlotterFactory = new SimulationOverheadPlotterFactory();
+      simulationOverheadPlotterFactory.setSimulationConstructionSet(this);
+      return simulationOverheadPlotterFactory;
+   }
+
+   public void hideAllYoGraphics()
    {
       int numberOfElements = yoGraphicListRegistries.size();
 
@@ -4338,7 +4426,7 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
       }
    }
 
-   public boolean checkAllDynamicGraphicObjectsListRegistriesAreShowing()
+   public boolean checkAllYoGraphicsListRegistriesAreShowing()
    {
       boolean ret = true;
       int numberOfElements = yoGraphicListRegistries.size();
@@ -4352,7 +4440,7 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
       return ret;
    }
 
-   public void setDynamicGraphicObjectsListVisible(String name, boolean visible)
+   public void setYoGraphicsListVisible(String name, boolean visible)
    {
       ArrayList<YoGraphicsList> lists = new ArrayList<YoGraphicsList>();
       int numberOfElements = yoGraphicListRegistries.size();
@@ -4361,7 +4449,7 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
       {
          YoGraphicsListRegistry yoGraphicsListRegistry = yoGraphicListRegistries.get(i);
          lists.clear();
-         yoGraphicsListRegistry.getRegisteredDynamicGraphicObjectsLists(lists);
+         yoGraphicsListRegistry.getRegisteredYoGraphicsLists(lists);
          int n = lists.size();
 
          for (int j = 0; j < n; j++)
@@ -4382,7 +4470,7 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
 
    }
 
-   public ArrayList<YoGraphicsListRegistry> getDynamicGraphicObjectsListRegistries()
+   public ArrayList<YoGraphicsListRegistry> getYoGraphicsListRegistries()
    {
       return yoGraphicListRegistries;
    }
@@ -4395,7 +4483,7 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
          public void run()
          {
             JMenuBar menuBar = new JMenuBar();
-            menuBar.add(dynamicGraphicMenuManager.getjMenu());
+            menuBar.add(yoGraphicMenuManager.getjMenu());
             addMenuBar(menuBar);
          }
       });
@@ -4452,16 +4540,6 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
    {
       this.physics = physics;
       mySimulation.initPhysics(physics);
-   }
-
-   public void addForceSensor(WrenchContactPoint sensor)
-   {
-      mySimulation.addForceSensor(sensor);
-   }
-
-   public ArrayList<WrenchContactPoint> getForceSensors()
-   {
-      return mySimulation.getForceSensors();
    }
 
    public void repaintWindows()

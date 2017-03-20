@@ -15,13 +15,14 @@ public class SingleThreadedRobotController extends AbstractThreadedRobotControll
       this.scs = scs;
    }
 
+   @Override
    public void addController(MultiThreadedRobotControlElement controller, int executionsPerControlTick, boolean skipFirstControlCycle)
    {
       controllers.add(new SingleThreadedRobotControllerExecutor(simulatedRobot, controller, executionsPerControlTick, skipFirstControlCycle, registry));
       
-      if(scs != null && controller.getDynamicGraphicObjectsListRegistry() != null)
+      if(scs != null && controller.getYoGraphicsListRegistry() != null)
       {
-         scs.addYoGraphicsListRegistry(controller.getDynamicGraphicObjectsListRegistry(), true);
+         scs.addYoGraphicsListRegistry(controller.getYoGraphicsListRegistry(), true);
       }
    }
    

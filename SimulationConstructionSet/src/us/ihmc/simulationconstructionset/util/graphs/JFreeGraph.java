@@ -46,10 +46,10 @@ import org.jfree.data.xy.XYSeriesCollection;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 
+import us.ihmc.commons.PrintTools;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
 import us.ihmc.simulationconstructionset.DataBufferEntry;
-import us.ihmc.tools.io.printing.PrintTools;
 
 public class JFreeGraph extends JPanel
 {
@@ -81,6 +81,7 @@ public class JFreeGraph extends JPanel
       this.graph = graph;
    }
 
+   @Override
    public JFreeGraph clone()
    {
       JFreeGraph returnGraph = new JFreeGraph(title, xLabel, yLabel, plots);
@@ -146,6 +147,7 @@ public class JFreeGraph extends JPanel
       // ChartPanel chartpanel = new ChartPanel(graph, 320, 240, 320, 240, 320, 240, true, true, true, true, true, true, true);
    }
 
+   @Override
    public void paintComponent(Graphics graphics)
    {
       image = graph.createBufferedImage(this.getWidth(), this.getHeight(), this.getWidth(), this.getHeight(), null);

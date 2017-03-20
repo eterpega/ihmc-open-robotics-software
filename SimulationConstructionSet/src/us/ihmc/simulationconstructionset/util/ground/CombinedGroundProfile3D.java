@@ -2,18 +2,17 @@ package us.ihmc.simulationconstructionset.util.ground;
 
 import java.util.ArrayList;
 
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector3d;
-
-import us.ihmc.graphics3DAdapter.CombinedHeightMapWithNormals;
-import us.ihmc.graphics3DAdapter.GroundProfile3D;
-import us.ihmc.graphics3DAdapter.HeightMapWithNormals;
-import us.ihmc.robotics.geometry.BoundingBox3d;
+import us.ihmc.euclid.geometry.BoundingBox3D;
+import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.jMonkeyEngineToolkit.CombinedHeightMapWithNormals;
+import us.ihmc.jMonkeyEngineToolkit.GroundProfile3D;
+import us.ihmc.jMonkeyEngineToolkit.HeightMapWithNormals;
 
 public class CombinedGroundProfile3D implements GroundProfile3D
 {
    private GroundProfile3D[] groundProfiles;
-   private final BoundingBox3d boundingBox;
+   private final BoundingBox3D boundingBox;
    private final CombinedHeightMapWithNormals heightMap;
 
    public CombinedGroundProfile3D(GroundProfile3D[] groundProfiles)
@@ -21,13 +20,13 @@ public class CombinedGroundProfile3D implements GroundProfile3D
       this.groundProfiles = groundProfiles;
       this.heightMap = new CombinedHeightMapWithNormals();
 
-      BoundingBox3d boundingBox = null;
+      BoundingBox3D boundingBox = null;
       for (GroundProfile3D groundProfile : groundProfiles)
       {
          if (boundingBox == null) boundingBox = groundProfile.getBoundingBox();
          else
          {
-            boundingBox = BoundingBox3d.union(boundingBox, groundProfile.getBoundingBox());
+            boundingBox = BoundingBox3D.union(boundingBox, groundProfile.getBoundingBox());
          }
          
          HeightMapWithNormals heightMapIfAvailable = groundProfile.getHeightMapIfAvailable();
@@ -43,13 +42,13 @@ public class CombinedGroundProfile3D implements GroundProfile3D
       this.groundProfiles = new GroundProfile3D[groundProfilesArrayList.size()];
       this.heightMap = new CombinedHeightMapWithNormals();
 
-      BoundingBox3d boundingBox = null;
+      BoundingBox3D boundingBox = null;
       for (GroundProfile3D groundProfile : groundProfiles)
       {
          if (boundingBox == null) boundingBox = groundProfile.getBoundingBox();
          else
          {
-            boundingBox = BoundingBox3d.union(boundingBox, groundProfile.getBoundingBox());
+            boundingBox = BoundingBox3D.union(boundingBox, groundProfile.getBoundingBox());
          }
          
          HeightMapWithNormals heightMapIfAvailable = groundProfile.getHeightMapIfAvailable();
@@ -66,13 +65,14 @@ public class CombinedGroundProfile3D implements GroundProfile3D
       return groundProfiles;
    }
 
-   private final Point3d tempPointToCheck = new Point3d();
+   private final Point3D tempPointToCheck = new Point3D();
 
-   public boolean checkIfInside(double x, double y, double z, Point3d intersectionToPack, Vector3d normalToPack)
+   @Override
+   public boolean checkIfInside(double x, double y, double z, Point3D intersectionToPack, Vector3D normalToPack)
    {
       double smallestDistance = Double.MAX_VALUE;
-      Point3d localIntersection = new Point3d();
-      Vector3d localNormal = new Vector3d();
+      Point3D localIntersection = new Point3D();
+      Vector3D localNormal = new Vector3D();
       boolean isInside = false;
 
       tempPointToCheck.set(x, y, z);
@@ -103,18 +103,21 @@ public class CombinedGroundProfile3D implements GroundProfile3D
       return isInside;
    }
 
+   @Override
    public boolean isClose(double x, double y, double z)
    {
       if (boundingBox == null) return false;
       
-      return boundingBox.isInside(x, y, z);
+      return boundingBox.isInsideInclusive(x, y, z);
    }
    
-   public BoundingBox3d getBoundingBox()
+   @Override
+   public BoundingBox3D getBoundingBox()
    {
       return boundingBox;
    }
 
+   @Override
    public HeightMapWithNormals getHeightMapIfAvailable()
    {
       return heightMap;
