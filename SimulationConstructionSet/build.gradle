@@ -69,11 +69,7 @@ dependencies {
 
     runtime group: 'com.badlogicgames.gdx', name: 'gdx-bullet-platform', version: '1.9.4', classifier: 'natives-desktop' // runtime?
 
-<<<<<<< HEAD
-	compile ihmc.getProjectDependency(":Graphics3DAdapter")
-=======
 	compile ihmc.getProjectDependency(":IHMCJMonkeyEngineToolkit")
->>>>>>> refs/heads/develop
 	compile ihmc.getProjectDependency(":IHMCRobotDescription")
 	compile ihmc.getProjectDependency(":IHMCJavaToolkit")
     compile ihmc.getProjectDependency(":ParameterOptimization")
