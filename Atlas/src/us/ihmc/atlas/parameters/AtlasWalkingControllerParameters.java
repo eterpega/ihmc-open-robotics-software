@@ -844,7 +844,7 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
          jointHomeConfiguration.put(jointMap.getArmJointName(robotSide, ArmJointName.WRIST_ROLL), robotSide.negateIfRightSide(0.70));
          jointHomeConfiguration.put(jointMap.getArmJointName(robotSide, ArmJointName.SECOND_WRIST_PITCH), 0.15);
       }
-
+      
       return jointHomeConfiguration;
    }
 
@@ -1072,6 +1072,12 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
    public boolean doPrepareManipulationForLocomotion()
    {
       //this allows me to walk with hand poses locked in a reference frame
+      return false;
+   }
+
+   @Override
+   public boolean doPreparePelvisForLocomotion()
+   {
       return false;
    }
 
