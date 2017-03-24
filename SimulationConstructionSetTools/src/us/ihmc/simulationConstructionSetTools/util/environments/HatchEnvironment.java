@@ -17,7 +17,7 @@ public class HatchEnvironment implements CommonAvatarEnvironmentInterface
    private final CombinedTerrainObject3D combinedTerrainObject;
       
    private final float HATCH_OPENING_WIDTH = .86f;
-   private final float HATCH_UPENING_HEIGHT = 1.7f;
+   private final float HATCH_UPENING_HEIGHT = 1.7f - 0.1f;
    private final float HATCH_UPENING_HEIGHT_OFF_GROUND = 0.152f;
    private final float FORWARD_OFFSET = 0.21f; //1f;
    private final float SIDEWAY_OFFSET = 0.08f;
