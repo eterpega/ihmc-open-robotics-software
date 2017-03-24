@@ -8,7 +8,6 @@ import us.ihmc.simulationconstructionset.gui.tools.SimulationOverheadPlotterFact
 import us.ihmc.simulationconstructionset.robotController.SimpleRobotController;
 import us.ihmc.simulationconstructionset.util.simulationRunner.BlockingSimulationRunner;
 import us.ihmc.simulationconstructionset.util.simulationRunner.BlockingSimulationRunner.SimulationExceededMaximumTimeException;
-import us.ihmc.tools.thread.ThreadTools;
 
 public class SkippySimulationV2
 {
@@ -30,7 +29,8 @@ public class SkippySimulationV2
       sim.setGroundVisible(true);
       sim.setDT(DT, recordFrequency);
       sim.setMaxBufferSize(64000);
-      sim.setCameraPosition(10.0, 0.0, 2.0);
+//      sim.setCameraPosition(10.0, 0.0, 2.0);
+      sim.setCameraPosition(12.0, 12.0, 12.0);
 
       boolean showOverheadView = true;
       YoGraphicsListRegistry yoGraphicsListRegistry = new YoGraphicsListRegistry();
@@ -67,8 +67,8 @@ public class SkippySimulationV2
    public static void main(String[] args) throws SimulationExceededMaximumTimeException
    {
       SkippySimulationV2 skippySimulation = new SkippySimulationV2();
-      skippySimulation.run(TIME);
-      ThreadTools.sleepForever();
+//      skippySimulation.run(TIME);
+//      ThreadTools.sleepForever();
    }
 
    private class FallChecker extends SimpleRobotController

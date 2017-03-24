@@ -12,7 +12,6 @@ import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
 import us.ihmc.robotics.dataStructures.variable.IntegerYoVariable;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FrameVector;
-import us.ihmc.robotics.geometry.RotationTools;
 import us.ihmc.robotics.math.frames.YoFramePoint;
 import us.ihmc.robotics.math.frames.YoFrameVector;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
@@ -64,6 +63,8 @@ public class SkippyICPBasedController extends SimpleRobotController
    private final YoFrameVector shoulderAxisViz = new YoFrameVector("ShoulderAxis", ReferenceFrame.getWorldFrame(), registry);
    private final YoFrameVector angularMomentumViz = new YoFrameVector("AngularMomentum", ReferenceFrame.getWorldFrame(), registry);
 
+   double angle;
+
    public SkippyICPBasedController(SkippyRobot skippy, double dt, YoGraphicsListRegistry yoGraphicsListRegistries)
    {
       this.skippy = skippy;
@@ -73,6 +74,8 @@ public class SkippyICPBasedController extends SimpleRobotController
       kMomentum.set(0.3);
       kAngle.set(0.1);
 
+      angle = skippy.getQ_hip().getDoubleValue();
+
       ticksForDesiredForce.set(10);
       hipAngleController.setProportionalGain(20.0);
       hipAngleController.setIntegralGain(10.0);
@@ -80,7 +83,7 @@ public class SkippyICPBasedController extends SimpleRobotController
       shoulderAngleController.setIntegralGain(0.0);
       tickCounter.set(ticksForDesiredForce.getIntegerValue() + 1);
 
-      hipSetpoint.set(0.0);
+      hipSetpoint.set(Math.PI / 6);
       shoulderSetpoint.set(0.0);
 
       makeViz(yoGraphicsListRegistries);
@@ -128,6 +131,7 @@ public class SkippyICPBasedController extends SimpleRobotController
    @Override
    public void doControl()
    {
+
       skippy.computeComAndICP(com, comVelocity, icp, angularMomentum);
       skippy.computeFootContactForce(groundReaction.getVector());
       footLocation.set(skippy.computeFootLocation());
@@ -153,8 +157,8 @@ public class SkippyICPBasedController extends SimpleRobotController
 
          desiredGroundReaction.sub(com, desiredCMP);
          desiredGroundReaction.normalize();
-         double reactionModulus = Math.abs(skippy.getGravity()) * skippy.getMass() / desiredGroundReaction.getZ();
-         desiredGroundReaction.scale(reactionModulus);
+         double reactionMagnitude = Math.abs(skippy.getGravity()) * skippy.getMass() / desiredGroundReaction.getZ();
+         desiredGroundReaction.scale(reactionMagnitude);
          tickCounter.set(0);
       }
       tickCounter.increment();
@@ -187,6 +191,35 @@ public class SkippyICPBasedController extends SimpleRobotController
          skippy.getShoulderJoint().setTau(angleFeedback + balanceTorque);
 
       updateViz();
+
+      hipTrajectoryGenerator();
+ }
+
+   /**
+    * This is a trajectory generator based on "Angular Momentum Based Controller for Balancing an Inverted Double Pendulum
+         Morteza Azad and Roy Featherstone" to get results for SkippyForMusme paper
+    */
+   public void hipTrajectoryGenerator()
+   {
+      double time = skippy.getTime();
+      double timeToImpulseDown = 0.008;
+      double timeInEachMoving = 10.0;
+      double impulseAmplitude = Math.PI / 4.0;
+      double timeToImpulseUp = timeToImpulseDown + timeInEachMoving;
+      double timeToRampDown = timeToImpulseUp + timeInEachMoving;
+      double timeToStayDown = timeToRampDown + timeInEachMoving;
+      double timeToSinOscilation = timeToStayDown + timeInEachMoving;
+
+      if (time > timeToImpulseDown && time <= timeToImpulseUp)
+         hipSetpoint.set(-impulseAmplitude);
+      else if (time > timeToImpulseUp && time <= timeToRampDown)
+         hipSetpoint.set(+impulseAmplitude);
+      else if (time > timeToRampDown && time <= timeToStayDown)
+         hipSetpoint.set(0.0);
+      else if (time > timeToRampDown && time <= timeToSinOscilation)
+         hipSetpoint.set(((timeToRampDown - time) * (impulseAmplitude) / (timeToRampDown - timeToStayDown) - 1.0) * impulseAmplitude);
+      //      else if(time >timeToSinOscilation)
+      //         hipSetpoint.set(angle*Math.sin(time));
    }
 
    /**
@@ -261,9 +294,9 @@ public class SkippyICPBasedController extends SimpleRobotController
 
    private void projectVectorInPlane(FrameVector vectorToProject, FrameVector planeNormal, FrameVector projectionToPack)
    {
-      double modulus = vectorToProject.dot(planeNormal);
+      double magnitude = vectorToProject.dot(planeNormal);
       projectionToPack.set(planeNormal);
-      projectionToPack.scale(-modulus);
+      projectionToPack.scale(-magnitude);
       projectionToPack.add(vectorToProject);
    }
 }

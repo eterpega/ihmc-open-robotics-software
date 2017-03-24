@@ -96,7 +96,7 @@ public class SkippySimulation
     */
    public static void main(String[] args) throws SimulationExceededMaximumTimeException
    {
-      SkippySimulation skippySimulation = new SkippySimulation(SkippyControllerMode.STATE_FEEDBACK);
+      SkippySimulation skippySimulation = new SkippySimulation(SkippyControllerMode.ICP_BASED);//STATE_FEEDBACK);//
 //      skippySimulation.run(TIME);
       ThreadTools.sleepForever();
    }
