@@ -193,7 +193,7 @@ public class SkippyICPBasedController extends SimpleRobotController
       updateViz();
 
       hipTrajectoryGenerator();
- }
+   }
 
    /**
     * This is a trajectory generator based on "Angular Momentum Based Controller for Balancing an Inverted Double Pendulum
@@ -202,24 +202,52 @@ public class SkippyICPBasedController extends SimpleRobotController
    public void hipTrajectoryGenerator()
    {
       double time = skippy.getTime();
-      double timeToImpulseDown = 0.008;
+      double timeToStartOscilation = 0.0;
+      double timeToImpulseDown = 0.1;
       double timeInEachMoving = 10.0;
+      double timeForRamp = 1.0;
       double impulseAmplitude = Math.PI / 4.0;
       double timeToImpulseUp = timeToImpulseDown + timeInEachMoving;
       double timeToRampDown = timeToImpulseUp + timeInEachMoving;
       double timeToStayDown = timeToRampDown + timeInEachMoving;
       double timeToSinOscilation = timeToStayDown + timeInEachMoving;
+      double timeToStop = timeToSinOscilation + timeInEachMoving;
+
+      double timeIn = 0, functionOut = 0, functionIn = 0, timeOut = 0;
 
       if (time > timeToImpulseDown && time <= timeToImpulseUp)
+      {
+         final double setPointIn = hipSetpoint.getDoubleValue();
+         final double timeToStartRamp = time;
+         if()
+         rampToNext(hipSetpoint, time, timeToImpulseUp, timeInEachMoving, setPointIn, impulseAmplitude);
          hipSetpoint.set(-impulseAmplitude);
-      else if (time > timeToImpulseUp && time <= timeToRampDown)
+      }
+      else if (time > timeToImpulseUp && time <= timeToRampDown) //
          hipSetpoint.set(+impulseAmplitude);
-      else if (time > timeToRampDown && time <= timeToStayDown)
+      else if (time > timeToRampDown && time <= timeToStayDown) //
          hipSetpoint.set(0.0);
       else if (time > timeToRampDown && time <= timeToSinOscilation)
-         hipSetpoint.set(((timeToRampDown - time) * (impulseAmplitude) / (timeToRampDown - timeToStayDown) - 1.0) * impulseAmplitude);
-      //      else if(time >timeToSinOscilation)
-      //         hipSetpoint.set(angle*Math.sin(time));
+      { //
+         rampToNext(time, timeIn, functionOut, functionIn, timeOut, hipSetpoint);
+      }
+      else if (time > timeToSinOscilation && time <= timeToStop) //
+         hipSetpoint.set(impulseAmplitude * Math.cos(time - timeToStartOscilation));
+      else if (time > timeToStop) //
+         hipSetpoint.set(hipSetpoint.getDoubleValue());
+   }
+
+   /**
+    * @param time
+    * @param timeIn
+    * @param amplitude
+    * @param setPointIn
+    * @param duration
+    * @param setPointToPack
+    */
+   public void rampToNext(DoubleYoVariable setPointToPack, double time, double timeIn, double duration, double setPointIn, double amplitude)
+   {
+      setPointToPack.set(amplitude/duration*(time-timeIn)+setPointIn);
    }
 
    /**
