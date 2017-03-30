@@ -16,7 +16,7 @@ public class SkippySimulation
    public static final double DT = 0.0001;
    public static final double controlDT = 0.0001;
    public static final double TIME = 20.0;
-   public static final int recordFrequency = 75;
+   public static final int recordFrequency = 100;//75;
 
    private final SimulationConstructionSet sim;
    private final BlockingSimulationRunner blockingSimulationRunner;

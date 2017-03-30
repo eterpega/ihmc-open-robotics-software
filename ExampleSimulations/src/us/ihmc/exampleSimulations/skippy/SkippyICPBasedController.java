@@ -83,7 +83,7 @@ public class SkippyICPBasedController extends SimpleRobotController
       shoulderAngleController.setIntegralGain(0.0);
       tickCounter.set(ticksForDesiredForce.getIntegerValue() + 1);
 
-      hipSetpoint.set(Math.PI / 6);
+      hipSetpoint.set(0.0);
       shoulderSetpoint.set(0.0);
 
       makeViz(yoGraphicsListRegistries);
@@ -127,6 +127,8 @@ public class SkippyICPBasedController extends SimpleRobotController
       YoGraphicVector shoulderAxisVectorYoGraphic = new YoGraphicVector("shoulderAxis", shoulderLocationViz, shoulderAxisViz, 0.4, YoAppearance.Red(), true);
       yoGraphicsListRegistries.registerYoGraphic("shoulderAxis", shoulderAxisVectorYoGraphic);
    }
+
+   double timeIn = 0, setPointIn = 0;
 
    @Override
    public void doControl()
@@ -192,62 +194,41 @@ public class SkippyICPBasedController extends SimpleRobotController
 
       updateViz();
 
-      hipTrajectoryGenerator();
+      hipTrajectoryToTrack();
+
    }
 
    /**
     * This is a trajectory generator based on "Angular Momentum Based Controller for Balancing an Inverted Double Pendulum
          Morteza Azad and Roy Featherstone" to get results for SkippyForMusme paper
     */
-   public void hipTrajectoryGenerator()
+   public void hipTrajectoryToTrack()
    {
       double time = skippy.getTime();
-      double timeToStartOscilation = 0.0;
-      double timeToImpulseDown = 0.1;
-      double timeInEachMoving = 10.0;
-      double timeForRamp = 1.0;
+      double timeInterval = 5.0;
       double impulseAmplitude = Math.PI / 4.0;
-      double timeToImpulseUp = timeToImpulseDown + timeInEachMoving;
-      double timeToRampDown = timeToImpulseUp + timeInEachMoving;
-      double timeToStayDown = timeToRampDown + timeInEachMoving;
-      double timeToSinOscilation = timeToStayDown + timeInEachMoving;
-      double timeToStop = timeToSinOscilation + timeInEachMoving;
+      double timeToImpulseDown = 2.0;
+      double timeToReturnToZero = timeToImpulseDown+timeInterval;
+      double timeToRampDown = timeToReturnToZero + timeInterval;
+      double timeToStayHalfDown = timeToRampDown + timeInterval;
+      double timeToSinOscilation = timeToStayHalfDown + timeInterval;
+      double timeToStop = timeToSinOscilation + 6*timeInterval;
 
-      double timeIn = 0, functionOut = 0, functionIn = 0, timeOut = 0;
-
-      if (time > timeToImpulseDown && time <= timeToImpulseUp)
-      {
-         final double setPointIn = hipSetpoint.getDoubleValue();
-         final double timeToStartRamp = time;
-         if()
-         rampToNext(hipSetpoint, time, timeToImpulseUp, timeInEachMoving, setPointIn, impulseAmplitude);
+      if (time > timeToImpulseDown && time <= timeToReturnToZero)
          hipSetpoint.set(-impulseAmplitude);
-      }
-      else if (time > timeToImpulseUp && time <= timeToRampDown) //
-         hipSetpoint.set(+impulseAmplitude);
-      else if (time > timeToRampDown && time <= timeToStayDown) //
+      else if (time > timeToReturnToZero && time <= timeToRampDown){
          hipSetpoint.set(0.0);
-      else if (time > timeToRampDown && time <= timeToSinOscilation)
-      { //
-         rampToNext(time, timeIn, functionOut, functionIn, timeOut, hipSetpoint);
+         timeIn = time;
+         setPointIn=hipSetpoint.getDoubleValue();
+      }
+      else if (time > timeToRampDown && time <= timeToStayHalfDown)
+         hipSetpoint.set(-impulseAmplitude/timeInterval*(time-timeIn));
+      else if (time > timeToStayHalfDown && time <= timeToSinOscilation) {
+         hipSetpoint.set(-Math.PI/8.0);
+         timeIn = time;
       }
       else if (time > timeToSinOscilation && time <= timeToStop) //
-         hipSetpoint.set(impulseAmplitude * Math.cos(time - timeToStartOscilation));
-      else if (time > timeToStop) //
-         hipSetpoint.set(hipSetpoint.getDoubleValue());
-   }
-
-   /**
-    * @param time
-    * @param timeIn
-    * @param amplitude
-    * @param setPointIn
-    * @param duration
-    * @param setPointToPack
-    */
-   public void rampToNext(DoubleYoVariable setPointToPack, double time, double timeIn, double duration, double setPointIn, double amplitude)
-   {
-      setPointToPack.set(amplitude/duration*(time-timeIn)+setPointIn);
+         hipSetpoint.set(Math.PI/8*Math.sin(Math.PI/4*(time-timeIn)));
    }
 
    /**
