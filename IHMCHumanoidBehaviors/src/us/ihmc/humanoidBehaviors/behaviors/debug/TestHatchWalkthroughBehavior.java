@@ -1,10 +1,13 @@
 package us.ihmc.humanoidBehaviors.behaviors.debug;
 
+import com.badlogic.gdx.math.Vector3;
+
 import us.ihmc.communication.packets.PacketDestination;
 import us.ihmc.communication.packets.TextToSpeechPacket;
 import us.ihmc.euclid.axisAngle.AxisAngle;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.humanoidBehaviors.behaviors.AbstractBehavior;
 import us.ihmc.humanoidBehaviors.behaviors.behaviorServices.BehaviorService;
@@ -33,11 +36,12 @@ import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.time.YoStopwatch;
 import us.ihmc.robotics.trajectories.TrajectoryType;
+import us.ihmc.simulationconstructionset.util.environments.HatchEnvironment;
 
 public class TestHatchWalkthroughBehavior extends AbstractBehavior
 {
    private static final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
-   private final RigidBodyTransform hatchToWorld = new RigidBodyTransform();
+   private final RigidBodyTransform hatchToWorld = new RigidBodyTransform(new Quaternion(), HatchEnvironment.getHatchFrameOffset());
    private final ReferenceFrame hatchFrame = ReferenceFrame.constructFrameWithUnchangingTransformFromParent("HatchFrame", worldFrame, hatchToWorld);
    
    private final HumanoidReferenceFrames referenceFrames;
@@ -93,12 +97,450 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
    @Override
    public void doControl()
    {
-      // Use version from first iteration
+      // Use version without ducking
 //      walkThroughHatchIteration1();
       
-      // Use version from second iteration
-      walkThroughHatchIteration2();
+      // Use version with ducking
+//      walkThroughHatchIteration2();
+      
+      // Use version with whole body trajectories
+//      walkThroughHatchWBT();
+      
+      // Use foot swing tunnel version
+      walkThroughHatchTunnel();
    }
+   
+   
+   
+   
+   
+   
+   
+   public void walkThroughHatchTunnel()
+   {
+      if (!robotConfigurationInitialized)
+      {
+         initializeRobotConfigurationTunnel();
+      }
+
+      if (!(timer.totalElapsed() > sleepTime.getDoubleValue()))
+      {
+         return;
+      }
+      
+      if(!madeFirstStepThroughHatch)
+      {  
+         makeFirstStepThroughHatchOpeningTunnel();
+         counterHelper = timer.totalElapsed();
+      }
+      else if(!changedRobotConfiguration && (timer.totalElapsed() > (counterHelper + 1.5 * armTrajectoryTime)))
+      {
+         changeRobotConfigurationTunnel();
+         counterHelper = timer.totalElapsed();
+      }
+      else if(!madeSecondStepThroughHatch && (timer.totalElapsed() > (counterHelper + 1.5 * armTrajectoryTime)))
+      {
+         makeSecondStepThroughHatchOpeningTunnel();
+      }
+   }
+   
+   
+   public void initializeRobotConfigurationTunnel()
+   {
+      AxisAngle chestOrientationAA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(15.0));
+      Quaternion chestOrientation = new Quaternion(chestOrientationAA);
+      ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(armTrajectoryTime, chestOrientation);
+      sendPacket(chestOrientationTrajectoryMessage);
+      
+      AxisAngle pelvisOrientationAA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(-15.0)); //TEST: was -15.0
+      Quaternion pelvisOrientation = new Quaternion(pelvisOrientationAA);
+      PelvisOrientationTrajectoryMessage pelvisOrientationTrajectoryMessage = new PelvisOrientationTrajectoryMessage(armTrajectoryTime, pelvisOrientation);
+      sendPacket(pelvisOrientationTrajectoryMessage);
+      
+      ReferenceFrame pelvisFrame = referenceFrames.getPelvisFrame();
+      FramePose pelvisPose = new FramePose(pelvisFrame);
+      pelvisPose.setZ(-0.06); // -.04
+      pelvisPose.changeFrame(ReferenceFrame.getWorldFrame());
+      Point3D pelvisGoalLocation = new Point3D();
+      pelvisPose.getPose(pelvisGoalLocation, new Quaternion());
+
+      PelvisHeightTrajectoryMessage pelvisHeightTrajectoryMessage = new PelvisHeightTrajectoryMessage(armTrajectoryTime, pelvisGoalLocation.getZ());
+      sendPacket(pelvisHeightTrajectoryMessage);
+      
+      ArmTrajectoryMessage leftArmTrajectoryMessage = new ArmTrajectoryMessage(RobotSide.LEFT, armTrajectoryTime, leftArmGoalPosition);
+      ArmTrajectoryMessage rightArmTrajectoryMessage = new ArmTrajectoryMessage(RobotSide.RIGHT, armTrajectoryTime, rightArmGoalPosition);
+      
+      sendPacket(leftArmTrajectoryMessage);
+      sendPacket(rightArmTrajectoryMessage);
+
+      robotConfigurationInitialized = true;
+   }
+   
+   public void makeFirstStepThroughHatchOpeningTunnel()
+   {
+      AxisAngle chestOrientationAA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(30.0)); // was 25
+      Quaternion chestOrientation = new Quaternion(chestOrientationAA);
+      ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(4.5*armTrajectoryTime, chestOrientation);
+      sendPacket(chestOrientationTrajectoryMessage);
+
+      AxisAngle pelvisOrientationAA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(0.0)); // TEST: was -5.0
+      Quaternion pelvisOrientation = new Quaternion(pelvisOrientationAA);
+
+      PelvisOrientationTrajectoryMessage pelvisOrientationTrajectoryMessage = new PelvisOrientationTrajectoryMessage(4.5*armTrajectoryTime, pelvisOrientation); // was 1.5
+      sendPacket(pelvisOrientationTrajectoryMessage);
+      
+      
+      FootstepDataListMessage footsteps = new FootstepDataListMessage(swingTime.getDoubleValue(), transferTime.getDoubleValue());
+      footsteps.setExecutionMode(ExecutionMode.OVERRIDE);
+      footsteps.setDestination(PacketDestination.BROADCAST);
+
+      ReferenceFrame rightSoleFrame = referenceFrames.getSoleFrame(RobotSide.RIGHT);
+      FramePose stepPose = new FramePose(rightSoleFrame);
+      stepPose.setX(0.58);
+      stepPose.setY(0.08);
+
+      stepPose.changeFrame(ReferenceFrame.getWorldFrame());
+
+      Point3D location = new Point3D();
+      Quaternion orientation = new Quaternion();
+      stepPose.getPose(location, orientation);
+
+      FootstepDataMessage footstepData = new FootstepDataMessage(RobotSide.RIGHT, location, orientation);
+      footstepData.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
+      footsteps.add(footstepData);
+      
+      footstepData.setSwingHeight(0.25);
+
+      sendPacket(footsteps);
+      madeFirstStepThroughHatch = true;
+   }
+   
+   public void changeRobotConfigurationTunnel()
+   {
+      AxisAngle pelvisGoalOrientationYAA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(20.0));
+      Quaternion pelvisGoalOrientationY = new Quaternion(pelvisGoalOrientationYAA);
+      AxisAngle pelvisGoalOrientationXAA = new AxisAngle(1.0, 0.0, 0.0, Math.toRadians(0.0));
+      Quaternion pelvisGoalOrientationX = new Quaternion(pelvisGoalOrientationXAA);
+      
+      Quaternion pelvisGoalOrientation = new Quaternion();
+      pelvisGoalOrientation.multiply(pelvisGoalOrientationX, pelvisGoalOrientationY);
+      
+      ReferenceFrame pelvisFrame = referenceFrames.getPelvisFrame();
+      FramePose pelvisPose = new FramePose(pelvisFrame);
+      pelvisPose.setX(0.15); // TEST: was 0.15
+      pelvisPose.setZ(-0.05); // TEST: was -0.07
+
+      pelvisPose.changeFrame(ReferenceFrame.getWorldFrame());
+      Point3D pelvisGoalLocation = new Point3D();
+      
+      pelvisPose.getPose(pelvisGoalLocation, new Quaternion());
+
+      PelvisTrajectoryMessage pelvisTrajectoryMessage = new PelvisTrajectoryMessage(armTrajectoryTime, pelvisGoalLocation, pelvisGoalOrientation);
+      sendPacket(pelvisTrajectoryMessage);
+      
+      changedRobotConfiguration = true;
+   }
+   
+   public void makeSecondStepThroughHatchOpeningTunnel()
+   {
+      AxisAngle chestOrientationAA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(7.0)); // was 10.0
+      Quaternion chestOrientation = new Quaternion(chestOrientationAA);
+      ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(2.0, chestOrientation); // was 2.0
+      sendPacket(chestOrientationTrajectoryMessage);
+      
+      ReferenceFrame pelvisFrame = referenceFrames.getPelvisFrame();
+      FramePose pelvisPose = new FramePose(pelvisFrame);
+      pelvisPose.setZ(0.02); // TEST: was 0.04 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      pelvisPose.changeFrame(ReferenceFrame.getWorldFrame());
+      Point3D pelvisGoalLocation = new Point3D();
+      pelvisPose.getPose(pelvisGoalLocation, new Quaternion());
+      PelvisHeightTrajectoryMessage pelvisHeightTrajectoryMessage = new PelvisHeightTrajectoryMessage(armTrajectoryTime, pelvisGoalLocation.getZ());
+      sendPacket(pelvisHeightTrajectoryMessage);
+   
+      
+      AxisAngle pelvisGoalOrientationYAA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(20.0));
+      Quaternion pelvisGoalOrientationY = new Quaternion(pelvisGoalOrientationYAA);
+      AxisAngle pelvisGoalOrientationXAA = new AxisAngle(1.0, 0.0, 0.0, Math.toRadians(3.0)); // TEST: was 3.0
+      Quaternion pelvisGoalOrientationX = new Quaternion(pelvisGoalOrientationXAA);
+      
+      Quaternion pelvisGoalOrientation = new Quaternion();
+      pelvisGoalOrientation.multiply(pelvisGoalOrientationX, pelvisGoalOrientationY);
+      PelvisOrientationTrajectoryMessage pelvisOrientationTrajectoryMessage = new PelvisOrientationTrajectoryMessage(armTrajectoryTime, pelvisGoalOrientation);
+      sendPacket(pelvisOrientationTrajectoryMessage);
+      
+      
+      FootstepDataListMessage footsteps = new FootstepDataListMessage(swingTime.getDoubleValue(), transferTime.getDoubleValue());
+      footsteps.setExecutionMode(ExecutionMode.OVERRIDE);
+      footsteps.setDestination(PacketDestination.BROADCAST);
+
+      ReferenceFrame leftSoleFrame = referenceFrames.getSoleFrame(RobotSide.LEFT);
+      FramePose stepPose = new FramePose(leftSoleFrame);
+      stepPose.setX(0.58);
+      stepPose.setY(0.00);
+
+      stepPose.changeFrame(ReferenceFrame.getWorldFrame());
+
+      Point3D location = new Point3D();
+      Quaternion orientation = new Quaternion();
+      stepPose.getPose(location, orientation);
+
+      FootstepDataMessage footstepData = new FootstepDataMessage(RobotSide.LEFT, location, orientation);
+      footstepData.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
+      footsteps.add(footstepData);
+      
+      footstepData.setSwingHeight(0.35);
+
+      sendPacket(footsteps);
+      madeSecondStepThroughHatch = true;
+   }
+   
+   
+   
+   
+   // ===========================================================================================================
+   
+   public void walkThroughHatchWBT()
+   {
+      if (!robotConfigurationInitialized)
+      {
+         initializeRobotConfigurationWBT();
+      }
+
+//      if (!(timer.totalElapsed() > sleepTime.getDoubleValue()))
+//      {
+//         return;
+//      }
+//      
+//      if(!madeFirstStepThroughHatch)
+//      {  
+//         makeFirstStepThroughHatchOpeningWBT();
+//         counterHelper = timer.totalElapsed();
+//      }
+//      else if(!changedRobotConfiguration && (timer.totalElapsed() > (counterHelper + 1.5 * armTrajectoryTime)))
+//      {
+//         changeRobotConfigurationWBT();
+//         counterHelper = timer.totalElapsed();
+//      }
+//      else if(!madeSecondStepThroughHatch && (timer.totalElapsed() > (counterHelper + 1.5 * armTrajectoryTime)))
+//      {
+//         makeSecondStepThroughHatchOpeningWBT();
+//      }
+   }
+   
+   
+   public void initializeRobotConfigurationWBT()
+   {
+//      AxisAngle chestOrientationAA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(10.0));
+//      Quaternion chestOrientation = new Quaternion(chestOrientationAA);
+//      ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(armTrajectoryTime, chestOrientation);
+//      sendPacket(chestOrientationTrajectoryMessage);
+//      
+//      AxisAngle pelvisOrientationAA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(-15.0)); //TEST: was -15.0
+//      Quaternion pelvisOrientation = new Quaternion(pelvisOrientationAA);
+//      PelvisOrientationTrajectoryMessage pelvisOrientationTrajectoryMessage = new PelvisOrientationTrajectoryMessage(armTrajectoryTime, pelvisOrientation);
+//      sendPacket(pelvisOrientationTrajectoryMessage);
+//      
+//      ReferenceFrame pelvisFrame = referenceFrames.getPelvisFrame();
+//      FramePose pelvisPose = new FramePose(pelvisFrame);
+//      pelvisPose.setZ(-0.05); // -.04
+//      pelvisPose.changeFrame(ReferenceFrame.getWorldFrame());
+//      Point3D pelvisGoalLocation = new Point3D();
+//      pelvisPose.getPose(pelvisGoalLocation, new Quaternion());
+//
+//      PelvisHeightTrajectoryMessage pelvisHeightTrajectoryMessage = new PelvisHeightTrajectoryMessage(armTrajectoryTime, pelvisGoalLocation.getZ());
+//      sendPacket(pelvisHeightTrajectoryMessage);
+      
+      WholeBodyTrajectoryMessage wholeBodyTrajectoryMessage = new WholeBodyTrajectoryMessage();
+      
+      ArmTrajectoryMessage leftArmTrajectoryMessage = new ArmTrajectoryMessage(RobotSide.LEFT, armTrajectoryTime, leftArmGoalPosition);
+      ArmTrajectoryMessage rightArmTrajectoryMessage = new ArmTrajectoryMessage(RobotSide.RIGHT, armTrajectoryTime, rightArmGoalPosition);
+      
+      PelvisTrajectoryMessage pelvisTrajectoryMessage = new PelvisTrajectoryMessage(4);
+      
+      double trajectoryTime = 1.0;
+      
+      ReferenceFrame pelvisFrame = referenceFrames.getPelvisFrame();
+      FramePose pelvisPose = new FramePose(pelvisFrame);
+      pelvisPose.changeFrame(ReferenceFrame.getWorldFrame());
+      Point3D pelvisGoalLocation = new Point3D();
+      pelvisPose.getPose(pelvisGoalLocation, new Quaternion());
+      
+      AxisAngle pelvisOrientationWaypoint0AA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(0.0));
+      Quaternion pelvisOrientationWaypoint0 = new Quaternion(pelvisOrientationWaypoint0AA);
+      pelvisTrajectoryMessage.setTrajectoryPoint(0, 1.0*trajectoryTime, pelvisGoalLocation, pelvisOrientationWaypoint0, new Vector3D(), new Vector3D());
+ 
+      AxisAngle pelvisOrientationWaypoint1AA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(0.0));
+      Quaternion pelvisOrientationWaypoint1 = new Quaternion(pelvisOrientationWaypoint1AA);
+      pelvisGoalLocation.setZ(pelvisGoalLocation.getZ()-0.5);
+      pelvisTrajectoryMessage.setTrajectoryPoint(1, 2.0*trajectoryTime, pelvisGoalLocation, pelvisOrientationWaypoint1, new Vector3D(), new Vector3D());
+
+      AxisAngle pelvisOrientationWaypoint2AA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(0.0));
+      Quaternion pelvisOrientationWaypoint2 = new Quaternion(pelvisOrientationWaypoint2AA);
+      pelvisTrajectoryMessage.setTrajectoryPoint(2, 3.0*trajectoryTime, pelvisGoalLocation, pelvisOrientationWaypoint2, new Vector3D(), new Vector3D());
+
+      AxisAngle pelvisOrientationWaypoint3AA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(0.0));
+      Quaternion pelvisOrientationWaypoint3 = new Quaternion(pelvisOrientationWaypoint3AA);
+      //pelvisGoalLocation.setZ(pelvisGoalLocation.getZ()+0.10);
+      pelvisTrajectoryMessage.setTrajectoryPoint(3, 4.0*trajectoryTime, pelvisGoalLocation, pelvisOrientationWaypoint3, new Vector3D(), new Vector3D());
+
+      
+      FootTrajectoryMessage rightFootTrajectoryMessage = new FootTrajectoryMessage(RobotSide.RIGHT, 4);
+      
+      
+      wholeBodyTrajectoryMessage.leftArmTrajectoryMessage = leftArmTrajectoryMessage;
+      wholeBodyTrajectoryMessage.rightArmTrajectoryMessage = rightArmTrajectoryMessage;
+      wholeBodyTrajectoryMessage.pelvisTrajectoryMessage = pelvisTrajectoryMessage;
+      
+      sendPacket(wholeBodyTrajectoryMessage);
+      robotConfigurationInitialized = true;
+   }
+   
+   public void makeFirstStepThroughHatchOpeningWBT()
+   {
+      AxisAngle chestOrientationAA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(25.0)); // was 25
+      Quaternion chestOrientation = new Quaternion(chestOrientationAA);
+      ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(4.5*armTrajectoryTime, chestOrientation);
+      sendPacket(chestOrientationTrajectoryMessage);
+
+      AxisAngle pelvisOrientationAA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(0.0)); // TEST: was -5.0
+      Quaternion pelvisOrientation = new Quaternion(pelvisOrientationAA);
+
+      PelvisOrientationTrajectoryMessage pelvisOrientationTrajectoryMessage = new PelvisOrientationTrajectoryMessage(4.5*armTrajectoryTime, pelvisOrientation); // was 1.5
+      sendPacket(pelvisOrientationTrajectoryMessage);
+      
+      
+      FootstepDataListMessage footsteps = new FootstepDataListMessage(swingTime.getDoubleValue(), transferTime.getDoubleValue());
+      footsteps.setExecutionMode(ExecutionMode.OVERRIDE);
+      footsteps.setDestination(PacketDestination.BROADCAST);
+
+      ReferenceFrame rightSoleFrame = referenceFrames.getSoleFrame(RobotSide.RIGHT);
+      FramePose stepPose = new FramePose(rightSoleFrame);
+      stepPose.setX(0.58);
+      stepPose.setY(0.08);
+
+      stepPose.changeFrame(ReferenceFrame.getWorldFrame());
+
+      Point3D location = new Point3D();
+      Quaternion orientation = new Quaternion();
+      stepPose.getPose(location, orientation);
+
+      FootstepDataMessage footstepData = new FootstepDataMessage(RobotSide.RIGHT, location, orientation);
+      footstepData.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
+      footsteps.add(footstepData);
+      
+      footstepData.setSwingHeight(0.17);
+
+      sendPacket(footsteps);
+      madeFirstStepThroughHatch = true;
+   }
+   
+   public void changeRobotConfigurationWBT()
+   {
+      AxisAngle pelvisGoalOrientationYAA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(10.0));
+      Quaternion pelvisGoalOrientationY = new Quaternion(pelvisGoalOrientationYAA);
+      AxisAngle pelvisGoalOrientationXAA = new AxisAngle(1.0, 0.0, 0.0, Math.toRadians(0.0));
+      Quaternion pelvisGoalOrientationX = new Quaternion(pelvisGoalOrientationXAA);
+      
+      Quaternion pelvisGoalOrientation = new Quaternion();
+      pelvisGoalOrientation.multiply(pelvisGoalOrientationX, pelvisGoalOrientationY);
+      
+      ReferenceFrame pelvisFrame = referenceFrames.getPelvisFrame();
+      FramePose pelvisPose = new FramePose(pelvisFrame);
+      pelvisPose.setX(0.15); // TEST: was 15.0
+      pelvisPose.setZ(-8.0); // TEST: was -7.0
+
+      pelvisPose.changeFrame(ReferenceFrame.getWorldFrame());
+      Point3D pelvisGoalLocation = new Point3D();
+      
+      pelvisPose.getPose(pelvisGoalLocation, new Quaternion());
+
+      PelvisTrajectoryMessage pelvisTrajectoryMessage = new PelvisTrajectoryMessage(armTrajectoryTime, pelvisGoalLocation, pelvisGoalOrientation);
+      sendPacket(pelvisTrajectoryMessage);
+      
+      changedRobotConfiguration = true;
+   }
+   
+   public void makeSecondStepThroughHatchOpeningWBT()
+   {
+      AxisAngle chestOrientationAA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(7.0)); // was 10.0
+      Quaternion chestOrientation = new Quaternion(chestOrientationAA);
+      ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(2.0, chestOrientation); // was 2.0
+      sendPacket(chestOrientationTrajectoryMessage);
+      
+      ReferenceFrame pelvisFrame = referenceFrames.getPelvisFrame();
+      FramePose pelvisPose = new FramePose(pelvisFrame);
+      pelvisPose.setZ(0.04); // TEST: was 0.03
+      pelvisPose.changeFrame(ReferenceFrame.getWorldFrame());
+      Point3D pelvisGoalLocation = new Point3D();
+      pelvisPose.getPose(pelvisGoalLocation, new Quaternion());
+      PelvisHeightTrajectoryMessage pelvisHeightTrajectoryMessage = new PelvisHeightTrajectoryMessage(armTrajectoryTime, pelvisGoalLocation.getZ());
+      sendPacket(pelvisHeightTrajectoryMessage);
+   
+      
+      AxisAngle pelvisGoalOrientationYAA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(10.0));
+      Quaternion pelvisGoalOrientationY = new Quaternion(pelvisGoalOrientationYAA);
+      AxisAngle pelvisGoalOrientationXAA = new AxisAngle(1.0, 0.0, 0.0, Math.toRadians(3.0)); // TEST: was 3.0
+      Quaternion pelvisGoalOrientationX = new Quaternion(pelvisGoalOrientationXAA);
+      
+      Quaternion pelvisGoalOrientation = new Quaternion();
+      pelvisGoalOrientation.multiply(pelvisGoalOrientationX, pelvisGoalOrientationY);
+      PelvisOrientationTrajectoryMessage pelvisOrientationTrajectoryMessage = new PelvisOrientationTrajectoryMessage(armTrajectoryTime, pelvisGoalOrientation);
+      sendPacket(pelvisOrientationTrajectoryMessage);
+      
+      
+      FootstepDataListMessage footsteps = new FootstepDataListMessage(swingTime.getDoubleValue(), transferTime.getDoubleValue());
+      footsteps.setExecutionMode(ExecutionMode.OVERRIDE);
+      footsteps.setDestination(PacketDestination.BROADCAST);
+
+      ReferenceFrame leftSoleFrame = referenceFrames.getSoleFrame(RobotSide.LEFT);
+      FramePose stepPose = new FramePose(leftSoleFrame);
+      stepPose.setX(0.58);
+      stepPose.setY(0.00);
+
+      stepPose.changeFrame(ReferenceFrame.getWorldFrame());
+
+      Point3D location = new Point3D();
+      Quaternion orientation = new Quaternion();
+      stepPose.getPose(location, orientation);
+
+      FootstepDataMessage footstepData = new FootstepDataMessage(RobotSide.LEFT, location, orientation);
+      footstepData.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
+      
+      
+      FramePose wayPointPose1 = new FramePose(leftSoleFrame);
+      wayPointPose1.setX(0.06);
+      wayPointPose1.setY(-0.06);
+      wayPointPose1.setZ(0.25);
+      wayPointPose1.changeFrame(ReferenceFrame.getWorldFrame());
+      Point3D locationWayPoint1 = new Point3D();
+      wayPointPose1.getPose(locationWayPoint1, new Quaternion());
+      
+      FramePose wayPointPose2 = new FramePose(leftSoleFrame);
+      wayPointPose2.setX(0.45);
+      wayPointPose2.setY(0.00);
+      wayPointPose2.setZ(0.19);
+      wayPointPose2.changeFrame(ReferenceFrame.getWorldFrame());
+      Point3D locationWayPoint2 = new Point3D();
+      wayPointPose2.getPose(locationWayPoint2, new Quaternion());
+      
+      footstepData.setTrajectoryType(TrajectoryType.CUSTOM);
+      footstepData.setTrajectoryWaypoints(new Point3D[] {locationWayPoint1, locationWayPoint2});
+      footsteps.add(footstepData);
+
+      sendPacket(footsteps);
+      madeSecondStepThroughHatch = true;
+   }
+   
+   
+   
+   
+   
+   
+   // ====================================================================================================
+   
+   
+   
+   
    
    
    public void walkThroughHatchIteration2()
@@ -137,14 +579,14 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
       ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(armTrajectoryTime, chestOrientation);
       sendPacket(chestOrientationTrajectoryMessage);
       
-      AxisAngle pelvisOrientationAA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(-15.0));
+      AxisAngle pelvisOrientationAA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(-15.0)); //TEST: was -15.0
       Quaternion pelvisOrientation = new Quaternion(pelvisOrientationAA);
       PelvisOrientationTrajectoryMessage pelvisOrientationTrajectoryMessage = new PelvisOrientationTrajectoryMessage(armTrajectoryTime, pelvisOrientation);
       sendPacket(pelvisOrientationTrajectoryMessage);
       
       ReferenceFrame pelvisFrame = referenceFrames.getPelvisFrame();
       FramePose pelvisPose = new FramePose(pelvisFrame);
-      pelvisPose.setZ(-0.04);
+      pelvisPose.setZ(-0.05); // -.04
       pelvisPose.changeFrame(ReferenceFrame.getWorldFrame());
       Point3D pelvisGoalLocation = new Point3D();
       pelvisPose.getPose(pelvisGoalLocation, new Quaternion());
@@ -163,16 +605,17 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
    
    public void makeFirstStepThroughHatchOpeningIteration2()
    {
-      AxisAngle chestOrientationAA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(25.0)); // was 10.0
+      AxisAngle chestOrientationAA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(25.0)); // was 25
       Quaternion chestOrientation = new Quaternion(chestOrientationAA);
-      ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(armTrajectoryTime, chestOrientation);
+      ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(4.5*armTrajectoryTime, chestOrientation);
       sendPacket(chestOrientationTrajectoryMessage);
 
-      AxisAngle pelvisOrientationAA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(-5.0)); // was now 0!!! //was 10.0, (might have) worked
+      AxisAngle pelvisOrientationAA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(0.0)); // TEST: was -5.0
       Quaternion pelvisOrientation = new Quaternion(pelvisOrientationAA);
 
       PelvisOrientationTrajectoryMessage pelvisOrientationTrajectoryMessage = new PelvisOrientationTrajectoryMessage(4.5*armTrajectoryTime, pelvisOrientation); // was 1.5
       sendPacket(pelvisOrientationTrajectoryMessage);
+      
       
       FootstepDataListMessage footsteps = new FootstepDataListMessage(swingTime.getDoubleValue(), transferTime.getDoubleValue());
       footsteps.setExecutionMode(ExecutionMode.OVERRIDE);
@@ -211,8 +654,8 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
       
       ReferenceFrame pelvisFrame = referenceFrames.getPelvisFrame();
       FramePose pelvisPose = new FramePose(pelvisFrame);
-      pelvisPose.setX(0.15); // was 0.12 before test
-      pelvisPose.setZ(-7.0); // Added as test! 5
+      pelvisPose.setX(0.15); // TEST: was 15.0
+      pelvisPose.setZ(-8.0); // TEST: was -7.0
 
       pelvisPose.changeFrame(ReferenceFrame.getWorldFrame());
       Point3D pelvisGoalLocation = new Point3D();
@@ -229,12 +672,12 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
    {
       AxisAngle chestOrientationAA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(7.0)); // was 10.0
       Quaternion chestOrientation = new Quaternion(chestOrientationAA);
-      ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(2.0, chestOrientation);
+      ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(2.0, chestOrientation); // was 2.0
       sendPacket(chestOrientationTrajectoryMessage);
       
       ReferenceFrame pelvisFrame = referenceFrames.getPelvisFrame();
       FramePose pelvisPose = new FramePose(pelvisFrame);
-      pelvisPose.setZ(0.03);
+      pelvisPose.setZ(0.04); // TEST: was 0.03
       pelvisPose.changeFrame(ReferenceFrame.getWorldFrame());
       Point3D pelvisGoalLocation = new Point3D();
       pelvisPose.getPose(pelvisGoalLocation, new Quaternion());
@@ -242,9 +685,9 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
       sendPacket(pelvisHeightTrajectoryMessage);
    
       
-      AxisAngle pelvisGoalOrientationYAA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(0.0));
+      AxisAngle pelvisGoalOrientationYAA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(10.0));
       Quaternion pelvisGoalOrientationY = new Quaternion(pelvisGoalOrientationYAA);
-      AxisAngle pelvisGoalOrientationXAA = new AxisAngle(1.0, 0.0, 0.0, Math.toRadians(3.0));
+      AxisAngle pelvisGoalOrientationXAA = new AxisAngle(1.0, 0.0, 0.0, Math.toRadians(3.0)); // TEST: was 3.0
       Quaternion pelvisGoalOrientationX = new Quaternion(pelvisGoalOrientationXAA);
       
       Quaternion pelvisGoalOrientation = new Quaternion();

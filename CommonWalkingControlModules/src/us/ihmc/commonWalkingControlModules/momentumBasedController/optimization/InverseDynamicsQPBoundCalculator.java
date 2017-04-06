@@ -52,8 +52,8 @@ public class InverseDynamicsQPBoundCalculator
          double jointLimitUpper = joint.getJointLimitUpper();
 
          jointsRangeOfMotion.set(jointIndex, 0, jointLimitUpper - jointLimitLower);
-         jointLowerLimits.set(jointIndex, 0, jointLimitLower);
-         jointUpperLimits.set(jointIndex, 0, jointLimitUpper);
+         jointLowerLimits.set(jointIndex, 0, jointLimitLower + 0.15);
+         jointUpperLimits.set(jointIndex, 0, jointLimitUpper - 0.15);
          jointLimitTypes.put(joint, JointLimitEnforcement.DEFAULT);
          jointLimitParameters.put(joint, new JointLimitParameters());
 

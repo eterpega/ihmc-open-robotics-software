@@ -8,6 +8,7 @@ import us.ihmc.commonWalkingControlModules.controllerCore.command.feedbackContro
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.InverseDynamicsCommand;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.robotics.MathTools;
 import us.ihmc.robotics.controllers.YoSE3PIDGainsInterface;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
@@ -47,11 +48,12 @@ public abstract class AbstractUnconstrainedState extends AbstractFootControlStat
    protected final DoubleYoVariable secondaryJointWeightScale;
 
    private final YoFrameVector angularWeight;
+   private final YoFrameVector defaultLinearWeight;
    private final YoFrameVector linearWeight;
 
    private final ReferenceFrame ankleFrame;
    private final PoseReferenceFrame controlFrame;
-
+   
    public AbstractUnconstrainedState(ConstraintType constraintType, FootControlHelper footControlHelper, YoSE3PIDGainsInterface gains,
          YoVariableRegistry registry)
    {
@@ -74,6 +76,7 @@ public abstract class AbstractUnconstrainedState extends AbstractFootControlStat
 
       angularWeight = new YoFrameVector(namePrefix + "AngularWeight", null, registry);
       linearWeight = new YoFrameVector(namePrefix + "LinearWeight", null, registry);
+      defaultLinearWeight = new YoFrameVector(namePrefix + "DefaultLinearWeight", null, registry);
 
       angularWeight.set(FOOT_SWING_WEIGHT, FOOT_SWING_WEIGHT, FOOT_SWING_WEIGHT);
       linearWeight.set(FOOT_SWING_WEIGHT, FOOT_SWING_WEIGHT, FOOT_SWING_WEIGHT);
@@ -105,14 +108,14 @@ public abstract class AbstractUnconstrainedState extends AbstractFootControlStat
    {
       angularWeight.set(1.0, 1.0, 1.0);
       angularWeight.scale(weight);
-      linearWeight.set(1.0, 1.0, 1.0);
-      linearWeight.scale(weight);
+      defaultLinearWeight.set(1.0, 1.0, 1.0);
+      defaultLinearWeight.scale(weight);
    }
 
    public void setWeights(Vector3D angularWeight, Vector3D linearWeight)
    {
       this.angularWeight.set(angularWeight);
-      this.linearWeight.set(linearWeight);
+      this.defaultLinearWeight.set(linearWeight);
    }
 
    /**
@@ -132,7 +135,9 @@ public abstract class AbstractUnconstrainedState extends AbstractFootControlStat
    {
       super.doTransitionIntoAction();
       legSingularityAndKneeCollapseAvoidanceControlModule.setCheckVelocityForSwingSingularityAvoidance(true);
+
       spatialFeedbackControlCommand.resetSecondaryTaskJointWeightScale();
+
 
       initializeTrajectory();
    }
@@ -172,6 +177,8 @@ public abstract class AbstractUnconstrainedState extends AbstractFootControlStat
       {
          desiredLinearAcceleration.setToZero();
       }
+      
+      linearWeight.set(defaultLinearWeight.getFrameTuple().getVector());
 
       spatialFeedbackControlCommand.set(desiredPosition, desiredLinearVelocity, desiredLinearAcceleration);
       spatialFeedbackControlCommand.set(desiredOrientation, desiredAngularVelocity, desiredAngularAcceleration);
