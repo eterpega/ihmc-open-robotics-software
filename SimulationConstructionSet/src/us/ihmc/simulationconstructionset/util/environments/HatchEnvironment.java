@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.graphicsDescription.Graphics3DObject;
 import us.ihmc.graphicsDescription.appearance.YoAppearance;
 import us.ihmc.simulationconstructionset.ExternalForcePoint;
@@ -18,11 +19,11 @@ public class HatchEnvironment implements CommonAvatarEnvironmentInterface
 {
    private final CombinedTerrainObject3D combinedTerrainObject;
       
-   private final float HATCH_OPENING_WIDTH = .86f;
-   private final float HATCH_UPENING_HEIGHT = 1.7f - 0.1f;
+   private final float HATCH_OPENING_WIDTH = .86f - 0.04f;
+   private final float HATCH_UPENING_HEIGHT = 1.7f - 0.05f - 0.05f;
    private final float HATCH_UPENING_HEIGHT_OFF_GROUND = 0.152f;
-   private final float FORWARD_OFFSET = 0.21f; //1f;
-   private final float SIDEWAY_OFFSET = 0.08f;
+   private static final float FORWARD_OFFSET = 2f; //2 + 0.21f; //1f;
+   private static final float SIDEWAY_OFFSET = 0.5f; //1 + 0.08f;
    private final float HATCH_THICKNESS = 0.152f;
 
 
@@ -89,6 +90,9 @@ public class HatchEnvironment implements CommonAvatarEnvironmentInterface
    {
    }
    
-   
+   public static Vector3D getHatchFrameOffset()
+   {
+      return new Vector3D(FORWARD_OFFSET, SIDEWAY_OFFSET, 0.0);
+   }
 
 }

@@ -1,6 +1,8 @@
 package us.ihmc.atlas.parameters;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -31,6 +33,7 @@ import us.ihmc.robotics.controllers.YoSE3PIDGainsInterface;
 import us.ihmc.robotics.controllers.YoSymmetricSE3PIDGains;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 import us.ihmc.robotics.partNames.ArmJointName;
+import us.ihmc.robotics.partNames.LegJointName;
 import us.ihmc.robotics.partNames.NeckJointName;
 import us.ihmc.robotics.partNames.SpineJointName;
 import us.ihmc.robotics.robotSide.RobotSide;
@@ -1331,10 +1334,19 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
       jointLimitParametersToPack.setJointLimitFilterBreakFrequency(15.0);
       jointLimitParametersToPack.setVelocityControlGain(30.0);
 
-      String bkxName = jointMap.getSpineJointName(SpineJointName.SPINE_ROLL);
-      String bkyName = jointMap.getSpineJointName(SpineJointName.SPINE_PITCH);
-      String[] joints = {bkxName, bkyName};
-      return joints;
+      List<String> jointNames = new ArrayList<String>();
+      jointNames.add(jointMap.getSpineJointName(SpineJointName.SPINE_ROLL));
+      jointNames.add(jointMap.getSpineJointName(SpineJointName.SPINE_PITCH));
+      
+      for (RobotSide robotSide : RobotSide.values)
+      {
+         jointNames.add(jointMap.getLegJointName(robotSide, LegJointName.HIP_PITCH));
+         jointNames.add(jointMap.getLegJointName(robotSide, LegJointName.HIP_ROLL));
+         jointNames.add(jointMap.getLegJointName(robotSide, LegJointName.HIP_YAW));
+         jointNames.add(jointMap.getLegJointName(robotSide, LegJointName.KNEE_PITCH));
+      }
+      
+      return (String[]) jointNames.toArray(new String[jointNames.size()]);
    }
 
    /** {@inheritDoc} */

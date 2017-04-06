@@ -8,9 +8,11 @@ import us.ihmc.commonWalkingControlModules.controllerCore.command.feedbackContro
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.InverseDynamicsCommand;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.robotics.MathTools;
 import us.ihmc.robotics.controllers.YoSE3PIDGainsInterface;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
+import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FramePose;
 import us.ihmc.robotics.math.frames.YoFramePoint;
@@ -45,10 +47,13 @@ public abstract class AbstractUnconstrainedState extends AbstractFootControlStat
    protected final BooleanYoVariable hasSwitchedToStraightLegs;
 
    private final YoFrameVector angularWeight;
+   private final YoFrameVector defaultLinearWeight;
    private final YoFrameVector linearWeight;
 
    private final ReferenceFrame ankleFrame;
    private final PoseReferenceFrame controlFrame;
+   
+   private final DoubleYoVariable scaleFactor;
 
    public AbstractUnconstrainedState(ConstraintType constraintType, FootControlHelper footControlHelper, YoSE3PIDGainsInterface gains,
          YoVariableRegistry registry)
@@ -67,9 +72,11 @@ public abstract class AbstractUnconstrainedState extends AbstractFootControlStat
       yoSetDesiredVelocityToZero = new BooleanYoVariable(namePrefix + "SetDesiredVelocityToZero", registry);
 
       hasSwitchedToStraightLegs = new BooleanYoVariable(namePrefix + "HasSwitchedToStraightLegs", registry);
+      scaleFactor = new DoubleYoVariable(namePrefix + "ScaleFactor", registry);
 
       angularWeight = new YoFrameVector(namePrefix + "AngularWeight", null, registry);
       linearWeight = new YoFrameVector(namePrefix + "LinearWeight", null, registry);
+      defaultLinearWeight = new YoFrameVector(namePrefix + "DefaultLinearWeight", null, registry);
 
       angularWeight.set(FOOT_SWING_WEIGHT, FOOT_SWING_WEIGHT, FOOT_SWING_WEIGHT);
       linearWeight.set(FOOT_SWING_WEIGHT, FOOT_SWING_WEIGHT, FOOT_SWING_WEIGHT);
@@ -101,14 +108,14 @@ public abstract class AbstractUnconstrainedState extends AbstractFootControlStat
    {
       angularWeight.set(1.0, 1.0, 1.0);
       angularWeight.scale(weight);
-      linearWeight.set(1.0, 1.0, 1.0);
-      linearWeight.scale(weight);
+      defaultLinearWeight.set(1.0, 1.0, 1.0);
+      defaultLinearWeight.scale(weight);
    }
 
    public void setWeights(Vector3D angularWeight, Vector3D linearWeight)
    {
       this.angularWeight.set(angularWeight);
-      this.linearWeight.set(linearWeight);
+      this.defaultLinearWeight.set(linearWeight);
    }
 
    /**
@@ -130,6 +137,8 @@ public abstract class AbstractUnconstrainedState extends AbstractFootControlStat
       legSingularityAndKneeCollapseAvoidanceControlModule.setCheckVelocityForSwingSingularityAvoidance(true);
 
       hasSwitchedToStraightLegs.set(false);
+      
+      linearWeight.set(defaultLinearWeight.getFrameTuple().getVector());
 
       initializeTrajectory();
    }
@@ -169,6 +178,13 @@ public abstract class AbstractUnconstrainedState extends AbstractFootControlStat
       {
          desiredLinearAcceleration.setToZero();
       }
+      
+      linearWeight.set(defaultLinearWeight.getFrameTuple().getVector());
+      double angle = 2.0 * Math.PI * getTimeInCurrentState() / 1.2 - Math.PI; // 0.6 for flat walking
+      double clampedAngle = MathTools.clamp(angle, -Math.PI, Math.PI);
+      double scaleFactor = 1.0; //(-1.0/4.0*Math.cos(clampedAngle) + 1.0) / 2.0;
+      this.scaleFactor.set(scaleFactor);
+      linearWeight.scale(scaleFactor);
 
       spatialFeedbackControlCommand.set(desiredPosition, desiredLinearVelocity, desiredLinearAcceleration);
       spatialFeedbackControlCommand.set(desiredOrientation, desiredAngularVelocity, desiredAngularAcceleration);
@@ -203,6 +219,7 @@ public abstract class AbstractUnconstrainedState extends AbstractFootControlStat
       yoDesiredPosition.setToNaN();
       yoDesiredLinearVelocity.setToNaN();
       trajectoryWasReplanned = false;
+      scaleFactor.set(0.0);
    }
 
    @Override

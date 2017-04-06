@@ -26,7 +26,7 @@ public class AtlasMomentumOptimizationSettings extends MomentumOptimizationSetti
    private final Vector3D angularMomentumWeight = new Vector3D(0.0, 0.0, 0.0);
 
    private final Vector3D defaultAngularFootWeight = new Vector3D(0.5, 0.5, 0.5);
-   private final Vector3D defaultLinearFootWeight = new Vector3D(30.0, 30.0, 30.0);
+   private final Vector3D defaultLinearFootWeight = new Vector3D(5.0, 5.0, 5.0);
    private final Vector3D highAngularFootWeight = new Vector3D(5.0, 5.0, 5.0);
    private final Vector3D highLinearFootWeight = new Vector3D(50.0, 50.0, 50.0);
 
