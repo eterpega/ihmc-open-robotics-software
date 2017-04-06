@@ -29,6 +29,21 @@ public abstract class WalkingControllerParameters implements HeadOrientationCont
 {
    protected JointPrivilegedConfigurationParameters jointPrivilegedConfigurationParameters;
 
+   /**
+    * Specifies if the controller should by default compute for all the robot joints desired
+    * position and desired velocity from the desired acceleration.
+    * <p>
+    * It is {@code false} by default and this method should be overridden to return otherwise.
+    * </p>
+    * 
+    * @return {@code true} if the desired acceleration should be integrated into desired velocity
+    *         and position for all the joints.
+    */
+   public boolean enableJointAccelerationIntegrationForAllJoints()
+   {
+      return false;
+   }
+
    public abstract SideDependentList<RigidBodyTransform> getDesiredHandPosesWithRespectToChestFrame();
 
    public abstract String[] getDefaultChestOrientationControlJointNames();
@@ -421,14 +436,6 @@ public abstract class WalkingControllerParameters implements HeadOrientationCont
    }
 
    /**
-    * Determines whether the swing trajectory should be optimized (new feature to be tested with Atlas)
-    */
-   public boolean useSwingTrajectoryOptimizer()
-   {
-      return false;
-   }
-
-   /**
     * Determined whether the robot should use the 'support state' or the 'fully constrained' & 'hold position' states (new feature to be tested with Atlas)
     */
    public boolean useSupportState()
@@ -579,5 +586,17 @@ public abstract class WalkingControllerParameters implements HeadOrientationCont
    public double getToeOffContactInterpolation()
    {
       return 0.0;
+   }
+
+   /**
+    * Sets whether or not the {@link us.ihmc.commonWalkingControlModules.dynamicReachability.DynamicReachabilityCalculator} will simply check whether or not the
+    * upcoming step is reachable using the given step timing ({@return} is false), or will edit the step timings to make sure that the step is reachable
+    * if ({@return} is true).
+    *
+    * @return whether or not to edit the timing based on the reachability of the step.
+    */
+   public boolean editStepTimingForReachability()
+   {
+      return false;
    }
 }

@@ -40,4 +40,11 @@ public interface CommonHumanoidReferenceFrames extends ReferenceFrames
    public abstract ReferenceFrame getSoleZUpFrame(RobotSide robotSide);
 
    public abstract SideDependentList<ReferenceFrame> getSoleZUpFrames();
+
+   public abstract ReferenceFrame getChestFrame();
+
+   public default ReferenceFrame getMidFeetZUpAverageYawFrame()
+   {
+      return null;
+   }
 }

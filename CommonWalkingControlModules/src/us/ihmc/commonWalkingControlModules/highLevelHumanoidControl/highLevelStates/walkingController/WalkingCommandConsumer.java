@@ -1,5 +1,6 @@
 package us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.highLevelStates.walkingController;
 
+import java.util.Collection;
 import java.util.List;
 
 import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParameters;
@@ -20,13 +21,17 @@ import us.ihmc.humanoidRobotics.communication.controllerAPI.command.AdjustFootst
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.ArmDesiredAccelerationsCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.ArmTrajectoryCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.AutomaticManipulationAbortCommand;
+import us.ihmc.humanoidRobotics.communication.controllerAPI.command.ChestHybridJointspaceTaskspaceTrajectoryCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.ChestTrajectoryCommand;
-import us.ihmc.humanoidRobotics.communication.controllerAPI.command.EndEffectorLoadBearingCommand;
+import us.ihmc.humanoidRobotics.communication.controllerAPI.command.FootLoadBearingCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.FootTrajectoryCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.FootstepDataListCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.GoHomeCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.HandComplianceControlParametersCommand;
+import us.ihmc.humanoidRobotics.communication.controllerAPI.command.HandHybridJointspaceTaskspaceTrajectoryCommand;
+import us.ihmc.humanoidRobotics.communication.controllerAPI.command.HandLoadBearingCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.HandTrajectoryCommand;
+import us.ihmc.humanoidRobotics.communication.controllerAPI.command.HeadHybridJointspaceTaskspaceTrajectoryCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.HeadTrajectoryCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.NeckDesiredAccelerationsCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.NeckTrajectoryCommand;
@@ -37,8 +42,6 @@ import us.ihmc.humanoidRobotics.communication.controllerAPI.command.PelvisTrajec
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.SpineDesiredAccelerationCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.SpineTrajectoryCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.StopAllTrajectoryCommand;
-import us.ihmc.humanoidRobotics.communication.packets.walking.EndEffectorLoadBearingMessage.EndEffector;
-import us.ihmc.humanoidRobotics.communication.packets.walking.EndEffectorLoadBearingMessage.LoadBearingRequest;
 import us.ihmc.humanoidRobotics.communication.packets.walking.GoHomeMessage.BodyPart;
 import us.ihmc.humanoidRobotics.communication.packets.walking.ManipulationAbortedStatus;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
@@ -87,19 +90,20 @@ public class WalkingCommandConsumer
       RigidBody head = controllerToolbox.getFullRobotModel().getHead();
       RigidBody chest = controllerToolbox.getFullRobotModel().getChest();
       RigidBody pelvis = controllerToolbox.getFullRobotModel().getPelvis();
+      Collection<ReferenceFrame> trajectoryFrames = controllerToolbox.getTrajectoryFrames();
 
       ReferenceFrame pelvisZUpFrame = controllerToolbox.getPelvisZUpFrame();
       ReferenceFrame chestBodyFrame = chest.getBodyFixedFrame();
       ReferenceFrame headBodyFrame = head.getBodyFixedFrame();
 
-      this.chestManager = managerFactory.getOrCreateRigidBodyManager(chest, pelvis, chestBodyFrame, pelvisZUpFrame);
-      this.headManager = managerFactory.getOrCreateRigidBodyManager(head, chest, headBodyFrame, chestBodyFrame);
+      this.chestManager = managerFactory.getOrCreateRigidBodyManager(chest, pelvis, chestBodyFrame, pelvisZUpFrame, trajectoryFrames);
+      this.headManager = managerFactory.getOrCreateRigidBodyManager(head, chest, headBodyFrame, chestBodyFrame, trajectoryFrames);
 
       for (RobotSide robotSide : RobotSide.values)
       {
          RigidBody hand = controllerToolbox.getFullRobotModel().getHand(robotSide);
          ReferenceFrame handControlFrame = controllerToolbox.getFullRobotModel().getHandControlFrame(robotSide);
-         RigidBodyControlManager handManager = managerFactory.getOrCreateRigidBodyManager(hand, chest, handControlFrame, chestBodyFrame);
+         RigidBodyControlManager handManager = managerFactory.getOrCreateRigidBodyManager(hand, chest, handControlFrame, chestBodyFrame, trajectoryFrames);
          handManagers.put(robotSide, handManager);
       }
 
@@ -120,27 +124,51 @@ public class WalkingCommandConsumer
    public void consumeHeadCommands()
    {
       if (commandInputManager.isNewCommandAvailable(HeadTrajectoryCommand.class))
+      {
          headManager.handleTaskspaceTrajectoryCommand(commandInputManager.pollNewestCommand(HeadTrajectoryCommand.class));
+      }
       if (commandInputManager.isNewCommandAvailable(NeckTrajectoryCommand.class))
+      {
          headManager.handleJointspaceTrajectoryCommand(commandInputManager.pollNewestCommand(NeckTrajectoryCommand.class));
+      }
       if (commandInputManager.isNewCommandAvailable(NeckDesiredAccelerationsCommand.class))
+      {
          headManager.handleDesiredAccelerationsCommand(commandInputManager.pollNewestCommand(NeckDesiredAccelerationsCommand.class));
+      }
+      if (commandInputManager.isNewCommandAvailable(HeadHybridJointspaceTaskspaceTrajectoryCommand.class))
+      {
+         HeadHybridJointspaceTaskspaceTrajectoryCommand command = commandInputManager.pollNewestCommand(HeadHybridJointspaceTaskspaceTrajectoryCommand.class);
+         headManager.handleHybridTrajectoryCommand(command.getTaskspaceTrajectoryCommand(), command.getJointspaceTrajectoryCommand());
+      }
    }
 
    public void consumeChestCommands()
    {
       if (commandInputManager.isNewCommandAvailable(ChestTrajectoryCommand.class))
+      {
          chestManager.handleTaskspaceTrajectoryCommand(commandInputManager.pollNewestCommand(ChestTrajectoryCommand.class));
+      }
       if (commandInputManager.isNewCommandAvailable(SpineTrajectoryCommand.class))
+      {
          chestManager.handleJointspaceTrajectoryCommand(commandInputManager.pollNewestCommand(SpineTrajectoryCommand.class));
+      }
       if (commandInputManager.isNewCommandAvailable(SpineDesiredAccelerationCommand.class))
+      {
          chestManager.handleDesiredAccelerationsCommand(commandInputManager.pollNewestCommand(SpineDesiredAccelerationCommand.class));
+      }
+      if (commandInputManager.isNewCommandAvailable(ChestHybridJointspaceTaskspaceTrajectoryCommand.class))
+      {
+         ChestHybridJointspaceTaskspaceTrajectoryCommand command = commandInputManager.pollNewestCommand(ChestHybridJointspaceTaskspaceTrajectoryCommand.class);
+         chestManager.handleHybridTrajectoryCommand(command.getTaskspaceTrajectoryCommand(), command.getJointspaceTrajectoryCommand());
+      }
    }
 
    public void consumePelvisHeightCommands()
    {
       if (commandInputManager.isNewCommandAvailable(PelvisHeightTrajectoryCommand.class))
+      {
          comHeightManager.handlePelvisHeightTrajectoryCommand(commandInputManager.pollNewestCommand(PelvisHeightTrajectoryCommand.class));
+      }
    }
 
    public void consumeGoHomeMessages()
@@ -198,6 +226,7 @@ public class WalkingCommandConsumer
          commandInputManager.flushCommands(ArmTrajectoryCommand.class);
          commandInputManager.flushCommands(ArmDesiredAccelerationsCommand.class);
          commandInputManager.flushCommands(HandComplianceControlParametersCommand.class);
+         commandInputManager.flushCommands(HandHybridJointspaceTaskspaceTrajectoryCommand.class);
          return;
       }
 
@@ -205,6 +234,7 @@ public class WalkingCommandConsumer
       List<ArmTrajectoryCommand> armTrajectoryCommands = commandInputManager.pollNewCommands(ArmTrajectoryCommand.class);
       List<ArmDesiredAccelerationsCommand> armDesiredAccelerationCommands = commandInputManager.pollNewCommands(ArmDesiredAccelerationsCommand.class);
       List<HandComplianceControlParametersCommand> handComplianceCommands = commandInputManager.pollNewCommands(HandComplianceControlParametersCommand.class);
+      List<HandHybridJointspaceTaskspaceTrajectoryCommand> handHybridCommands = commandInputManager.pollNewCommands(HandHybridJointspaceTaskspaceTrajectoryCommand.class);
 
       if (allowMotionRegardlessOfState || currentState.isStateSafeToConsumeManipulationCommands())
       {
@@ -222,6 +252,14 @@ public class WalkingCommandConsumer
             RobotSide robotSide = command.getRobotSide();
             if (handManagers.get(robotSide) != null)
                handManagers.get(robotSide).handleJointspaceTrajectoryCommand(command);
+         }
+         
+         for (int i = 0; i < handHybridCommands.size(); i++)
+         {
+            HandHybridJointspaceTaskspaceTrajectoryCommand command = handHybridCommands.get(i);
+            RobotSide robotSide = command.getJointspaceTrajectoryCommand().getRobotSide();
+            if (handManagers.get(robotSide) != null)
+               handManagers.get(robotSide).handleHybridTrajectoryCommand(command.getTaskspaceTrajectoryCommand(), command.getJointspaceTrajectoryCommand());
          }
 
          for (int i = 0; i < armDesiredAccelerationCommands.size(); i++)
@@ -261,8 +299,11 @@ public class WalkingCommandConsumer
          for (RobotSide robotSide : RobotSide.values)
          {
             RigidBodyControlManager handManager = handManagers.get(robotSide);
-            handManager.holdInJointspace();
-            handManager.resetJointIntegrators();
+            if (handManager != null && !handManager.isLoadBearing())
+            {
+               handManager.holdInJointspace();
+               handManager.resetJointIntegrators();
+            }
          }
 
          timeOfLastManipulationAbortRequest.set(yoTime.getDoubleValue());
@@ -275,26 +316,26 @@ public class WalkingCommandConsumer
       }
    }
 
-   public void consumeEndEffectorLoadBearingCommands(WalkingState currentState)
+   public void consumeFootLoadBearingCommands(WalkingState currentState)
    {
-      if (!commandInputManager.isNewCommandAvailable(EndEffectorLoadBearingCommand.class))
+      if (!commandInputManager.isNewCommandAvailable(FootLoadBearingCommand.class))
          return;
 
-      EndEffectorLoadBearingCommand command = commandInputManager.pollAndCompileCommands(EndEffectorLoadBearingCommand.class);
+      FootLoadBearingCommand command = commandInputManager.pollAndCompileCommands(FootLoadBearingCommand.class);
+      currentState.handleFootLoadBearingCommand(command);
+   }
 
-      for (RobotSide robotSide : RobotSide.values)
+   public void consumeLoadBearingCommands()
+   {
+      List<HandLoadBearingCommand> handLoadBearingCommands = commandInputManager.pollNewCommands(HandLoadBearingCommand.class);
+
+      for (int i = 0; i < handLoadBearingCommands.size(); i++)
       {
-         if (handManagers.get(robotSide) == null)
-            continue;
-
-         LoadBearingRequest request = command.getRequest(robotSide, EndEffector.HAND);
-         if (request == LoadBearingRequest.LOAD)
-            handManagers.get(robotSide).requestLoadBearing();
-         else if (request == LoadBearingRequest.UNLOAD)
-            handManagers.get(robotSide).holdInJointspace();
+         HandLoadBearingCommand command = handLoadBearingCommands.get(i);
+         RobotSide robotSide = command.getRobotSide();
+         if (handManagers.get(robotSide) != null)
+            handManagers.get(robotSide).handleLoadBearingCommand(command);
       }
-
-      currentState.handleEndEffectorLoadBearingCommand(command);
    }
 
    public void consumeStopAllTrajectoryCommands()

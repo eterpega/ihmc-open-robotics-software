@@ -100,6 +100,7 @@ import us.ihmc.humanoidRobotics.communication.packets.manipulation.HandCollision
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.HandComplianceControlParametersMessage;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.HandDesiredConfigurationMessage;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.HandJointAnglePacket;
+import us.ihmc.humanoidRobotics.communication.packets.manipulation.HandLoadBearingMessage;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.HandPowerCyclePacket;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.HandRotateAboutAxisPacket;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.HandTrajectoryMessage;
@@ -146,10 +147,9 @@ import us.ihmc.humanoidRobotics.communication.packets.walking.AutomaticManipulat
 import us.ihmc.humanoidRobotics.communication.packets.walking.BlindWalkingPacket;
 import us.ihmc.humanoidRobotics.communication.packets.walking.CapturabilityBasedStatus;
 import us.ihmc.humanoidRobotics.communication.packets.walking.ChestTrajectoryMessage;
-import us.ihmc.humanoidRobotics.communication.packets.walking.EndEffectorLoadBearingMessage;
-import us.ihmc.humanoidRobotics.communication.packets.walking.EndEffectorLoadBearingMessage.EndEffector;
-import us.ihmc.humanoidRobotics.communication.packets.walking.EndEffectorLoadBearingMessage.LoadBearingRequest;
 import us.ihmc.humanoidRobotics.communication.packets.walking.EndOfScriptCommand;
+import us.ihmc.humanoidRobotics.communication.packets.walking.FootLoadBearingMessage;
+import us.ihmc.humanoidRobotics.communication.packets.walking.FootLoadBearingMessage.LoadBearingRequest;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataListMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage;
@@ -176,6 +176,9 @@ import us.ihmc.humanoidRobotics.communication.packets.walking.SpineTrajectoryMes
 import us.ihmc.humanoidRobotics.communication.packets.walking.TrackingWeightsMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.WalkingControllerFailureStatusMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.WalkingStatusMessage;
+import us.ihmc.humanoidRobotics.communication.packets.walking.hybridRigidBodyManager.ChestHybridJointspaceTaskspaceMessage;
+import us.ihmc.humanoidRobotics.communication.packets.walking.hybridRigidBodyManager.HandHybridJointspaceTaskspaceTrajectoryMessage;
+import us.ihmc.humanoidRobotics.communication.packets.walking.hybridRigidBodyManager.HeadHybridJointspaceTaskspaceMessage;
 import us.ihmc.humanoidRobotics.communication.packets.wholebody.JointAnglesPacket;
 import us.ihmc.humanoidRobotics.communication.packets.wholebody.MultiJointAnglePacket;
 import us.ihmc.humanoidRobotics.communication.packets.wholebody.SingleJointAnglePacket;
@@ -246,9 +249,9 @@ public class IHMCCommunicationKryoNetClassList extends NetClassList
       registerPacketField(boolean[].class);
 
       // Endeffector load bearing message
-      registerPacketClass(EndEffectorLoadBearingMessage.class);
+      registerPacketClass(FootLoadBearingMessage.class);
+      registerPacketClass(HandLoadBearingMessage.class);
       registerPacketClass(LoadBearingRequest.class);
-      registerPacketClass(EndEffector.class);
 
       // User control mode
       registerPacketClass(ArmDesiredAccelerationsMessage.class);
@@ -270,6 +273,9 @@ public class IHMCCommunicationKryoNetClassList extends NetClassList
       registerPacketClass(TrackingWeightsMessage.class);
       registerPacketClass(StopAllTrajectoryMessage.class);
       registerPacketClass(GoHomeMessage.class);
+      registerPacketClass(HandHybridJointspaceTaskspaceTrajectoryMessage.class);
+      registerPacketClass(ChestHybridJointspaceTaskspaceMessage.class);
+      registerPacketClass(HeadHybridJointspaceTaskspaceMessage.class);
 
       // Trajectory message fields
       registerPacketClass(ExecutionMode.class);

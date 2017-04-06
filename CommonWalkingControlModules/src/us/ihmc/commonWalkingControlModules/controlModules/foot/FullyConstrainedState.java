@@ -54,7 +54,7 @@ public class FullyConstrainedState extends AbstractFootControlState
    public void doTransitionIntoAction()
    {
       super.doTransitionIntoAction();
-      controllerToolbox.setPlaneContactStateNormalContactVector(contactableFoot, fullyConstrainedNormalContactVector);
+      controllerToolbox.setFootContactStateNormalContactVector(robotSide, fullyConstrainedNormalContactVector);
    }
 
    @Override
@@ -71,7 +71,7 @@ public class FullyConstrainedState extends AbstractFootControlState
          footSwitch.computeAndPackCoP(cop);
          controllerToolbox.getDesiredCenterOfPressure(contactableFoot, desiredCoP);
          partialFootholdControlModule.compute(desiredCoP, cop);
-         YoPlaneContactState contactState = controllerToolbox.getContactState(contactableFoot);
+         YoPlaneContactState contactState = controllerToolbox.getFootContactState(robotSide);
          boolean contactStateHasChanged = partialFootholdControlModule.applyShrunkPolygon(contactState);
          if (contactStateHasChanged)
             contactState.notifyContactStateHasChanged();
@@ -82,7 +82,7 @@ public class FullyConstrainedState extends AbstractFootControlState
       ReferenceFrame bodyFixedFrame = contactableFoot.getRigidBody().getBodyFixedFrame();
       footAcceleration.changeBodyFrameNoRelativeAcceleration(bodyFixedFrame);
       footAcceleration.changeFrameNoRelativeMotion(bodyFixedFrame);
-      spatialAccelerationCommand.setSpatialAcceleration(footAcceleration);
+      spatialAccelerationCommand.setSpatialAcceleration(bodyFixedFrame, footAcceleration);
    }
 
    @Override

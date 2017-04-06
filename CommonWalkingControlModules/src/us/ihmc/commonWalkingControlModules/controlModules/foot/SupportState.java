@@ -174,7 +174,7 @@ public class SupportState extends AbstractFootControlState
    {
       super.doTransitionIntoAction();
       FrameVector fullyConstrainedNormalContactVector = footControlHelper.getFullyConstrainedNormalContactVector();
-      controllerToolbox.setPlaneContactStateNormalContactVector(contactableFoot, fullyConstrainedNormalContactVector);
+      controllerToolbox.setFootContactStateNormalContactVector(robotSide, fullyConstrainedNormalContactVector);
 
       for (int i = 0; i < dofs; i++)
          isDirectionFeedbackControlled[i] = false;
@@ -209,7 +209,7 @@ public class SupportState extends AbstractFootControlState
          footSwitch.computeAndPackCoP(cop);
          controllerToolbox.getDesiredCenterOfPressure(contactableFoot, desiredCoP);
          partialFootholdControlModule.compute(desiredCoP, cop);
-         YoPlaneContactState contactState = controllerToolbox.getContactState(contactableFoot);
+         YoPlaneContactState contactState = controllerToolbox.getFootContactState(robotSide);
          contactStateHasChanged = partialFootholdControlModule.applyShrunkPolygon(contactState);
          if (contactStateHasChanged)
             contactState.notifyContactStateHasChanged();
@@ -248,11 +248,10 @@ public class SupportState extends AbstractFootControlState
       controlFrame.setPoseAndUpdate(framePosition, frameOrientation);
 
       // assemble acceleration command
-      footAcceleration.setToZero(controlFrame, rootBody.getBodyFixedFrame(), controlFrame);
       ReferenceFrame bodyFixedFrame = contactableFoot.getRigidBody().getBodyFixedFrame();
+      footAcceleration.setToZero(bodyFixedFrame, rootBody.getBodyFixedFrame(), controlFrame);
       footAcceleration.changeBodyFrameNoRelativeAcceleration(bodyFixedFrame);
-      footAcceleration.changeFrameNoRelativeMotion(bodyFixedFrame);
-      spatialAccelerationCommand.setSpatialAcceleration(footAcceleration);
+      spatialAccelerationCommand.setSpatialAcceleration(controlFrame, footAcceleration);
 
       // assemble feedback command
       bodyFixedControlledPose.setToZero(controlFrame);

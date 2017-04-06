@@ -67,9 +67,9 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
    private final double maximumHeightAboveGround;// = 0.765 + 0.08;
 
    private final AtlasJointMap jointMap;
+   private final AtlasMomentumOptimizationSettings momentumOptimizationSettings;
    private final double massScale;
 
-   private ExplorationParameters explorationParameters = null;
    private Map<String, YoPIDGains> jointspaceGains = null;
    private Map<String, YoOrientationPIDGainsInterface> taskspaceAngularGains = null;
    private Map<String, YoPositionPIDGainsInterface> taskspaceLinearGains = null;
@@ -79,17 +79,13 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
 
    private final JointPrivilegedConfigurationParameters jointPrivilegedConfigurationParameters;
 
-   public AtlasWalkingControllerParameters(AtlasJointMap jointMap)
-   {
-      this(DRCRobotModel.RobotTarget.SCS, jointMap);
-   }
-
-   public AtlasWalkingControllerParameters(DRCRobotModel.RobotTarget target, AtlasJointMap jointMap)
+   public AtlasWalkingControllerParameters(DRCRobotModel.RobotTarget target, AtlasJointMap jointMap, AtlasContactPointParameters contactPointParameters)
    {
       this.target = target;
       this.jointMap = jointMap;
       this.massScale = Math.pow(jointMap.getModelScale(), jointMap.getMassScalePower());
 
+      momentumOptimizationSettings = new AtlasMomentumOptimizationSettings(jointMap, contactPointParameters.getNumberOfContactableBodies());
 
       min_leg_length_before_collapsing_single_support = jointMap.getModelScale() * 0.53;
       min_mechanical_leg_length = jointMap.getModelScale() * 0.420;
@@ -1199,7 +1195,7 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
    @Override
    public MomentumOptimizationSettings getMomentumOptimizationSettings()
    {
-      return new AtlasMomentumOptimizationSettings(jointMap);
+      return momentumOptimizationSettings;
    }
 
    @Override
@@ -1276,13 +1272,17 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
       return Double.POSITIVE_INFINITY; //0.075;
    }
 
+//   private ExplorationParameters explorationParameters = null;
    /** {@inheritDoc} */
    @Override
    public ExplorationParameters getOrCreateExplorationParameters(YoVariableRegistry registry)
    {
-      if (explorationParameters == null)
-         explorationParameters = new ExplorationParameters(registry);
-      return explorationParameters;
+      return null;
+
+      // GW: Disabled this for now since it creates lots of debugging yoVariables.
+//      if (explorationParameters == null)
+//         explorationParameters = new ExplorationParameters(registry);
+//      return explorationParameters;
    }
 
    /** {@inheritDoc} */
@@ -1302,13 +1302,6 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
    public void useVirtualModelControlCore()
    {
       // once another mode is implemented, use this to change the default gains for virtual model control
-   }
-
-   /** {@inheritDoc} */
-   @Override
-   public boolean useSwingTrajectoryOptimizer()
-   {
-      return true;
    }
 
    /** {@inheritDoc} */

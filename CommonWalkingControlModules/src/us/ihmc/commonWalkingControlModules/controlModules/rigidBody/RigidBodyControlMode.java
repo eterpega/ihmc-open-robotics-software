@@ -5,5 +5,6 @@ public enum RigidBodyControlMode
    JOINTSPACE,
    TASKSPACE,
    USER,
-   LOAD_BEARING
+   LOADBEARING, 
+   HYBRID
 }

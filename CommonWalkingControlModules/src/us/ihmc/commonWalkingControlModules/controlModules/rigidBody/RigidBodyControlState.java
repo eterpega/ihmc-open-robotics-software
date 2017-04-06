@@ -1,5 +1,7 @@
 package us.ihmc.commonWalkingControlModules.controlModules.rigidBody;
 
+import java.util.ArrayList;
+
 import org.apache.commons.lang3.StringUtils;
 
 import us.ihmc.commonWalkingControlModules.controllerCore.command.feedbackController.FeedbackControlCommand;
@@ -8,6 +10,11 @@ import us.ihmc.commons.PrintTools;
 import us.ihmc.communication.controllerAPI.command.Command;
 import us.ihmc.communication.controllerAPI.command.QueueableCommand;
 import us.ihmc.communication.packets.Packet;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphic;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicCoordinateSystem;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicReferenceFrame;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicVector;
 import us.ihmc.humanoidRobotics.communication.packets.ExecutionMode;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
@@ -27,8 +34,9 @@ public abstract class RigidBodyControlState extends FinishableState<RigidBodyCon
    private final DoubleYoVariable trajectoryStartTime;
    private final DoubleYoVariable yoTime;
 
-   // TODO: move adding the registry to the parent registry here instead of doing it in each implementation of this class.
-   public RigidBodyControlState(RigidBodyControlMode stateEnum, String bodyName, DoubleYoVariable yoTime)
+   protected final ArrayList<YoGraphic> graphics = new ArrayList<>();
+
+   public RigidBodyControlState(RigidBodyControlMode stateEnum, String bodyName, DoubleYoVariable yoTime, YoVariableRegistry parentRegistry)
    {
       super(stateEnum);
       this.yoTime = yoTime;
@@ -42,6 +50,8 @@ public abstract class RigidBodyControlState extends FinishableState<RigidBodyCon
       trajectoryStopped = new BooleanYoVariable(prefix + "TrajectoryStopped", registry);
       trajectoryDone = new BooleanYoVariable(prefix + "TrajectoryDone", registry);
       trajectoryStartTime = new DoubleYoVariable(prefix + "TrajectoryStartTime", registry);
+
+      parentRegistry.addChild(registry);
    }
 
    protected boolean handleCommandInternal(Command<?, ?> command)
@@ -109,5 +119,34 @@ public abstract class RigidBodyControlState extends FinishableState<RigidBodyCon
    public boolean isDone()
    {
       return true;
+   }
+
+   public InverseDynamicsCommand<?> getTransitionOutOfStateCommand()
+   {
+      return null;
+   }
+
+   protected void updateGraphics()
+   {
+      for (int graphicsIdx = 0; graphicsIdx < graphics.size(); graphicsIdx++)
+         graphics.get(graphicsIdx).update();
+   }
+
+   protected void hideGraphics()
+   {
+      for (int graphicsIdx = 0; graphicsIdx < graphics.size(); graphicsIdx++)
+      {
+         YoGraphic yoGraphic = graphics.get(graphicsIdx);
+         if (yoGraphic instanceof YoGraphicReferenceFrame)
+            ((YoGraphicReferenceFrame) yoGraphic).hide();
+         else if (yoGraphic instanceof YoGraphicPosition)
+            ((YoGraphicPosition) yoGraphic).setPositionToNaN();
+         else if (yoGraphic instanceof YoGraphicVector)
+            ((YoGraphicVector) yoGraphic).hide();
+         else if (yoGraphic instanceof YoGraphicCoordinateSystem)
+            ((YoGraphicCoordinateSystem) yoGraphic).hide();
+         else
+            throw new RuntimeException("Implement hiding this.");
+      }
    }
 }
