@@ -1,7 +1,5 @@
 package us.ihmc.humanoidBehaviors.behaviors.debug;
 
-import com.badlogic.gdx.math.Vector3;
-
 import us.ihmc.communication.packets.PacketDestination;
 import us.ihmc.communication.packets.TextToSpeechPacket;
 import us.ihmc.euclid.axisAngle.AxisAngle;
@@ -10,33 +8,29 @@ import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.humanoidBehaviors.behaviors.AbstractBehavior;
-import us.ihmc.humanoidBehaviors.behaviors.behaviorServices.BehaviorService;
 import us.ihmc.humanoidBehaviors.communication.CommunicationBridgeInterface;
 import us.ihmc.humanoidBehaviors.communication.ConcurrentListeningQueue;
 import us.ihmc.humanoidRobotics.communication.packets.ExecutionMode;
-import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataListMessage;
-import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage;
-import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepStatus;
-import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage.FootstepOrigin;
-
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.ArmTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.ChestTrajectoryMessage;
+import us.ihmc.humanoidRobotics.communication.packets.walking.FootTrajectoryMessage;
+import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataListMessage;
+import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage;
+import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage.FootstepOrigin;
+import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepStatus;
+import us.ihmc.humanoidRobotics.communication.packets.walking.PelvisHeightTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.PelvisOrientationTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.PelvisTrajectoryMessage;
-import us.ihmc.humanoidRobotics.communication.packets.walking.PelvisHeightTrajectoryMessage;
-import us.ihmc.humanoidRobotics.communication.packets.walking.FootTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.wholebody.WholeBodyTrajectoryMessage;
-
 import us.ihmc.humanoidRobotics.frames.HumanoidReferenceFrames;
 import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
 import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FramePose;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.time.YoStopwatch;
 import us.ihmc.robotics.trajectories.TrajectoryType;
-import us.ihmc.simulationconstructionset.util.environments.HatchEnvironment;
+import us.ihmc.simulationConstructionSetTools.util.environments.HatchEnvironment;
 
 public class TestHatchWalkthroughBehavior extends AbstractBehavior
 {
@@ -149,7 +143,7 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
    {
       AxisAngle chestOrientationAA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(15.0));
       Quaternion chestOrientation = new Quaternion(chestOrientationAA);
-      ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(armTrajectoryTime, chestOrientation);
+      ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(armTrajectoryTime, chestOrientation, ReferenceFrame.getWorldFrame(), ReferenceFrame.getWorldFrame());
       sendPacket(chestOrientationTrajectoryMessage);
       
       AxisAngle pelvisOrientationAA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(-15.0)); //TEST: was -15.0
@@ -180,7 +174,7 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
    {
       AxisAngle chestOrientationAA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(30.0)); // was 25
       Quaternion chestOrientation = new Quaternion(chestOrientationAA);
-      ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(4.5*armTrajectoryTime, chestOrientation);
+      ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(4.5*armTrajectoryTime, chestOrientation, ReferenceFrame.getWorldFrame(), ReferenceFrame.getWorldFrame());
       sendPacket(chestOrientationTrajectoryMessage);
 
       AxisAngle pelvisOrientationAA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(0.0)); // TEST: was -5.0
@@ -245,7 +239,7 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
    {
       AxisAngle chestOrientationAA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(7.0)); // was 10.0
       Quaternion chestOrientation = new Quaternion(chestOrientationAA);
-      ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(2.0, chestOrientation); // was 2.0
+      ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(2.0, chestOrientation, ReferenceFrame.getWorldFrame(), ReferenceFrame.getWorldFrame()); // was 2.0
       sendPacket(chestOrientationTrajectoryMessage);
       
       ReferenceFrame pelvisFrame = referenceFrames.getPelvisFrame();
@@ -399,7 +393,7 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
    {
       AxisAngle chestOrientationAA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(25.0)); // was 25
       Quaternion chestOrientation = new Quaternion(chestOrientationAA);
-      ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(4.5*armTrajectoryTime, chestOrientation);
+      ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(4.5*armTrajectoryTime, chestOrientation, ReferenceFrame.getWorldFrame(), ReferenceFrame.getWorldFrame());
       sendPacket(chestOrientationTrajectoryMessage);
 
       AxisAngle pelvisOrientationAA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(0.0)); // TEST: was -5.0
@@ -464,7 +458,7 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
    {
       AxisAngle chestOrientationAA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(7.0)); // was 10.0
       Quaternion chestOrientation = new Quaternion(chestOrientationAA);
-      ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(2.0, chestOrientation); // was 2.0
+      ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(2.0, chestOrientation, ReferenceFrame.getWorldFrame(), ReferenceFrame.getWorldFrame()); // was 2.0
       sendPacket(chestOrientationTrajectoryMessage);
       
       ReferenceFrame pelvisFrame = referenceFrames.getPelvisFrame();
@@ -576,7 +570,7 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
    {
       AxisAngle chestOrientationAA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(10.0));
       Quaternion chestOrientation = new Quaternion(chestOrientationAA);
-      ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(armTrajectoryTime, chestOrientation);
+      ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(armTrajectoryTime, chestOrientation, ReferenceFrame.getWorldFrame(), ReferenceFrame.getWorldFrame());
       sendPacket(chestOrientationTrajectoryMessage);
       
       AxisAngle pelvisOrientationAA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(-15.0)); //TEST: was -15.0
@@ -607,7 +601,7 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
    {
       AxisAngle chestOrientationAA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(25.0)); // was 25
       Quaternion chestOrientation = new Quaternion(chestOrientationAA);
-      ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(4.5*armTrajectoryTime, chestOrientation);
+      ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(4.5*armTrajectoryTime, chestOrientation, ReferenceFrame.getWorldFrame(), ReferenceFrame.getWorldFrame());
       sendPacket(chestOrientationTrajectoryMessage);
 
       AxisAngle pelvisOrientationAA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(0.0)); // TEST: was -5.0
@@ -672,7 +666,7 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
    {
       AxisAngle chestOrientationAA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(7.0)); // was 10.0
       Quaternion chestOrientation = new Quaternion(chestOrientationAA);
-      ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(2.0, chestOrientation); // was 2.0
+      ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(2.0, chestOrientation, ReferenceFrame.getWorldFrame(), ReferenceFrame.getWorldFrame()); // was 2.0
       sendPacket(chestOrientationTrajectoryMessage);
       
       ReferenceFrame pelvisFrame = referenceFrames.getPelvisFrame();
@@ -773,7 +767,7 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
    {
       AxisAngle chestOrientationAA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(10.0));
       Quaternion chestOrientation = new Quaternion(chestOrientationAA);
-      ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(armTrajectoryTime, chestOrientation);
+      ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(armTrajectoryTime, chestOrientation, ReferenceFrame.getWorldFrame(), ReferenceFrame.getWorldFrame());
       sendPacket(chestOrientationTrajectoryMessage);
       
       AxisAngle pelvisOrientationAA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(-15.0));
@@ -811,7 +805,7 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
       {
          AxisAngle chestOrientationAA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(25.0)); // was 10.0
          Quaternion chestOrientation = new Quaternion(chestOrientationAA);
-         ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(armTrajectoryTime, chestOrientation);
+         ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(armTrajectoryTime, chestOrientation, ReferenceFrame.getWorldFrame(), ReferenceFrame.getWorldFrame());
          sendPacket(chestOrientationTrajectoryMessage);
       }
       

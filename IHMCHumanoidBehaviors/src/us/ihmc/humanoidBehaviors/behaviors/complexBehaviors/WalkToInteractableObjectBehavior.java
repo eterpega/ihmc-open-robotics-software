@@ -2,6 +2,7 @@ package us.ihmc.humanoidBehaviors.behaviors.complexBehaviors;
 
 import com.jme3.math.Quaternion;
 
+import us.ihmc.commons.PrintTools;
 import us.ihmc.communication.packets.TextToSpeechPacket;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.humanoidBehaviors.behaviors.complexBehaviors.WalkToInteractableObjectBehavior.WalkToObjectState;
@@ -57,6 +58,7 @@ public class WalkToInteractableObjectBehavior extends StateMachineBehavior<WalkT
 
    public boolean succeded()
    {
+      PrintTools.debug(this, "Done walk succeeded");
       return succeded;
    }
 
@@ -69,6 +71,8 @@ public class WalkToInteractableObjectBehavior extends StateMachineBehavior<WalkT
          {
             TextToSpeechPacket p1 = new TextToSpeechPacket("Getting Ready To Walk");
             sendPacket(p1);
+            
+            PrintTools.debug(this, "Done resetting robot");
          }
       };
 
@@ -134,6 +138,8 @@ public class WalkToInteractableObjectBehavior extends StateMachineBehavior<WalkT
             succeded = false;
             TextToSpeechPacket p1 = new TextToSpeechPacket("Walk Failed");
             sendPacket(p1);
+            
+            PrintTools.debug(this, "Done walk failed");
          }
       };
 
@@ -185,6 +191,7 @@ public class WalkToInteractableObjectBehavior extends StateMachineBehavior<WalkT
    {
       this.walkToPoint1 = walkToPoint1;
       this.walkToPoint2 = walkToPoint2;
+      PrintTools.debug(this, "Done setting points");
    }
 
    @Override

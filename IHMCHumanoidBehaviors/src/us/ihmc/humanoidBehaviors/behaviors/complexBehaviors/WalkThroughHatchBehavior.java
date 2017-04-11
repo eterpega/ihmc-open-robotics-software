@@ -1,5 +1,6 @@
 package us.ihmc.humanoidBehaviors.behaviors.complexBehaviors;
 
+import us.ihmc.commons.PrintTools;
 import us.ihmc.communication.packets.TextToSpeechPacket;
 import us.ihmc.euclid.axisAngle.AxisAngle;
 import us.ihmc.euclid.transform.RigidBodyTransform;
@@ -19,9 +20,6 @@ import us.ihmc.humanoidRobotics.communication.packets.walking.ChestTrajectoryMes
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataListMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.PelvisTrajectoryMessage;
-import us.ihmc.humanoidRobotics.communication.packets.walking.PelvisHeightTrajectoryMessage;
-import us.ihmc.humanoidRobotics.communication.packets.walking.PelvisOrientationTrajectoryMessage;
-import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage.FootstepOrigin;
 import us.ihmc.humanoidRobotics.frames.HumanoidReferenceFrames;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
@@ -33,8 +31,7 @@ import us.ihmc.robotics.referenceFrames.PoseReferenceFrame;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.stateMachines.conditionBasedStateMachine.StateTransitionCondition;
-import us.ihmc.robotics.time.YoStopwatch;
-import us.ihmc.simulationconstructionset.util.environments.HatchEnvironment;
+import us.ihmc.simulationConstructionSetTools.util.environments.HatchEnvironment;
 import us.ihmc.wholeBodyController.WholeBodyControllerParameters;
 
 public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHatchBehaviorState>
@@ -62,20 +59,14 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
    private Vector3D32 hatchOffsetPoint4 = new Vector3D32(1.5f, -0.08f, 0f);
    
    private final HumanoidReferenceFrames referenceFrames;
-   private static final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
-   private RigidBodyTransform hatchToWorld;
-   private ReferenceFrame hatchFrame;
+
 
    private final WalkToInteractableObjectBehavior walkToInteractableObjectBehavior;
-
-   private final ResetRobotBehavior resetRobotBehavior;
 
    private final AtlasPrimitiveActions atlasPrimitiveActions;
 
    RobotSide side = RobotSide.RIGHT;
    
-   private final YoStopwatch timer;
-
    public WalkThroughHatchBehavior(CommunicationBridge communicationBridge, DoubleYoVariable yoTime, BooleanYoVariable yoDoubleSupport,
          FullHumanoidRobotModel fullRobotModel, HumanoidReferenceFrames referenceFrames, WholeBodyControllerParameters wholeBodyControllerParameters,
          AtlasPrimitiveActions atlasPrimitiveActions)
@@ -86,10 +77,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
       this.atlasPrimitiveActions = atlasPrimitiveActions;
       this.referenceFrames = referenceFrames;
       
-      timer = new YoStopwatch(yoTime);
-
       walkToInteractableObjectBehavior = new WalkToInteractableObjectBehavior(yoTime, communicationBridge, atlasPrimitiveActions);
-      resetRobotBehavior = new ResetRobotBehavior(communicationBridge, yoTime);
       setupStateMachine();
    }
 
@@ -102,9 +90,6 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
 
    private void setupStateMachine()
    {
-      BehaviorAction<WalkThroughHatchBehaviorState> resetRobot = new BehaviorAction<WalkThroughHatchBehaviorState>(WalkThroughHatchBehaviorState.RESET_ROBOT,
-            resetRobotBehavior);
-
       BehaviorAction<WalkThroughHatchBehaviorState> setup = new BehaviorAction<WalkThroughHatchBehaviorState>(WalkThroughHatchBehaviorState.SETUP_ROBOT,
             atlasPrimitiveActions.leftHandDesiredConfigurationBehavior, atlasPrimitiveActions.rightHandDesiredConfigurationBehavior, atlasPrimitiveActions.leftArmTrajectoryBehavior,
             atlasPrimitiveActions.rightArmTrajectoryBehavior, atlasPrimitiveActions.chestTrajectoryBehavior, atlasPrimitiveActions.pelvisTrajectoryBehavior)
@@ -131,18 +116,11 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
             
             // CHEST
             ReferenceFrame chestFrame = referenceFrames.getChestFrame();
-            FramePose chestPose = new FramePose(chestFrame);
-            
-            AxisAngle chestOrientationAA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(15.0)); //TEST: was 15.0
-            Quaternion chestOrientation = new Quaternion(chestOrientationAA);
-            
-            chestPose.setOrientation(chestOrientation);
-            chestPose.changeFrame(ReferenceFrame.getWorldFrame());
-            
+            FrameOrientation chestOrientation = new FrameOrientation(chestFrame, 0.0, Math.toRadians(15.0), 0.0);
             Quaternion chestOrientationWorld = new Quaternion();
-            chestPose.getPose(new Point3D(), chestOrientationWorld);
+            chestOrientation.getQuaternion(chestOrientationWorld);
             
-            ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(1, chestOrientationWorld);
+            ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(1, chestOrientationWorld, chestFrame, referenceFrames.getPelvisFrame());
          
             atlasPrimitiveActions.chestTrajectoryBehavior.setInput(chestOrientationTrajectoryMessage);
             
@@ -164,6 +142,8 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
             
             PelvisTrajectoryMessage pelvisTrajectoryMessage = new PelvisTrajectoryMessage(1, pelvisPositionWorld, pelvisOrientationWorld);
             atlasPrimitiveActions.pelvisTrajectoryBehavior.setInput(pelvisTrajectoryMessage);
+            
+            PrintTools.debug(this, "Done Initializing");
          }
       };
 
@@ -175,10 +155,8 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
          {
             super.doTransitionOutOfAction();
             //found the door location, inform the UI of its location
-
-            hatchToWorld = new RigidBodyTransform(new Quaternion(), HatchEnvironment.getHatchFrameOffset());
-            hatchFrame = ReferenceFrame.constructFrameWithUnchangingTransformFromParent("HatchFrame", worldFrame, hatchToWorld);
-
+            
+            PrintTools.debug(this, "Done Searching For Hatch");
          }
       };
 
@@ -192,6 +170,8 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
             FramePoint point2 = offsetPointFromHatch(hatchOffsetPoint2);
 
             walkToInteractableObjectBehavior.setWalkPoints(point1, point2);
+            
+            PrintTools.debug(this, "Done Walking To Hatch");
          }
       };
 
@@ -237,9 +217,11 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
             Quaternion chestOrientationWorld = new Quaternion();
             chestPose.getPose(new Point3D(), chestOrientationWorld);
             
-            ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(1, chestOrientationWorld);
+            ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(1, chestOrientationWorld, ReferenceFrame.getWorldFrame(), ReferenceFrame.getWorldFrame());
          
             atlasPrimitiveActions.chestTrajectoryBehavior.setInput(chestOrientationTrajectoryMessage);
+            
+            PrintTools.debug(this, "Done Setting Up For Hatch Walk");
          }
       };
 
@@ -285,8 +267,10 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
             Quaternion chestOrientationWorld = new Quaternion();
             chestPose.getPose(new Point3D(), chestOrientationWorld);
             
-            ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(3, chestOrientationWorld);
+            ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(3, chestOrientationWorld, ReferenceFrame.getWorldFrame(), ReferenceFrame.getWorldFrame());
             atlasPrimitiveActions.chestTrajectoryBehavior.setInput(chestOrientationTrajectoryMessage);
+            
+            PrintTools.debug(this, "Done Walking Through Hatch");
          }
       };
       
@@ -300,6 +284,8 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
             FramePoint point2 = offsetPointFromHatch(hatchOffsetPoint4);
 
             walkToInteractableObjectBehavior.setWalkPoints(point1, point2);
+            
+            PrintTools.debug(this, "Done Clearing Hatch");
          }
       };
 
@@ -309,8 +295,10 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
          @Override
          protected void setBehaviorInput()
          {
-            TextToSpeechPacket p1 = new TextToSpeechPacket("Walking Through Door Failed");
+            TextToSpeechPacket p1 = new TextToSpeechPacket("Walking Through Hatch Failed");
             sendPacket(p1);
+            
+            PrintTools.debug(this, "Done Failing");
          }
       };
 
@@ -320,8 +308,10 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
          @Override
          protected void setBehaviorInput()
          {
-            TextToSpeechPacket p1 = new TextToSpeechPacket("Finished Walking Through Door");
+            TextToSpeechPacket p1 = new TextToSpeechPacket("Finished Walking Through Hatch");
             sendPacket(p1);
+            
+            PrintTools.debug(this, "Done Done-ing");
          }
       };
 
@@ -345,16 +335,14 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
       statemachine.addStateWithDoneTransition(setup, WalkThroughHatchBehaviorState.SEARCHING_FOR_HATCH);
       statemachine.addStateWithDoneTransition(searchForHatch, WalkThroughHatchBehaviorState.WALKING_TO_HATCH);
       statemachine.addState(walkToHatchAction);
-
       walkToHatchAction.addStateTransition(WalkThroughHatchBehaviorState.SET_UP_ROBOT_FOR_HATCH_WALK, planSuccededCondition);
       walkToHatchAction.addStateTransition(WalkThroughHatchBehaviorState.FAILED, planFailedCondition);
-
       statemachine.addStateWithDoneTransition(setUpForWalk, WalkThroughHatchBehaviorState.WALK_THROUGH_HATCH);
       statemachine.addStateWithDoneTransition(walkThroughHatch, WalkThroughHatchBehaviorState.CLEAR_HATCH_AREA);
       statemachine.addStateWithDoneTransition(clearHatchAreaAction, WalkThroughHatchBehaviorState.DONE);
-//      statemachine.addStateWithDoneTransition(resetRobot, WalkThroughHatchBehaviorState.DONE);
-//      statemachine.addStateWithDoneTransition(failedState, WalkThroughHatchBehaviorState.DONE);
+      statemachine.addStateWithDoneTransition(failedState, WalkThroughHatchBehaviorState.DONE);
       statemachine.addState(doneState);
+      
       statemachine.setStartState(WalkThroughHatchBehaviorState.SETUP_ROBOT);
 
    }
@@ -364,6 +352,8 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
 
       PoseReferenceFrame hatchPose = new PoseReferenceFrame("hatchFrame", ReferenceFrame.getWorldFrame());
       hatchPose.setPoseAndUpdate(new RigidBodyTransform(new Quaternion(), HatchEnvironment.getHatchFrameOffset()));
+      
+      PrintTools.debug(this, HatchEnvironment.getHatchFrameOffset().toString());
 
       FramePoint point1 = new FramePoint(hatchPose, point);
       return point1;
