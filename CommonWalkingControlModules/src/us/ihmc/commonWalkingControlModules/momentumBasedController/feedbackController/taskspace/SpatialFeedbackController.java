@@ -281,9 +281,8 @@ public class SpatialFeedbackController implements FeedbackControllerInterface
       desiredSpatialVelocity.setToZero(endEffectorFrame, base.getBodyFixedFrame(), controlFrame);
       desiredSpatialVelocity.setAngularPart(desiredAngularVelocity);
       desiredSpatialVelocity.setLinearPart(desiredLinearVelocity);
-      desiredSpatialVelocity.changeFrame(endEffectorFrame);
 
-      inverseKinematicsOutput.setSpatialVelocity(desiredSpatialVelocity);
+      inverseKinematicsOutput.setSpatialVelocity(controlFrame, desiredSpatialVelocity);
 
       // Update visualization variables
       tempPosition.setToZero(controlFrame);
@@ -345,6 +344,7 @@ public class SpatialFeedbackController implements FeedbackControllerInterface
    public void computeAchievedAcceleration()
    {
       spatialAccelerationCalculator.getRelativeAcceleration(base, endEffector, endEffectorAchievedAcceleration);
+      endEffectorAchievedAcceleration.changeFrameNoRelativeMotion(controlFrame);
       endEffectorAchievedAcceleration.getAngularPart(achievedAngularAcceleration);
       endEffectorAchievedAcceleration.getLinearPart(achievedLinearAcceleration);
 

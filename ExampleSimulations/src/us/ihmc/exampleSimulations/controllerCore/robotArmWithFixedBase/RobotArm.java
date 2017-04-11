@@ -2,10 +2,13 @@ package us.ihmc.exampleSimulations.controllerCore.robotArmWithFixedBase;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
+import us.ihmc.commonWalkingControlModules.controllerCore.command.lowLevel.LowLevelOneDoFJointDesiredDataHolderReadOnly;
+import us.ihmc.commons.RandomNumbers;
 import us.ihmc.euclid.axisAngle.AxisAngle;
 import us.ihmc.euclid.matrix.Matrix3D;
 import us.ihmc.euclid.transform.RigidBodyTransform;
@@ -79,7 +82,7 @@ public class RobotArm extends Robot
    private final RevoluteJoint wristYaw;
    private final RigidBody hand;
 
-   private final RigidBodyTransform controlFrameTransform = new RigidBodyTransform(new AxisAngle(), new Vector3D(0.0, 0.0, 0.2));
+   private final RigidBodyTransform controlFrameTransform = new RigidBodyTransform(new AxisAngle(), new Vector3D(0.0, 0.0, 0.4));
    private final ReferenceFrame handControlFrame;
 
    private final List<Pair<OneDoFJoint, OneDegreeOfFreedomJoint>> idToSCSJointPairs = new ArrayList<>();
@@ -138,6 +141,15 @@ public class RobotArm extends Robot
       PinJoint scsWristPitch = new PinJoint("wristPitch", wristPitchOffset, this, Axis.Y);
       PinJoint scsWristRoll = new PinJoint("wristRoll", wristRollOffset, this, Axis.X);
       PinJoint scsWristYaw = new PinJoint("wristYaw", wristYawOffset, this, Axis.Z);
+
+      double b_damp = 0.025;
+      scsShoulderYaw.setDamping(b_damp);
+      scsShoulderRoll.setDamping(b_damp);
+      scsShoulderPitch.setDamping(b_damp);
+      scsElbowPitch.setDamping(b_damp);
+      scsWristPitch.setDamping(b_damp);
+      scsWristRoll.setDamping(b_damp);
+      scsWristYaw.setDamping(b_damp);
 
       Link scsShoulderYawLink = new Link("shoulderYawLink");
       scsShoulderYawLink.setMass(SMALL_MASS);
@@ -228,22 +240,66 @@ public class RobotArm extends Robot
       return momentOfInertia;
    }
 
-   public void updateSCSRobot()
+   public void updateSCSRobotJointTaus(LowLevelOneDoFJointDesiredDataHolderReadOnly lowLevelOneDoFJointDesiredDataHolder)
    {
-      for (Pair<OneDoFJoint,OneDegreeOfFreedomJoint> pair : idToSCSJointPairs)
+      for (Pair<OneDoFJoint, OneDegreeOfFreedomJoint> pair : idToSCSJointPairs)
       {
-         pair.getRight().setTau(pair.getLeft().getTau());
+         OneDoFJoint oneDoFJoint = pair.getLeft();
+
+         if (lowLevelOneDoFJointDesiredDataHolder.hasDesiredTorqueForJoint(oneDoFJoint))
+         {
+            double tau = lowLevelOneDoFJointDesiredDataHolder.getDesiredJointTorque(oneDoFJoint);
+            pair.getRight().setTau(tau);
+         }
+      }
+   }
+
+   public void updateSCSRobotJointConfiguration(LowLevelOneDoFJointDesiredDataHolderReadOnly lowLevelOneDoFJointDesiredDataHolder)
+   {
+      for (Pair<OneDoFJoint, OneDegreeOfFreedomJoint> pair : idToSCSJointPairs)
+      {
+         OneDoFJoint oneDoFJoint = pair.getLeft();
+         if (lowLevelOneDoFJointDesiredDataHolder.hasDesiredPositionForJoint(oneDoFJoint))
+         {
+            double q = lowLevelOneDoFJointDesiredDataHolder.getDesiredJointPosition(oneDoFJoint);
+            pair.getRight().setQ(q);
+         }
+
+         if (lowLevelOneDoFJointDesiredDataHolder.hasDesiredVelocityForJoint(oneDoFJoint))
+         {
+            double qd = lowLevelOneDoFJointDesiredDataHolder.getDesiredJointVelocity(oneDoFJoint);
+            pair.getRight().setQd(qd);
+         }
       }
    }
 
    public void updateIDRobot()
    {
-      for (Pair<OneDoFJoint,OneDegreeOfFreedomJoint> pair : idToSCSJointPairs)
+      for (Pair<OneDoFJoint, OneDegreeOfFreedomJoint> pair : idToSCSJointPairs)
       {
          pair.getLeft().setQ(pair.getRight().getQ());
          pair.getLeft().setQd(pair.getRight().getQD());
       }
       elevator.updateFramesRecursively();
+   }
+
+   public void setRandomConfiguration()
+   {
+      Random random = new Random();
+
+      for (Pair<OneDoFJoint, OneDegreeOfFreedomJoint> pair : idToSCSJointPairs)
+      {
+         OneDegreeOfFreedomJoint joint = pair.getRight();
+         
+         double lowerLimit = joint.getJointLowerLimit();
+         if (!Double.isFinite(lowerLimit))
+            lowerLimit = - Math.PI;
+         double upperLimit = joint.getJointUpperLimit();
+         if (!Double.isFinite(upperLimit))
+            upperLimit = Math.PI;
+         
+         joint.setQ(RandomNumbers.nextDouble(random, lowerLimit, upperLimit));
+      }
    }
 
    public RigidBody getElevator()
@@ -264,5 +320,40 @@ public class RobotArm extends Robot
    public double getGravity()
    {
       return gravity;
+   }
+
+   public RevoluteJoint getShoulderYaw()
+   {
+      return shoulderYaw;
+   }
+
+   public RevoluteJoint getShoulderRoll()
+   {
+      return shoulderRoll;
+   }
+
+   public RevoluteJoint getShoulderPitch()
+   {
+      return shoulderPitch;
+   }
+
+   public RevoluteJoint getElbowPitch()
+   {
+      return elbowPitch;
+   }
+
+   public RevoluteJoint getWristPitch()
+   {
+      return wristPitch;
+   }
+
+   public RevoluteJoint getWristRoll()
+   {
+      return wristRoll;
+   }
+
+   public RevoluteJoint getWristYaw()
+   {
+      return wristYaw;
    }
 }

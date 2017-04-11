@@ -247,6 +247,7 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
          return 0.3;
    }
 
+   @Override
    public boolean isNeckPositionControlled()
    {
       if (runningOnRealRobot)
@@ -1364,6 +1365,7 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
    }
 
    /** {@inheritDoc} */
+   @Override
    public JointPrivilegedConfigurationParameters getJointPrivilegedConfigurationParameters()
    {
       return jointPrivilegedConfigurationParameters;
