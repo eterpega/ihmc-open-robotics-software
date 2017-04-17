@@ -93,7 +93,7 @@ public class RRTTestProject extends JPanel
 
       // piecewise
       g.setColor(Color.green);
-      ArrayList<RRTNode> piecewisePath = info.getPiecewisePath().getPiecewisePath();
+      ArrayList<RRTNode> piecewisePath = info.getPiecewisePath().getPiecewisePath(); // TODO: NULL-pointer exception on info.getPiecewisePath() for e.g. stepLength = 0.01
       for (int i =0;i< piecewisePath.size()-1;i++)
       {
          double p1x = piecewisePath.get(i).getNodeData(0);
@@ -159,15 +159,15 @@ public class RRTTestProject extends JPanel
       PrintTools.info("Start!!! ");
 
       RRTNode startNode = new RRTNode2D(0.0, 0.0);
-      RRTNode goalNode = new RRTNode2D(3.0, 2.0);
-      RRTPlanner2D rrtPlanner = new RRTPlanner2D(startNode, goalNode, 0.3);
+      RRTNode goalNode = new RRTNode2D(1.0, 1.0);
+      RRTPlanner2D rrtPlanner = new RRTPlanner2D(startNode, goalNode, 0.01);
 
-      RRTNode upperBoundNode = new RRTNode2D(5.0, 4.0);
-      RRTNode lowerBoundNode = new RRTNode2D(-5.0, -4.0);
+      RRTNode upperBoundNode = new RRTNode2D(2.0, 2.0);
+      RRTNode lowerBoundNode = new RRTNode2D(-2.0, -2.0);
       rrtPlanner.getRRTTree().setUpperBound(upperBoundNode);
       rrtPlanner.getRRTTree().setLowerBound(lowerBoundNode);
 
-      int maxNumberOfExpanding = 1500;
+      int maxNumberOfExpanding = 150000;
       double[] rrtPointInfo;
       rrtPointInfo = new double[maxNumberOfExpanding * 4];
       double[] rrtNewPointInfo;

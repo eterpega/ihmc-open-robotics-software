@@ -12,7 +12,7 @@ public class RRTValidConnection
 
    private ArrayList<RRTNode> nodes = new ArrayList<RRTNode>();
 
-   public int numberOfPiece = 20;
+   public int numberOfPiece = 2;
 
    public RRTValidConnection(RRTNode parentNode, RRTNode childNode)
    {
