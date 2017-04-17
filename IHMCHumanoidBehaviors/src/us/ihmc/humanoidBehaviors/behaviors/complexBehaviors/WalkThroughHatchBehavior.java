@@ -120,7 +120,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
             Quaternion chestOrientationWorld = new Quaternion();
             chestOrientation.getQuaternion(chestOrientationWorld);
             
-            ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(1, chestOrientationWorld, chestFrame, referenceFrames.getPelvisFrame());
+            ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(1, chestOrientationWorld, chestFrame, referenceFrames.getPelvisZUpFrame());
          
             atlasPrimitiveActions.chestTrajectoryBehavior.setInput(chestOrientationTrajectoryMessage);
             
@@ -206,18 +206,11 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
             
             // CHEST
             ReferenceFrame chestFrame = referenceFrames.getChestFrame();
-            FramePose chestPose = new FramePose(chestFrame);
-            
-            AxisAngle chestOrientationAA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(15.0));
-            Quaternion chestOrientation = new Quaternion(chestOrientationAA);
-            
-            chestPose.setOrientation(chestOrientation);
-            chestPose.changeFrame(ReferenceFrame.getWorldFrame());
-            
+            FrameOrientation chestOrientation = new FrameOrientation(chestFrame, 0.0, Math.toRadians(15.0), 0.0);
             Quaternion chestOrientationWorld = new Quaternion();
-            chestPose.getPose(new Point3D(), chestOrientationWorld);
+            chestOrientation.getQuaternion(chestOrientationWorld);
             
-            ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(1, chestOrientationWorld, ReferenceFrame.getWorldFrame(), ReferenceFrame.getWorldFrame());
+            ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(1, chestOrientationWorld, chestFrame, referenceFrames.getPelvisZUpFrame());
          
             atlasPrimitiveActions.chestTrajectoryBehavior.setInput(chestOrientationTrajectoryMessage);
             
@@ -256,18 +249,11 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
             
             // CHEST
             ReferenceFrame chestFrame = referenceFrames.getChestFrame();
-            FramePose chestPose = new FramePose(chestFrame);
-            
-            AxisAngle chestOrientationAA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(0.0)); // TODO: adapt this better to task!!!
-            Quaternion chestOrientation = new Quaternion(chestOrientationAA);
-            
-            chestPose.setOrientation(chestOrientation);
-            chestPose.changeFrame(ReferenceFrame.getWorldFrame());
-            
+            FrameOrientation chestOrientation = new FrameOrientation(chestFrame, 0.0, Math.toRadians(0.0), 0.0); // TODO: adapt better to task
             Quaternion chestOrientationWorld = new Quaternion();
-            chestPose.getPose(new Point3D(), chestOrientationWorld);
+            chestOrientation.getQuaternion(chestOrientationWorld);
             
-            ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(3, chestOrientationWorld, ReferenceFrame.getWorldFrame(), ReferenceFrame.getWorldFrame());
+            ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(3, chestOrientationWorld, chestFrame, referenceFrames.getPelvisZUpFrame());
             atlasPrimitiveActions.chestTrajectoryBehavior.setInput(chestOrientationTrajectoryMessage);
             
             PrintTools.debug(this, "Done Walking Through Hatch");
@@ -400,8 +386,8 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
       FootstepDataMessage fs3 = createRelativeFootStep(hatchPose, startStep, new Point3D(-0.21 + 0.55 + 0.25, -0.08 - 0.125 + 0.005, 0.0), new Quaternion());
       FootstepDataMessage fs4 = createRelativeFootStep(hatchPose, startStep.getOppositeSide(), new Point3D(-0.21 + 0.55 + 0.25, -0.08 + 0.125 + 0.005, 0.0), new Quaternion());
       
-      fs1.setSwingHeight(0.23);
-      fs2.setSwingHeight(0.23);
+      fs1.setSwingHeight(0.25);
+      fs2.setSwingHeight(0.25);
 
       message.add(fs1);
       message.add(fs2);
