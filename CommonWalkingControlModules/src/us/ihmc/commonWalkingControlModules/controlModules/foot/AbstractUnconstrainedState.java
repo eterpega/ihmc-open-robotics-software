@@ -48,7 +48,6 @@ public abstract class AbstractUnconstrainedState extends AbstractFootControlStat
    protected final DoubleYoVariable secondaryJointWeightScale;
 
    private final YoFrameVector angularWeight;
-   private final YoFrameVector defaultLinearWeight;
    private final YoFrameVector linearWeight;
 
    private final ReferenceFrame ankleFrame;
