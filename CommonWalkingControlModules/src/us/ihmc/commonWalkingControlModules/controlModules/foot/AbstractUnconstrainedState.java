@@ -44,7 +44,8 @@ public abstract class AbstractUnconstrainedState extends AbstractFootControlStat
    private final BooleanYoVariable yoSetDesiredAccelerationToZero;
    private final BooleanYoVariable yoSetDesiredVelocityToZero;
 
-   protected final BooleanYoVariable hasSwitchedToStraightLegs;
+   protected final BooleanYoVariable scaleSecondaryJointWeights;
+   protected final DoubleYoVariable secondaryJointWeightScale;
 
    private final YoFrameVector angularWeight;
    private final YoFrameVector defaultLinearWeight;
@@ -71,12 +72,14 @@ public abstract class AbstractUnconstrainedState extends AbstractFootControlStat
       yoSetDesiredAccelerationToZero = new BooleanYoVariable(namePrefix + "SetDesiredAccelerationToZero", registry);
       yoSetDesiredVelocityToZero = new BooleanYoVariable(namePrefix + "SetDesiredVelocityToZero", registry);
 
-      hasSwitchedToStraightLegs = new BooleanYoVariable(namePrefix + "HasSwitchedToStraightLegs", registry);
       scaleFactor = new DoubleYoVariable(namePrefix + "ScaleFactor", registry);
+
+      scaleSecondaryJointWeights = new BooleanYoVariable(namePrefix + "ScaleSecondaryJointWeights", registry);
+      secondaryJointWeightScale = new DoubleYoVariable(namePrefix + "SecondaryJointWeightScale", registry);
+      secondaryJointWeightScale.set(1.0);
 
       angularWeight = new YoFrameVector(namePrefix + "AngularWeight", null, registry);
       linearWeight = new YoFrameVector(namePrefix + "LinearWeight", null, registry);
-      defaultLinearWeight = new YoFrameVector(namePrefix + "DefaultLinearWeight", null, registry);
 
       angularWeight.set(FOOT_SWING_WEIGHT, FOOT_SWING_WEIGHT, FOOT_SWING_WEIGHT);
       linearWeight.set(FOOT_SWING_WEIGHT, FOOT_SWING_WEIGHT, FOOT_SWING_WEIGHT);
@@ -108,14 +111,14 @@ public abstract class AbstractUnconstrainedState extends AbstractFootControlStat
    {
       angularWeight.set(1.0, 1.0, 1.0);
       angularWeight.scale(weight);
-      defaultLinearWeight.set(1.0, 1.0, 1.0);
-      defaultLinearWeight.scale(weight);
+      linearWeight.set(1.0, 1.0, 1.0);
+      linearWeight.scale(weight);
    }
 
    public void setWeights(Vector3D angularWeight, Vector3D linearWeight)
    {
       this.angularWeight.set(angularWeight);
-      this.defaultLinearWeight.set(linearWeight);
+      this.linearWeight.set(linearWeight);
    }
 
    /**
@@ -135,10 +138,7 @@ public abstract class AbstractUnconstrainedState extends AbstractFootControlStat
    {
       super.doTransitionIntoAction();
       legSingularityAndKneeCollapseAvoidanceControlModule.setCheckVelocityForSwingSingularityAvoidance(true);
-
-      hasSwitchedToStraightLegs.set(false);
-      
-      linearWeight.set(defaultLinearWeight.getFrameTuple().getVector());
+      spatialFeedbackControlCommand.resetSecondaryTaskJointWeightScale();
 
       initializeTrajectory();
    }
@@ -179,7 +179,6 @@ public abstract class AbstractUnconstrainedState extends AbstractFootControlStat
          desiredLinearAcceleration.setToZero();
       }
       
-      linearWeight.set(defaultLinearWeight.getFrameTuple().getVector());
       double angle = 2.0 * Math.PI * getTimeInCurrentState() / 1.2 - Math.PI; // 0.6 for flat walking
       double clampedAngle = MathTools.clamp(angle, -Math.PI, Math.PI);
       double scaleFactor = 1.0; //(-1.0/4.0*Math.cos(clampedAngle) + 1.0) / 2.0;
@@ -191,6 +190,7 @@ public abstract class AbstractUnconstrainedState extends AbstractFootControlStat
       angularWeight.get(tempAngularWeightVector);
       linearWeight.get(tempLinearWeightVector);
       spatialFeedbackControlCommand.setWeightsForSolver(tempAngularWeightVector, tempLinearWeightVector);
+      spatialFeedbackControlCommand.setScaleSecondaryTaskJointWeight(scaleSecondaryJointWeights.getBooleanValue(), secondaryJointWeightScale.getDoubleValue());
 
       yoDesiredPosition.setAndMatchFrame(desiredPosition);
       yoDesiredLinearVelocity.setAndMatchFrame(desiredLinearVelocity);
@@ -225,10 +225,7 @@ public abstract class AbstractUnconstrainedState extends AbstractFootControlStat
    @Override
    public InverseDynamicsCommand<?> getInverseDynamicsCommand()
    {
-      if (hasSwitchedToStraightLegs.getBooleanValue())
-         return straightLegsPrivilegedConfigurationCommand;
-      else
-         return bentLegsPrivilegedConfigurationCommand;
+      return null;
    }
 
    @Override

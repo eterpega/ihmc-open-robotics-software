@@ -22,8 +22,6 @@ import us.ihmc.robotics.referenceFrames.PoseReferenceFrame;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.robotics.screwTheory.SpatialAccelerationVector;
-import us.ihmc.robotics.screwTheory.SpatialMotionVector;
-import us.ihmc.robotics.screwTheory.Twist;
 
 /**
  * {@link SpatialAccelerationCommand} is a command meant to be submitted to the
@@ -93,6 +91,20 @@ public class SpatialAccelerationCommand implements InverseDynamicsCommand<Spatia
    private String optionalPrimaryBaseName;
 
    /**
+    * Flag to indicate whether or not to custom scale the weights below the intermediate base
+    * {@code optionalPrimaryBase} to control against, as opposed to using the default weight in
+    * {@link us.ihmc.commonWalkingControlModules.momentumBasedController.optimization.MotionQPInputCalculator#secondaryTaskJointsWeight}.
+    */
+   private boolean scaleSecondaryTaskJointWeight = false;
+
+   /**
+    * Scale factor to apply to the weights on the task below the {@code optionalPrimaryBase}.
+    * This weight replaces the scale factor in
+    * {@link us.ihmc.commonWalkingControlModules.momentumBasedController.optimization.MotionQPInputCalculator#secondaryTaskJointsWeight}.
+    */
+   private double secondaryTaskJointWeightScale = 1.0;
+
+   /**
     * Creates an empty command. It needs to be configured before being submitted to the controller
     * core.
     */
@@ -117,6 +129,8 @@ public class SpatialAccelerationCommand implements InverseDynamicsCommand<Spatia
 
       optionalPrimaryBase = other.optionalPrimaryBase;
       optionalPrimaryBaseName = other.optionalPrimaryBaseName;
+      scaleSecondaryTaskJointWeight = other.scaleSecondaryTaskJointWeight;
+      secondaryTaskJointWeightScale = other.secondaryTaskJointWeightScale;
 
       controlFramePose.setPoseIncludingFrame(endEffector.getBodyFixedFrame(), other.controlFramePose.getPosition(), other.controlFramePose.getOrientation());
       desiredAngularAcceleration.set(other.desiredAngularAcceleration);
@@ -166,6 +180,21 @@ public class SpatialAccelerationCommand implements InverseDynamicsCommand<Spatia
    {
       optionalPrimaryBase = primaryBase;
       optionalPrimaryBaseName = primaryBase.getName();
+   }
+
+   /**
+    * Indicates that we would like to custom scale the weights on the joints in the kinematic chain
+    * below the {@code primaryBase} when controlling the {@code endEffector}.
+    *
+    * @param scaleSecondaryTaskJointWeight whether or not to use a custom scaling factor on the joints
+    *                                      below the primary base. Optional.
+    * @param secondaryTaskJointWeightScale custom scaling factor for the joints below the primary base.
+    *                                      Optional.
+    */
+   public void setScaleSecondaryTaskJointWeight(boolean scaleSecondaryTaskJointWeight, double secondaryTaskJointWeightScale)
+   {
+      this.scaleSecondaryTaskJointWeight = scaleSecondaryTaskJointWeight;
+      this.secondaryTaskJointWeightScale = secondaryTaskJointWeightScale;
    }
 
    /**
@@ -259,7 +288,7 @@ public class SpatialAccelerationCommand implements InverseDynamicsCommand<Spatia
     * @param desiredLinearAcceleration the desired linear acceleration of the origin of the control
     *           frame with respect to the base. Not modified.
     * @throws ReferenceFrameMismatchException if {@code desiredAngularAcceleration} or
-    *            {@code desiredLineaerAcceleration} is not expressed in control frame.
+    *            {@code desiredLinearAcceleration} is not expressed in control frame.
     */
    public void setSpatialAcceleration(ReferenceFrame controlFrame, FrameVector desiredAngularAcceleration, FrameVector desiredLinearAcceleration)
    {
@@ -287,7 +316,8 @@ public class SpatialAccelerationCommand implements InverseDynamicsCommand<Spatia
     * <p>
     * If no particular location on the end-effector is to controlled, then simply provide
     * {@code endEffector.getBodyFixedFrame()}.
-    * </p>
+    * </p*
+    *
     * 
     * @param controlFrame specifies the location and orientation of interest for controlling the
     *           end-effector.
@@ -350,7 +380,7 @@ public class SpatialAccelerationCommand implements InverseDynamicsCommand<Spatia
     */
    public void setSelectionMatrixToIdentity()
    {
-      selectionMatrix.reshape(SpatialMotionVector.SIZE, SpatialMotionVector.SIZE);
+      selectionMatrix.reshape(SpatialAccelerationVector.SIZE, SpatialAccelerationVector.SIZE);
       CommonOps.setIdentity(selectionMatrix);
    }
 
@@ -366,7 +396,7 @@ public class SpatialAccelerationCommand implements InverseDynamicsCommand<Spatia
     */
    public void setSelectionMatrixForLinearControl()
    {
-      selectionMatrix.reshape(3, Twist.SIZE);
+      selectionMatrix.reshape(3, SpatialAccelerationVector.SIZE);
       selectionMatrix.zero();
       selectionMatrix.set(0, 3, 1.0);
       selectionMatrix.set(1, 4, 1.0);
@@ -385,7 +415,7 @@ public class SpatialAccelerationCommand implements InverseDynamicsCommand<Spatia
     */
    public void setSelectionMatrixForAngularControl()
    {
-      selectionMatrix.reshape(3, Twist.SIZE);
+      selectionMatrix.reshape(3, SpatialAccelerationVector.SIZE);
       selectionMatrix.zero();
       selectionMatrix.set(0, 0, 1.0);
       selectionMatrix.set(1, 1, 1.0);
@@ -466,6 +496,31 @@ public class SpatialAccelerationCommand implements InverseDynamicsCommand<Spatia
          weightVector.set(i, 0, angular);
       for (int i = 3; i < SpatialAccelerationVector.SIZE; i++)
          weightVector.set(i, 0, linear);
+   }
+
+   /**
+    * Sets the weights to use in the optimization problem for each individual degree of freedom.
+    * <p>
+    * WARNING: It is not the value of each individual command's weight that is relevant to how the
+    * optimization will behave but the ratio between them. A command with a higher weight than other
+    * commands value will be treated as more important than the other commands.
+    * </p>
+    * 
+    * @param angularX the weight to use for the x-axis of the angular part of this command.
+    * @param angularY the weight to use for the y-axis of the angular part of this command.
+    * @param angularZ the weight to use for the z-axis of the angular part of this command.
+    * @param linearX the weight to use for the x-axis of the linear part of this command.
+    * @param linearY the weight to use for the y-axis of the linear part of this command.
+    * @param linearZ the weight to use for the z-axis of the linear part of this command.
+    */
+   public void setWeights(double angularX, double angularY, double angularZ, double linearX, double linearY, double linearZ)
+   {
+      weightVector.set(0, 0, angularX);
+      weightVector.set(1, 0, angularY);
+      weightVector.set(2, 0, angularZ);
+      weightVector.set(3, 0, linearX);
+      weightVector.set(4, 0, linearY);
+      weightVector.set(5, 0, linearZ);
    }
 
    /**
@@ -811,6 +866,55 @@ public class SpatialAccelerationCommand implements InverseDynamicsCommand<Spatia
       return optionalPrimaryBaseName;
    }
 
+   /**
+    * Gets whether or not to scale the weights on the joints below the {@code primaryBase}
+    * when controlling the {@code endEffector}. A smaller scale (less than 1.0) means it will
+    * use the joints in the kinematic chain between the {@code primaryBase} and the
+    * {@code endEffector} more to control the {@code endEffector}, while a factor larger than
+    * 1.0 makes it more likely to use the joints before the {@code primaryBase} (such as the
+    * floating base) to control the {@code endEffector}.
+    *
+    * <p>
+    *    This parameter is optional. If provided, it will scale the weights before the
+    *    {@code primaryBase} by the factor defined in {@code secondaryTaskJointWeightScale}
+    *    to control the {@code endEffector}.
+    * </p>
+    *
+    * @return whether or not to scale the joints below the {@code primaryBase} (true) or not (false and default).
+    */
+   public boolean scaleSecondaryTaskJointWeight()
+   {
+      return scaleSecondaryTaskJointWeight;
+   }
+
+   /**
+    * Gets the scaling factor for the weights on the joints below the {@code primaryBase}
+    * when controlling the {@code endEffector}. A smaller scale (less than 1.0) means it will
+    * use the joints in the kinematic chain between the {@code primaryBase} and the
+    * {@code endEffector} more to control the {@code endEffector}, while a factor larger than
+    * 1.0 makes it more likely to use the joints before the {@code primaryBase} (such as the
+    * floating base) to control the {@code endEffector}.
+    *
+    * <p>
+    *    This parameter is optional. If provided, it will be used to scale the weights before the
+    *    {@code primaryBase} to control the {@code endEffector}.
+    * </p>
+    *
+    * @return scale factor for the joints below the {@code primaryBase}.
+    */
+   public double getSecondaryTaskJointWeightScale()
+   {
+      return secondaryTaskJointWeightScale;
+   }
+
+   /**
+    * Resets the secondary task joint weight scaling factor on the joints below the {@code primaryBase} to its
+    * default value.
+    */
+   public void resetSecondaryTaskJointWeightScale()
+   {
+      secondaryTaskJointWeightScale = 1.0;
+   }
    /**
     * {@inheritDoc}
     * 
