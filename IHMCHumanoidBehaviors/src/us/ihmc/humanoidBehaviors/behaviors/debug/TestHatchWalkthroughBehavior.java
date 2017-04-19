@@ -250,7 +250,7 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
    public void changeRobotConfigurationCoordinated()
    {
       ReferenceFrame pelvisZUpFrame = referenceFrames.getPelvisZUpFrame();
-      FrameOrientation chestOrientationFrame = new FrameOrientation(pelvisZUpFrame, Math.toRadians(0.0), Math.toRadians(20.0), Math.toRadians(0.0));
+      FrameOrientation chestOrientationFrame = new FrameOrientation(pelvisZUpFrame, Math.toRadians(0.0), Math.toRadians(25.0), Math.toRadians(0.0));
       Quaternion chestOrientationPelvisZUp = new Quaternion();
       chestOrientationFrame.getQuaternion(chestOrientationPelvisZUp);
       
