@@ -281,14 +281,14 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
    
    public void makeSecondStepThroughHatchOpeningCoordinated()
    {     
-      AxisAngle chestOrientationAA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(5.0)); // was 7.0
+      AxisAngle chestOrientationAA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(7.0)); // was 7.0
       Quaternion chestOrientation = new Quaternion(chestOrientationAA);
       ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(2.0, chestOrientation, ReferenceFrame.getWorldFrame(), ReferenceFrame.getWorldFrame()); // was 2.0
       sendPacket(chestOrientationTrajectoryMessage);
       
       ReferenceFrame pelvisZUpFrame = referenceFrames.getPelvisZUpFrame();
       FramePose pelvisPose = new FramePose(pelvisZUpFrame);
-//      pelvisPose.setX(0.05);
+//      pelvisPose.setZ(0.02);
       pelvisPose.changeFrame(ReferenceFrame.getWorldFrame());
       Point3D pelvisGoalLocation = new Point3D();
       pelvisPose.getPose(pelvisGoalLocation, new Quaternion());
@@ -296,7 +296,7 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
       sendPacket(pelvisHeightTrajectoryMessage);
    
       
-      FrameOrientation pelvisOrientationFrame = new FrameOrientation(pelvisZUpFrame, Math.toRadians(-5.0), Math.toRadians(15.0), Math.toRadians(7.0));
+      FrameOrientation pelvisOrientationFrame = new FrameOrientation(pelvisZUpFrame, Math.toRadians(-5.0), Math.toRadians(15.0), Math.toRadians(10.0));
       Quaternion pelvisOrientationWorld = new Quaternion();
       pelvisOrientationFrame.changeFrame(ReferenceFrame.getWorldFrame());
       pelvisOrientationFrame.getQuaternion(pelvisOrientationWorld);
