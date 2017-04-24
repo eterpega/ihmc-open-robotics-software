@@ -337,9 +337,9 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
    {
 
       PoseReferenceFrame hatchPose = new PoseReferenceFrame("hatchFrame", ReferenceFrame.getWorldFrame());
-      hatchPose.setPoseAndUpdate(new RigidBodyTransform(new Quaternion(), HatchEnvironment.getHatchFrameOffset()));
+      hatchPose.setPoseAndUpdate(new RigidBodyTransform(new Quaternion(), HatchEnvironment.getHatchFrameOffset(1)));
       
-      PrintTools.debug(this, HatchEnvironment.getHatchFrameOffset().toString());
+      PrintTools.debug(this, HatchEnvironment.getHatchFrameOffset(1).toString());
 
       FramePoint point1 = new FramePoint(hatchPose, point);
       return point1;
@@ -349,7 +349,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
    {
 
       PoseReferenceFrame hatchPose = new PoseReferenceFrame("HatchReferenceFrame", ReferenceFrame.getWorldFrame());
-      hatchPose.setPoseAndUpdate(new RigidBodyTransform(new Quaternion(), HatchEnvironment.getHatchFrameOffset()));
+      hatchPose.setPoseAndUpdate(new RigidBodyTransform(new Quaternion(), HatchEnvironment.getHatchFrameOffset(1)));
 
       RobotSide startStep = RobotSide.LEFT;
 
@@ -370,7 +370,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
    {
 
       PoseReferenceFrame hatchPose = new PoseReferenceFrame("HatchReferenceFrame", ReferenceFrame.getWorldFrame());
-      hatchPose.setPoseAndUpdate(new RigidBodyTransform(new Quaternion(), HatchEnvironment.getHatchFrameOffset()));
+      hatchPose.setPoseAndUpdate(new RigidBodyTransform(new Quaternion(), HatchEnvironment.getHatchFrameOffset(1)));
 
       RobotSide startStep = RobotSide.RIGHT;
 
@@ -423,7 +423,6 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
    {
       
    }
-
-
+   
 
 }

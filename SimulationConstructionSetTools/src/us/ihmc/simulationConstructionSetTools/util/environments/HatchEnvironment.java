@@ -2,6 +2,7 @@ package us.ihmc.simulationConstructionSetTools.util.environments;
 
 import java.util.List;
 
+import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.graphicsDescription.appearance.YoAppearance;
 import us.ihmc.simulationConstructionSetTools.robotController.ContactController;
@@ -16,44 +17,50 @@ public class HatchEnvironment implements CommonAvatarEnvironmentInterface
 {
    private final CombinedTerrainObject3D combinedTerrainObject;
       
-   private final float HATCH_OPENING_WIDTH = .86f - 0.02f;
-   private final float HATCH_UPENING_HEIGHT = 1.7f - 0.1f - 0.05f;
-   private final float HATCH_UPENING_HEIGHT_OFF_GROUND = 0.15f;
-   private static final float FORWARD_OFFSET = 0.22f; //0.21f; //2f; //2 + 0.21f; //1f;
-   private static final float SIDEWAY_OFFSET = 0.08f; //0.5f; //1 + 0.08f;
-   private final float HATCH_THICKNESS = 0.15f;
-
-
+   private static final int numberOfHatches = 4;
+   private static final double HATCH_OPENING_WIDTH = .86 - 0.02; // 0.84
+   private static final double HATCH_UPENING_HEIGHT = 1.7 - 0.15; // 1.55
+   private static final double HATCH_UPENING_HEIGHT_OFF_GROUND = 0.20; //0.15; 20 w/ 0.5
+   private static final double FORWARD_OFFSET = 0.21; //0.22; //0.21f; //2f; //2 + 0.21f; //1f;
+   private static final double SIDEWAY_OFFSET = 0.08; //0.5f; //1 + 0.08f;
+   private static final double HATCH_THICKNESS = 0.05; //0.15; (maybe max at 0.13)
+   
+   private static final double FORWARD_OFFSETS[] = {0.21, 1.21, 2.21, 3.21};
+   private static final double SIDEWAY_OFFSETS[] = {0.08, 0.08, 0.08, 0.08};
+   private static final double STEP_HEIGHTS[] = {0.20, 0.05, 0.15, 0.10};
+   private static final double OPENING_HEIGHTS[] = {1.55, 1.55, 1.55, 1.55};
+   private static final double OPENING_WIDTHS[] = {0.84, 0.84, 0.84, 0.84};
+   private static final double OPENING_THICKNESSES[] = {0.05, 0.16, 0.13, 0.13};
    
    public HatchEnvironment()
    {
       combinedTerrainObject = new CombinedTerrainObject3D(getClass().getSimpleName());
       combinedTerrainObject.addTerrainObject(setUpGround("Ground"));
+      combinedTerrainObject.addTerrainObject(addHatch("IBims1Hatch", FORWARD_OFFSETS[0], SIDEWAY_OFFSETS[0], STEP_HEIGHTS[0], OPENING_HEIGHTS[0], OPENING_WIDTHS[0], OPENING_THICKNESSES[0]));
+      combinedTerrainObject.addTerrainObject(addHatch("IBims2Hatch", FORWARD_OFFSETS[1], SIDEWAY_OFFSETS[1], STEP_HEIGHTS[1], OPENING_HEIGHTS[1], OPENING_WIDTHS[1], OPENING_THICKNESSES[1]));
+      combinedTerrainObject.addTerrainObject(addHatch("IBims3Hatch", FORWARD_OFFSETS[2], SIDEWAY_OFFSETS[2], STEP_HEIGHTS[2], OPENING_HEIGHTS[2], OPENING_WIDTHS[2], OPENING_THICKNESSES[2]));
+      combinedTerrainObject.addTerrainObject(addHatch("IBims4Hatch", FORWARD_OFFSETS[3], SIDEWAY_OFFSETS[3], STEP_HEIGHTS[3], OPENING_HEIGHTS[3], OPENING_WIDTHS[3], OPENING_THICKNESSES[3]));
    }
    
    private CombinedTerrainObject3D setUpGround(String name)
    {
       CombinedTerrainObject3D combinedTerrainObject = new CombinedTerrainObject3D(name);
-
-      // Floor
       combinedTerrainObject.addBox(-10.0, -10.0, 10.0, 10.0, -0.05, 0.0, YoAppearance.Gray());
-      
-      // Collidable doorstep
-      combinedTerrainObject.addBox(FORWARD_OFFSET, SIDEWAY_OFFSET+(HATCH_OPENING_WIDTH/2)+0.5f,  FORWARD_OFFSET+HATCH_THICKNESS, SIDEWAY_OFFSET-(HATCH_OPENING_WIDTH/2)-0.5f, 0, HATCH_UPENING_HEIGHT_OFF_GROUND, YoAppearance.DarkGray());
-      
-      // Collidable sides
-      combinedTerrainObject.addBox(FORWARD_OFFSET,SIDEWAY_OFFSET+HATCH_OPENING_WIDTH/2,  FORWARD_OFFSET+HATCH_THICKNESS,SIDEWAY_OFFSET+(HATCH_OPENING_WIDTH/2)+0.5f, 0, HATCH_UPENING_HEIGHT+HATCH_UPENING_HEIGHT_OFF_GROUND, YoAppearance.DarkGray());
-      combinedTerrainObject.addBox(FORWARD_OFFSET,SIDEWAY_OFFSET-HATCH_OPENING_WIDTH/2,  FORWARD_OFFSET+HATCH_THICKNESS,SIDEWAY_OFFSET-(HATCH_OPENING_WIDTH/2)-0.5f, 0, HATCH_UPENING_HEIGHT+HATCH_UPENING_HEIGHT_OFF_GROUND, YoAppearance.DarkGray());
 
-      // Collidable top
-      //combinedTerrainObject.addBox(FORWARD_OFFSET,(HATCH_OPENING_WIDTH/2)+0.5f,  FORWARD_OFFSET+HATCH_THICKNESS,-(HATCH_OPENING_WIDTH/2)-0.5f, HATCH_UPENING_HEIGHT+ HATCH_UPENING_HEIGHT_OFF_GROUND, HATCH_UPENING_HEIGHT+ HATCH_UPENING_HEIGHT_OFF_GROUND+HATCH_THICKNESS, YoAppearance.DarkGray());
+      return combinedTerrainObject;
+   }
+   
+   private CombinedTerrainObject3D addHatch(String name, double forwardOffset, double sidewayOffset, double stepHeight, double openingHeight, double openingWidth, double openingThickness)
+   {
+      CombinedTerrainObject3D combinedTerrainObject = new CombinedTerrainObject3D(name);
 
-      // NON-collidable top
-      BoxTerrainObject hatchTop = new BoxTerrainObject(FORWARD_OFFSET,SIDEWAY_OFFSET+(HATCH_OPENING_WIDTH/2)+0.5f,  FORWARD_OFFSET+HATCH_THICKNESS,SIDEWAY_OFFSET-(HATCH_OPENING_WIDTH/2)-0.5f, HATCH_UPENING_HEIGHT+ HATCH_UPENING_HEIGHT_OFF_GROUND, HATCH_UPENING_HEIGHT+ HATCH_UPENING_HEIGHT_OFF_GROUND+HATCH_THICKNESS, YoAppearance.DarkGray());
+      combinedTerrainObject.addBox(forwardOffset, sidewayOffset+(openingWidth/2.0)+0.5,  forwardOffset+openingThickness, sidewayOffset-(openingWidth/2.0)-0.5, 0, stepHeight, YoAppearance.DarkGray());
+
+      combinedTerrainObject.addBox(forwardOffset,sidewayOffset+openingWidth/2.0,  forwardOffset+openingThickness,sidewayOffset+(openingWidth/2.0)+0.5, 0, openingHeight+stepHeight, YoAppearance.DarkGray());
+      combinedTerrainObject.addBox(forwardOffset,sidewayOffset-openingWidth/2.0,  forwardOffset+openingThickness,sidewayOffset-(openingWidth/2.0)-0.5, 0, openingHeight+stepHeight, YoAppearance.DarkGray());
+
+      BoxTerrainObject hatchTop = new BoxTerrainObject(forwardOffset,sidewayOffset+(openingWidth/2)+0.5,  forwardOffset+openingThickness,sidewayOffset-(openingWidth/2.0)-0.5, openingHeight+stepHeight, 1.95, YoAppearance.DarkGray());
       combinedTerrainObject.addStaticLinkGraphics(hatchTop.getLinkGraphics());
-      
-     // combinedTerrainObject.addBox(2.0, -0.05, 3.0, 0.05, 2.0, YoAppearance.Beige());
-     // combinedTerrainObject.addBox(3.0 + ContactableDoorRobot.DEFAULT_DOOR_DIMENSIONS.getX(), -0.05, 4.0 + ContactableDoorRobot.DEFAULT_DOOR_DIMENSIONS.getX(), 0.05, 2.0, YoAppearance.Beige());
       
       return combinedTerrainObject;
    }
@@ -87,9 +94,29 @@ public class HatchEnvironment implements CommonAvatarEnvironmentInterface
    {
    }
    
-   public static Vector3D getHatchFrameOffset()
+   public static Point3D getHatchFrameOffset(int hatch)
    {
-      return new Vector3D(FORWARD_OFFSET, SIDEWAY_OFFSET, 0.0);
+      return new Point3D(FORWARD_OFFSETS[hatch], SIDEWAY_OFFSETS[hatch], 0.0);
+   }
+   
+   public static double getHatchThickness(int hatch)
+   {
+      return OPENING_THICKNESSES[hatch];
+   }
+   
+   public static double getHatchLowerHeight(int hatch)
+   {
+      return STEP_HEIGHTS[hatch];
+   }
+   
+   public static double getHatchUpperHeight(int hatch)
+   {
+      return OPENING_HEIGHTS[hatch];
+   }
+   
+   public static double getHatchWidth(int hatch)
+   {
+      return OPENING_WIDTHS[hatch];
    }
 
 }
