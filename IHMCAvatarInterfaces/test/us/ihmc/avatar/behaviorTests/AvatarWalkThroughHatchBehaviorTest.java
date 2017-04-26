@@ -34,6 +34,11 @@ import us.ihmc.wholeBodyController.WholeBodyControllerParameters;
 public abstract class AvatarWalkThroughHatchBehaviorTest implements MultiRobotTestInterface
 {
    private static final SimulationTestingParameters simulationTestingParameters = SimulationTestingParameters.createFromEnvironmentVariables();
+   static
+   {
+      simulationTestingParameters.setKeepSCSUp(true);
+   }
+   
    private DRCBehaviorTestHelper drcBehaviorTestHelper;
    private DRCRobotModel drcRobotModel;
    
@@ -70,6 +75,7 @@ public abstract class AvatarWalkThroughHatchBehaviorTest implements MultiRobotTe
    @Before
    public void setUp()
    {
+      BambooTools.reportTestStartedMessage(simulationTestingParameters.getShowWindows());
       drcRobotModel = getRobotModel();
       drcBehaviorTestHelper = new DRCBehaviorTestHelper(new HatchEnvironment(), getSimpleRobotName(), DRCObstacleCourseStartingLocation.DEFAULT,
                                                         simulationTestingParameters, drcRobotModel);
@@ -77,13 +83,6 @@ public abstract class AvatarWalkThroughHatchBehaviorTest implements MultiRobotTe
 
    public void testWalkThroughHatch() throws BlockingSimulationRunner.SimulationExceededMaximumTimeException
    {
-      if (!ContinuousIntegrationTools.isRunningOnContinuousIntegrationServer())
-      {
-         simulationTestingParameters.setKeepSCSUp(true);
-      }
-
-      BambooTools.reportTestStartedMessage(simulationTestingParameters.getShowWindows());
-
       YoGraphicsListRegistry yoGraphicsListRegistry = new YoGraphicsListRegistry();
       
       PrintTools.debug(this, "Initializing Sim");

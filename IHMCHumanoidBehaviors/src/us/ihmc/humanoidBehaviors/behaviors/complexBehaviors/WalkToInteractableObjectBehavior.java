@@ -139,7 +139,7 @@ public class WalkToInteractableObjectBehavior extends StateMachineBehavior<WalkT
             TextToSpeechPacket p1 = new TextToSpeechPacket("Walk Failed");
             sendPacket(p1);
             
-            PrintTools.debug(this, "Done walk failed");
+            PrintTools.debug("Done walk failed");
          }
       };
 
