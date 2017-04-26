@@ -221,6 +221,11 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
       robotConfigurationInitialized = true;
       
 //      // +++++ DEBUG +++++
+      FramePose pelvisPose2 = new FramePose(pelvisZUpFrame);
+      pelvisPose2.changeFrame(ReferenceFrame.getWorldFrame());
+      pelvisGoalLocation.setToZero();
+      pelvisPose2.getPosition(pelvisGoalLocation);
+      PrintTools.debug(this, "setupForWalkFar pelvis = " + pelvisGoalLocation.toString());
 //      chestFrame = referenceFrames.getChestFrame();
 //      chestOrientationFrame = new FrameOrientation(chestFrame, 0.0, Math.toRadians(17.0), 0.0);
 //      chestOrientationLocal = new Quaternion();
@@ -320,6 +325,11 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
       madeFirstStepThroughHatch = true;
       
 //      // +++++ DEBUG +++++
+      FramePose pelvisPose2 = new FramePose(pelvisZUpFrame);
+      pelvisPose2.changeFrame(ReferenceFrame.getWorldFrame());
+      pelvisGoalLocation.setToZero();
+      pelvisPose2.getPosition(pelvisGoalLocation);  
+      PrintTools.debug(this, "firstStep pelvis = " + pelvisGoalLocation.toString());
 //      pelvisZUpFrame = referenceFrames.getPelvisZUpFrame();
 //      chestOrientationFrame = new FrameOrientation(pelvisZUpFrame, Math.toRadians(-7.0), Math.toRadians(25.0), Math.toRadians(0.0));
 //      chestOrientationPelvisZUp = new Quaternion();
@@ -377,6 +387,11 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
       changedRobotConfiguration = true;
       
 //      // +++++ DEBUG +++++
+      FramePose pelvisPose2 = new FramePose(pelvisZUpFrame);
+      pelvisPose2.changeFrame(ReferenceFrame.getWorldFrame());
+      pelvisGoalLocation.setToZero();
+      pelvisPose2.getPosition(pelvisGoalLocation);
+      PrintTools.debug(this, "transition pelvis = " + pelvisGoalLocation.toString());
 //      pelvisZUpFrame = referenceFrames.getPelvisZUpFrame();
 //      chestOrientationFrame = new FrameOrientation(pelvisZUpFrame, Math.toRadians(0.0), Math.toRadians(20.0), Math.toRadians(0.0));
 //      chestOrientationPelvisZUp = new Quaternion();
@@ -469,6 +484,11 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
       madeSecondStepThroughHatch = true;
       
 //      // +++++ DEBUG +++++
+      FramePose pelvisPose2 = new FramePose(pelvisZUpFrame);
+      pelvisPose2.changeFrame(ReferenceFrame.getWorldFrame());
+      pelvisGoalLocation.setToZero();
+      pelvisPose2.getPosition(pelvisGoalLocation);
+      PrintTools.debug(this, "secondStep pelvis = " + pelvisGoalLocation.toString());
 //      chestOrientationAA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(7.0)); // was 7.0
 //      chestOrientation = new Quaternion(chestOrientationAA);
 //      PrintTools.debug(this, chestOrientation.toString());
