@@ -121,7 +121,7 @@ public abstract class AvatarWalkThroughHatchBehaviorTest implements MultiRobotTe
       
       success = drcBehaviorTestHelper.executeBehaviorUntilDone(walkThroughHatchBehavior);
       assertTrue(success);
-      PrintTools.debug(this, "Behavior Should be done");
+      PrintTools.debug(this, "Behavior should be done");
 
       assertTrue(walkThroughHatchBehavior.isDone());
 

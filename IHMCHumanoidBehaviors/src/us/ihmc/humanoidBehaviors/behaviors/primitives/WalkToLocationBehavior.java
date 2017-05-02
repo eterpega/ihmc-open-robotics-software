@@ -89,6 +89,7 @@ public class WalkToLocationBehavior extends AbstractBehavior
       this.pathType = new SimplePathParameters(walkingControllerParameters.getMaxStepLength() / 2, walkingControllerParameters.getInPlaceWidth(), 0.0,
             Math.toRadians(20.0), Math.toRadians(10.0), 0.4); // 10 5 0.4
       footstepListBehavior = new FootstepListBehavior(outgoingCommunicationBridge, walkingControllerParameters);
+      registry.addChild(footstepListBehavior.getYoVariableRegistry());
 
       for (RobotSide robotSide : RobotSide.values)
       {
@@ -180,6 +181,13 @@ public class WalkToLocationBehavior extends AbstractBehavior
    public void setWalkingOrientationRelativeToPathDirection(double orientationRelativeToPathDirection)
    {
       pathType.setAngle(orientationRelativeToPathDirection);
+      if (hasTargetBeenProvided.getBooleanValue())
+         generateFootsteps();
+   }
+   
+   public void setWalkingStepWidth(double stepWidth)
+   {
+      pathType.setStepWidth(stepWidth);
       if (hasTargetBeenProvided.getBooleanValue())
          generateFootsteps();
    }
@@ -279,7 +287,10 @@ public class WalkToLocationBehavior extends AbstractBehavior
       if (!hasTargetBeenProvided.getBooleanValue())
          return;
       if (!haveFootstepsBeenGenerated.getBooleanValue())
+      {
          generateFootsteps();
+         footstepListBehavior.onBehaviorEntered();
+      }
       footstepListBehavior.doControl();
    }
 
@@ -323,6 +334,7 @@ public class WalkToLocationBehavior extends AbstractBehavior
       }
       if (haveFootstepsBeenGenerated.getBooleanValue() && footsteps.size() == 0)
       {
+         PrintTools.debug("location done got called");
          return true;
       }
       return footstepListBehavior.isDone();
