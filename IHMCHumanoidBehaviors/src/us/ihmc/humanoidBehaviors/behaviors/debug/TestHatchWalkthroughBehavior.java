@@ -38,9 +38,9 @@ import us.ihmc.simulationConstructionSetTools.util.environments.HatchEnvironment
 public class TestHatchWalkthroughBehavior extends AbstractBehavior
 {
    private static final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
-   private final Point3D hatchFrameOffset = new Point3D(HatchEnvironment.getHatchFrameOffset(0));
-   private final RigidBodyTransform hatchToWorld = new RigidBodyTransform(new Quaternion(), hatchFrameOffset);
-   private final ReferenceFrame hatchFrame = ReferenceFrame.constructFrameWithUnchangingTransformFromParent("HatchFrame", worldFrame, hatchToWorld);
+   private final Point3D hatchFrameOffset;
+   private final RigidBodyTransform hatchToWorld;
+   private final ReferenceFrame hatchFrame;
    
    private final HumanoidReferenceFrames referenceFrames;
    private final DoubleYoVariable swingTime = new DoubleYoVariable("BehaviorSwingTime", registry);
@@ -65,12 +65,12 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
    private Point3D rightFootSwingWayPoint2 = new Point3D();
    
    private Point3D rightFootSwingGoalPoint = new Point3D();
-   private Point3D rightBeforeHatchOffset = new Point3D(hatchFrameOffset.getX(), 0.0, 0.0);
-   private Point3D rightAfterHatchOffset = new Point3D(rightBeforeHatchOffset.getX() - 0.01, 0.03, 0.0);
+   private Point3D rightBeforeHatchOffset = new Point3D();
+   private Point3D rightAfterHatchOffset = new Point3D();
    
    private Point3D leftFootSwingGoalPoint = new Point3D();
-   private Point3D leftBeforeHatchOffset = new Point3D(hatchFrameOffset.getX(), 0.0, 0.0);
-   private Point3D leftAfterHatchOffset = new Point3D(leftBeforeHatchOffset.getX() + 0.03 - 0.01, 0.03, 0.0);
+   private Point3D leftBeforeHatchOffset = new Point3D();
+   private Point3D leftAfterHatchOffset = new Point3D();
    
    private double[] pelvisRollPitchYawInitialization = new double[3];
    private double[] pelvisRollPitchYawFirstStepThroughHatch = new double[3];
@@ -89,6 +89,7 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
    boolean madeSecondStepThroughHatch = false;
    boolean robotConfigurationInitialized = false;
    boolean changedRobotConfiguration = false;
+   boolean finalState = false;
    double counterHelper = 0;
    private final ConcurrentListeningQueue<FootstepStatus> footstepStatusQueue = new ConcurrentListeningQueue<FootstepStatus>(10);
 
@@ -120,6 +121,19 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
       default:
          break;
       }
+      
+      hatchFrameOffset = new Point3D(HatchEnvironment.getHatchFrameOffset(0));
+      hatchToWorld = new RigidBodyTransform(new Quaternion(), hatchFrameOffset);
+      hatchToWorld.invert();
+      hatchFrame = ReferenceFrame.constructFrameWithUnchangingTransformFromParent("HatchFrame", worldFrame, hatchToWorld);
+      
+      PrintTools.debug("Transform = " + hatchToWorld.toString());
+      
+      rightBeforeHatchOffset.set(hatchFrameOffset.getX(), 0.0, 0.0);
+      rightAfterHatchOffset.set(rightBeforeHatchOffset.getX() - 0.01, 0.03, 0.0);
+      
+      leftBeforeHatchOffset.set(hatchFrameOffset.getX(), 0.0, 0.0);
+      leftAfterHatchOffset.set(leftBeforeHatchOffset.getX() + 0.03 - 0.01, 0.03, 0.0);
       
       setFootSwingGoalPointsBasedOnHatchDimensions();
       setFootSwingWayPointsBasedOnHatchDimensions();
@@ -171,10 +185,14 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
          changeRobotConfigurationCoordinated();
          counterHelper = timer.totalElapsed();
       }
-      
       else if(!madeSecondStepThroughHatch && (timer.totalElapsed() > (counterHelper + 3.5 * armTrajectoryTime)))
       {
          makeSecondStepThroughHatchOpeningCoordinated();
+         counterHelper = timer.totalElapsed();
+      }
+      else if(!finalState && (timer.totalElapsed() > (counterHelper + 3.5 * armTrajectoryTime)))
+      {
+         finalState();
       }
    }
    
@@ -222,10 +240,16 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
       
 //      // +++++ DEBUG +++++
       FramePose pelvisPose2 = new FramePose(pelvisZUpFrame);
+//      pelvisPose2.changeFrame(ReferenceFrame.getWorldFrame());
       pelvisPose2.changeFrame(ReferenceFrame.getWorldFrame());
       pelvisGoalLocation.setToZero();
       pelvisPose2.getPosition(pelvisGoalLocation);
-      PrintTools.debug(this, "setupForWalkFar pelvis = " + pelvisGoalLocation.toString());
+      PrintTools.debug(this, "intialize pelvis 1 = " + pelvisGoalLocation.toString());
+      
+      pelvisPose2.changeFrame(hatchFrame);
+      pelvisGoalLocation.setToZero();
+      pelvisPose2.getPosition(pelvisGoalLocation);
+      PrintTools.debug(this, "intialize pelvis 2 = " + pelvisGoalLocation.toString());
 //      chestFrame = referenceFrames.getChestFrame();
 //      chestOrientationFrame = new FrameOrientation(chestFrame, 0.0, Math.toRadians(17.0), 0.0);
 //      chestOrientationLocal = new Quaternion();
@@ -326,10 +350,16 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
       
 //      // +++++ DEBUG +++++
       FramePose pelvisPose2 = new FramePose(pelvisZUpFrame);
-      pelvisPose2.changeFrame(ReferenceFrame.getWorldFrame());
-      pelvisGoalLocation.setToZero();
-      pelvisPose2.getPosition(pelvisGoalLocation);  
-      PrintTools.debug(this, "firstStep pelvis = " + pelvisGoalLocation.toString());
+//    pelvisPose2.changeFrame(ReferenceFrame.getWorldFrame());
+    pelvisPose2.changeFrame(ReferenceFrame.getWorldFrame());
+    pelvisGoalLocation.setToZero();
+    pelvisPose2.getPosition(pelvisGoalLocation);
+    PrintTools.debug(this, "first step pelvis 1 = " + pelvisGoalLocation.toString());
+    
+    pelvisPose2.changeFrame(hatchFrame);
+    pelvisGoalLocation.setToZero();
+    pelvisPose2.getPosition(pelvisGoalLocation);
+    PrintTools.debug(this, "first step pelvis 2 = " + pelvisGoalLocation.toString());
 //      pelvisZUpFrame = referenceFrames.getPelvisZUpFrame();
 //      chestOrientationFrame = new FrameOrientation(pelvisZUpFrame, Math.toRadians(-7.0), Math.toRadians(25.0), Math.toRadians(0.0));
 //      chestOrientationPelvisZUp = new Quaternion();
@@ -388,10 +418,16 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
       
 //      // +++++ DEBUG +++++
       FramePose pelvisPose2 = new FramePose(pelvisZUpFrame);
-      pelvisPose2.changeFrame(ReferenceFrame.getWorldFrame());
-      pelvisGoalLocation.setToZero();
-      pelvisPose2.getPosition(pelvisGoalLocation);
-      PrintTools.debug(this, "transition pelvis = " + pelvisGoalLocation.toString());
+//    pelvisPose2.changeFrame(ReferenceFrame.getWorldFrame());
+    pelvisPose2.changeFrame(ReferenceFrame.getWorldFrame());
+    pelvisGoalLocation.setToZero();
+    pelvisPose2.getPosition(pelvisGoalLocation);
+    PrintTools.debug(this, "transition pelvis 1 = " + pelvisGoalLocation.toString());
+    
+    pelvisPose2.changeFrame(hatchFrame);
+    pelvisGoalLocation.setToZero();
+    pelvisPose2.getPosition(pelvisGoalLocation);
+    PrintTools.debug(this, "transition pelvis 2 = " + pelvisGoalLocation.toString());
 //      pelvisZUpFrame = referenceFrames.getPelvisZUpFrame();
 //      chestOrientationFrame = new FrameOrientation(pelvisZUpFrame, Math.toRadians(0.0), Math.toRadians(20.0), Math.toRadians(0.0));
 //      chestOrientationPelvisZUp = new Quaternion();
@@ -485,10 +521,16 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
       
 //      // +++++ DEBUG +++++
       FramePose pelvisPose2 = new FramePose(pelvisZUpFrame);
-      pelvisPose2.changeFrame(ReferenceFrame.getWorldFrame());
-      pelvisGoalLocation.setToZero();
-      pelvisPose2.getPosition(pelvisGoalLocation);
-      PrintTools.debug(this, "secondStep pelvis = " + pelvisGoalLocation.toString());
+//    pelvisPose2.changeFrame(ReferenceFrame.getWorldFrame());
+    pelvisPose2.changeFrame(ReferenceFrame.getWorldFrame());
+    pelvisGoalLocation.setToZero();
+    pelvisPose2.getPosition(pelvisGoalLocation);
+    PrintTools.debug(this, "second step pelvis 1 = " + pelvisGoalLocation.toString());
+    
+    pelvisPose2.changeFrame(hatchFrame);
+    pelvisGoalLocation.setToZero();
+    pelvisPose2.getPosition(pelvisGoalLocation);
+    PrintTools.debug(this, "second step pelvis 2 = " + pelvisGoalLocation.toString());
 //      chestOrientationAA = new AxisAngle(0.0, 1.0, 0.0, Math.toRadians(7.0)); // was 7.0
 //      chestOrientation = new Quaternion(chestOrientationAA);
 //      PrintTools.debug(this, chestOrientation.toString());
@@ -509,6 +551,21 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
 //      pelvisPose.getPose(pelvisGoalLocation, new Quaternion());
 //      PrintTools.debug(this, pelvisGoalLocation.toString());
 //      // ++++++ END ++++++
+   }
+   
+   public void finalState()
+   {     
+      finalState = true;
+         
+      // +++++ DEBUG +++++
+      ReferenceFrame pelvisZUpFrame = referenceFrames.getPelvisZUpFrame();
+      FramePose pelvisPose = new FramePose(pelvisZUpFrame);
+      pelvisPose.changeFrame(ReferenceFrame.getWorldFrame());
+      PrintTools.debug(this, "second step pelvis 1 = " + pelvisPose.getPosition().toString());
+    
+      pelvisPose.changeFrame(hatchFrame);
+      PrintTools.debug(this, "second step pelvis 2 = " + pelvisPose.getPosition().toString());
+      // ++++++ END ++++++
    }
    
    

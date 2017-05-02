@@ -318,8 +318,8 @@ root.PelvisOrientationTrajectoryBehavior*false*false
 root.PelvisTrajectoryBehavior*false*false
 root.SetLidarParametersBehavior*false*false
 root.WalkToLocationBehavior*false*false
+root.WalkToLocationBehavior.FootstepListBehavior*false*false
 root.AtlasWholeBodyInverseKinematicsBehavior*false*false
 root.FiducialDetectorBehaviorService*false*false
 root.FiducialDetectorBehaviorService.FiducialDetectorFromCameraImages*false*false
 root.WalkThroughHatchBehavior*false*false
-root.WalkThroughHatchBehavior.WalkToLocationBehavior*false*false

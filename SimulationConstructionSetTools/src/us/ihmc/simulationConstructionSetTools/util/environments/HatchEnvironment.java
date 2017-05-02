@@ -17,7 +17,6 @@ public class HatchEnvironment implements CommonAvatarEnvironmentInterface
 {
    private final CombinedTerrainObject3D combinedTerrainObject;
       
-   private static final int numberOfHatches = 4;
    private static final double HATCH_OPENING_WIDTH = .86 - 0.02; // 0.84
    private static final double HATCH_UPENING_HEIGHT = 1.7 - 0.15; // 1.55
    private static final double HATCH_UPENING_HEIGHT_OFF_GROUND = 0.20; //0.15; 20 w/ 0.5
@@ -25,21 +24,22 @@ public class HatchEnvironment implements CommonAvatarEnvironmentInterface
    private static final double SIDEWAY_OFFSET = 0.08; //0.5f; //1 + 0.08f;
    private static final double HATCH_THICKNESS = 0.05; //0.15; (maybe max at 0.13)
    
-   private static final double FORWARD_OFFSETS[] = {1.21, 2.21, 3.21, 4.21};
-   private static final double SIDEWAY_OFFSETS[] = {0.08, 0.08, 0.08, 0.08};
-   private static final double STEP_HEIGHTS[] = {0.10, 0.05, 0.15, 0.10};
-   private static final double OPENING_HEIGHTS[] = {1.55, 1.55, 1.55, 1.55};
-   private static final double OPENING_WIDTHS[] = {0.84, 0.84, 0.84, 0.84};
-   private static final double OPENING_THICKNESSES[] = {0.13, 0.16, 0.13, 0.13};
+   private static final int NUMBER_OF_HATCHES = 1;                               // Simulation values:
+   private static final double FORWARD_OFFSETS[] = {1.21, 3.71, 6.21, 8.71};     // {1.21, 3.71, 6.21, 8.71};
+   private static final double SIDEWAY_OFFSETS[] = {0.08, 1.08, 0.08, 0.08};     // {0.08, 1.08, 0.08, 0.08};
+   private static final double STEP_HEIGHTS[] = {0.15, 0.05, 0.20, 0.10};        // {0.15, 0.05, 0.20, 0.10};
+   private static final double OPENING_HEIGHTS[] = {1.60, 1.60, 1.60, 1.60};     // {1.55, 1.55, 1.55, 1.55};
+   private static final double OPENING_WIDTHS[] = {0.86, 0.86, 0.86, 0.86};      // {0.86, 0.86, 0.86, 0.86};
+   private static final double OPENING_THICKNESSES[] = {0.10, 0.10, 0.03, 0.10}; // {0.12, 0.12, 0.05, 0.12};
    
    public HatchEnvironment()
    {
       combinedTerrainObject = new CombinedTerrainObject3D(getClass().getSimpleName());
       combinedTerrainObject.addTerrainObject(setUpGround("Ground"));
       combinedTerrainObject.addTerrainObject(addHatch("IBims1Hatch", FORWARD_OFFSETS[0], SIDEWAY_OFFSETS[0], STEP_HEIGHTS[0], OPENING_HEIGHTS[0], OPENING_WIDTHS[0], OPENING_THICKNESSES[0]));
-      combinedTerrainObject.addTerrainObject(addHatch("IBims2Hatch", FORWARD_OFFSETS[1], SIDEWAY_OFFSETS[1], STEP_HEIGHTS[1], OPENING_HEIGHTS[1], OPENING_WIDTHS[1], OPENING_THICKNESSES[1]));
-      combinedTerrainObject.addTerrainObject(addHatch("IBims3Hatch", FORWARD_OFFSETS[2], SIDEWAY_OFFSETS[2], STEP_HEIGHTS[2], OPENING_HEIGHTS[2], OPENING_WIDTHS[2], OPENING_THICKNESSES[2]));
-      combinedTerrainObject.addTerrainObject(addHatch("IBims4Hatch", FORWARD_OFFSETS[3], SIDEWAY_OFFSETS[3], STEP_HEIGHTS[3], OPENING_HEIGHTS[3], OPENING_WIDTHS[3], OPENING_THICKNESSES[3]));
+//      combinedTerrainObject.addTerrainObject(addHatch("IBims2Hatch", FORWARD_OFFSETS[1], SIDEWAY_OFFSETS[1], STEP_HEIGHTS[1], OPENING_HEIGHTS[1], OPENING_WIDTHS[1], OPENING_THICKNESSES[1]));
+//      combinedTerrainObject.addTerrainObject(addHatch("IBims3Hatch", FORWARD_OFFSETS[2], SIDEWAY_OFFSETS[2], STEP_HEIGHTS[2], OPENING_HEIGHTS[2], OPENING_WIDTHS[2], OPENING_THICKNESSES[2]));
+//      combinedTerrainObject.addTerrainObject(addHatch("IBims4Hatch", FORWARD_OFFSETS[3], SIDEWAY_OFFSETS[3], STEP_HEIGHTS[3], OPENING_HEIGHTS[3], OPENING_WIDTHS[3], OPENING_THICKNESSES[3]));
    }
    
    private CombinedTerrainObject3D setUpGround(String name)
@@ -92,6 +92,11 @@ public class HatchEnvironment implements CommonAvatarEnvironmentInterface
    @Override
    public void addSelectableListenerToSelectables(SelectableObjectListener selectedListener)
    {
+   }
+   
+   public static int getNumberOfHatches()
+   {
+      return NUMBER_OF_HATCHES;
    }
    
    public static Point3D getHatchFrameOffset(int hatch)
