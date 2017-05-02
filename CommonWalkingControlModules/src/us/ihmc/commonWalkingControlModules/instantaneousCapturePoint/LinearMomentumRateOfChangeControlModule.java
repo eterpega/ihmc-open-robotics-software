@@ -1,11 +1,9 @@
 package us.ihmc.commonWalkingControlModules.instantaneousCapturePoint;
 
-import static us.ihmc.graphicsDescription.appearance.YoAppearance.Purple;
-
-import org.ejml.data.DenseMatrix64F;
-import org.ejml.ops.CommonOps;
+import static us.ihmc.graphicsDescription.appearance.YoAppearance.*;
 
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.MomentumRateCommand;
+import us.ihmc.commonWalkingControlModules.instantaneousCapturePoint.icpOptimization.ICPOptimizationController;
 import us.ihmc.commonWalkingControlModules.wrenchDistribution.WrenchDistributorTools;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition;
@@ -22,12 +20,12 @@ import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FramePoint2d;
 import us.ihmc.robotics.geometry.FrameVector;
 import us.ihmc.robotics.geometry.FrameVector2d;
-import us.ihmc.robotics.linearAlgebra.MatrixTools;
 import us.ihmc.robotics.math.frames.YoFrameConvexPolygon2d;
 import us.ihmc.robotics.math.frames.YoFramePoint2d;
 import us.ihmc.robotics.math.frames.YoFrameVector;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
+import us.ihmc.robotics.screwTheory.SelectionMatrix6D;
 import us.ihmc.robotics.screwTheory.SpatialForceVector;
 import us.ihmc.sensorProcessing.frames.ReferenceFrames;
 
@@ -50,9 +48,9 @@ public abstract class LinearMomentumRateOfChangeControlModule
 
    protected final MomentumRateCommand momentumRateCommand = new MomentumRateCommand();
    protected final SpatialForceVector desiredMomentumRate = new SpatialForceVector();
-   protected final DenseMatrix64F linearAndAngularZSelectionMatrix = CommonOps.identity(6);
-   protected final DenseMatrix64F linearXYSelectionMatrix = CommonOps.identity(6);
-   protected final DenseMatrix64F linearXYAndAngularZSelectionMatrix = CommonOps.identity(6);
+   protected final SelectionMatrix6D linearAndAngularZSelectionMatrix = new SelectionMatrix6D();
+   protected final SelectionMatrix6D linearXYSelectionMatrix = new SelectionMatrix6D();
+   protected final SelectionMatrix6D linearXYAndAngularZSelectionMatrix = new SelectionMatrix6D();
 
    protected double omega0 = 0.0;
    protected double totalMass;
@@ -125,17 +123,15 @@ public abstract class LinearMomentumRateOfChangeControlModule
       yoSafeAreaPolygon = new YoFrameConvexPolygon2d("yoSafeAreaPolygon", worldFrame, 10, registry);
       yoProjectionPolygon = new YoFrameConvexPolygon2d("yoProjectionPolygon", worldFrame, 10, registry);
 
-      MatrixTools.removeRow(linearAndAngularZSelectionMatrix, 0);
-      MatrixTools.removeRow(linearAndAngularZSelectionMatrix, 0);
+      linearAndAngularZSelectionMatrix.selectAngularX(false);
+      linearAndAngularZSelectionMatrix.selectAngularY(false);
 
-      MatrixTools.removeRow(linearXYSelectionMatrix, 5); // remove height
-      MatrixTools.removeRow(linearXYSelectionMatrix, 0);
-      MatrixTools.removeRow(linearXYSelectionMatrix, 0);
-      MatrixTools.removeRow(linearXYSelectionMatrix, 0);
+      linearXYSelectionMatrix.setToLinearSelectionOnly();
+      linearXYSelectionMatrix.selectLinearZ(false); // remove height
 
-      MatrixTools.removeRow(linearXYAndAngularZSelectionMatrix, 5); // remove height
-      MatrixTools.removeRow(linearXYAndAngularZSelectionMatrix, 0);
-      MatrixTools.removeRow(linearXYAndAngularZSelectionMatrix, 0);
+      linearXYAndAngularZSelectionMatrix.setToLinearSelectionOnly();
+      linearXYAndAngularZSelectionMatrix.selectLinearZ(false); // remove height
+      linearXYAndAngularZSelectionMatrix.selectAngularZ(true);
 
       angularMomentumRateWeight.set(defaultAngularMomentumRateWeight);
       linearMomentumRateWeight.set(defaultLinearMomentumRateWeight);
@@ -377,4 +373,6 @@ public abstract class LinearMomentumRateOfChangeControlModule
    public abstract boolean getUpcomingFootstepSolution(Footstep footstepToPack);
 
    public abstract void submitRemainingTimeInSwingUnderDisturbance(double remainingTimeForSwing);
+
+   public abstract ICPOptimizationController getICPOptimizationController();
 }

@@ -25,6 +25,7 @@ public enum HumanoidBehaviorType
    DEBUG_PARTIAL_FOOTHOLDS,
    WALK_TO_GOAL_ANYTIME_PLANNER,
    TEST_ICP_OPTIMIZATION,
+   SOLARPANEL_BEHAVIOR,
    TEST_HATCH_WALKTHROUGH;
 
    public static final HumanoidBehaviorType[] values = values();

@@ -8,7 +8,6 @@ import us.ihmc.commonWalkingControlModules.controllerCore.command.feedbackContro
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.InverseDynamicsCommand;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Vector3D;
-import us.ihmc.robotics.MathTools;
 import us.ihmc.robotics.controllers.YoSE3PIDGainsInterface;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
@@ -34,8 +33,6 @@ public abstract class AbstractUnconstrainedState extends AbstractFootControlStat
 
    private final SpatialFeedbackControlCommand spatialFeedbackControlCommand = new SpatialFeedbackControlCommand();
 
-   protected boolean trajectoryWasReplanned;
-
    protected final LegSingularityAndKneeCollapseAvoidanceControlModule legSingularityAndKneeCollapseAvoidanceControlModule;
    private final LegJointLimitAvoidanceControlModule legJointLimitAvoidanceControlModule;
 
@@ -52,8 +49,6 @@ public abstract class AbstractUnconstrainedState extends AbstractFootControlStat
 
    private final ReferenceFrame ankleFrame;
    private final PoseReferenceFrame controlFrame;
-   
-   private final DoubleYoVariable scaleFactor;
 
    public AbstractUnconstrainedState(ConstraintType constraintType, FootControlHelper footControlHelper, YoSE3PIDGainsInterface gains,
          YoVariableRegistry registry)
@@ -70,8 +65,6 @@ public abstract class AbstractUnconstrainedState extends AbstractFootControlStat
       yoDesiredPosition.setToNaN();
       yoSetDesiredAccelerationToZero = new BooleanYoVariable(namePrefix + "SetDesiredAccelerationToZero", registry);
       yoSetDesiredVelocityToZero = new BooleanYoVariable(namePrefix + "SetDesiredVelocityToZero", registry);
-
-      scaleFactor = new DoubleYoVariable(namePrefix + "ScaleFactor", registry);
 
       scaleSecondaryJointWeights = new BooleanYoVariable(namePrefix + "ScaleSecondaryJointWeights", registry);
       secondaryJointWeightScale = new DoubleYoVariable(namePrefix + "SecondaryJointWeightScale", registry);
@@ -177,12 +170,6 @@ public abstract class AbstractUnconstrainedState extends AbstractFootControlStat
       {
          desiredLinearAcceleration.setToZero();
       }
-      
-      double angle = 2.0 * Math.PI * getTimeInCurrentState() / 1.2 - Math.PI; // 0.6 for flat walking
-      double clampedAngle = MathTools.clamp(angle, -Math.PI, Math.PI);
-      double scaleFactor = 1.0; //(-1.0/4.0*Math.cos(clampedAngle) + 1.0) / 2.0;
-      this.scaleFactor.set(scaleFactor);
-      linearWeight.scale(scaleFactor);
 
       spatialFeedbackControlCommand.set(desiredPosition, desiredLinearVelocity, desiredLinearAcceleration);
       spatialFeedbackControlCommand.set(desiredOrientation, desiredAngularVelocity, desiredAngularAcceleration);
@@ -217,8 +204,6 @@ public abstract class AbstractUnconstrainedState extends AbstractFootControlStat
       super.doTransitionOutOfAction();
       yoDesiredPosition.setToNaN();
       yoDesiredLinearVelocity.setToNaN();
-      trajectoryWasReplanned = false;
-      scaleFactor.set(0.0);
    }
 
    @Override

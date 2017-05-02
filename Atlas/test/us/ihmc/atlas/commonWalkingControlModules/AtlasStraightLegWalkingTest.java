@@ -129,24 +129,30 @@ public class AtlasStraightLegWalkingTest extends AvatarStraightLegWalkingTest
                }
 
                @Override
+               public double[] getSwingWaypointProportions()
+               {
+                  return new double[] {0.15, 0.80};
+               }
+
+               @Override
                public AtlasStraightLegWalkingParameters getStraightLegWalkingParameters()
                {
                   return new AtlasStraightLegWalkingParameters(false)
                   {
                      @Override
-                     public double getSpeedForStanceLegStraightening()
+                     public double getSpeedForSupportKneeStraightening()
                      {
                         return 1.0;
                      }
 
                      @Override
-                     public double getPercentOfSwingToStraightenLeg()
+                     public double getFractionOfSwingToStraightenLeg()
                      {
                         return 0.8;
                      }
 
                      @Override
-                     public double getPercentOfTransferToCollapseLeg()
+                     public double getFractionOfTransferToCollapseLeg()
                      {
                         return 0.8;
                      }
@@ -164,37 +170,37 @@ public class AtlasStraightLegWalkingTest extends AvatarStraightLegWalkingTest
                      }
 
                      @Override
-                     public double getStraightLegPrivilegedConfigurationGain()
+                     public double getKneeStraightLegPrivilegedConfigurationGain()
                      {
                         return 50.0;
                      }
 
                      @Override
-                     public double getStraightLegPrivilegedVelocityGain()
+                     public double getKneeStraightLegPrivilegedVelocityGain()
                      {
                         return 4.0; // 6.0;
                      }
 
                      @Override
-                     public double getStraightLegPrivilegedWeight()
+                     public double getKneeStraightLegPrivilegedWeight()
                      {
                         return 100.0;
                      }
 
                      @Override
-                     public double getBentLegPrivilegedConfigurationGain()
+                     public double getKneeBentLegPrivilegedConfigurationGain()
                      {
                         return 150.0;
                      }
 
                      @Override
-                     public double getBentLegPrivilegedVelocityGain()
+                     public double getKneeBentLegPrivilegedVelocityGain()
                      {
                         return 4.0;
                      }
 
                      @Override
-                     public double getBentLegPrivilegedWeight()
+                     public double getKneeBentLegPrivilegedWeight()
                      {
                         return 10.0;
                      }
@@ -261,7 +267,18 @@ public class AtlasStraightLegWalkingTest extends AvatarStraightLegWalkingTest
                @Override
                public double getMinTimeToSpendOnExitCMPInSingleSupport()
                {
-                  return 0.2;
+                  return 0.1;
+               }
+
+               @Override
+               public double getExitCMPForwardSafetyMarginOnToes()
+               {
+                  return 0.0;
+               }
+
+               public double getExitCMPInsideOffset()
+               {
+                  return 0.015;
                }
 
                @Override

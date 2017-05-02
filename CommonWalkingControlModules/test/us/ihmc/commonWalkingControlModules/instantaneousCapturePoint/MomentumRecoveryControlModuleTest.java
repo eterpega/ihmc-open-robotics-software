@@ -37,7 +37,6 @@ import us.ihmc.robotics.geometry.FramePoint2d;
 import us.ihmc.robotics.geometry.FramePose;
 import us.ihmc.robotics.geometry.FrameVector2d;
 import us.ihmc.robotics.math.frames.YoFrameConvexPolygon2d;
-import us.ihmc.robotics.referenceFrames.PoseReferenceFrame;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
@@ -325,7 +324,7 @@ public class MomentumRecoveryControlModuleTest
       RobotSide stepSide = RobotSide.RIGHT;
       FrameConvexPolygon2d supportPolygon = makeSupportPolygon(stepSide == RobotSide.RIGHT, stepSide == RobotSide.LEFT);
       FramePose stepPose = new FramePose(worldFrame, rightFootPosition, new Quaternion());
-      Footstep footStep = new Footstep(feet.get(stepSide), stepSide, soleFrames.get(stepSide), new PoseReferenceFrame("stepFrame", stepPose));
+      Footstep footStep = new Footstep(feet.get(stepSide), stepSide, stepPose);
 
       momentumRecoveryControlModule.setSupportSide(RobotSide.LEFT);
       momentumRecoveryControlModule.setICPError(new FrameVector2d(worldFrame));
@@ -365,7 +364,7 @@ public class MomentumRecoveryControlModuleTest
       RobotSide stepSide = RobotSide.RIGHT;
       FrameConvexPolygon2d supportPolygon = makeSupportPolygon(stepSide == RobotSide.RIGHT, stepSide == RobotSide.LEFT);
       FramePose stepPose = new FramePose(worldFrame, rightFootPosition, new Quaternion());
-      Footstep footStep = new Footstep(feet.get(stepSide), stepSide, soleFrames.get(stepSide), new PoseReferenceFrame("stepFrame", stepPose));
+      Footstep footStep = new Footstep(feet.get(stepSide), stepSide, stepPose);
 
       momentumRecoveryControlModule.setSupportSide(RobotSide.LEFT);
       momentumRecoveryControlModule.setICPError(new FrameVector2d(worldFrame));
@@ -432,7 +431,7 @@ public class MomentumRecoveryControlModuleTest
       for (RobotSide robotSide : RobotSide.values)
       {
          String prefix = robotSide.getLowerCaseName();
-         SixDoFJoint footJoint = new SixDoFJoint(prefix + "FootJoint", elevator, worldFrame);
+         SixDoFJoint footJoint = new SixDoFJoint(prefix + "FootJoint", elevator, elevator.getBodyFixedFrame());
          RigidBody foot = ScrewTools.addRigidBody(prefix + "Foot", footJoint, new Matrix3D(), 1.0, new Vector3D());
          ReferenceFrame ankleFrame = foot.getBodyFixedFrame();
          ReferenceFrame soleFrame = ReferenceFrame.constructFrameWithUnchangingTransformToParent(prefix + "Sole", ankleFrame, new RigidBodyTransform());

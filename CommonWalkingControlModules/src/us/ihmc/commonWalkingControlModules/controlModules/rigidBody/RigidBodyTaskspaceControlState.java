@@ -2,13 +2,9 @@ package us.ihmc.commonWalkingControlModules.controlModules.rigidBody;
 
 import java.util.Collection;
 
-import org.ejml.data.DenseMatrix64F;
-import org.ejml.ops.CommonOps;
-
 import us.ihmc.commonWalkingControlModules.controllerCore.command.feedbackController.FeedbackControlCommand;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.feedbackController.SpatialFeedbackControlCommand;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.InverseDynamicsCommand;
-import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics.PrivilegedConfigurationCommand;
 import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Vector3D;
@@ -21,7 +17,6 @@ import us.ihmc.humanoidRobotics.communication.controllerAPI.command.SO3Trajector
 import us.ihmc.humanoidRobotics.communication.packets.ExecutionMode;
 import us.ihmc.robotics.controllers.YoOrientationPIDGainsInterface;
 import us.ihmc.robotics.controllers.YoPositionPIDGainsInterface;
-import us.ihmc.robotics.controllers.YoSymmetricSE3PIDGains;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
 import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
@@ -30,7 +25,6 @@ import us.ihmc.robotics.geometry.FrameOrientation;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FramePose;
 import us.ihmc.robotics.geometry.FrameVector;
-import us.ihmc.robotics.linearAlgebra.MatrixTools;
 import us.ihmc.robotics.lists.RecyclingArrayDeque;
 import us.ihmc.robotics.math.frames.YoFrameOrientation;
 import us.ihmc.robotics.math.frames.YoFramePoint;
@@ -42,7 +36,7 @@ import us.ihmc.robotics.math.trajectories.waypoints.MultipleWaypointsPositionTra
 import us.ihmc.robotics.referenceFrames.PoseReferenceFrame;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.screwTheory.RigidBody;
-import us.ihmc.robotics.screwTheory.Twist;
+import us.ihmc.robotics.screwTheory.SelectionMatrix6D;
 
 public class RigidBodyTaskspaceControlState extends RigidBodyControlState
 {
@@ -51,11 +45,11 @@ public class RigidBodyTaskspaceControlState extends RigidBodyControlState
    private static final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
 
    private final SpatialFeedbackControlCommand spatialFeedbackControlCommand = new SpatialFeedbackControlCommand();
-   private final PrivilegedConfigurationCommand privilegedConfigurationCommand = new PrivilegedConfigurationCommand();
-   private final DenseMatrix64F selectionMatrix = new DenseMatrix64F(Twist.SIZE, Twist.SIZE);
+   private final SelectionMatrix6D selectionMatrix = new SelectionMatrix6D();
 
-   private final YoOrientationPIDGainsInterface orientationGains;
-   private final YoPositionPIDGainsInterface positionGains;
+   private YoOrientationPIDGainsInterface orientationGains = null;
+   private YoPositionPIDGainsInterface positionGains = null;
+
    private final YoFrameVector yoAngularWeight;
    private final YoFrameVector yoLinearWeight;
    private final Vector3D angularWeight = new Vector3D();
@@ -85,6 +79,8 @@ public class RigidBodyTaskspaceControlState extends RigidBodyControlState
 
    private final RecyclingArrayDeque<FrameSE3TrajectoryPoint> pointQueue = new RecyclingArrayDeque<>(maxPoints, FrameSE3TrajectoryPoint.class);
    private final FrameSE3TrajectoryPoint lastPointAdded = new FrameSE3TrajectoryPoint();
+
+   private final FramePose initialPose = new FramePose();
 
    private final ReferenceFrame baseFrame;
    private final ReferenceFrame bodyFrame;
@@ -117,9 +113,6 @@ public class RigidBodyTaskspaceControlState extends RigidBodyControlState
 
       trackingOrientation = new BooleanYoVariable(prefix + "TrackingOrientation", registry);
       trackingPosition = new BooleanYoVariable(prefix + "TrackingPosition", registry);
-
-      orientationGains = new YoSymmetricSE3PIDGains(prefix + "OrientationGains", registry);
-      positionGains = new YoSymmetricSE3PIDGains(prefix + "PositionGains", registry);
 
       numberOfPointsInQueue = new IntegerYoVariable(prefix + "NumberOfPointsInQueue", registry);
       numberOfPointsInGenerator = new IntegerYoVariable(prefix + "NumberOfPointsInGenerator", registry);
@@ -219,25 +212,10 @@ public class RigidBodyTaskspaceControlState extends RigidBodyControlState
 
    public void setGains(YoOrientationPIDGainsInterface orientationGains, YoPositionPIDGainsInterface positionGains)
    {
-      if (orientationGains != null)
-      {
-         this.orientationGains.set(orientationGains);
-         hasOrientaionGains.set(true);
-      }
-      else
-      {
-         hasOrientaionGains.set(false);
-      }
-
-      if (positionGains != null)
-      {
-         this.positionGains.set(positionGains);
-         hasPositionGains.set(true);
-      }
-      else
-      {
-         hasPositionGains.set(false);
-      }
+      this.orientationGains = orientationGains;
+      this.positionGains = positionGains;
+      hasOrientaionGains.set(orientationGains != null);
+      hasPositionGains.set(positionGains != null);
    }
 
    @Override
@@ -348,36 +326,95 @@ public class RigidBodyTaskspaceControlState extends RigidBodyControlState
       hideGraphics();
    }
 
-   public void holdOrientation()
+   public void holdCurrent()
    {
       clear();
       resetLastCommandId();
+      setTrajectoryStartTimeToCurrentTime();
       queueInitialPoint();
 
-      selectionMatrix.reshape(Twist.SIZE, Twist.SIZE);
-      CommonOps.setIdentity(selectionMatrix);
-      for (int i = 0; i < 3; i++)
-         MatrixTools.removeRow(selectionMatrix, 3);
-
-      trajectoryStopped.set(false);
-      trajectoryDone.set(false);
-      trackingOrientation.set(true);
-      trackingPosition.set(false);
+      if (hasOrientaionGains.getBooleanValue() && hasPositionGains.getBooleanValue())
+      {
+         selectionMatrix.resetSelection();
+         trajectoryStopped.set(false);
+         trajectoryDone.set(false);
+         trackingOrientation.set(true);
+         trackingPosition.set(true);
+      }
+      else if (hasOrientaionGains.getBooleanValue())
+      {
+         selectionMatrix.setToAngularSelectionOnly();
+         trajectoryStopped.set(false);
+         trajectoryDone.set(false);
+         trackingOrientation.set(true);
+         trackingPosition.set(false);
+      }
    }
 
-   public void holdPose()
+   public void goToPoseFromCurrent(FramePose homePose, double trajectoryTime)
    {
       clear();
       resetLastCommandId();
+      trajectoryFrame = baseFrame;
+      setTrajectoryStartTimeToCurrentTime();
       queueInitialPoint();
 
-      selectionMatrix.reshape(Twist.SIZE, Twist.SIZE);
-      CommonOps.setIdentity(selectionMatrix);
+      homePose.changeFrame(trajectoryFrame);
+      FrameSE3TrajectoryPoint homePoint = pointQueue.addLast();
+      homePoint.setToZero(trajectoryFrame);
+      homePoint.setTime(trajectoryTime);
+      homePoint.setPosition(homePose.getPosition());
+      homePoint.setOrientation(homePose.getOrientation());
 
-      trajectoryStopped.set(false);
-      trajectoryDone.set(false);
-      trackingOrientation.set(true);
-      trackingPosition.set(true);
+      if (hasOrientaionGains.getBooleanValue() && hasPositionGains.getBooleanValue())
+      {
+         selectionMatrix.resetSelection();
+         trajectoryStopped.set(false);
+         trajectoryDone.set(false);
+         trackingOrientation.set(true);
+         trackingPosition.set(true);
+      }
+      else if (hasOrientaionGains.getBooleanValue())
+      {
+         selectionMatrix.setToAngularSelectionOnly();
+         trajectoryStopped.set(false);
+         trajectoryDone.set(false);
+         trackingOrientation.set(true);
+         trackingPosition.set(false);
+      }
+   }
+
+   public void goToPose(FramePose desiredPose, FramePose initialPose, double trajectoryTime)
+   {
+      clear();
+      resetLastCommandId();
+      trajectoryFrame = baseFrame;
+      setTrajectoryStartTimeToCurrentTime();
+      queueInitialPoint(initialPose);
+
+      desiredPose.changeFrame(trajectoryFrame);
+      FrameSE3TrajectoryPoint homePoint = pointQueue.addLast();
+      homePoint.setToZero(trajectoryFrame);
+      homePoint.setTime(trajectoryTime);
+      homePoint.setPosition(desiredPose.getPosition());
+      homePoint.setOrientation(desiredPose.getOrientation());
+
+      if (hasOrientaionGains.getBooleanValue() && hasPositionGains.getBooleanValue())
+      {
+         selectionMatrix.resetSelection();
+         trajectoryStopped.set(false);
+         trajectoryDone.set(false);
+         trackingOrientation.set(true);
+         trackingPosition.set(true);
+      }
+      else if (hasOrientaionGains.getBooleanValue())
+      {
+         selectionMatrix.setToAngularSelectionOnly();
+         trajectoryStopped.set(false);
+         trajectoryDone.set(false);
+         trackingOrientation.set(true);
+         trackingPosition.set(false);
+      }
    }
 
    private void setControlFrame(ReferenceFrame controlFrame)
@@ -395,7 +432,12 @@ public class RigidBodyTaskspaceControlState extends RigidBodyControlState
       spatialFeedbackControlCommand.setControlFrameFixedInEndEffector(controlFramePose);
    }
 
-   public boolean handleOrientationTrajectoryCommand(SO3TrajectoryControllerCommand<?, ?> command)
+   public ReferenceFrame getControlFrame()
+   {
+      return controlFrame;
+   }
+
+   public boolean handleOrientationTrajectoryCommand(SO3TrajectoryControllerCommand<?, ?> command, FramePose initialPose)
    {
       if (!checkOrientationGainsAndWeights())
          return false;
@@ -412,7 +454,7 @@ public class RigidBodyTaskspaceControlState extends RigidBodyControlState
 
       if (command.useCustomControlFrame())
       {
-         command.packControlFramePose(controlFrameTransform);
+         command.getControlFramePose(controlFrameTransform);
          setControlFramePose(controlFrameTransform);
       }
       else
@@ -425,7 +467,7 @@ public class RigidBodyTaskspaceControlState extends RigidBodyControlState
          clear();
          trajectoryFrame = command.getTrajectoryFrame();
          if (command.getTrajectoryPoint(0).getTime() > 0.0)
-            queueInitialPoint();
+            queueInitialPoint(initialPose);
       }
       else if(command.getTrajectoryFrame() != trajectoryFrame)
       {
@@ -442,17 +484,14 @@ public class RigidBodyTaskspaceControlState extends RigidBodyControlState
             return false;
       }
 
-      selectionMatrix.reshape(Twist.SIZE, Twist.SIZE);
-      CommonOps.setIdentity(selectionMatrix);
-      for (int i = 0; i < 3; i++)
-         MatrixTools.removeRow(selectionMatrix, 3);
+      selectionMatrix.setToAngularSelectionOnly();
 
       trackingOrientation.set(true);
       trackingPosition.set(false);
       return true;
    }
 
-   public boolean handlePoseTrajectoryCommand(SE3TrajectoryControllerCommand<?, ?> command)
+   public boolean handlePoseTrajectoryCommand(SE3TrajectoryControllerCommand<?, ?> command, FramePose initialPose)
    {
       if (!checkPoseGainsAndWeights())
          return false;
@@ -469,7 +508,7 @@ public class RigidBodyTaskspaceControlState extends RigidBodyControlState
 
       if (command.useCustomControlFrame())
       {
-         command.packControlFramePose(controlFrameTransform);
+         command.getControlFramePose(controlFrameTransform);
          setControlFramePose(controlFrameTransform);
       }
       else
@@ -482,7 +521,7 @@ public class RigidBodyTaskspaceControlState extends RigidBodyControlState
          clear();
          trajectoryFrame = command.getTrajectoryFrame();
          if (command.getTrajectoryPoint(0).getTime() > 1.0e-5)
-            queueInitialPoint();
+            queueInitialPoint(initialPose);
       }
       else if(command.getTrajectoryFrame() != trajectoryFrame)
       {
@@ -499,8 +538,7 @@ public class RigidBodyTaskspaceControlState extends RigidBodyControlState
             return false;
       }
 
-      selectionMatrix.reshape(Twist.SIZE, Twist.SIZE);
-      CommonOps.setIdentity(selectionMatrix);
+      selectionMatrix.resetSelection();
 
       trackingOrientation.set(true);
       trackingPosition.set(true);
@@ -522,11 +560,16 @@ public class RigidBodyTaskspaceControlState extends RigidBodyControlState
    @Override
    public InverseDynamicsCommand<?> getInverseDynamicsCommand()
    {
-      return privilegedConfigurationCommand;
+      return null;
    }
 
    @Override
    public FeedbackControlCommand<?> getFeedbackControlCommand()
+   {
+      return spatialFeedbackControlCommand;
+   }
+
+   public SpatialFeedbackControlCommand getSpatialFeedbackControlCommand()
    {
       return spatialFeedbackControlCommand;
    }
@@ -589,12 +632,20 @@ public class RigidBodyTaskspaceControlState extends RigidBodyControlState
       return true;
    }
 
+   private void queueInitialPoint(FramePose initialPose)
+   {
+      initialPose.changeFrame(trajectoryFrame);
+      FrameSE3TrajectoryPoint initialPoint = pointQueue.addLast();
+      initialPoint.setToZero(trajectoryFrame);
+      initialPoint.setTime(0.0);
+      initialPoint.setPosition(initialPose.getPosition());
+      initialPoint.setOrientation(initialPose.getOrientation());
+   }
+
    private void queueInitialPoint()
    {
-      FrameSE3TrajectoryPoint point = pointQueue.addLast();
-      point.setToZero(controlFrame);
-      point.setTime(0.0);
-      point.changeFrame(trajectoryFrame);
+      initialPose.setToZero(controlFrame);
+      queueInitialPoint(initialPose);
    }
 
    private boolean atCapacityLimit()
@@ -607,6 +658,7 @@ public class RigidBodyTaskspaceControlState extends RigidBodyControlState
       return false;
    }
 
+   @Override
    public void clear()
    {
       orientationTrajectoryGenerator.clear();

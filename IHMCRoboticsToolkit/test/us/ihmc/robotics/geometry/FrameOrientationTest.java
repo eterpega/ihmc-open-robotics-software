@@ -10,6 +10,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.continuousIntegration.IntegrationCategory;
 import us.ihmc.euclid.axisAngle.AxisAngle;
 import us.ihmc.euclid.tools.EuclidCoreRandomTools;
 import us.ihmc.euclid.tools.EuclidCoreTestTools;
@@ -33,8 +34,7 @@ public class FrameOrientationTest
       testTransform.setRotationRollAndZeroTranslation(0.2);
       testTransform.setRotationPitchAndZeroTranslation(0.6);
       testTransform.setRotationYawAndZeroTranslation(0.8);
-      testFrame = ReferenceFrame.constructFrameWithUnchangingTransformToParent("testFrame", ReferenceFrame.getWorldFrame(), new RigidBodyTransform(), false, false,
-              false);
+      testFrame = ReferenceFrame.constructFrameWithUnchangingTransformToParent("testFrame", ReferenceFrame.getWorldFrame(), new RigidBodyTransform());
    }
 
    @After
@@ -253,7 +253,7 @@ public class FrameOrientationTest
 //      fail("Not yet implemented");    // TODO
 //   }
 
-   @ContinuousIntegrationTest(estimatedDuration = 0.5)
+   @ContinuousIntegrationTest(estimatedDuration = 0.5, categoriesOverride = {IntegrationCategory.FLAKY})
    @Test(timeout=1000)
    public void testApplyTransform()
    {

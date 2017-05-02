@@ -169,15 +169,15 @@ public class StepAdjustmentExampleGraphic
       icpPlanner.setOmega0(omega0.getDoubleValue());
 
       icpOptimizationController = new ICPOptimizationController(capturePointPlannerParameters, icpOptimizationParameters, walkingControllerParameters, bipedSupportPolygons,
-            contactableFeet, controlDT, registry, yoGraphicsListRegistry);
+            contactableFeet, 0.0, -9.81, controlDT, registry, yoGraphicsListRegistry);
 
       RobotSide currentSide = RobotSide.LEFT;
       for (int i = 0; i < numberOfFootstepsToCreate; i++)
       {
          currentSide = currentSide.getOppositeSide();
 
-         plannedFootsteps.add(new Footstep(contactableFeet.get(currentSide).getRigidBody(), currentSide, contactableFeet.get(currentSide).getSoleFrame()));
-         footstepSolutions.add(new Footstep(contactableFeet.get(currentSide).getRigidBody(), currentSide, contactableFeet.get(currentSide).getSoleFrame()));
+         plannedFootsteps.add(new Footstep(contactableFeet.get(currentSide).getRigidBody(), currentSide));
+         footstepSolutions.add(new Footstep(contactableFeet.get(currentSide).getRigidBody(), currentSide));
       }
 
 
@@ -289,7 +289,7 @@ public class StepAdjustmentExampleGraphic
       midFeetZUpFrame.update();
       bipedSupportPolygons = new BipedSupportPolygons(ankleZUpFrames, midFeetZUpFrame, ankleZUpFrames, registry, yoGraphicsListRegistry);
 
-      footstepTestHelper = new FootstepTestHelper(contactableFeet, ankleFrames);
+      footstepTestHelper = new FootstepTestHelper(contactableFeet);
 
    }
 
@@ -1469,6 +1469,11 @@ public class StepAdjustmentExampleGraphic
             return 5.0;
          }
 
+         @Override public double getAngularMomentumMinimizationWeight()
+         {
+            return 500.0;
+         }
+
          @Override public boolean useFeedbackRegularization()
          {
             return true;
@@ -1477,6 +1482,11 @@ public class StepAdjustmentExampleGraphic
          @Override public boolean useStepAdjustment()
          {
             return true;
+         }
+
+         @Override public boolean useAngularMomentum()
+         {
+            return false;
          }
 
          @Override public boolean useFootstepRegularization()
@@ -1515,25 +1525,25 @@ public class StepAdjustmentExampleGraphic
          }
 
          @Override
-         public double getDoubleSupportMaxCMPForwardExit()
+         public double getDoubleSupportMaxCoPForwardExit()
          {
             return 0;
          }
 
          @Override
-         public double getDoubleSupportMaxCMPLateralExit()
+         public double getDoubleSupportMaxCoPLateralExit()
          {
             return 0;
          }
 
          @Override
-         public double getSingleSupportMaxCMPForwardExit()
+         public double getSingleSupportMaxCoPForwardExit()
          {
             return 0;
          }
 
          @Override
-         public double getSingleSupportMaxCMPLateralExit()
+         public double getSingleSupportMaxCoPLateralExit()
          {
             return 0;
          }

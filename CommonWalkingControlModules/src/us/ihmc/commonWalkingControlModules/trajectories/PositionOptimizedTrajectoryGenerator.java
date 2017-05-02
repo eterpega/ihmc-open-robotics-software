@@ -39,7 +39,7 @@ import us.ihmc.robotics.referenceFrames.ReferenceFrame;
  * @author gwiedebach
  *
  */
-public class PositionOptimizedTrajectoryGenerator implements WaypointTrajectoryGenerator
+public class PositionOptimizedTrajectoryGenerator
 {
    public static final int dimensions = 3;
    public static final PolynomialOrder order = PolynomialOrder.ORDER3;
@@ -215,7 +215,6 @@ public class PositionOptimizedTrajectoryGenerator implements WaypointTrajectoryG
     * @param finalPosition
     * @param finalVelocity
     */
-   @Override
    public void setEndpointConditions(FramePoint initialPosition, FrameVector initialVelocity, FramePoint finalPosition, FrameVector finalVelocity)
    {
       this.initialPosition.setIncludingFrame(initialPosition);
@@ -244,7 +243,6 @@ public class PositionOptimizedTrajectoryGenerator implements WaypointTrajectoryG
     *
     * @param waypointPositions
     */
-   @Override
    public void setWaypoints(ArrayList<FramePoint> waypointPositions)
    {
       if (waypointPositions.size() > waypointTimes.size())
@@ -274,7 +272,6 @@ public class PositionOptimizedTrajectoryGenerator implements WaypointTrajectoryG
     * class is used as an actual trajectory or just to compute optimal waypoint times and
     * velocities.
     */
-   @Override
    public void initialize()
    {
       if (initialPosition.containsNaN())
@@ -326,6 +323,21 @@ public class PositionOptimizedTrajectoryGenerator implements WaypointTrajectoryG
 
       trajectoryViz.showGraphic();
    }
+   
+   /**
+    * Attempt at improving the trajectory if iterative improvement is desired.
+    * @return whether an optimization step was done or not.
+    */
+   public boolean doOptimizationUpdate()
+   {
+      if (!hasConverged.getBooleanValue())
+      {
+         hasConverged.set(optimizer.doFullTimeUpdate());
+         updateVariablesFromOptimizer();
+      }
+      
+      return !hasConverged();
+   }
 
    /**
     * Evaluates the trajectory at the given dimensionless time. Time is assumed to go from 0.0 at
@@ -333,15 +345,9 @@ public class PositionOptimizedTrajectoryGenerator implements WaypointTrajectoryG
     *
     * @param time
     */
-   @Override
    public void compute(double time)
    {
-      if (!hasConverged.getBooleanValue())
-      {
-         hasConverged.set(optimizer.doFullTimeUpdate());
-         updateVariablesFromOptimizer();
-      }
-
+      doOptimizationUpdate();
       isDone.set(time > 1.0);
 
       if (isDone())
@@ -403,31 +409,26 @@ public class PositionOptimizedTrajectoryGenerator implements WaypointTrajectoryG
          waypointVelocityToPack.set(Direction.values[d], this.waypointVelocity.get(d));
    }
 
-   @Override
    public boolean isDone()
    {
       return isDone.getBooleanValue();
    }
 
-   @Override
    public void getPosition(FramePoint positionToPack)
    {
       desiredPosition.getFrameTupleIncludingFrame(positionToPack);
    }
 
-   @Override
    public void getVelocity(FrameVector velocityToPack)
    {
       desiredVelocity.getFrameTupleIncludingFrame(velocityToPack);
    }
 
-   @Override
    public void getAcceleration(FrameVector accelerationToPack)
    {
       desiredAcceleration.getFrameTupleIncludingFrame(accelerationToPack);
    }
 
-   @Override
    public void getLinearData(FramePoint positionToPack, FrameVector velocityToPack, FrameVector accelerationToPack)
    {
       getPosition(positionToPack);
@@ -435,7 +436,6 @@ public class PositionOptimizedTrajectoryGenerator implements WaypointTrajectoryG
       getAcceleration(accelerationToPack);
    }
 
-   @Override
    public void informDone()
    {
       desiredPosition.setToZero(true);
@@ -443,7 +443,6 @@ public class PositionOptimizedTrajectoryGenerator implements WaypointTrajectoryG
       desiredAcceleration.setToZero(true);
    }
 
-   @Override
    public void showVisualization()
    {
       if (trajectoryViz == null)
@@ -451,7 +450,6 @@ public class PositionOptimizedTrajectoryGenerator implements WaypointTrajectoryG
       trajectoryViz.showGraphic();
    }
 
-   @Override
    public void hideVisualization()
    {
       if (trajectoryViz == null)
