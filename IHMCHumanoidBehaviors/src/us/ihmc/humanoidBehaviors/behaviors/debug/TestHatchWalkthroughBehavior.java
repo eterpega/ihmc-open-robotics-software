@@ -18,7 +18,7 @@ import us.ihmc.humanoidRobotics.communication.packets.walking.ChestTrajectoryMes
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataListMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage;
-import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage.FootstepOrigin;
+//import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage.FootstepOrigin;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepStatus;
 import us.ihmc.humanoidRobotics.communication.packets.walking.PelvisHeightTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.PelvisOrientationTrajectoryMessage;
@@ -326,7 +326,7 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
       stepPose.getPose(location, orientation);
 
       FootstepDataMessage footstepData = new FootstepDataMessage(RobotSide.RIGHT, location, orientation);
-      footstepData.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
+//      footstepData.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
       
 
       wayPointPose1.changeFrame(ReferenceFrame.getWorldFrame());
@@ -337,7 +337,7 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
       wayPointPose2.getPose(locationWayPoint2, new Quaternion());
       
       footstepData.setTrajectoryType(TrajectoryType.CUSTOM);
-      footstepData.setTrajectoryWaypoints(new Point3D[] {locationWayPoint1, locationWayPoint2});
+      footstepData.setCustomPositionWaypoints(new Point3D[] {locationWayPoint1, locationWayPoint2});
       footsteps.add(footstepData);
 
       
@@ -498,7 +498,7 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
       Quaternion orientation = new Quaternion();
       stepPose.getPose(location, orientation);
       FootstepDataMessage footstepData = new FootstepDataMessage(RobotSide.LEFT, location, orientation);
-      footstepData.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
+//      footstepData.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
       
       wayPointPose1.changeFrame(ReferenceFrame.getWorldFrame());
       Point3D locationWayPoint1 = new Point3D();
@@ -508,7 +508,7 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
       wayPointPose2.getPose(locationWayPoint2, new Quaternion());
       
       footstepData.setTrajectoryType(TrajectoryType.CUSTOM);
-      footstepData.setTrajectoryWaypoints(new Point3D[] {locationWayPoint1, locationWayPoint2});
+      footstepData.setCustomPositionWaypoints(new Point3D[] {locationWayPoint1, locationWayPoint2});
       footsteps.add(footstepData);
       
       
@@ -761,7 +761,7 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
       stepPose.getPose(location, orientation);
 
       FootstepDataMessage footstepData = new FootstepDataMessage(RobotSide.RIGHT, location, orientation);
-      footstepData.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
+//      footstepData.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
       
       
       FramePose wayPointPose1 = new FramePose(rightSoleFrame);
@@ -781,7 +781,7 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
       wayPointPose2.getPose(locationWayPoint2, new Quaternion());
       
       footstepData.setTrajectoryType(TrajectoryType.CUSTOM);
-      footstepData.setTrajectoryWaypoints(new Point3D[] {locationWayPoint1, locationWayPoint2});
+      footstepData.setCustomPositionWaypoints(new Point3D[] {locationWayPoint1, locationWayPoint2});
       footsteps.add(footstepData);
 
 
@@ -863,7 +863,7 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
       stepPose.getPose(location, orientation);
 
       FootstepDataMessage footstepData = new FootstepDataMessage(RobotSide.LEFT, location, orientation);
-      footstepData.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
+//      footstepData.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
       
       
       FramePose wayPointPose1 = new FramePose(leftSoleFrame);
@@ -883,7 +883,7 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
       wayPointPose2.getPose(locationWayPoint2, new Quaternion());
       
       footstepData.setTrajectoryType(TrajectoryType.CUSTOM);
-      footstepData.setTrajectoryWaypoints(new Point3D[] {locationWayPoint1, locationWayPoint2});
+      footstepData.setCustomPositionWaypoints(new Point3D[] {locationWayPoint1, locationWayPoint2});
       footsteps.add(footstepData);
       
 
@@ -990,7 +990,7 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
       stepPose.getPose(location, orientation);
 
       FootstepDataMessage footstepData = new FootstepDataMessage(RobotSide.RIGHT, location, orientation);
-      footstepData.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
+//      footstepData.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
       footsteps.add(footstepData);
       
       footstepData.setSwingHeight(0.25);
@@ -1069,7 +1069,7 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
       stepPose.getPose(location, orientation);
 
       FootstepDataMessage footstepData = new FootstepDataMessage(RobotSide.LEFT, location, orientation);
-      footstepData.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
+//      footstepData.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
       footsteps.add(footstepData);
       
       footstepData.setSwingHeight(0.35);
@@ -1209,7 +1209,7 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
       stepPose.getPose(location, orientation);
 
       FootstepDataMessage footstepData = new FootstepDataMessage(RobotSide.RIGHT, location, orientation);
-      footstepData.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
+//      footstepData.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
       footsteps.add(footstepData);
       
       footstepData.setSwingHeight(0.17);
@@ -1288,7 +1288,7 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
       stepPose.getPose(location, orientation);
 
       FootstepDataMessage footstepData = new FootstepDataMessage(RobotSide.LEFT, location, orientation);
-      footstepData.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
+//      footstepData.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
       
       
       FramePose wayPointPose1 = new FramePose(leftSoleFrame);
@@ -1308,7 +1308,7 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
       wayPointPose2.getPose(locationWayPoint2, new Quaternion());
       
       footstepData.setTrajectoryType(TrajectoryType.CUSTOM);
-      footstepData.setTrajectoryWaypoints(new Point3D[] {locationWayPoint1, locationWayPoint2});
+      footstepData.setCustomPositionWaypoints(new Point3D[] {locationWayPoint1, locationWayPoint2});
       footsteps.add(footstepData);
 
       sendPacket(footsteps);
@@ -1417,7 +1417,7 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
       stepPose.getPose(location, orientation);
 
       FootstepDataMessage footstepData = new FootstepDataMessage(RobotSide.RIGHT, location, orientation);
-      footstepData.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
+//      footstepData.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
       footsteps.add(footstepData);
       
       footstepData.setSwingHeight(0.17);
@@ -1496,7 +1496,7 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
       stepPose.getPose(location, orientation);
 
       FootstepDataMessage footstepData = new FootstepDataMessage(RobotSide.LEFT, location, orientation);
-      footstepData.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
+//      footstepData.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
       
       
       FramePose wayPointPose1 = new FramePose(leftSoleFrame);
@@ -1516,7 +1516,7 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
       wayPointPose2.getPose(locationWayPoint2, new Quaternion());
       
       footstepData.setTrajectoryType(TrajectoryType.CUSTOM);
-      footstepData.setTrajectoryWaypoints(new Point3D[] {locationWayPoint1, locationWayPoint2});
+      footstepData.setCustomPositionWaypoints(new Point3D[] {locationWayPoint1, locationWayPoint2});
       footsteps.add(footstepData);
 
       sendPacket(footsteps);
@@ -1641,7 +1641,7 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
       stepPose.getPose(location, orientation);
 
       FootstepDataMessage footstepData = new FootstepDataMessage(RobotSide.RIGHT, location, orientation);
-      footstepData.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
+//      footstepData.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
       footsteps.add(footstepData);
       
       footstepData.setSwingHeight(0.17);
@@ -1710,7 +1710,7 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
       stepPose.getPose(location, orientation);
 
       FootstepDataMessage footstepData = new FootstepDataMessage(RobotSide.LEFT, location, orientation);
-      footstepData.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
+//      footstepData.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
       
       
       FramePose wayPointPose1 = new FramePose(leftSoleFrame);
@@ -1730,7 +1730,7 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
       wayPointPose2.getPose(locationWayPoint2, new Quaternion());
       
       footstepData.setTrajectoryType(TrajectoryType.CUSTOM);
-      footstepData.setTrajectoryWaypoints(new Point3D[] {locationWayPoint1, locationWayPoint2});
+      footstepData.setCustomPositionWaypoints(new Point3D[] {locationWayPoint1, locationWayPoint2});
       footsteps.add(footstepData);
       
       //footstepData.setSwingHeight(0.19);

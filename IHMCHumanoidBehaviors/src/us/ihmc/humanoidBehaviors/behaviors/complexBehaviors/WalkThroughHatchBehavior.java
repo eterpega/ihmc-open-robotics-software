@@ -1,25 +1,17 @@
 package us.ihmc.humanoidBehaviors.behaviors.complexBehaviors;
 
-import javax.vecmath.Tuple3d;
-
-import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParameters;
 import us.ihmc.commons.PrintTools;
 import us.ihmc.communication.packets.PacketDestination;
 import us.ihmc.communication.packets.TextToSpeechPacket;
-import us.ihmc.euclid.axisAngle.AxisAngle;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
-import us.ihmc.euclid.tuple3D.Vector3D32;
-import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.humanoidBehaviors.behaviors.complexBehaviors.WalkThroughHatchBehavior.WalkThroughHatchBehaviorState;
 import us.ihmc.humanoidBehaviors.behaviors.primitives.AtlasPrimitiveActions;
-import us.ihmc.humanoidBehaviors.behaviors.primitives.WalkToLocationBehavior;
 import us.ihmc.humanoidBehaviors.behaviors.simpleBehaviors.BehaviorAction;
 import us.ihmc.humanoidBehaviors.behaviors.simpleBehaviors.SimpleDoNothingBehavior;
 import us.ihmc.humanoidBehaviors.communication.CommunicationBridge;
-import us.ihmc.humanoidBehaviors.communication.CommunicationBridgeInterface;
 import us.ihmc.humanoidBehaviors.stateMachine.StateMachineBehavior;
 import us.ihmc.humanoidRobotics.communication.packets.ExecutionMode;
 import us.ihmc.humanoidRobotics.communication.packets.dataobjects.HandConfiguration;
@@ -28,10 +20,9 @@ import us.ihmc.humanoidRobotics.communication.packets.manipulation.HandDesiredCo
 import us.ihmc.humanoidRobotics.communication.packets.walking.ChestTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataListMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage;
+//import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage.FootstepOrigin;
 import us.ihmc.humanoidRobotics.communication.packets.walking.PelvisHeightTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.PelvisOrientationTrajectoryMessage;
-import us.ihmc.humanoidRobotics.communication.packets.walking.PelvisTrajectoryMessage;
-import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage.FootstepOrigin;
 import us.ihmc.humanoidRobotics.frames.HumanoidReferenceFrames;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
@@ -178,14 +169,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
          {
             if(currentHatchExists())
             {
-               hatchFrameOffset.set(HatchEnvironment.getHatchFrameOffset(currentHatch));
-               hatchOrigin.setIncludingFrame(ReferenceFrame.getWorldFrame(), hatchFrameOffset);
-               hatchZVector.setIncludingFrame(ReferenceFrame.getWorldFrame(), new Vector3D(0.0, 0.0, 1.0));
-               hatchFrame = ReferenceFrame.constructReferenceFrameFromPointAndZAxis("hatchFrame", hatchOrigin, hatchZVector);
-               
                setRobotTrajectoriesBasedOnHatchDimensions(currentHatch);
-               
-               PrintTools.info("Found hatch at: " + hatchFrameOffset.toString());
             }
          }
       };
@@ -384,7 +368,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
             stepPose.getPose(location, orientation);
 
             FootstepDataMessage footstepData = new FootstepDataMessage(RobotSide.RIGHT, location, orientation);
-            footstepData.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
+//            footstepData.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
 
             wayPointPose1.changeFrame(ReferenceFrame.getWorldFrame());
             Point3D locationWayPoint1 = new Point3D();
@@ -394,7 +378,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
             wayPointPose2.getPose(locationWayPoint2, new Quaternion());
             
             footstepData.setTrajectoryType(TrajectoryType.CUSTOM);
-            footstepData.setTrajectoryWaypoints(new Point3D[] {locationWayPoint1, locationWayPoint2});
+            footstepData.setCustomPositionWaypoints(new Point3D[] {locationWayPoint1, locationWayPoint2});
             footsteps.add(footstepData);
                         
             // Send commands
@@ -493,7 +477,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
             Quaternion orientation = new Quaternion();
             stepPose.getPose(location, orientation);
             FootstepDataMessage footstepData = new FootstepDataMessage(RobotSide.LEFT, location, orientation);
-            footstepData.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
+//            footstepData.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
             
             wayPointPose1.changeFrame(ReferenceFrame.getWorldFrame());
             Point3D locationWayPoint1 = new Point3D();
@@ -503,7 +487,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
             wayPointPose2.getPose(locationWayPoint2, new Quaternion());
             
             footstepData.setTrajectoryType(TrajectoryType.CUSTOM);
-            footstepData.setTrajectoryWaypoints(new Point3D[] {locationWayPoint1, locationWayPoint2});
+            footstepData.setCustomPositionWaypoints(new Point3D[] {locationWayPoint1, locationWayPoint2});
             footsteps.add(footstepData);
             
             // Send commands
@@ -681,11 +665,6 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
    
    public boolean currentHatchDimensionsValid()
    {
-      hatchWidth = HatchEnvironment.getHatchWidth(currentHatch);
-      hatchThickness = HatchEnvironment.getHatchThickness(currentHatch);
-      hatchLowerHeight = HatchEnvironment.getHatchLowerHeight(currentHatch);
-      hatchUpperHeight = HatchEnvironment.getHatchUpperHeight(currentHatch);
-      
       if(validHatchOpening() && validHatchStepHeight() && validHatchThickness())
       {
          return true;
@@ -741,16 +720,16 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
    }
    
    private void setRobotTrajectoriesBasedOnHatchDimensions(int hatch)
-   {
-      if(hatch < 1 || hatch > HatchEnvironment.getNumberOfHatches())
-      {
-         PrintTools.info("Incorrect current hatch number");
-         return;
-      }
-      
+   {  
       int relHatch = hatch - 1;
       
       hatchFrameOffset.set(HatchEnvironment.getHatchFrameOffset(relHatch));
+      hatchOrigin.setIncludingFrame(ReferenceFrame.getWorldFrame(), hatchFrameOffset);
+      hatchZVector.setIncludingFrame(ReferenceFrame.getWorldFrame(), new Vector3D(0.0, 0.0, 1.0));
+      hatchFrame = ReferenceFrame.constructReferenceFrameFromPointAndZAxis("hatchFrame", hatchOrigin, hatchZVector);
+      
+      PrintTools.info("Found hatch at: " + hatchFrameOffset.toString());
+      
       hatchWidth = HatchEnvironment.getHatchWidth(relHatch);
       hatchThickness = HatchEnvironment.getHatchThickness(relHatch);
       hatchLowerHeight = HatchEnvironment.getHatchLowerHeight(relHatch);

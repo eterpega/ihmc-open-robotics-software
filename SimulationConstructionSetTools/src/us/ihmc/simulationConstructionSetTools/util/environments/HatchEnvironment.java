@@ -24,7 +24,7 @@ public class HatchEnvironment implements CommonAvatarEnvironmentInterface
    private static final double SIDEWAY_OFFSET = 0.08; //0.5f; //1 + 0.08f;
    private static final double HATCH_THICKNESS = 0.05; //0.15; (maybe max at 0.13)
    
-   private static final int NUMBER_OF_HATCHES = 1;                               // Simulation values:
+   private static final int NUMBER_OF_HATCHES = 4;                               // Simulation values:
    private static final double FORWARD_OFFSETS[] = {1.21, 3.71, 6.21, 8.71};     // {1.21, 3.71, 6.21, 8.71};
    private static final double SIDEWAY_OFFSETS[] = {0.08, 1.08, 0.08, 0.08};     // {0.08, 1.08, 0.08, 0.08};
    private static final double STEP_HEIGHTS[] = {0.15, 0.05, 0.20, 0.10};        // {0.15, 0.05, 0.20, 0.10};
@@ -37,9 +37,9 @@ public class HatchEnvironment implements CommonAvatarEnvironmentInterface
       combinedTerrainObject = new CombinedTerrainObject3D(getClass().getSimpleName());
       combinedTerrainObject.addTerrainObject(setUpGround("Ground"));
       combinedTerrainObject.addTerrainObject(addHatch("IBims1Hatch", FORWARD_OFFSETS[0], SIDEWAY_OFFSETS[0], STEP_HEIGHTS[0], OPENING_HEIGHTS[0], OPENING_WIDTHS[0], OPENING_THICKNESSES[0]));
-//      combinedTerrainObject.addTerrainObject(addHatch("IBims2Hatch", FORWARD_OFFSETS[1], SIDEWAY_OFFSETS[1], STEP_HEIGHTS[1], OPENING_HEIGHTS[1], OPENING_WIDTHS[1], OPENING_THICKNESSES[1]));
-//      combinedTerrainObject.addTerrainObject(addHatch("IBims3Hatch", FORWARD_OFFSETS[2], SIDEWAY_OFFSETS[2], STEP_HEIGHTS[2], OPENING_HEIGHTS[2], OPENING_WIDTHS[2], OPENING_THICKNESSES[2]));
-//      combinedTerrainObject.addTerrainObject(addHatch("IBims4Hatch", FORWARD_OFFSETS[3], SIDEWAY_OFFSETS[3], STEP_HEIGHTS[3], OPENING_HEIGHTS[3], OPENING_WIDTHS[3], OPENING_THICKNESSES[3]));
+      combinedTerrainObject.addTerrainObject(addHatch("IBims2Hatch", FORWARD_OFFSETS[1], SIDEWAY_OFFSETS[1], STEP_HEIGHTS[1], OPENING_HEIGHTS[1], OPENING_WIDTHS[1], OPENING_THICKNESSES[1]));
+      combinedTerrainObject.addTerrainObject(addHatch("IBims3Hatch", FORWARD_OFFSETS[2], SIDEWAY_OFFSETS[2], STEP_HEIGHTS[2], OPENING_HEIGHTS[2], OPENING_WIDTHS[2], OPENING_THICKNESSES[2]));
+      combinedTerrainObject.addTerrainObject(addHatch("IBims4Hatch", FORWARD_OFFSETS[3], SIDEWAY_OFFSETS[3], STEP_HEIGHTS[3], OPENING_HEIGHTS[3], OPENING_WIDTHS[3], OPENING_THICKNESSES[3]));
    }
    
    private CombinedTerrainObject3D setUpGround(String name)
