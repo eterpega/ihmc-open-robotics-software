@@ -105,7 +105,7 @@ public abstract class AvatarWalkThroughHatchBehaviorTest implements MultiRobotTe
                                                                          yoTime, drcRobotModel, scsRootRegistry);      
       
       WalkThroughHatchBehavior walkThroughHatchBehavior = new WalkThroughHatchBehavior(communicationBridge, yoTime, yoDoubleSupport, fullRobotModel,
-                                                                                       referenceFrames, drcRobotModel, primitiveActions);      
+                                                                                       referenceFrames, drcRobotModel, primitiveActions, yoGraphicsListRegistry);      
       walkThroughHatchBehavior.initialize();
       drcBehaviorTestHelper.getSimulationConstructionSet().addYoGraphicsListRegistry(yoGraphicsListRegistry);
 

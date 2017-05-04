@@ -265,13 +265,6 @@ public class WalkToLocationBehavior extends AbstractBehavior
          {
             footsteps.addAll(footstepsNominalOrientation);
          }
-
-         Vector3D footlocation = new Vector3D();
-         referenceFrames.getAnkleZUpFrame(RobotSide.LEFT).getTransformToWorldFrame().getTranslation(footlocation);
-         for (Footstep footstep : footsteps)
-         {
-            footstep.setZ(footlocation.getZ());
-         }
       }
 
       footstepListBehavior.set(footsteps, swingTime, transferTime);

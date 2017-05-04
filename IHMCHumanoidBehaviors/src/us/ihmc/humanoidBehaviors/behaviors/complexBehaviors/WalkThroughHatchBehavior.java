@@ -7,6 +7,8 @@ import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicReferenceFrame;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.humanoidBehaviors.behaviors.complexBehaviors.WalkThroughHatchBehavior.WalkThroughHatchBehaviorState;
 import us.ihmc.humanoidBehaviors.behaviors.primitives.AtlasPrimitiveActions;
 import us.ihmc.humanoidBehaviors.behaviors.simpleBehaviors.BehaviorAction;
@@ -42,6 +44,8 @@ import us.ihmc.wholeBodyController.WholeBodyControllerParameters;
 
 public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHatchBehaviorState>
 {
+   private static final boolean fakeHatch = false;
+   
    public enum WalkThroughHatchBehaviorState
    {
       STOPPED,
@@ -72,13 +76,11 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
    
    private final double defaultPelvisHeight = 0.788;
    
-   private FramePoint hatchOrigin = new FramePoint();
-   private FrameVector hatchZVector = new FrameVector();
-   private ReferenceFrame hatchFrame;
+   private final PoseReferenceFrame hatchFrame = new PoseReferenceFrame("HatchFrame", ReferenceFrame.getWorldFrame());
+   private final YoGraphicReferenceFrame hatchFrameViz;
    
    private final int numberOfHatches = HatchEnvironment.getNumberOfHatches();
    private int currentHatch = 1;
-   private final Point3D hatchFrameOffset = new Point3D();
    private double hatchWidth;
    private double hatchThickness;
    private double hatchLowerHeight;
@@ -138,7 +140,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
    
    public WalkThroughHatchBehavior(CommunicationBridge communicationBridge, DoubleYoVariable yoTime, BooleanYoVariable yoDoubleSupport,
          FullHumanoidRobotModel fullRobotModel, HumanoidReferenceFrames referenceFrames, WholeBodyControllerParameters wholeBodyControllerParameters,
-         AtlasPrimitiveActions atlasPrimitiveActions)
+         AtlasPrimitiveActions atlasPrimitiveActions, YoGraphicsListRegistry graphicsListRegistry)
    {
       super("walkThroughHatchBehavior", WalkThroughHatchBehaviorState.class, yoTime, communicationBridge);
 
@@ -150,6 +152,16 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
       transferTime.set(0.6);
 
       setupStateMachine();
+      
+      if (graphicsListRegistry != null)
+      {
+         hatchFrameViz = new YoGraphicReferenceFrame(hatchFrame, registry, 0.5);
+         graphicsListRegistry.registerYoGraphic(getClass().getSimpleName(), hatchFrameViz);
+      }
+      else
+      {
+         hatchFrameViz = null;
+      }
    }
 
    @Override
@@ -213,14 +225,12 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
          @Override
          protected void setBehaviorInput()
          {
-            FramePoint targetPoint = offsetPointFromHatch(targetLocationHatchBeforeFar);
-            targetPoint.changeFrame(ReferenceFrame.getWorldFrame());
-
-            FramePose2d targetPose = new FramePose2d();
-            targetPose.checkReferenceFrameMatch(targetPoint);
-            targetPose.setX(targetPoint.getX());
-            targetPose.setY(targetPoint.getY());
+            FramePose2d targetPose = new FramePose2d(hatchFrame);
+            targetPose.setX(targetLocationHatchBeforeFar.getX());
+            targetPose.setY(targetLocationHatchBeforeFar.getY());
             targetPose.setYaw(0.0);
+            targetPose.changeFrame(ReferenceFrame.getWorldFrame());
+            
 //            atlasPrimitiveActions.walkToLocationBehavior.setWalkingStepWidth(0.33);
             atlasPrimitiveActions.walkToLocationBehavior.setTarget(targetPose);
          }
@@ -283,14 +293,12 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
          @Override
          protected void setBehaviorInput()
          {
-            FramePoint targetPoint = offsetPointFromHatch(targetLocationHatchBeforeNear);
-            targetPoint.changeFrame(ReferenceFrame.getWorldFrame());
-
-            FramePose2d targetPose = new FramePose2d();
-            targetPose.checkReferenceFrameMatch(targetPoint);
-            targetPose.setX(targetPoint.getX());
-            targetPose.setY(targetPoint.getY());
+            FramePose2d targetPose = new FramePose2d(hatchFrame);
+            targetPose.setX(targetLocationHatchBeforeNear.getX());
+            targetPose.setY(targetLocationHatchBeforeNear.getY());
             targetPose.setYaw(0.0);
+            targetPose.changeFrame(ReferenceFrame.getWorldFrame());
+            
             atlasPrimitiveActions.walkToLocationBehavior.setWalkingStepWidth(0.33);
             atlasPrimitiveActions.walkToLocationBehavior.setTarget(targetPose);
          }
@@ -504,14 +512,12 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
          @Override
          protected void setBehaviorInput()
          {
-            FramePoint targetPoint = offsetPointFromHatch(targetLocationHatchAfterNear);
-            targetPoint.changeFrame(ReferenceFrame.getWorldFrame());
-
-            FramePose2d targetPose = new FramePose2d();
-            targetPose.checkReferenceFrameMatch(targetPoint);
-            targetPose.setX(targetPoint.getX());
-            targetPose.setY(targetPoint.getY());
+            FramePose2d targetPose = new FramePose2d(hatchFrame);
+            targetPose.setX(targetLocationHatchAfterNear.getX());
+            targetPose.setY(targetLocationHatchAfterNear.getY());
             targetPose.setYaw(0.0);
+            targetPose.changeFrame(ReferenceFrame.getWorldFrame());
+            
             atlasPrimitiveActions.walkToLocationBehavior.setWalkingStepWidth(0.33);
             atlasPrimitiveActions.walkToLocationBehavior.setFootstepLength(0.20);
             atlasPrimitiveActions.walkToLocationBehavior.setTarget(targetPose);
@@ -560,14 +566,12 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
          @Override
          protected void setBehaviorInput()
          {
-            FramePoint targetPoint = offsetPointFromHatch(targetLocationHatchAfterFar);
-            targetPoint.changeFrame(ReferenceFrame.getWorldFrame());
-
-            FramePose2d targetPose = new FramePose2d();
-            targetPose.checkReferenceFrameMatch(targetPoint);
-            targetPose.setX(targetPoint.getX());
-            targetPose.setY(targetPoint.getY());
+            FramePose2d targetPose = new FramePose2d(hatchFrame);
+            targetPose.setX(targetLocationHatchAfterFar.getX());
+            targetPose.setY(targetLocationHatchAfterFar.getY());
             targetPose.setYaw(0.0);
+            targetPose.changeFrame(ReferenceFrame.getWorldFrame());
+            
 //            atlasPrimitiveActions.walkToLocationBehavior.setWalkingStepWidth(0.33);
             atlasPrimitiveActions.walkToLocationBehavior.setFootstepLength(0.20);
             atlasPrimitiveActions.walkToLocationBehavior.setTarget(targetPose);
@@ -708,27 +712,30 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
       return false;
    }
    
-
-   private FramePoint offsetPointFromHatch(Vector3D point)
-   {
-
-      PoseReferenceFrame hatchFrame = new PoseReferenceFrame("hatchFrame", ReferenceFrame.getWorldFrame());
-      hatchFrame.setPoseAndUpdate(new RigidBodyTransform(new Quaternion(), hatchFrameOffset));
-      
-      FramePoint targetPoint = new FramePoint(hatchFrame, point);
-      return targetPoint;
-   }
-   
    private void setRobotTrajectoriesBasedOnHatchDimensions(int hatch)
    {  
       int relHatch = hatch - 1;
       
-      hatchFrameOffset.set(HatchEnvironment.getHatchFrameOffset(relHatch));
-      hatchOrigin.setIncludingFrame(ReferenceFrame.getWorldFrame(), hatchFrameOffset);
-      hatchZVector.setIncludingFrame(ReferenceFrame.getWorldFrame(), new Vector3D(0.0, 0.0, 1.0));
-      hatchFrame = ReferenceFrame.constructReferenceFrameFromPointAndZAxis("hatchFrame", hatchOrigin, hatchZVector);
+      if (fakeHatch)
+      {
+         FramePose hatchPose = new FramePose(referenceFrames.getMidFeetZUpFrame());
+         hatchPose.setX(1.0);
+         hatchPose.changeFrame(ReferenceFrame.getWorldFrame());
+         hatchFrame.setPoseAndUpdate(hatchPose);
+      }
+      else
+      {
+         Point3D hatchFrameOffset = HatchEnvironment.getHatchFrameOffset(relHatch);
+         FramePose hatchPose = new FramePose(ReferenceFrame.getWorldFrame());
+         hatchPose.setPosition(hatchFrameOffset);
+         hatchFrame.setPoseAndUpdate(hatchPose);
+      }
       
-      PrintTools.info("Found hatch at: " + hatchFrameOffset.toString());
+      hatchFrameViz.update();
+      
+      FramePoint hatchOrigin = new FramePoint(hatchFrame);
+      hatchOrigin.changeFrame(ReferenceFrame.getWorldFrame());
+      PrintTools.info("Found hatch at: " + hatchOrigin.toString());
       
       hatchWidth = HatchEnvironment.getHatchWidth(relHatch);
       hatchThickness = HatchEnvironment.getHatchThickness(relHatch);
