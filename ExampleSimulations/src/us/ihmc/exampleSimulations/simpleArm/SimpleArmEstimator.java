@@ -7,8 +7,12 @@ import org.ejml.factory.LinearSolverFactory;
 import org.ejml.interfaces.linsol.LinearSolver;
 import org.ejml.ops.CommonOps;
 
+import us.ihmc.robotics.dataStructures.listener.VariableChangedListener;
 import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.robotics.dataStructures.variable.YoVariable;
 import us.ihmc.robotics.linearDynamicSystems.SplitUpMatrixExponentialStateSpaceSystemDiscretizer;
+import us.ihmc.robotics.linearDynamicSystems.StateSpaceSystemDiscretizer;
+import us.ihmc.robotics.math.frames.YoMatrix;
 import us.ihmc.simulationConstructionSetTools.robotController.SimpleRobotController;
 
 public class SimpleArmEstimator extends SimpleRobotController
@@ -20,16 +24,9 @@ public class SimpleArmEstimator extends SimpleRobotController
    // the robot to read data from
    private final SimpleRobotInputOutputMap robot;
 
-   // the state to display in SCS
-   private final DoubleYoVariable qYaw = new DoubleYoVariable("qYaw", registry);
-   private final DoubleYoVariable qPitch1 = new DoubleYoVariable("qPitch1", registry);
-   private final DoubleYoVariable qPitch2 = new DoubleYoVariable("qPitch2", registry);
-   private final DoubleYoVariable qdYaw = new DoubleYoVariable("qdYaw", registry);
-   private final DoubleYoVariable qdPitch1 = new DoubleYoVariable("qdPitch1", registry);
-   private final DoubleYoVariable qdPitch2 = new DoubleYoVariable("qdPitch2", registry);
-   private final DoubleYoVariable qddYaw = new DoubleYoVariable("qddYaw", registry);
-   private final DoubleYoVariable qddPitch1 = new DoubleYoVariable("qddPitch1", registry);
-   private final DoubleYoVariable qddPitch2 = new DoubleYoVariable("qddPitch2", registry);
+   // the state to display in SCS and for rewinding
+   private final YoMatrix yoX = new YoMatrix("x", nStates, 1, registry);
+   private final YoMatrix yoP = new YoMatrix("P", nStates, nStates, registry);
 
    // the state vectors
    // the state is defines as [q1, q2, q3, qd1, qd2, qd3, qdd1, qdd2, qdd3]
@@ -63,37 +60,62 @@ public class SimpleArmEstimator extends SimpleRobotController
    private final DenseMatrix64F PPriori = new DenseMatrix64F(nStates, nStates);
    private final DenseMatrix64F PPosteriori = new DenseMatrix64F(nStates, nStates);
 
+   private final StateSpaceSystemDiscretizer discretizer;
    private final LinearSolver<DenseMatrix64F> solver;
+
+   // tuning variables
+   private final DoubleYoVariable jointPositionVariance = new DoubleYoVariable("jointPositionVariance", registry);
+   private final DoubleYoVariable processJerkVariance = new DoubleYoVariable("processJerkVariance", registry);
 
    public SimpleArmEstimator(SimpleRobotInputOutputMap robot, double dt)
    {
       this.robot = robot;
+      discretizer = new SplitUpMatrixExponentialStateSpaceSystemDiscretizer(nStates, nInputs);
+      solver = LinearSolverFactory.linear(nMeasurements);
 
-      // set up the process as constant accelerations for now
-      CommonOps.fill(A, 0.0);
-      A.set(0, 3, 1.0);
-      A.set(1, 4, 1.0);
-      A.set(2, 5, 1.0);
-      A.set(3, 6, 1.0);
-      A.set(4, 7, 1.0);
-      A.set(5, 8, 1.0);
-      CommonOps.fill(B, 0.0);
-      CommonOps.fill(u, 0.0);
+      jointPositionVariance.addVariableChangedListener(new VariableChangedListener()
+      {
+         @Override
+         public void variableChanged(YoVariable<?> v)
+         {
+            CommonOps.setIdentity(R);
+            double variance = jointPositionVariance.getDoubleValue();
+            CommonOps.scale(variance * variance, R);
+         }
+      });
 
-      // set up the noise matrices
-      double r_cov = 1.0;
-      double q_cov = 1000.0;
-      CommonOps.setIdentity(R);
-      CommonOps.fill(Q, 0.0);
-      Q.set(6, 6, 1.0);
-      Q.set(7, 7, 1.0);
-      Q.set(8, 8, 1.0);
+      processJerkVariance.addVariableChangedListener(new VariableChangedListener()
+      {
+         @Override
+         public void variableChanged(YoVariable<?> v)
+         {
+            // set up the process as constant accelerations for now
+            CommonOps.fill(A, 0.0);
+            A.set(0, 3, 1.0);
+            A.set(1, 4, 1.0);
+            A.set(2, 5, 1.0);
+            A.set(3, 6, 1.0);
+            A.set(4, 7, 1.0);
+            A.set(5, 8, 1.0);
 
-      SplitUpMatrixExponentialStateSpaceSystemDiscretizer discretizer = new SplitUpMatrixExponentialStateSpaceSystemDiscretizer(nStates, nInputs);
-      discretizer.discretize(A, B, Q, dt);
+            // disable all inputs
+            CommonOps.fill(B, 0.0);
 
-      CommonOps.scale(r_cov * r_cov, R);
-      CommonOps.scale(q_cov * q_cov, Q);
+            // set up the noise matrices
+            double variance = processJerkVariance.getDoubleValue();
+            CommonOps.setIdentity(R);
+            CommonOps.fill(Q, 0.0);
+            Q.set(6, 6, variance * variance);
+            Q.set(7, 7, variance * variance);
+            Q.set(8, 8, variance * variance);
+
+            discretizer.discretize(A, B, Q, dt);
+         }
+      });
+
+      // set the noise parameters
+      processJerkVariance.set(100.0);
+      jointPositionVariance.set(0.01);
 
       // set up the measurement matrix
       CommonOps.fill(H, 0.0);
@@ -104,7 +126,6 @@ public class SimpleArmEstimator extends SimpleRobotController
       // initialize the error covariance
       CommonOps.setIdentity(PPosteriori);
 
-      solver = LinearSolverFactory.linear(nMeasurements);
    }
 
    @Override
@@ -162,19 +183,17 @@ public class SimpleArmEstimator extends SimpleRobotController
       z.set(0, robot.getYaw());
       z.set(1, robot.getPitch1());
       z.set(2, robot.getPitch2());
+
+      yoX.get(xPosteriori);
+      yoP.get(PPosteriori);
+
+      CommonOps.fill(u, 0.0);
    }
 
    private final void saveState()
    {
-      qYaw.set(xPosteriori.get(0));
-      qPitch1.set(xPosteriori.get(1));
-      qPitch2.set(xPosteriori.get(2));
-      qdYaw.set(xPosteriori.get(3));
-      qdPitch1.set(xPosteriori.get(4));
-      qdPitch2.set(xPosteriori.get(5));
-      qddYaw.set(xPosteriori.get(6));
-      qddPitch1.set(xPosteriori.get(7));
-      qddPitch2.set(xPosteriori.get(8));
+      yoX.set(xPosteriori);
+      yoP.set(PPosteriori);
    }
 
    private final DenseMatrix64F tempForMultBothSides = new DenseMatrix64F(nStates, nStates);

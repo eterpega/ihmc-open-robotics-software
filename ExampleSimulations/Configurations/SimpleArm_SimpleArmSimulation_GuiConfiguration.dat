@@ -1,7 +1,7 @@
 <GraphGroup>
 	<Cols>3</Cols>
 	<Graph>
-		<Variables>root.SimpleArm.q_yaw,root.SimpleArm.SimpleArmEstimator.qYaw</Variables>
+		<Variables>root.SimpleArm.q_yaw,root.SimpleArm.SimpleArmEstimator.x_0_0</Variables>
 		<GraphConfiguration>
 			<Name>config1</Name>
 			<ScalingMethod>1</ScalingMethod>
@@ -13,7 +13,7 @@
 		</GraphConfig>
 	</Graph>
 	<Graph>
-		<Variables>root.SimpleArm.qd_yaw,root.SimpleArm.SimpleArmEstimator.qdYaw</Variables>
+		<Variables>root.SimpleArm.qd_yaw,root.SimpleArm.SimpleArmEstimator.x_3_0</Variables>
 		<GraphConfiguration>
 			<Name>config2</Name>
 			<ScalingMethod>1</ScalingMethod>
@@ -25,7 +25,7 @@
 		</GraphConfig>
 	</Graph>
 	<Graph>
-		<Variables>root.SimpleArm.qdd_yaw,root.SimpleArm.SimpleArmEstimator.qddYaw</Variables>
+		<Variables>root.SimpleArm.qdd_yaw,root.SimpleArm.SimpleArmEstimator.x_6_0</Variables>
 		<GraphConfiguration>
 			<Name>config3</Name>
 			<ScalingMethod>1</ScalingMethod>
@@ -37,7 +37,7 @@
 		</GraphConfig>
 	</Graph>
 	<Graph>
-		<Variables>root.SimpleArm.q_pitch1,root.SimpleArm.SimpleArmEstimator.qPitch1</Variables>
+		<Variables>root.SimpleArm.q_pitch1,root.SimpleArm.SimpleArmEstimator.x_1_0</Variables>
 		<GraphConfiguration>
 			<Name>config4</Name>
 			<ScalingMethod>1</ScalingMethod>
@@ -49,7 +49,7 @@
 		</GraphConfig>
 	</Graph>
 	<Graph>
-		<Variables>root.SimpleArm.qd_pitch1,root.SimpleArm.SimpleArmEstimator.qdPitch1</Variables>
+		<Variables>root.SimpleArm.qd_pitch1,root.SimpleArm.SimpleArmEstimator.x_4_0</Variables>
 		<GraphConfiguration>
 			<Name>config5</Name>
 			<ScalingMethod>1</ScalingMethod>
@@ -61,7 +61,7 @@
 		</GraphConfig>
 	</Graph>
 	<Graph>
-		<Variables>root.SimpleArm.qdd_pitch1,root.SimpleArm.SimpleArmEstimator.qddPitch1</Variables>
+		<Variables>root.SimpleArm.qdd_pitch1,root.SimpleArm.SimpleArmEstimator.x_7_0</Variables>
 		<GraphConfiguration>
 			<Name>config6</Name>
 			<ScalingMethod>1</ScalingMethod>
@@ -73,7 +73,7 @@
 		</GraphConfig>
 	</Graph>
 	<Graph>
-		<Variables>root.SimpleArm.q_pitch2,root.SimpleArm.SimpleArmEstimator.qPitch2</Variables>
+		<Variables>root.SimpleArm.q_pitch2,root.SimpleArm.SimpleArmEstimator.x_2_0</Variables>
 		<GraphConfiguration>
 			<Name>config7</Name>
 			<ScalingMethod>1</ScalingMethod>
@@ -85,7 +85,7 @@
 		</GraphConfig>
 	</Graph>
 	<Graph>
-		<Variables>root.SimpleArm.qd_pitch2,root.SimpleArm.SimpleArmEstimator.qdPitch2</Variables>
+		<Variables>root.SimpleArm.qd_pitch2,root.SimpleArm.SimpleArmEstimator.x_5_0</Variables>
 		<GraphConfiguration>
 			<Name>config8</Name>
 			<ScalingMethod>1</ScalingMethod>
@@ -97,7 +97,7 @@
 		</GraphConfig>
 	</Graph>
 	<Graph>
-		<Variables>root.SimpleArm.qdd_pitch2,root.SimpleArm.SimpleArmEstimator.qddPitch2</Variables>
+		<Variables>root.SimpleArm.qdd_pitch2,root.SimpleArm.SimpleArmEstimator.x_8_0</Variables>
 		<GraphConfiguration>
 			<Name>config9</Name>
 			<ScalingMethod>1</ScalingMethod>
