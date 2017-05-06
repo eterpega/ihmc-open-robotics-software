@@ -24,7 +24,7 @@ public class HatchEnvironment implements CommonAvatarEnvironmentInterface
    private static final double SIDEWAY_OFFSET = 0.08; //0.5f; //1 + 0.08f;
    private static final double HATCH_THICKNESS = 0.05; //0.15; (maybe max at 0.13)
    
-   private static final int NUMBER_OF_HATCHES = 4;                               // Simulation values:
+   private static final int NUMBER_OF_HATCHES = 1;                               // Simulation values:
    private static final double FORWARD_OFFSETS[] = {1.21, 3.71, 6.21, 8.71};     // {1.21, 3.71, 6.21, 8.71};
    private static final double SIDEWAY_OFFSETS[] = {0.08, 1.08, 0.08, 0.08};     // {0.08, 1.08, 0.08, 0.08};
    private static final double STEP_HEIGHTS[] = {0.15, 0.05, 0.20, 0.10};        // {0.15, 0.05, 0.20, 0.10};
