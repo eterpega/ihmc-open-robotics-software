@@ -83,6 +83,8 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
    private double hatchLowerHeight;
    private double hatchUpperHeight;
    
+   private final double minSwingWayPointHeight = 0.08;
+   
    private final Point3D defaultLeftFootSwingWayPoint1 = new Point3D(0.03, 0.00, 0.10); // z was 0.10
    private final Point3D defaultLeftFootSwingWayPoint2 = new Point3D(-0.03, 0.00, 0.00); // z was 0.09
    private final Point3D defaultRightFootSwingWayPoint1 = new Point3D(0.03, 0.00, 0.00); // z was 0.10
@@ -118,7 +120,8 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
    private Vector3D pelvisPositionInHatchFrameFirstHatchStepDesired = new Vector3D();
    private Vector3D pelvisPositionInHatchFrameTransitionDesired = new Vector3D();
    private Vector3D pelvisPositionInHatchFrameSecondHatchStepDesired = new Vector3D();
-   private Vector3D pelvisPositionInHatchFrameResetDesired = new Vector3D();
+   private Vector3D pelvisPositionInHatchFrameRealignDesired = new Vector3D();
+   private Vector3D pelvisPositionInHatchFrameStraightenDesired = new Vector3D();
    
    // Hatch feasability boundaries
    private final double hatchWidthLowerBound = 0.86;
@@ -143,6 +146,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
    private final double transferTimeHatch = 0.6;
    
    private double defaultStepWidth;
+   private double wideStepWidth = 0.33;
       
    private final DoubleYoVariable swingTime = new DoubleYoVariable("BehaviorSwingTime", registry);
    private final DoubleYoVariable transferTime = new DoubleYoVariable("BehaviorTransferTime", registry);
@@ -223,11 +227,8 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
             
             // Chest
             ReferenceFrame pelvisZUpFrame = referenceFrames.getPelvisZUpFrame();
-            FrameOrientation chestOrientationFrame = new FrameOrientation(pelvisZUpFrame, chestYawPitchRollInitializeDesired[0], chestYawPitchRollInitializeDesired[1], chestYawPitchRollInitializeDesired[2]);
-            Quaternion chestOrientationLocal = new Quaternion();
-            chestOrientationFrame.getQuaternion(chestOrientationLocal);
-            ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(initTime, chestOrientationLocal, pelvisZUpFrame, referenceFrames.getPelvisZUpFrame());
-
+            ChestTrajectoryMessage chestOrientationTrajectoryMessage = getChestOrientationTrajectoryMessage(initTime, pelvisZUpFrame, chestYawPitchRollInitializeDesired);
+                  
             // Send commands
             atlasPrimitiveActions.rightHandDesiredConfigurationBehavior.setInput(rightHandMessage);
             atlasPrimitiveActions.leftHandDesiredConfigurationBehavior.setInput(leftHandMessage);
@@ -272,23 +273,10 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
             ArmTrajectoryMessage rightPoseMessage = new ArmTrajectoryMessage(RobotSide.RIGHT, 1, rightArmPose);
             ArmTrajectoryMessage leftPoseMessage = new ArmTrajectoryMessage(RobotSide.LEFT, 1, leftArmPose);
             
-            // Chest
             ReferenceFrame pelvisZUpFrame = referenceFrames.getPelvisZUpFrame();
-            FrameOrientation chestOrientationFrame = new FrameOrientation(pelvisZUpFrame, chestYawPitchRollSetupDesired[0], chestYawPitchRollSetupDesired[1], chestYawPitchRollSetupDesired[2]);
-            Quaternion chestOrientationLocal = new Quaternion();
-            chestOrientationFrame.getQuaternion(chestOrientationLocal);
-            ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(setupTime, chestOrientationLocal, pelvisZUpFrame, referenceFrames.getPelvisZUpFrame());
-            
-            // Pelvis
-            FrameOrientation pelvisOrientationFrame = new FrameOrientation(pelvisZUpFrame, pelvisYawPitchRollSetupDesired[0], pelvisYawPitchRollSetupDesired[1], pelvisYawPitchRollSetupDesired[2]);
-            Quaternion pelvisOrientationWorld = new Quaternion();
-            pelvisOrientationFrame.changeFrame(ReferenceFrame.getWorldFrame());
-            pelvisOrientationFrame.getQuaternion(pelvisOrientationWorld);            
-            PelvisOrientationTrajectoryMessage pelvisOrientationTrajectoryMessage = new PelvisOrientationTrajectoryMessage(setupTime, pelvisOrientationWorld);
-
-            FramePose pelvisPoseDesired = new FramePose(hatchFrame, pelvisPositionInHatchFrameSetupDesired, new Quaternion());
-            pelvisPoseDesired.changeFrame(ReferenceFrame.getWorldFrame());
-            PelvisHeightTrajectoryMessage pelvisHeightTrajectoryMessage = new PelvisHeightTrajectoryMessage(setupTime, pelvisPoseDesired.getZ());         
+            ChestTrajectoryMessage chestOrientationTrajectoryMessage = getChestOrientationTrajectoryMessage(setupTime, pelvisZUpFrame, chestYawPitchRollSetupDesired);
+            PelvisOrientationTrajectoryMessage pelvisOrientationTrajectoryMessage = getPelvisOrientationTrajectoryMessage(setupTime, pelvisZUpFrame, pelvisYawPitchRollSetupDesired);
+            PelvisHeightTrajectoryMessage pelvisHeightTrajectoryMessage = getPelvisHeightTrajectoryMessage(setupTime, hatchFrame, pelvisPositionInHatchFrameSetupDesired);
             
             atlasPrimitiveActions.rightHandDesiredConfigurationBehavior.setInput(rightHandMessage);
             atlasPrimitiveActions.leftHandDesiredConfigurationBehavior.setInput(leftHandMessage);
@@ -312,7 +300,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
             targetPose.setYaw(0.0);
             targetPose.changeFrame(ReferenceFrame.getWorldFrame());
             
-            atlasPrimitiveActions.walkToLocationBehavior.setWalkingStepWidth(0.33);
+            atlasPrimitiveActions.walkToLocationBehavior.setWalkingStepWidth(wideStepWidth);
             atlasPrimitiveActions.walkToLocationBehavior.setTarget(targetPose);
          }
       };
@@ -325,10 +313,8 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
          {
             // Chest            
             ReferenceFrame pelvisZUpFrame = referenceFrames.getPelvisZUpFrame();
-            FrameOrientation chestOrientationFrame = new FrameOrientation(pelvisZUpFrame, chestYawPitchRollAdjustDesired[0], chestYawPitchRollAdjustDesired[1], chestYawPitchRollAdjustDesired[2]);
-            Quaternion chestOrientationLocal = new Quaternion();
-            chestOrientationFrame.getQuaternion(chestOrientationLocal);
-            ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(adjustTime, chestOrientationLocal, pelvisZUpFrame, referenceFrames.getPelvisZUpFrame());
+            FrameOrientation chestOrientationFrame = new FrameOrientation(pelvisZUpFrame, chestYawPitchRollAdjustDesired);
+            ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(adjustTime, chestOrientationFrame.getQuaternion(), chestOrientationFrame.getReferenceFrame(), chestOrientationFrame.getReferenceFrame());
                       
             atlasPrimitiveActions.chestTrajectoryBehavior.setInput(chestOrientationTrajectoryMessage);
          }
@@ -341,23 +327,10 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
          @Override
          protected void setBehaviorInput()
          {            
-            // Chest
             ReferenceFrame pelvisZUpFrame = referenceFrames.getPelvisZUpFrame();
-            FrameOrientation chestOrientationFrame = new FrameOrientation(pelvisZUpFrame, chestYawPitchRollFirstHatchStepDesired[0], chestYawPitchRollFirstHatchStepDesired[1], chestYawPitchRollFirstHatchStepDesired[2]);
-            Quaternion chestOrientationLocal = new Quaternion();
-            chestOrientationFrame.getQuaternion(chestOrientationLocal);
-            ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(firstStepTime, chestOrientationLocal, pelvisZUpFrame, referenceFrames.getPelvisZUpFrame()); //2.5
-            
-            // Pelvis
-            FrameOrientation pelvisOrientationFrame = new FrameOrientation(pelvisZUpFrame, pelvisYawPitchRollFirstHatchStepDesired[0], pelvisYawPitchRollFirstHatchStepDesired[1], pelvisYawPitchRollFirstHatchStepDesired[2]);
-            Quaternion pelvisOrientationWorld = new Quaternion();
-            pelvisOrientationFrame.changeFrame(ReferenceFrame.getWorldFrame());
-            pelvisOrientationFrame.getQuaternion(pelvisOrientationWorld);            
-            PelvisOrientationTrajectoryMessage pelvisOrientationTrajectoryMessage = new PelvisOrientationTrajectoryMessage(firstStepTime, pelvisOrientationWorld); // (was 1.5), 2.5
-
-            FramePose pelvisPoseDesired = new FramePose(hatchFrame, pelvisPositionInHatchFrameFirstHatchStepDesired, new Quaternion());
-            pelvisPoseDesired.changeFrame(ReferenceFrame.getWorldFrame());
-            PelvisHeightTrajectoryMessage pelvisHeightTrajectoryMessage = new PelvisHeightTrajectoryMessage(firstStepTime, pelvisPoseDesired.getZ()); //3.0
+            ChestTrajectoryMessage chestOrientationTrajectoryMessage = getChestOrientationTrajectoryMessage(firstStepTime, pelvisZUpFrame, chestYawPitchRollFirstHatchStepDesired); //2.5     
+            PelvisOrientationTrajectoryMessage pelvisOrientationTrajectoryMessage = getPelvisOrientationTrajectoryMessage(firstStepTime, pelvisZUpFrame, pelvisYawPitchRollFirstHatchStepDesired); // (was 1.5), 2.5
+            PelvisHeightTrajectoryMessage pelvisHeightTrajectoryMessage = getPelvisHeightTrajectoryMessage(firstStepTime, hatchFrame, pelvisPositionInHatchFrameFirstHatchStepDesired); //3.0
 
             // Feet
             FootstepDataListMessage footsteps = new FootstepDataListMessage(swingTime.getDoubleValue(), transferTime.getDoubleValue());
@@ -365,35 +338,18 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
             footsteps.setDestination(PacketDestination.BROADCAST);
 
             ReferenceFrame rightSoleFrame = referenceFrames.getSoleFrame(RobotSide.RIGHT);
-            FramePose stepPose = new FramePose(rightSoleFrame);
-            stepPose.setPosition(rightFootSwingGoalPoint);
-            
-            FramePose wayPointPose1 = new FramePose(rightSoleFrame);
-            wayPointPose1.setX(rightFootSwingWayPoint1.getX());
-            wayPointPose1.setY(rightFootSwingWayPoint1.getY());
-            wayPointPose1.setZ(rightFootSwingWayPoint1.getZ());
-            FramePose wayPointPose2 = new FramePose(rightSoleFrame);
-            wayPointPose2.setX(stepPose.getX() + rightFootSwingWayPoint2.getX());
-            wayPointPose2.setY(stepPose.getY() + rightFootSwingWayPoint2.getY());
-            wayPointPose2.setZ(stepPose.getZ() + rightFootSwingWayPoint2.getZ());
-
+            FramePose stepPose = new FramePose(rightSoleFrame, rightFootSwingGoalPoint, new Quaternion());
             stepPose.changeFrame(ReferenceFrame.getWorldFrame());
-
-            Point3D location = new Point3D();
-            Quaternion orientation = new Quaternion();
-            stepPose.getPose(location, orientation);
-
-            FootstepDataMessage footstepData = new FootstepDataMessage(RobotSide.RIGHT, location, orientation);
-
-            wayPointPose1.changeFrame(ReferenceFrame.getWorldFrame());
-            Point3D locationWayPoint1 = new Point3D();
-            wayPointPose1.getPose(locationWayPoint1, new Quaternion());
-            wayPointPose2.changeFrame(ReferenceFrame.getWorldFrame());
-            Point3D locationWayPoint2 = new Point3D();
-            wayPointPose2.getPose(locationWayPoint2, new Quaternion());
             
+            FramePose wayPointPose1 = new FramePose(rightSoleFrame, rightFootSwingWayPoint1, new Quaternion());
+            wayPointPose1.changeFrame(ReferenceFrame.getWorldFrame());
+            
+            FramePose wayPointPose2 = new FramePose(rightSoleFrame, rightFootSwingWayPoint2, new Quaternion());
+            wayPointPose2.changeFrame(ReferenceFrame.getWorldFrame());
+            
+            FootstepDataMessage footstepData = new FootstepDataMessage(RobotSide.RIGHT, stepPose.getPosition(), stepPose.getOrientation());
             footstepData.setTrajectoryType(TrajectoryType.CUSTOM);
-            footstepData.setCustomPositionWaypoints(new Point3D[] {locationWayPoint1, locationWayPoint2});
+            footstepData.setCustomPositionWaypoints(new Point3D[] {new Point3D(wayPointPose1.getX(), wayPointPose1.getY(), wayPointPose1.getZ()), new Point3D(wayPointPose2.getX(), wayPointPose2.getY(), wayPointPose2.getZ())});
             footsteps.add(footstepData);
                         
             // Send commands
@@ -411,23 +367,10 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
          @Override
          protected void setBehaviorInput()
          {            
-            // Chest
             ReferenceFrame pelvisZUpFrame = referenceFrames.getPelvisZUpFrame();
-            FrameOrientation chestOrientationFrame = new FrameOrientation(pelvisZUpFrame, chestYawPitchRollTransitionDesired[0], chestYawPitchRollTransitionDesired[1], chestYawPitchRollTransitionDesired[2]);
-            Quaternion chestOrientationLocal = new Quaternion();
-            chestOrientationFrame.getQuaternion(chestOrientationLocal);
-            ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(transitionTime, chestOrientationLocal, pelvisZUpFrame, referenceFrames.getPelvisZUpFrame()); //3.0
-            
-            // Pelvis
-            FrameOrientation pelvisOrientationFrame = new FrameOrientation(pelvisZUpFrame, pelvisYawPitchRollTransitionDesired[0], pelvisYawPitchRollTransitionDesired[1], pelvisYawPitchRollTransitionDesired[2]);
-            Quaternion pelvisOrientationWorld = new Quaternion();
-            pelvisOrientationFrame.changeFrame(ReferenceFrame.getWorldFrame());
-            pelvisOrientationFrame.getQuaternion(pelvisOrientationWorld);
-            PelvisOrientationTrajectoryMessage pelvisOrientationTrajectoryMessage = new PelvisOrientationTrajectoryMessage(transitionTime, pelvisOrientationWorld); //2.0
-
-            FramePose pelvisPoseDesired = new FramePose(hatchFrame, pelvisPositionInHatchFrameTransitionDesired, new Quaternion());
-            pelvisPoseDesired.changeFrame(ReferenceFrame.getWorldFrame());
-            PelvisHeightTrajectoryMessage pelvisHeightTrajectoryMessage = new PelvisHeightTrajectoryMessage(transitionTime, pelvisPoseDesired.getZ()); // 2.0
+            ChestTrajectoryMessage chestOrientationTrajectoryMessage = getChestOrientationTrajectoryMessage(transitionTime, pelvisZUpFrame, chestYawPitchRollTransitionDesired); //3.0
+            PelvisOrientationTrajectoryMessage pelvisOrientationTrajectoryMessage = getPelvisOrientationTrajectoryMessage(transitionTime, pelvisZUpFrame, pelvisYawPitchRollTransitionDesired); //2.0
+            PelvisHeightTrajectoryMessage pelvisHeightTrajectoryMessage = getPelvisHeightTrajectoryMessage(transitionTime, hatchFrame, pelvisPositionInHatchFrameTransitionDesired); // 2.0
                         
             // Send commands
             atlasPrimitiveActions.chestTrajectoryBehavior.setInput(chestOrientationTrajectoryMessage);
@@ -444,23 +387,10 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
          @Override
          protected void setBehaviorInput()
          {            
-            // Chest
             ReferenceFrame pelvisZUpFrame = referenceFrames.getPelvisZUpFrame();
-            FrameOrientation chestOrientationFrame = new FrameOrientation(pelvisZUpFrame, chestYawPitchRollSecondHatchStepDesired[0], chestYawPitchRollSecondHatchStepDesired[1], chestYawPitchRollSecondHatchStepDesired[2]);
-            Quaternion chestOrientationLocal = new Quaternion();
-            chestOrientationFrame.getQuaternion(chestOrientationLocal);
-            ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(secondStepChestTime, chestOrientationLocal, pelvisZUpFrame, referenceFrames.getPelvisZUpFrame()); //2.5
-            
-            // Pelvis
-            FrameOrientation pelvisOrientationFrame = new FrameOrientation(pelvisZUpFrame, pelvisYawPitchRollSecondHatchStepDesired[0], pelvisYawPitchRollSecondHatchStepDesired[1], pelvisYawPitchRollSecondHatchStepDesired[2]);
-            Quaternion pelvisOrientationWorld = new Quaternion();
-            pelvisOrientationFrame.changeFrame(ReferenceFrame.getWorldFrame());
-            pelvisOrientationFrame.getQuaternion(pelvisOrientationWorld);
-            PelvisOrientationTrajectoryMessage pelvisOrientationTrajectoryMessage = new PelvisOrientationTrajectoryMessage(secondStepTime, pelvisOrientationWorld); //2.0
-
-            FramePose pelvisPoseDesired = new FramePose(hatchFrame, pelvisPositionInHatchFrameFirstHatchStepDesired, new Quaternion());
-            pelvisPoseDesired.changeFrame(ReferenceFrame.getWorldFrame());
-            PelvisHeightTrajectoryMessage pelvisHeightTrajectoryMessage = new PelvisHeightTrajectoryMessage(secondStepTime, pelvisPoseDesired.getZ()); //1.0
+            ChestTrajectoryMessage chestOrientationTrajectoryMessage = getChestOrientationTrajectoryMessage(secondStepChestTime, pelvisZUpFrame, chestYawPitchRollSecondHatchStepDesired); //2.5
+            PelvisOrientationTrajectoryMessage pelvisOrientationTrajectoryMessage = getPelvisOrientationTrajectoryMessage(secondStepTime, pelvisZUpFrame, pelvisYawPitchRollSecondHatchStepDesired); //2.0
+            PelvisHeightTrajectoryMessage pelvisHeightTrajectoryMessage = getPelvisHeightTrajectoryMessage(secondStepTime, hatchFrame, pelvisPositionInHatchFrameSecondHatchStepDesired); //1.0
             
             // Feet
             FootstepDataListMessage footsteps = new FootstepDataListMessage(swingTime.getDoubleValue(), transferTime.getDoubleValue());
@@ -468,33 +398,20 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
             footsteps.setDestination(PacketDestination.BROADCAST);
 
             ReferenceFrame leftSoleFrame = referenceFrames.getSoleFrame(RobotSide.LEFT);
-            FramePose stepPose = new FramePose(leftSoleFrame);
-            stepPose.setPosition(leftFootSwingGoalPoint);
-            FramePose wayPointPose1 = new FramePose(leftSoleFrame);
-            wayPointPose1.setX(leftFootSwingWayPoint1.getX());
-            wayPointPose1.setY(leftFootSwingWayPoint1.getY());
-            wayPointPose1.setZ(leftFootSwingWayPoint1.getZ());
-            FramePose wayPointPose2 = new FramePose(leftSoleFrame);
-            wayPointPose2.setX(stepPose.getX() + leftFootSwingWayPoint2.getX());
-            wayPointPose2.setY(stepPose.getY() + leftFootSwingWayPoint2.getY());
-            wayPointPose2.setZ(stepPose.getZ() + leftFootSwingWayPoint2.getZ());
-
+            FramePose stepPose = new FramePose(leftSoleFrame,leftFootSwingGoalPoint, new Quaternion());
             stepPose.changeFrame(ReferenceFrame.getWorldFrame());
-            Point3D location = new Point3D();
-            Quaternion orientation = new Quaternion();
-            stepPose.getPose(location, orientation);
-            FootstepDataMessage footstepData = new FootstepDataMessage(RobotSide.LEFT, location, orientation);
             
+            FramePose wayPointPose1 = new FramePose(leftSoleFrame, leftFootSwingWayPoint1, new Quaternion());
             wayPointPose1.changeFrame(ReferenceFrame.getWorldFrame());
-            Point3D locationWayPoint1 = new Point3D();
-            wayPointPose1.getPose(locationWayPoint1, new Quaternion());
-            wayPointPose2.changeFrame(ReferenceFrame.getWorldFrame());
-            Point3D locationWayPoint2 = new Point3D();
-            wayPointPose2.getPose(locationWayPoint2, new Quaternion());
             
+            FramePose wayPointPose2 = new FramePose(leftSoleFrame, leftFootSwingWayPoint2, new Quaternion());
+            wayPointPose2.changeFrame(ReferenceFrame.getWorldFrame());
+            
+            FootstepDataMessage footstepData = new FootstepDataMessage(RobotSide.LEFT, stepPose.getPosition(), stepPose.getOrientation());
             footstepData.setTrajectoryType(TrajectoryType.CUSTOM);
-            footstepData.setCustomPositionWaypoints(new Point3D[] {locationWayPoint1, locationWayPoint2});
+            footstepData.setCustomPositionWaypoints(new Point3D[] {new Point3D(wayPointPose1.getX(), wayPointPose1.getY(), wayPointPose1.getZ()), new Point3D(wayPointPose2.getX(), wayPointPose2.getY(), wayPointPose2.getZ())});
             footsteps.add(footstepData);
+
             
             // Send commands
             atlasPrimitiveActions.chestTrajectoryBehavior.setInput(chestOrientationTrajectoryMessage);
@@ -510,23 +427,10 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
          @Override
          protected void setBehaviorInput()
          {            
-            // Chest
             ReferenceFrame pelvisZUpFrame = referenceFrames.getPelvisZUpFrame();
-            FrameOrientation chestOrientationFrame = new FrameOrientation(pelvisZUpFrame, chestYawPitchRollResetDesired[0], chestYawPitchRollResetDesired[1], chestYawPitchRollResetDesired[2]);
-            Quaternion chestOrientationLocal = new Quaternion();
-            chestOrientationFrame.getQuaternion(chestOrientationLocal);
-            ChestTrajectoryMessage chestOrientationTrajectoryMessage = new ChestTrajectoryMessage(realignTime, chestOrientationLocal, pelvisZUpFrame, referenceFrames.getPelvisZUpFrame());
-            
-            // Pelvis
-            FrameOrientation pelvisOrientationFrame = new FrameOrientation(pelvisZUpFrame, pelvisYawPitchRollResetDesired[0], pelvisYawPitchRollResetDesired[1], pelvisYawPitchRollResetDesired[2]);
-            Quaternion pelvisOrientationWorld = new Quaternion();
-            pelvisOrientationFrame.changeFrame(ReferenceFrame.getWorldFrame());
-            pelvisOrientationFrame.getQuaternion(pelvisOrientationWorld);            
-            PelvisOrientationTrajectoryMessage pelvisOrientationTrajectoryMessage = new PelvisOrientationTrajectoryMessage(realignTime, pelvisOrientationWorld); //1.0
-
-            FramePose pelvisPoseDesired = new FramePose(hatchFrame, pelvisPositionInHatchFrameFirstHatchStepDesired, new Quaternion());
-            pelvisPoseDesired.changeFrame(ReferenceFrame.getWorldFrame());
-            PelvisHeightTrajectoryMessage pelvisHeightTrajectoryMessage = new PelvisHeightTrajectoryMessage(realignTime, pelvisPoseDesired.getZ()); //1.0            
+            ChestTrajectoryMessage chestOrientationTrajectoryMessage = getChestOrientationTrajectoryMessage(realignTime, pelvisZUpFrame, chestYawPitchRollResetDesired);
+            PelvisOrientationTrajectoryMessage pelvisOrientationTrajectoryMessage = getPelvisOrientationTrajectoryMessage(realignTime, pelvisZUpFrame, pelvisYawPitchRollResetDesired); //1.0
+            PelvisHeightTrajectoryMessage pelvisHeightTrajectoryMessage = getPelvisHeightTrajectoryMessage(realignTime, hatchFrame, pelvisPositionInHatchFrameRealignDesired); //1.0 , was set to first step height           
             
             atlasPrimitiveActions.chestTrajectoryBehavior.setInput(chestOrientationTrajectoryMessage);
             atlasPrimitiveActions.pelvisOrientationTrajectoryBehavior.setInput(pelvisOrientationTrajectoryMessage);
@@ -546,7 +450,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
             targetPose.setYaw(0.0);
             targetPose.changeFrame(ReferenceFrame.getWorldFrame());
             
-            atlasPrimitiveActions.walkToLocationBehavior.setWalkingStepWidth(0.33);
+            atlasPrimitiveActions.walkToLocationBehavior.setWalkingStepWidth(defaultStepWidth);
             atlasPrimitiveActions.walkToLocationBehavior.setFootstepLength(0.20);
             atlasPrimitiveActions.walkToLocationBehavior.setTarget(targetPose);
          }
@@ -559,9 +463,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
          protected void setBehaviorInput()
          {            
             // Pelvis
-            FramePose pelvisPoseDesired = new FramePose(hatchFrame, pelvisPositionInHatchFrameResetDesired, new Quaternion());
-            pelvisPoseDesired.changeFrame(ReferenceFrame.getWorldFrame());
-            PelvisHeightTrajectoryMessage pelvisHeightTrajectoryMessage = new PelvisHeightTrajectoryMessage(straightenTime, pelvisPoseDesired.getZ());  
+            PelvisHeightTrajectoryMessage pelvisHeightTrajectoryMessage = getPelvisHeightTrajectoryMessage(straightenTime, hatchFrame, pelvisPositionInHatchFrameStraightenDesired);  
 
             atlasPrimitiveActions.pelvisHeightTrajectoryBehavior.setInput(pelvisHeightTrajectoryMessage);
          }
@@ -757,9 +659,9 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
       }
       
       rightBeforeHatchOffset.set(0.21, 0.0, 0.0);
-      rightAfterHatchOffset.set(rightBeforeHatchOffset.getX() - 0.01, 0.03, 0.0); // -0.01 in x
+      rightAfterHatchOffset.set(rightBeforeHatchOffset.getX() - 0.03, 0.03, 0.0); // -0.01 in x
       leftBeforeHatchOffset.set(0.21, 0.0, 0.0);
-      leftAfterHatchOffset.set(leftBeforeHatchOffset.getX() + 0.03, 0.03, 0.0); // -0.01 in x
+      leftAfterHatchOffset.set(leftBeforeHatchOffset.getX() - 0.03, 0.03, 0.0); // +0.03 in x (-0.01 in x)
       
       setChestTrajectoriesBasedOnHatchDimensions();
       setPelvisTrajectoriesBasedOnHatchDimensions();
@@ -810,18 +712,18 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
       pelvisPositionInHatchFrameSetupDesired.set(0.0, 0.0, defaultPelvisHeight + pelvisMovementInitializationZ);
       
       pelvisYawPitchRollFirstHatchStepDesired[0] = Math.toRadians(7.0);
-      pelvisYawPitchRollFirstHatchStepDesired[1] = Math.toRadians(-15.0); //5.0
+      pelvisYawPitchRollFirstHatchStepDesired[1] = Math.toRadians(-hatchLowerHeight*100.0); //5.0
       pelvisYawPitchRollFirstHatchStepDesired[2] = Math.toRadians(-7.0); // -7.0
       
       pelvisPositionInHatchFrameFirstHatchStepDesired.set(pelvisPositionInHatchFrameSetupDesired);
       pelvisPositionInHatchFrameFirstHatchStepDesired.add(0.0, 0.0, 0.02); //0.02 in z (0.05 in x)
       
-      pelvisYawPitchRollTransitionDesired[0] = Math.toRadians(0.0);
-      pelvisYawPitchRollTransitionDesired[1] = Math.toRadians(5.0); //Math.toRadians(4.0 + 2.0 * hatchLowerHeight/0.05);
-      pelvisYawPitchRollTransitionDesired[2] = Math.toRadians(0.0); // roll was 15.0 for 0.15 height
+      pelvisYawPitchRollTransitionDesired[0] = Math.toRadians(0.0); //0.0
+      pelvisYawPitchRollTransitionDesired[1] = Math.toRadians(4.0 + 2.0 * hatchLowerHeight/0.05);
+      pelvisYawPitchRollTransitionDesired[2] = Math.toRadians(5.0); // roll was 15.0 for 0.15 height
 
       pelvisPositionInHatchFrameTransitionDesired.set(pelvisPositionInHatchFrameFirstHatchStepDesired);
-      pelvisPositionInHatchFrameTransitionDesired.add(0.0, 0.0, 0.02); // 0.04 height, 0.025 + 0.025*hatchLowerHeight/0.05 - 0.04 in x
+      pelvisPositionInHatchFrameTransitionDesired.add(0.0, 0.0, 0.04); // 0.04 height, 0.025 + 0.025*hatchLowerHeight/0.05 - 0.04 in x
    
       pelvisYawPitchRollSecondHatchStepDesired[0] = Math.toRadians(-8.0); // -5
       pelvisYawPitchRollSecondHatchStepDesired[1] = Math.toRadians(hatchLowerHeight*100.0);
@@ -834,7 +736,9 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
       pelvisYawPitchRollResetDesired[1] = Math.toRadians(0.0);
       pelvisYawPitchRollResetDesired[2] = Math.toRadians(0.0);
       
-      pelvisPositionInHatchFrameResetDesired.set(0.0, 0.0, defaultPelvisHeight);
+      pelvisPositionInHatchFrameRealignDesired.set(pelvisPositionInHatchFrameFirstHatchStepDesired);
+      
+      pelvisPositionInHatchFrameStraightenDesired.set(0.0, 0.0, defaultPelvisHeight);
    }
    
    private void setFootSwingGoalPointsBasedOnHatchDimensions()
@@ -864,13 +768,51 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
    private void setRightFootSwingWayPointBasedOnHatchDimensions()
    {
       rightFootSwingWayPoint1.add(defaultRightFootSwingWayPoint1, new Point3D(0, -0.03, hatchLowerHeight));
+      
       rightFootSwingWayPoint2.add(defaultRightFootSwingWayPoint2, new Point3D(0, -0.03, hatchLowerHeight));
+      rightFootSwingWayPoint2.add(rightFootSwingGoalPoint);
+      
+      if(rightFootSwingWayPoint2.getZ() < minSwingWayPointHeight)
+      {
+         double deltaSwingHeight = minSwingWayPointHeight - rightFootSwingWayPoint2.getZ();
+         rightFootSwingWayPoint1.setZ(rightFootSwingWayPoint1.getZ() + deltaSwingHeight);
+         rightFootSwingWayPoint2.setZ(rightFootSwingWayPoint2.getZ() + deltaSwingHeight);
+      }
    }
    
    private void setLeftFootSwingWayPointBasedOnHatchDimensions()
    {
-      leftFootSwingWayPoint1.add(defaultLeftFootSwingWayPoint1, new Point3D(0, 0.08, hatchLowerHeight)); // 0.03 ... was -0.02 in z
-      leftFootSwingWayPoint2.add(defaultLeftFootSwingWayPoint2, new Point3D(0, 0.08, hatchLowerHeight)); // 0.05 ... 0.03 in y
+      leftFootSwingWayPoint1.add(defaultLeftFootSwingWayPoint1, new Point3D(0, 0.00, hatchLowerHeight)); // 0.03 ... was -0.02 in z
+      
+      leftFootSwingWayPoint2.add(defaultLeftFootSwingWayPoint2, new Point3D(0, 0.05, hatchLowerHeight)); // 0.05 ... 0.03 in y
+      leftFootSwingWayPoint2.add(leftFootSwingGoalPoint);
+      
+      if(leftFootSwingWayPoint2.getZ() < minSwingWayPointHeight)
+      {
+         double deltaSwingHeight = minSwingWayPointHeight - leftFootSwingWayPoint2.getZ();
+         leftFootSwingWayPoint1.setZ(leftFootSwingWayPoint1.getZ() + deltaSwingHeight);
+         leftFootSwingWayPoint2.setZ(leftFootSwingWayPoint2.getZ() + deltaSwingHeight);
+      }
+   }
+   
+   public ChestTrajectoryMessage getChestOrientationTrajectoryMessage(double trajectoryTime, ReferenceFrame referenceFrame, double[] chestOrientation)
+   {
+      FrameOrientation chestOrientationFrame = new FrameOrientation(referenceFrame, chestOrientation);
+      return new ChestTrajectoryMessage(trajectoryTime, chestOrientationFrame.getQuaternion(), chestOrientationFrame.getReferenceFrame(), chestOrientationFrame.getReferenceFrame());
+   }
+   
+   public PelvisOrientationTrajectoryMessage getPelvisOrientationTrajectoryMessage(double trajectoryTime, ReferenceFrame referenceFrame, double[] pelvisOrientation)
+   {
+      FrameOrientation pelvisOrientationFrame = new FrameOrientation(referenceFrame, pelvisOrientation);
+      pelvisOrientationFrame.changeFrame(ReferenceFrame.getWorldFrame());
+      return new PelvisOrientationTrajectoryMessage(trajectoryTime, pelvisOrientationFrame.getQuaternion());
+   }
+   
+   public PelvisHeightTrajectoryMessage getPelvisHeightTrajectoryMessage(double trajectoryTime, ReferenceFrame referenceFrame, Vector3D pelvisPosition)
+   {
+      FramePose pelvisPoseDesired = new FramePose(referenceFrame, pelvisPosition, new Quaternion());
+      pelvisPoseDesired.changeFrame(ReferenceFrame.getWorldFrame());
+      return new PelvisHeightTrajectoryMessage(trajectoryTime, pelvisPoseDesired.getZ());
    }
    
    @Override
