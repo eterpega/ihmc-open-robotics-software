@@ -228,12 +228,12 @@
 <Graph Array Window Size>1</Graph Array Window Size>
 <Graph Array Window1>
 <ScreenID>0</ScreenID>
-<WindowLocation>1265.0, 934.0</WindowLocation>
-<WindowSize>800.0, 506.0</WindowSize>
+<WindowLocation>1265.0, 24.0</WindowLocation>
+<WindowSize>2495.0, 1416.0</WindowSize>
 <GraphGroup>
-	<Cols>1</Cols>
+	<Cols>3</Cols>
 	<Graph>
-		<Variables>root.atlas.DRCSimulation.DRCControllerThread.DRCMomentumBasedController.HighLevelHumanoidControllerManager.HighLevelHumanoidControllerToolbox.CommonHumanoidReferenceFramesVisualizer.pelvisX</Variables>
+		<Variables>root.atlas.DRCSimulation.DRCControllerThread.DRCMomentumBasedController.HighLevelHumanoidControllerManager.HighLevelHumanoidControllerToolbox.CommonHumanoidReferenceFramesVisualizer.pelvisX,root.atlas.DRCSimulation.DRCEstimatorThread.EstimatorController.DRCKinematicsBasedStateEstimator.newPelvisPoseHistoryCorrection.correctedPelvisPoseInWorldFrameX</Variables>
 		<GraphConfiguration>
 			<Name>config19</Name>
 			<ScalingMethod>1</ScalingMethod>
@@ -245,9 +245,57 @@
 		</GraphConfig>
 	</Graph>
 	<Graph>
-		<Variables>root.atlas.DRCSimulation.DRCControllerThread.DRCMomentumBasedController.HighLevelHumanoidControllerManager.HighLevelHumanoidControllerToolbox.CommonHumanoidReferenceFramesVisualizer.pelvisZ</Variables>
+		<Variables>root.atlas.DRCSimulation.DRCControllerThread.DRCMomentumBasedController.HighLevelHumanoidControllerManager.HighLevelHumanoidControllerToolbox.CommonHumanoidReferenceFramesVisualizer.pelvisY,root.atlas.DRCSimulation.DRCEstimatorThread.EstimatorController.DRCKinematicsBasedStateEstimator.newPelvisPoseHistoryCorrection.correctedPelvisPoseInWorldFrameY</Variables>
 		<GraphConfiguration>
 			<Name>config20</Name>
+			<ScalingMethod>1</ScalingMethod>
+			<PlotType>100</PlotType>
+			<ShowBaseLines>true</ShowBaseLines>
+			<BaseLines>0.0,</BaseLines>
+			<MaxScaling>1.0</MaxScaling>
+			<MinScaling>0.0</MinScaling>
+		</GraphConfig>
+	</Graph>
+	<Graph>
+		<Variables>root.atlas.DRCSimulation.DRCControllerThread.DRCMomentumBasedController.HighLevelHumanoidControllerManager.HighLevelHumanoidControllerToolbox.CommonHumanoidReferenceFramesVisualizer.pelvisZ,root.atlas.DRCSimulation.DRCEstimatorThread.EstimatorController.DRCKinematicsBasedStateEstimator.newPelvisPoseHistoryCorrection.correctedPelvisPoseInWorldFrameZ</Variables>
+		<GraphConfiguration>
+			<Name>config21</Name>
+			<ScalingMethod>1</ScalingMethod>
+			<PlotType>100</PlotType>
+			<ShowBaseLines>true</ShowBaseLines>
+			<BaseLines>0.0,</BaseLines>
+			<MaxScaling>1.0</MaxScaling>
+			<MinScaling>0.0</MinScaling>
+		</GraphConfig>
+	</Graph>
+	<Graph>
+		<Variables>root.atlas.DRCSimulation.DRCEstimatorThread.EstimatorController.DRCKinematicsBasedStateEstimator.newPelvisPoseHistoryCorrection.correctedPelvisPoseInWorldFrameX,root.atlas.DRCSimulation.DRCControllerThread.DRCMomentumBasedController.HighLevelHumanoidControllerManager.MomentumBasedControllerFactory.HighLevelControlManagerFactory.CenterOfMassHeightManager.LookAheadCoMHeightTrajectoryGenerator.desiredCoMPositionX</Variables>
+		<GraphConfiguration>
+			<Name>config22</Name>
+			<ScalingMethod>1</ScalingMethod>
+			<PlotType>100</PlotType>
+			<ShowBaseLines>true</ShowBaseLines>
+			<BaseLines>0.0,</BaseLines>
+			<MaxScaling>1.0</MaxScaling>
+			<MinScaling>0.0</MinScaling>
+		</GraphConfig>
+	</Graph>
+	<Graph>
+		<Variables>root.atlas.DRCSimulation.DRCEstimatorThread.EstimatorController.DRCKinematicsBasedStateEstimator.newPelvisPoseHistoryCorrection.correctedPelvisPoseInWorldFrameY,root.atlas.DRCSimulation.DRCControllerThread.DRCMomentumBasedController.HighLevelHumanoidControllerManager.MomentumBasedControllerFactory.HighLevelControlManagerFactory.CenterOfMassHeightManager.LookAheadCoMHeightTrajectoryGenerator.desiredCoMPositionY</Variables>
+		<GraphConfiguration>
+			<Name>config23</Name>
+			<ScalingMethod>1</ScalingMethod>
+			<PlotType>100</PlotType>
+			<ShowBaseLines>true</ShowBaseLines>
+			<BaseLines>0.0,</BaseLines>
+			<MaxScaling>1.0</MaxScaling>
+			<MinScaling>0.0</MinScaling>
+		</GraphConfig>
+	</Graph>
+	<Graph>
+		<Variables>root.atlas.DRCSimulation.DRCEstimatorThread.EstimatorController.DRCKinematicsBasedStateEstimator.newPelvisPoseHistoryCorrection.correctedPelvisPoseInWorldFrameZ,root.atlas.DRCSimulation.DRCControllerThread.DRCMomentumBasedController.HighLevelHumanoidControllerManager.MomentumBasedControllerFactory.HighLevelControlManagerFactory.CenterOfMassHeightManager.LookAheadCoMHeightTrajectoryGenerator.desiredCoMPositionZ</Variables>
+		<GraphConfiguration>
+			<Name>config24</Name>
 			<ScalingMethod>1</ScalingMethod>
 			<PlotType>100</PlotType>
 			<ShowBaseLines>true</ShowBaseLines>
@@ -266,9 +314,9 @@ null,
 
 <Current View>Normal View</Current View>
  <Canvas 1> 
- <Camera X>0.9626934385280013</Camera X>
- <Camera Y>-4.587609514086054</Camera Y>
- <Camera Z>2.813707176603335</Camera Z>
+ <Camera X>1.3845198057013866</Camera X>
+ <Camera Y>-4.146721756327998</Camera Y>
+ <Camera Z>1.427039201165919</Camera Z>
  <Dolly data> 
  <Position X>2.0</Position X>
  <Position Y>12.0</Position Y>
@@ -292,8 +340,8 @@ null,
 </Track Booleans>
 </Track data>
 <Fix Position>
-<Fix X>2.0696598812713973</Fix X>
-<Fix Y>2.6689661778596365</Fix Y>
-<Fix Z>0.5772513818909037</Fix Z>
+<Fix X>1.6076807805772195</Fix X>
+<Fix Y>0.3529582847900947</Fix Y>
+<Fix Z>0.8710026939393563</Fix Z>
 </Fix Position>
 </Canvas 1>
