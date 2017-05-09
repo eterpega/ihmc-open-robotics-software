@@ -63,14 +63,15 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
       DONE
    }
    
-   private Point3D targetLocationHatchBeforeFar = new Point3D(-0.61, -0.08 + 0.02, 0.0);
+   private Point3D targetLocationHatchBeforeFar = new Point3D(-0.41, -0.08 + 0.02, 0.0); // -0.61 before changing for higher walk
    private Point3D targetLocationHatchBeforeNear = new Point3D(-0.19, -0.08 + 0.02, 0.0); // -0.21
    private Point3D targetLocationHatchAfterNear = new Point3D(0.60, -0.08 + 0.03 + 0.02, 0.0);
    private Point3D targetLocationHatchAfterFar = new Point3D(0.85, -0.08 + 0.03 + 0.02, 0.0);
    
    private final HumanoidReferenceFrames referenceFrames;
    
-   private final double defaultPelvisHeight = 0.788;
+   private final double defaultLowerPelvisHeight = 0.788;
+   private final double defaultUpperPelvisHeight = 0.850;
    
    private final PoseReferenceFrame hatchFrame = new PoseReferenceFrame("HatchFrame", ReferenceFrame.getWorldFrame());
    private final YoGraphicReferenceFrame hatchFrameViz;
@@ -115,6 +116,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
    private double[] pelvisYawPitchRollSecondHatchStepDesired = new double[3];
    private double[] pelvisYawPitchRollResetDesired = new double[3];
    
+   private Point3D pelvisPositionInHatchFrameInitializeDesired = new Point3D();
    private Point3D pelvisPositionInHatchFrameSetupDesired = new Point3D();
    private Point3D pelvisPositionInHatchFrameFirstHatchStepDesired = new Point3D();
    private Point3D pelvisPositionInHatchFrameTransitionDesired = new Point3D();
@@ -209,7 +211,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
       
       BehaviorAction<WalkThroughHatchBehaviorState> setupRobotArms = new BehaviorAction<WalkThroughHatchBehaviorState>(WalkThroughHatchBehaviorState.SETUP_ROBOT_ARMS,
             atlasPrimitiveActions.leftHandDesiredConfigurationBehavior, atlasPrimitiveActions.rightHandDesiredConfigurationBehavior, atlasPrimitiveActions.leftArmTrajectoryBehavior,
-            atlasPrimitiveActions.rightArmTrajectoryBehavior, atlasPrimitiveActions.chestTrajectoryBehavior)
+            atlasPrimitiveActions.rightArmTrajectoryBehavior, atlasPrimitiveActions.chestTrajectoryBehavior, atlasPrimitiveActions.pelvisHeightTrajectoryBehavior)
       {
          @Override
          protected void setBehaviorInput()
@@ -227,13 +229,15 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
             // Chest
             ReferenceFrame pelvisZUpFrame = referenceFrames.getPelvisZUpFrame();
             ChestTrajectoryMessage chestOrientationTrajectoryMessage = getChestOrientationTrajectoryMessage(initTime, pelvisZUpFrame, chestYawPitchRollInitializeDesired);
-                  
+            PelvisHeightTrajectoryMessage pelvisHeightTrajectoryMessage = getPelvisHeightTrajectoryMessage(initTime, hatchFrame, pelvisPositionInHatchFrameInitializeDesired);      
+            
             // Send commands
             atlasPrimitiveActions.rightHandDesiredConfigurationBehavior.setInput(rightHandMessage);
             atlasPrimitiveActions.leftHandDesiredConfigurationBehavior.setInput(leftHandMessage);
             atlasPrimitiveActions.leftArmTrajectoryBehavior.setInput(leftPoseMessage);
             atlasPrimitiveActions.rightArmTrajectoryBehavior.setInput(rightPoseMessage);
             atlasPrimitiveActions.chestTrajectoryBehavior.setInput(chestOrientationTrajectoryMessage);
+            atlasPrimitiveActions.pelvisHeightTrajectoryBehavior.setInput(pelvisHeightTrajectoryMessage);
          }
       };
       
@@ -701,6 +705,8 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
    
    private void setPelvisTrajectoriesBasedOnHatchDimensions()
    {
+      pelvisPositionInHatchFrameInitializeDesired.set(0.0, 0.0, defaultUpperPelvisHeight);
+      
       pelvisYawPitchRollSetupDesired[0] = Math.toRadians(0.0);
       pelvisYawPitchRollSetupDesired[1] = Math.toRadians(-hatchLowerHeight*100.0); //TEST: was -15.0 for 0.15 height
       pelvisYawPitchRollSetupDesired[2] = Math.toRadians(0.0);
@@ -708,7 +714,8 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
       double pelvisMovementInitializationZ = -0.215 + 0.0475 * hatchLowerHeight/0.05 + (hatchUpperHeight - 1.55);
       if(pelvisMovementInitializationZ > 0.0)
          pelvisMovementInitializationZ = 0.0;
-      pelvisPositionInHatchFrameSetupDesired.set(0.0, 0.0, defaultPelvisHeight + pelvisMovementInitializationZ);
+//      pelvisPositionInHatchFrameSetupDesired.set(0.0, 0.0, defaultLowerPelvisHeight + pelvisMovementInitializationZ);
+      pelvisPositionInHatchFrameSetupDesired.set(0.0, 0.0, defaultUpperPelvisHeight);
       
       pelvisYawPitchRollFirstHatchStepDesired[0] = Math.toRadians(7.0);
       pelvisYawPitchRollFirstHatchStepDesired[1] = Math.toRadians(-hatchLowerHeight*100.0); //5.0
@@ -737,7 +744,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
       
       pelvisPositionInHatchFrameRealignDesired.set(pelvisPositionInHatchFrameFirstHatchStepDesired);
       
-      pelvisPositionInHatchFrameStraightenDesired.set(0.0, 0.0, defaultPelvisHeight);
+      pelvisPositionInHatchFrameStraightenDesired.set(0.0, 0.0, defaultUpperPelvisHeight);
    }
    
    private void setFootSwingGoalPointsBasedOnHatchDimensions()
