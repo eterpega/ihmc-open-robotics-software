@@ -50,10 +50,10 @@ public class YoVariableExplorerTabbedPane extends JTabbedPane implements Registr
    private YoVariablePanelJPopupMenu varPanelJPopupMenu;
    private int tabIndex = 0;
 
+
    public YoVariableExplorerTabbedPane(YoVariableDoubleClickListener yoVariableDoubleClickListener, JFrame frame, BookmarkedVariablesHolder bookmarkedVariablesHolder,
                            final SelectedVariableHolder selectedVariableHolder, EntryBoxArrayPanel entryBoxArrayPanel,
-                           WriteDataCommandExecutor writeDataCommandExecutor,
-                           YoVariableRegistry rootRegistry)
+                           WriteDataCommandExecutor writeDataCommandExecutor, YoVariableRegistry rootRegistry)
    {
       this.setName("CombinedVarPanel");
 
@@ -103,6 +103,7 @@ public class YoVariableExplorerTabbedPane extends JTabbedPane implements Registr
       this.setMinimumSize(new Dimension(246, 100));
       createAndStartPeriodicUIUpdateThread();
    }
+
 
    public void addVariableSearchPanel(YoVariableSearchPanel variableSearchPanel)
    {
