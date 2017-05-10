@@ -2,6 +2,7 @@ package us.ihmc.simulationconstructionset.gui.yoVariableSearch;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Rectangle;
@@ -31,6 +32,7 @@ import javax.swing.event.ChangeListener;
 
 import us.ihmc.graphicsDescription.graphInterfaces.SelectedVariableHolder;
 import us.ihmc.robotics.dataStructures.listener.VariableChangedListener;
+import us.ihmc.robotics.dataStructures.variable.VariableModificationType;
 import us.ihmc.robotics.dataStructures.variable.YoVariable;
 import us.ihmc.robotics.dataStructures.variable.YoVariableList;
 import us.ihmc.simulationconstructionset.gui.DoubleClickListener;
@@ -45,6 +47,7 @@ public abstract class YoVariablePanel extends JPanel implements KeyListener, Mou
    private static ArrayList<VariableChangedListener> variableChangedListeners = new ArrayList<VariableChangedListener>();
 
    protected static final int SPINNER_HEIGHT = 16;
+   protected static final int TEXT_HEIGHT = SPINNER_HEIGHT - 4;
    protected static final int MINIMUM_TOTAL_WIDTH = 220;
    private static final int SPINNER_WIDTH = 84;
 
@@ -59,9 +62,10 @@ public abstract class YoVariablePanel extends JPanel implements KeyListener, Mou
    private DoubleClickListener doubleClickListener;
 
    private static final Color EMPTY_COLOR = Color.red;
-   private static final Color REGULAR_COLOR = Color.black;
-   private static final Color SELECTED_COLOR = Color.red;
-   private static final Color SENT_COLOR = Color.blue;
+
+   private static final Font DEFAULT_FONT = new Font("default", Font.PLAIN, TEXT_HEIGHT);
+   private static final Font SELECTED_FONT = new Font("default", Font.BOLD, TEXT_HEIGHT);
+   private static final Font SENT_FONT = new Font("default", Font.ITALIC, TEXT_HEIGHT);
 
    private static boolean showNameSpace = false;
 
@@ -135,7 +139,7 @@ public abstract class YoVariablePanel extends JPanel implements KeyListener, Mou
       this.setMinimumSize(new Dimension(MINIMUM_TOTAL_WIDTH, SPINNER_HEIGHT));
       this.addComponentListener(this);
       selectedVariableHolder.addChangeListener(new UpdateUIChangeListener());
-   
+
       this.addFocusListener(this);
    }
 
@@ -147,7 +151,7 @@ public abstract class YoVariablePanel extends JPanel implements KeyListener, Mou
          public void run()
          {
             yoVariableSpinners.clear();
-   
+
             for (int i = 0; i < getNumberOfYoVariables(); i++)
             {
                addTextFieldForVariable(getYoVariable(i));
@@ -164,7 +168,7 @@ public abstract class YoVariablePanel extends JPanel implements KeyListener, Mou
          yoVariableSpinners.add(spinner);
       }
       add(spinner);
-      
+
       setPanelSize(getNumberOfYoVariables());
    }
 
@@ -173,30 +177,40 @@ public abstract class YoVariablePanel extends JPanel implements KeyListener, Mou
       SpinnerNumberModel spinnerNumberModel = new SpinnerNumberModel();
       spinnerNumberModel.setStepSize(yoVariable.getStepSize());
       spinnerNumberModel.setValue(yoVariable.getValueAsDouble());
-      
+
       final JSpinner spinner = new JSpinner(spinnerNumberModel);
       spinner.setName(yoVariable.getFullNameWithNameSpace());
-      
-      String tooltip = "<html>You can scroll to modify the current value<br />Press shift to be more precise OR Control to change by bigger increments</html>";
-      spinner.setToolTipText(tooltip);
-      spinner.addMouseWheelListener(new MouseWheelListener()
+
+      boolean isModifiable = yoVariable.getModificationType().getIsModifiable();
+      if (isModifiable)
       {
-         private static final double SCROLL_FACTOR = 1;
-         private static final double SHIFT_FACTOR = 0.1;
-         private static final double CTRL_FACTOR = 10;
-
-         @Override
-         public void mouseWheelMoved(MouseWheelEvent mouseWheelEvent)
+         String tooltip = "<html>You can scroll to modify the current value<br />Press shift to be more precise OR Control to change by bigger increments</html>";
+         spinner.setToolTipText(tooltip);
+         spinner.addMouseWheelListener(new MouseWheelListener()
          {
-            double modifierFactor = (mouseWheelEvent.isShiftDown()) ? SHIFT_FACTOR : (mouseWheelEvent.isControlDown()) ? CTRL_FACTOR : 1;
+            private static final double SCROLL_FACTOR = 1;
+            private static final double SHIFT_FACTOR = 0.1;
+            private static final double CTRL_FACTOR = 10;
 
-            double currentValue = Double.parseDouble(spinner.getValue().toString());
-            double delta = yoVariable.getStepSize() * mouseWheelEvent.getWheelRotation() * SCROLL_FACTOR * modifierFactor;
-            spinner.setValue(currentValue + delta);
-         }
-      });
+            @Override
+            public void mouseWheelMoved(MouseWheelEvent mouseWheelEvent)
+            {
+               double modifierFactor = (mouseWheelEvent.isShiftDown()) ? SHIFT_FACTOR : (mouseWheelEvent.isControlDown()) ? CTRL_FACTOR : 1;
+
+               double currentValue = Double.parseDouble(spinner.getValue().toString());
+               double delta = yoVariable.getStepSize() * mouseWheelEvent.getWheelRotation() * SCROLL_FACTOR * modifierFactor;
+               spinner.setValue(currentValue + delta);
+            }
+         });
+      }
+      else
+      {
+         spinner.setToolTipText("This variable is not of type " + VariableModificationType.TUNABLE + " it can not be modified from here.");
+      }
+
       spinner.setUI(new HorizontalSpinnerUI());
-      
+      spinner.setEnabled(isModifiable);
+
       spinner.setBorder(null);
       spinner.setBackground(getBackground());
 
@@ -211,7 +225,7 @@ public abstract class YoVariablePanel extends JPanel implements KeyListener, Mou
 
       return spinner;
    }
-   
+
    public void refreshPanelWidth()
    {
       for (int i = 0; i < yoVariableSpinners.size(); i++)
@@ -229,7 +243,7 @@ public abstract class YoVariablePanel extends JPanel implements KeyListener, Mou
    {
       setPreferredSize(new Dimension(getViewableWidth() < MINIMUM_TOTAL_WIDTH ? MINIMUM_TOTAL_WIDTH : getViewableWidth(), SPINNER_HEIGHT * nVars));
    }
-   
+
    public int getViewableWidth()
    {
       return (int) getVisibleRect().getWidth();
@@ -244,6 +258,7 @@ public abstract class YoVariablePanel extends JPanel implements KeyListener, Mou
       int yStringStart = 10;
       if (this.isEmpty())
       {
+         graphics.setFont(DEFAULT_FONT);
          graphics.setColor(EMPTY_COLOR);
          String text = new String("Empty");
          graphics.drawString(text, xStringStart, yStringStart);
@@ -251,7 +266,6 @@ public abstract class YoVariablePanel extends JPanel implements KeyListener, Mou
       else
       {
          List<YoVariable<?>> allVariables = getAllYoVariablesCopy();
-         graphics.setColor(REGULAR_COLOR);
 
          YoVariable<?> selectedVariable = selectedVariableHolder.getSelectedVariable();
          Rectangle rectangle = this.getVisibleRect();
@@ -278,16 +292,19 @@ public abstract class YoVariablePanel extends JPanel implements KeyListener, Mou
             {
                if (selectedVariable == v)
                {
-                  graphics.setColor(SELECTED_COLOR);
+                  graphics.setFont(SELECTED_FONT);
                }
                else if (v.getYoVariableRegistry().isSent())
                {
-                  graphics.setColor(SENT_COLOR);
+                  graphics.setFont(SENT_FONT);
                }
                else
                {
-                  graphics.setColor(REGULAR_COLOR);
+                  graphics.setFont(DEFAULT_FONT);
                }
+
+               Color textColor = v.getModificationType().getTextColor();
+               graphics.setColor(textColor);
 
                String formattedName = formatName(graphics, longestLengthAllowed, v);
                graphics.drawString(formattedName, xStringStart, i * SPINNER_HEIGHT + yStringStart);
@@ -377,7 +394,7 @@ public abstract class YoVariablePanel extends JPanel implements KeyListener, Mou
    {
       return selectedVariableHolder;
    }
-   
+
    protected List<JSpinner> getYoVariableSpinners()
    {
       return yoVariableSpinners;
@@ -681,7 +698,7 @@ public abstract class YoVariablePanel extends JPanel implements KeyListener, Mou
 
             displayText = displayText.replaceAll("\n", "<br>");
             displayText = "<html>" + displayText + "</html>";
-            
+
             setToolTipText(displayText);
          }
 
