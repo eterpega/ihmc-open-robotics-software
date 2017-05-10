@@ -21,7 +21,6 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
@@ -143,9 +142,6 @@ public abstract class YoVariablePanel extends JPanel implements KeyListener, Mou
       selectedVariableHolder.addChangeListener(new UpdateUIChangeListener());
 
       this.addFocusListener(this);
-
-      JCheckBox toggleVariableModificationTypes = new JCheckBox("Enable Modification Type", false);
-      this.add(toggleVariableModificationTypes);
    }
 
    protected void clearAndSetUpTextFields()
