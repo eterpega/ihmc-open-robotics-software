@@ -27,9 +27,9 @@ public enum VariableModificationType
       switch (this)
       {
       case TUNABLE:
-         return Color.GREEN;
+         return Color.BLUE;
       case DEBUG:
-         return Color.RED;
+         return Color.MAGENTA;
       case STATE:
       default:
          return Color.BLACK;

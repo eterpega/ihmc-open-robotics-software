@@ -9,6 +9,7 @@ import us.ihmc.robotics.controllers.YoOrientationPIDGainsInterface;
 import us.ihmc.robotics.dataStructures.listener.VariableChangedListener;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.robotics.dataStructures.variable.VariableModificationType;
 import us.ihmc.robotics.dataStructures.variable.YoVariable;
 
 public class YoFootOrientationGains implements YoOrientationPIDGainsInterface
@@ -25,12 +26,12 @@ public class YoFootOrientationGains implements YoOrientationPIDGainsInterface
 
    public YoFootOrientationGains(String suffix, YoVariableRegistry registry)
    {
-      proportionalXYGain = new DoubleYoVariable("kpXYAngular" + suffix, registry);
-      proportionalZGain = new DoubleYoVariable("kpZAngular" + suffix, registry);
-      derivativeXYGain = new DoubleYoVariable("kdXYAngular" + suffix, registry);
-      derivativeZGain = new DoubleYoVariable("kdZAngular" + suffix, registry);
-      dampingRatioXY = new DoubleYoVariable("zetaXYAngular" + suffix, registry);
-      dampingRatioZ = new DoubleYoVariable("zetaZAngular" + suffix, registry);
+      proportionalXYGain = new DoubleYoVariable("kpXYAngular" + suffix, VariableModificationType.TUNABLE, registry);
+      proportionalZGain = new DoubleYoVariable("kpZAngular" + suffix, VariableModificationType.TUNABLE, registry);
+      derivativeXYGain = new DoubleYoVariable("kdXYAngular" + suffix, VariableModificationType.DEBUG, registry);
+      derivativeZGain = new DoubleYoVariable("kdZAngular" + suffix, VariableModificationType.DEBUG, registry);
+      dampingRatioXY = new DoubleYoVariable("zetaXYAngular" + suffix, VariableModificationType.TUNABLE, registry);
+      dampingRatioZ = new DoubleYoVariable("zetaZAngular" + suffix, VariableModificationType.TUNABLE, registry);
 
       maximumFeedback = new DoubleYoVariable("maximumAngularFeedback" + suffix, registry);
       maximumFeedbackRate = new DoubleYoVariable("maximumAngularFeedbackRate" + suffix, registry);
