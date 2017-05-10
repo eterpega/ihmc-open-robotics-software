@@ -35,4 +35,19 @@ public enum VariableModificationType
          return Color.BLACK;
       }
    }
+
+   public boolean isEnabledByDefault()
+   {
+      switch (this)
+      {
+      case TUNABLE:
+         return true;
+      case DEBUG:
+         return true;
+      case STATE:
+         return false;
+      default:
+         return false;
+      }
+   }
 }

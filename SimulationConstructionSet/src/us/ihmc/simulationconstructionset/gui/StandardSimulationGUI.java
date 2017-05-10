@@ -117,6 +117,7 @@ import us.ihmc.simulationconstructionset.gui.dialogConstructors.GUIEnablerAndDis
 import us.ihmc.simulationconstructionset.gui.dialogConstructors.StandardAllDialogConstructorsGenerator;
 import us.ihmc.simulationconstructionset.gui.heatmap.HeatmapWindow;
 import us.ihmc.simulationconstructionset.gui.hierarchyTree.NameSpaceHierarchyTree;
+import us.ihmc.simulationconstructionset.gui.yoVariableSearch.ModificationTypeSelectionPanel;
 import us.ihmc.simulationconstructionset.gui.yoVariableSearch.YoVariableListPanel;
 import us.ihmc.simulationconstructionset.gui.yoVariableSearch.YoVariablePanelJPopupMenu;
 import us.ihmc.simulationconstructionset.gui.yoVariableSearch.YoVariableSearchPanel;
@@ -192,7 +193,7 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
    // private ArrayList guiActions;
    private StandardGUIActions standardGUIActions;
    private AllDialogConstructorsHolder allDialogConstructorsHolder;
-   
+
    private VarGroupList varGroupList;
    private ViewportPanel viewportPanel;
    private TimeStepMouseWheelListener timeStepMouseWheelListener;
@@ -215,9 +216,9 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
    private BookmarkedVariablesHolder bookmarkedVariablesHolder;
 
    private ArrayList<TickUpdateListener> tickUpdateListeners = new ArrayList<TickUpdateListener>();
-   
+
    private CloseableAndDisposableRegistry closeableAndDisposableRegistry = new CloseableAndDisposableRegistry();
-   
+
    private List<String> panelsSelectedEarly = new ArrayList<>();
    private boolean scsWindowOpened = false;
 
@@ -309,7 +310,7 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
          setRobots(new Robot[]{robot});
          return;
       }
-      
+
       Robot[] newRobots = new Robot[robots.length + 1];
       for (int i=0; i<robots.length; i++)
       {
@@ -317,7 +318,7 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
       }
       newRobots[newRobots.length-1] = robot;
       this.robots = newRobots;
-      
+
       robot.getCameraMountList(cameraMountList);
       createGraphicsRobot(robot);
    }
@@ -325,7 +326,7 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
    public void setRobots(Robot[] robots)
    {
       boolean wereAlreadySet = (this.robots != null);
-      
+
       if (wereAlreadySet)
       {
          throw new RuntimeException("robots != null. Can only setRobots once!");
@@ -472,12 +473,12 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
       // windowGUIActions.setupGraphGroupsMenu(graphGroupList, viewportWindow);
       return viewportWindow;
    }
-   
+
    public HeatmapWindow createNewHeatmapWindow(String name)
    {
       return new HeatmapWindow(name, rootRegistry, myGraphArrayPanel, selectedVariableHolder, myDataBuffer, myDataBuffer);
    }
-   
+
    public void setupMultiViews(String viewportName, ViewportPanel viewport_Panel)
    {
       if (robots == null)
@@ -582,8 +583,12 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
 
          yoVariableExplorerTabbedPane = new YoVariableExplorerTabbedPane(new YoVariableDoubleClickListener(myDataBuffer, jFrame), jFrame, bookmarkedVariablesHolder,
                selectedVariableHolder, null, sim, rootRegistry);
+
+         ModificationTypeSelectionPanel modificationTypeSelectionPanel = new ModificationTypeSelectionPanel();
+         yoVariableExplorerTabbedPane.addTab("Modification Type", modificationTypeSelectionPanel);
+
          YoVariableSearchPanel variableSearchPanel = new YoVariableSearchPanel(selectedVariableHolder, myDataBuffer, myGraphArrayPanel, myEntryBoxArrayPanel,
-               bookmarkedVariablesHolder, yoVariableExplorerTabbedPane);
+               bookmarkedVariablesHolder, yoVariableExplorerTabbedPane, modificationTypeSelectionPanel);
          yoVariableExplorerTabbedPane.addVariableSearchPanel(variableSearchPanel);
 
          myGraphArrayPanel = new GraphArrayPanel(selectedVariableHolder, myDataBuffer, jFrame, this);
@@ -636,7 +641,7 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
                // All other deadlocks in the SCS code need to be removed.
 
             }
-            
+
             @Override
             public void windowOpened(WindowEvent e)
             {
@@ -725,7 +730,7 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
       timeStepMouseWheelListener = new TimeStepMouseWheelListener(this);
       viewportPanel.addMouseWheelListener(timeStepMouseWheelListener);
       contentPane.addMouseWheelListener(timeStepMouseWheelListener);
-      
+
       splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
       contentPane.add(splitPane);
 
@@ -1499,7 +1504,7 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
 
    public void setCameraPosition(Tuple3DBasics cameraPosition)
    {
-      viewportPanel.setCameraPosition(cameraPosition);      
+      viewportPanel.setCameraPosition(cameraPosition);
    }
 
    public boolean allowTickUpdatesNow()
@@ -1657,9 +1662,9 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
       /*
        * if (rob == null) return; EntryBoxGroup group = new EntryBoxGroup(name);
        * group.addEntryBoxVars(vars);
-       * 
+       *
        * entryBoxGroupList.addEntryBoxGroup(group);
-       * 
+       *
        * standardGUIActions.setupEntryBoxGroupMenu(entryBoxGroupList, this);
        */
    }
@@ -1789,7 +1794,7 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
       return myEntryBoxArrayPanel.getCurrentPanel(true);
    }
 
-   
+
    public void createNewEntryBoxTabFromEntryBoxGroup(final String name)
    {
       EventDispatchThreadHelper.invokeAndWait(new Runnable()
@@ -1801,11 +1806,11 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
          }
       });
    }
-   
-   
+
+
    public void createNewEntryBoxTabFromEntryBoxGroupLocal(String name)
    {
-      //      
+      //
       if (myEntryBoxArrayPanel.getTabCount() > 0)
       {
          for (int i = 0; i < myEntryBoxArrayPanel.getTabCount(); i++)
@@ -1821,7 +1826,7 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
             }
          }
       }
-      //            
+      //
       if (myEntryBoxArrayPanel == null)
       {
          return;
@@ -1870,7 +1875,7 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
       /*
        * String[] entryBoxVars = group.getEntryBoxVars(); for(int i=0;
        * i<entryBoxVars.length; i++) { this.setupEntryBox(entryBoxVars[i]); }
-       * 
+       *
        * String[] entryBoxRegularExpressions =
        * group.getEntryBoxRegularExpressions(); for(int i=0;
        * i<entryBoxRegularExpressions.length; i++) {
@@ -1983,7 +1988,7 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
          }
       });
    }
-   
+
    public JavaFX3DGraph addJavaFX3DGraph(String name)
    {
       JavaFX3DGraph javaFX3DGraph = new JavaFX3DGraph(myGraphArrayPanel, selectedVariableHolder, myDataBuffer, myDataBuffer);
@@ -1991,11 +1996,11 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
       selectPanel(name);
       return javaFX3DGraph;
    }
-   
+
    public JavaFXHeatmapGraph addHeatmapGraph(String name)
    {
       JavaFXHeatmapGraph heatmapGraph = new JavaFXHeatmapGraph(rootRegistry, myGraphArrayPanel, selectedVariableHolder, myDataBuffer, myDataBuffer);
-      
+
       new AnimationTimer()
       {
          @Override
@@ -2004,7 +2009,7 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
             heatmapGraph.update();
          }
       }.start();
-      
+
       setupExtraPanels(new ExtraPanelConfiguration(name, heatmapGraph.getPanel(), true));
       selectPanel(name);
       return heatmapGraph;
@@ -2083,7 +2088,7 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
          panelsSelectedEarly.add(panelName);
          return;
       }
-      
+
       for (int i = 0; i < standardGUIActions.extraPanelsMenu.getItemCount(); i++)
       {
          if (standardGUIActions.extraPanelsMenu.getItem(i).getText().equals(panelName))
@@ -2174,7 +2179,7 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
          }
       });
    }
-   
+
    public void selectViewportLocal(String viewportName)
    {
       if (robots == null)
@@ -2899,7 +2904,7 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
 
       yoGraphicsListRegistry.setYoGraphicsUpdatedRemotely(updateFromSimulationThread);
       yoGraphicsListRegistry.setYoGraphicsRegistered();
-      
+
       yoGraphicsListRegistry.setGlobalScaleProvider(yoGraphicsGlobalScaleProvider);
    }
 
@@ -2966,7 +2971,7 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
          closeableAndDisposableRegistry.closeAndDispose();
          closeableAndDisposableRegistry = null;
       }
-      
+
       if (configurationList != null)
       {
          configurationList = null;
@@ -3139,14 +3144,14 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
          standardGUIActions.closeAndDispose();
          standardGUIActions = null;
       }
-      
-      
+
+
       if (allDialogConstructorsHolder != null)
       {
          allDialogConstructorsHolder.closeAndDispose();
          allDialogConstructorsHolder = null;
       }
-      
+
       if (DEBUG_CLOSE_AND_DISPOSE)
          System.out.println("Closing and Disposing ViewportPanel");
       System.out.flush();
@@ -3156,7 +3161,7 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
          viewportPanel.closeAndDispose();
          viewportPanel = null;
       }
-      
+
       if (timeStepMouseWheelListener != null)
       {
          timeStepMouseWheelListener.closeAndDispose();
@@ -3185,14 +3190,14 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
          mainPanel.removeAll(); // Remove all seems to be taking too long. Perhaps it needs to be put on a Swing Thread or something?
          mainPanel = null;
       }
-      
+
       if (DEBUG_CLOSE_AND_DISPOSE)
          System.out.println("Closing and Disposing graphics3dAdapter");
       System.out.flush();
 
       graphicsUpdatables = null;
       graphicsRobots = null;
-      
+
       if (graphics3dAdapter != null)
       {
          graphics3dAdapter.closeAndDispose();
@@ -3214,7 +3219,7 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
       viewportSelectorCommandListener = null;
 
       jApplet = null;
-      
+
       parentContainer.removeAll();
       parentContainer = null;
 
@@ -3251,7 +3256,7 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
          }
       }
    }
-   
+
    public Object getGraphicsConch()
    {
       return graphics3dAdapter.getGraphicsConch();
@@ -3293,7 +3298,7 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
 
    public void addViewportPanelToMainPanel()
    {
-      mainPanel.add(viewportPanel); //TODO: Why is this here? 
+      mainPanel.add(viewportPanel); //TODO: Why is this here?
    }
 
 }

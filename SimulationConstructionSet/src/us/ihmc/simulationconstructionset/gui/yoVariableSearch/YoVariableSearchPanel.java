@@ -56,9 +56,11 @@ public class YoVariableSearchPanel extends JPanel implements ChangeListener
    private final SelectedVariableHolder holder;
    private JLabel label;
 
+   private final ModificationTypeSelectionPanel modificationTypeSelectionPanel;
+
    public YoVariableSearchPanel(SelectedVariableHolder holder, DataBuffer dataBuffer, GraphArrayPanel graphArrayPanel,
                               EntryBoxArrayTabbedPanel entryBoxArrayPanel, BookmarkedVariablesHolder bookmarkedVariablesHolder,
-                              YoVariableExplorerTabbedPane combinedVarPanel)
+                              YoVariableExplorerTabbedPane combinedVarPanel, ModificationTypeSelectionPanel modificationTypeSelectionPanel)
    {
       super(new BorderLayout());
 
@@ -70,9 +72,11 @@ public class YoVariableSearchPanel extends JPanel implements ChangeListener
       }
 
       // Setup a scroll panel for the VarPanel, then add it to the center of the display
-      this.yoVariableSearchResultsPanel = new YoVariableListPanel("Search", holder,
-                                          new YoVariablePanelJPopupMenu(graphArrayPanel, entryBoxArrayPanel, holder, combinedVarPanel, bookmarkedVariablesHolder),
-                                          this);
+      YoVariablePanelJPopupMenu varPanelJPopupMenu = new YoVariablePanelJPopupMenu(graphArrayPanel, entryBoxArrayPanel, holder, combinedVarPanel, bookmarkedVariablesHolder);
+      this.yoVariableSearchResultsPanel = new YoVariableListPanel("Search", holder, varPanelJPopupMenu, this);
+      yoVariableSearchResultsPanel.setModificationTypeSelectionPanel(modificationTypeSelectionPanel);
+      this.modificationTypeSelectionPanel = modificationTypeSelectionPanel;
+
       this.holder = yoVariableSearchResultsPanel.getVariableHolder();
       this.holder.addChangeListener(this);
 
@@ -93,7 +97,7 @@ public class YoVariableSearchPanel extends JPanel implements ChangeListener
          bookMarkScrollPane.getVerticalScrollBar().setBlockIncrement(SCROLL_PANE_INCREMENT);
          bookMarkScrollPane.setPreferredSize(new Dimension(60, 40));
          bookMarkScrollPane.setBorder(new EtchedBorder());
-   
+
          splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true, searchResultScrollPane, bookMarkScrollPane);
          splitPane.setResizeWeight(1);
          splitPane.setBorder(null);
@@ -321,6 +325,11 @@ public class YoVariableSearchPanel extends JPanel implements ChangeListener
                }
 
                DataBufferEntry entry = entries.get(i);
+               if (modificationTypeSelectionPanel != null && !modificationTypeSelectionPanel.isActive(entry.getVariable()))
+               {
+                  continue;
+               }
+
                boolean match = RegularExpression.check(entry.getVariable().getName(), searchText);
 
                if (match)

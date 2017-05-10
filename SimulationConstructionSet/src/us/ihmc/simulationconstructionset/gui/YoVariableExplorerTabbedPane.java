@@ -50,10 +50,10 @@ public class YoVariableExplorerTabbedPane extends JTabbedPane implements Registr
    private YoVariablePanelJPopupMenu varPanelJPopupMenu;
    private int tabIndex = 0;
 
-  
    public YoVariableExplorerTabbedPane(YoVariableDoubleClickListener yoVariableDoubleClickListener, JFrame frame, BookmarkedVariablesHolder bookmarkedVariablesHolder,
                            final SelectedVariableHolder selectedVariableHolder, EntryBoxArrayPanel entryBoxArrayPanel,
-                           WriteDataCommandExecutor writeDataCommandExecutor, YoVariableRegistry rootRegistry)
+                           WriteDataCommandExecutor writeDataCommandExecutor,
+                           YoVariableRegistry rootRegistry)
    {
       this.setName("CombinedVarPanel");
 
@@ -104,7 +104,6 @@ public class YoVariableExplorerTabbedPane extends JTabbedPane implements Registr
       createAndStartPeriodicUIUpdateThread();
    }
 
-
    public void addVariableSearchPanel(YoVariableSearchPanel variableSearchPanel)
    {
       insertTab("Search", variableSearchPanel, tabIndex++);
@@ -122,7 +121,7 @@ public class YoVariableExplorerTabbedPane extends JTabbedPane implements Registr
 // {
 //    // ***jjc removed this because the tree is now generated based on the root tree
 //    // nameSpaceHierarchyTree.addNode(varPanel);
-//    
+//
 ////     System.out.println("Adding visible varPanel: " + varPanel.getName());
 ////     varPanels.put(varPanel.getName(), varPanel);
 //
@@ -206,7 +205,7 @@ public class YoVariableExplorerTabbedPane extends JTabbedPane implements Registr
                   entryBox.updateActiveContainer();
                }
             });
-         } 
+         }
 
       };
       alertChangeListenersTimer.schedule(alertChangeListenersTask, 1000, OBSERVER_NOTIFICATION_PERIOD);
@@ -223,7 +222,7 @@ public class YoVariableExplorerTabbedPane extends JTabbedPane implements Registr
          }
       });
    }
-   
+
    private void closeAndDisposeLocal()
    {
       this.removeAll();
