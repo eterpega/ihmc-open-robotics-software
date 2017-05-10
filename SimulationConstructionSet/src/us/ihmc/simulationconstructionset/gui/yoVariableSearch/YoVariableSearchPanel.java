@@ -176,6 +176,8 @@ public class YoVariableSearchPanel extends JPanel implements ChangeListener
       c.gridheight = 1;
       c.fill = GridBagConstraints.HORIZONTAL;
       this.add(entryBox, c);
+
+      modificationTypeSelectionPanel.addActionListener(variableSearchBox);
    }
 
    public void setDoubleClickListener(DoubleClickListener listener)

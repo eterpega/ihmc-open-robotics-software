@@ -2,6 +2,7 @@ package us.ihmc.simulationconstructionset.gui.yoVariableSearch;
 
 import java.awt.Color;
 import java.awt.GridLayout;
+import java.awt.event.ActionListener;
 import java.util.EnumMap;
 
 import javax.swing.JCheckBox;
@@ -15,6 +16,7 @@ import us.ihmc.robotics.dataStructures.variable.YoVariable;
 public class ModificationTypeSelectionPanel extends JPanel
 {
    private static final long serialVersionUID = -1360596353537620660L;
+   private static final boolean ENABLED_BY_DEFAULT = false;
 
    private final JCheckBox isEnabled;
    private final EnumMap<VariableModificationType, JCheckBox> typeEnabled = new EnumMap<>(VariableModificationType.class);
@@ -23,7 +25,7 @@ public class ModificationTypeSelectionPanel extends JPanel
    {
       super(new GridLayout(VariableModificationType.values().length + 1, 1));
 
-      isEnabled = new JCheckBox("Enable", true);
+      isEnabled = new JCheckBox("Enable", ENABLED_BY_DEFAULT);
       this.add(isEnabled);
 
       for (VariableModificationType modificationType : VariableModificationType.values())
@@ -57,5 +59,14 @@ public class ModificationTypeSelectionPanel extends JPanel
          return true;
 
       return typeEnabled.get(variable.getModificationType()).isSelected();
+   }
+
+   public void addActionListener(ActionListener listener)
+   {
+      isEnabled.addActionListener(listener);
+      for (VariableModificationType modificationType : VariableModificationType.values())
+      {
+         typeEnabled.get(modificationType).addActionListener(listener);
+      }
    }
 }
