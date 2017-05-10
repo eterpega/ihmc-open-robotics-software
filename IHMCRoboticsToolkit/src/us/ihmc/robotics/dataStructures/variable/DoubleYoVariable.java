@@ -24,16 +24,32 @@ public class DoubleYoVariable extends YoVariable<DoubleYoVariable>
 
    private double val;
 
+   public DoubleYoVariable(String name, YoVariableRegistry registry)
+   {
+      this(name, "", VariableModificationType.STATE, registry);
+   }
+
+   public DoubleYoVariable(String name, String description, YoVariableRegistry registry, double minScaling, double maxScaling)
+   {
+      this(name, description, VariableModificationType.STATE, registry, minScaling, maxScaling);
+   }
+
+   public DoubleYoVariable(String name, String description, YoVariableRegistry registry)
+   {
+      this(name, description, VariableModificationType.STATE, registry);
+   }
+
    /**
     * Creates a new YoVariable with the given name and adds it to the specified registry.
     *
     * @param name name to be used for all references of this variable by SCS
+    * @param modificationType used to determine how the variable can be edited from SCS
     * @param registry YoVariableRegistry with which this variable is to be registerd
     * @see YoVariableRegistry YoVariableRegistry
     */
-   public DoubleYoVariable(String name, YoVariableRegistry registry)
+   public DoubleYoVariable(String name, VariableModificationType modificationType, YoVariableRegistry registry)
    {
-      this(name, "", registry);
+      this(name, "", modificationType, registry);
    }
 
    /**
@@ -45,14 +61,16 @@ public class DoubleYoVariable extends YoVariable<DoubleYoVariable>
     *
     * @param name name to be used for all references of this variable by SCS
     * @param description A short description of this variable
+    * @param modificationType used to determine how the variable can be edited from SCS
     * @param registry YoVariableRegistry with which this variable is to be registered
     * @param minScaling minimum value for scaling purposes
     * @param maxScaling maximum value for scaling purpouses
     * @see YoVariableRegistry YoVariableRegistry
     */
-   public DoubleYoVariable(String name, String description, YoVariableRegistry registry, double minScaling, double maxScaling)
+   public DoubleYoVariable(String name, String description, VariableModificationType modificationType, YoVariableRegistry registry, double minScaling,
+                           double maxScaling)
    {
-      this(name, description, registry);
+      this(name, description, modificationType, registry);
 
       this.manualMinScaling = minScaling;
       this.manualMaxScaling = maxScaling;
@@ -66,12 +84,13 @@ public class DoubleYoVariable extends YoVariable<DoubleYoVariable>
     *
     * @param name name to be used for all references of this variable by SCS
     * @param description A short description of this variable
+    * @param modificationType used to determine how the variable can be edited from SCS
     * @param registry YoVariableRegistry with which this variable is to be registered
     * @see YoVariableRegistry YoVariableRegistry
     */
-   public DoubleYoVariable(String name, String description, YoVariableRegistry registry)
+   public DoubleYoVariable(String name, String description, VariableModificationType modificationType, YoVariableRegistry registry)
    {
-      super(YoVariableType.DOUBLE, name, description, registry);
+      super(YoVariableType.DOUBLE, name, description, modificationType, registry);
 
       this.set(0.0);
    }
@@ -271,7 +290,8 @@ public class DoubleYoVariable extends YoVariable<DoubleYoVariable>
    @Override
    public DoubleYoVariable duplicate(YoVariableRegistry newRegistry)
    {
-      DoubleYoVariable retVar = new DoubleYoVariable(getName(), getDescription(), newRegistry, getManualScalingMin(), getManualScalingMax());
+      DoubleYoVariable retVar = new DoubleYoVariable(getName(), getDescription(), getModificationType(), newRegistry, getManualScalingMin(),
+                                                     getManualScalingMax());
       retVar.set(val);
       return retVar;
    }

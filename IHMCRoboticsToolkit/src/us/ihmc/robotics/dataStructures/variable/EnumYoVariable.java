@@ -15,20 +15,53 @@ public class EnumYoVariable<T extends Enum<T>> extends YoVariable<EnumYoVariable
 
    private int valueOrdinal;
 
-   /**
-    * shortcut construction method; infers the type parameter from the declared type
-    */
    public static <T extends Enum<T>> EnumYoVariable<T> create(String name, Class<T> enumType, YoVariableRegistry registry)
    {
       return new EnumYoVariable<>(name, registry, enumType);
    }
 
+   public static <T extends Enum<T>> EnumYoVariable<T> create(String name, String description, Class<T> enumType, YoVariableRegistry registry,
+                                                              boolean allowNullValue)
+   {
+      return new EnumYoVariable<>(name, description, registry, enumType, allowNullValue);
+   }
+
    /**
     * shortcut construction method; infers the type parameter from the declared type
     */
-   public static <T extends Enum<T>> EnumYoVariable<T> create(String name, String description, Class<T> enumType, YoVariableRegistry registry, boolean allowNullValue)
+   public static <T extends Enum<T>> EnumYoVariable<T> create(String name, Class<T> enumType, VariableModificationType modificationType,
+                                                              YoVariableRegistry registry)
    {
-      return new EnumYoVariable<>(name, description, registry, enumType, allowNullValue);
+      return new EnumYoVariable<>(name, modificationType, registry, enumType);
+   }
+
+   /**
+    * shortcut construction method; infers the type parameter from the declared type
+    */
+   public static <T extends Enum<T>> EnumYoVariable<T> create(String name, String description, Class<T> enumType, VariableModificationType modificationType,
+                                                              YoVariableRegistry registry, boolean allowNullValue)
+   {
+      return new EnumYoVariable<>(name, description, modificationType, registry, enumType, allowNullValue);
+   }
+
+   public EnumYoVariable(String name, String description, YoVariableRegistry registry, Class<T> enumType, boolean allowNullValue)
+   {
+      this(name, description, VariableModificationType.STATE, registry, enumType, allowNullValue);
+   }
+
+   public EnumYoVariable(String name, String description, YoVariableRegistry registry, boolean allowNullValues, String... values)
+   {
+      this(name, description, VariableModificationType.STATE, registry, allowNullValues, values);
+   }
+
+   public EnumYoVariable(String name, YoVariableRegistry registry, Class<T> enumType)
+   {
+      this(name, "", VariableModificationType.STATE, registry, enumType, false);
+   }
+
+   public EnumYoVariable(String name, YoVariableRegistry registry, Class<T> enumType, boolean allowNullValue)
+   {
+      this(name, "", VariableModificationType.STATE, registry, enumType, allowNullValue);
    }
 
    /**
@@ -40,71 +73,74 @@ public class EnumYoVariable<T extends Enum<T>> extends YoVariable<EnumYoVariable
     *
     * @param name name to be used for all references of this variable by SCS
     * @param description a short description
+    * @param modificationType used to determine how the variable can be edited from SCS
     * @param registry YoVariableRegistry
     * @param enumType the class representing the type of the enum
     */
-   public EnumYoVariable(String name, String description, YoVariableRegistry registry, Class<T> enumType, boolean allowNullValue)
+   public EnumYoVariable(String name, String description, VariableModificationType modificationType, YoVariableRegistry registry, Class<T> enumType,
+                         boolean allowNullValue)
    {
-      super(YoVariableType.ENUM, name, description, registry);
+      super(YoVariableType.ENUM, name, description, modificationType, registry);
 
       this.enumType = enumType;
       this.allowNullValue = allowNullValue;
       this.enumValues = enumType.getEnumConstants();
 
       enumValuesAsString = new String[enumValues.length];
-      for(int i = 0; i < enumValues.length; i++)
+      for (int i = 0; i < enumValues.length; i++)
       {
          enumValuesAsString[i] = enumValues[i].toString();
       }
-      
+
       set(0, true);
    }
 
    /**
-    * Create a new EnumYoVariable based on Strings. 
-    * 
+    * Create a new EnumYoVariable based on Strings.
+    *
     * <p>
     * When a new EnumYoVariable has to be created based on data from an external source, this constructor can be used.
     * The main use case is the LogVisualizer and the SCSVisualizer code. Do not use this constructor in controls code.
     * </p>
-    * 
+    *
     * <p>
     * The functions working on Enums directly will throw UnsupportedOperationException when this constructor is used.
     * </p>
-    * 
-    * 
+    *
+    *
     * @param name the name of the YoVariable
     * @param description the short description of the YoVariable
     * @param registry the registry to add this variable to
     * @param values array of values that this enum can take
     */
-   public EnumYoVariable(String name, String description, YoVariableRegistry registry, boolean allowNullValues, String... values)
+   public EnumYoVariable(String name, String description, VariableModificationType modificationType, YoVariableRegistry registry, boolean allowNullValues,
+                         String... values)
    {
-      super(YoVariableType.ENUM, name, description, registry);
+      super(YoVariableType.ENUM, name, description, modificationType, registry);
 
       this.enumType = null;
       this.allowNullValue = allowNullValues;
       this.enumValues = null;
-      
+
       enumValuesAsString = Arrays.copyOf(values, values.length);
       set(0, true);
    }
 
-   public EnumYoVariable(String name, YoVariableRegistry registry, Class<T> enumType)
+   public EnumYoVariable(String name, VariableModificationType modificationType, YoVariableRegistry registry, Class<T> enumType)
    {
-      this(name, "", registry, enumType, false);
+      this(name, "", modificationType, registry, enumType, false);
    }
 
-   public EnumYoVariable(String name, YoVariableRegistry registry, Class<T> enumType, boolean allowNullValue)
+   public EnumYoVariable(String name, VariableModificationType modificationType, YoVariableRegistry registry, Class<T> enumType, boolean allowNullValue)
    {
-      this(name, "", registry, enumType, allowNullValue);
+      this(name, "", modificationType, registry, enumType, allowNullValue);
    }
 
    public boolean isBackedByEnum()
    {
       return enumType != null;
    }
-   
+
    private void checkIfBackedByEnum()
    {
       if (enumType == null)
@@ -112,7 +148,7 @@ public class EnumYoVariable<T extends Enum<T>> extends YoVariable<EnumYoVariable
          throw new UnsupportedOperationException("This EnumYoVariable is not backed by an Enum variable.");
       }
    }
-   
+
    /**
     * Check if the value contained by this variable is equal to the given enum.  If this YoVariable
     * is not of enum type a warning will be printed to the console.
@@ -134,13 +170,13 @@ public class EnumYoVariable<T extends Enum<T>> extends YoVariable<EnumYoVariable
       checkIfBackedByEnum();
       return enumType;
    }
-   
+
    public void setEnumType(Class<T> enumType)
    {
       this.enumType = enumType;
       enumValues = enumType.getEnumConstants();
       enumValuesAsString = new String[enumValues.length];
-      for(int i = 0; i < enumValues.length; i++)
+      for (int i = 0; i < enumValues.length; i++)
       {
          enumValuesAsString[i] = enumValues[i].toString();
       }
@@ -155,28 +191,28 @@ public class EnumYoVariable<T extends Enum<T>> extends YoVariable<EnumYoVariable
    {
       set(enumValue, true);
    }
-   
+
    public void set(int ordinal)
    {
       set(ordinal, true);
    }
-   
+
    public boolean set(T enumValue, boolean notifyListeners)
    {
       checkIfBackedByEnum();
       if (!allowNullValue && (enumValue == null))
       {
          throw new RuntimeException("Setting EnumYoVariable " + getName()
-         + " to null. Must set allowNullValue to true in the constructor if you ever want to set it to null.");
+               + " to null. Must set allowNullValue to true in the constructor if you ever want to set it to null.");
       }
-      
+
       return set(enumValue == null ? NULL_VALUE : enumValue.ordinal(), notifyListeners);
    }
-      
+
    public boolean set(int ordinal, boolean notifyListeners)
    {
       checkBounds(ordinal);
-      
+
       if (valueOrdinal != NULL_VALUE)
       {
          if (!(valueOrdinal == ordinal))
@@ -205,7 +241,7 @@ public class EnumYoVariable<T extends Enum<T>> extends YoVariable<EnumYoVariable
 
    private void checkBounds(int ordinal)
    {
-      if((ordinal < 0 && !(allowNullValue && ordinal == NULL_VALUE))  || ordinal >= enumValuesAsString.length)
+      if ((ordinal < 0 && !(allowNullValue && ordinal == NULL_VALUE)) || ordinal >= enumValuesAsString.length)
       {
          throw new RuntimeException("Enum constant associated with value " + ordinal + " not present. VariableName = " + this.getFullNameWithNameSpace());
       }
@@ -221,7 +257,7 @@ public class EnumYoVariable<T extends Enum<T>> extends YoVariable<EnumYoVariable
       checkIfBackedByEnum();
       return enumValues;
    }
-   
+
    public String[] getEnumValuesAsString()
    {
       return enumValuesAsString;
@@ -235,12 +271,12 @@ public class EnumYoVariable<T extends Enum<T>> extends YoVariable<EnumYoVariable
    public T getEnumValue()
    {
       checkIfBackedByEnum();
-      return valueOrdinal == NULL_VALUE? null : enumValues[valueOrdinal];
+      return valueOrdinal == NULL_VALUE ? null : enumValues[valueOrdinal];
    }
 
    public String getStringValue()
    {
-      if(valueOrdinal == NULL_VALUE)
+      if (valueOrdinal == NULL_VALUE)
       {
          return "null";
       }
@@ -249,7 +285,7 @@ public class EnumYoVariable<T extends Enum<T>> extends YoVariable<EnumYoVariable
          return enumValuesAsString[valueOrdinal];
       }
    }
-   
+
    @Override
    public void setValueFromDouble(double value, boolean notifyListeners)
    {
@@ -260,7 +296,7 @@ public class EnumYoVariable<T extends Enum<T>> extends YoVariable<EnumYoVariable
       }
       catch (RuntimeException ignored)
       {
-         
+
       }
    }
 
@@ -297,7 +333,7 @@ public class EnumYoVariable<T extends Enum<T>> extends YoVariable<EnumYoVariable
    {
       int index = (int) Math.round(doubleValue);
       checkBounds(index);
-      if(index == NULL_VALUE)
+      if (index == NULL_VALUE)
       {
          stringBuffer.append("null");
       }
@@ -322,7 +358,7 @@ public class EnumYoVariable<T extends Enum<T>> extends YoVariable<EnumYoVariable
    @Override
    public EnumYoVariable<T> duplicate(YoVariableRegistry newRegistry)
    {
-      EnumYoVariable<T> retVar = new EnumYoVariable<>(getName(), getDescription(), newRegistry, getEnumType(), getAllowNullValue());
+      EnumYoVariable<T> retVar = new EnumYoVariable<>(getName(), getDescription(), getModificationType(), newRegistry, getEnumType(), getAllowNullValue());
       retVar.set(getEnumValue());
       return retVar;
    }
@@ -332,12 +368,12 @@ public class EnumYoVariable<T extends Enum<T>> extends YoVariable<EnumYoVariable
    {
       return set(value.getEnumValue(), notifyListeners);
    }
-   
+
    public int getOrdinal()
    {
       return valueOrdinal;
    }
-   
+
    public int getEnumSize()
    {
       return enumValuesAsString.length;

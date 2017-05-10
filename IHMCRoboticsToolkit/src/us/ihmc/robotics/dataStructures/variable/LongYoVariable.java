@@ -8,27 +8,44 @@ public class LongYoVariable extends YoVariable<LongYoVariable>
 
    public LongYoVariable(String name, YoVariableRegistry registry)
    {
-      this(name, "", registry);
+      this(name, "", VariableModificationType.STATE, registry);
    }
 
-   public LongYoVariable(String name, String description, YoVariableRegistry registry, double minScaling, double maxScaling)
+   public LongYoVariable(String name, String description, YoVariableRegistry registry, double minScaling,
+                         double maxScaling)
    {
-      this(name, description, registry);
+      this(name, description, VariableModificationType.STATE, registry, minScaling, maxScaling);
+   }
+
+   public LongYoVariable(String name, String description, YoVariableRegistry registry)
+   {
+      this(name, description, VariableModificationType.STATE, registry);
+   }
+
+   public LongYoVariable(String name, VariableModificationType modificationType, YoVariableRegistry registry)
+   {
+      this(name, "", modificationType, registry);
+   }
+
+   public LongYoVariable(String name, String description, VariableModificationType modificationType, YoVariableRegistry registry, double minScaling,
+                         double maxScaling)
+   {
+      this(name, description, modificationType, registry);
 
       this.manualMinScaling = minScaling;
       this.manualMaxScaling = maxScaling;
    }
 
-   public LongYoVariable(String name, String description, YoVariableRegistry registry)
+   public LongYoVariable(String name, String description, VariableModificationType modificationType, YoVariableRegistry registry)
    {
-      super(YoVariableType.LONG, name, description, registry);
+      super(YoVariableType.LONG, name, description, modificationType, registry);
 
       this.set(0);
    }
 
    /**
     * NOT VERIFIED::::
-    * 
+    *
     * Set the value of this YoVariable.  All four types are represented via the same interal double.  If
     * of integer type this value is cast as an int whenever accessed.  It represents the ordinal if of enum type.
     * Boolean values are triggered around the 0.5 threshold with < 0.5 being false and greater or equal being true.
@@ -39,13 +56,13 @@ public class LongYoVariable extends YoVariable<LongYoVariable>
    {
       set(value, true);
    }
-   
+
    public boolean set(long value, boolean notifyListeners)
    {
       if (val != value)
       {
          val = value;
-         if(notifyListeners)
+         if (notifyListeners)
          {
             notifyVariableChangedListeners();
          }
@@ -53,22 +70,22 @@ public class LongYoVariable extends YoVariable<LongYoVariable>
       }
       return false;
    }
-   
+
    public void increment()
    {
-      this.set(this.getLongValue()+1);
+      this.set(this.getLongValue() + 1);
    }
-   
+
    public void decrement()
    {
-      this.set(this.getLongValue()-1);
+      this.set(this.getLongValue() - 1);
    }
-   
+
    public void add(long value)
    {
       this.set(this.getLongValue() + value);
    }
-   
+
    public void subtract(long value)
    {
       this.set(this.getLongValue() - value);
@@ -101,7 +118,7 @@ public class LongYoVariable extends YoVariable<LongYoVariable>
    {
       set(convertFromDoubleToLong(doubleValue), notifyListeners);
    }
-   
+
    public long convertFromDoubleToLong(double doubleValue)
    {
       return Math.round(doubleValue);
@@ -134,7 +151,7 @@ public class LongYoVariable extends YoVariable<LongYoVariable>
    {
       stringBuffer.append(val);
    }
-   
+
    @Override
    public void getValueStringFromDouble(StringBuffer stringBuffer, double doubleValue)
    {
@@ -156,7 +173,7 @@ public class LongYoVariable extends YoVariable<LongYoVariable>
    @Override
    public LongYoVariable duplicate(YoVariableRegistry newRegistry)
    {
-      LongYoVariable retVar = new LongYoVariable(getName(), getDescription(), newRegistry, getManualScalingMin(), getManualScalingMax());
+      LongYoVariable retVar = new LongYoVariable(getName(), getDescription(), getModificationType(), newRegistry, getManualScalingMin(), getManualScalingMax());
       retVar.set(getLongValue());
       return retVar;
    }

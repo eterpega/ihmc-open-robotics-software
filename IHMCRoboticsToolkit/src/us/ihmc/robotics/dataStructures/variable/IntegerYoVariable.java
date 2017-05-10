@@ -8,20 +8,37 @@ public class IntegerYoVariable extends YoVariable<IntegerYoVariable>
 
    public IntegerYoVariable(String name, YoVariableRegistry registry)
    {
-      this(name, "", registry);
+      this(name, "", VariableModificationType.STATE, registry);
    }
 
-   public IntegerYoVariable(String name, String description, YoVariableRegistry registry, double minScaling, double maxScaling)
+   public IntegerYoVariable(String name, String description, YoVariableRegistry registry, double minScaling,
+                            double maxScaling)
    {
-      this(name, description, registry);
+      this(name, description, VariableModificationType.STATE, registry, minScaling, maxScaling);
+   }
+
+   public IntegerYoVariable(String name, String description, YoVariableRegistry registry)
+   {
+      this(name, description, VariableModificationType.STATE, registry);
+   }
+
+   public IntegerYoVariable(String name, VariableModificationType modificationType, YoVariableRegistry registry)
+   {
+      this(name, "", modificationType, registry);
+   }
+
+   public IntegerYoVariable(String name, String description, VariableModificationType modificationType, YoVariableRegistry registry, double minScaling,
+                            double maxScaling)
+   {
+      this(name, description, modificationType, registry);
 
       this.manualMinScaling = minScaling;
       this.manualMaxScaling = maxScaling;
    }
 
-   public IntegerYoVariable(String name, String description, YoVariableRegistry registry)
+   public IntegerYoVariable(String name, String description, VariableModificationType modificationType, YoVariableRegistry registry)
    {
-      super(YoVariableType.INTEGER, name, description, registry);
+      super(YoVariableType.INTEGER, name, description, modificationType, registry);
 
       this.set(0);
    }
@@ -37,13 +54,13 @@ public class IntegerYoVariable extends YoVariable<IntegerYoVariable>
    {
       set(value, true);
    }
-   
+
    public boolean set(int value, boolean notifyListeners)
    {
       if (val != value)
       {
          val = value;
-         if(notifyListeners)
+         if (notifyListeners)
          {
             notifyVariableChangedListeners();
          }
@@ -51,22 +68,22 @@ public class IntegerYoVariable extends YoVariable<IntegerYoVariable>
       }
       return false;
    }
-   
+
    public void increment()
    {
-      this.set(this.getIntegerValue()+1);
+      this.set(this.getIntegerValue() + 1);
    }
-   
+
    public void decrement()
    {
-      this.set(this.getIntegerValue()-1);
+      this.set(this.getIntegerValue() - 1);
    }
-   
+
    public void add(int value)
    {
       this.set(this.getIntegerValue() + value);
    }
-   
+
    public void subtract(int value)
    {
       this.set(this.getIntegerValue() - value);
@@ -79,8 +96,8 @@ public class IntegerYoVariable extends YoVariable<IntegerYoVariable>
     */
    public int getIntegerValue()
    {
-//      if (val != Math.round(val))
-//         System.err.println("IntegerYoVariable: returning a different value than what it used to be.");
+      //      if (val != Math.round(val))
+      //         System.err.println("IntegerYoVariable: returning a different value than what it used to be.");
       return val;
    }
 
@@ -101,7 +118,7 @@ public class IntegerYoVariable extends YoVariable<IntegerYoVariable>
    {
       set(convertFromDoubleToInt(doubleValue), notifyListeners);
    }
-   
+
    public int convertFromDoubleToInt(double doubleValue)
    {
       // Note: do not expect this to work well for very large values!
@@ -138,7 +155,7 @@ public class IntegerYoVariable extends YoVariable<IntegerYoVariable>
       stringBuffer.append(val);
 
    }
-   
+
    @Override
    public void getValueStringFromDouble(StringBuffer stringBuffer, double doubleValue)
    {
@@ -160,7 +177,8 @@ public class IntegerYoVariable extends YoVariable<IntegerYoVariable>
    @Override
    public IntegerYoVariable duplicate(YoVariableRegistry newRegistry)
    {
-      IntegerYoVariable retVar = new IntegerYoVariable(getName(), getDescription(), newRegistry, getManualScalingMin(), getManualScalingMax());
+      IntegerYoVariable retVar = new IntegerYoVariable(getName(), getDescription(), getModificationType(), newRegistry, getManualScalingMin(),
+                                                       getManualScalingMax());
       retVar.set(getIntegerValue());
       return retVar;
    }

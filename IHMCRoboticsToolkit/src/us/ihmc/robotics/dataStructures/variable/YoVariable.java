@@ -37,8 +37,11 @@ public abstract class YoVariable<T extends YoVariable<T>>
    private String description;
    private YoVariableType type;
    private YoVariableRegistry registry;
-   
-   public YoVariable(YoVariableType type, String name, String description, YoVariableRegistry registry)
+
+   private final VariableModificationType modificationType;
+
+   public YoVariable(YoVariableType type, String name, String description, VariableModificationType modificationType,
+                     YoVariableRegistry registry)
    {
       checkForIllegalCharacters(name);
 
@@ -48,6 +51,7 @@ public abstract class YoVariable<T extends YoVariable<T>>
       this.description = description;
       this.registry = registry;
       this.variableChangedListeners = null;
+      this.modificationType = modificationType;
 
       Throwable t = new Throwable();
       StringWriter sw = new StringWriter();
@@ -60,7 +64,7 @@ public abstract class YoVariable<T extends YoVariable<T>>
 
       registerVariable(registry, this);
    }
-   
+
    private static void checkForIllegalCharacters(String name)
    {
       // String.matches() only matches the whole string ( as if you put ^$ around it ). Use .find() of the Matcher class instead!
@@ -144,7 +148,7 @@ public abstract class YoVariable<T extends YoVariable<T>>
    {
       return this.description;
    }
-   
+
    public String getStackTraceAtInitialization()
    {
       return this.stackTraceAtInitialization;
@@ -214,6 +218,11 @@ public abstract class YoVariable<T extends YoVariable<T>>
       return type;
    }
 
+   public final VariableModificationType getModificationType()
+   {
+      return modificationType;
+   }
+
    /**
     * Adds the variables name & value to the beginning of the given string buffer
     *
@@ -226,7 +235,7 @@ public abstract class YoVariable<T extends YoVariable<T>>
 
       getValueString(stringBuffer);
    }
-   
+
    public void getNameAndValueStringFromDouble(StringBuffer stringBuffer, double doubleValue)
    {
       stringBuffer.append(name);    // buffer.insert(0,this.name); // Add the variable name to it.
@@ -249,7 +258,7 @@ public abstract class YoVariable<T extends YoVariable<T>>
       {
          return this.name.toLowerCase().equals(name.toLowerCase());
       }
-      
+
       String endOfName = name.substring(lastDotIndex + 1);
       String nameSpace = name.substring(0, lastDotIndex);
 
@@ -282,7 +291,7 @@ public abstract class YoVariable<T extends YoVariable<T>>
 
       return registry.getNameSpace() + "." + this.name;
    }
-   
+
    public NameSpace getNameSpace()
    {
       return registry.getNameSpace();
@@ -348,28 +357,28 @@ public abstract class YoVariable<T extends YoVariable<T>>
    {
       setValueFromDouble(value, true);
    }
-   
+
    public abstract void setValueFromDouble(double value, boolean notifyListeners);
 
    public abstract void getValueString(StringBuffer stringBuffer);
-   
+
    public abstract void getValueStringFromDouble(StringBuffer stringBuffer, double value);
-   
+
    public abstract long getValueAsLongBits();
-   
+
    public final void setValueFromLongBits(long value)
    {
       setValueFromLongBits(value, true);
    }
-   
+
    public abstract void setValueFromLongBits(long value, boolean notifyListeners);
 
    public abstract T duplicate(YoVariableRegistry newRegistry);
-   
+
    /**
     * @return true if value changed
     */
    public abstract boolean setValue(T value, boolean notifyListeners);
-   
+
    public abstract boolean isZero();
 }

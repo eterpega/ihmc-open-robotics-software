@@ -8,12 +8,22 @@ public class BooleanYoVariable extends YoVariable<BooleanYoVariable>
 
    public BooleanYoVariable(String name, YoVariableRegistry registry)
    {
-      this(name, "", registry);
+      this(name, "", VariableModificationType.STATE, registry);
    }
 
    public BooleanYoVariable(String name, String description, YoVariableRegistry registry)
    {
-      super(YoVariableType.BOOLEAN, name, description, registry);
+      this(name, description, VariableModificationType.STATE, registry);
+   }
+
+   public BooleanYoVariable(String name, VariableModificationType modificationType, YoVariableRegistry registry)
+   {
+      this(name, "", modificationType, registry);
+   }
+
+   public BooleanYoVariable(String name, String description, VariableModificationType modificationType, YoVariableRegistry registry)
+   {
+      super(YoVariableType.BOOLEAN, name, description, modificationType, registry);
 
       this.stepSize = 1.0;
       this.set(false);
@@ -133,7 +143,7 @@ public class BooleanYoVariable extends YoVariable<BooleanYoVariable>
    @Override
    public BooleanYoVariable duplicate(YoVariableRegistry newRegistry)
    {
-      BooleanYoVariable newVar = new BooleanYoVariable(getName(), getDescription(), newRegistry);
+      BooleanYoVariable newVar = new BooleanYoVariable(getName(), getDescription(), getModificationType(), newRegistry);
       newVar.set(getBooleanValue());
       return newVar;
    }
@@ -149,6 +159,5 @@ public class BooleanYoVariable extends YoVariable<BooleanYoVariable>
    {
       return !getBooleanValue();
    }
-   
-   
+
 }
