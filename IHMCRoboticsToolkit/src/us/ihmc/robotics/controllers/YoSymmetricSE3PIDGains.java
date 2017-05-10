@@ -5,6 +5,7 @@ import us.ihmc.euclid.matrix.interfaces.Matrix3DReadOnly;
 import us.ihmc.robotics.dataStructures.listener.VariableChangedListener;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.robotics.dataStructures.variable.VariableModificationType;
 import us.ihmc.robotics.dataStructures.variable.YoVariable;
 
 public class YoSymmetricSE3PIDGains implements YoSE3PIDGainsInterface, YoPositionPIDGainsInterface, YoOrientationPIDGainsInterface
@@ -25,17 +26,17 @@ public class YoSymmetricSE3PIDGains implements YoSE3PIDGainsInterface, YoPositio
 
    public YoSymmetricSE3PIDGains(String suffix, YoVariableRegistry registry)
    {
-      proportionalGain = new DoubleYoVariable("kp" + suffix, registry);
-      derivativeGain = new DoubleYoVariable("kd" + suffix, registry);
-      dampingRatio = new DoubleYoVariable("zeta" + suffix, registry);
+      proportionalGain = new DoubleYoVariable("kp" + suffix, VariableModificationType.TUNABLE, registry);
+      derivativeGain = new DoubleYoVariable("kd" + suffix, VariableModificationType.DEBUG, registry);
+      dampingRatio = new DoubleYoVariable("zeta" + suffix, VariableModificationType.TUNABLE, registry);
       integralGain = new DoubleYoVariable("ki" + suffix, registry);
 
-      maxIntegralError = new DoubleYoVariable("maxIntegralError" + suffix, registry);
-      maxDerivativeError = new DoubleYoVariable("maxDerivativeError" + suffix, registry);
-      maxProportionalError = new DoubleYoVariable("maxProportionalError" + suffix, registry);
+      maxIntegralError = new DoubleYoVariable("maxIntegralError" + suffix, VariableModificationType.TUNABLE, registry);
+      maxDerivativeError = new DoubleYoVariable("maxDerivativeError" + suffix, VariableModificationType.TUNABLE, registry);
+      maxProportionalError = new DoubleYoVariable("maxProportionalError" + suffix, VariableModificationType.TUNABLE, registry);
 
-      maximumFeedback = new DoubleYoVariable("maximumFeedback" + suffix, registry);
-      maximumFeedbackRate = new DoubleYoVariable("maximumFeedbackRate" + suffix, registry);
+      maximumFeedback = new DoubleYoVariable("maximumFeedback" + suffix, VariableModificationType.TUNABLE, registry);
+      maximumFeedbackRate = new DoubleYoVariable("maximumFeedbackRate" + suffix, VariableModificationType.TUNABLE, registry);
 
       tangentialDampingGains = new YoTangentialDampingGains(suffix, registry);
 

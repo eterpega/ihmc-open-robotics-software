@@ -3,6 +3,7 @@ package us.ihmc.robotics.controllers;
 import us.ihmc.robotics.dataStructures.listener.VariableChangedListener;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.robotics.dataStructures.variable.VariableModificationType;
 import us.ihmc.robotics.dataStructures.variable.YoVariable;
 
 public class YoPDGains implements PDGainsInterface
@@ -17,15 +18,15 @@ public class YoPDGains implements PDGainsInterface
 
    public YoPDGains(String suffix, YoVariableRegistry registry)
    {
-      kp = new DoubleYoVariable("kp" + suffix, registry);
-      zeta = new DoubleYoVariable("zeta" + suffix, registry);
-      kd = new DoubleYoVariable("kd" + suffix, registry);
+      kp = new DoubleYoVariable("kp" + suffix, VariableModificationType.TUNABLE, registry);
+      zeta = new DoubleYoVariable("zeta" + suffix, VariableModificationType.DEBUG, registry);
+      kd = new DoubleYoVariable("kd" + suffix, VariableModificationType.TUNABLE, registry);
 
-      maximumOutput = new DoubleYoVariable("maximumOutput" + suffix, registry);
-      maximumFeedback = new DoubleYoVariable("maximumFeedback" + suffix, registry);
-      maximumFeedbackRate = new DoubleYoVariable("maximumFeedbackRate" + suffix, registry);
+      maximumOutput = new DoubleYoVariable("maximumOutput" + suffix, VariableModificationType.TUNABLE, registry);
+      maximumFeedback = new DoubleYoVariable("maximumFeedback" + suffix, VariableModificationType.TUNABLE, registry);
+      maximumFeedbackRate = new DoubleYoVariable("maximumFeedbackRate" + suffix, VariableModificationType.TUNABLE, registry);
 
-      positionDeadband = new DoubleYoVariable("positionDeadband" + suffix, registry);
+      positionDeadband = new DoubleYoVariable("positionDeadband" + suffix, VariableModificationType.TUNABLE, registry);
 
       maximumOutput.set(Double.POSITIVE_INFINITY);
       maximumFeedback.set(Double.POSITIVE_INFINITY);
@@ -152,6 +153,7 @@ public class YoPDGains implements PDGainsInterface
    {
       VariableChangedListener kdUpdater = new VariableChangedListener()
       {
+         @Override
          public void variableChanged(YoVariable<?> v)
          {
             kd.set(GainCalculator.computeDerivativeGain(kp.getDoubleValue(), zeta.getDoubleValue()));

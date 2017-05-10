@@ -33,11 +33,11 @@ public class YoFootOrientationGains implements YoOrientationPIDGainsInterface
       dampingRatioXY = new DoubleYoVariable("zetaXYAngular" + suffix, VariableModificationType.TUNABLE, registry);
       dampingRatioZ = new DoubleYoVariable("zetaZAngular" + suffix, VariableModificationType.TUNABLE, registry);
 
-      maximumFeedback = new DoubleYoVariable("maximumAngularFeedback" + suffix, registry);
-      maximumFeedbackRate = new DoubleYoVariable("maximumAngularFeedbackRate" + suffix, registry);
+      maximumFeedback = new DoubleYoVariable("maximumAngularFeedback" + suffix, VariableModificationType.TUNABLE, registry);
+      maximumFeedbackRate = new DoubleYoVariable("maximumAngularFeedbackRate" + suffix, VariableModificationType.TUNABLE, registry);
 
-      maxDerivativeError = new DoubleYoVariable("maximumAngularDerivativeError" + suffix, registry);
-      maxProportionalError = new DoubleYoVariable("maximumAngularProportionalError" + suffix, registry);
+      maxDerivativeError = new DoubleYoVariable("maximumAngularDerivativeError" + suffix, VariableModificationType.TUNABLE, registry);
+      maxProportionalError = new DoubleYoVariable("maximumAngularProportionalError" + suffix, VariableModificationType.TUNABLE, registry);
 
       maximumFeedback.set(Double.POSITIVE_INFINITY);
       maximumFeedbackRate.set(Double.POSITIVE_INFINITY);

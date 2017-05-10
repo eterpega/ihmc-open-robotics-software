@@ -3,6 +3,7 @@ package us.ihmc.robotics.controllers;
 import us.ihmc.robotics.MathTools;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.robotics.dataStructures.variable.VariableModificationType;
 
 public class YoPIDGains extends YoPDGains
 {
@@ -13,9 +14,9 @@ public class YoPIDGains extends YoPDGains
    {
       super(suffix, registry);
 
-      ki = new DoubleYoVariable("ki" + suffix, registry);
-      maxIntegralError = new DoubleYoVariable("maxIntegralError" + suffix, registry);
-      integralLeakRatio = new DoubleYoVariable("integralLeakRatio" + suffix, registry);
+      ki = new DoubleYoVariable("ki" + suffix, VariableModificationType.TUNABLE, registry);
+      maxIntegralError = new DoubleYoVariable("maxIntegralError" + suffix, VariableModificationType.TUNABLE, registry);
+      integralLeakRatio = new DoubleYoVariable("integralLeakRatio" + suffix, VariableModificationType.TUNABLE, registry);
       integralLeakRatio.set(1.0);
    }
 
