@@ -19,8 +19,8 @@ public class YoPDGains implements PDGainsInterface
    public YoPDGains(String suffix, YoVariableRegistry registry)
    {
       kp = new DoubleYoVariable("kp" + suffix, VariableModificationType.TUNABLE, registry);
-      zeta = new DoubleYoVariable("zeta" + suffix, VariableModificationType.DEBUG, registry);
-      kd = new DoubleYoVariable("kd" + suffix, VariableModificationType.TUNABLE, registry);
+      zeta = new DoubleYoVariable("zeta" + suffix, VariableModificationType.TUNABLE, registry);
+      kd = new DoubleYoVariable("kd" + suffix, VariableModificationType.DEBUG, registry);
 
       maximumOutput = new DoubleYoVariable("maximumOutput" + suffix, VariableModificationType.TUNABLE, registry);
       maximumFeedback = new DoubleYoVariable("maximumFeedback" + suffix, VariableModificationType.TUNABLE, registry);
