@@ -240,27 +240,6 @@ public class YoFrameLineSegment2d extends AbstractReferenceFrameHolder
       return frameLineSegment.distance(point);
    }
 
-   public double distance(FrameLine2d line)
-   {
-      putYoValuesIntoFrameLineSegment();
-
-      return frameLineSegment.distance(line);
-   }
-
-   public double distance(FrameLineSegment2d secondLineSegment)
-   {
-      putYoValuesIntoFrameLineSegment();
-
-      return frameLineSegment.distance(secondLineSegment);
-   }
-
-   public double distance(FrameConvexPolygon2d convexPolygon)
-   {
-      putYoValuesIntoFrameLineSegment();
-
-      return frameLineSegment.distance(convexPolygon);
-   }
-
    public FramePoint2d pointBetweenEndPointsGivenParameter(double parameter)
    {
       putYoValuesIntoFrameLineSegment();
@@ -270,7 +249,7 @@ public class YoFrameLineSegment2d extends AbstractReferenceFrameHolder
    
    public boolean areEndpointsTheSame()
    {
-      return LineSegment2d.areEndpointsTheSame(getFirstEndpointX(), getFirstEndpointY(), getSecondEndpointX(), getSecondEndpointY());
+      return firstEndpointX.getDoubleValue() == secondEndpointX.getDoubleValue() && firstEndpointY.getDoubleValue() == secondEndpointY.getDoubleValue();
    }
 
    public void setToNaN()

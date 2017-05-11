@@ -197,17 +197,17 @@ public class Line2DTest
          Point2D secondPointOnLine = randomPoint(random);
          Line2D line2d = new Line2D(firstPointOnLine, secondPointOnLine);
          double slope = (secondPointOnLine.getY() - firstPointOnLine.getY()) / (secondPointOnLine.getX() - firstPointOnLine.getX());
-         assertEquals(slope, line2d.getSlope(), delta);
+         assertEquals(slope, line2d.slope(), delta);
       }
 
       Point2D firstPointOnLine = new Point2D(0.0, 0.0);
       Point2D secondPointOnLine = new Point2D(0.0, 5.0);
       Line2D verticalLine = new Line2D(firstPointOnLine, secondPointOnLine);
-      assertEquals(Double.POSITIVE_INFINITY, verticalLine.getSlope(), delta);
+      assertEquals(Double.POSITIVE_INFINITY, verticalLine.slope(), delta);
 
       secondPointOnLine = new Point2D(0.0, -5.0);
       Line2D horizontalLine = new Line2D(firstPointOnLine, secondPointOnLine);
-      assertEquals(Double.NEGATIVE_INFINITY, horizontalLine.getSlope(), delta);
+      assertEquals(Double.NEGATIVE_INFINITY, horizontalLine.slope(), delta);
    }
 
 	@ContinuousIntegrationTest(estimatedDuration = 0.0)
@@ -223,22 +223,22 @@ public class Line2DTest
          Line2D line2d = new Line2D(firstPointOnLine, secondPointOnLine);
          double slope = (secondPointOnLine.getY() - firstPointOnLine.getY()) / (secondPointOnLine.getX() - firstPointOnLine.getX());
          double additive = firstPointOnLine.getY() - slope * firstPointOnLine.getX();
-         assertEquals(-additive / slope, line2d.getXIntercept(), delta);
+         assertEquals(-additive / slope, line2d.xIntercept(), delta);
       }
 
       // Edge cases: on top of x-axis and parallel to x-axis
       Point2D firstPointOnLine = new Point2D(0.0, 0.0);
       Point2D secondPointOnLine = new Point2D(5.0, 0.0);
       Line2D line2d = new Line2D(firstPointOnLine, secondPointOnLine);
-      assertEquals(Double.NaN, line2d.getXIntercept(), delta);
+      assertEquals(Double.NaN, line2d.xIntercept(), delta);
 
       firstPointOnLine = new Point2D(1.0, 1.0);
       secondPointOnLine = new Point2D(2.0, 1.0);
       line2d.set(firstPointOnLine, secondPointOnLine);
-      assertEquals(Double.NEGATIVE_INFINITY, line2d.getXIntercept(), delta);
+      assertEquals(Double.NEGATIVE_INFINITY, line2d.xIntercept(), delta);
 
       line2d.set(secondPointOnLine, firstPointOnLine);
-      assertEquals(Double.POSITIVE_INFINITY, line2d.getXIntercept(), delta);
+      assertEquals(Double.POSITIVE_INFINITY, line2d.xIntercept(), delta);
    }
 
 	@ContinuousIntegrationTest(estimatedDuration = 0.0)
@@ -254,7 +254,7 @@ public class Line2DTest
          Line2D line2d = new Line2D(firstPointOnLine, secondPointOnLine);
          double slope = (secondPointOnLine.getY() - firstPointOnLine.getY()) / (secondPointOnLine.getX() - firstPointOnLine.getX());
          double additive = firstPointOnLine.getY() - slope * firstPointOnLine.getX();
-         assertEquals(additive, line2d.getYIntercept(), delta);
+         assertEquals(additive, line2d.yIntercept(), delta);
       }
 
       // Edge cases: on top of x-axis and parallel to x-axis
@@ -262,15 +262,15 @@ public class Line2DTest
       Point2D secondPointOnLine = new Point2D(0.0, 5.0);
       Line2D line2d = new Line2D(firstPointOnLine, secondPointOnLine);
 
-      assertEquals(Double.NaN, line2d.getYIntercept(), delta);
+      assertEquals(Double.NaN, line2d.yIntercept(), delta);
 
       firstPointOnLine = new Point2D(1.0, 1.0);
       secondPointOnLine = new Point2D(1.0, 2.0);
       line2d.set(firstPointOnLine, secondPointOnLine);
-      assertEquals(Double.NEGATIVE_INFINITY, line2d.getYIntercept(), delta);
+      assertEquals(Double.NEGATIVE_INFINITY, line2d.yIntercept(), delta);
 
       line2d.set(secondPointOnLine, firstPointOnLine);
-      assertEquals(Double.POSITIVE_INFINITY, line2d.getYIntercept(), delta);
+      assertEquals(Double.POSITIVE_INFINITY, line2d.yIntercept(), delta);
    }
 
 	@ContinuousIntegrationTest(estimatedDuration = 0.0)
@@ -611,9 +611,9 @@ public class Line2DTest
          secondLine2d.set(randomDouble(random, 10.0), randomDouble(random, 10.0), randomDouble(random, 10.0), randomDouble(random, 10.0));
          interiorBisector = line2d.interiorBisector(secondLine2d);
 
-         double tangent1 = line2d.getSlope();
+         double tangent1 = line2d.slope();
          double additive1 = line2d.getPoint().getY() - tangent1 * line2d.getPoint().getX();
-         double tangent2 = secondLine2d.getSlope();
+         double tangent2 = secondLine2d.slope();
          double additive2 = secondLine2d.getPoint().getY() - tangent2 * secondLine2d.getPoint().getX();
 
          double intersectX = (additive2 - additive1) / (tangent1 - tangent2);
@@ -1212,7 +1212,7 @@ public class Line2DTest
          line2d.getDirection(normalizedVector);
          checkPoint.scaleAdd(parameter, normalizedVector, firsPointOnLine);
 
-         double calculatedParameter = line2d.getParameterGivenPointEpsilon(checkPoint, epsilon);
+         double calculatedParameter = line2d.parameterGivenPointOnLine(checkPoint, epsilon);
 
          assertEquals(parameter, calculatedParameter, delta);
       }
@@ -1240,7 +1240,7 @@ public class Line2DTest
 
          try
          {
-            line2d.getParameterGivenPointEpsilon(checkPoint, epsilon);
+            line2d.parameterGivenPointOnLine(checkPoint, epsilon);
             fail("Failed to throw an exception");
          }
          catch (RuntimeException exception)

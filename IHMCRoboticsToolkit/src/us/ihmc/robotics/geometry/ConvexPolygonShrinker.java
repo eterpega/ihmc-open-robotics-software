@@ -73,8 +73,8 @@ public class ConvexPolygonShrinker
          polygonAsLineSegment.set(vertex0, vertex1);
          double percentageAlongSegment = distance / polygonAsLineSegment.length();
 
-         polygonAsLineSegment.pointBetweenEndPointsGivenParameter(percentageAlongSegment, newVertex0);
-         polygonAsLineSegment.pointBetweenEndPointsGivenParameter(1 - percentageAlongSegment, newVertex1);
+         polygonAsLineSegment.pointBetweenEndpointsGivenPercentage(percentageAlongSegment, newVertex0);
+         polygonAsLineSegment.pointBetweenEndpointsGivenPercentage(1 - percentageAlongSegment, newVertex1);
 
          newVertices.clear();
          newVertices.add(newVertex0);
@@ -105,7 +105,7 @@ public class ConvexPolygonShrinker
          edgeOnQ.perpendicularVector(vectorPerpendicularToEdgeOnQ);
          vectorPerpendicularToEdgeOnQ.negate();
          LinePerpendicularToEdgeOnQ.set(vertexQ, vectorPerpendicularToEdgeOnQ);
-         LinePerpendicularToEdgeOnQ.getPointGivenParameter(distance, referencePoint);
+         LinePerpendicularToEdgeOnQ.pointOnLineGivenParameter(distance, referencePoint);
          edgeOnQ.getDirection(normalizedVector);
          
          

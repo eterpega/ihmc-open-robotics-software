@@ -15,7 +15,6 @@ import us.ihmc.euclid.geometry.tools.EuclidGeometryTools;
 import us.ihmc.euclid.tools.EuclidCoreTestTools;
 import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.euclid.tuple2D.Vector2D;
-import us.ihmc.euclid.tuple2D.interfaces.Point2DReadOnly;
 import us.ihmc.robotics.random.RandomGeometry;
 
 public class LineSegment2dTest
@@ -103,8 +102,6 @@ public class LineSegment2dTest
 	@Test(timeout = 30000)
    public void testLineSegment2dDoubleDoubleDoubleDouble()
    {
-      boolean fail = false;
-
       // WORKING CASES
       for (int i = 0; i < 100; i++)
       {
@@ -122,29 +119,12 @@ public class LineSegment2dTest
             assertEquals(test.getSecondEndpointCopy().getY(), y2, 0.001);
          }
       }
-
-      // SHOULD FAIL
-
-      try
-      {
-         double x1 = ran.nextDouble() * 500 - 250;
-         double y1 = ran.nextDouble() * 500 - 250;
-         new LineSegment2d(x1, y1, x1, y1);
-      }
-      catch (RuntimeException e)
-      {
-         fail = true;
-      }
-
-      assertTrue(fail);
    }
 
 	@ContinuousIntegrationTest(estimatedDuration = 0.0)
 	@Test(timeout = 30000)
    public void testLineSegment2dPoint2dArray()
    {
-      boolean fail = false;
-
       // WORKING CASES
       for (int i = 0; i < 100; i++)
       {
@@ -163,32 +143,12 @@ public class LineSegment2dTest
             assertEquals(test.getSecondEndpointCopy(), points[1]);
          }
       }
-
-      // SHOULD FAIL
-
-      try
-      {
-         double x1 = ran.nextDouble() * 500 - 250;
-         double y1 = ran.nextDouble() * 500 - 250;
-         Point2D[] points = new Point2D[2];
-         points[0] = new Point2D(x1, y1);
-         points[1] = new Point2D(x1, y1);
-         new LineSegment2d(points);
-      }
-      catch (RuntimeException e)
-      {
-         fail = true;
-      }
-
-      assertTrue(fail);
    }
 
 	@ContinuousIntegrationTest(estimatedDuration = 0.0)
 	@Test(timeout = 30000)
    public void testLineSegment2dPoint2dPoint2d()
    {
-      boolean fail = false;
-
       // WORKING CASES
       for (int i = 0; i < 100; i++)
       {
@@ -207,24 +167,6 @@ public class LineSegment2dTest
             assertEquals(test.getSecondEndpointCopy(), points[1]);
          }
       }
-
-      // SHOULD FAIL
-
-      try
-      {
-         double x1 = ran.nextDouble() * 500 - 250;
-         double y1 = ran.nextDouble() * 500 - 250;
-         Point2D[] points = new Point2D[2];
-         points[0] = new Point2D(x1, y1);
-         points[1] = new Point2D(x1, y1);
-         new LineSegment2d(points[0], points[1]);
-      }
-      catch (RuntimeException e)
-      {
-         fail = true;
-      }
-
-      assertTrue(fail);
    }
 
 	@ContinuousIntegrationTest(estimatedDuration = 0.0)
@@ -282,26 +224,6 @@ public class LineSegment2dTest
 
 	@ContinuousIntegrationTest(estimatedDuration = 0.0)
 	@Test(timeout = 30000)
-   public void testGetEndpoints()
-   {
-	   Point2DReadOnly[] points = testSegment1.getEndpoints();
-      Point2D[] pointsCopy = testSegment1.getEndpointsCopy();
-      assertEquals(pointsCopy[0], testSegment1.getFirstEndpointCopy());
-      assertEquals(pointsCopy[1], testSegment1.getSecondEndpointCopy());
-      assertEquals(pointsCopy[0], segment1Point1);
-      assertEquals(pointsCopy[1], segment1Point2);
-
-      // make sure that chaning the copy does not change the origional
-      pointsCopy[0].set(pointsCopy[0].getX() - 10.0, pointsCopy[0].getY() - 10.0);
-      pointsCopy[1].set(pointsCopy[1].getX() - 10.0, pointsCopy[1].getY() - 10.0);
-
-      assertEquals(segment1Point1, points[0]);
-      assertEquals(segment1Point2, points[1]);
-
-   }
-
-	@ContinuousIntegrationTest(estimatedDuration = 0.0)
-	@Test(timeout = 30000)
    public void testGetFirstEndPointCopy()
    {
       Point2D pointCopy = testSegment1.getFirstEndpointCopy();
@@ -346,19 +268,6 @@ public class LineSegment2dTest
 
       assertEquals(pointsCopy[0], testSegment1.getFirstEndpointCopy());
       assertEquals(pointsCopy[1], testSegment1.getSecondEndpointCopy());
-
-      boolean throwEx = false;
-      try
-      {
-         pointsCopy[0] = pointsCopy[1];
-         testSegment1.set(pointsCopy[0], pointsCopy[1]);
-      }
-      catch (Exception e)
-      {
-         throwEx = true;
-      }
-
-      assertTrue(throwEx);
    }
 
 	@ContinuousIntegrationTest(estimatedDuration = 0.0)
@@ -374,18 +283,6 @@ public class LineSegment2dTest
 
       assertEquals(pointsCopy[0], testSegment1.getFirstEndpointCopy());
       assertEquals(pointsCopy[1], testSegment1.getSecondEndpointCopy());
-      boolean throwEx = false;
-      try
-      {
-         pointsCopy[0] = pointsCopy[1];
-         testSegment1.set(pointsCopy[0].getX(), pointsCopy[0].getY(), pointsCopy[1].getX(), pointsCopy[1].getY());
-      }
-      catch (Exception e)
-      {
-         throwEx = true;
-      }
-
-      assertTrue(throwEx);
    }
 
 	@ContinuousIntegrationTest(estimatedDuration = 0.0)
@@ -403,18 +300,6 @@ public class LineSegment2dTest
 
       assertEquals(pointsCopy[0], testSegment1.getFirstEndpointCopy());
       assertEquals(pointsCopy[1], testSegment1.getSecondEndpointCopy());
-      boolean throwEx = false;
-      try
-      {
-         pointsCopy[0] = pointsCopy[1];
-         testSegment1.set(pointsCopy);
-      }
-      catch (Exception e)
-      {
-         throwEx = true;
-      }
-
-      assertTrue(throwEx);
    }
 
 	@ContinuousIntegrationTest(estimatedDuration = 0.0)
