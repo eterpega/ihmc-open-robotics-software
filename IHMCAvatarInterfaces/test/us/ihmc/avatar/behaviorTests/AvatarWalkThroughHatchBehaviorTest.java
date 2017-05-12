@@ -1,6 +1,6 @@
 package us.ihmc.avatar.behaviorTests;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -11,26 +11,31 @@ import us.ihmc.avatar.MultiRobotTestInterface;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
 import us.ihmc.avatar.testTools.DRCBehaviorTestHelper;
 import us.ihmc.commons.PrintTools;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.humanoidBehaviors.behaviors.behaviorServices.FiducialDetectorBehaviorService;
-import us.ihmc.humanoidBehaviors.behaviors.primitives.AtlasPrimitiveActions;
 import us.ihmc.humanoidBehaviors.behaviors.complexBehaviors.WalkThroughHatchBehavior;
+import us.ihmc.humanoidBehaviors.behaviors.primitives.AtlasPrimitiveActions;
 import us.ihmc.humanoidBehaviors.communication.CommunicationBridge;
 import us.ihmc.humanoidBehaviors.utilities.CapturePointUpdatable;
+import us.ihmc.humanoidRobotics.communication.packets.behaviors.HatchLocationPacket;
 import us.ihmc.humanoidRobotics.frames.HumanoidReferenceFrames;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
 import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
 import us.ihmc.simulationConstructionSetTools.bambooTools.BambooTools;
-import us.ihmc.simulationconstructionset.util.simulationTesting.SimulationTestingParameters;
 import us.ihmc.simulationConstructionSetTools.util.environments.HatchEnvironment;
+import us.ihmc.simulationConstructionSetTools.util.environments.HatchEnvironment.Hatch;
 import us.ihmc.simulationconstructionset.util.simulationRunner.BlockingSimulationRunner;
+import us.ihmc.simulationconstructionset.util.simulationTesting.SimulationTestingParameters;
 import us.ihmc.tools.MemoryTools;
 import us.ihmc.tools.thread.ThreadTools;
 
 public abstract class AvatarWalkThroughHatchBehaviorTest implements MultiRobotTestInterface
 {
+   private static final HatchEnvironment ENVIRONMENT = new HatchEnvironment();
    private static final SimulationTestingParameters simulationTestingParameters = SimulationTestingParameters.createFromEnvironmentVariables();
    static
    {
@@ -75,7 +80,7 @@ public abstract class AvatarWalkThroughHatchBehaviorTest implements MultiRobotTe
    {
       BambooTools.reportTestStartedMessage(simulationTestingParameters.getShowWindows());
       drcRobotModel = getRobotModel();
-      drcBehaviorTestHelper = new DRCBehaviorTestHelper(new HatchEnvironment(), getSimpleRobotName(), DRCObstacleCourseStartingLocation.DEFAULT,
+      drcBehaviorTestHelper = new DRCBehaviorTestHelper(ENVIRONMENT, getSimpleRobotName(), DRCObstacleCourseStartingLocation.DEFAULT_BUT_ALMOST_PI,
                                                         simulationTestingParameters, drcRobotModel);
    }
 
@@ -106,23 +111,30 @@ public abstract class AvatarWalkThroughHatchBehaviorTest implements MultiRobotTe
       
       WalkThroughHatchBehavior walkThroughHatchBehavior = new WalkThroughHatchBehavior(communicationBridge, yoTime, yoDoubleSupport, fullRobotModel,
                                                                                        referenceFrames, drcRobotModel, primitiveActions, yoGraphicsListRegistry);      
-      walkThroughHatchBehavior.initialize();
+//      walkThroughHatchBehavior.initialize();
       drcBehaviorTestHelper.getSimulationConstructionSet().addYoGraphicsListRegistry(yoGraphicsListRegistry);
 
       drcBehaviorTestHelper.addChildRegistry(fiducialDetectorBehaviorService.getYoVariableRegistry());
       drcBehaviorTestHelper.addChildRegistry(walkThroughHatchBehavior.getYoVariableRegistry());
 
-      PrintTools.debug(this, "Starting to Execute Behavior");
+      PrintTools.info(this, "Starting to Execute Behavior");
       
+      for (int i = 0; i < HatchEnvironment.getNumberOfHatches(); i++)
+      {
+         walkThroughHatchBehavior.initialize();
+         
+         Hatch hatch = HatchEnvironment.getHatch(i);
+         RigidBodyTransform hatchToWorldTransform = hatch.getHatchToWorldTransform();
+         PrintTools.debug("Transform = " + hatchToWorldTransform.toString());
+         communicationBridge.sendPacketToBehavior(new HatchLocationPacket(hatchToWorldTransform));
+                     
+         success = drcBehaviorTestHelper.executeBehaviorUntilDone(walkThroughHatchBehavior);
+         assertTrue(success);
+         PrintTools.info(this, "Behavior is Done");
+                  
+         assertTrue(walkThroughHatchBehavior.isDone());
+      }
       
-//      drcBehaviorTestHelper.dispatchBehavior(walkThroughHatchBehavior);
-      
-      success = drcBehaviorTestHelper.executeBehaviorUntilDone(walkThroughHatchBehavior);
-      assertTrue(success);
-      PrintTools.debug(this, "Behavior should be done");
-
-      assertTrue(walkThroughHatchBehavior.isDone());
-
       BambooTools.reportTestFinishedMessage(simulationTestingParameters.getShowWindows());
    }
 }

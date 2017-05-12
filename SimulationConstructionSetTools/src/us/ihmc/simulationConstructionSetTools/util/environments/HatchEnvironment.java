@@ -1,9 +1,11 @@
 package us.ihmc.simulationConstructionSetTools.util.environments;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Point3D;
-import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.graphicsDescription.appearance.YoAppearance;
 import us.ihmc.simulationConstructionSetTools.robotController.ContactController;
 import us.ihmc.simulationconstructionset.ExternalForcePoint;
@@ -15,60 +17,115 @@ import us.ihmc.simulationconstructionset.util.ground.TerrainObject3D;
 
 public class HatchEnvironment implements CommonAvatarEnvironmentInterface
 {
-   private final CombinedTerrainObject3D combinedTerrainObject;
-      
-   private static final double HATCH_OPENING_WIDTH = .86 - 0.02; // 0.84
-   private static final double HATCH_UPENING_HEIGHT = 1.7 - 0.15; // 1.55
-   private static final double HATCH_UPENING_HEIGHT_OFF_GROUND = 0.20; //0.15; 20 w/ 0.5
-   private static final double FORWARD_OFFSET = 0.21; //0.22; //0.21f; //2f; //2 + 0.21f; //1f;
-   private static final double SIDEWAY_OFFSET = 0.08; //0.5f; //1 + 0.08f;
-   private static final double HATCH_THICKNESS = 0.05; //0.15; (maybe max at 0.13)
+   private final CombinedTerrainObject3D hatchEnvironment;
    
-   private static final int NUMBER_OF_HATCHES = 4;                               // Simulation values:
-   private static final double FORWARD_OFFSETS[] = {1.21, 3.71, 6.21, 8.71};     // {1.21, 3.71, 6.21, 8.71};
-   private static final double SIDEWAY_OFFSETS[] = {0.08, 1.08, 0.08, 0.08};     // {0.08, 1.08, 0.08, 0.08};
+   private static int NUMBER_OF_HATCHES = 0;                               // Simulation values:
+//   private static final double FORWARD_OFFSETS[] = {1.21, 3.71, 6.21, 8.71};     // {1.21, 3.71, 6.21, 8.71};
+//   private static final double SIDEWAY_OFFSETS[] = {0.08, 1.08, 0.08, 0.08};     // {0.08, 1.08, 0.08, 0.08};
+   
+   private static final Point3D ORIGINS[] = {new Point3D(2.00, -0.50, 0.00), new Point3D(5.00, 1.00, 0.00), new Point3D(8.00, -1.00, 0.00), new Point3D(11.00, 0.00, 0.00)};
+   private static final double YAWS[] = {0.00, 0.00, 0.00, 0.00};
    private static final double STEP_HEIGHTS[] = {0.15, 0.05, 0.20, 0.10};        // {0.15, 0.05, 0.20, 0.10};
    private static final double OPENING_HEIGHTS[] = {1.60, 1.60, 1.60, 1.60};     // {1.55, 1.55, 1.55, 1.55};
    private static final double OPENING_WIDTHS[] = {0.86, 0.86, 0.86, 0.86};      // {0.86, 0.86, 0.86, 0.86};
    private static final double OPENING_THICKNESSES[] = {0.10, 0.10, 0.03, 0.10}; // {0.12, 0.12, 0.05, 0.12};
+      
+   public class Hatch
+   {
+      private RigidBodyTransform hatchToWorldTransform;
+      private double hatchStepHeight;
+      private double hatchOpeningHeight;
+      private double hatchWidth;
+      private double hatchThickness;
+      
+      public Hatch(RigidBodyTransform hatchToWorldTransform, double hatchStepHeight, double hatchOpeningHeight, double hatchWidth, double hatchThickness)
+      {
+         this.hatchToWorldTransform = hatchToWorldTransform;
+         this.hatchStepHeight = hatchStepHeight;
+         this.hatchOpeningHeight = hatchOpeningHeight;
+         this.hatchWidth = hatchWidth;
+         this.hatchThickness = hatchThickness;
+      }
+      
+      public RigidBodyTransform getHatchToWorldTransform()
+      {
+         return this.hatchToWorldTransform;
+      }
+      
+      public double getHatchStepHeight()
+      {
+         return this.hatchStepHeight;
+      }
+      
+      public double getHatchOpeningHeight()
+      {
+         return this.hatchOpeningHeight;
+      }
+      
+      public double getHatchWidth()
+      {
+         return this.hatchWidth;
+      }
+      
+      public double getHatchThickness()
+      {
+         return this.hatchThickness;
+      }
+   }
+   
+   private static List<Hatch> HATCHES = new ArrayList<Hatch>();
    
    public HatchEnvironment()
    {
-      combinedTerrainObject = new CombinedTerrainObject3D(getClass().getSimpleName());
-      combinedTerrainObject.addTerrainObject(setUpGround("Ground"));
-      combinedTerrainObject.addTerrainObject(addHatch("IBims1Hatch", FORWARD_OFFSETS[0], SIDEWAY_OFFSETS[0], STEP_HEIGHTS[0], OPENING_HEIGHTS[0], OPENING_WIDTHS[0], OPENING_THICKNESSES[0]));
-      combinedTerrainObject.addTerrainObject(addHatch("IBims2Hatch", FORWARD_OFFSETS[1], SIDEWAY_OFFSETS[1], STEP_HEIGHTS[1], OPENING_HEIGHTS[1], OPENING_WIDTHS[1], OPENING_THICKNESSES[1]));
-      combinedTerrainObject.addTerrainObject(addHatch("IBims3Hatch", FORWARD_OFFSETS[2], SIDEWAY_OFFSETS[2], STEP_HEIGHTS[2], OPENING_HEIGHTS[2], OPENING_WIDTHS[2], OPENING_THICKNESSES[2]));
-      combinedTerrainObject.addTerrainObject(addHatch("IBims4Hatch", FORWARD_OFFSETS[3], SIDEWAY_OFFSETS[3], STEP_HEIGHTS[3], OPENING_HEIGHTS[3], OPENING_WIDTHS[3], OPENING_THICKNESSES[3]));
+      hatchEnvironment = new CombinedTerrainObject3D(getClass().getSimpleName());
+      hatchEnvironment.addTerrainObject(setUpGround("Ground"));
+      
+      createHatchAndAddItToEnvironment(ORIGINS[0], YAWS[0], STEP_HEIGHTS[0], OPENING_HEIGHTS[0], OPENING_WIDTHS[0], OPENING_THICKNESSES[0]);
+      createHatchAndAddItToEnvironment(ORIGINS[1], YAWS[1], STEP_HEIGHTS[1], OPENING_HEIGHTS[1], OPENING_WIDTHS[1], OPENING_THICKNESSES[1]);
+      createHatchAndAddItToEnvironment(ORIGINS[2], YAWS[2], STEP_HEIGHTS[2], OPENING_HEIGHTS[2], OPENING_WIDTHS[2], OPENING_THICKNESSES[2]);
+      createHatchAndAddItToEnvironment(ORIGINS[3], YAWS[3], STEP_HEIGHTS[3], OPENING_HEIGHTS[3], OPENING_WIDTHS[3], OPENING_THICKNESSES[3]);
    }
    
    private CombinedTerrainObject3D setUpGround(String name)
    {
       CombinedTerrainObject3D combinedTerrainObject = new CombinedTerrainObject3D(name);
-      combinedTerrainObject.addBox(-10.0, -10.0, 10.0, 10.0, -0.05, 0.0, YoAppearance.Gray());
+      combinedTerrainObject.addBox(-5.0, -10.0, 15.0, 10.0, -0.05, 0.0, YoAppearance.Gray());
 
       return combinedTerrainObject;
    }
    
-   private CombinedTerrainObject3D addHatch(String name, double forwardOffset, double sidewayOffset, double stepHeight, double openingHeight, double openingWidth, double openingThickness)
+   private void createHatchAndAddItToEnvironment(Point3D origin, double yaw, double stepHeight, double openingHeight, double openingWidth, double openingThickness)
    {
-      CombinedTerrainObject3D combinedTerrainObject = new CombinedTerrainObject3D(name);
-
-      combinedTerrainObject.addBox(forwardOffset, sidewayOffset+(openingWidth/2.0)+0.5,  forwardOffset+openingThickness, sidewayOffset-(openingWidth/2.0)-0.5, 0, stepHeight, YoAppearance.DarkGray());
-
-      combinedTerrainObject.addBox(forwardOffset,sidewayOffset+openingWidth/2.0,  forwardOffset+openingThickness,sidewayOffset+(openingWidth/2.0)+0.5, 0, openingHeight+stepHeight, YoAppearance.DarkGray());
-      combinedTerrainObject.addBox(forwardOffset,sidewayOffset-openingWidth/2.0,  forwardOffset+openingThickness,sidewayOffset-(openingWidth/2.0)-0.5, 0, openingHeight+stepHeight, YoAppearance.DarkGray());
-
-      BoxTerrainObject hatchTop = new BoxTerrainObject(forwardOffset,sidewayOffset+(openingWidth/2)+0.5,  forwardOffset+openingThickness,sidewayOffset-(openingWidth/2.0)-0.5, openingHeight+stepHeight, 1.95, YoAppearance.DarkGray());
-      combinedTerrainObject.addStaticLinkGraphics(hatchTop.getLinkGraphics());
+      RigidBodyTransform hatchToWorldTransform = new RigidBodyTransform(new Quaternion(), origin);
+      hatchToWorldTransform.appendYawRotation(yaw);
       
-      return combinedTerrainObject;
+      HATCHES.add(new Hatch(hatchToWorldTransform, stepHeight, openingHeight, openingWidth, openingThickness));
+      addHatchToEnvironment("Hatch" + NUMBER_OF_HATCHES, HATCHES.get(NUMBER_OF_HATCHES));
+      
+      NUMBER_OF_HATCHES++;
+   }
+   
+   private void addHatchToEnvironment(String name, Hatch hatch)
+   {
+      CombinedTerrainObject3D hatchObject = new CombinedTerrainObject3D(name);
+
+      RigidBodyTransform hatchToWorld = hatch.getHatchToWorldTransform();
+
+      hatchObject.addBox(hatchToWorld.getTranslationX(), hatchToWorld.getTranslationY()+(hatch.getHatchWidth()/2.0)+0.5,  hatchToWorld.getTranslationX()+hatch.getHatchThickness(), hatchToWorld.getTranslationY()-(hatch.getHatchWidth()/2.0)-0.5, 0, hatch.getHatchStepHeight(), YoAppearance.DarkGray());
+
+      hatchObject.addBox(hatchToWorld.getTranslationX(),hatchToWorld.getTranslationY()+hatch.getHatchWidth()/2.0,  hatchToWorld.getTranslationX()+hatch.getHatchThickness(),hatchToWorld.getTranslationY()+(hatch.getHatchWidth()/2.0)+0.5, 0, hatch.getHatchOpeningHeight()+hatch.getHatchStepHeight(), YoAppearance.DarkGray());
+      hatchObject.addBox(hatchToWorld.getTranslationX(),hatchToWorld.getTranslationY()-hatch.getHatchWidth()/2.0,  hatchToWorld.getTranslationX()+hatch.getHatchThickness(),hatchToWorld.getTranslationY()-(hatch.getHatchWidth()/2.0)-0.5, 0, hatch.getHatchOpeningHeight()+hatch.getHatchStepHeight(), YoAppearance.DarkGray());
+
+      BoxTerrainObject hatchTop = new BoxTerrainObject(hatchToWorld.getTranslationX(),hatchToWorld.getTranslationY()+(hatch.getHatchWidth()/2)+0.5,  hatchToWorld.getTranslationX()+hatch.getHatchThickness(),hatchToWorld.getTranslationY()-(hatch.getHatchWidth()/2.0)-0.5, hatch.getHatchOpeningHeight()+hatch.getHatchStepHeight(), 1.95, YoAppearance.DarkGray());
+      hatchObject.addStaticLinkGraphics(hatchTop.getLinkGraphics());
+      
+      hatchEnvironment.addTerrainObject(hatchObject);
    }
    
    @Override
    public TerrainObject3D getTerrainObject3D()
    {
-      return combinedTerrainObject;
+      return hatchEnvironment;
    }
 
    @Override
@@ -96,32 +153,12 @@ public class HatchEnvironment implements CommonAvatarEnvironmentInterface
    
    public static int getNumberOfHatches()
    {
-      return NUMBER_OF_HATCHES;
+      return HATCHES.size();
    }
    
-   public static Point3D getHatchFrameOffset(int hatch)
+   public static Hatch getHatch(int hatchNumber)
    {
-      return new Point3D(FORWARD_OFFSETS[hatch], SIDEWAY_OFFSETS[hatch], 0.0);
-   }
-   
-   public static double getHatchThickness(int hatch)
-   {
-      return OPENING_THICKNESSES[hatch];
-   }
-   
-   public static double getHatchLowerHeight(int hatch)
-   {
-      return STEP_HEIGHTS[hatch];
-   }
-   
-   public static double getHatchUpperHeight(int hatch)
-   {
-      return OPENING_HEIGHTS[hatch];
-   }
-   
-   public static double getHatchWidth(int hatch)
-   {
-      return OPENING_WIDTHS[hatch];
+      return HATCHES.get(hatchNumber);
    }
 
 }

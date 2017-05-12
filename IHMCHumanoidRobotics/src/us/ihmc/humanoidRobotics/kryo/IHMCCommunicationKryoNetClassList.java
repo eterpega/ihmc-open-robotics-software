@@ -29,6 +29,7 @@ import us.ihmc.communication.packets.ToolboxStateMessage;
 import us.ihmc.communication.packets.ToolboxStateMessage.ToolboxState;
 import us.ihmc.communication.packets.UIPositionCheckerPacket;
 import us.ihmc.communication.producers.VideoSource;
+import us.ihmc.euclid.matrix.RotationMatrix;
 import us.ihmc.euclid.transform.QuaternionBasedTransform;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple2D.Point2D;
@@ -67,6 +68,7 @@ import us.ihmc.humanoidRobotics.communication.packets.behaviors.BehaviorStatusPa
 import us.ihmc.humanoidRobotics.communication.packets.behaviors.ButtonData;
 import us.ihmc.humanoidRobotics.communication.packets.behaviors.DebrisData;
 import us.ihmc.humanoidRobotics.communication.packets.behaviors.DoorLocationPacket;
+import us.ihmc.humanoidRobotics.communication.packets.behaviors.HatchLocationPacket;
 import us.ihmc.humanoidRobotics.communication.packets.behaviors.DrillPacket;
 import us.ihmc.humanoidRobotics.communication.packets.behaviors.HumanoidBehaviorButtonPacket;
 import us.ihmc.humanoidRobotics.communication.packets.behaviors.HumanoidBehaviorDebrisPacket;
@@ -465,6 +467,7 @@ public class IHMCCommunicationKryoNetClassList extends NetClassList
       registerPacketClass(SimpleCoactiveBehaviorDataPacket.class);
 
       registerPacketClass(DoorLocationPacket.class);
+      registerPacketClass(HatchLocationPacket.class);
       registerPacketClass(ValveLocationPacket.class);
       registerPacketClass(BehaviorStatusPacket.class);
       registerPacketField(CurrentBehaviorStatus.class);
@@ -548,5 +551,7 @@ public class IHMCCommunicationKryoNetClassList extends NetClassList
       registerPacketClass(BoundingBoxesPacket.class);
 
       registerPacketClass(ObjectDetectorResultPacket.class);
+      
+      registerPacketClass(RotationMatrix.class);
    }
 }

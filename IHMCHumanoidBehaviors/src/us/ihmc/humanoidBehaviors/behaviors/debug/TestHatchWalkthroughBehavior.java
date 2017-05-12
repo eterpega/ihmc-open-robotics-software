@@ -7,7 +7,6 @@ import us.ihmc.euclid.axisAngle.AxisAngle;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
-import us.ihmc.euclid.tuple3D.interfaces.Tuple3DBasics;
 import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.humanoidBehaviors.behaviors.AbstractBehavior;
 import us.ihmc.humanoidBehaviors.communication.CommunicationBridgeInterface;
@@ -34,12 +33,12 @@ import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.time.YoStopwatch;
 import us.ihmc.robotics.trajectories.TrajectoryType;
 import us.ihmc.simulationConstructionSetTools.util.environments.HatchEnvironment;
+import us.ihmc.simulationConstructionSetTools.util.environments.HatchEnvironment.Hatch;
 
 public class TestHatchWalkthroughBehavior extends AbstractBehavior
 {
    private static final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
-   private final Point3D hatchFrameOffset;
-   private final RigidBodyTransform hatchToWorld;
+   private final RigidBodyTransform hatchToWorldTransform;
    private final ReferenceFrame hatchFrame;
    
    private final HumanoidReferenceFrames referenceFrames;
@@ -52,10 +51,11 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
 
    private final YoStopwatch timer;
    
-   double hatchWidth = HatchEnvironment.getHatchWidth(0);
-   double hatchThickness = HatchEnvironment.getHatchThickness(0);
-   double hatchLowerHeight = HatchEnvironment.getHatchLowerHeight(0);
-   double hatchUpperHeight = HatchEnvironment.getHatchUpperHeight(0);
+   private Hatch hatch = HatchEnvironment.getHatch(0);
+   double hatchWidth = hatch.getHatchWidth();
+   double hatchThickness = hatch.getHatchThickness();
+   double hatchLowerHeight = hatch.getHatchStepHeight();
+   double hatchUpperHeight = hatch.getHatchOpeningHeight();
    
    private final Point3D defaultFootSwingWayPoint1 = new Point3D(0.03, 0.00, 0.10);
    private final Point3D defaultFootSwingWayPoint2 = new Point3D(-0.03, 0.00, 0.08);
@@ -122,17 +122,16 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
          break;
       }
       
-      hatchFrameOffset = new Point3D(HatchEnvironment.getHatchFrameOffset(0));
-      hatchToWorld = new RigidBodyTransform(new Quaternion(), hatchFrameOffset);
-      hatchToWorld.invert();
-      hatchFrame = ReferenceFrame.constructFrameWithUnchangingTransformFromParent("HatchFrame", worldFrame, hatchToWorld);
+      hatchToWorldTransform = hatch.getHatchToWorldTransform();
+      hatchToWorldTransform.invert();
+      hatchFrame = ReferenceFrame.constructFrameWithUnchangingTransformFromParent("HatchFrame", worldFrame, hatchToWorldTransform);
       
-      PrintTools.debug("Transform = " + hatchToWorld.toString());
+//      PrintTools.debug("Transform = " + hatchToWorldTransform.toString());
       
-      rightBeforeHatchOffset.set(hatchFrameOffset.getX(), 0.0, 0.0);
+      rightBeforeHatchOffset.set(hatchToWorldTransform.getTranslationX(), 0.0, 0.0);
       rightAfterHatchOffset.set(rightBeforeHatchOffset.getX() - 0.01, 0.03, 0.0);
       
-      leftBeforeHatchOffset.set(hatchFrameOffset.getX(), 0.0, 0.0);
+      leftBeforeHatchOffset.set(hatchToWorldTransform.getTranslationX(), 0.0, 0.0);
       leftAfterHatchOffset.set(leftBeforeHatchOffset.getX() + 0.03 - 0.01, 0.03, 0.0);
       
       setFootSwingGoalPointsBasedOnHatchDimensions();

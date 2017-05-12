@@ -451,7 +451,7 @@ public class DRCBehaviorTestHelper extends DRCSimulationTestHelper
       return behaviorRunner;
    }
 
-   private BehaviorRunner startNewBehaviorRunnerThread(final AbstractBehavior behavior)
+   public BehaviorRunner startNewBehaviorRunnerThread(final AbstractBehavior behavior)
    {
       BehaviorRunner behaviorRunner = new BehaviorRunner(behavior);
       Thread behaviorThread = new Thread(behaviorRunner);
@@ -460,7 +460,7 @@ public class DRCBehaviorTestHelper extends DRCSimulationTestHelper
       return behaviorRunner;
    }
 
-   private class BehaviorRunner implements Runnable
+   public class BehaviorRunner implements Runnable
    {
       protected boolean isRunning = true;
       protected final ArrayList<AbstractBehavior> behaviors;
