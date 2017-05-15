@@ -29,49 +29,6 @@ public class HatchEnvironment implements CommonAvatarEnvironmentInterface
    private static final double OPENING_HEIGHTS[] = {1.60, 1.60, 1.60, 1.60};     // {1.55, 1.55, 1.55, 1.55};
    private static final double OPENING_WIDTHS[] = {0.86, 0.86, 0.86, 0.86};      // {0.86, 0.86, 0.86, 0.86};
    private static final double OPENING_THICKNESSES[] = {0.10, 0.10, 0.03, 0.10}; // {0.12, 0.12, 0.05, 0.12};
-      
-   public class Hatch
-   {
-      private RigidBodyTransform hatchToWorldTransform;
-      private double hatchStepHeight;
-      private double hatchOpeningHeight;
-      private double hatchWidth;
-      private double hatchThickness;
-      
-      public Hatch(RigidBodyTransform hatchToWorldTransform, double hatchStepHeight, double hatchOpeningHeight, double hatchWidth, double hatchThickness)
-      {
-         this.hatchToWorldTransform = hatchToWorldTransform;
-         this.hatchStepHeight = hatchStepHeight;
-         this.hatchOpeningHeight = hatchOpeningHeight;
-         this.hatchWidth = hatchWidth;
-         this.hatchThickness = hatchThickness;
-      }
-      
-      public RigidBodyTransform getHatchToWorldTransform()
-      {
-         return this.hatchToWorldTransform;
-      }
-      
-      public double getHatchStepHeight()
-      {
-         return this.hatchStepHeight;
-      }
-      
-      public double getHatchOpeningHeight()
-      {
-         return this.hatchOpeningHeight;
-      }
-      
-      public double getHatchWidth()
-      {
-         return this.hatchWidth;
-      }
-      
-      public double getHatchThickness()
-      {
-         return this.hatchThickness;
-      }
-   }
    
    private static List<Hatch> HATCHES = new ArrayList<Hatch>();
    
@@ -111,12 +68,12 @@ public class HatchEnvironment implements CommonAvatarEnvironmentInterface
 
       RigidBodyTransform hatchToWorld = hatch.getHatchToWorldTransform();
 
-      hatchObject.addBox(hatchToWorld.getTranslationX(), hatchToWorld.getTranslationY()+(hatch.getHatchWidth()/2.0)+0.5,  hatchToWorld.getTranslationX()+hatch.getHatchThickness(), hatchToWorld.getTranslationY()-(hatch.getHatchWidth()/2.0)-0.5, 0, hatch.getHatchStepHeight(), YoAppearance.DarkGray());
+      hatchObject.addBox(hatchToWorld.getTranslationX(), hatchToWorld.getTranslationY()+(hatch.getWidth()/2.0)+0.5,  hatchToWorld.getTranslationX()+hatch.getThickness(), hatchToWorld.getTranslationY()-(hatch.getWidth()/2.0)-0.5, 0, hatch.getStepHeight(), YoAppearance.DarkGray());
 
-      hatchObject.addBox(hatchToWorld.getTranslationX(),hatchToWorld.getTranslationY()+hatch.getHatchWidth()/2.0,  hatchToWorld.getTranslationX()+hatch.getHatchThickness(),hatchToWorld.getTranslationY()+(hatch.getHatchWidth()/2.0)+0.5, 0, hatch.getHatchOpeningHeight()+hatch.getHatchStepHeight(), YoAppearance.DarkGray());
-      hatchObject.addBox(hatchToWorld.getTranslationX(),hatchToWorld.getTranslationY()-hatch.getHatchWidth()/2.0,  hatchToWorld.getTranslationX()+hatch.getHatchThickness(),hatchToWorld.getTranslationY()-(hatch.getHatchWidth()/2.0)-0.5, 0, hatch.getHatchOpeningHeight()+hatch.getHatchStepHeight(), YoAppearance.DarkGray());
+      hatchObject.addBox(hatchToWorld.getTranslationX(),hatchToWorld.getTranslationY()+hatch.getWidth()/2.0,  hatchToWorld.getTranslationX()+hatch.getThickness(),hatchToWorld.getTranslationY()+(hatch.getWidth()/2.0)+0.5, 0, hatch.getOpeningHeight()+hatch.getStepHeight(), YoAppearance.DarkGray());
+      hatchObject.addBox(hatchToWorld.getTranslationX(),hatchToWorld.getTranslationY()-hatch.getWidth()/2.0,  hatchToWorld.getTranslationX()+hatch.getThickness(),hatchToWorld.getTranslationY()-(hatch.getWidth()/2.0)-0.5, 0, hatch.getOpeningHeight()+hatch.getStepHeight(), YoAppearance.DarkGray());
 
-      BoxTerrainObject hatchTop = new BoxTerrainObject(hatchToWorld.getTranslationX(),hatchToWorld.getTranslationY()+(hatch.getHatchWidth()/2)+0.5,  hatchToWorld.getTranslationX()+hatch.getHatchThickness(),hatchToWorld.getTranslationY()-(hatch.getHatchWidth()/2.0)-0.5, hatch.getHatchOpeningHeight()+hatch.getHatchStepHeight(), 1.95, YoAppearance.DarkGray());
+      BoxTerrainObject hatchTop = new BoxTerrainObject(hatchToWorld.getTranslationX(),hatchToWorld.getTranslationY()+(hatch.getWidth()/2)+0.5,  hatchToWorld.getTranslationX()+hatch.getThickness(),hatchToWorld.getTranslationY()-(hatch.getWidth()/2.0)-0.5, hatch.getOpeningHeight()+hatch.getStepHeight(), 1.95, YoAppearance.DarkGray());
       hatchObject.addStaticLinkGraphics(hatchTop.getLinkGraphics());
       
       hatchEnvironment.addTerrainObject(hatchObject);

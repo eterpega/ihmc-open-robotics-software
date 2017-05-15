@@ -3,7 +3,6 @@ package us.ihmc.humanoidBehaviors.behaviors.complexBehaviors;
 import us.ihmc.commons.PrintTools;
 import us.ihmc.communication.packets.PacketDestination;
 import us.ihmc.communication.packets.TextToSpeechPacket;
-import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicReferenceFrame;
@@ -15,7 +14,6 @@ import us.ihmc.humanoidBehaviors.behaviors.simpleBehaviors.SimpleDoNothingBehavi
 import us.ihmc.humanoidBehaviors.communication.CommunicationBridge;
 import us.ihmc.humanoidBehaviors.stateMachine.StateMachineBehavior;
 import us.ihmc.humanoidRobotics.communication.packets.ExecutionMode;
-import us.ihmc.humanoidRobotics.communication.packets.behaviors.HatchLocationPacket;
 import us.ihmc.humanoidRobotics.communication.packets.dataobjects.HandConfiguration;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.ArmTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.HandDesiredConfigurationMessage;
@@ -29,7 +27,6 @@ import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
 import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
 import us.ihmc.robotics.geometry.FrameOrientation;
-import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FramePose;
 import us.ihmc.robotics.geometry.FramePose2d;
 import us.ihmc.robotics.referenceFrames.PoseReferenceFrame;
@@ -37,8 +34,8 @@ import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.stateMachines.conditionBasedStateMachine.StateTransitionCondition;
 import us.ihmc.robotics.trajectories.TrajectoryType;
-import us.ihmc.simulationConstructionSetTools.util.environments.HatchEnvironment;
-import us.ihmc.simulationConstructionSetTools.util.environments.HatchEnvironment.Hatch;
+//import us.ihmc.simulationConstructionSetTools.util.environments.HatchEnvironment;
+import us.ihmc.simulationConstructionSetTools.util.environments.Hatch;
 import us.ihmc.wholeBodyController.WholeBodyControllerParameters;
 
 public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHatchBehaviorState>
@@ -79,12 +76,8 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
    private final PoseReferenceFrame hatchFrame = new PoseReferenceFrame("HatchFrame", ReferenceFrame.getWorldFrame());
    private final YoGraphicReferenceFrame hatchFrameViz;
    
-   private final int numberOfHatches = HatchEnvironment.getNumberOfHatches();
-   private int currentHatch = 1;
-   private double hatchWidth;
-   private double hatchThickness;
-   private double hatchLowerHeight;
-   private double hatchUpperHeight;
+//   private final int numberOfHatches = HatchEnvironment.getNumberOfHatches();
+   private Hatch hatch;
    
    private final double minSwingWayPointHeight = 0.08;
    
@@ -212,9 +205,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
          {
             super.doTransitionOutOfAction();
 
-//            HatchLocationPacket hatchLocationPacket = new HatchLocationPacket(searchForHatchBehavior.getLocation());
-//            communicationBridge.sendPacketToUI(hatchLocationPacket);
-            hatchFrame.setPoseAndUpdate(searchForHatchBehavior.getLocation());
+            setUpHatchFromEnvironment();
          }
       };
       
@@ -224,10 +215,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
          @Override
          public void setBehaviorInput()
          {
-            if(currentHatchExists())
-            {
-               setRobotTrajectoriesBasedOnHatchDimensions(currentHatch);
-            }
+            setRobotTrajectoriesBasedOnHatchDimensions();
          }
       };
       
@@ -281,8 +269,6 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
             
             atlasPrimitiveActions.walkToLocationBehavior.setWalkingStepWidth(defaultStepWidth);
             atlasPrimitiveActions.walkToLocationBehavior.setTarget(targetPose);
-            
-            PrintTools.debug("Walking to hatch far");
          }
       };
       
@@ -487,8 +473,6 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
             atlasPrimitiveActions.walkToLocationBehavior.setWalkingStepWidth(defaultStepWidth);
             atlasPrimitiveActions.walkToLocationBehavior.setFootstepLength(0.20);
             atlasPrimitiveActions.walkToLocationBehavior.setTarget(targetPose);
-            
-            ++currentHatch;
          }
       };
 
@@ -563,22 +547,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
    
    public boolean currentHatchPossible()
    {
-      if(currentHatchExists())
-      {
-         return currentHatchDimensionsValid();
-      }
-      PrintTools.debug("Hatch not possible");
-      return false;
-   }
-   
-   public boolean currentHatchExists()
-   {
-      if(currentHatch > numberOfHatches)
-      {
-         PrintTools.debug("Hatch does not exist");
-         return false;
-      }
-      return true;
+      return currentHatchDimensionsValid();
    }
    
    public boolean currentHatchDimensionsValid()
@@ -590,34 +559,34 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
       PrintTools.debug("Hatch invalid dimensions");
       if(!validHatchOpening())
       {
-         PrintTools.debug("Opening not possible");
+         PrintTools.debug("Opening " + hatch.getOpeningHeight() + "m x " + hatch.getWidth() + "m not possible");
       }
       if(!validHatchStepHeight())
       {
-         PrintTools.debug("Step not possible");
+         PrintTools.debug("Step height " + hatch.getStepHeight() + "m not possible");
       }
       if(!validHatchThickness())
       {
-         PrintTools.debug("Thickness not possible");
+         PrintTools.debug("Thickness " + hatch.getThickness() + "m not possible");
       }
       return false;
    }
    
    public boolean validHatchOpening()
    {
-      return hatchWidth >= hatchWidthLowerBound && hatchUpperHeight >= hatchUpperHeightLowerBound;
+      return hatch.getWidth() >= hatchWidthLowerBound && hatch.getOpeningHeight() >= hatchUpperHeightLowerBound;
    }
    
    public boolean validHatchStepHeight()
    {
-      return hatchLowerHeight >= hatchLowerHeightLowerBound && hatchLowerHeight <= hatchLowerHeightUpperBound;
+      return hatch.getStepHeight() >= hatchLowerHeightLowerBound && hatch.getStepHeight() <= hatchLowerHeightUpperBound;
    }
    
    public boolean validHatchThickness()
    {
-      if(hatchThickness <= hatchThicknessUpperBound)
+      if(hatch.getThickness() <= hatchThicknessUpperBound)
       {
-         if(hatchLowerHeight > 0.15 && hatchThickness > 0.05)
+         if(hatch.getStepHeight() > 0.15 && hatch.getThickness() > 0.05)
          {
             return false;
          }
@@ -626,35 +595,24 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
       return false;
    }
    
-   private void setRobotTrajectoriesBasedOnHatchDimensions(int absHatch)
-   {  
-      int relHatch = absHatch - 1;
-      
-      Hatch hatch = HatchEnvironment.getHatch(relHatch);      
-      hatchFrameViz.update();
+   private void setUpHatchFromEnvironment()
+   {
+      hatch = new Hatch(searchForHatchBehavior.getLocation(), searchForHatchBehavior.getStepHeight(), searchForHatchBehavior.getOpeningHeight(),searchForHatchBehavior.getWidth(), searchForHatchBehavior.getThickness());            
+      hatchFrame.setPoseAndUpdate(searchForHatchBehavior.getLocation());
 
-      PrintTools.info("Found hatch at: " + hatchFrame.getTransformToWorldFrame().getTranslationVector().toString());
-      
-      hatchWidth = hatch.getHatchWidth();
-      hatchThickness = hatch.getHatchThickness();
-      hatchLowerHeight = hatch.getHatchStepHeight();
-      hatchUpperHeight = hatch.getHatchOpeningHeight();
+      PrintTools.info("Found hatch at: " + searchForHatchBehavior.getLocation().getTranslationVector().toString());
       
       if(useSafetyMarginForHatch)
       {
-         hatchUpperHeight = hatchUpperHeight - 0.05;
-         hatchThickness = hatchThickness + 0.01;
+         hatch.applySafteyMargins();
       }
-      
-      rightBeforeHatchOffset.set(targetLocationHatchBeforeNear.getX(), 0.0, 0.0);
-      rightAfterHatchOffset.set(-rightBeforeHatchOffset.getX() - 0.03, 0.03, 0.0); // -0.01 in x
-      leftBeforeHatchOffset.set(targetLocationHatchBeforeNear.getX(), 0.0, 0.0);
-      leftAfterHatchOffset.set(-leftBeforeHatchOffset.getX() - 0.03, 0.03, 0.0); // +0.03 in x (-0.01 in x)
-      
+   }
+   
+   private void setRobotTrajectoriesBasedOnHatchDimensions()
+   {        
       setChestTrajectoriesBasedOnHatchDimensions();
       setPelvisTrajectoriesBasedOnHatchDimensions();
-      setFootSwingGoalPointsBasedOnHatchDimensions();
-      setFootSwingWayPointsBasedOnHatchDimensions();
+      setFootTrajectoriesBasedOnHatchDimensions();
    }
    
    private void setChestTrajectoriesBasedOnHatchDimensions()
@@ -663,7 +621,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
       chestYawPitchRollInitializeDesired[1] = Math.toRadians(10.0);
       chestYawPitchRollInitializeDesired[2] = Math.toRadians(0.0);
       
-      chestYawPitchRollSetupDesired[0] = Math.toRadians(20.0 - hatchLowerHeight/0.01); // 20.0 for 0.05 height (c = 25.0)
+      chestYawPitchRollSetupDesired[0] = Math.toRadians(20.0 - hatch.getStepHeight()/0.01); // 20.0 for 0.05 height (c = 25.0)
       chestYawPitchRollSetupDesired[1] = Math.toRadians(15.0);
       chestYawPitchRollSetupDesired[2] = Math.toRadians(0.0);
       
@@ -697,31 +655,30 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
       pelvisPositionInHatchFrameInitializeDesired.set(0.0, 0.0, defaultUpperPelvisHeight);
       
       pelvisYawPitchRollSetupDesired[0] = Math.toRadians(0.0);
-      pelvisYawPitchRollSetupDesired[1] = Math.toRadians(-hatchLowerHeight*100.0); //TEST: was -15.0 for 0.15 height
+      pelvisYawPitchRollSetupDesired[1] = Math.toRadians(-hatch.getStepHeight()*100.0); //TEST: was -15.0 for 0.15 height
       pelvisYawPitchRollSetupDesired[2] = Math.toRadians(0.0);
       
-      double pelvisMovementInitializationZ = -0.215 + 0.0475 * hatchLowerHeight/0.05 + (hatchUpperHeight - 1.55);
+      double pelvisMovementInitializationZ = -0.215 + 0.0475 * hatch.getStepHeight()/0.05 + (hatch.getOpeningHeight() - 1.55);
       if(pelvisMovementInitializationZ > 0.0)
          pelvisMovementInitializationZ = 0.0;
       pelvisPositionInHatchFrameSetupDesired.set(0.0, 0.0, defaultLowerPelvisHeight + pelvisMovementInitializationZ);
-//      pelvisPositionInHatchFrameSetupDesired.set(0.0, 0.0, defaultUpperPelvisHeight);
       
       pelvisYawPitchRollFirstHatchStepDesired[0] = Math.toRadians(7.0);
-      pelvisYawPitchRollFirstHatchStepDesired[1] = Math.toRadians(-hatchLowerHeight*100.0); //5.0
+      pelvisYawPitchRollFirstHatchStepDesired[1] = Math.toRadians(-hatch.getStepHeight()*100.0); //5.0
       pelvisYawPitchRollFirstHatchStepDesired[2] = Math.toRadians(-7.0); // -7.0
       
       pelvisPositionInHatchFrameFirstHatchStepDesired.set(pelvisPositionInHatchFrameSetupDesired);
       pelvisPositionInHatchFrameFirstHatchStepDesired.add(0.0, 0.0, 0.02); //0.02 in z (0.05 in x)
       
       pelvisYawPitchRollTransitionDesired[0] = Math.toRadians(0.0); //0.0
-      pelvisYawPitchRollTransitionDesired[1] = Math.toRadians(4.0 + 2.0 * hatchLowerHeight/0.05);
+      pelvisYawPitchRollTransitionDesired[1] = Math.toRadians(4.0 + 2.0 * hatch.getStepHeight()/0.05);
       pelvisYawPitchRollTransitionDesired[2] = Math.toRadians(5.0); // roll was 15.0 for 0.15 height
 
       pelvisPositionInHatchFrameTransitionDesired.set(pelvisPositionInHatchFrameFirstHatchStepDesired);
       pelvisPositionInHatchFrameTransitionDesired.add(0.0, 0.0, 0.04); // 0.04 height, 0.025 + 0.025*hatchLowerHeight/0.05 - 0.04 in x
    
       pelvisYawPitchRollSecondHatchStepDesired[0] = Math.toRadians(-8.0); // -5
-      pelvisYawPitchRollSecondHatchStepDesired[1] = Math.toRadians(hatchLowerHeight*100.0);
+      pelvisYawPitchRollSecondHatchStepDesired[1] = Math.toRadians(hatch.getStepHeight()*100.0);
       pelvisYawPitchRollSecondHatchStepDesired[2] = Math.toRadians(12.0); // 10
       
       pelvisPositionInHatchFrameSecondHatchStepDesired.set(pelvisPositionInHatchFrameTransitionDesired);
@@ -736,6 +693,21 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
       pelvisPositionInHatchFrameStraightenDesired.set(0.0, 0.0, defaultUpperPelvisHeight);
    }
    
+   private void setFootTrajectoriesBasedOnHatchDimensions()
+   {
+      setRelativeFootOffsetsFromHatch();
+      setFootSwingGoalPointsBasedOnHatchDimensions();
+      setFootSwingWayPointsBasedOnHatchDimensions();
+   }
+   
+   private void setRelativeFootOffsetsFromHatch()
+   {
+      rightBeforeHatchOffset.set(targetLocationHatchBeforeNear.getX(), 0.0, 0.0);
+      rightAfterHatchOffset.set(-rightBeforeHatchOffset.getX() - 0.03, 0.03, 0.0); // -0.01 in x
+      leftBeforeHatchOffset.set(targetLocationHatchBeforeNear.getX(), 0.0, 0.0);
+      leftAfterHatchOffset.set(-leftBeforeHatchOffset.getX() - 0.03, 0.03, 0.0); // +0.03 in x (-0.01 in x)
+   }
+   
    private void setFootSwingGoalPointsBasedOnHatchDimensions()
    {
       setRightFootSwingGoalPointBasedOnHatchDimensions();
@@ -747,7 +719,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
       rightFootSwingGoalPoint.setToZero();
       rightFootSwingGoalPoint.sub(rightBeforeHatchOffset);
       rightFootSwingGoalPoint.add(rightAfterHatchOffset);
-      rightFootSwingGoalPoint.add(new Point3D(hatchThickness, 0.0, 0.0));
+      rightFootSwingGoalPoint.add(new Point3D(hatch.getThickness(), 0.0, 0.0));
    }
    
    private void setLeftFootSwingGoalPointBasedOnHatchDimensions()
@@ -755,7 +727,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
       leftFootSwingGoalPoint.setToZero();
       leftFootSwingGoalPoint.sub(leftBeforeHatchOffset);
       leftFootSwingGoalPoint.add(leftAfterHatchOffset);
-      leftFootSwingGoalPoint.add(new Point3D(hatchThickness, 0.0, 0.0));
+      leftFootSwingGoalPoint.add(new Point3D(hatch.getThickness(), 0.0, 0.0));
    }
    
    private void setFootSwingWayPointsBasedOnHatchDimensions()
@@ -766,9 +738,9 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
    
    private void setRightFootSwingWayPointBasedOnHatchDimensions()
    {
-      rightFootSwingWayPoint1.add(defaultRightFootSwingWayPoint1, new Point3D(0, -0.03, hatchLowerHeight));
+      rightFootSwingWayPoint1.add(defaultRightFootSwingWayPoint1, new Point3D(0, -0.03, hatch.getStepHeight()));
       
-      rightFootSwingWayPoint2.add(defaultRightFootSwingWayPoint2, new Point3D(0, -0.03, hatchLowerHeight));
+      rightFootSwingWayPoint2.add(defaultRightFootSwingWayPoint2, new Point3D(0, -0.03, hatch.getStepHeight()));
       rightFootSwingWayPoint2.add(rightFootSwingGoalPoint);
       
       if(rightFootSwingWayPoint2.getZ() < minSwingWayPointHeight)
@@ -781,9 +753,9 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
    
    private void setLeftFootSwingWayPointBasedOnHatchDimensions()
    {
-      leftFootSwingWayPoint1.add(defaultLeftFootSwingWayPoint1, new Point3D(0, 0.00, hatchLowerHeight)); // 0.03 ... was -0.02 in z
+      leftFootSwingWayPoint1.add(defaultLeftFootSwingWayPoint1, new Point3D(0, 0.00, hatch.getStepHeight())); // 0.03 ... was -0.02 in z
       
-      leftFootSwingWayPoint2.add(defaultLeftFootSwingWayPoint2, new Point3D(0, 0.05, hatchLowerHeight)); // 0.05 ... 0.03 in y
+      leftFootSwingWayPoint2.add(defaultLeftFootSwingWayPoint2, new Point3D(0, 0.05, hatch.getStepHeight())); // 0.05 ... 0.03 in y
       leftFootSwingWayPoint2.add(leftFootSwingGoalPoint);
       
       if(leftFootSwingWayPoint2.getZ() < minSwingWayPointHeight)
@@ -852,7 +824,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
    @Override
    public void onBehaviorExited()
    {
-      currentHatch = 1;
+      
    }
    
 

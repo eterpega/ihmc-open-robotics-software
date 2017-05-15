@@ -33,7 +33,7 @@ import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.time.YoStopwatch;
 import us.ihmc.robotics.trajectories.TrajectoryType;
 import us.ihmc.simulationConstructionSetTools.util.environments.HatchEnvironment;
-import us.ihmc.simulationConstructionSetTools.util.environments.HatchEnvironment.Hatch;
+import us.ihmc.simulationConstructionSetTools.util.environments.Hatch;
 
 public class TestHatchWalkthroughBehavior extends AbstractBehavior
 {
@@ -52,10 +52,10 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
    private final YoStopwatch timer;
    
    private Hatch hatch = HatchEnvironment.getHatch(0);
-   double hatchWidth = hatch.getHatchWidth();
-   double hatchThickness = hatch.getHatchThickness();
-   double hatchLowerHeight = hatch.getHatchStepHeight();
-   double hatchUpperHeight = hatch.getHatchOpeningHeight();
+   double hatchWidth = hatch.getWidth();
+   double hatchThickness = hatch.getThickness();
+   double hatchLowerHeight = hatch.getStepHeight();
+   double hatchUpperHeight = hatch.getOpeningHeight();
    
    private final Point3D defaultFootSwingWayPoint1 = new Point3D(0.03, 0.00, 0.10);
    private final Point3D defaultFootSwingWayPoint2 = new Point3D(-0.03, 0.00, 0.08);

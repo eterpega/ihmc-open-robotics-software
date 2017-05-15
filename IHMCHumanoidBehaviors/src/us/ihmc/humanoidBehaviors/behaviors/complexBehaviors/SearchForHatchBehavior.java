@@ -10,6 +10,11 @@ import us.ihmc.humanoidRobotics.communication.packets.behaviors.HatchLocationPac
 public class SearchForHatchBehavior extends AbstractBehavior
 {
    private RigidBodyTransform hatchTransformToWorld;
+   private double hatchStepHeight;
+   private double hatchOpeningHeight;
+   private double hatchWidth;
+   private double hatchThickness;
+   
    private boolean recievedNewHatchLocation = false;
 
    protected final ConcurrentListeningQueue<HatchLocationPacket> hatchLocationQueue = new ConcurrentListeningQueue<HatchLocationPacket>(10);
@@ -52,16 +57,39 @@ public class SearchForHatchBehavior extends AbstractBehavior
    {
       return hatchTransformToWorld;
    }
-
+   
+   public double getStepHeight()
+   {
+      return hatchStepHeight;
+   }
+   
+   public double getOpeningHeight()
+   {
+      return hatchOpeningHeight;
+   }
+   
+   public double getWidth()
+   {
+      return hatchWidth;
+   }
+   
+   public double getThickness()
+   {
+      return hatchThickness;
+   }
 
    private void receivedHatchLocation(HatchLocationPacket hatchLocationPacket)
    {
       TextToSpeechPacket p1 = new TextToSpeechPacket("Received Hatch Location From UI");
       sendPacket(p1);
+      
       hatchTransformToWorld = hatchLocationPacket.getHatchTransformToWorld();
+      hatchStepHeight = hatchLocationPacket.getHatchStepHeight();
+      hatchOpeningHeight = hatchLocationPacket.getHatchOpeningHeight();
+      hatchWidth =hatchLocationPacket.getHatchWidth();
+      hatchThickness = hatchLocationPacket.getHatchThickness();
 
       recievedNewHatchLocation = true;
-
    }
 
    @Override
