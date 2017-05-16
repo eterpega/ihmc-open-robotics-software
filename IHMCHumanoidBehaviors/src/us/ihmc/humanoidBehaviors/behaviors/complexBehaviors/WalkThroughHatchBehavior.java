@@ -45,10 +45,12 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
    public enum WalkThroughHatchBehaviorState
    {
       STOPPED,
-      SEARCHING_FOR_HATCH,
+      SEARCHING_FOR_HATCH_FAR,
       INITIALIZE_TRAJECTORIES,
       INITIALIZE_CONFIGURATION,
       WALKING_TO_HATCH_FAR,
+      SEARCHING_FOR_HATCH_NEAR,
+      UPDATE_TRAJECTORIES,
       SETUP_FOR_HATCH_WALK,
       WALKING_TO_HATCH_NEAR,
       ADJUST_CHEST,
@@ -126,7 +128,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
    private final double hatchUpperHeightLowerBound = 1.55;
    private final double hatchLowerHeightLowerBound = 0.05;
    private final double hatchLowerHeightUpperBound = 0.20;
-   private final double hatchThicknessUpperBound = 0.12;
+   private final double hatchThicknessUpperBound = 0.15; // was 0.12
    
    // Trajectory timing constants
    private static final double defaulTime = 4.0;
@@ -197,8 +199,8 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
 
    private void setupStateMachine()
    {
-      BehaviorAction<WalkThroughHatchBehaviorState> searchForHatch = new BehaviorAction<WalkThroughHatchBehaviorState>(
-            WalkThroughHatchBehaviorState.SEARCHING_FOR_HATCH, searchForHatchBehavior)
+      BehaviorAction<WalkThroughHatchBehaviorState> searchForHatchFar = new BehaviorAction<WalkThroughHatchBehaviorState>(
+            WalkThroughHatchBehaviorState.SEARCHING_FOR_HATCH_FAR, searchForHatchBehavior)
       {         
          @Override
          public void doTransitionOutOfAction()
@@ -269,6 +271,38 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
             
             atlasPrimitiveActions.walkToLocationBehavior.setWalkingStepWidth(defaultStepWidth);
             atlasPrimitiveActions.walkToLocationBehavior.setTarget(targetPose);
+            
+            PrintTools.debug("this one is done");
+         }
+      };
+      
+      BehaviorAction<WalkThroughHatchBehaviorState> searchForHatchNear = new BehaviorAction<WalkThroughHatchBehaviorState>(
+            WalkThroughHatchBehaviorState.SEARCHING_FOR_HATCH_NEAR, searchForHatchBehavior)
+      {   
+         @Override
+         protected void setBehaviorInput()
+         {
+            boolean done = searchForHatchBehavior.isDone();
+            PrintTools.debug(String.valueOf(done));
+         }
+         
+         @Override
+         public void doTransitionOutOfAction()
+         {
+            PrintTools.debug("this one has started");
+            super.doTransitionOutOfAction();
+
+            setUpHatchFromEnvironment();
+         }
+      };
+      
+      BehaviorAction<WalkThroughHatchBehaviorState> updateTrajectories = new BehaviorAction<WalkThroughHatchBehaviorState>(
+            WalkThroughHatchBehaviorState.UPDATE_TRAJECTORIES, new SimpleDoNothingBehavior(communicationBridge))
+      {
+         @Override
+         public void setBehaviorInput()
+         {
+            setRobotTrajectoriesBasedOnHatchDimensions();
          }
       };
       
@@ -285,8 +319,8 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
             HandDesiredConfigurationMessage rightHandMessage = new HandDesiredConfigurationMessage(RobotSide.RIGHT, HandConfiguration.CLOSE);
             
             // Arms
-            double[] leftArmPose = new double[] {-1.57, -0.51, 0.25, 2.0, 0.0, 0.0, 0.0};
-            double[] rightArmPose = new double[] {1.57, 0.51, 0.25, -2.0, 0.0, 0.0, 0.0};
+            double[] leftArmPose = new double[] {-1.57, -0.51, 0.0, 2.0, 0.0, 0.0, 0.0}; //{-1.57, -0.51, 0.25, 2.0, 0.0, 0.0, 0.0}
+            double[] rightArmPose = new double[] {1.57, 0.51, 0.0, -2.0, 0.0, 0.0, 0.0}; //{1.57, 0.51, 0.25, -2.0, 0.0, 0.0, 0.0}
             ArmTrajectoryMessage rightPoseMessage = new ArmTrajectoryMessage(RobotSide.RIGHT, 1, rightArmPose);
             ArmTrajectoryMessage leftPoseMessage = new ArmTrajectoryMessage(RobotSide.LEFT, 1, leftArmPose);
             
@@ -520,12 +554,14 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
          }
       };
 
-      statemachine.addStateWithDoneTransition(searchForHatch, WalkThroughHatchBehaviorState.INITIALIZE_TRAJECTORIES);
+      statemachine.addStateWithDoneTransition(searchForHatchFar, WalkThroughHatchBehaviorState.INITIALIZE_TRAJECTORIES);
       statemachine.addState(initializeTrajectories);
       initializeTrajectories.addStateTransition(WalkThroughHatchBehaviorState.INITIALIZE_CONFIGURATION, hatchPossibleCondition);
       initializeTrajectories.addStateTransition(WalkThroughHatchBehaviorState.FAILED, hatchImpossibleCondition);
       statemachine.addStateWithDoneTransition(initializeConfiguration, WalkThroughHatchBehaviorState.WALKING_TO_HATCH_FAR);
-      statemachine.addStateWithDoneTransition(walkToHatchFarAction, WalkThroughHatchBehaviorState.SETUP_FOR_HATCH_WALK);
+      statemachine.addStateWithDoneTransition(walkToHatchFarAction, WalkThroughHatchBehaviorState.SEARCHING_FOR_HATCH_NEAR);
+      statemachine.addStateWithDoneTransition(searchForHatchNear, WalkThroughHatchBehaviorState.UPDATE_TRAJECTORIES);
+      statemachine.addStateWithDoneTransition(updateTrajectories, WalkThroughHatchBehaviorState.SETUP_FOR_HATCH_WALK);
       statemachine.addStateWithDoneTransition(setupForHatchWalk, WalkThroughHatchBehaviorState.WALKING_TO_HATCH_NEAR);
       statemachine.addStateWithDoneTransition(walkToHatchNearAction, WalkThroughHatchBehaviorState.ADJUST_CHEST);
       statemachine.addStateWithDoneTransition(adjustChest, WalkThroughHatchBehaviorState.WALK_THROUGH_HATCH_FIRST_STEP);
@@ -539,7 +575,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
       statemachine.addStateWithDoneTransition(failedState, WalkThroughHatchBehaviorState.DONE);
       statemachine.addState(doneState);
       
-      statemachine.setStartState(WalkThroughHatchBehaviorState.SEARCHING_FOR_HATCH);
+      statemachine.setStartState(WalkThroughHatchBehaviorState.SEARCHING_FOR_HATCH_FAR);
 
 
    }
@@ -586,7 +622,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
    {
       if(hatch.getThickness() <= hatchThicknessUpperBound)
       {
-         if(hatch.getStepHeight() > 0.15 && hatch.getThickness() > 0.05)
+         if(hatch.getStepHeight() > hatchLowerHeightUpperBound && hatch.getThickness() > 0.05)
          {
             return false;
          }

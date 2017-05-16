@@ -230,8 +230,8 @@ public class IHMCHumanoidBehaviorManager
       dispatcher.addBehavior(HumanoidBehaviorType.TEST_ICP_OPTIMIZATION,
             new TestICPOptimizationBehavior(behaviorCommunicationBridge, referenceFrames, yoTime));
       
-      dispatcher.addBehavior(HumanoidBehaviorType.TEST_HATCH_WALKTHROUGH,
-                             new TestHatchWalkthroughBehavior(behaviorCommunicationBridge, referenceFrames, yoTime));
+//      dispatcher.addBehavior(HumanoidBehaviorType.TEST_HATCH_WALKTHROUGH,
+//                             new TestHatchWalkthroughBehavior(behaviorCommunicationBridge, referenceFrames, yoTime));
 
       dispatcher.addBehavior(HumanoidBehaviorType.EXAMPLE_BEHAVIOR,
             new ExampleComplexBehaviorStateMachine(behaviorCommunicationBridge, yoTime, atlasPrimitiveActions));

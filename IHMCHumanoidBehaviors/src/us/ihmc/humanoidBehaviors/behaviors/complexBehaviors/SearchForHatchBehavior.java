@@ -1,5 +1,6 @@
 package us.ihmc.humanoidBehaviors.behaviors.complexBehaviors;
 
+import us.ihmc.commons.PrintTools;
 import us.ihmc.communication.packets.TextToSpeechPacket;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.humanoidBehaviors.behaviors.AbstractBehavior;
@@ -15,7 +16,7 @@ public class SearchForHatchBehavior extends AbstractBehavior
    private double hatchWidth;
    private double hatchThickness;
    
-   private boolean recievedNewHatchLocation = false;
+   private boolean receivedNewHatchLocation = false;
 
    protected final ConcurrentListeningQueue<HatchLocationPacket> hatchLocationQueue = new ConcurrentListeningQueue<HatchLocationPacket>(10);
 
@@ -28,29 +29,31 @@ public class SearchForHatchBehavior extends AbstractBehavior
    @Override
    public void onBehaviorEntered()
    {
-      TextToSpeechPacket p1 = new TextToSpeechPacket("Searching For The Hatch");
+      TextToSpeechPacket p1 = new TextToSpeechPacket("Searching for the Hatch");
       sendPacket(p1);
    }
 
    @Override
    public void doControl()
    {
+      PrintTools.debug("Got called");
       if (hatchLocationQueue.isNewPacketAvailable())
       {
-         receivedHatchLocation(hatchLocationQueue.getLatestPacket());
+         receivedHatchLocation(hatchLocationQueue.poll()); //getLatestPacket()
+         PrintTools.debug(String.valueOf(hatchLocationQueue.isNewPacketAvailable()));
       }
    }
 
    @Override
    public boolean isDone()
    {
-      return recievedNewHatchLocation;
+      return receivedNewHatchLocation;
    }
 
    @Override
    public void onBehaviorExited()
    {
-      recievedNewHatchLocation = false;
+      receivedNewHatchLocation = false;
    }
 
    public RigidBodyTransform getLocation()
@@ -89,7 +92,7 @@ public class SearchForHatchBehavior extends AbstractBehavior
       hatchWidth =hatchLocationPacket.getHatchWidth();
       hatchThickness = hatchLocationPacket.getHatchThickness();
 
-      recievedNewHatchLocation = true;
+      receivedNewHatchLocation = true;
    }
 
    @Override
