@@ -36,7 +36,6 @@ public class SearchForHatchBehavior extends AbstractBehavior
    @Override
    public void doControl()
    {
-      PrintTools.debug("Got called");
       if (hatchLocationQueue.isNewPacketAvailable())
       {
          receivedHatchLocation(hatchLocationQueue.poll()); //getLatestPacket()

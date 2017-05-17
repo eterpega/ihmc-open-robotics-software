@@ -125,8 +125,8 @@ public abstract class AvatarWalkThroughHatchBehaviorTest implements MultiRobotTe
          
          Hatch hatch = HatchEnvironment.getHatch(i);
          RigidBodyTransform hatchToWorldTransform = hatch.getHatchToWorldTransform();
-         communicationBridge.sendPacketToBehavior(new HatchLocationPacket(hatchToWorldTransform));
-         communicationBridge.sendPacketToBehavior(new HatchLocationPacket(hatchToWorldTransform)); 
+         communicationBridge.sendPacketToBehavior(new HatchLocationPacket(hatchToWorldTransform, hatch.getStepHeight(), hatch.getOpeningHeight(), hatch.getWidth(), hatch.getThickness()));
+         communicationBridge.sendPacketToBehavior(new HatchLocationPacket(hatchToWorldTransform, hatch.getStepHeight(), hatch.getOpeningHeight(), hatch.getWidth(), hatch.getThickness()));
          
          success = drcBehaviorTestHelper.executeBehaviorUntilDone(walkThroughHatchBehavior);
          assertTrue(success);

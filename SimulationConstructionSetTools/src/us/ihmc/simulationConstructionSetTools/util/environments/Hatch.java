@@ -1,5 +1,6 @@
 package us.ihmc.simulationConstructionSetTools.util.environments;
 
+import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 
 public class Hatch
@@ -46,7 +47,17 @@ public class Hatch
       
       public void applySafteyMargins()
       {
-         hatchThickness += 0.01;
+         hatchThickness += 0.02;
          hatchOpeningHeight -= 0.05;
+      }
+      
+      public void printHatchDimensions()
+      {
+         PrintTools.info("Hatch parameters:");
+         PrintTools.info("Transform = " + hatchToWorldTransform.toString());
+         PrintTools.info("Step   = " + hatchStepHeight);
+         PrintTools.info("Height = " + hatchOpeningHeight);
+         PrintTools.info("Width  = " + hatchWidth);
+         PrintTools.info("Depth  = " + hatchThickness);
       }
    }

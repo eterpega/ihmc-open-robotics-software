@@ -146,6 +146,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
    private final double transferTimeHatch = 0.6;
    
    private double defaultStepWidth;
+   private double defaultStepLength;
    private double wideStepWidth = 0.33;
       
    private final DoubleYoVariable swingTime = new DoubleYoVariable("BehaviorSwingTime", registry);
@@ -188,6 +189,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
       }
       
       defaultStepWidth = wholeBodyControllerParameters.getWalkingControllerParameters().getInPlaceWidth();
+      defaultStepLength = wholeBodyControllerParameters.getWalkingControllerParameters().getMaxStepLength() / 2.0;
    }
 
    @Override
@@ -473,7 +475,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
             targetPose.changeFrame(ReferenceFrame.getWorldFrame());
             
             atlasPrimitiveActions.walkToLocationBehavior.setWalkingStepWidth(defaultStepWidth);
-            atlasPrimitiveActions.walkToLocationBehavior.setFootstepLength(0.20);
+//            atlasPrimitiveActions.walkToLocationBehavior.setFootstepLength(0.20);
             atlasPrimitiveActions.walkToLocationBehavior.setTarget(targetPose);
          }
       };
@@ -505,7 +507,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
             targetPose.changeFrame(ReferenceFrame.getWorldFrame());
             
             atlasPrimitiveActions.walkToLocationBehavior.setWalkingStepWidth(defaultStepWidth);
-            atlasPrimitiveActions.walkToLocationBehavior.setFootstepLength(0.20);
+//            atlasPrimitiveActions.walkToLocationBehavior.setFootstepLength(0.20);
             atlasPrimitiveActions.walkToLocationBehavior.setTarget(targetPose);
          }
       };
@@ -637,6 +639,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
       hatchFrame.setPoseAndUpdate(searchForHatchBehavior.getLocation());
 
       PrintTools.info("Found hatch at: " + searchForHatchBehavior.getLocation().getTranslationVector().toString());
+      hatch.printHatchDimensions();
       
       if(useSafetyMarginForHatch)
       {
