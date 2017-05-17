@@ -720,7 +720,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
       pelvisYawPitchRollFirstHatchStepDesired[2] = Math.toRadians(-7.0); // -7.0
       
       pelvisPositionInHatchFrameFirstHatchStepDesired.set(pelvisPositionInHatchFrameSetupDesired);
-      pelvisPositionInHatchFrameFirstHatchStepDesired.add(0.0, 0.0, 0.02); //0.02 in z (0.05 in x)
+      pelvisPositionInHatchFrameFirstHatchStepDesired.add(0.0, 0.0, 0.00); //0.02 in z (0.05 in x)
       
       pelvisYawPitchRollTransitionDesired[0] = Math.toRadians(0.0); //0.0
       pelvisYawPitchRollTransitionDesired[1] = Math.toRadians(4.0 + 2.0 * hatch.getStepHeight()/0.05);
