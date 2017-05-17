@@ -80,7 +80,7 @@ public abstract class AvatarWalkThroughHatchBehaviorTest implements MultiRobotTe
    {
       BambooTools.reportTestStartedMessage(simulationTestingParameters.getShowWindows());
       drcRobotModel = getRobotModel();
-      drcBehaviorTestHelper = new DRCBehaviorTestHelper(ENVIRONMENT, getSimpleRobotName(), DRCObstacleCourseStartingLocation.DEFAULT_BUT_ALMOST_PI,
+      drcBehaviorTestHelper = new DRCBehaviorTestHelper(ENVIRONMENT, getSimpleRobotName(), DRCObstacleCourseStartingLocation.DEFAULT,
                                                         simulationTestingParameters, drcRobotModel);
    }
 
