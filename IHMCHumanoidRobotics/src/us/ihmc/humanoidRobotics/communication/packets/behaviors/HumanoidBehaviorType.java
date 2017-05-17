@@ -26,6 +26,7 @@ public enum HumanoidBehaviorType
    WALK_TO_GOAL_ANYTIME_PLANNER,
    TEST_ICP_OPTIMIZATION,
    TEST_HATCH_WALKTHROUGH;
+   SOLARPANEL_BEHAVIOR;
 
    public static final HumanoidBehaviorType[] values = values();
 }

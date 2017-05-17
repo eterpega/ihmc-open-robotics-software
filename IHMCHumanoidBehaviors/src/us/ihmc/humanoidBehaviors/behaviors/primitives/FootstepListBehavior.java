@@ -55,8 +55,8 @@ public class FootstepListBehavior extends AbstractBehavior
       defaultSwingTime = walkingControllerParameters.getDefaultSwingTime();
       defaultTranferTime = walkingControllerParameters.getDefaultTransferTime();
    }
-   
-   
+
+
 
    public void set(FootstepDataListMessage footStepList)
    {
@@ -79,7 +79,6 @@ public class FootstepListBehavior extends AbstractBehavior
 
          RobotSide footstepSide = footstep.getRobotSide();
          FootstepDataMessage footstepData = new FootstepDataMessage(footstepSide, position.getPoint(), orientation.getQuaternion());
-         footstepData.setTrajectoryReferenceFrameId(footstep.getFootstepPose().getReferenceFrame());
          footstepDataList.add(footstepData);
       }
       set(footstepDataList);
@@ -89,7 +88,7 @@ public class FootstepListBehavior extends AbstractBehavior
    {
       set(footsteps, defaultSwingTime, defaultTranferTime);
    }
-   
+
 
    @Override
    public void doControl()
@@ -260,7 +259,7 @@ public class FootstepListBehavior extends AbstractBehavior
       return ret;
    }
 
-   
+
 
    public boolean hasInputBeenSet()
    {
@@ -307,7 +306,7 @@ public class FootstepListBehavior extends AbstractBehavior
 
       return footStepLengths;
    }
-   
+
    public double getDefaultSwingTime()
    {
       return defaultSwingTime;
@@ -316,7 +315,7 @@ public class FootstepListBehavior extends AbstractBehavior
    {
       return defaultTranferTime;
    }
-   
+
 
    public boolean areFootstepsTooFarApart(FootstepDataListMessage footStepList, FullHumanoidRobotModel fullRobotModel, WalkingControllerParameters walkingControllerParameters)
    {
