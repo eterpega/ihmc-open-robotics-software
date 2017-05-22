@@ -67,7 +67,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
       DONE
    }
    
-   private Point3D targetLocationHatchBeforeFar = new Point3D(-0.41, -0.08 + 0.01, 0.0); // -0.61 before changing for higher walk
+   private Point3D targetLocationHatchBeforeFar = new Point3D(-0.61, -0.08 + 0.01, 0.0); // -0.41 before changing for higher walk
    private Point3D targetLocationHatchBeforeNear = new Point3D(-0.19, -0.08 + 0.01, 0.0); // -0.21
    private Point3D targetLocationHatchAfterNear = new Point3D(0.60, -0.08 + 0.03 + 0.01, 0.0);
    private Point3D targetLocationHatchAfterFar = new Point3D(0.85, -0.08 + 0.03 + 0.01, 0.0);
@@ -85,10 +85,10 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
    
    private final double minSwingWayPointHeight = 0.08;
    
-   private final Point3D defaultLeftFootSwingWayPointBeforeHatch = new Point3D(0.03, 0.00, 0.08); // z was 0.10
-   private final Point3D defaultLeftFootSwingWayPointAfterHatch = new Point3D(-0.03, 0.00, 0.01); // z was 0.00 (0.09)
-   private final Point3D defaultRightFootSwingWayPointBeforeHatch = new Point3D(0.03, 0.00, 0.04); // z was 0.00 (0.10)
-   private final Point3D defaultRightFootSwingWayPointAfterHatch = new Point3D(-0.03, 0.00, 0.01); // z was 0.00 (0.09)
+   private final Point3D defaultLeftFootSwingWayPointBeforeHatch = new Point3D(0.03, 0.00, 0.07); // z was 0.10
+   private final Point3D defaultLeftFootSwingWayPointAfterHatch = new Point3D(-0.03, 0.00, 0.02); // z was 0.01 (0.09)
+   private final Point3D defaultRightFootSwingWayPointBeforeHatch = new Point3D(0.03, 0.00, 0.04); // z was 0.04 (0.10)
+   private final Point3D defaultRightFootSwingWayPointAfterHatch = new Point3D(-0.03, 0.00, 0.02); // z was 0.01 (0.09)
    
    private Vector3D defaultLeftFootSwingWaypointBeforeHatchOrientation = new Vector3D(0.0, Math.toRadians(25.0), 0.0);
    private Vector3D defaultLeftFootSwingWaypointAfterHatchOrientation = new Vector3D(0.0, Math.toRadians(0.0), 0.0);
@@ -131,7 +131,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
    private Point3D pelvisPositionInHatchFrameRealignDesired = new Point3D();
    private Point3D pelvisPositionInHatchFrameStraightenDesired = new Point3D();
    
-   // Hatch feasability boundaries
+   // Hatch feasibility boundaries
    private final double hatchWidthLowerBound = 0.86;
    private final double hatchUpperHeightLowerBound = 1.50;
    private final double hatchLowerHeightLowerBound = 0.05;
@@ -314,8 +314,8 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
             HandDesiredConfigurationMessage leftHandMessage = new HandDesiredConfigurationMessage(RobotSide.LEFT, HandConfiguration.CLOSE);
             HandDesiredConfigurationMessage rightHandMessage = new HandDesiredConfigurationMessage(RobotSide.RIGHT, HandConfiguration.CLOSE);
             
-            double[] leftArmPose = new double[] {-1.57, -0.51, 0.0, 2.0, 0.0, 0.0, 0.0}; //{-1.57, -0.51, 0.25, 2.0, 0.0, 0.0, 0.0}
-            double[] rightArmPose = new double[] {1.57, 0.51, 0.0, -2.0, 0.0, 0.0, 0.0}; //{1.57, 0.51, 0.25, -2.0, 0.0, 0.0, 0.0}
+            double[] leftArmPose = new double[] {-1.57, -0.51, 0.10, 2.0, 0.0, 0.0, 0.0}; //{-1.57, -0.51, 0.25, 2.0, 0.0, 0.0, 0.0}
+            double[] rightArmPose = new double[] {1.57, 0.51, 0.10, -2.0, 0.0, 0.0, 0.0}; //{1.57, 0.51, 0.25, -2.0, 0.0, 0.0, 0.0}
             ArmTrajectoryMessage rightPoseMessage = new ArmTrajectoryMessage(RobotSide.RIGHT, 1, rightArmPose);
             ArmTrajectoryMessage leftPoseMessage = new ArmTrajectoryMessage(RobotSide.LEFT, 1, leftArmPose);
             
@@ -716,19 +716,19 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
          pelvisMovementInitializationZ = 0.0;
       pelvisPositionInHatchFrameSetupDesired.set(0.0, 0.0, defaultLowerPelvisHeight + pelvisMovementInitializationZ);
       
-      pelvisYawPitchRollFirstHatchStepDesired[0] = Math.toRadians(7.0);
+      pelvisYawPitchRollFirstHatchStepDesired[0] = Math.toRadians(10.0); //7.0
       pelvisYawPitchRollFirstHatchStepDesired[1] = Math.toRadians(-hatch.getStepHeight()*100.0); //5.0
       pelvisYawPitchRollFirstHatchStepDesired[2] = Math.toRadians(-7.0); // -7.0
       
       pelvisPositionInHatchFrameFirstHatchStepDesired.set(pelvisPositionInHatchFrameSetupDesired);
-      pelvisPositionInHatchFrameFirstHatchStepDesired.add(0.0, 0.0, 0.0); //0.02 in z (0.05 in x)
+      pelvisPositionInHatchFrameFirstHatchStepDesired.add(0.0, 0.0, -0.02); //0.02 in z (0.05 in x)
       
       pelvisYawPitchRollTransitionDesired[0] = Math.toRadians(0.0); //0.0
       pelvisYawPitchRollTransitionDesired[1] = Math.toRadians(4.0 + 2.0 * hatch.getStepHeight()/0.05);
       pelvisYawPitchRollTransitionDesired[2] = Math.toRadians(5.0); // roll was 15.0 for 0.15 height
 
       pelvisPositionInHatchFrameTransitionDesired.set(pelvisPositionInHatchFrameFirstHatchStepDesired);
-      pelvisPositionInHatchFrameTransitionDesired.add(0.0, 0.0, 0.04); // 0.04 height, 0.025 + 0.025*hatchLowerHeight/0.05 - 0.04 in x
+      pelvisPositionInHatchFrameTransitionDesired.add(0.0, 0.0, 0.05); // 0.04 height, 0.025 + 0.025*hatchLowerHeight/0.05 - 0.04 in x
    
       pelvisYawPitchRollSecondHatchStepDesired[0] = Math.toRadians(-8.0); // -5
       pelvisYawPitchRollSecondHatchStepDesired[1] = Math.toRadians(hatch.getStepHeight()*100.0);

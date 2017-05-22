@@ -47,7 +47,7 @@ public class Hatch
       
       public void applySafteyMargins()
       {
-         hatchStepHeight += 0.02;
+         hatchStepHeight += 0.03; //was 0.02
          hatchOpeningHeight -= 0.05;
          hatchThickness += 0.01; //was 0.02
       }
