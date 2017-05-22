@@ -67,10 +67,10 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
       DONE
    }
    
-   private Point3D targetLocationHatchBeforeFar = new Point3D(-0.41, -0.08 + 0.02, 0.0); // -0.61 before changing for higher walk
-   private Point3D targetLocationHatchBeforeNear = new Point3D(-0.19, -0.08 + 0.02, 0.0); // -0.21
-   private Point3D targetLocationHatchAfterNear = new Point3D(0.60, -0.08 + 0.03 + 0.02, 0.0);
-   private Point3D targetLocationHatchAfterFar = new Point3D(0.85, -0.08 + 0.03 + 0.02, 0.0);
+   private Point3D targetLocationHatchBeforeFar = new Point3D(-0.41, -0.08 + 0.01, 0.0); // -0.61 before changing for higher walk
+   private Point3D targetLocationHatchBeforeNear = new Point3D(-0.19, -0.08 + 0.01, 0.0); // -0.21
+   private Point3D targetLocationHatchAfterNear = new Point3D(0.60, -0.08 + 0.03 + 0.01, 0.0);
+   private Point3D targetLocationHatchAfterFar = new Point3D(0.85, -0.08 + 0.03 + 0.01, 0.0);
    
    private final HumanoidReferenceFrames referenceFrames;
    
@@ -133,7 +133,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
    
    // Hatch feasability boundaries
    private final double hatchWidthLowerBound = 0.86;
-   private final double hatchUpperHeightLowerBound = 1.55;
+   private final double hatchUpperHeightLowerBound = 1.50;
    private final double hatchLowerHeightLowerBound = 0.05;
    private final double hatchLowerHeightUpperBound = 0.20;
    private final double hatchThicknessUpperBound = 0.15; // was 0.12
@@ -145,7 +145,8 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
    private final double adjustTime = defaulTime;
    private final double firstStepTime = defaulTime;
    private final double transitionTime = defaulTime;
-   private final double secondStepChestTime = 2.0;
+   private final double transitionTimePelvisHeight = 2.0;
+   private final double secondStepChestTime = 2.0; //2.0;
    private final double secondStepTime = defaulTime;
    private final double realignTime = defaulTime;
    private final double straightenTime = defaulTime;
@@ -416,7 +417,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
             
             PelvisOrientationTrajectoryMessage pelvisOrientationTrajectoryMessage = getPelvisOrientationTrajectoryMessage(transitionTime, hatchFrame, pelvisYawPitchRollTransitionDesired); //2.0
             
-            PelvisHeightTrajectoryMessage pelvisHeightTrajectoryMessage = getPelvisHeightTrajectoryMessage(transitionTime, hatchFrame, pelvisPositionInHatchFrameTransitionDesired); // 2.0
+            PelvisHeightTrajectoryMessage pelvisHeightTrajectoryMessage = getPelvisHeightTrajectoryMessage(transitionTimePelvisHeight, hatchFrame, pelvisPositionInHatchFrameTransitionDesired); // 2.0
                         
             atlasPrimitiveActions.chestTrajectoryBehavior.setInput(chestOrientationTrajectoryMessage);
             atlasPrimitiveActions.pelvisOrientationTrajectoryBehavior.setInput(pelvisOrientationTrajectoryMessage);
@@ -673,7 +674,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
       chestYawPitchRollInitializeDesired[1] = Math.toRadians(10.0);
       chestYawPitchRollInitializeDesired[2] = Math.toRadians(0.0);
       
-      chestYawPitchRollSetupDesired[0] = Math.toRadians(20.0 - hatch.getStepHeight()/0.01); // 20.0 for 0.05 height (c = 25.0)
+      chestYawPitchRollSetupDesired[0] = Math.toRadians(25.0 - hatch.getStepHeight()/0.01); // 20.0 for 0.05 height (c = 25.0)
       chestYawPitchRollSetupDesired[1] = Math.toRadians(15.0);
       chestYawPitchRollSetupDesired[2] = Math.toRadians(0.0);
       
@@ -681,12 +682,12 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
       chestYawPitchRollAdjustDesired[1] = Math.toRadians(15.0);
       chestYawPitchRollAdjustDesired[2] = Math.toRadians(0.0);
       
-      chestYawPitchRollFirstHatchStepDesired[0] = Math.toRadians(-7.0);
-      chestYawPitchRollFirstHatchStepDesired[1] = Math.toRadians(27.0);
+      chestYawPitchRollFirstHatchStepDesired[0] = Math.toRadians(0.0); //-7.0
+      chestYawPitchRollFirstHatchStepDesired[1] = Math.toRadians(27.0); //27.0
       chestYawPitchRollFirstHatchStepDesired[2] = Math.toRadians(0.0);
       
       chestYawPitchRollTransitionDesired[0] = Math.toRadians(0.0);
-      chestYawPitchRollTransitionDesired[1] = Math.toRadians(25.0);
+      chestYawPitchRollTransitionDesired[1] = Math.toRadians(20.0); //25.0
       chestYawPitchRollTransitionDesired[2] = Math.toRadians(0.0);
       
       chestYawPitchRollSecondHatchStepDesired[0] = Math.toRadians(0.0);
@@ -720,7 +721,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
       pelvisYawPitchRollFirstHatchStepDesired[2] = Math.toRadians(-7.0); // -7.0
       
       pelvisPositionInHatchFrameFirstHatchStepDesired.set(pelvisPositionInHatchFrameSetupDesired);
-      pelvisPositionInHatchFrameFirstHatchStepDesired.add(0.0, 0.0, 0.00); //0.02 in z (0.05 in x)
+      pelvisPositionInHatchFrameFirstHatchStepDesired.add(0.0, 0.0, 0.0); //0.02 in z (0.05 in x)
       
       pelvisYawPitchRollTransitionDesired[0] = Math.toRadians(0.0); //0.0
       pelvisYawPitchRollTransitionDesired[1] = Math.toRadians(4.0 + 2.0 * hatch.getStepHeight()/0.05);
