@@ -2,6 +2,8 @@ package us.ihmc.avatar.behaviorTests;
 
 import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -21,6 +23,7 @@ import us.ihmc.humanoidBehaviors.communication.CommunicationBridge;
 import us.ihmc.humanoidBehaviors.utilities.CapturePointUpdatable;
 import us.ihmc.humanoidRobotics.communication.packets.behaviors.HatchLocationPacket;
 import us.ihmc.humanoidRobotics.frames.HumanoidReferenceFrames;
+import us.ihmc.manipulation.planning.robotcollisionmodel.RobotCollisionModel;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
@@ -28,7 +31,9 @@ import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
 import us.ihmc.simulationConstructionSetTools.bambooTools.BambooTools;
 import us.ihmc.simulationConstructionSetTools.util.environments.HatchEnvironment;
 import us.ihmc.simulationConstructionSetTools.util.environments.Hatch;
+import us.ihmc.simulationconstructionset.SimulationConstructionSet;
 import us.ihmc.simulationconstructionset.util.simulationRunner.BlockingSimulationRunner;
+import us.ihmc.simulationconstructionset.util.simulationRunner.BlockingSimulationRunner.SimulationExceededMaximumTimeException;
 import us.ihmc.simulationconstructionset.util.simulationTesting.SimulationTestingParameters;
 import us.ihmc.tools.MemoryTools;
 import us.ihmc.tools.thread.ThreadTools;
@@ -88,11 +93,12 @@ public abstract class AvatarWalkThroughHatchBehaviorTest implements MultiRobotTe
    {
       YoGraphicsListRegistry yoGraphicsListRegistry = new YoGraphicsListRegistry();
       
-      PrintTools.debug(this, "Initializing Sim");
+      PrintTools.debug("Initializing Simulation");
       boolean success = drcBehaviorTestHelper.simulateAndBlockAndCatchExceptions(1.0);
       assertTrue(success);
       drcBehaviorTestHelper.updateRobotModel();
-      PrintTools.debug(this, "Initializing Behavior");
+      
+      PrintTools.debug("Initializing Behavior");
 
       CommunicationBridge communicationBridge = drcBehaviorTestHelper.getBehaviorCommunicationBridge();
       FullHumanoidRobotModel fullRobotModel = drcBehaviorTestHelper.getSDFFullRobotModel();
@@ -127,14 +133,33 @@ public abstract class AvatarWalkThroughHatchBehaviorTest implements MultiRobotTe
          RigidBodyTransform hatchToWorldTransform = hatch.getHatchToWorldTransform();
          communicationBridge.sendPacketToBehavior(new HatchLocationPacket(hatchToWorldTransform, hatch.getStepHeight(), hatch.getOpeningHeight(), hatch.getWidth(), hatch.getThickness()));
          communicationBridge.sendPacketToBehavior(new HatchLocationPacket(hatchToWorldTransform, hatch.getStepHeight(), hatch.getOpeningHeight(), hatch.getWidth(), hatch.getThickness()));
+         communicationBridge.sendPacketToBehavior(new HatchLocationPacket(hatchToWorldTransform, hatch.getStepHeight(), hatch.getOpeningHeight(), hatch.getWidth(), hatch.getThickness()));
          
          success = drcBehaviorTestHelper.executeBehaviorUntilDone(walkThroughHatchBehavior);
          assertTrue(success);
-         PrintTools.info(this, "Behavior is Done");
+         PrintTools.info("Behavior is Done");
                   
          assertTrue(walkThroughHatchBehavior.isDone());
       }
       
       BambooTools.reportTestFinishedMessage(simulationTestingParameters.getShowWindows());
+   }
+   
+   public void testInitializeRobotCollisionModel() throws SimulationExceededMaximumTimeException
+   {  
+      PrintTools.debug("Initializing Simulation");
+      boolean success = drcBehaviorTestHelper.simulateAndBlockAndCatchExceptions(1.0);
+      assertTrue(success);
+      drcBehaviorTestHelper.updateRobotModel();
+      
+      PrintTools.debug("Initializing Robot Collision Model");
+      
+      FullHumanoidRobotModel sdfFullRobotModel = drcBehaviorTestHelper.getSDFFullRobotModel();      
+      RobotCollisionModel robotCollisionModel = new RobotCollisionModel(sdfFullRobotModel);
+      
+      SimulationConstructionSet scs = drcBehaviorTestHelper.getSimulationConstructionSet();
+      scs.addStaticLinkGraphics(robotCollisionModel.getCollisionGraphics());
+      
+      PrintTools.info("Initializing Robot Collision Model is Done" );      
    }
 }

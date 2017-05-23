@@ -16,7 +16,7 @@ public class AtlasWalkThroughHatchBehaviorTest extends AvatarWalkThroughHatchBeh
    @Override
    public DRCRobotModel getRobotModel()
    {
-      return new AtlasRobotModel(AtlasRobotVersion.ATLAS_UNPLUGGED_V5_DUAL_ROBOTIQ, DRCRobotModel.RobotTarget.SCS, false);
+      return new AtlasRobotModel(AtlasRobotVersion.ATLAS_UNPLUGGED_V5_NO_HANDS, DRCRobotModel.RobotTarget.SCS, false); //ATLAS_UNPLUGGED_V5_DUAL_ROBOTIQ
    }
 
    @Override
@@ -31,5 +31,13 @@ public class AtlasWalkThroughHatchBehaviorTest extends AvatarWalkThroughHatchBeh
    public void testWalkThroughHatch() throws BlockingSimulationRunner.SimulationExceededMaximumTimeException
    {
       super.testWalkThroughHatch();
+   }
+   
+   @Override
+   @ContinuousIntegrationTest(estimatedDuration = 1.0, categoriesOverride = IntegrationCategory.IN_DEVELOPMENT)
+   //@Test
+   public void testInitializeRobotCollisionModel() throws BlockingSimulationRunner.SimulationExceededMaximumTimeException
+   {
+      super.testInitializeRobotCollisionModel();
    }
 }

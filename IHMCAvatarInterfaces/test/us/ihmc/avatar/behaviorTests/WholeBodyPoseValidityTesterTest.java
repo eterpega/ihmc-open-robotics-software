@@ -75,7 +75,7 @@ import us.ihmc.tools.thread.ThreadTools;
 public abstract class WholeBodyPoseValidityTesterTest implements MultiRobotTestInterface
 {
    private static final SimulationTestingParameters simulationTestingParameters = SimulationTestingParameters.createFromEnvironmentVariables();
-   private boolean isKinematicsToolboxVisualizerEnabled = false;
+   private boolean isKinematicsToolboxVisualizerEnabled = true;
    private DRCBehaviorTestHelper drcBehaviorTestHelper;
    private KinematicsToolboxModule kinematicsToolboxModule;
    private PacketCommunicator toolboxCommunicator;
@@ -264,7 +264,7 @@ public abstract class WholeBodyPoseValidityTesterTest implements MultiRobotTestI
       PrintTools.info("END");     
    }   
    
-   //@Test
+   @Test
    public void showUpRobotCollisionModel() throws SimulationExceededMaximumTimeException, IOException
    {  
       boolean success = drcBehaviorTestHelper.simulateAndBlockAndCatchExceptions(1.0);
@@ -430,7 +430,7 @@ public abstract class WholeBodyPoseValidityTesterTest implements MultiRobotTestI
       PrintTools.info("behavior Out " );      
    }
    
-   @Test
+   //@Test
    public void cleaningMotionStateMachineBehaviorTest() throws SimulationExceededMaximumTimeException, IOException
    {
       if(isKinematicsToolboxVisualizerEnabled)

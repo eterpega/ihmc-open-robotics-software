@@ -56,6 +56,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
       SETUP_FOR_HATCH_WALK,
       WALKING_TO_HATCH_NEAR,
       ADJUST_CHEST,
+      WAITING_FOR_CONFIRMATION,
       WALK_THROUGH_HATCH_FIRST_STEP,
       WALK_THROUGH_HATCH_TRANSITION,
       WALK_THROUGH_HATCH_SECOND_STEP,
@@ -371,6 +372,18 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
          }
       };
       
+      BehaviorAction<WalkThroughHatchBehaviorState> waitForConfirmation = new BehaviorAction<WalkThroughHatchBehaviorState>(
+            WalkThroughHatchBehaviorState.WAITING_FOR_CONFIRMATION, searchForHatchBehavior)
+      {   
+         @Override
+         public void doTransitionOutOfAction()
+         {
+            super.doTransitionOutOfAction();
+
+            setUpHatchFromEnvironment();
+         }
+      };
+      
       BehaviorAction<WalkThroughHatchBehaviorState> walkThroughHatchFirstStep = new BehaviorAction<WalkThroughHatchBehaviorState>(
             WalkThroughHatchBehaviorState.WALK_THROUGH_HATCH_FIRST_STEP, atlasPrimitiveActions.footstepListBehavior, 
             atlasPrimitiveActions.pelvisOrientationTrajectoryBehavior, atlasPrimitiveActions.pelvisHeightTrajectoryBehavior, atlasPrimitiveActions.chestTrajectoryBehavior)
@@ -580,7 +593,8 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
       statemachine.addStateWithDoneTransition(updateTrajectories, WalkThroughHatchBehaviorState.SETUP_FOR_HATCH_WALK);
       statemachine.addStateWithDoneTransition(setupForHatchWalk, WalkThroughHatchBehaviorState.WALKING_TO_HATCH_NEAR);
       statemachine.addStateWithDoneTransition(walkToHatchNearAction, WalkThroughHatchBehaviorState.ADJUST_CHEST);
-      statemachine.addStateWithDoneTransition(adjustChest, WalkThroughHatchBehaviorState.WALK_THROUGH_HATCH_FIRST_STEP);
+      statemachine.addStateWithDoneTransition(adjustChest, WalkThroughHatchBehaviorState.WAITING_FOR_CONFIRMATION);
+      statemachine.addStateWithDoneTransition(waitForConfirmation, WalkThroughHatchBehaviorState.WALK_THROUGH_HATCH_FIRST_STEP);
       statemachine.addStateWithDoneTransition(walkThroughHatchFirstStep, WalkThroughHatchBehaviorState.WALK_THROUGH_HATCH_TRANSITION);
       statemachine.addStateWithDoneTransition(walkThroughHatchTransition, WalkThroughHatchBehaviorState.WALK_THROUGH_HATCH_SECOND_STEP);
       statemachine.addStateWithDoneTransition(walkThroughHatchSecondStep, WalkThroughHatchBehaviorState.REALIGN_ROBOT);
