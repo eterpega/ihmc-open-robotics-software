@@ -68,10 +68,10 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
       DONE
    }
    
-   private Point3D targetLocationHatchBeforeFar = new Point3D(-0.61, -0.08 + 0.01, 0.0); // -0.41 before changing for higher walk
-   private Point3D targetLocationHatchBeforeNear = new Point3D(-0.19, -0.08 + 0.01, 0.0); // -0.21
-   private Point3D targetLocationHatchAfterNear = new Point3D(0.60, -0.08 + 0.03 + 0.01, 0.0);
-   private Point3D targetLocationHatchAfterFar = new Point3D(0.85, -0.08 + 0.03 + 0.01, 0.0);
+   private Point3D targetLocationHatchBeforeFar = new Point3D(-0.61, -0.08 + 0.02, 0.0); // -0.41 before changing for higher walk
+   private Point3D targetLocationHatchBeforeNear = new Point3D(-0.19, -0.08 + 0.02, 0.0); // -0.21
+   private Point3D targetLocationHatchAfterNear = new Point3D(0.60, -0.08 + 0.03 + 0.02, 0.0);
+   private Point3D targetLocationHatchAfterFar = new Point3D(0.85, -0.08 + 0.03 + 0.02, 0.0);
    
    private final HumanoidReferenceFrames referenceFrames;
    
@@ -156,7 +156,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
    private final double transferTimeHatch = 0.6;
    
    private double defaultStepWidth;
-   private double wideStepWidth = 0.33;
+   private double wideStepWidth = 0.33; //0.33
       
    private final DoubleYoVariable swingTime = new DoubleYoVariable("BehaviorSwingTime", registry);
    private final DoubleYoVariable transferTime = new DoubleYoVariable("BehaviorTransferTime", registry);
