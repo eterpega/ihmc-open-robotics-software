@@ -1,0 +1,70 @@
+M5 tapped holes on the back of the pelvis in pelvis base frame
+
+
+X: -155mm  [-6.10236220in ] 
+Y: 23.91125mm  [.94138780in ] 
+Z: -1mm  [-.03937008in ] 
+
+X: -155mm  [-6.10236220in ] 
+Y: -23.91125mm  [-.94138780in ] 
+Z: -1mm  [-.03937008in ] 
+
+
+
+
+
+M5 tapped holes on the front of the pelvis in pelvis base frame
+
+X: 175mm  [6.88976378in ] 
+Y: -23.91125mm  [-.94138780in ] 
+Z: -1mm  [-.03937008in ] 
+
+X: 175mm  [6.88976378in ] 
+Y: 23.91125mm  [.94138780in ] 
+Z: -1mm  [-.03937008in ] 
+
+
+ADIS16480 IMU Origin with respect to the left M5 tapped hole
+
+X: -23mm
+Y: -56.01mm
+Z: 23.63mm
+
+ADIS16480 orientation with respect to pelvis base frame
+
+[ 0 0 1]
+[ 0 1 0]
+[-1 0 0]
+
+Roll Pitch Yaw = 0 1.57079632679 0
+
+ADIS 16480 origin in Pelvis frame
+
+X: -155 - 23 = -178mm
+Y: 23.91125 - 56.01 = -32.09875mm
+Z: -1 + 23.63 = 22.63mm
+
+ADIS 16480 sensor block 
+
+      <sensor name='adis16480_at_pelvis_frame' type='imu'>
+	    <always_on>1</always_on>
+	    <update_rate>1000</update_rate>
+	    <imu>
+	      <noise>
+	        <type>gaussian</type>
+	        <rate>
+	          <mean>0</mean>
+	          <stddev>0.0002</stddev>
+	          <bias_mean>7.5e-06</bias_mean>
+	          <bias_stddev>8e-07</bias_stddev>
+	        </rate>
+	        <accel>
+	          <mean>0</mean>
+	          <stddev>0.017</stddev>
+	          <bias_mean>0.1</bias_mean>
+	          <bias_stddev>0.001</bias_stddev>
+	        </accel>
+	      </noise>
+	    </imu>
+	    <pose>-0.178 -0.03209875 0.02263 0 1.57079632679 0</pose>
+	  </sensor>

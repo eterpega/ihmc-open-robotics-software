@@ -60,7 +60,7 @@ public class RobotDescriptionFromSDFLoader
    private static final boolean SHOW_CONTACT_POINTS = true;
    private static final boolean SHOW_COM_REFERENCE_FRAMES = false;
    private static final boolean SHOW_INERTIA_ELLIPSOIDS = false;
-   private static final boolean SHOW_SENSOR_REFERENCE_FRAMES = false;
+   private static final boolean SHOW_SENSOR_REFERENCE_FRAMES = true;
    private static final boolean DEBUG = false;
 
    private List<String> resourceDirectories;
@@ -417,7 +417,7 @@ public class RobotDescriptionFromSDFLoader
          Graphics3DObject linkGraphics = scsJoint.getLink().getLinkGraphics();
          linkGraphics.identity();
          linkGraphics.transform(offsetFromLink);
-         linkGraphics.addCoordinateSystem(1.0);
+         linkGraphics.addCoordinateSystem(0.1);
          linkGraphics.identity();
       }
    }

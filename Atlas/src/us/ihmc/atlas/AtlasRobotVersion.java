@@ -72,6 +72,25 @@ public enum AtlasRobotVersion
       }
    }
 
+   
+   public String getPelvisIMUSensorToUse()
+   {
+      switch (this)
+      {
+      case ATLAS_UNPLUGGED_V5_NO_HANDS:
+         return "pelvis_adis16480_at_pelvis_frame";
+      case ATLAS_UNPLUGGED_V5_DUAL_ROBOTIQ:
+      case ATLAS_UNPLUGGED_V5_ROBOTIQ_AND_SRI:
+         return "pelvis_adis16480_at_pelvis_frame";
+      case ATLAS_UNPLUGGED_V5_NO_FOREARMS:
+         return "pelvis_adis16480_at_pelvis_frame";
+      case ATLAS_UNPLUGGED_V5_TROOPER:
+         return "pelvis_imu_sensor_at_pelvis_frame";
+      default:
+         throw new RuntimeException("AtlasRobotVersion: Unimplemented enumeration case : " + this);
+      }
+   }
+   
    public String[] getResourceDirectories()
    {
       if (resourceDirectories == null)
