@@ -119,6 +119,13 @@ public class AlphaFilteredYoFrameVector extends YoFrameVector implements Process
       z.update(vectorUnfiltered.getZ());
    }
 
+   public void setAlpha(double alpha)
+   {
+      x.setAlpha(alpha);
+      y.setAlpha(alpha);
+      z.setAlpha(alpha);
+   }
+   
    public void reset()
    {
       x.reset();
