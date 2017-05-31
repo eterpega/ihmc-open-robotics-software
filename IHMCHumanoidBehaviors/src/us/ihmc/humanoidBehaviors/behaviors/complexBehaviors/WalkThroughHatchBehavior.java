@@ -1,5 +1,6 @@
 package us.ihmc.humanoidBehaviors.behaviors.complexBehaviors;
 
+import us.ihmc.commonWalkingControlModules.trajectories.PositionOptimizedTrajectoryGenerator;
 import us.ihmc.commons.PrintTools;
 import us.ihmc.communication.packets.PacketDestination;
 import us.ihmc.communication.packets.TextToSpeechPacket;
@@ -29,8 +30,10 @@ import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
 import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
 import us.ihmc.robotics.geometry.FrameOrientation;
+import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FramePose;
 import us.ihmc.robotics.geometry.FramePose2d;
+import us.ihmc.robotics.geometry.FrameVector;
 import us.ihmc.robotics.referenceFrames.PoseReferenceFrame;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
@@ -243,7 +246,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
             
 //            double[] leftArmPose = new double[] {-1.57, -0.51, 0.0, 2.0, 0.0, 0.0, 0.0};
 //            double[] rightArmPose = new double[] {1.57, 0.51, 0.0, -2.0, 0.0, 0.0, 0.0};
-            double[] leftArmPose = new double[] {-1.57, -0.20, 1.57, 1.57, -0.4, 1.25, 0.0};
+            double[] leftArmPose = new double[] {-1.57, -0.10, 1.57, 1.57 - 0.2, -0.4, 1.25, 0.0};
             ArmTrajectoryMessage leftPoseMessage = new ArmTrajectoryMessage(RobotSide.LEFT, initTime, leftArmPose);
             
             atlasPrimitiveActions.leftHandDesiredConfigurationBehavior.setInput(leftHandMessage);
@@ -261,7 +264,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
             
 //            double[] leftArmPose = new double[] {-1.57, -0.51, 0.0, 2.0, 0.0, 0.0, 0.0};
 //            double[] rightArmPose = new double[] {1.57, 0.51, 0.0, -2.0, 0.0, 0.0, 0.0};
-            double[] rightArmPose = new double[] {1.57, 0.80, 1.57, -1.57, 0.4, -1.25, 0.0};
+            double[] rightArmPose = new double[] {1.57, 0.70, 1.57, -1.57 + 0.2, 0.4, -1.25, 0.0};
             ArmTrajectoryMessage rightPoseMessage = new ArmTrajectoryMessage(RobotSide.RIGHT, initTime, rightArmPose);
             
             atlasPrimitiveActions.rightHandDesiredConfigurationBehavior.setInput(rightHandMessage);
@@ -340,8 +343,8 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
             HandDesiredConfigurationMessage leftHandMessage = new HandDesiredConfigurationMessage(RobotSide.LEFT, HandConfiguration.CLOSE);
             HandDesiredConfigurationMessage rightHandMessage = new HandDesiredConfigurationMessage(RobotSide.RIGHT, HandConfiguration.CLOSE);
             
-            double[] leftArmPose = new double[] {-1.57, -0.20, 1.57, 1.57, -0.4, 1.25, 0.0}; //{-1.57, -0.51, 0.25, 2.0, 0.0, 0.0, 0.0}
-            double[] rightArmPose = new double[] {1.57, 0.80, 1.57, -1.57, 0.4, -1.25, 0.0}; //{1.57, 0.51, 0.25, -2.0, 0.0, 0.0, 0.0}
+            double[] leftArmPose = new double[] {-1.57, -0.10, 1.57, 1.57 - 0.2, -0.4, 1.25, 0.0}; //{-1.57, -0.51, 0.25, 2.0, 0.0, 0.0, 0.0}
+            double[] rightArmPose = new double[] {1.57, 0.70, 1.57, -1.57 + 0.2, 0.4, -1.25, 0.0}; //{1.57, 0.51, 0.25, -2.0, 0.0, 0.0, 0.0}
             ArmTrajectoryMessage rightPoseMessage = new ArmTrajectoryMessage(RobotSide.RIGHT, 1, rightArmPose);
             ArmTrajectoryMessage leftPoseMessage = new ArmTrajectoryMessage(RobotSide.LEFT, 1, leftArmPose);
 
@@ -907,9 +910,10 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
       footSwingWayPointBeforeHatchPose.changeFrame(worldFrame);
       footSwingWayPointAfterHatchPose.changeFrame(worldFrame);
       
+//      PositionOptimizedTrajectoryGenerator trajectory = new PositionOptimizedTrajectoryGenerator("", registry);
+//      trajectory.setEndpointConditions(new FramePoint(), new FrameVector(worldFrame, new Vector3D(0.0,0.0,0.0)), new FramePoint(footSwingGoalPose.getReferenceFrame(), footSwingGoalPose.getPosition()), new FrameVector(worldFrame, new Vector3D(0.0,0.0,0.0)));
+      
       SE3TrajectoryPointMessage[] swingTrajectoryPoints = new SE3TrajectoryPointMessage[2];
-      Quaternion firstPointOrientation = new Quaternion();
-      firstPointOrientation.setYawPitchRoll(new double[] {0.0, Math.toRadians(30.0), 0.0});
       swingTrajectoryPoints[0] = new SE3TrajectoryPointMessage(1.0 / 4.0 * swingTime.getDoubleValue(), footSwingWayPointBeforeHatchPose.getPosition(), footSwingWayPointBeforeHatchPose.getOrientation(), new Vector3D(), new Vector3D());
       swingTrajectoryPoints[1] = new SE3TrajectoryPointMessage(3.0 / 4.0 * swingTime.getDoubleValue(), footSwingWayPointAfterHatchPose.getPosition(), footSwingWayPointAfterHatchPose.getOrientation(), new Vector3D(), new Vector3D());
       
