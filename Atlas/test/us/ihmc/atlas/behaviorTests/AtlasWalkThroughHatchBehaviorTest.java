@@ -16,7 +16,7 @@ public class AtlasWalkThroughHatchBehaviorTest extends AvatarWalkThroughHatchBeh
    @Override
    public DRCRobotModel getRobotModel()
    {
-      return new AtlasRobotModel(AtlasRobotVersion.ATLAS_UNPLUGGED_V5_NO_HANDS, DRCRobotModel.RobotTarget.SCS, false); //ATLAS_UNPLUGGED_V5_DUAL_ROBOTIQ
+      return new AtlasRobotModel(AtlasRobotVersion.ATLAS_UNPLUGGED_V5_DUAL_ROBOTIQ, DRCRobotModel.RobotTarget.SCS, false); //ATLAS_UNPLUGGED_V5_DUAL_ROBOTIQ
    }
 
    @Override
