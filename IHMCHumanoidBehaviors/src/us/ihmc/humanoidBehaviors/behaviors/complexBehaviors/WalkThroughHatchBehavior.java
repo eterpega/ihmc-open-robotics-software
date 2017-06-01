@@ -268,8 +268,6 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
          {            
             HandDesiredConfigurationMessage rightHandMessage = new HandDesiredConfigurationMessage(RobotSide.RIGHT, HandConfiguration.CLOSE);
             
-//            double[] leftArmPose = new double[] {-1.57, -0.51, 0.0, 2.0, 0.0, 0.0, 0.0};
-//            double[] rightArmPose = new double[] {1.57, 0.51, 0.0, -2.0, 0.0, 0.0, 0.0};
             double[] rightArmPose = new double[] {1.57, 0.70, 1.57, -1.57 + 0.2, 0.4, -1.25, 0.0};
             ArmTrajectoryMessage rightPoseMessage = new ArmTrajectoryMessage(RobotSide.RIGHT, initTime, rightArmPose);
             
