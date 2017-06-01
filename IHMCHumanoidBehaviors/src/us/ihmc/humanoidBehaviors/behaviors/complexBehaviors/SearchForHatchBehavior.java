@@ -17,13 +17,15 @@ public class SearchForHatchBehavior extends AbstractBehavior
    private double hatchThickness;
    
    private boolean receivedNewHatchLocation = false;
+   private boolean resendHatchLocation = false;
 
    protected final ConcurrentListeningQueue<HatchLocationPacket> hatchLocationQueue = new ConcurrentListeningQueue<HatchLocationPacket>(10);
 
-   public SearchForHatchBehavior(CommunicationBridge behaviorCommunicationBridge)
+   public SearchForHatchBehavior(CommunicationBridge behaviorCommunicationBridge, boolean resendHatchLocation)
    {
       super("SearchForHatch", behaviorCommunicationBridge);
       attachNetworkListeningQueue(hatchLocationQueue, HatchLocationPacket.class);
+      this.resendHatchLocation = resendHatchLocation;
    }
 
    @Override
@@ -38,7 +40,14 @@ public class SearchForHatchBehavior extends AbstractBehavior
    {
       if (hatchLocationQueue.isNewPacketAvailable())
       {
-         receivedHatchLocation(hatchLocationQueue.poll()); //getLatestPacket()
+         if(resendHatchLocation)
+         {
+            receivedHatchLocation(hatchLocationQueue.poll());
+         }
+         else
+         {
+            receivedHatchLocation(hatchLocationQueue.getLatestPacket());
+         }
          PrintTools.debug(String.valueOf(hatchLocationQueue.isNewPacketAvailable()));
       }
    }
