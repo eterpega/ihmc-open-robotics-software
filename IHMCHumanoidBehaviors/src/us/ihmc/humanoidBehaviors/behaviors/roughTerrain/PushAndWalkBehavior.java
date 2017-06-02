@@ -50,6 +50,7 @@ public class PushAndWalkBehavior extends AbstractBehavior
    private final DoubleYoVariable yawErrorFilterAlpha = new DoubleYoVariable("YawErrorFilterAlpha", registry);
    private final DoubleYoVariable yawFilteredError = new AlphaFilteredYoVariable("YawFilteredError", registry, yawErrorFilterAlpha);
    private final DoubleYoVariable yawMaxAnglePerStep = new DoubleYoVariable("YawMaxAnglePerStep", registry);
+   private final BooleanYoVariable pushAndWalkICPStrategy = new BooleanYoVariable("PushAndWalkICPStrategy", registry);
    
    private final HumanoidReferenceFrames referenceFrames;
    private final WalkingControllerParameters walkingControllerParameters;
@@ -68,7 +69,10 @@ public class PushAndWalkBehavior extends AbstractBehavior
       
       errorThreshold.set(0.02);
       errorFilterAlpha.set(0.95);
+      yawErrorThreshold.set(1.0);
+      yawErrorFilterAlpha.set(0.95);
       yawMaxAnglePerStep.set(Math.toRadians(20));
+      pushAndWalkICPStrategy.set(false);
       
       if (graphicsListRegistry != null)
       {
@@ -145,7 +149,20 @@ public class PushAndWalkBehavior extends AbstractBehavior
       FrameVector directionStanceFootFrame = new FrameVector(direction);
       directionStanceFootFrame.changeFrame(stanceSoleFrame);
       
-      double yawAngleChange = Math.atan(directionStanceFootFrame.getY()/directionStanceFootFrame.getX());
+      double yawAngleChange = 0.0;
+      
+      if(pushAndWalkICPStrategy.getBooleanValue()){
+    	  yawAngleChange = Math.atan(directionStanceFootFrame.getY()/directionStanceFootFrame.getX());
+      }
+      else{
+    	  if(Math.abs(yawFilteredError.getDoubleValue())> yawErrorThreshold.getDoubleValue()){
+    		  yawAngleChange = yawFilteredError.getDoubleValue();
+    	  }
+    	  else{
+    		  yawAngleChange = 0.0;
+    	  }   			  
+      }
+      
       if(Math.abs(yawAngleChange) > yawMaxAnglePerStep.getDoubleValue())
     	  yawAngleChange = yawMaxAnglePerStep.getDoubleValue()*Math.signum(yawAngleChange);
       
