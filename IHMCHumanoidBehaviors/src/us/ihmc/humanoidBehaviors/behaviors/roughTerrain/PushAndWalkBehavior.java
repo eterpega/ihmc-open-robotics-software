@@ -85,17 +85,17 @@ public class PushAndWalkBehavior extends AbstractBehavior
       footWorkSpaceVertex[6] = new DoubleYoVariable("FootWorkSpaceVertex4X", registry);
       footWorkSpaceVertex[7] = new DoubleYoVariable("FootWorkSpaceVertex4Y", registry);
       
-      footWorkSpaceVertex[0].set(0.25); footWorkSpaceVertex[1].set(0.18);
-      footWorkSpaceVertex[2].set(0.15); footWorkSpaceVertex[3].set(0.35);
-      footWorkSpaceVertex[4].set(-0.25); footWorkSpaceVertex[5].set(0.18);
-      footWorkSpaceVertex[6].set(-0.15); footWorkSpaceVertex[7].set(0.35);
+      footWorkSpaceVertex[0].set(0.25); footWorkSpaceVertex[1].set(0.22);
+      footWorkSpaceVertex[2].set(0.20); footWorkSpaceVertex[3].set(0.35);
+      footWorkSpaceVertex[4].set(-0.25); footWorkSpaceVertex[5].set(0.22);
+      footWorkSpaceVertex[6].set(-0.20); footWorkSpaceVertex[7].set(0.35);
       
       errorThreshold.set(0.02);
       errorFilterAlpha.set(0.95);
       yawErrorThreshold.set(Math.toRadians(2));
       yawErrorFilterAlpha.set(0.95);
       yawMaxAnglePerStep.set(Math.toRadians(10));
-      pushAndWalkICPStrategy.set(false);
+      pushAndWalkICPStrategy.set(true);
       
       if (graphicsListRegistry != null)
       {
@@ -295,11 +295,13 @@ public class PushAndWalkBehavior extends AbstractBehavior
       int index = 0;
       if(location2d == null)
       {
+    	  System.out.println("No intersection");
     	  location2d = new Point2D[1];
     	  location2d[0] = new Point2D(swingLocation.getX(), swingLocation.getY());    	  
       }
       else if (location2d.length == 2)
       {
+    	  System.out.println("Multiple intersection");    	  
     	  Point2D swingLoc = new Point2D(swingLocation.getX(), swingLocation.getY());
     	  index = location2d[0].distance(swingLoc) > location2d[1].distance(swingLoc) ? 0:1;
       }

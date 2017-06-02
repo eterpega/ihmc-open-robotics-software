@@ -16,6 +16,7 @@ import us.ihmc.humanoidBehaviors.behaviors.roughTerrain.PushAndWalkBehavior;
 import us.ihmc.humanoidBehaviors.communication.CommunicationBridge;
 import us.ihmc.humanoidRobotics.frames.HumanoidReferenceFrames;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
+import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.simulationConstructionSetTools.util.environments.FlatGroundEnvironment;
 import us.ihmc.simulationToolkit.controllers.PushRobotController;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
@@ -29,6 +30,7 @@ public abstract class AvatarPushAndWalkBehaviorTest implements MultiRobotTestInt
    private static final SimulationTestingParameters simulationTestingParameters = SimulationTestingParameters.createFromEnvironmentVariables();
    private DRCBehaviorTestHelper drcBehaviorTestHelper;
    private PushRobotController pushRobotController;
+   private PushRobotController pushRobotController2;
 
    public void testBehavior() throws SimulationExceededMaximumTimeException
    {
@@ -40,14 +42,15 @@ public abstract class AvatarPushAndWalkBehaviorTest implements MultiRobotTestInt
       drcBehaviorTestHelper = new DRCBehaviorTestHelper(flatGround, "DRCSimpleFlatGroundScriptTest", selectedLocation, simulationTestingParameters, robotModel);
       FullHumanoidRobotModel fullRobotModel = drcBehaviorTestHelper.getControllerFullRobotModel();
       pushRobotController = new PushRobotController(drcBehaviorTestHelper.getRobot(), fullRobotModel.getChest().getParentJoint().getName(), new Vector3D(0, 0, z));
+      pushRobotController2 = new PushRobotController(drcBehaviorTestHelper.getRobot(), fullRobotModel.getHand(RobotSide.LEFT).getParentJoint().getName(), new Vector3D(0,0,0));
       SimulationConstructionSet scs = drcBehaviorTestHelper.getSimulationConstructionSet();
       scs.addYoGraphic(pushRobotController.getForceVisualizer());
-
       HumanoidReferenceFrames referenceFrames = new HumanoidReferenceFrames(fullRobotModel);
       WalkingControllerParameters walkingControllerParameters = robotModel.getWalkingControllerParameters();
       CommunicationBridge communicationBridge = drcBehaviorTestHelper.getBehaviorCommunicationBridge();
       PushAndWalkBehavior pushAndWalkBehavior = new PushAndWalkBehavior(communicationBridge, referenceFrames, fullRobotModel, walkingControllerParameters, null);
       scs.addYoVariableRegistry(pushAndWalkBehavior.getYoVariableRegistry());
+      
 
       drcBehaviorTestHelper.setupCameraForUnitTest(new Point3D(0.0, 0.0, 1.0), new Point3D(10.0, 10.0, 3.0));
       ThreadTools.sleep(1000);
@@ -62,25 +65,36 @@ public abstract class AvatarPushAndWalkBehaviorTest implements MultiRobotTestInt
       for (int i = 0; i < 5; i++)
       {
          direction.set(1.0, 0.0, 0.0);
-         pushRobotController.applyForce(direction, force, duration);
+         pushRobotController2.applyForce(direction, force, duration);
          assertTrue(drcBehaviorTestHelper.simulateAndBlockAndCatchExceptions(duration + 2.0));
       }
 
       for (int i = 0; i < 5; i++)
       {
          direction.set(0.0, 1.0, 0.0);
-         pushRobotController.applyForce(direction, force, duration);
+         pushRobotController2.applyForce(direction, force, duration);
          assertTrue(drcBehaviorTestHelper.simulateAndBlockAndCatchExceptions(duration + 2.0));
       }
 
       for (int i = 0; i < 5; i++)
       {
          direction.set(1.0, 1.0, 0.0);
-         pushRobotController.applyForce(direction, force, duration);
+         pushRobotController2.applyForce(direction, force, duration);
+         assertTrue(drcBehaviorTestHelper.simulateAndBlockAndCatchExceptions(duration + 2.0));
+      }
+      for (int i = 0; i < 5; i++)
+      {
+         direction.set(1.0, 0.0, 0.0);
+         pushRobotController2.applyForce(direction, force, duration);
          assertTrue(drcBehaviorTestHelper.simulateAndBlockAndCatchExceptions(duration + 2.0));
       }
    }
 
+   protected String getHandJointNameForForceApplication()
+   {
+	   return null;
+   }
+   
    @Before
    public void showMemoryUsageBeforeTest()
    {
