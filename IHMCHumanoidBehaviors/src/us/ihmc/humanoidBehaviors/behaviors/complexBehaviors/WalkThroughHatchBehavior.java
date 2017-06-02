@@ -150,7 +150,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
    private final double hatchThicknessUpperBound = 0.15; // was 0.12
    
    // Trajectory timing constants
-   private static final double defaulTime = 3.0; //4.0
+   private static final double defaulTime = 2.0; //3.0
    private final double initTime = defaulTime;
    private final double setupTime = defaulTime;
    private final double adjustTime = defaulTime;
@@ -780,7 +780,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
       chestYawPitchRollFirstHatchStepDesired[2] = Math.toRadians(0.0);
       
       chestYawPitchRollTransitionDesired[0] = Math.toRadians(0.0);
-      chestYawPitchRollTransitionDesired[1] = Math.toRadians(20.0); //25.0
+      chestYawPitchRollTransitionDesired[1] = Math.toRadians(22.0); //25.0
       chestYawPitchRollTransitionDesired[2] = Math.toRadians(0.0);
       
       chestYawPitchRollSecondHatchStepDesired[0] = Math.toRadians(0.0);
@@ -821,7 +821,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
       pelvisYawPitchRollTransitionDesired[2] = Math.toRadians(5.0); // roll was 15.0 for 0.15 height
 
       pelvisPositionInHatchFrameTransitionDesired.set(pelvisPositionInHatchFrameFirstHatchStepDesired);
-      pelvisPositionInHatchFrameTransitionDesired.add(0.0, 0.0, 0.05); // 0.04 height, 0.025 + 0.025*hatchLowerHeight/0.05 - 0.04 in x
+      pelvisPositionInHatchFrameTransitionDesired.add(0.0, 0.0, 0.05); // 0.05 height, 0.025 + 0.025*hatchLowerHeight/0.05 - 0.04 in x
    
       pelvisYawPitchRollSecondHatchStepDesired[0] = Math.toRadians(-8.0); // -5
       pelvisYawPitchRollSecondHatchStepDesired[1] = Math.toRadians(hatch.getStepHeight()*100.0);
@@ -850,9 +850,9 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
    private void setRelativeFootOffsetsFromHatch()
    {
       rightFootBeforeHatchPositionOffset.set(targetLocationHatchBeforeNear.getX(), 0.0, 0.0);
-      rightFootAfterHatchPositionOffset.set(-rightFootBeforeHatchPositionOffset.getX() - 0.03, -0.06, 0.0); //y -0.08 ... x = -0.03 y=-0.12 ... -0.01 in x, 0.03 in y
+      rightFootAfterHatchPositionOffset.set(-rightFootBeforeHatchPositionOffset.getX() - 0.03, -0.06, 0.0); //x -0.03, y -0.08 ... x = -0.03 y=-0.12 ... -0.01 in x, 0.03 in y
       leftFootBeforeHatchPositionOffset.set(targetLocationHatchBeforeNear.getX(), 0.0, 0.0);
-      leftFootAfterHatchPositionOffset.set(-leftFootBeforeHatchPositionOffset.getX() - 0.03, 0.03, 0.0); // +0.03 in x (-0.01 in x)
+      leftFootAfterHatchPositionOffset.set(-leftFootBeforeHatchPositionOffset.getX() - 0.03, 0.03, 0.0); //x -0.03, +0.03 in x (-0.01 in x)
    }
    
    private void setFootSwingGoalPointsBasedOnHatchDimensions()
