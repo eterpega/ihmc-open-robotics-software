@@ -212,7 +212,7 @@ public class PushAndWalkBehavior extends AbstractBehavior
       }
       else{
     	  if(Math.abs(yawFilteredError.getDoubleValue())> yawErrorThreshold.getDoubleValue()){
-    		  yawAngleChange = yawFilteredError.getDoubleValue();
+    		  yawAngleChange = -yawFilteredError.getDoubleValue();
     	  }
     	  else{
     		  yawAngleChange = 0.0;
