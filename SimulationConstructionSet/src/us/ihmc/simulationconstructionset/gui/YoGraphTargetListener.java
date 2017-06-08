@@ -1,63 +1,55 @@
 package us.ihmc.simulationconstructionset.gui;
 
+import javax.swing.*;
 import java.awt.dnd.DropTargetDragEvent;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.dnd.DropTargetEvent;
 import java.awt.dnd.DropTargetListener;
 
-import javax.swing.TransferHandler;
+public class YoGraphTargetListener implements DropTargetListener {
+    private YoGraph yoGraph;
 
-public class YoGraphTargetListener implements DropTargetListener
-{
-   private YoGraph yoGraph;
+    public YoGraphTargetListener(YoGraph yoGraph) {
+        this.yoGraph = yoGraph;
+    }
 
-   public YoGraphTargetListener(YoGraph yoGraph)
-   {
-      this.yoGraph = yoGraph;
-   }
+    @Override
+    public void dragEnter(DropTargetDragEvent dtde) {
+    }
 
-   @Override
-   public void dragEnter(DropTargetDragEvent dtde)
-   {
-   }
+    @Override
+    public void dragExit(DropTargetEvent dte) {
 
-   @Override
-   public void dragExit(DropTargetEvent dte)
-   {
+    }
 
-   }
+    @Override
+    public void dragOver(DropTargetDragEvent dtde) {
+        YoGraph.setRecipientOfDrag(yoGraph);
 
-   @Override
-   public void dragOver(DropTargetDragEvent dtde)
-   {
-      YoGraph.setRecipientOfDrag(yoGraph);
+        if (dtde.getSource().equals(yoGraph)) {
+            dtde.rejectDrag();
+        }
+    }
 
-      if (dtde.getSource().equals(yoGraph))
-      {
-         dtde.rejectDrag();
-      }
-   }
+    @Override
+    public void drop(DropTargetDropEvent dtde) {
+        YoGraph.setRecipientOfDrag(yoGraph);
 
-   @Override
-   public void drop(DropTargetDropEvent dtde)
-   {
-      YoGraph.setRecipientOfDrag(yoGraph);
+        if ((YoGraph.getSourceOfDrag() == null) || !YoGraph.getSourceOfDrag().equals(yoGraph)) {
+            if (YoGraph.getSourceOfDrag() instanceof AddYoFilterPanel) {
+                yoGraph.addFilterFromSelectedFilterHolder();
+            } else {
+                yoGraph.addVariableFromSelectedVariableHolder();
+            }
+        } else {
+            YoGraph.setActionPerformedByDragAndDrop(TransferHandler.NONE);
+            dtde.rejectDrop();
+        }
+    }
 
-      if ((YoGraph.getSourceOfDrag() == null) ||!YoGraph.getSourceOfDrag().equals(yoGraph))
-      {
-         yoGraph.addVariableFromSelectedVariableHolder();
-      }
-      else
-      {
-         YoGraph.setActionPerformedByDragAndDrop(TransferHandler.NONE);
-         dtde.rejectDrop();
-      }
-   }
-
-   @Override
-   public void dropActionChanged(DropTargetDragEvent dtde)
-   {
-      YoGraph.setActionPerformedByDragAndDrop(dtde.getDropAction());
-   }
+    @Override
+    public void dropActionChanged(DropTargetDragEvent dtde) {
+        YoGraph.setActionPerformedByDragAndDrop(dtde.getDropAction());
+    }
 
 }

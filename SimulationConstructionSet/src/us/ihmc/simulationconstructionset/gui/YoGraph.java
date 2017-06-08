@@ -4,8 +4,7 @@ import javafx.application.Platform;
 import us.ihmc.graphicsDescription.dataBuffer.DataEntry;
 import us.ihmc.graphicsDescription.dataBuffer.DataEntryHolder;
 import us.ihmc.graphicsDescription.dataBuffer.TimeDataHolder;
-import us.ihmc.graphicsDescription.graphInterfaces.GraphIndicesHolder;
-import us.ihmc.graphicsDescription.graphInterfaces.SelectedVariableHolder;
+import us.ihmc.graphicsDescription.graphInterfaces.*;
 import us.ihmc.robotics.dataStructures.registry.NameSpace;
 import us.ihmc.robotics.dataStructures.variable.YoVariable;
 import us.ihmc.simulationconstructionset.GraphConfiguration;
@@ -22,9 +21,8 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+@SuppressWarnings("serial")
 public class YoGraph extends JPanel implements MouseListener, MouseMotionListener, KeyListener, FocusListener {
-    private static final long serialVersionUID = -2801526140874071236L;
-
     private static final int DONT_PLOT_BOTTOM_PIXELS = 25;
     private static final int PIXELS_PER_BOTTOM_ROW = 14;    // 16;
     private static final int DONT_PLOT_TIMELINE_BOTTOM_PIXELS = 16;
@@ -55,6 +53,7 @@ public class YoGraph extends JPanel implements MouseListener, MouseMotionListene
     private final Color baseLineColors[] = new Color[YoGraph.MAX_NUM_BASELINES];
 
     private final ArrayList<DataEntry> entriesOnThisGraph;
+    private final SelectedFilterHolder selectedFilterHolder;
     private final SelectedVariableHolder selectedVariableHolder;
 
     private double min = 0.0, max = 1.1;
@@ -73,10 +72,11 @@ public class YoGraph extends JPanel implements MouseListener, MouseMotionListene
     private boolean showNameSpace = false, showBaseLines = false;
     private int focussedBaseLine = 0;
 
-    public YoGraph(GraphIndicesHolder graphIndicesHolder, YoGraphRemover yoGraphRemover, SelectedVariableHolder holder, DataEntryHolder dataEntryHolder,
+    public YoGraph(GraphIndicesHolder graphIndicesHolder, YoGraphRemover yoGraphRemover, SelectedVariableHolder holder, SelectedFilterHolder filterHolder, DataEntryHolder dataEntryHolder,
                    TimeDataHolder timeDataHolder, JFrame jFrame) {
         this.setName("YoGraph");
 
+        this.selectedFilterHolder = filterHolder;
         this.selectedVariableHolder = holder;
         this.dataEntryHolder = dataEntryHolder;
         this.timeDataHolder = timeDataHolder;
@@ -91,7 +91,7 @@ public class YoGraph extends JPanel implements MouseListener, MouseMotionListene
         this.parentFrame = jFrame;
 
         this.setOpaque(true);
-        entriesOnThisGraph = new ArrayList<DataEntry>();
+        entriesOnThisGraph = new ArrayList<>();
 
         colors[0] = new Color(0xa0, 0, 0);
         colors[1] = new Color(0, 0, 0xff);
@@ -334,6 +334,13 @@ public class YoGraph extends JPanel implements MouseListener, MouseMotionListene
             addVariable(dataEntryHolder.getEntry(yoVariable));
     }
 
+    public void addFilterFromSelectedFilterHolder() {
+        YoFilter yoFilter = selectedFilterHolder.getSelectedFilter();
+        if (yoFilter != null)
+            if (yoFilter.getVariable() != null)
+                addVariable(yoFilter);
+    }
+
     public void removeEntry(DataEntry entry) {
         if (entriesOnThisGraph.contains(entry))
             entriesOnThisGraph.remove(entry);
@@ -412,12 +419,8 @@ public class YoGraph extends JPanel implements MouseListener, MouseMotionListene
         }
     }
 
-    private void calcXYData(DataEntry entry, int nPoints, int[] xData, int[] yData, double min, double max, int width, int height, int offsetFromLeft,
+    private void calcXYData(double[] data, boolean inverted, int nPoints, int[] xData, int[] yData, double min, double max, int width, int height, int offsetFromLeft,
                             int offsetFromTop, int leftPlotIndex, int rightPlotIndex) {
-        double[] data = entry.getData();
-
-        boolean inverted = entry.getInverted();
-
         if (leftPlotIndex == rightPlotIndex) {
             for (int i = 0; i < nPoints; i++) {
                 xData[i] = offsetFromLeft;
@@ -434,11 +437,8 @@ public class YoGraph extends JPanel implements MouseListener, MouseMotionListene
         }
     }
 
-    private void calcScatterData(DataEntry entryX, DataEntry entryY, int nPoints, int[] xData, int[] yData, double minX, double maxX, double minY, double maxY,
+    private void calcScatterData(double[] dataX, double[] dataY, int nPoints, int[] xData, int[] yData, double minX, double maxX, double minY, double maxY,
                                  int width, int height, int offsetFromLeft, int offsetFromTop) {
-        double[] dataX = entryX.getData();
-        double[] dataY = entryY.getData();
-
         for (int i = 0; i < nPoints; i++) {
             // xData[i] = width - (int) ((dataX[i] - minX)/(maxX-minX) * width) + offsetFromLeft;
             xData[i] = (int) ((dataX[i] - minX) / (maxX - minX) * width) + offsetFromLeft;
@@ -721,65 +721,68 @@ public class YoGraph extends JPanel implements MouseListener, MouseMotionListene
 
             DataEntry entryY = entriesOnThisGraph.get(i + 1);
 
+            if ((entryX instanceof PhaseFilter || !(entryX instanceof YoFilter)) && (entryY instanceof PhaseFilter || !(entryY instanceof YoFilter))) {
+
 //       double[] dataY = entryY.getData();
 
-            double minValX = 0.0, maxValX = 1.0;
-            double minValY = 0.0, maxValY = 1.0;
+                double minValX = 0.0, maxValX = 1.0;
+                double minValY = 0.0, maxValY = 1.0;
 
-            if (graphConfiguration.getScalingMethod() == INDIVIDUAL_SCALING) {
-                if (entryX.isAutoScaleEnabled()) {
-                    minValX = entryX.getMin();
-                    maxValX = entryX.getMax();
-                } else {
-                    minValX = entryX.getManualMinScaling();
-                    maxValX = entryX.getManualMaxScaling();
-                }
+                if (graphConfiguration.getScalingMethod() == INDIVIDUAL_SCALING) {
+                    if (entryX.isAutoScaleEnabled()) {
+                        minValX = entryX.getMin();
+                        maxValX = entryX.getMax();
+                    } else {
+                        minValX = entryX.getManualMinScaling();
+                        maxValX = entryX.getManualMaxScaling();
+                    }
 
-                if (entryY.isAutoScaleEnabled()) {
+                    if (entryY.isAutoScaleEnabled()) {
+                        minValY = entryY.getMin();
+                        maxValY = entryY.getMax();
+                    } else {
+                        minValY = entryY.getManualMinScaling();
+                        maxValY = entryY.getManualMaxScaling();
+                    }
+                } else if (graphConfiguration.getScalingMethod() == AUTO_SCALING) {
+                    // minValX = minValY = this.min;   //++++++
+                    // maxValX = maxValY = this.max;
+
                     minValY = entryY.getMin();
                     maxValY = entryY.getMax();
-                } else {
-                    minValY = entryY.getManualMinScaling();
-                    maxValY = entryY.getManualMaxScaling();
+
+                    minValX = entryX.getMin();
+                    maxValX = entryX.getMax();
+                } else if (graphConfiguration.getScalingMethod() == MANUAL_SCALING) {
+                    minValX = minValY = graphConfiguration.getManualScalingMin();    // ++++++
+                    maxValX = maxValY = graphConfiguration.getManualScalingMax();
                 }
-            } else if (graphConfiguration.getScalingMethod() == AUTO_SCALING) {
-                // minValX = minValY = this.min;   //++++++
-                // maxValX = maxValY = this.max;
 
-                minValY = entryY.getMin();
-                maxValY = entryY.getMax();
+                int nPoints = dataX.length;
+                if ((xData.length != nPoints) || (yData.length != nPoints)) {
+                    xData = new int[nPoints];
+                    yData = new int[nPoints];
+                }
 
-                minValX = entryX.getMin();
-                maxValX = entryX.getMax();
-            } else if (graphConfiguration.getScalingMethod() == MANUAL_SCALING) {
-                minValX = minValY = graphConfiguration.getManualScalingMin();    // ++++++
-                maxValX = maxValY = graphConfiguration.getManualScalingMax();
-            }
+                int totalDontPlotBottomPixels = DONT_PLOT_BOTTOM_PIXELS + PIXELS_PER_BOTTOM_ROW * (totalEntryNamePaintRows - 1);
 
-            int nPoints = dataX.length;
-            if ((xData.length != nPoints) || (yData.length != nPoints)) {
-                xData = new int[nPoints];
-                yData = new int[nPoints];
-            }
+                calcScatterData(entryX.getData(), entryY.getData(), nPoints, xData, yData, minValX, maxValX, minValY, maxValY, (graphWidth - 6), graphHeight - totalDontPlotBottomPixels,
+                        3, 5);
 
-            int totalDontPlotBottomPixels = DONT_PLOT_BOTTOM_PIXELS + PIXELS_PER_BOTTOM_ROW * (totalEntryNamePaintRows - 1);
+                g.setColor(colors[i % YoGraph.MAX_NUM_GRAPHS]);
 
-            calcScatterData(entryX, entryY, nPoints, xData, yData, minValX, maxValX, minValY, maxValY, (graphWidth - 6), graphHeight - totalDontPlotBottomPixels,
-                    3, 5);
+                // Draw the data
+                g.drawPolyline(xData, yData, xData.length);
 
-            g.setColor(colors[i % YoGraph.MAX_NUM_GRAPHS]);
+                // Draw a Cross Hairs:
+                int index = graphIndicesHolder.getIndex();
 
-            // Draw the data
-            g.drawPolyline(xData, yData, xData.length);
+                if ((index < xData.length) && (index < yData.length) & (index >= 0)) {
+                    g.setColor(Color.BLACK);
 
-            // Draw a Cross Hairs:
-            int index = graphIndicesHolder.getIndex();
-
-            if ((index < xData.length) && (index < yData.length) & (index >= 0)) {
-                g.setColor(Color.BLACK);
-
-                g.drawLine(xData[index] - 5, yData[index], xData[index] + 5, yData[index]);
-                g.drawLine(xData[index], yData[index] - 10, xData[index], yData[index] + 10);
+                    g.drawLine(xData[index] - 5, yData[index], xData[index] + 5, yData[index]);
+                    g.drawLine(xData[index], yData[index] - 10, xData[index], yData[index] + 10);
+                }
             }
         }
 
@@ -826,55 +829,58 @@ public class YoGraph extends JPanel implements MouseListener, MouseMotionListene
             DataEntry entry = entriesOnThisGraph.get(i);
             double[] data = entry.getData();
 
-            double minVal = 0.0, maxVal = 1.0;
-            if (graphConfiguration.getScalingMethod() == INDIVIDUAL_SCALING) {
-                if (entry.isAutoScaleEnabled()) {
-                    minVal = entry.getMin();
-                    maxVal = entry.getMax();
-                } else {
-                    minVal = entry.getManualMinScaling();
-                    maxVal = entry.getManualMaxScaling();
+            if (entry instanceof TimeFilter || !(entry instanceof YoFilter)) {
+
+                double minVal = 0.0, maxVal = 1.0;
+                if (graphConfiguration.getScalingMethod() == INDIVIDUAL_SCALING) {
+                    if (entry.isAutoScaleEnabled()) {
+                        minVal = entry.getMin();
+                        maxVal = entry.getMax();
+                    } else {
+                        minVal = entry.getManualMinScaling();
+                        maxVal = entry.getManualMaxScaling();
+                    }
+                } else if (graphConfiguration.getScalingMethod() == AUTO_SCALING) {
+                    minVal = this.min;
+                    maxVal = this.max;
+                } else if (graphConfiguration.getScalingMethod() == MANUAL_SCALING) {
+                    minVal = graphConfiguration.getManualScalingMin();
+                    maxVal = graphConfiguration.getManualScalingMax();
                 }
-            } else if (graphConfiguration.getScalingMethod() == AUTO_SCALING) {
-                minVal = this.min;
-                maxVal = this.max;
-            } else if (graphConfiguration.getScalingMethod() == MANUAL_SCALING) {
-                minVal = graphConfiguration.getManualScalingMin();
-                maxVal = graphConfiguration.getManualScalingMax();
-            }
 
-            int nPoints = data.length;
-            if ((xData.length != nPoints) || (yData.length != nPoints)) {
-                // System.out.println("Making new xData, yData!!!");
-                xData = new int[nPoints];
-                yData = new int[nPoints];
-            }
+                int nPoints = data.length;
+                if ((xData.length != nPoints) || (yData.length != nPoints)) {
+                    // System.out.println("Making new xData, yData!!!");
+                    xData = new int[nPoints];
+                    yData = new int[nPoints];
+                }
 
-            int totalDontPlotBottomPixels = DONT_PLOT_BOTTOM_PIXELS + PIXELS_PER_BOTTOM_ROW * (totalEntryNamePaintRows - 1);
+                int totalDontPlotBottomPixels = DONT_PLOT_BOTTOM_PIXELS + PIXELS_PER_BOTTOM_ROW * (totalEntryNamePaintRows - 1);
 
-            calcXYData(entry, nPoints, xData, yData, minVal, maxVal, (graphWidth - 6), graphHeight - totalDontPlotBottomPixels, 3, 5, leftPlotIndex,
-                    rightPlotIndex);
+                calcXYData(data, entry.getInverted(), nPoints, xData, yData, minVal, maxVal, (graphWidth - 6), graphHeight - totalDontPlotBottomPixels, 3, 5, leftPlotIndex,
+                        rightPlotIndex);
 
-            graphics.setColor(colors[i % YoGraph.MAX_NUM_GRAPHS]);
+                graphics.setColor(colors[i % YoGraph.MAX_NUM_GRAPHS]);
 
-            // Draw the data
-            g2d.setStroke(normalStroke);
-            graphics.drawPolyline(xData, yData, xData.length);
+                // Draw the data
+                g2d.setStroke(normalStroke);
+                graphics.drawPolyline(xData, yData, xData.length);
 
-            if (graphConfiguration.getShowBaseLines()) {
-                double[] baseLines = graphConfiguration.getBaseLines();
+                if (graphConfiguration.getShowBaseLines()) {
+                    double[] baseLines = graphConfiguration.getBaseLines();
 
-                for (int j = 0; j < baseLines.length; j++) {
-                    double baseLine = baseLines[j];
-                    int baseY = (graphHeight - totalDontPlotBottomPixels)
-                            - (int) ((baseLine - minVal) / (maxVal - minVal) * (graphHeight - totalDontPlotBottomPixels)) + 5;
+                    for (int j = 0; j < baseLines.length; j++) {
+                        double baseLine = baseLines[j];
+                        int baseY = (graphHeight - totalDontPlotBottomPixels)
+                                - (int) ((baseLine - minVal) / (maxVal - minVal) * (graphHeight - totalDontPlotBottomPixels)) + 5;
 
-                    graphics.setColor(baseLineColors[j]);
+                        graphics.setColor(baseLineColors[j]);
 
-                    // int baseY = (int) ( (baseLine - minVal) / (maxVal - minVal) * this.getHeight());;
-                    g2d.setStroke(dashedStroke);
-                    graphics.drawLine(0, baseY, this.getWidth(), baseY);
-                    g2d.setStroke(normalStroke);
+                        // int baseY = (int) ( (baseLine - minVal) / (maxVal - minVal) * this.getHeight());;
+                        g2d.setStroke(dashedStroke);
+                        graphics.drawLine(0, baseY, this.getWidth(), baseY);
+                        g2d.setStroke(normalStroke);
+                    }
                 }
             }
         }

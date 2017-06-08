@@ -1,14 +1,12 @@
 package us.ihmc.simulationconstructionset.gui;
 
-import us.ihmc.simulationconstructionset.gui.yoVariableSearch.YoVariablePanelTransferable;
-
 import javax.swing.*;
 import java.awt.datatransfer.Transferable;
 
 @SuppressWarnings("serial")
-public class YoGraphTransferHandler extends TransferHandler {
-    public YoGraphTransferHandler() {
-
+public class YoFilterPanelTransferHandler extends TransferHandler {
+    public YoFilterPanelTransferHandler() {
+        super();
     }
 
     @Override
@@ -23,10 +21,8 @@ public class YoGraphTransferHandler extends TransferHandler {
 
     @Override
     public int getSourceActions(JComponent c) {
-        if (c instanceof YoGraph) {
-            return TransferHandler.COPY_OR_MOVE;
-        } else if (c instanceof AddYoFilterPanel) {
-            return TransferHandler.MOVE;
+        if (c instanceof AddYoFilterPanel) {
+            return TransferHandler.COPY;
         }
 
         return TransferHandler.NONE;
@@ -34,19 +30,16 @@ public class YoGraphTransferHandler extends TransferHandler {
 
     @Override
     public Transferable createTransferable(JComponent c) {
-        Transferable tip = null;
+        if (c instanceof AddYoFilterPanel) {
+            Transferable tip = new YoFilterPanelTransferable();
 
-        if (c instanceof YoGraph) {
-            tip = new YoVariablePanelTransferable();
-        } else if (c instanceof AddYoFilterPanel) {
-            tip = new YoFilterPanelTransferable();
+            return tip;
         }
 
-        return tip;
+        return null;
     }
 
     @Override
     public void exportDone(JComponent c, Transferable t, int action) {
-
     }
 }

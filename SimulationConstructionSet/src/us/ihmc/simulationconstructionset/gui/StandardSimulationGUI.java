@@ -50,6 +50,9 @@ import us.ihmc.euclid.tuple3D.interfaces.Tuple3DBasics;
 import us.ihmc.graphicsDescription.Graphics3DObject;
 import us.ihmc.graphicsDescription.HeightMap;
 import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
+import us.ihmc.graphicsDescription.graphInterfaces.BackwardFiniteDifferenceFilter;
+import us.ihmc.graphicsDescription.graphInterfaces.ForwardFiniteDifferenceFilter;
+import us.ihmc.graphicsDescription.graphInterfaces.SelectedFilterHolder;
 import us.ihmc.graphicsDescription.graphInterfaces.SelectedVariableHolder;
 import us.ihmc.graphicsDescription.input.SelectedListener;
 import us.ihmc.graphicsDescription.structure.Graphics3DNode;
@@ -176,8 +179,9 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
 
    private Robot[] robots;
 
-   private SelectedVariableHolder selectedVariableHolder;
    private SimulationConstructionSet sim;
+   private SelectedVariableHolder selectedVariableHolder;
+   private SelectedFilterHolder selectedFilterHolder;
 
    private final YoVariableHolder yoVariableHolder;
 
@@ -274,6 +278,7 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
       // frame.addWindowStateListener(this);
       // frame.addWindowListener(this);
       this.selectedVariableHolder = new SelectedVariableHolder();
+      this.selectedFilterHolder = new SelectedFilterHolder();
 
       // graphArrayWindow = new GraphArrayWindow(selectedVariableHolder, myDataBuffer, new YoVariable[0]);
       if (robots != null)
@@ -388,7 +393,7 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
          public void run()
          {
             graphArrayWindow = new GraphArrayWindow(allCommandsExecutor, sim, guiEnablerAndDisabler, configurationList, graphGroupList, graphGroupName,
-                  graphConfigurationList, selectedVariableHolder, myDataBuffer, standardGUIActions, screenID, windowLocation, windowSize, maximizeWindow);
+                  graphConfigurationList, selectedVariableHolder, selectedFilterHolder, myDataBuffer, standardGUIActions, screenID, windowLocation, windowSize, maximizeWindow);
          }
       });
 
@@ -586,7 +591,7 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
                bookmarkedVariablesHolder, yoVariableExplorerTabbedPane);
          yoVariableExplorerTabbedPane.addVariableSearchPanel(variableSearchPanel);
 
-         myGraphArrayPanel = new GraphArrayPanel(selectedVariableHolder, myDataBuffer, jFrame, this);
+         myGraphArrayPanel = new GraphArrayPanel(selectedVariableHolder, selectedFilterHolder, myDataBuffer, jFrame, this);
       }
 
       if (jFrame != null)
@@ -819,6 +824,15 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
           * numericContentPane.add("South",entryBoxArrayPanelHolder);
           */
          numericContentPane.add("North", buttonPanel);
+
+         if (myDataBuffer.getBufferSize() > 0) {
+            if (myDataBuffer.getEntry("fXa") != null) {
+               if (myDataBuffer.getEntries().indexOf(myDataBuffer.getEntry("fXa")) != -1) {
+                  numericContentPane.add("South", new AddYoFilterPanel(this.selectedFilterHolder, new ForwardFiniteDifferenceFilter(myDataBuffer.getEntry("fXa"))));
+                  //numericContentPane.add("South", new AddYoFilterPanel(this.selectedFilterHolder, new BackwardFiniteDifferenceFilter(myDataBuffer.getEntry("fXa"))));
+               }
+            }
+         }
 
          // numericContentPane.add("South", myEntryBoxArrayPanel);
 
