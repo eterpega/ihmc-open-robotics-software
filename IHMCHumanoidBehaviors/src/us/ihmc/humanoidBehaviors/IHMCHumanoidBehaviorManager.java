@@ -26,7 +26,7 @@ import us.ihmc.humanoidBehaviors.behaviors.goalLocation.LocateGoalBehavior;
 import us.ihmc.humanoidBehaviors.behaviors.primitives.AtlasPrimitiveActions;
 import us.ihmc.humanoidBehaviors.behaviors.primitives.WalkToLocationBehavior;
 import us.ihmc.humanoidBehaviors.behaviors.roughTerrain.AnytimePlannerStateMachineBehavior;
-import us.ihmc.humanoidBehaviors.behaviors.roughTerrain.CollaborativeBehavior;
+import us.ihmc.humanoidBehaviors.behaviors.roughTerrain.HumanCoManipulationBehavior;
 import us.ihmc.humanoidBehaviors.behaviors.roughTerrain.PushAndWalkBehavior;
 import us.ihmc.humanoidBehaviors.behaviors.roughTerrain.WalkOverTerrainStateMachineBehavior;
 import us.ihmc.humanoidBehaviors.behaviors.rrtPlanner.CleaningMotionStateMachineBehavior;
@@ -233,7 +233,7 @@ public class IHMCHumanoidBehaviorManager
       dispatcher.addBehavior(HumanoidBehaviorType.PUSH_AND_WALK,
                              new PushAndWalkBehavior(behaviorCommunicationBridge, referenceFrames, walkingControllerParameters, yoGraphicsListRegistry));
       DRCRobotSensorInformation sensorInformation = wholeBodyControllerParameters.getSensorInformation();
-      dispatcher.addBehavior(HumanoidBehaviorType.COLLABORATIVE_TASK, new CollaborativeBehavior(behaviorCommunicationBridge, referenceFrames, fullRobotModel, sensorInformation, walkingControllerParameters, yoGraphicsListRegistry));
+      dispatcher.addBehavior(HumanoidBehaviorType.COMANIPULATION_TASK, new HumanCoManipulationBehavior(behaviorCommunicationBridge, referenceFrames, fullRobotModel, walkingControllerParameters, yoGraphicsListRegistry, sensorInformation, wristSensors));
       
       dispatcher.addBehavior(HumanoidBehaviorType.EXAMPLE_BEHAVIOR,
             new ExampleComplexBehaviorStateMachine(behaviorCommunicationBridge, yoTime, atlasPrimitiveActions));

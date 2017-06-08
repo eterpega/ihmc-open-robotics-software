@@ -26,7 +26,7 @@ public enum HumanoidBehaviorType
    TEST_ICP_OPTIMIZATION,
    SOLARPANEL_BEHAVIOR,
    PUSH_AND_WALK,
-   COLLABORATIVE_TASK;
+   COMANIPULATION_TASK;
 
    public static final HumanoidBehaviorType[] values = values();
 }
