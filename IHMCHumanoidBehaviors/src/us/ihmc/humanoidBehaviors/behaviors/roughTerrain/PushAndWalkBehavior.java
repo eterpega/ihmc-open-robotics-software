@@ -3,6 +3,7 @@ package us.ihmc.humanoidBehaviors.behaviors.roughTerrain;
 import org.apache.commons.lang3.Conversion;
 
 import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParameters;
+import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.geometry.ConvexPolygon2D;
 import us.ihmc.euclid.geometry.Line2D;
 import us.ihmc.euclid.tuple2D.Point2D;
@@ -61,6 +62,9 @@ public class PushAndWalkBehavior extends AbstractBehavior
    private final HumanoidReferenceFrames referenceFrames;
    private final WalkingControllerParameters walkingControllerParameters;
    private final FullHumanoidRobotModel fullRobotModel;
+   private boolean commandCompleted = true;
+   private boolean prevDoubleSupport = true;
+   private boolean doubleSupport = true;
 
    public PushAndWalkBehavior(CommunicationBridgeInterface communicationBridge, HumanoidReferenceFrames referenceFrames,
 		   FullHumanoidRobotModel fullRobotModel, WalkingControllerParameters walkingControllerParameters, YoGraphicsListRegistry graphicsListRegistry)
@@ -90,8 +94,8 @@ public class PushAndWalkBehavior extends AbstractBehavior
       footWorkSpaceVertex[4].set(-0.25); footWorkSpaceVertex[5].set(0.22);
       footWorkSpaceVertex[6].set(-0.20); footWorkSpaceVertex[7].set(0.35);
       
-      errorThreshold.set(0.02);
-      errorFilterAlpha.set(0.95);
+      errorThreshold.set(0.012);
+      errorFilterAlpha.set(0.5);
       yawErrorThreshold.set(Math.toRadians(2));
       yawErrorFilterAlpha.set(0.95);
       yawMaxAnglePerStep.set(Math.toRadians(10));
@@ -128,24 +132,40 @@ public class PushAndWalkBehavior extends AbstractBehavior
          FramePoint2d desiredCapturePoint = latestPacket.getDesiredCapturePoint();
          FramePoint2d capturePoint = latestPacket.getCapturePoint();
 
-         boolean doubleSupport = true;
-         for (RobotSide robotSide : RobotSide.values)
+         prevDoubleSupport = doubleSupport;
+         doubleSupport = latestPacket.isInDoubleSupport();
+         if(!prevDoubleSupport && doubleSupport)
+         {
+            PrintTools.info("Command Completed");
+            commandCompleted = true;
+         }
+         /*for (RobotSide robotSide : RobotSide.values)
          {
             doubleSupport &= !latestPacket.getFootSupportPolygon(robotSide).isEmpty();
-         }
+         }*/
 
          double error = desiredCapturePoint.distance(capturePoint);
-         filteredError.update(error);
+         filteredError.update(error);         
          yawFilteredError.update(getSpineYawJointPositionError());
+         if(!doubleSupport)
+         {
+            PrintTools.info("In single support");
+         }
+         if(!walking.getBooleanValue())
+         {
+            PrintTools.info("Ready to walk as per walking parameter");
+         }
          
          boolean shouldWalk = filteredError.getDoubleValue() > errorThreshold.getDoubleValue();
-
-         if (doubleSupport && shouldWalk && !walking.getBooleanValue())
+         
+         //&& !walking.getBooleanValue()
+         if (doubleSupport && shouldWalk && commandCompleted)
          {
             Vector2D direction = new Vector2D();
             direction.sub(capturePoint.getPoint(), desiredCapturePoint.getPoint());
             direction.normalize();
             takeSteps(direction);
+            commandCompleted = false;
          }
 
          yoDesiredCapturePoint.setAndMatchFrame(desiredCapturePoint);
@@ -228,6 +248,7 @@ public class PushAndWalkBehavior extends AbstractBehavior
       FootstepDataListMessage footsteps = new FootstepDataListMessage();
       FootstepDataMessage footstep = new FootstepDataMessage(swingSide, location.getPoint(), orientation.getQuaternion());
       footsteps.add(footstep);
+      PrintTools.info("Sending packet to controller");
       sendPacketToController(footsteps);
    }
 

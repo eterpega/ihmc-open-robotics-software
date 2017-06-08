@@ -59,16 +59,16 @@ public abstract class AvatarPushAndWalkBehaviorTest implements MultiRobotTestInt
 
       double totalMass = fullRobotModel.getTotalMass();
       double force = totalMass * 0.4;
-      double duration = 0.5;
+      double duration = 10;
       Vector3D direction = new Vector3D();
 
-      for (int i = 0; i < 5; i++)
+      //for (int i = 0; i < 5; i++)
       {
          direction.set(1.0, 0.0, 0.0);
          pushRobotController2.applyForce(direction, force, duration);
          assertTrue(drcBehaviorTestHelper.simulateAndBlockAndCatchExceptions(duration + 2.0));
       }
-
+      /*
       for (int i = 0; i < 5; i++)
       {
          direction.set(0.0, 1.0, 0.0);
@@ -88,6 +88,7 @@ public abstract class AvatarPushAndWalkBehaviorTest implements MultiRobotTestInt
          pushRobotController2.applyForce(direction, force, duration);
          assertTrue(drcBehaviorTestHelper.simulateAndBlockAndCatchExceptions(duration + 2.0));
       }
+      */
    }
 
    protected String getHandJointNameForForceApplication()
