@@ -37,6 +37,6 @@ public class HumanoidBehaviorTypeSubscriber implements PacketConsumer<HumanoidBe
    public void receivedPacket(HumanoidBehaviorTypePacket object)
    {
       packetReference.set(object);
-      System.out.println(getClass().getSimpleName() + " received packet");
+      //System.out.println(getClass().getSimpleName() + " received packet");
    }
 }

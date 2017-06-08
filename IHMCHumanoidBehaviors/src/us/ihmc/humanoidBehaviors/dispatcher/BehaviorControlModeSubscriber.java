@@ -29,6 +29,6 @@ public class BehaviorControlModeSubscriber implements PacketConsumer<BehaviorCon
    public void receivedPacket(BehaviorControlModePacket object)
    {
       packetReference.set(object);
-      System.out.println(getClass().getSimpleName() + " received packet");
+      //System.out.println(getClass().getSimpleName() + " received packet");
    }
 }

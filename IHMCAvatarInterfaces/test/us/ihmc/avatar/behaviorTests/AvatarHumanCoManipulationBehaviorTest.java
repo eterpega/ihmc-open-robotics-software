@@ -52,15 +52,15 @@ public abstract class AvatarHumanCoManipulationBehaviorTest implements MultiRobo
       FullHumanoidRobotModel fullRobotModel = drcBehaviorTestHelper.getControllerFullRobotModel();
       SimulationConstructionSet scs = drcBehaviorTestHelper.getSimulationConstructionSet();
 		
-		SideDependentList<WristForceSensorFilteredUpdatable> wristSensorUpdatables = null;
-      if (robotSensorInfo.getWristForceSensorNames() != null && !robotSensorInfo.getWristForceSensorNames().containsValue(null))
+		SideDependentList<WristForceSensorFilteredUpdatable> wristSensorUpdatables = drcBehaviorTestHelper.getWristForceSensorUpdatableSideDependentList();
+      /*if (robotSensorInfo.getWristForceSensorNames() != null && !robotSensorInfo.getWristForceSensorNames().containsValue(null))
       {
          wristSensorUpdatables = new SideDependentList<>();
          for (RobotSide robotSide : RobotSide.values)
          {
             wristSensorUpdatables.put(robotSide, drcBehaviorTestHelper.getWristForceSensorUpdatable(robotSide));
          }
-      }
+      }*/
       
 		HumanoidReferenceFrames referenceFrames = new HumanoidReferenceFrames(fullRobotModel);
 		WalkingControllerParameters walkingControllerParameters = robotModel.getWalkingControllerParameters();
@@ -73,5 +73,6 @@ public abstract class AvatarHumanCoManipulationBehaviorTest implements MultiRobo
 		assertTrue(drcBehaviorTestHelper.simulateAndBlockAndCatchExceptions(0.5));
 		drcBehaviorTestHelper.dispatchBehavior(collaborativeBehavior);
 		assertTrue(drcBehaviorTestHelper.simulateAndBlockAndCatchExceptions(1));
+		drcBehaviorTestHelper.destroySimulation();
 	}
 }
