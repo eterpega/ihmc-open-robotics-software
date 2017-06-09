@@ -10,6 +10,7 @@ import us.ihmc.avatar.MultiRobotTestInterface;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
 import us.ihmc.avatar.testTools.DRCBehaviorTestHelper;
 import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParameters;
+import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.humanoidBehaviors.behaviors.roughTerrain.PushAndWalkBehavior;
@@ -59,36 +60,37 @@ public abstract class AvatarPushAndWalkBehaviorTest implements MultiRobotTestInt
 
       double totalMass = fullRobotModel.getTotalMass();
       double force = totalMass * 0.4;
-      double duration = 10;
+      PrintTools.info("Force Applied" + force);
+      
+      double duration = 100;
       Vector3D direction = new Vector3D();
 
       //for (int i = 0; i < 5; i++)
       {
-         direction.set(1.0, 0.0, 0.0);
+         direction.set(1.0, 0.0, -5.0);
          pushRobotController2.applyForce(direction, force, duration);
          assertTrue(drcBehaviorTestHelper.simulateAndBlockAndCatchExceptions(duration + 2.0));
       }
-      /*
-      for (int i = 0; i < 5; i++)
+      
+      //for (int i = 0; i < 5; i++)
       {
-         direction.set(0.0, 1.0, 0.0);
+         direction.set(1.0, 1.0, -5.0);
          pushRobotController2.applyForce(direction, force, duration);
          assertTrue(drcBehaviorTestHelper.simulateAndBlockAndCatchExceptions(duration + 2.0));
       }
 
-      for (int i = 0; i < 5; i++)
+      //for (int i = 0; i < 5; i++)
       {
-         direction.set(1.0, 1.0, 0.0);
+         direction.set(1.0, 1.0, -5.0);
          pushRobotController2.applyForce(direction, force, duration);
          assertTrue(drcBehaviorTestHelper.simulateAndBlockAndCatchExceptions(duration + 2.0));
       }
-      for (int i = 0; i < 5; i++)
+      //for (int i = 0; i < 5; i++)
       {
-         direction.set(1.0, 0.0, 0.0);
+         direction.set(1.0, 0.0, -5.0);
          pushRobotController2.applyForce(direction, force, duration);
          assertTrue(drcBehaviorTestHelper.simulateAndBlockAndCatchExceptions(duration + 2.0));
       }
-      */
    }
 
    protected String getHandJointNameForForceApplication()

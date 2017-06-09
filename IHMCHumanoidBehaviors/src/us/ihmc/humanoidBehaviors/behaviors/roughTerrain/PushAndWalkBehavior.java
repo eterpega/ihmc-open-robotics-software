@@ -94,12 +94,12 @@ public class PushAndWalkBehavior extends AbstractBehavior
       footWorkSpaceVertex[4].set(-0.25); footWorkSpaceVertex[5].set(0.22);
       footWorkSpaceVertex[6].set(-0.20); footWorkSpaceVertex[7].set(0.35);
       
-      errorThreshold.set(0.012);
+      errorThreshold.set(0.005);
       errorFilterAlpha.set(0.5);
       yawErrorThreshold.set(Math.toRadians(2));
       yawErrorFilterAlpha.set(0.95);
-      yawMaxAnglePerStep.set(Math.toRadians(10));
-      pushAndWalkICPStrategy.set(true);
+      yawMaxAnglePerStep.set(Math.toRadians(5));
+      pushAndWalkICPStrategy.set(false);
       
       if (graphicsListRegistry != null)
       {
@@ -153,7 +153,7 @@ public class PushAndWalkBehavior extends AbstractBehavior
          }
          if(!walking.getBooleanValue())
          {
-            PrintTools.info("Ready to walk as per walking parameter");
+            //PrintTools.info("Ready to walk as per walking parameter");
          }
          
          boolean shouldWalk = filteredError.getDoubleValue() > errorThreshold.getDoubleValue();
@@ -228,11 +228,11 @@ public class PushAndWalkBehavior extends AbstractBehavior
       double yawAngleChange = 0.0;
       
       if(pushAndWalkICPStrategy.getBooleanValue()){
-    	  yawAngleChange = Math.atan(directionStanceFootFrame.getY()/directionStanceFootFrame.getX());
+    	  yawAngleChange = 0.0; //Math.atan(directionStanceFootFrame.getY()/directionStanceFootFrame.getX());
       }
       else{
     	  if(Math.abs(yawFilteredError.getDoubleValue())> yawErrorThreshold.getDoubleValue()){
-    		  yawAngleChange = -yawFilteredError.getDoubleValue();
+    		  yawAngleChange = 0.0; //-yawFilteredError.getDoubleValue();
     	  }
     	  else{
     		  yawAngleChange = 0.0;
@@ -338,21 +338,18 @@ public class PushAndWalkBehavior extends AbstractBehavior
    public void onBehaviorEntered()
    {
       // TODO Auto-generated method stub
-
    }
 
    @Override
    public void onBehaviorAborted()
    {
       // TODO Auto-generated method stub
-
    }
 
    @Override
    public void onBehaviorPaused()
    {
       // TODO Auto-generated method stub
-
    }
 
    @Override
