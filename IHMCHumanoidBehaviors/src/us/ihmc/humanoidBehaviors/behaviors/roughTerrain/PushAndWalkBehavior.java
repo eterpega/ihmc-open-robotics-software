@@ -100,7 +100,7 @@ public class PushAndWalkBehavior extends AbstractBehavior
       yawErrorThreshold.set(Math.toRadians(2));
       yawErrorFilterAlpha.set(0.95);
       yawMaxAnglePerStep.set(Math.toRadians(5));
-      pushAndWalkICPStrategy.set(false);
+      pushAndWalkICPStrategy.set(true);
       
       if (graphicsListRegistry != null)
       {
@@ -229,7 +229,7 @@ public class PushAndWalkBehavior extends AbstractBehavior
       double yawAngleChange = 0.0;
       
       if(pushAndWalkICPStrategy.getBooleanValue()){
-    	  yawAngleChange = 0.0; //Math.atan(directionStanceFootFrame.getY()/directionStanceFootFrame.getX());
+    	  yawAngleChange = Math.atan(directionStanceFootFrame.getY()/directionStanceFootFrame.getX());
       }
       else{
     	  if(Math.abs(yawFilteredError.getDoubleValue())> yawErrorThreshold.getDoubleValue()){
