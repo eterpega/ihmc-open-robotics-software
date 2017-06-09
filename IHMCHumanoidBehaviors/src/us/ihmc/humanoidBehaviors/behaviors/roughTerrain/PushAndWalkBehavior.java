@@ -94,8 +94,8 @@ public class PushAndWalkBehavior extends AbstractBehavior
       footWorkSpaceVertex[4].set(-0.25); footWorkSpaceVertex[5].set(0.22);
       footWorkSpaceVertex[6].set(-0.20); footWorkSpaceVertex[7].set(0.35);
       
-      errorThreshold.set(0.005);
-      errorFilterAlpha.set(0.5);
+      errorThreshold.set(0.012);
+      errorFilterAlpha.set(0.7);
       yawErrorThreshold.set(Math.toRadians(2));
       yawErrorFilterAlpha.set(0.95);
       yawMaxAnglePerStep.set(Math.toRadians(5));
