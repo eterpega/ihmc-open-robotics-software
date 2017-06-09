@@ -8,6 +8,7 @@ import us.ihmc.euclid.geometry.ConvexPolygon2D;
 import us.ihmc.euclid.geometry.Line2D;
 import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.euclid.tuple2D.Vector2D;
+import us.ihmc.euclid.tuple2D.interfaces.Point2DReadOnly;
 import us.ihmc.graphicsDescription.appearance.YoAppearance;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
@@ -294,6 +295,8 @@ public class PushAndWalkBehavior extends AbstractBehavior
       reachableRegion.addVertex(footWorkSpaceVertex[6].getDoubleValue(), stepSide.negateIfRightSide(footWorkSpaceVertex[7].getDoubleValue()));
       reachableRegion.update();
       
+      Point2DReadOnly centroid = reachableRegion.getCentroid();
+      
       MovingReferenceFrame stanceSoleFrame = referenceFrames.getSoleZUpFrame(stepSide.getOppositeSide());
       //MovingReferenceFrame stanceSoleFrame = referenceFrames.getFootFrame(stepSide.getOppositeSide());
       FrameVector localDirection = new FrameVector(direction);
@@ -310,8 +313,10 @@ public class PushAndWalkBehavior extends AbstractBehavior
       //System.out.println(swingLocation.toString());      
       //System.out.println(localDirection.getX() + " " + localDirection.getY());
       //System.out.println(reachableRegion.toString());
-      Line2D ray = new Line2D(swingLocation.getX(), swingLocation.getY(), localDirection.getX(), localDirection.getY());
+      Line2D ray = new Line2D(centroid.getX(), centroid.getY(), localDirection.getX(), localDirection.getY());
       Point2D[] location2d = reachableRegion.intersectionWithRay(ray);
+      
+      //PrintTools.info("Number of solutions found" + location2d.length);
       
       int index = 0;
       if(location2d == null)
