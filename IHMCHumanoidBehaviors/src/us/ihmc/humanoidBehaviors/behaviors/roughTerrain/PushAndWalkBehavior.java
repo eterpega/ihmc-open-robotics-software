@@ -136,7 +136,7 @@ public class PushAndWalkBehavior extends AbstractBehavior
          doubleSupport = latestPacket.isInDoubleSupport();
          if(!prevDoubleSupport && doubleSupport)
          {
-            PrintTools.info("Command Completed");
+            //PrintTools.info("Command Completed");
             commandCompleted = true;
          }
          /*for (RobotSide robotSide : RobotSide.values)
@@ -149,7 +149,7 @@ public class PushAndWalkBehavior extends AbstractBehavior
          yawFilteredError.update(getSpineYawJointPositionError());
          if(!doubleSupport)
          {
-            PrintTools.info("In single support");
+            //PrintTools.info("In single support");
          }
          if(!walking.getBooleanValue())
          {
@@ -248,7 +248,7 @@ public class PushAndWalkBehavior extends AbstractBehavior
       FootstepDataListMessage footsteps = new FootstepDataListMessage();
       FootstepDataMessage footstep = new FootstepDataMessage(swingSide, location.getPoint(), orientation.getQuaternion());
       footsteps.add(footstep);
-      PrintTools.info("Sending packet to controller");
+      //PrintTools.info("Sending packet to controller");
       sendPacketToController(footsteps);
    }
 
@@ -316,13 +316,13 @@ public class PushAndWalkBehavior extends AbstractBehavior
       int index = 0;
       if(location2d == null)
       {
-    	  System.out.println("No intersection");
+    	  //PrintTools.info("No intersection");
     	  location2d = new Point2D[1];
     	  location2d[0] = new Point2D(swingLocation.getX(), swingLocation.getY());    	  
       }
       else if (location2d.length == 2)
       {
-    	  System.out.println("Multiple intersection");    	  
+    	  //PrintTools.info("Multiple intersection");    	  
     	  Point2D swingLoc = new Point2D(swingLocation.getX(), swingLocation.getY());
     	  index = location2d[0].distance(swingLoc) > location2d[1].distance(swingLoc) ? 0:1;
       }
