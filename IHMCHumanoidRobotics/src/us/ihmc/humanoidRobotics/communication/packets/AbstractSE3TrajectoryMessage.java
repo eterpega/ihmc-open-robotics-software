@@ -77,8 +77,17 @@ public abstract class AbstractSE3TrajectoryMessage<T extends AbstractSE3Trajecto
       setUniqueId(se3TrajectoryMessage.getUniqueId());
       setDestination(se3TrajectoryMessage.getDestination());
       setExecutionDelayTime(se3TrajectoryMessage.getExecutionDelayTime());
+      
       frameInformation.set(se3TrajectoryMessage);
+      
+      angularWeightMatrix = new WeightMatrix3DMessage(se3TrajectoryMessage.angularWeightMatrix);
+      linearWeightMatrix = new WeightMatrix3DMessage(se3TrajectoryMessage.linearWeightMatrix);
 
+      useCustomControlFrame = se3TrajectoryMessage.useCustomControlFrame;
+      if (se3TrajectoryMessage.controlFramePose != null)
+      {
+         controlFramePose = new QuaternionBasedTransform(se3TrajectoryMessage.controlFramePose);
+      }
    }
 
    public AbstractSE3TrajectoryMessage(double trajectoryTime, Point3DReadOnly desiredPosition, QuaternionReadOnly desiredOrientation, long trajectoryReferenceFrameId)
