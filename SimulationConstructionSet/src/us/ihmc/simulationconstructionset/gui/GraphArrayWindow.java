@@ -12,6 +12,8 @@ import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 
+import javafx.embed.swing.JFXPanel;
+import javafx.scene.Scene;
 import us.ihmc.graphicsDescription.graphInterfaces.SelectedVariableHolder;
 import us.ihmc.simulationconstructionset.DataBuffer;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
@@ -102,7 +104,11 @@ public class GraphArrayWindow implements SelectGraphConfigurationCommandExecutor
       frame.getContentPane().add(buttonPanel, "South");
 
       JPanel graphArrayAndButtonPanel = new JPanel(new java.awt.BorderLayout());
-      graphArrayAndButtonPanel.add("Center", myGraphArrayPanel);
+
+      JFXPanel mGAPHolder = new JFXPanel();
+      mGAPHolder.setScene(new Scene(myGraphArrayPanel));
+
+      graphArrayAndButtonPanel.add("Center", mGAPHolder);
 
       JPanel graphButtonPanel = myGraphArrayPanel.createGraphButtonPanel();
       graphArrayAndButtonPanel.add("South", graphButtonPanel);
@@ -163,7 +169,7 @@ public class GraphArrayWindow implements SelectGraphConfigurationCommandExecutor
       myGraphArrayPanel.repaintGraphs();
    }
 
-   public boolean isVisable()
+   public boolean isVisible()
    {
       return frame.isVisible();
    }
@@ -175,7 +181,7 @@ public class GraphArrayWindow implements SelectGraphConfigurationCommandExecutor
 
    public void repaint()
    {
-      myGraphArrayPanel.repaint();
+      myGraphArrayPanel.repaintGraphs();
    }
 
    public GraphArrayPanel getGraphArrayPanel()
@@ -191,8 +197,7 @@ public class GraphArrayWindow implements SelectGraphConfigurationCommandExecutor
 
    public void updateGUI()
    {
-      myGraphArrayPanel.repaint(); //updateUI();
-
+      myGraphArrayPanel.repaintGraphs();
    }
 
 

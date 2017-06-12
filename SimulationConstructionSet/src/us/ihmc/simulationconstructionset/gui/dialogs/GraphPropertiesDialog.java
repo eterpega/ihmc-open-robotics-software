@@ -95,8 +95,6 @@ public class GraphPropertiesDialog extends JDialog implements ActionListener
          {
             varPropertiesPanels[i].commitChanges();
          }
-         
-         graph.repaint();
       }
 
       if (event.getSource() == okButton)
@@ -108,7 +106,6 @@ public class GraphPropertiesDialog extends JDialog implements ActionListener
             varPropertiesPanels[i].commitChanges();
          }
 
-         graph.repaint();
          this.setVisible(false);
       }
 

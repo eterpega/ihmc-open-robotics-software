@@ -6,6 +6,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 
+import javafx.scene.Node;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.edt.FailOnThreadViolationRepaintManager;
@@ -416,14 +417,6 @@ public class SimulationGUITestFixture
       spinner.enterTextAndCommit(String.valueOf(value));
    }
 
-   public void middleClickInEmptyGraph()
-   {
-      YoGraphIsEmptyMatcher matcher = new YoGraphIsEmptyMatcher();
-
-      JPanelFixture panel = focusedWindow.panel(matcher);
-      panel.click(MouseButton.MIDDLE_BUTTON);
-   }
-
    public void middleClickInNthGraph(int nThToFind)
    {
       NthYoGraphMatcher matcher = new NthYoGraphMatcher(nThToFind);
@@ -616,31 +609,6 @@ public class SimulationGUITestFixture
       protected boolean isMatching(JSpinner component)
       {
          return component.getName().endsWith(nameEnding);
-      }
-   }
-
-
-   private class YoGraphIsEmptyMatcher extends GenericTypeMatcher<JPanel>
-   {
-      public YoGraphIsEmptyMatcher()
-      {
-         super(JPanel.class);
-      }
-
-      @Override
-      protected boolean isMatching(JPanel component)
-      {
-         String name = component.getName();
-         if (name == null)
-            return false;
-
-         boolean isAYoGraph = name.equals("YoGraph");
-         if (!isAYoGraph)
-            return false;
-
-         YoGraph yoGraph = (YoGraph) component;
-
-         return yoGraph.isEmpty();
       }
    }
 
