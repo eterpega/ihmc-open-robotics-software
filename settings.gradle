@@ -1,4 +1,5 @@
-rootProject.name = 'IHMCOpenRoboticsSoftware'
+rootProject.name = 'ihmc-open-robotics-software'
+
 def siblingDirs = rootProject.dir.list(new FilenameFilter() {
   @Override
   boolean accept(File dir, String name) {
