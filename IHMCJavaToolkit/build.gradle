@@ -59,7 +59,7 @@ dependencies {
     testCompile group: 'us.ihmc', name: 'ihmc-continuous-integration-framework', version: '0.9.4'
 
 	testCompile ihmc.getProjectTestDependency(":IHMCRoboticsToolkit")
-	testCompile ihmc.getProjectTestDependency(":IHMCJavaExtensions")
+	testCompile ihmc.getProjectTestDependency(":ihmc-java-extensions")
     testCompile group: 'us.ihmc', name: 'ihmc-commons-testing', version: '0.11.0-alpha'
 
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
@@ -72,7 +72,7 @@ dependencies {
     compile group: 'com.google.guava', name: 'guava', version: '18.0'
     compile group: 'us.ihmc', name: 'euclid-core', version: '0.4.3'
     
-	compile ihmc.getProjectDependency(":IHMCJavaExtensions")
+	compile ihmc.getProjectDependency(":ihmc-java-extensions")
     compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
 }
 

@@ -62,7 +62,7 @@ dependencies {
    compile ihmc.getProjectDependency(":ihmc-communication")
    compile ihmc.getProjectDependency(":IHMCJavaFXToolkit")
    compile ihmc.getProjectDependency(":IHMCJavaToolkit")
-    compile ihmc.getProjectDependency(":IHMCJavaExtensions")
+    compile ihmc.getProjectDependency(":ihmc-java-extensions")
     compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
    compile ihmc.getProjectDependency(":ihmc-humanoid-robotics")
    compile ihmc.getProjectDependency(":IHMCRoboticsToolkit")

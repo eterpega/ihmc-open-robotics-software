@@ -41,7 +41,7 @@ dependencies {
     compile group: 'us.ihmc', name: 'euclid-core', version: '0.4.3'
 
     compile ihmc.getProjectDependency(":IHMCJavaToolkit")
-    compile ihmc.getProjectDependency(":IHMCJavaExtensions")
+    compile ihmc.getProjectDependency(":ihmc-java-extensions")
     compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
     compile ihmc.getProjectDependency(":ihmc-communication")
     compile ihmc.getProjectDependency(":IHMCRoboticsToolkit")
