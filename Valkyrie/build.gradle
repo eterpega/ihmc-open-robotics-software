@@ -84,7 +84,7 @@ dependencies {
    compile ihmc.getProjectDependency(":ihmc-robotics-toolkit")
    compile ihmc.getProjectDependency(":IHMCGraphicsDescription")
    compile ihmc.getProjectDependency(":ihmc-robot-description")
-   compile ihmc.getProjectDependency(":IHMCRobotModels")
+   compile ihmc.getProjectDependency(":ihmc-robot-models")
    compile ihmc.getProjectDependency(":ihmc-robot-data-visualizer")
    compile ihmc.getProjectDependency(":IHMCSimulationToolkit")
 

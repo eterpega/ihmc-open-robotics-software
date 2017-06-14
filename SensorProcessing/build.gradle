@@ -65,7 +65,7 @@ dependencies {
     compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
     compile ihmc.getProjectDependency(":ihmc-robotics-toolkit")
     compile ihmc.getProjectDependency(":IHMCGraphicsDescription")
-    compile ihmc.getProjectDependency(":IHMCRobotModels")
+    compile ihmc.getProjectDependency(":ihmc-robot-models")
 
 
 	testCompile ihmc.getProjectDependency(":SimulationConstructionSet")
