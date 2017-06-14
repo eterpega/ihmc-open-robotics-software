@@ -60,7 +60,7 @@ dependencies {
 
     compile ihmc.getProjectDependency(":ihmc-communication")
     compile ihmc.getProjectDependency(":KalmanProject")
-    compile ihmc.getProjectDependency(":IHMCJavaToolkit")
+    compile ihmc.getProjectDependency(":ihmc-java-toolkit")
     compile ihmc.getProjectDependency(":ihmc-java-extensions")
     compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
     compile ihmc.getProjectDependency(":IHMCRoboticsToolkit")
