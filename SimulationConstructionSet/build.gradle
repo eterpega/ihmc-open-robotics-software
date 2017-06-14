@@ -72,7 +72,7 @@ dependencies {
 	compile ihmc.getProjectDependency(":ihmc-jmonkey-engine-toolkit")
 	compile ihmc.getProjectDependency(":ihmc-robot-description")
 	compile ihmc.getProjectDependency(":ihmc-java-toolkit")
-    compile ihmc.getProjectDependency(":ParameterOptimization")
+    compile ihmc.getProjectDependency(":parameter-optimization")
     compile ihmc.getProjectDependency(":ihmc-java-extensions")
     compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
 	compile ihmc.getProjectDependency(":ihmc-robotics-toolkit")
