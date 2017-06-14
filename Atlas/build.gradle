@@ -100,7 +100,7 @@ dependencies {
     compile ihmc.getProjectDependency(":IHMCGraphicsDescription")
     compile ihmc.getProjectDependency(":ihmc-robot-description")
     compile ihmc.getProjectDependency(":ihmc-robot-models")
-    compile ihmc.getProjectDependency(":IHMCSimulationToolkit")
+    compile ihmc.getProjectDependency(":ihmc-simulation-toolkit")
     compile ihmc.getProjectDependency(":ihmc-robot-data-visualizer")
     compile ihmc.getProjectDependency(":ihmc-manipulation-planning")
 
@@ -111,7 +111,7 @@ dependencies {
     testCompile ihmc.getProjectTestDependency(":ihmc-avatar-interfaces")
     testCompile ihmc.getProjectTestDependency(":ihmc-humanoid-robotics")
     testCompile ihmc.getProjectTestDependency(":SensorProcessing")
-    testCompile ihmc.getProjectTestDependency(":IHMCSimulationToolkit")
+    testCompile ihmc.getProjectTestDependency(":ihmc-simulation-toolkit")
 }
 
 apply plugin: 'application'
