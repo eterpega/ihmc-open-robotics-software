@@ -58,7 +58,7 @@ dependencies {
    compile group: 'us.ihmc', name: 'IHMCVideoCodecs', version: '2.0.12'
    
    compile ihmc.getProjectDependency(":model-file-loader")
-   compile ihmc.getProjectDependency(":simulation-contruction-set")
+   compile ihmc.getProjectDependency(":simulation-construction-set")
    compile ihmc.getProjectDependency(":ihmc-communication")
    compile ihmc.getProjectDependency(":ihmc-javafx-toolkit")
    compile ihmc.getProjectDependency(":ihmc-java-toolkit")

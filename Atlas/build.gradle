@@ -95,7 +95,7 @@ dependencies {
     compile ihmc.getProjectDependency(":robotiq-hand-drivers")
     compile ihmc.getProjectDependency(":model-file-loader")
     compile ihmc.getProjectDependency(":sensor-processing")
-    compile ihmc.getProjectDependency(":simulation-contruction-set")
+    compile ihmc.getProjectDependency(":simulation-construction-set")
     compile ihmc.getProjectDependency(":simulation-construction-set-tools")
     compile ihmc.getProjectDependency(":ihmc-graphics-description")
     compile ihmc.getProjectDependency(":ihmc-robot-description")

@@ -50,7 +50,7 @@ dependencies {
 	compile ihmc.getProjectDependency(":common-walking-control-modules")
 	compile ihmc.getProjectDependency(":ihmc-communication")
 	compile ihmc.getProjectDependency(":ihmc-humanoid-robotics")
-	compile ihmc.getProjectDependency(":simulation-contruction-set")
+	compile ihmc.getProjectDependency(":simulation-construction-set")
 
 	compile ihmc.getProjectDependency(":sensor-processing")
 	compile ihmc.getProjectDependency(":simulation-construction-set-tools")

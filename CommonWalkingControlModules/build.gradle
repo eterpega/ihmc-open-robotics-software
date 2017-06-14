@@ -84,7 +84,7 @@ dependencies {
     compile ihmc.getProjectDependency(":ihmc-graphics-description")
 
 
-	testCompile ihmc.getProjectDependency(":simulation-contruction-set")
+	testCompile ihmc.getProjectDependency(":simulation-construction-set")
     testCompile ihmc.getProjectDependency(":simulation-construction-set-tools")
 	testCompile ihmc.getProjectTestDependency(":ihmc-robotics-toolkit")
 	testCompile ihmc.getProjectTestDependency(":ihmc-java-extensions")

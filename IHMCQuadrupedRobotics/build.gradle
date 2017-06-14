@@ -71,8 +71,8 @@ dependencies {
 	testCompile ihmc.getProjectTestDependency(":ihmc-java-extensions")
     testCompile group: 'us.ihmc', name: 'ihmc-commons-testing', version: '0.11.0-alpha'
     
-    testCompile ihmc.getProjectDependency(":simulation-contruction-set")
-    testCompile ihmc.getProjectTestDependency(":simulation-contruction-set")
+    testCompile ihmc.getProjectDependency(":simulation-construction-set")
+    testCompile ihmc.getProjectTestDependency(":simulation-construction-set")
     testCompile ihmc.getProjectTestDependency(":simulation-construction-set-tools")
     testCompile ihmc.getProjectTestDependency(":common-walking-control-modules")
 }
