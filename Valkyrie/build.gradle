@@ -69,7 +69,7 @@ dependencies {
    compile ihmc.getProjectDependency(":IHMCSystemIdentification")
    compile ihmc.getProjectDependency(":IHMCStateEstimation")
    compile ihmc.getProjectDependency(":common-walking-control-modules")
-   compile ihmc.getProjectDependency(":IHMCAvatarInterfaces")
+   compile ihmc.getProjectDependency(":ihmc-avatar-interfaces")
    compile ihmc.getProjectDependency(":IHMCJMonkeyEngineToolkit")
    compile ihmc.getProjectDependency(":IHMCROSTools")
    compile ihmc.getProjectDependency(":IHMCRobotDataLogger")
@@ -91,7 +91,7 @@ dependencies {
 	testCompile ihmc.getProjectTestDependency(":IHMCRoboticsToolkit")
 	testCompile ihmc.getProjectTestDependency(":IHMCJavaExtensions")
     testCompile group: 'us.ihmc', name: 'ihmc-commons-testing', version: '0.11.0-alpha'
-   testCompile ihmc.getProjectTestDependency(":IHMCAvatarInterfaces")
+   testCompile ihmc.getProjectTestDependency(":ihmc-avatar-interfaces")
 }
 
 apply plugin: 'application'
