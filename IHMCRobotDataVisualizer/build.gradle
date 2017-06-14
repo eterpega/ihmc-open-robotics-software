@@ -60,7 +60,7 @@ dependencies {
    compile ihmc.getProjectDependency(":ModelFileLoader")
    compile ihmc.getProjectDependency(":SimulationConstructionSet")
    compile ihmc.getProjectDependency(":ihmc-communication")
-   compile ihmc.getProjectDependency(":IHMCJavaFXToolkit")
+   compile ihmc.getProjectDependency(":ihmc-javafx-toolkit")
    compile ihmc.getProjectDependency(":IHMCJavaToolkit")
     compile ihmc.getProjectDependency(":ihmc-java-extensions")
     compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
