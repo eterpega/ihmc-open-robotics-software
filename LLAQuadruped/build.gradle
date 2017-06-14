@@ -67,7 +67,7 @@ dependencies {
     testCompile group: 'us.ihmc', name: 'ihmc-commons-testing', version: '0.11.0-alpha'
    testCompile ihmc.getProjectTestDependency(":ihmc-quadruped-robotics")
    testCompile ihmc.getProjectTestDependency(":simulation-contruction-set")
-    testCompile ihmc.getProjectTestDependency(":simulation-contruction-setTools")
+    testCompile ihmc.getProjectTestDependency(":simulation-construction-set-tools")
 }
 
 jar {

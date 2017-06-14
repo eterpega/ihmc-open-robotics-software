@@ -55,7 +55,7 @@ dependencies {
     compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
     compile ihmc.getProjectDependency(":ihmc-quadruped-robotics")
     compile ihmc.getProjectDependency(":simulation-contruction-set")
-    compile ihmc.getProjectDependency(":simulation-contruction-setTools")
+    compile ihmc.getProjectDependency(":simulation-construction-set-tools")
     compile ihmc.getProjectDependency(":common-walking-control-modules")
     compile ihmc.getProjectDependency(":ihmc-jmonkey-engine-toolkit")
     compile ihmc.getProjectDependency(":ihmc-robotics-toolkit")

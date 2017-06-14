@@ -96,7 +96,7 @@ dependencies {
     compile ihmc.getProjectDependency(":model-file-loader")
     compile ihmc.getProjectDependency(":sensor-processing")
     compile ihmc.getProjectDependency(":simulation-contruction-set")
-    compile ihmc.getProjectDependency(":simulation-contruction-setTools")
+    compile ihmc.getProjectDependency(":simulation-construction-set-tools")
     compile ihmc.getProjectDependency(":ihmc-graphics-description")
     compile ihmc.getProjectDependency(":ihmc-robot-description")
     compile ihmc.getProjectDependency(":ihmc-robot-models")
