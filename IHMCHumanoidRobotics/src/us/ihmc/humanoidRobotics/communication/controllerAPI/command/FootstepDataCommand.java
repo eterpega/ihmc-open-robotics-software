@@ -26,12 +26,15 @@ public class FootstepDataCommand implements Command<FootstepDataCommand, Footste
    private double swingHeight = 0.0;
    private final FramePoint position = new FramePoint();
    private final FrameOrientation orientation = new FrameOrientation();
+   private final FramePoint expectedInitialPosition = new FramePoint();
+   private final FrameOrientation expectedInitialOrientation = new FrameOrientation();
 
    private final RecyclingArrayList<Point2D> predictedContactPoints = new RecyclingArrayList<>(4, Point2D.class);
 
    private final RecyclingArrayList<FramePoint> customPositionWaypoints = new RecyclingArrayList<>(2, FramePoint.class);
    private final RecyclingArrayList<FrameSE3TrajectoryPoint> swingTrajectory = new RecyclingArrayList<>(Footstep.maxNumberOfSwingWaypoints, FrameSE3TrajectoryPoint.class);
 
+   private double swingTrajectoryBlendDuration = 0.0;
    private double swingDuration = Double.NaN;
    private double transferDuration = Double.NaN;
 
@@ -39,6 +42,8 @@ public class FootstepDataCommand implements Command<FootstepDataCommand, Footste
    
    /** the time to delay this command on the controller side before being executed **/
    private double executionDelayTime;
+   /** the execution time. This number is set if the execution delay is non zero**/
+   public double adjustedExecutionTime;
 
    public FootstepDataCommand()
    {
@@ -53,6 +58,8 @@ public class FootstepDataCommand implements Command<FootstepDataCommand, Footste
       swingHeight = 0.0;
       position.set(0.0, 0.0, 0.0);
       orientation.set(0.0, 0.0, 0.0, 1.0);
+      expectedInitialPosition.setToNaN();
+      expectedInitialOrientation.setToNaN();
       predictedContactPoints.clear();
       customPositionWaypoints.clear();
       swingTrajectory.clear();
@@ -67,8 +74,21 @@ public class FootstepDataCommand implements Command<FootstepDataCommand, Footste
       robotSide = message.getRobotSide();
       trajectoryType = message.getTrajectoryType();
       swingHeight = message.getSwingHeight();
+      swingTrajectoryBlendDuration = message.getSwingTrajectoryBlendDuration();
       position.setIncludingFrame(worldFrame, message.getLocation());
       orientation.setIncludingFrame(worldFrame, message.getOrientation());
+
+      Point3D messageExpectedInitialLocation = message.getExpectedInitialLocation();
+      if (messageExpectedInitialLocation != null)
+      {
+         expectedInitialPosition.setIncludingFrame(worldFrame, messageExpectedInitialLocation);
+      }
+
+      Quaternion messageExpectedInitialOrientation = message.getExpectedInitialOrientation();
+      if (messageExpectedInitialOrientation != null)
+      {
+         expectedInitialOrientation.setIncludingFrame(worldFrame, messageExpectedInitialOrientation);
+      }
 
       Point3D[] originalPositionWaypointList = message.getCustomPositionWaypoints();
       customPositionWaypoints.clear();
@@ -110,8 +130,11 @@ public class FootstepDataCommand implements Command<FootstepDataCommand, Footste
       robotSide = other.robotSide;
       trajectoryType = other.trajectoryType;
       swingHeight = other.swingHeight;
+      swingTrajectoryBlendDuration = other.swingTrajectoryBlendDuration;
       position.setIncludingFrame(other.position);
       orientation.setIncludingFrame(other.orientation);
+      expectedInitialPosition.setIncludingFrame(other.expectedInitialPosition);
+      expectedInitialOrientation.setIncludingFrame(other.expectedInitialOrientation);
 
       RecyclingArrayList<FramePoint> otherWaypointList = other.customPositionWaypoints;
       customPositionWaypoints.clear();
@@ -148,6 +171,17 @@ public class FootstepDataCommand implements Command<FootstepDataCommand, Footste
    {
       this.position.set(position);
       this.orientation.set(orientation);
+   }
+
+   public void setExpectedInitialPose(Point3D position, Quaternion orientation)
+   {
+      this.expectedInitialPosition.set(position);
+      this.expectedInitialOrientation.set(orientation);
+   }
+
+   public void setSwingTrajectoryBlendDuration(double swingTrajectoryBlendDuration)
+   {
+      this.swingTrajectoryBlendDuration = swingTrajectoryBlendDuration;
    }
 
    public void setSwingHeight(double swingHeight)
@@ -192,6 +226,11 @@ public class FootstepDataCommand implements Command<FootstepDataCommand, Footste
       return swingTrajectory;
    }
 
+   public double getSwingTrajectoryBlendDuration()
+   {
+      return swingTrajectoryBlendDuration;
+   }
+
    public double getSwingHeight()
    {
       return swingHeight;
@@ -205,6 +244,16 @@ public class FootstepDataCommand implements Command<FootstepDataCommand, Footste
    public FrameOrientation getOrientation()
    {
       return orientation;
+   }
+
+   public FramePoint getExpectedInitialPosition()
+   {
+      return expectedInitialPosition;
+   }
+
+   public FrameOrientation getExpectedInitialOrientation()
+   {
+      return expectedInitialOrientation;
    }
 
    public RecyclingArrayList<Point2D> getPredictedContactPoints()
@@ -253,5 +302,26 @@ public class FootstepDataCommand implements Command<FootstepDataCommand, Footste
    {
       this.executionDelayTime = delayTime;
    }
+   
+   /**
+    * returns the expected execution time of this command. The execution time will be computed when the controller 
+    * receives the command using the controllers time plus the execution delay time.
+    * This is used when {@code getExecutionDelayTime} is non-zero
+    */
+   @Override
+   public double getExecutionTime()
+   {
+      return adjustedExecutionTime;
+   }
+
+   /**
+    * sets the execution time for this command. This is called by the controller when the command is received.
+    */
+   @Override
+   public void setExecutionTime(double adjustedExecutionTime)
+   {
+      this.adjustedExecutionTime = adjustedExecutionTime;
+   }
+
 
 }
