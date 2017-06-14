@@ -68,7 +68,7 @@ dependencies {
 
 	compile ihmc.getProjectDependency(":IHMCROSTools")
 	compile ihmc.getProjectDependency(":common-walking-control-modules")
-	compile ihmc.getProjectDependency(":IHMCJMonkeyEngineToolkit")
+	compile ihmc.getProjectDependency(":ihmc-jmonkey-engine-toolkit")
 	compile ihmc.getProjectDependency(":IHMCRobotDataLogger")
 	compile ihmc.getProjectDependency(":ModelFileLoader")
 	compile ihmc.getProjectDependency(":SensorProcessing")

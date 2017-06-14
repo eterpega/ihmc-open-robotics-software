@@ -50,7 +50,7 @@ dependencies {
 	compile ihmc.getProjectDependency(":IHMCRobotDescription")
 	compile ihmc.getProjectDependency(":ModelFileLoader")
 	compile ihmc.getProjectDependency(":IHMCGraphicsDescription")
-	compile ihmc.getProjectDependency(":IHMCJMonkeyEngineToolkit")
+	compile ihmc.getProjectDependency(":ihmc-jmonkey-engine-toolkit")
 
 
 	testCompile ihmc.getProjectTestDependency(":IHMCRoboticsToolkit")

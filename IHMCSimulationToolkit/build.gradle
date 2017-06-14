@@ -60,7 +60,7 @@ dependencies {
     compile ihmc.getProjectDependency(":ModelFileLoader")
     compile ihmc.getProjectDependency(":IHMCGraphicsDescription")
     compile ihmc.getProjectDependency(":ihmc-communication")
-    compile ihmc.getProjectDependency(":IHMCJMonkeyEngineToolkit")
+    compile ihmc.getProjectDependency(":ihmc-jmonkey-engine-toolkit")
     compile ihmc.getProjectDependency(":common-walking-control-modules")
     compile ihmc.getProjectDependency(":IHMCStateEstimation")
     

@@ -81,7 +81,7 @@ dependencies {
     compile ihmc.getProjectDependency(":Vicon")
     compile ihmc.getProjectDependency(":common-walking-control-modules")
     compile ihmc.getProjectDependency(":ihmc-avatar-interfaces")
-    compile ihmc.getProjectDependency(":IHMCJMonkeyEngineToolkit")
+    compile ihmc.getProjectDependency(":ihmc-jmonkey-engine-toolkit")
     compile ihmc.getProjectDependency(":ihmc-humanoid-robotics")
     compile ihmc.getProjectDependency(":ihmc-communication")
     compile ihmc.getProjectDependency(":ihmc-java-toolkit")
