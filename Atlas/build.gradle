@@ -77,7 +77,7 @@ dependencies {
 
     testCompile group: 'us.ihmc', name: 'ihmc-continuous-integration-framework', version: '0.9.4'
 
-    compile ihmc.getProjectDependency(":IHMCHumanoidBehaviors")
+    compile ihmc.getProjectDependency(":ihmc-humanoid-behaviors")
     compile ihmc.getProjectDependency(":Vicon")
     compile ihmc.getProjectDependency(":common-walking-control-modules")
     compile ihmc.getProjectDependency(":ihmc-avatar-interfaces")

@@ -74,7 +74,7 @@ dependencies {
 	compile ihmc.getProjectDependency(":SensorProcessing")
 	compile ihmc.getProjectDependency(":SimulationConstructionSet")
 	compile ihmc.getProjectDependency(":ihmc-communication")
-	compile ihmc.getProjectDependency(":IHMCHumanoidBehaviors")
+	compile ihmc.getProjectDependency(":ihmc-humanoid-behaviors")
 	compile ihmc.getProjectDependency(":IHMCHumanoidRobotics")
 	compile ihmc.getProjectDependency(":IHMCPerception")
 	compile ihmc.getProjectDependency(":IHMCWholeBodyController")
