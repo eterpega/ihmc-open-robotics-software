@@ -15,9 +15,9 @@ apply plugin: "us.ihmc.gradle.ihmc-build"
 apply plugin: "org.hidetake.ssh"
 import org.ajoberstar.grgit.Grgit
 
-if (!rootProject.name.equals('IHMCOpenRoboticsSoftware'))
+if (!rootProject.name.equals('ihmc-open-robotics-software'))
 {
-   evaluationDependsOn(':IHMCOpenRoboticsSoftware')
+   evaluationDependsOn(':ihmc-open-robotics-software')
 }
 
 sourceCompatibility = 1.8

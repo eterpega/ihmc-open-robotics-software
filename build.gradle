@@ -101,7 +101,7 @@ subprojects { subproject ->
          if (subproject.getParent().name.equals(rootProject.name)) {
             return rootProject
          } else {
-            return project(':IHMCOpenRoboticsSoftware')
+            return project(':ihmc-open-robotics-software')
          }
       }
 
@@ -109,7 +109,7 @@ subprojects { subproject ->
          if (subproject.getParent().name.equals(rootProject.name)) {
             return ""
          } else {
-            return ":IHMCOpenRoboticsSoftware"
+            return ":ihmc-open-robotics-software"
          }
       }
    }

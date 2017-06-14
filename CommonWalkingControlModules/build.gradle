@@ -11,7 +11,7 @@ buildscript {
 
 apply plugin: "us.ihmc.gradle.ihmc-build"
 
-if(!rootProject.name.equals('IHMCOpenRoboticsSoftware')) { evaluationDependsOn(':IHMCOpenRoboticsSoftware') }
+if(!rootProject.name.equals('ihmc-open-robotics-software')) { evaluationDependsOn(':ihmc-open-robotics-software') }
 
 sourceCompatibility = 1.8
 version = "${getOpenRoboticsSoftwareProject().version}"
