@@ -67,7 +67,7 @@ dependencies {
    compile ihmc.getProjectDependency(":ihmc-communication")
    compile ihmc.getProjectDependency(":ihmc-humanoid-robotics")
    compile ihmc.getProjectDependency(":IHMCSystemIdentification")
-   compile ihmc.getProjectDependency(":IHMCStateEstimation")
+   compile ihmc.getProjectDependency(":ihmc-state-estimation")
    compile ihmc.getProjectDependency(":common-walking-control-modules")
    compile ihmc.getProjectDependency(":ihmc-avatar-interfaces")
    compile ihmc.getProjectDependency(":ihmc-jmonkey-engine-toolkit")

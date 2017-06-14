@@ -62,7 +62,7 @@ dependencies {
     compile ihmc.getProjectDependency(":ihmc-communication")
     compile ihmc.getProjectDependency(":ihmc-robot-models")
     compile ihmc.getProjectDependency(":SensorProcessing")
-    compile ihmc.getProjectDependency(":IHMCStateEstimation")
+    compile ihmc.getProjectDependency(":ihmc-state-estimation")
     compile ihmc.getProjectDependency(":IHMCGraphicsDescription")
     compile ihmc.getProjectDependency(":ihmc-robot-description")
 

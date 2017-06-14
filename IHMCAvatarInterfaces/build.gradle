@@ -78,7 +78,7 @@ dependencies {
 	compile ihmc.getProjectDependency(":ihmc-humanoid-robotics")
 	compile ihmc.getProjectDependency(":ihmc-perception")
 	compile ihmc.getProjectDependency(":IHMCWholeBodyController")
-	compile ihmc.getProjectDependency(":IHMCStateEstimation")
+	compile ihmc.getProjectDependency(":ihmc-state-estimation")
 	compile ihmc.getProjectDependency(":ihmc-java-toolkit")
     compile ihmc.getProjectDependency(":ihmc-java-extensions")
     compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'

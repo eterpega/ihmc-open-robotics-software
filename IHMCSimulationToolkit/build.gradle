@@ -62,7 +62,7 @@ dependencies {
     compile ihmc.getProjectDependency(":ihmc-communication")
     compile ihmc.getProjectDependency(":ihmc-jmonkey-engine-toolkit")
     compile ihmc.getProjectDependency(":common-walking-control-modules")
-    compile ihmc.getProjectDependency(":IHMCStateEstimation")
+    compile ihmc.getProjectDependency(":ihmc-state-estimation")
     
     
 	testCompile ihmc.getProjectTestDependency(":ihmc-robotics-toolkit")
