@@ -58,7 +58,7 @@ dependencies {
     compile ihmc.getProjectDependency(":IHMCRobotModels")
     compile ihmc.getProjectDependency(":SensorProcessing")
     compile ihmc.getProjectDependency(":IHMCGraphicsDescription")
-    compile ihmc.getProjectDependency(":IHMCFootstepPlanning")
+    compile ihmc.getProjectDependency(":ihmc-footstep-planning")
 
     testCompile ihmc.getProjectTestDependency(":ihmc-communication")
 	testCompile ihmc.getProjectTestDependency(":IHMCRoboticsToolkit")

@@ -89,13 +89,13 @@ dependencies {
     compile ihmc.getProjectDependency(":IHMCRobotModels")
     compile ihmc.getProjectDependency(":IHMCSimulationToolkit")
     compile ihmc.getProjectDependency(":IHMCRobotDataVisualizer")
-    compile ihmc.getProjectDependency(":IHMCFootstepPlanning")
+    compile ihmc.getProjectDependency(":ihmc-footstep-planning")
 	compile ihmc.getProjectDependency(":SimulationConstructionSetTools")
 
 	testCompile ihmc.getProjectTestDependency(":IHMCRoboticsToolkit")
 	testCompile ihmc.getProjectTestDependency(":IHMCJavaExtensions")
     testCompile group: 'us.ihmc', name: 'ihmc-commons-testing', version: '0.11.0-alpha'
-	testCompile ihmc.getProjectTestDependency(":IHMCFootstepPlanning")
+	testCompile ihmc.getProjectTestDependency(":ihmc-footstep-planning")
 	testCompile ihmc.getProjectTestDependency(":IHMCHumanoidRobotics")
 	testCompile ihmc.getProjectTestDependency(":SimulationConstructionSetTools")
 }
