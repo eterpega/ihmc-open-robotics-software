@@ -55,7 +55,7 @@ dependencies {
     compile ihmc.getProjectDependency(":SensorProcessing")
     compile ihmc.getProjectDependency(":SimulationConstructionSetTools")
     compile ihmc.getProjectDependency(":ihmc-humanoid-robotics")
-    compile ihmc.getProjectDependency(":IHMCQuadrupedRobotics")
+    compile ihmc.getProjectDependency(":ihmc-quadruped-robotics")
     compile ihmc.getProjectDependency(":IHMCWholeBodyController")
     compile ihmc.getProjectDependency(":ModelFileLoader")
     compile ihmc.getProjectDependency(":IHMCGraphicsDescription")
