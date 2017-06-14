@@ -53,7 +53,7 @@ dependencies {
     compile ihmc.getProjectDependency(":ihmc-java-toolkit")
     compile ihmc.getProjectDependency(":ihmc-java-extensions")
     compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
-    compile ihmc.getProjectDependency(":IHMCRoboticsToolkit")
+    compile ihmc.getProjectDependency(":ihmc-robotics-toolkit")
     compile ihmc.getProjectDependency(":ihmc-communication")
     compile ihmc.getProjectDependency(":IHMCRobotModels")
     compile ihmc.getProjectDependency(":SensorProcessing")
@@ -61,7 +61,7 @@ dependencies {
     compile ihmc.getProjectDependency(":ihmc-footstep-planning")
 
     testCompile ihmc.getProjectTestDependency(":ihmc-communication")
-	testCompile ihmc.getProjectTestDependency(":IHMCRoboticsToolkit")
+	testCompile ihmc.getProjectTestDependency(":ihmc-robotics-toolkit")
 	testCompile ihmc.getProjectTestDependency(":ihmc-java-extensions")
     testCompile group: 'us.ihmc', name: 'ihmc-commons-testing', version: '0.11.0-alpha'
 }

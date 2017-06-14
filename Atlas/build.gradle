@@ -88,7 +88,7 @@ dependencies {
     compile ihmc.getProjectDependency(":ihmc-java-extensions")
     compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
     compile ihmc.getProjectDependency(":ihmc-perception")
-    compile ihmc.getProjectDependency(":IHMCRoboticsToolkit")
+    compile ihmc.getProjectDependency(":ihmc-robotics-toolkit")
     compile ihmc.getProjectDependency(":IHMCROSTools")
     compile ihmc.getProjectDependency(":IHMCWholeBodyController")
     compile ihmc.getProjectDependency(":ihmc-robot-data-logger")
@@ -104,7 +104,7 @@ dependencies {
     compile ihmc.getProjectDependency(":ihmc-robot-data-visualizer")
     compile ihmc.getProjectDependency(":ihmc-manipulation-planning")
 
-    testCompile ihmc.getProjectTestDependency(":IHMCRoboticsToolkit")
+    testCompile ihmc.getProjectTestDependency(":ihmc-robotics-toolkit")
     testCompile ihmc.getProjectTestDependency(":ihmc-java-extensions")
     testCompile group: 'us.ihmc', name: 'ihmc-commons-testing', version: '0.11.0-alpha'
     testCompile ihmc.getProjectTestDependency(":common-walking-control-modules")

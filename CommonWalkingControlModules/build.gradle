@@ -73,7 +73,7 @@ dependencies {
     compile ihmc.getProjectDependency(":SensorProcessing")
     compile ihmc.getProjectDependency(":ihmc-communication")
     compile ihmc.getProjectDependency(":convex-optimization-adapter")
-    compile ihmc.getProjectDependency(":IHMCRoboticsToolkit")
+    compile ihmc.getProjectDependency(":ihmc-robotics-toolkit")
     compile ihmc.getProjectDependency(":ihmc-java-toolkit")
     compile ihmc.getProjectDependency(":ihmc-java-extensions")
     compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
@@ -86,10 +86,10 @@ dependencies {
 
 	testCompile ihmc.getProjectDependency(":SimulationConstructionSet")
     testCompile ihmc.getProjectDependency(":SimulationConstructionSetTools")
-	testCompile ihmc.getProjectTestDependency(":IHMCRoboticsToolkit")
+	testCompile ihmc.getProjectTestDependency(":ihmc-robotics-toolkit")
 	testCompile ihmc.getProjectTestDependency(":ihmc-java-extensions")
     testCompile group: 'us.ihmc', name: 'ihmc-commons-testing', version: '0.11.0-alpha'
-    testCompile ihmc.getProjectTestDependency(":IHMCRoboticsToolkit")
+    testCompile ihmc.getProjectTestDependency(":ihmc-robotics-toolkit")
     testCompile ihmc.getProjectTestDependency(":convex-optimization-adapter")
 }
 

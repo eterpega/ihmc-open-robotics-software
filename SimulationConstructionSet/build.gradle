@@ -75,7 +75,7 @@ dependencies {
     compile ihmc.getProjectDependency(":ParameterOptimization")
     compile ihmc.getProjectDependency(":ihmc-java-extensions")
     compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
-	compile ihmc.getProjectDependency(":IHMCRoboticsToolkit")
+	compile ihmc.getProjectDependency(":ihmc-robotics-toolkit")
     compile ihmc.getProjectDependency(":IHMCGraphicsDescription")
 	compile ihmc.getProjectDependency(":ihmc-javafx-toolkit")
     compile ihmc.getProjectDependency(":IHMCSwingPlotting")
@@ -84,7 +84,7 @@ dependencies {
 
     testCompile group: 'org.ejml', name: 'dense64', version: '0.30'
 
-	testCompile ihmc.getProjectTestDependency(":IHMCRoboticsToolkit")
+	testCompile ihmc.getProjectTestDependency(":ihmc-robotics-toolkit")
 	testCompile ihmc.getProjectTestDependency(":ihmc-java-extensions")
     testCompile group: 'us.ihmc', name: 'ihmc-commons-testing', version: '0.11.0-alpha'
 }
