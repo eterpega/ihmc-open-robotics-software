@@ -51,7 +51,7 @@ dependencies {
     
     testCompile group: 'us.ihmc', name: 'ihmc-continuous-integration-framework', version: '0.9.4'
 
-    compile ihmc.getProjectDependency(":IHMCRobotDataLogger")
+    compile ihmc.getProjectDependency(":ihmc-robot-data-logger")
     compile ihmc.getProjectDependency(":common-walking-control-modules")
     compile ihmc.getProjectDependency(":convex-optimization-adapter")
     compile ihmc.getProjectDependency(":ihmc-humanoid-robotics")

@@ -72,7 +72,7 @@ dependencies {
    compile ihmc.getProjectDependency(":ihmc-avatar-interfaces")
    compile ihmc.getProjectDependency(":ihmc-jmonkey-engine-toolkit")
    compile ihmc.getProjectDependency(":IHMCROSTools")
-   compile ihmc.getProjectDependency(":IHMCRobotDataLogger")
+   compile ihmc.getProjectDependency(":ihmc-robot-data-logger")
    compile ihmc.getProjectDependency(":ModelFileLoader")
    compile ihmc.getProjectDependency(":SensorProcessing")
    compile ihmc.getProjectDependency(":SimulationConstructionSet")

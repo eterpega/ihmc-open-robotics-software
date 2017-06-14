@@ -68,7 +68,7 @@ dependencies {
    compile ihmc.getProjectDependency(":IHMCRoboticsToolkit")
    compile ihmc.getProjectDependency(":IHMCGraphicsDescription")
     compile ihmc.getProjectDependency(":IHMCRobotDescription")
-   compile ihmc.getProjectDependency(":IHMCRobotDataLogger")
+   compile ihmc.getProjectDependency(":ihmc-robot-data-logger")
 }
 
 mainClassName = hasProperty('mainClass') ? mainClass : "us.ihmc.robotDataVisualizer.visualizer.SCSVisualizer"
