@@ -56,7 +56,7 @@ dependencies {
 //   compile ihmc.getProjectDependency(":ModelFileLoader")
    compile ihmc.getProjectDependency(":ihmc-humanoid-robotics")
    compile ihmc.getProjectDependency(":SensorProcessing")
-//   compile ihmc.getProjectDependency(":IHMCRobotDescription")
+//   compile ihmc.getProjectDependency(":ihmc-robot-description")
    compile ihmc.getProjectDependency(":IHMCRobotModels")
     compile ihmc.getProjectDependency(":IHMCSimulationToolkit")
     compile ihmc.getProjectDependency(":LLAQuadrupedController")
