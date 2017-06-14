@@ -78,7 +78,7 @@ dependencies {
 	compile ihmc.getProjectDependency(":ihmc-robotics-toolkit")
     compile ihmc.getProjectDependency(":IHMCGraphicsDescription")
 	compile ihmc.getProjectDependency(":ihmc-javafx-toolkit")
-    compile ihmc.getProjectDependency(":IHMCSwingPlotting")
+    compile ihmc.getProjectDependency(":ihmc-swing-plotting")
 	compile ihmc.getProjectDependency(":ihmc-communication")
     compile ihmc.getProjectDependency(":ihmc-geometry")
 
