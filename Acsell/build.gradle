@@ -66,7 +66,7 @@ dependencies {
    compile ihmc.getProjectDependency(":common-walking-control-modules")
    compile ihmc.getProjectDependency(":ihmc-avatar-interfaces")
    compile ihmc.getProjectDependency(":ihmc-jmonkey-engine-toolkit")
-   compile ihmc.getProjectDependency(":ModelFileLoader")
+   compile ihmc.getProjectDependency(":model-file-loader")
    compile ihmc.getProjectDependency(":SensorProcessing")
    compile ihmc.getProjectDependency(":SimulationConstructionSet")
    compile ihmc.getProjectDependency(":ihmc-robot-data-logger")

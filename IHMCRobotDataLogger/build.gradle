@@ -74,7 +74,7 @@ dependencies {
    compile group: 'us.ihmc', name: 'IHMCPubSub', version: '0.2.6'
    compile group: 'us.ihmc', name: 'IHMCPubSubSerializersExtra', version: '0.2.4'
    
-   compile ihmc.getProjectDependency(":ModelFileLoader")
+   compile ihmc.getProjectDependency(":model-file-loader")
    compile ihmc.getProjectDependency(":ihmc-communication")
    compile ihmc.getProjectDependency(":ihmc-java-toolkit")
    compile ihmc.getProjectDependency(":ihmc-java-extensions")
