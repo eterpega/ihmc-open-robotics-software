@@ -59,7 +59,7 @@ dependencies {
     compile "org.boofcv:geo:0.19"
 
     compile ihmc.getProjectDependency(":ihmc-communication")
-    compile ihmc.getProjectDependency(":KalmanProject")
+    compile ihmc.getProjectDependency(":kalman-project")
     compile ihmc.getProjectDependency(":ihmc-java-toolkit")
     compile ihmc.getProjectDependency(":ihmc-java-extensions")
     compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
