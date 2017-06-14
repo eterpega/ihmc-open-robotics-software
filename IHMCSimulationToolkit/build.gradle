@@ -54,7 +54,7 @@ dependencies {
     compile ihmc.getProjectDependency(":IHMCRobotModels")
     compile ihmc.getProjectDependency(":SensorProcessing")
     compile ihmc.getProjectDependency(":SimulationConstructionSetTools")
-    compile ihmc.getProjectDependency(":IHMCHumanoidRobotics")
+    compile ihmc.getProjectDependency(":ihmc-humanoid-robotics")
     compile ihmc.getProjectDependency(":IHMCQuadrupedRobotics")
     compile ihmc.getProjectDependency(":IHMCWholeBodyController")
     compile ihmc.getProjectDependency(":ModelFileLoader")
@@ -69,7 +69,7 @@ dependencies {
 	testCompile ihmc.getProjectTestDependency(":IHMCJavaExtensions")
     testCompile group: 'us.ihmc', name: 'ihmc-commons-testing', version: '0.11.0-alpha'
     testCompile ihmc.getProjectTestDependency(":IHMCRoboticsToolkit")
-    testCompile ihmc.getProjectTestDependency(":IHMCHumanoidRobotics")
+    testCompile ihmc.getProjectTestDependency(":ihmc-humanoid-robotics")
 }
 
 jar {

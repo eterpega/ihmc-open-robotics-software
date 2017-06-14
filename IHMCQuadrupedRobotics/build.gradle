@@ -54,7 +54,7 @@ dependencies {
     compile ihmc.getProjectDependency(":IHMCRobotDataLogger")
     compile ihmc.getProjectDependency(":common-walking-control-modules")
     compile ihmc.getProjectDependency(":convex-optimization-adapter")
-    compile ihmc.getProjectDependency(":IHMCHumanoidRobotics")
+    compile ihmc.getProjectDependency(":ihmc-humanoid-robotics")
     compile ihmc.getProjectDependency(":IHMCJavaToolkit")
     compile ihmc.getProjectDependency(":IHMCJavaExtensions")
     compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'

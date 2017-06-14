@@ -50,7 +50,7 @@ dependencies {
 	compile group: 'net.wimpi', name: 'jamod', version: '1.2'
     compile group: 'commons-collections', name: 'commons-collections', version: '3.2.1'
 
-    compile ihmc.getProjectDependency(":IHMCHumanoidRobotics")
+    compile ihmc.getProjectDependency(":ihmc-humanoid-robotics")
 	compile ihmc.getProjectDependency(":ihmc-avatar-interfaces")
 	compile ihmc.getProjectDependency(":ihmc-communication")
 	compile ihmc.getProjectDependency(":SimulationConstructionSet")

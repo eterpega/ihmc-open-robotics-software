@@ -59,7 +59,7 @@ dependencies {
 	compile ihmc.getProjectDependency(":IHMCManipulationPlanning")
     compile ihmc.getProjectDependency(":IHMCRobotModels")
 	compile ihmc.getProjectDependency(":ihmc-communication")
-	compile ihmc.getProjectDependency(":IHMCHumanoidRobotics")
+	compile ihmc.getProjectDependency(":ihmc-humanoid-robotics")
 	compile ihmc.getProjectDependency(":common-walking-control-modules")
 	compile ihmc.getProjectDependency(":SimulationConstructionSet")
 	compile ihmc.getProjectDependency(":IHMCRobotDataLogger")
