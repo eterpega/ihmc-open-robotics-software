@@ -65,7 +65,7 @@ dependencies {
     
     compile ihmc.getProjectDependency(":ihmc-robot-data-logger")
     compile ihmc.getProjectDependency(":ihmc-humanoid-robotics")
-    compile ihmc.getProjectDependency(":SensorProcessing")
+    compile ihmc.getProjectDependency(":sensor-processing")
     compile ihmc.getProjectDependency(":ihmc-robot-models")
     compile ihmc.getProjectDependency(":ihmc-simulation-toolkit")
 

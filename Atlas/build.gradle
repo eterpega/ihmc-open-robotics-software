@@ -94,7 +94,7 @@ dependencies {
     compile ihmc.getProjectDependency(":ihmc-robot-data-logger")
     compile ihmc.getProjectDependency(":robotiq-hand-drivers")
     compile ihmc.getProjectDependency(":model-file-loader")
-    compile ihmc.getProjectDependency(":SensorProcessing")
+    compile ihmc.getProjectDependency(":sensor-processing")
     compile ihmc.getProjectDependency(":SimulationConstructionSet")
     compile ihmc.getProjectDependency(":SimulationConstructionSetTools")
     compile ihmc.getProjectDependency(":IHMCGraphicsDescription")
@@ -110,7 +110,7 @@ dependencies {
     testCompile ihmc.getProjectTestDependency(":common-walking-control-modules")
     testCompile ihmc.getProjectTestDependency(":ihmc-avatar-interfaces")
     testCompile ihmc.getProjectTestDependency(":ihmc-humanoid-robotics")
-    testCompile ihmc.getProjectTestDependency(":SensorProcessing")
+    testCompile ihmc.getProjectTestDependency(":sensor-processing")
     testCompile ihmc.getProjectTestDependency(":ihmc-simulation-toolkit")
 }
 

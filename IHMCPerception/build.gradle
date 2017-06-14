@@ -82,7 +82,7 @@ dependencies {
 	compile ihmc.getProjectDependency(":ihmc-communication")
     compile ihmc.getProjectDependency(":ihmc-ros-tools")
 	compile ihmc.getProjectDependency(":ihmc-whole-body-controller")
-    compile ihmc.getProjectDependency(":SensorProcessing")
+    compile ihmc.getProjectDependency(":sensor-processing")
     compile ihmc.getProjectDependency(":ihmc-robot-models")
     compile ihmc.getProjectDependency(":ihmc-java-toolkit")
     compile ihmc.getProjectDependency(":ihmc-java-extensions")

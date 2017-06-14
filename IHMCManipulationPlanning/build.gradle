@@ -52,7 +52,7 @@ dependencies {
     compile ihmc.getProjectDependency(":ihmc-robotics-toolkit")
     compile ihmc.getProjectDependency(":ihmc-communication")
     compile ihmc.getProjectDependency(":ihmc-robot-models")
-    compile ihmc.getProjectDependency(":SensorProcessing")
+    compile ihmc.getProjectDependency(":sensor-processing")
     compile ihmc.getProjectDependency(":IHMCGraphicsDescription")
     compile ihmc.getProjectDependency(":SimulationConstructionSet")
     compile ihmc.getProjectDependency(":ihmc-whole-body-controller")

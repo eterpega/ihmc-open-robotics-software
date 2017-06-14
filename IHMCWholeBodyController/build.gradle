@@ -52,7 +52,7 @@ dependencies {
 	compile ihmc.getProjectDependency(":ihmc-humanoid-robotics")
 	compile ihmc.getProjectDependency(":SimulationConstructionSet")
 
-	compile ihmc.getProjectDependency(":SensorProcessing")
+	compile ihmc.getProjectDependency(":sensor-processing")
 	compile ihmc.getProjectDependency(":SimulationConstructionSetTools")
 	compile ihmc.getProjectDependency(":ihmc-java-toolkit")
     compile ihmc.getProjectDependency(":ihmc-java-extensions")

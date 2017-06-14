@@ -70,7 +70,7 @@ dependencies {
     testCompile group: 'us.ihmc', name: 'ihmc-continuous-integration-framework', version: '0.9.4'
 
     compile ihmc.getProjectDependency(":ihmc-robot-models")
-    compile ihmc.getProjectDependency(":SensorProcessing")
+    compile ihmc.getProjectDependency(":sensor-processing")
     compile ihmc.getProjectDependency(":ihmc-communication")
     compile ihmc.getProjectDependency(":convex-optimization-adapter")
     compile ihmc.getProjectDependency(":ihmc-robotics-toolkit")

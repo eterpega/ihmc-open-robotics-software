@@ -71,7 +71,7 @@ dependencies {
 	compile ihmc.getProjectDependency(":ihmc-jmonkey-engine-toolkit")
 	compile ihmc.getProjectDependency(":ihmc-robot-data-logger")
 	compile ihmc.getProjectDependency(":model-file-loader")
-	compile ihmc.getProjectDependency(":SensorProcessing")
+	compile ihmc.getProjectDependency(":sensor-processing")
 	compile ihmc.getProjectDependency(":SimulationConstructionSet")
 	compile ihmc.getProjectDependency(":ihmc-communication")
 	compile ihmc.getProjectDependency(":ihmc-humanoid-behaviors")
