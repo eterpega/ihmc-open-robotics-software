@@ -75,7 +75,7 @@ dependencies {
    compile ihmc.getProjectDependency(":ihmc-robot-data-logger")
    compile ihmc.getProjectDependency(":model-file-loader")
    compile ihmc.getProjectDependency(":sensor-processing")
-   compile ihmc.getProjectDependency(":SimulationConstructionSet")
+   compile ihmc.getProjectDependency(":simulation-contruction-set")
    compile ihmc.getProjectDependency(":ihmc-perception")
    compile ihmc.getProjectDependency(":ihmc-whole-body-controller")
    compile ihmc.getProjectDependency(":ihmc-java-toolkit")

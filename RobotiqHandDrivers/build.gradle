@@ -53,7 +53,7 @@ dependencies {
     compile ihmc.getProjectDependency(":ihmc-humanoid-robotics")
 	compile ihmc.getProjectDependency(":ihmc-avatar-interfaces")
 	compile ihmc.getProjectDependency(":ihmc-communication")
-	compile ihmc.getProjectDependency(":SimulationConstructionSet")
+	compile ihmc.getProjectDependency(":simulation-contruction-set")
 	compile ihmc.getProjectDependency(":ihmc-whole-body-controller")
 	compile ihmc.getProjectDependency(":ihmc-java-toolkit")
     compile ihmc.getProjectDependency(":ihmc-java-extensions")

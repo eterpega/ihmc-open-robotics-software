@@ -72,7 +72,7 @@ dependencies {
 	compile ihmc.getProjectDependency(":ihmc-robot-data-logger")
 	compile ihmc.getProjectDependency(":model-file-loader")
 	compile ihmc.getProjectDependency(":sensor-processing")
-	compile ihmc.getProjectDependency(":SimulationConstructionSet")
+	compile ihmc.getProjectDependency(":simulation-contruction-set")
 	compile ihmc.getProjectDependency(":ihmc-communication")
 	compile ihmc.getProjectDependency(":ihmc-humanoid-behaviors")
 	compile ihmc.getProjectDependency(":ihmc-humanoid-robotics")
@@ -90,14 +90,14 @@ dependencies {
     compile ihmc.getProjectDependency(":ihmc-simulation-toolkit")
     compile ihmc.getProjectDependency(":ihmc-robot-data-visualizer")
     compile ihmc.getProjectDependency(":ihmc-footstep-planning")
-	compile ihmc.getProjectDependency(":SimulationConstructionSetTools")
+	compile ihmc.getProjectDependency(":simulation-contruction-setTools")
 
 	testCompile ihmc.getProjectTestDependency(":ihmc-robotics-toolkit")
 	testCompile ihmc.getProjectTestDependency(":ihmc-java-extensions")
     testCompile group: 'us.ihmc', name: 'ihmc-commons-testing', version: '0.11.0-alpha'
 	testCompile ihmc.getProjectTestDependency(":ihmc-footstep-planning")
 	testCompile ihmc.getProjectTestDependency(":ihmc-humanoid-robotics")
-	testCompile ihmc.getProjectTestDependency(":SimulationConstructionSetTools")
+	testCompile ihmc.getProjectTestDependency(":simulation-contruction-setTools")
 }
 
 jar {

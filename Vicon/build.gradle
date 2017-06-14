@@ -45,7 +45,7 @@ dependencies {
     compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
     compile ihmc.getProjectDependency(":ihmc-communication")
     compile ihmc.getProjectDependency(":ihmc-robotics-toolkit")
-    compile ihmc.getProjectDependency(":SimulationConstructionSet")
+    compile ihmc.getProjectDependency(":simulation-contruction-set")
 }
 
 jar {

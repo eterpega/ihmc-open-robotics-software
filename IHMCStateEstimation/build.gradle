@@ -54,7 +54,7 @@ dependencies {
 	compile ihmc.getProjectDependency(":ihmc-robotics-toolkit")
     compile ihmc.getProjectDependency(":IHMCGraphicsDescription")
     
-    testCompile ihmc.getProjectDependency(":SimulationConstructionSet")
+    testCompile ihmc.getProjectDependency(":simulation-contruction-set")
 	testCompile ihmc.getProjectTestDependency(":ihmc-robotics-toolkit")
 	testCompile ihmc.getProjectTestDependency(":ihmc-java-extensions")
     testCompile group: 'us.ihmc', name: 'ihmc-commons-testing', version: '0.11.0-alpha'
