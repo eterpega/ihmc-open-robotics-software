@@ -64,7 +64,7 @@ dependencies {
 	compile ihmc.getProjectDependency(":SimulationConstructionSet")
 	compile ihmc.getProjectDependency(":ihmc-robot-data-logger")
 	compile ihmc.getProjectDependency(":SensorProcessing")
-	compile ihmc.getProjectDependency(":IHMCWholeBodyController")
+	compile ihmc.getProjectDependency(":ihmc-whole-body-controller")
 	compile ihmc.getProjectDependency(":ihmc-java-toolkit")
     compile ihmc.getProjectDependency(":ihmc-java-extensions")
     compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'

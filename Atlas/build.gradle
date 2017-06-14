@@ -90,7 +90,7 @@ dependencies {
     compile ihmc.getProjectDependency(":ihmc-perception")
     compile ihmc.getProjectDependency(":ihmc-robotics-toolkit")
     compile ihmc.getProjectDependency(":ihmc-ros-tools")
-    compile ihmc.getProjectDependency(":IHMCWholeBodyController")
+    compile ihmc.getProjectDependency(":ihmc-whole-body-controller")
     compile ihmc.getProjectDependency(":ihmc-robot-data-logger")
     compile ihmc.getProjectDependency(":RobotiqHandDrivers")
     compile ihmc.getProjectDependency(":ModelFileLoader")

@@ -55,7 +55,7 @@ dependencies {
     compile ihmc.getProjectDependency(":SensorProcessing")
     compile ihmc.getProjectDependency(":IHMCGraphicsDescription")
     compile ihmc.getProjectDependency(":SimulationConstructionSet")
-    compile ihmc.getProjectDependency(":IHMCWholeBodyController")
+    compile ihmc.getProjectDependency(":ihmc-whole-body-controller")
     
 
     testCompile ihmc.getProjectTestDependency(":ihmc-communication")

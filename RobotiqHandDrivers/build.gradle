@@ -54,7 +54,7 @@ dependencies {
 	compile ihmc.getProjectDependency(":ihmc-avatar-interfaces")
 	compile ihmc.getProjectDependency(":ihmc-communication")
 	compile ihmc.getProjectDependency(":SimulationConstructionSet")
-	compile ihmc.getProjectDependency(":IHMCWholeBodyController")
+	compile ihmc.getProjectDependency(":ihmc-whole-body-controller")
 	compile ihmc.getProjectDependency(":ihmc-java-toolkit")
     compile ihmc.getProjectDependency(":ihmc-java-extensions")
     compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
