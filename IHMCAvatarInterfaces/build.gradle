@@ -76,7 +76,7 @@ dependencies {
 	compile ihmc.getProjectDependency(":ihmc-communication")
 	compile ihmc.getProjectDependency(":ihmc-humanoid-behaviors")
 	compile ihmc.getProjectDependency(":ihmc-humanoid-robotics")
-	compile ihmc.getProjectDependency(":IHMCPerception")
+	compile ihmc.getProjectDependency(":ihmc-perception")
 	compile ihmc.getProjectDependency(":IHMCWholeBodyController")
 	compile ihmc.getProjectDependency(":IHMCStateEstimation")
 	compile ihmc.getProjectDependency(":ihmc-java-toolkit")

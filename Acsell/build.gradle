@@ -70,7 +70,7 @@ dependencies {
    compile ihmc.getProjectDependency(":SensorProcessing")
    compile ihmc.getProjectDependency(":SimulationConstructionSet")
    compile ihmc.getProjectDependency(":IHMCRobotDataLogger")
-   compile ihmc.getProjectDependency(":IHMCPerception")
+   compile ihmc.getProjectDependency(":ihmc-perception")
    compile ihmc.getProjectDependency(":IHMCWholeBodyController")
    compile ihmc.getProjectDependency(":ihmc-java-toolkit")
     compile ihmc.getProjectDependency(":ihmc-java-extensions")
