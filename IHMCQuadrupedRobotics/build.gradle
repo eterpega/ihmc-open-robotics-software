@@ -53,7 +53,7 @@ dependencies {
 
     compile ihmc.getProjectDependency(":IHMCRobotDataLogger")
     compile ihmc.getProjectDependency(":common-walking-control-modules")
-    compile ihmc.getProjectDependency(":ConvexOptimizationAdapter")
+    compile ihmc.getProjectDependency(":convex-optimization-adapter")
     compile ihmc.getProjectDependency(":IHMCHumanoidRobotics")
     compile ihmc.getProjectDependency(":IHMCJavaToolkit")
     compile ihmc.getProjectDependency(":IHMCJavaExtensions")
