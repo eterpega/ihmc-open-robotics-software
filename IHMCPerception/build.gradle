@@ -80,7 +80,7 @@ dependencies {
     compile ihmc.getProjectDependency(":ihmc-jmonkey-engine-toolkit")
     compile ihmc.getProjectDependency(":ihmc-humanoid-robotics")
 	compile ihmc.getProjectDependency(":ihmc-communication")
-    compile ihmc.getProjectDependency(":IHMCROSTools")
+    compile ihmc.getProjectDependency(":ihmc-ros-tools")
 	compile ihmc.getProjectDependency(":IHMCWholeBodyController")
     compile ihmc.getProjectDependency(":SensorProcessing")
     compile ihmc.getProjectDependency(":ihmc-robot-models")
