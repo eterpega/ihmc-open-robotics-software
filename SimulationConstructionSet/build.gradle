@@ -80,7 +80,7 @@ dependencies {
 	compile ihmc.getProjectDependency(":IHMCJavaFXToolkit")
     compile ihmc.getProjectDependency(":IHMCSwingPlotting")
 	compile ihmc.getProjectDependency(":ihmc-communication")
-    compile ihmc.getProjectDependency(":IHMCGeometry")
+    compile ihmc.getProjectDependency(":ihmc-geometry")
 
     testCompile group: 'org.ejml', name: 'dense64', version: '0.30'
 
