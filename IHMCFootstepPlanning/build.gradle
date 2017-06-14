@@ -41,7 +41,7 @@ dependencies {
     testCompile group: 'us.ihmc', name: 'ihmc-continuous-integration-framework', version: '0.9.4'
 	
 	compile ihmc.getProjectDependency(":ihmc-robotics-toolkit")
-	compile ihmc.getProjectDependency(":IHMCGraphicsDescription")
+	compile ihmc.getProjectDependency(":ihmc-graphics-description")
 	compile ihmc.getProjectDependency(":convex-optimization-adapter")
 	
 	testCompile ihmc.getProjectTestDependency(":simulation-contruction-set")

@@ -76,7 +76,7 @@ dependencies {
     compile ihmc.getProjectDependency(":ihmc-java-extensions")
     compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
 	compile ihmc.getProjectDependency(":ihmc-robotics-toolkit")
-    compile ihmc.getProjectDependency(":IHMCGraphicsDescription")
+    compile ihmc.getProjectDependency(":ihmc-graphics-description")
 	compile ihmc.getProjectDependency(":ihmc-javafx-toolkit")
     compile ihmc.getProjectDependency(":ihmc-swing-plotting")
 	compile ihmc.getProjectDependency(":ihmc-communication")

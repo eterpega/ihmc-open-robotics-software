@@ -67,6 +67,6 @@ dependencies {
         exclude group: 'java3d', module: 'vecmath'
     }
 
-    compile ihmc.getProjectDependency(":IHMCGraphicsDescription")
+    compile ihmc.getProjectDependency(":ihmc-graphics-description")
     compile ihmc.getProjectDependency(":ihmc-robotics-toolkit")
 }

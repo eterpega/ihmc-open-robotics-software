@@ -58,7 +58,7 @@ dependencies {
     compile ihmc.getProjectDependency(":ihmc-quadruped-robotics")
     compile ihmc.getProjectDependency(":ihmc-whole-body-controller")
     compile ihmc.getProjectDependency(":model-file-loader")
-    compile ihmc.getProjectDependency(":IHMCGraphicsDescription")
+    compile ihmc.getProjectDependency(":ihmc-graphics-description")
     compile ihmc.getProjectDependency(":ihmc-communication")
     compile ihmc.getProjectDependency(":ihmc-jmonkey-engine-toolkit")
     compile ihmc.getProjectDependency(":common-walking-control-modules")

@@ -49,7 +49,7 @@ dependencies {
 	compile ihmc.getProjectDependency(":ihmc-javafx-toolkit")
 	compile ihmc.getProjectDependency(":ihmc-robot-description")
 	compile ihmc.getProjectDependency(":model-file-loader")
-	compile ihmc.getProjectDependency(":IHMCGraphicsDescription")
+	compile ihmc.getProjectDependency(":ihmc-graphics-description")
 	compile ihmc.getProjectDependency(":ihmc-jmonkey-engine-toolkit")
 
 
