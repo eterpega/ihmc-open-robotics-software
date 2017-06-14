@@ -52,7 +52,7 @@ dependencies {
     testCompile group: 'us.ihmc', name: 'ihmc-continuous-integration-framework', version: '0.9.4'
 
     compile ihmc.getProjectDependency(":IHMCRobotDataLogger")
-    compile ihmc.getProjectDependency(":CommonWalkingControlModules")
+    compile ihmc.getProjectDependency(":common-walking-control-modules")
     compile ihmc.getProjectDependency(":ConvexOptimizationAdapter")
     compile ihmc.getProjectDependency(":IHMCHumanoidRobotics")
     compile ihmc.getProjectDependency(":IHMCJavaToolkit")
@@ -74,7 +74,7 @@ dependencies {
     testCompile ihmc.getProjectDependency(":SimulationConstructionSet")
     testCompile ihmc.getProjectTestDependency(":SimulationConstructionSet")
     testCompile ihmc.getProjectTestDependency(":SimulationConstructionSetTools")
-    testCompile ihmc.getProjectTestDependency(":CommonWalkingControlModules")
+    testCompile ihmc.getProjectTestDependency(":common-walking-control-modules")
 }
 jar {
     manifest {

@@ -47,7 +47,7 @@ dependencies {
     compile group: 'org.apache.commons', name: 'commons-math3', version: '3.5'
     compile group: 'com.google.guava', name: 'guava', version: '18.0'
 
-	compile ihmc.getProjectDependency(":CommonWalkingControlModules")
+	compile ihmc.getProjectDependency(":common-walking-control-modules")
 	compile ihmc.getProjectDependency(":IHMCCommunication")
 	compile ihmc.getProjectDependency(":IHMCHumanoidRobotics")
 	compile ihmc.getProjectDependency(":SimulationConstructionSet")

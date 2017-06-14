@@ -46,7 +46,7 @@ dependencies {
     testCompile group: 'us.ihmc', name: 'ihmc-continuous-integration-framework', version: '0.9.4'
 
     compile ihmc.getProjectDependency(":IHMCHumanoidRobotics")
-	compile ihmc.getProjectDependency(":CommonWalkingControlModules")
+	compile ihmc.getProjectDependency(":common-walking-control-modules")
 	compile ihmc.getProjectDependency(":SensorProcessing")
 	compile ihmc.getProjectDependency(":IHMCJavaToolkit")
     compile ihmc.getProjectDependency(":IHMCJavaExtensions")
