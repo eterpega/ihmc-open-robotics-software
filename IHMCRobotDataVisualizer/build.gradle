@@ -59,7 +59,7 @@ dependencies {
    
    compile ihmc.getProjectDependency(":ModelFileLoader")
    compile ihmc.getProjectDependency(":SimulationConstructionSet")
-   compile ihmc.getProjectDependency(":IHMCCommunication")
+   compile ihmc.getProjectDependency(":ihmc-communication")
    compile ihmc.getProjectDependency(":IHMCJavaFXToolkit")
    compile ihmc.getProjectDependency(":IHMCJavaToolkit")
     compile ihmc.getProjectDependency(":IHMCJavaExtensions")

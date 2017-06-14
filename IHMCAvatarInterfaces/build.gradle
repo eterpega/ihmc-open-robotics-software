@@ -73,7 +73,7 @@ dependencies {
 	compile ihmc.getProjectDependency(":ModelFileLoader")
 	compile ihmc.getProjectDependency(":SensorProcessing")
 	compile ihmc.getProjectDependency(":SimulationConstructionSet")
-	compile ihmc.getProjectDependency(":IHMCCommunication")
+	compile ihmc.getProjectDependency(":ihmc-communication")
 	compile ihmc.getProjectDependency(":IHMCHumanoidBehaviors")
 	compile ihmc.getProjectDependency(":IHMCHumanoidRobotics")
 	compile ihmc.getProjectDependency(":IHMCPerception")

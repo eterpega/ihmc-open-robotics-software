@@ -59,7 +59,7 @@ dependencies {
     compile ihmc.getProjectDependency(":IHMCWholeBodyController")
     compile ihmc.getProjectDependency(":ModelFileLoader")
     compile ihmc.getProjectDependency(":IHMCGraphicsDescription")
-    compile ihmc.getProjectDependency(":IHMCCommunication")
+    compile ihmc.getProjectDependency(":ihmc-communication")
     compile ihmc.getProjectDependency(":IHMCJMonkeyEngineToolkit")
     compile ihmc.getProjectDependency(":common-walking-control-modules")
     compile ihmc.getProjectDependency(":IHMCStateEstimation")

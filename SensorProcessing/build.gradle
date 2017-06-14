@@ -58,7 +58,7 @@ dependencies {
     compile group: 'us.ihmc.thirdparty.jme', name: 'jme3-core', version: '3.1.0-internal4'
     compile "org.boofcv:geo:0.19"
 
-    compile ihmc.getProjectDependency(":IHMCCommunication")
+    compile ihmc.getProjectDependency(":ihmc-communication")
     compile ihmc.getProjectDependency(":KalmanProject")
     compile ihmc.getProjectDependency(":IHMCJavaToolkit")
     compile ihmc.getProjectDependency(":IHMCJavaExtensions")

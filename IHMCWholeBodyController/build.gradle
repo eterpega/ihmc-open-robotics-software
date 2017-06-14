@@ -48,7 +48,7 @@ dependencies {
     compile group: 'com.google.guava', name: 'guava', version: '18.0'
 
 	compile ihmc.getProjectDependency(":common-walking-control-modules")
-	compile ihmc.getProjectDependency(":IHMCCommunication")
+	compile ihmc.getProjectDependency(":ihmc-communication")
 	compile ihmc.getProjectDependency(":IHMCHumanoidRobotics")
 	compile ihmc.getProjectDependency(":SimulationConstructionSet")
 
