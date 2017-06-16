@@ -9,13 +9,11 @@ buildscript {
     }
   }
   dependencies {
-    classpath "gradle.plugin.us.ihmc.gradle:ihmc-build:0.0.21"
     classpath "org.hidetake:gradle-ssh-plugin:2.1.1"
     classpath group: 'us.ihmc', name: 'IHMCPubSubGenerator', version: '0.2.5'
   }
 }
 
-apply plugin: "us.ihmc.gradle.ihmc-build"
 apply plugin: "org.hidetake.ssh"
 
 if (!rootProject.name.equals('ihmc-open-robotics-software')) {
@@ -23,12 +21,7 @@ if (!rootProject.name.equals('ihmc-open-robotics-software')) {
 }
 
 sourceCompatibility = 1.8
-version = "${getOpenRoboticsSoftwareProject().version}"
-project.ext.fullVersion = "${getOpenRoboticsSoftwareProject().ext.fullVersion}"
-project.ext.vcsUrl = "${getOpenRoboticsSoftwareProject().ext.vcsUrl}"
-project.ext.licenseURL = "http://www.apache.org/licenses/LICENSE-2.0.txt"
-project.ext.licenseName = "Apache License, Version 2.0"
-project.ext.bintrayLicenseName = "Apache-2.0"
+
 
 apply plugin: 'application'
 

@@ -1,5 +1,6 @@
 buildscript {
    repositories {
+      mavenLocal()
       jcenter()
       maven {
          url "https://plugins.gradle.org/m2/"
@@ -10,20 +11,23 @@ buildscript {
       classpath 'org.ajoberstar:gradle-git:1.4.0-rc.1'
       classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3"
       classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4.4.18"
-      classpath "gradle.plugin.us.ihmc.gradle:ihmc-build:0.0.21"
+      classpath "us.ihmc.gradle:ihmc-build:0.0.23"
    }
 }
 
-apply plugin: 'java'
-apply plugin: 'eclipse'
-apply plugin: 'idea'
-apply plugin: 'maven-publish'
-apply plugin: "com.jfrog.bintray"
-apply plugin: "com.jfrog.artifactory"
-apply plugin: 'us.ihmc.gradle.ihmc-build'
-
 import org.ajoberstar.grgit.*
 
+allprojects {
+   apply plugin: 'java'
+   apply plugin: 'eclipse'
+   apply plugin: 'idea'
+   apply plugin: 'maven-publish'
+   apply plugin: "com.jfrog.bintray"
+   apply plugin: "com.jfrog.artifactory"
+   apply plugin: 'us.ihmc.gradle.ihmc-build'
+}
+
+Project rootProject = project;
 project.ext.repo = Grgit.open(projectDir)
 
 version = '0.10.0'
@@ -31,12 +35,10 @@ version = '0.10.0'
 if (publishMode.startsWith("SNAPSHOT"))
 {
    version = ihmc.getSnapshotVersion(version, bambooBuildNumber)
-}
-else if (publishMode.startsWith("NIGHTLY"))
+} else if (publishMode.startsWith("NIGHTLY"))
 {
    version = ihmc.getNightlyVersion(version)
-}
-else if (publishMode.startsWith("STABLE"))
+} else if (publishMode.startsWith("STABLE"))
 {
    if (!project.ext.repo.branch.current.name.equals("master"))
    {
@@ -47,13 +49,82 @@ else if (publishMode.startsWith("STABLE"))
 project.ext.fullVersion = version
 project.ext.vcsUrl = "https://github.com/ihmcrobotics/ihmc-open-robotics-software"
 
-repositories ihmc.setupCommonArtifactProxies()
+subprojects {
+   sourceCompatibility = 1.8
 
-repositories {
-   mavenLocal()
-   jcenter()
-   mavenCentral()
+   version = rootProject.version
+   project.ext.fullVersion = rootProject.ext.fullVersion
+   project.ext.vcsUrl = rootProject.ext.vcsUrl
+   project.ext.licenseURL = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+   project.ext.licenseName = "Apache License, Version 2.0"
+   project.ext.bintrayLicenseName = "Apache-2.0"
+
+   repositories ihmc.setupCommonArtifactProxies()
+
+   repositories {
+      mavenLocal()
+      jcenter()
+      mavenCentral()
+   }
+
+   ihmc.setupAggressiveResolutionStrategy(project)
+   ihmc.setupJavaSourceSets(project)
 }
+
+//   subproject.ext {
+//      getOpenRoboticsSoftwareProject = {
+//         if (subproject.getParent().name.equals(rootProject.name))
+//         {
+//            return rootProject
+//         } else
+//         {
+//            return project(':ihmc-open-robotics-software')
+//         }
+//      }
+//
+//      getOpenRoboticsSoftwareGradlePath = {
+//         if (subproject.getParent().name.equals(rootProject.name))
+//         {
+//            return ""
+//         } else
+//         {
+//            return ":ihmc-open-robotics-software"
+//         }
+//      }
+//   }
+
+//   jar {
+//      from(project.projectDir) {
+//         include 'LICENSE*txt'
+//      }
+//   }
+
+//   task sourceJar(type: Jar) {
+//      from sourceSets.main.allJava
+//   }
+
+//   publishing {
+//      publications {
+//         mavenJava(MavenPublication) {
+//
+//            groupId 'us.ihmc'
+//            artifactId "${project.name}"
+//            version "${project.ext.fullVersion}"
+//
+//            from components.java
+//
+//            artifact sourceJar {
+//               classifier "sources"
+//            }
+//
+//            pom.withXml {
+//               def licenseNode = asNode().appendNode('licenses').appendNode('license')
+//               licenseNode.appendNode('name', project.ext.licenseName)
+//               licenseNode.appendNode('url', project.ext.licenseURL)
+//            }
+//         }
+//      }
+//   }
 
 //task performRelease(type: GradleBuild) {
 //   if (!publishMode.equals("STABLE"))
@@ -95,64 +166,3 @@ repositories {
 //      }
 //   }
 //}
-
-subprojects { subproject ->
-
-   apply plugin: 'maven-publish'
-   apply plugin: 'java'
-
-   subproject.ext {
-      getOpenRoboticsSoftwareProject = {
-         if (subproject.getParent().name.equals(rootProject.name))
-         {
-            return rootProject
-         } else
-         {
-            return project(':ihmc-open-robotics-software')
-         }
-      }
-
-      getOpenRoboticsSoftwareGradlePath = {
-         if (subproject.getParent().name.equals(rootProject.name))
-         {
-            return ""
-         } else
-         {
-            return ":ihmc-open-robotics-software"
-         }
-      }
-   }
-
-   jar {
-      from(project.projectDir) {
-         include 'LICENSE*txt'
-      }
-   }
-
-   task sourceJar(type: Jar) {
-      from sourceSets.main.allJava
-   }
-
-   publishing {
-      publications {
-         mavenJava(MavenPublication) {
-
-            groupId 'us.ihmc'
-            artifactId "${project.name}"
-            version "${project.ext.fullVersion}"
-
-            from components.java
-
-            artifact sourceJar {
-               classifier "sources"
-            }
-
-            pom.withXml {
-               def licenseNode = asNode().appendNode('licenses').appendNode('license')
-               licenseNode.appendNode('name', project.ext.licenseName)
-               licenseNode.appendNode('url', project.ext.licenseURL)
-            }
-         }
-      }
-   }
-}

@@ -8,12 +8,10 @@ buildscript {
         }
     }
     dependencies {
-        classpath "gradle.plugin.us.ihmc.gradle:ihmc-build:0.0.21"
         classpath "gradle.plugin.us.ihmc.continuousIntegration:IHMCContinuousIntegrationGradlePlugin:0.10.8"
     }
 }
 
-apply plugin: "us.ihmc.gradle.ihmc-build"
 apply plugin: "us.ihmc.continuousIntegration.ihmc-continuous-integration-plugin"
 
 if (!rootProject.name.equals('ihmc-open-robotics-software'))
@@ -22,12 +20,7 @@ if (!rootProject.name.equals('ihmc-open-robotics-software'))
 }
 
 sourceCompatibility = 1.8
-version = "${getOpenRoboticsSoftwareProject().version}"
-project.ext.fullVersion = "${getOpenRoboticsSoftwareProject().ext.fullVersion}"
-project.ext.vcsUrl = "${getOpenRoboticsSoftwareProject().ext.vcsUrl}"
-project.ext.licenseURL = "http://www.apache.org/licenses/LICENSE-2.0.txt"
-project.ext.licenseName = "Apache License, Version 2.0"
-project.ext.bintrayLicenseName = "Apache-2.0"
+
 
 repositories ihmc.ihmcDefaultArtifactProxies()
 

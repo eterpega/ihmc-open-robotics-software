@@ -14,12 +14,7 @@ buildscript {
 apply plugin: "us.ihmc.gradle.ihmc-build"
 
 sourceCompatibility = 1.8
-version = "${getOpenRoboticsSoftwareProject().version}"
-project.ext.fullVersion = "${getOpenRoboticsSoftwareProject().ext.fullVersion}"
-project.ext.vcsUrl = "${getOpenRoboticsSoftwareProject().ext.vcsUrl}"
-project.ext.licenseURL = "http://www.apache.org/licenses/LICENSE-2.0.txt"
-project.ext.licenseName = "Apache License, Version 2.0"
-project.ext.bintrayLicenseName = "Apache-2.0"
+
 
 project.sourceSets {
     main {
