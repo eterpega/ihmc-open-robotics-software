@@ -1,5 +1,5 @@
 buildscript {
-    repositories {
+   repositories {
       jcenter()
    }
 
@@ -23,39 +23,46 @@ project.ext.releaseCandidateCounter = 1
 
 getDate()
 
-if (buildType.equals("NIGHTLY")) {
+if (buildType.equals("NIGHTLY"))
+{
    project.ext.fullVersion = version += "-NIGHTLY+date.${project.ext.date}.rev.${repo.head().abbreviatedId}"
 }
 
-if (buildType.equals("LOCAL")) {
+if (buildType.equals("LOCAL"))
+{
    project.ext.fullVersion = "LOCAL"
 }
 
-if (buildType.equals("SNAPSHOT")) {
+if (buildType.equals("SNAPSHOT"))
+{
    project.ext.fullVersion = version += "-SNAPSHOT${project.ext.snapshotCounter}.rev.${repo.head().abbreviatedId}"
 }
 
-if (buildType.equals("RC")) {
+if (buildType.equals("RC"))
+{
    project.ext.fullVersion = version += "-RC${project.ext.releaseCandidateCounter}.rev.${repo.head().abbreviatedId}"
 }
 
-if (buildType.equals("RELEASE")) {
-   if (!project.ext.repo.branch.current.name.equals("master")) {
+if (buildType.equals("RELEASE"))
+{
+   if (!project.ext.repo.branch.current.name.equals("master"))
+   {
       throw new GradleException("Cannot make RELEASE build from branch \"${project.ext.repo.branch.current.name}\", it is not the branch used for stable releases!")
    }
 }
 
 repositories {
-    mavenLocal()
-    jcenter()
-    mavenCentral()
-    maven {
-        url "http://artifactory.ihmc.us/artifactory/thirdparty/"
-    }
+   mavenLocal()
+   jcenter()
+   mavenCentral()
+   maven {
+      url "http://artifactory.ihmc.us/artifactory/thirdparty/"
+   }
 }
 
 task performRelease(type: GradleBuild) {
-   if (!buildType.equals("RELEASE")) {
+   if (!buildType.equals("RELEASE"))
+   {
       return
    }
    buildFile "build.gradle"
@@ -75,7 +82,8 @@ task publishAllToMavenLocal(type: GradleBuild) {
 }
 
 gradle.taskGraph.whenReady { TaskExecutionGraph graph ->
-   if (graph.hasTask(publishAllToMavenLocal)) {
+   if (graph.hasTask(publishAllToMavenLocal))
+   {
       buildType = "LOCAL"
       project.ext.fullVersion = "LOCAL"
 
@@ -84,8 +92,10 @@ gradle.taskGraph.whenReady { TaskExecutionGraph graph ->
       }
    }
 
-   if (graph.hasTask(performRelease)) {
-      if (!buildType.equals("RELEASE")) {
+   if (graph.hasTask(performRelease))
+   {
+      if (!buildType.equals("RELEASE"))
+      {
          throw new GradleException("Cannot perform release unless -PbuildType=RELEASE")
       }
    }
@@ -95,20 +105,24 @@ subprojects { subproject ->
 
    apply plugin: 'maven-publish'
    apply plugin: 'java'
-   
+
    subproject.ext {
       getOpenRoboticsSoftwareProject = {
-         if (subproject.getParent().name.equals(rootProject.name)) {
+         if (subproject.getParent().name.equals(rootProject.name))
+         {
             return rootProject
-         } else {
+         } else
+         {
             return project(':ihmc-open-robotics-software')
          }
       }
 
       getOpenRoboticsSoftwareGradlePath = {
-         if (subproject.getParent().name.equals(rootProject.name)) {
+         if (subproject.getParent().name.equals(rootProject.name))
+         {
             return ""
-         } else {
+         } else
+         {
             return ":ihmc-open-robotics-software"
          }
       }
@@ -158,7 +172,8 @@ subprojects { subproject ->
    }
 }
 
-def getDate() {
+def getDate()
+{
    def date = new Date()
    def formattedDate = date.format('yyyy.MM.dd')
    project.ext.date = formattedDate
