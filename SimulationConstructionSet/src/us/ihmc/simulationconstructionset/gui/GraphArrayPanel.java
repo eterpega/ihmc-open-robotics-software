@@ -118,19 +118,15 @@ public class GraphArrayPanel extends GridPane implements GraphIndicesHolder, YoG
 
     private int oldIndex = 99;
 
-    // private boolean repaintAll = true;
     public void repaintGraphs() {
         int index = this.getIndex();
 
-        // if (index == oldIndex) return;
-
-        int inPoint = this.getInPoint();
-        int outPoint = this.getOutPoint();
+        if (index == oldIndex && index == doIndex) return;
 
         int leftPlotIndex = this.getLeftPlotIndex();
         int rightPlotIndex = this.getRightPlotIndex();
 
-        boolean repaintAll = (index < oldIndex);
+        boolean repaintAll = (index < leftPlotIndex || index > rightPlotIndex);
 
         if ((index < leftPlotIndex) || (index > rightPlotIndex)) {
             this.recenter();
@@ -144,7 +140,11 @@ public class GraphArrayPanel extends GridPane implements GraphIndicesHolder, YoG
             if (n instanceof YoGraph) {
                 YoGraph g = (YoGraph) n;
                 if (g.getNumVars() > 0) {
-                    g.repaintAllGraph();
+                    if (repaintAll) {
+                        g.repaintAllGraph();
+                    } else if (oldIndex != index) {
+                        g.repaintPartialGraph((oldIndex < index ? Math.max(0,oldIndex) : Math.max(0,index)), (oldIndex > Math.max(0,index+1) ? oldIndex : Math.max(0,index+1)));
+                    }
                 }
             }
         }
@@ -359,22 +359,17 @@ public class GraphArrayPanel extends GridPane implements GraphIndicesHolder, YoG
         if (varnames == null)
             return;
 
-        EventDispatchThreadHelper.invokeAndWait(new Runnable() {
-            @Override
-            public void run() {
-                YoGraph g = new YoGraph(getGraphArrayPanel(), getGraphArrayPanel(), selectedVariableHolder, dataBuffer, dataBuffer, parentFrame);
+        EventDispatchThreadHelper.invokeAndWait(() -> {
+            YoGraph g = new YoGraph(getGraphArrayPanel(), getGraphArrayPanel(), selectedVariableHolder, dataBuffer, dataBuffer, parentFrame);
 
-                for (int i = 0; i < varnames.length; i++) {
-                    DataBufferEntry entry = dataBuffer.getEntry(varnames[i]);
+            for (int i = 0; i < varnames.length; i++) {
+                DataBufferEntry entry = dataBuffer.getEntry(varnames[i]);
 
-                    if (entry != null)
-                        g.addVariable(entry);
-                }
-
-                addGraph(g);
-
+                if (entry != null)
+                    g.addVariable(entry);
             }
 
+            addGraph(g);
         });
     }
 
@@ -464,7 +459,15 @@ public class GraphArrayPanel extends GridPane implements GraphIndicesHolder, YoG
         Platform.runLater(() -> {
             int[] useThis = nextAvailableGraphLocation();
             GridPane.setConstraints(graph, useThis[1], useThis[0]);
+            graph.setStyle("-fx-border-style: solid bevel;" +
+                    "-fx-border-width: 1px;" +
+                    "-fx-border-radius: 3px;" +
+                    "-fx-border-color: black" +
+                    "-fx-margin: 5px");
+            GridPane.setVgrow(graph, Priority.ALWAYS);
             GridPane.setHgrow(graph, Priority.ALWAYS);
+            GridPane.setFillHeight(graph, true);
+            GridPane.setFillWidth(graph, true);
             this.getChildren().add(graph);
         });
 
@@ -475,7 +478,6 @@ public class GraphArrayPanel extends GridPane implements GraphIndicesHolder, YoG
     public int print(Graphics graphics, PageFormat pageFormat, int pageNumber) {
         Graphics2D g2 = (Graphics2D) graphics;
 
-        // System.out.println("In GraphArrayPanel.print");
         if (pageNumber == 0) {
             // First clear the graphics...
             // g2.setColor(Color.white);
@@ -642,6 +644,6 @@ public class GraphArrayPanel extends GridPane implements GraphIndicesHolder, YoG
     }
 
     private void updateGraphs() {
-        Platform.runLater(this::repaintGraphs);
+        this.repaintGraphs();
     }
 }

@@ -14,6 +14,8 @@ public interface DataEntry
 
    public abstract double[] getData();
 
+   public abstract double[] getData(int leftIndex, int rightIndex);
+
    public abstract double getMax();
 
    public abstract double getMin();

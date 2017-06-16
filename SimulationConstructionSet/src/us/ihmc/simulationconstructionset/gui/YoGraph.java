@@ -3,9 +3,13 @@ package us.ihmc.simulationconstructionset.gui;
 import javafx.application.Platform;
 import javafx.event.Event;
 import javafx.event.EventHandler;
+import javafx.scene.Node;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.KeyCode;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
-import javafx.scene.shape.Line;
+import javafx.scene.layout.Priority;
 import javafx.scene.shape.Polyline;
 import us.ihmc.graphicsDescription.dataBuffer.DataEntry;
 import us.ihmc.graphicsDescription.dataBuffer.DataEntryHolder;
@@ -77,8 +81,7 @@ public class YoGraph extends Pane implements FocusListener, EventHandler<Event> 
     private boolean showNameSpace = false, showBaseLines = false;
     private int focusedBaseLine = 0;
 
-    public YoGraph(GraphIndicesHolder graphIndicesHolder, YoGraphRemover yoGraphRemover, SelectedVariableHolder holder, DataEntryHolder dataEntryHolder,
-                   TimeDataHolder timeDataHolder, JFrame jFrame) {
+    public YoGraph(GraphIndicesHolder graphIndicesHolder, YoGraphRemover yoGraphRemover, SelectedVariableHolder holder, DataEntryHolder dataEntryHolder, TimeDataHolder timeDataHolder, JFrame jFrame) {
         this.selectedVariableHolder = holder;
         this.dataEntryHolder = dataEntryHolder;
         this.timeDataHolder = timeDataHolder;
@@ -92,6 +95,16 @@ public class YoGraph extends Pane implements FocusListener, EventHandler<Event> 
 
         entriesOnThisGraph = new ArrayList<>();
 
+        this.getChildren().addAll(
+                new Canvas(),
+                new Canvas(),
+                new Canvas()
+        );
+
+        this.resetCanvasSizes();
+
+        GridPane.setHgrow(this, Priority.ALWAYS);
+        GridPane.setVgrow(this, Priority.ALWAYS);
 
         colors[0] = javafx.scene.paint.Color.rgb(0xa0, 0, 0);
         colors[1] = javafx.scene.paint.Color.rgb(0, 0, 0xff);
@@ -124,7 +137,6 @@ public class YoGraph extends Pane implements FocusListener, EventHandler<Event> 
         //this.setTransferHandler(new YoGraphTransferHandler()); TODO: replace
         this.showNameSpace = false;
     }
-
 
     public GraphConfiguration getGraphConfiguration() {
         return graphConfiguration;
@@ -160,14 +172,6 @@ public class YoGraph extends Pane implements FocusListener, EventHandler<Event> 
 
     public boolean getShowBaseLines() {
         return graphConfiguration.getShowBaseLines();
-    }
-
-    public void setBaseLine(double baseLine) {
-        graphConfiguration.setBaseLine(baseLine);
-    }
-
-    public void setBaseLines(double baseLine1, double baseLine2) {
-        graphConfiguration.setBaseLines(baseLine1, baseLine2);
     }
 
     public void setBaseLines(double[] baseLines) {
@@ -223,8 +227,9 @@ public class YoGraph extends Pane implements FocusListener, EventHandler<Event> 
     }
 
     protected void setGraphConfiguration(GraphConfiguration graphConfiguration) {
-        if (graphConfiguration == null)
+        if (graphConfiguration == null) {
             return;
+        }
 
         setManualScaling(graphConfiguration.getManualScalingMin(), graphConfiguration.getManualScalingMax());
         setScalingMethod(graphConfiguration.getScalingMethod());
@@ -315,12 +320,10 @@ public class YoGraph extends Pane implements FocusListener, EventHandler<Event> 
         if (!entriesOnThisGraph.contains(entry))
             entriesOnThisGraph.add(entry);
 
-        // this.repaint();
-        // Do updateUI instead of just repaint whenever adding or deleting stuff.
         this.reCalcMinMax();
         calculateRequiredEntryPaintWidthsAndRows();
 
-        //this.updateUI();
+        this.repaintAllGraph();
     }
 
     public void addVariableFromSelectedVariableHolder() {
@@ -333,27 +336,17 @@ public class YoGraph extends Pane implements FocusListener, EventHandler<Event> 
         if (entriesOnThisGraph.contains(entry))
             entriesOnThisGraph.remove(entry);
 
-        // this.repaint();
-        // Do updateUI instead of just repaint whenever adding or deleting stuff.
-
-      /*
-       * if (this.getNumVars() < 1) { Dimension dimension = getSize();
-       * dimension.height = EMPTY_HEIGHT; this.setSize(dimension); }
-       */
-
         this.reCalcMinMax();
         calculateRequiredEntryPaintWidthsAndRows();
-
-        //this.updateUI();
     }
 
     private boolean minMaxChanged() {
-        // Returns true if the min,max changed on any data in this graph.
         boolean ret = false;
 
         int numVars = entriesOnThisGraph.size();
-        if (numVars < 1)
+        if (numVars < 1) {
             return ret;
+        }
 
         for (int i = 0; i < numVars; i++) {
             DataEntry entry = entriesOnThisGraph.get(i);
@@ -365,8 +358,10 @@ public class YoGraph extends Pane implements FocusListener, EventHandler<Event> 
 
     private void reCalcMinMax() {
         int numVars = entriesOnThisGraph.size();
-        if (numVars < 1)
+
+        if (numVars < 1) {
             return;
+        }
 
         double newMin = Double.POSITIVE_INFINITY, newMax = Double.NEGATIVE_INFINITY;
 
@@ -396,46 +391,41 @@ public class YoGraph extends Pane implements FocusListener, EventHandler<Event> 
         this.max = newMax;
     }
 
-    private void resetMinMax() {
-        int numVars = entriesOnThisGraph.size();
-        if (numVars < 1)
-            return;
+    private void calcXYData(DataEntry entry, int nPoints, int[] xData, int[] yData, int beginningAt) {
+        double width = this.getWidth();
+        double height = this.getHeight();
+        int rightPlotIndex = this.graphIndicesHolder.getRightPlotIndex();
+        int leftPlotIndex = this.graphIndicesHolder.getLeftPlotIndex();
 
-        for (int i = 0; i < numVars; i++) {
-            DataEntry entry = entriesOnThisGraph.get(i);
-            entry.resetMinMaxChanged();
-        }
-    }
+        double minVal = this.minFor(entry);
+        double maxVal = this.maxFor(entry);
 
-    private void calcXYData(DataEntry entry, int nPoints, int[] xData, int[] yData, double min, double max, double width, double height, int offsetFromLeft,
-                            int offsetFromTop, int leftPlotIndex, int rightPlotIndex) {
         double[] data = entry.getData();
 
         boolean inverted = entry.getInverted();
 
-        if (leftPlotIndex == rightPlotIndex) {
-            for (int i = 0; i < nPoints; i++) {
-                xData[i] = offsetFromLeft;
-                yData[i] = offsetFromTop;
-            }
-        } else {
-            for (int i = 0; i < nPoints; i++) {
-                double dataAtTick = data[i];
+        for (int i = 0; i < nPoints; i++) {
+            double dataAtTick = data[i];
 
-                if (inverted) dataAtTick = -dataAtTick;
-                xData[i] = (int) ((i - leftPlotIndex) * width) / (rightPlotIndex - leftPlotIndex) + offsetFromLeft;
-                yData[i] = (int) height - (int) ((dataAtTick - min) / (max - min) * height) + offsetFromTop;
-            }
+            if (inverted) dataAtTick = -dataAtTick;
+
+            xData[i] = (int) (((i + beginningAt) - leftPlotIndex) * width) / (rightPlotIndex - leftPlotIndex);
+            //xData[i] = (int) ((i - leftPlotIndex) * width) / (rightPlotIndex - leftPlotIndex);
+            //xData[i] = (int) (i * width) / (rightPlotIndex - leftPlotIndex);
+            yData[i] = (int) height - (int) ((dataAtTick - minVal) / (maxVal - minVal) * height);
+
+            System.out.println("xData["+i+"]: ((("+i+"+"+beginningAt+")-"+leftPlotIndex+")*"+width+")/("+rightPlotIndex+"-"+leftPlotIndex+") = "+xData[i]);
+            //System.out.println("xData["+i+"]: (("+i+"-"+leftPlotIndex+")*"+width+")/("+rightPlotIndex+"-"+leftPlotIndex+") = "+xData[i]);
+            //System.out.println("xData["+i+"]: ("+i+"*"+width+")/("+rightPlotIndex+"-"+leftPlotIndex+") = "+xData[i]);
+            System.out.println("yData["+i+"]: "+height+" - ("+dataAtTick+"-"+minVal+")/("+maxVal+"-"+minVal+") * "+height+" = "+yData[i]);
         }
     }
 
-    private void calcScatterData(DataEntry entryX, DataEntry entryY, int nPoints, int[] xData, int[] yData, double minX, double maxX, double minY, double maxY,
-                                 double width, double height, int offsetFromLeft, int offsetFromTop) {
+    private void calcScatterData(DataEntry entryX, DataEntry entryY, int nPoints, int[] xData, int[] yData, double minX, double maxX, double minY, double maxY, double width, double height, int offsetFromLeft, int offsetFromTop) {
         double[] dataX = entryX.getData();
         double[] dataY = entryY.getData();
 
         for (int i = 0; i < nPoints; i++) {
-            // xData[i] = width - (int) ((dataX[i] - minX)/(maxX-minX) * width) + offsetFromLeft;
             xData[i] = (int) ((dataX[i] - minX) / (maxX - minX) * width) + offsetFromLeft;
             yData[i] = (int) height - (int) ((dataY[i] - minY) / (maxY - minY) * height) + offsetFromTop;
         }
@@ -505,11 +495,8 @@ public class YoGraph extends Pane implements FocusListener, EventHandler<Event> 
 
             int nPoints = data.length;
 
-            int length = ((outPoint - inPoint + 1 + nPoints) % nPoints);
-            if (length == 0)
-                length = nPoints;
-
-            // System.out.println("length:  " + length);
+            int length;
+            length = (length = ((outPoint - inPoint + 1 + nPoints) % nPoints)) == 0 ? nPoints : length;
 
             int[] xDataPrint = new int[length];
             int[] yDataPrint = new int[length];
@@ -524,70 +511,48 @@ public class YoGraph extends Pane implements FocusListener, EventHandler<Event> 
             Polyline thisPoly = new Polyline(toDarray(zip(xDataPrint, yDataPrint)));
             thisPoly.setStroke(colors[i % YoGraph.MAX_NUM_GRAPHS]);
             this.getChildren().add(thisPoly);
-
-            // Draw the variable name TODO: find replacement
-            //String dString = entry.getVariableName();
-            //g.drawString(dString, cumOffset, printHeight);
-
         }
     }
 
-    private static final String clickMessage = new String("Middle Click to graph selected variable");
+    void resetCanvasSizes() {
+        for (Node n : this.getChildren()) {
+            if (n instanceof Canvas) {
+                ((Canvas) n).setHeight(this.getHeight());
+                ((Canvas) n).setWidth(this.getWidth());
+            }
+        }
+    }
 
     public void repaintAllGraph() {
-        // if((scaling == AUTO_SCALING) && this.minMaxChanged())
         if (this.minMaxChanged()) {
             if (graphConfiguration.getScalingMethod() == AUTO_SCALING) {
                 this.reCalcMinMax();
-
-                Platform.runLater(() -> {
-                    this.getChildren().clear();
-
-                    if (getPlotType() == TIME_PLOT) {
-                        paintTimePlot();
-                    } else if (getPlotType() == PHASE_PLOT) {
-                        paintPhasePlot();
-                    }
-                });
-
             }
+        }
+
+        this.resetCanvasSizes();
+
+        if (getPlotType() == TIME_PLOT) {
+            paintTimePlot(graphIndicesHolder.getLeftPlotIndex(), graphIndicesHolder.getRightPlotIndex());
+        } else if (getPlotType() == PHASE_PLOT) {
+            paintPhasePlot();
         }
     }
 
-    public void repaintGraphOnSetPoint(int leftIndex, int rightIndex, int leftPlotIndex, int rightPlotIndex) {
-        if (leftIndex == rightIndex) {
-            return;
+    private int lastLeft = 0;
+    private int lastRight = 0;
+
+    protected synchronized void repaintPartialGraph(int leftIndex, int rightIndex) {
+        this.resetCanvasSizes();
+
+        if (getPlotType() == TIME_PLOT) {
+            paintTimePlot(leftIndex, rightIndex);
+        } else if (getPlotType() == PHASE_PLOT) {
+            paintPhasePlot();
         }
 
-        double newMin = Double.POSITIVE_INFINITY;
-        double newMax = Double.NEGATIVE_INFINITY;
-
-        for (int i = 0; i < entriesOnThisGraph.size(); i++) {
-            DataEntry entry = entriesOnThisGraph.get(i);
-            boolean inverted = entry.getInverted();
-
-            double entryMax = entry.getMax(leftIndex, rightIndex, leftPlotIndex, rightPlotIndex);
-            double entryMin = entry.getMin(leftIndex, rightIndex, leftPlotIndex, rightPlotIndex);
-
-            if (inverted) {
-                double temp = entryMax;
-                entryMax = -entryMin;
-                entryMin = -temp;
-            }
-
-            if (entryMax > newMax) {
-                newMax = entryMax;
-            }
-
-            if (entryMin < newMin) {
-                newMin = entryMin;
-            }
-        }
-
-        this.min = newMin;
-        this.max = newMax;
-
-        this.repaintAllGraph();
+        lastLeft = leftIndex;
+        lastRight = rightIndex;
     }
 
     private StringBuffer stringBuffer = new StringBuffer(80);
@@ -639,19 +604,19 @@ public class YoGraph extends Pane implements FocusListener, EventHandler<Event> 
         int outPoint = graphIndicesHolder.getOutPoint();
 
         boolean valid = outPoint > inPoint;
+
         if (!valid) {
             System.out.println("Please set inPoint < outPoint and re-try");
         }
+
         return valid;
     }
 
     public void createFFTPlotsFromEntriesBetweenInOutPoints() {
         if (!checkInOutPoints()) return;
 
-
         int inPoint = graphIndicesHolder.getInPoint();
         int outPoint = graphIndicesHolder.getOutPoint();
-
 
         double[] timeData = timeDataHolder.getTimeData();
         double[] rngTimeData = Arrays.copyOfRange(timeData, inPoint, outPoint);
@@ -662,13 +627,10 @@ public class YoGraph extends Pane implements FocusListener, EventHandler<Event> 
 
             BodePlotConstructor.plotFFT(entry.getVariableName(), rngTimeData, rngData);
         }
-
     }
 
 
     public void createFFTPlotsFromEntries() {
-
-
         double[] timeData = timeDataHolder.getTimeData();
 
         for (DataEntry entry : entriesOnThisGraph) {
@@ -676,20 +638,40 @@ public class YoGraph extends Pane implements FocusListener, EventHandler<Event> 
 
             BodePlotConstructor.plotFFT(entry.getVariableName(), timeData, data);
         }
-
     }
 
-    // TODO: does this all need replacement?
-   /*@Override
-   public void paintComponent(Graphics g)
-   {
-      if (graphConfiguration.getPlotType() == YoGraph.TIME_PLOT)
-         paintTimePlot(g);
+    double minFor(DataEntry entry) {
+        this.reCalcMinMax();
+        double minVal = 0.0;
+        if (graphConfiguration.getScalingMethod() == INDIVIDUAL_SCALING) {
+            if (entry.isAutoScaleEnabled()) {
+                minVal = entry.getMin();
+            } else {
+                minVal = entry.getManualMinScaling();
+            }
+        } else if (graphConfiguration.getScalingMethod() == AUTO_SCALING) {
+            minVal = this.min;
+        } else if (graphConfiguration.getScalingMethod() == MANUAL_SCALING) {
+            minVal = graphConfiguration.getManualScalingMin();
+        }
+        return minVal;
+    }
 
-         // else if (plotType == SCATTER_PLOT) paintScatterPlot(g);
-      else if (graphConfiguration.getPlotType() == PHASE_PLOT)
-         paintPhasePlot(g);
-   }*/
+    double maxFor(DataEntry entry) {
+        double maxVal = 0.0;
+        if (graphConfiguration.getScalingMethod() == INDIVIDUAL_SCALING) {
+            if (entry.isAutoScaleEnabled()) {
+                maxVal = entry.getMax();
+            } else {
+                maxVal = entry.getManualMaxScaling();
+            }
+        } else if (graphConfiguration.getScalingMethod() == AUTO_SCALING) {
+            maxVal = this.max;
+        } else if (graphConfiguration.getScalingMethod() == MANUAL_SCALING) {
+            maxVal = graphConfiguration.getManualScalingMax();
+        }
+        return maxVal;
+    }
 
     public void paintPhasePlot() {
         double graphWidth = this.getWidth();
@@ -697,25 +679,13 @@ public class YoGraph extends Pane implements FocusListener, EventHandler<Event> 
 
         int numVars = entriesOnThisGraph.size();
 
-        // TODO: replace
-        //FontMetrics fontMetrics = this.getFontMetrics(getFont());
-
-        // if (numVars < 2) {this.paintTimePlot(g); return;}
-
-        if (numVars == 0) {
-            //g.setColor(Color.white);
-
-            //int messageWidth = fontMetrics.stringWidth(clickMessage);
-            //g.drawString(clickMessage, (graphWidth - messageWidth) / 2, graphHeight / 2);
-        }
+        GraphicsContext gc = ((Canvas) this.getChildren().get(0)).getGraphicsContext2D();
 
         for (int i = 0; i < entriesOnThisGraph.size() / 2; i++) {
             DataEntry entryX = entriesOnThisGraph.get(i);
             double[] dataX = entryX.getData();
 
             DataEntry entryY = entriesOnThisGraph.get(i + 1);
-
-//       double[] dataY = entryY.getData();
 
             double minValX = 0.0, maxValX = 1.0;
             double minValY = 0.0, maxValY = 1.0;
@@ -761,36 +731,25 @@ public class YoGraph extends Pane implements FocusListener, EventHandler<Event> 
             calcScatterData(entryX, entryY, nPoints, xData, yData, minValX, maxValX, minValY, maxValY, (graphWidth - 6), graphHeight - totalDontPlotBottomPixels,
                     3, 5);
 
-            Polyline thisPoly = new Polyline(toDarray(zip(xData, yData)));
-            thisPoly.setStroke(colors[i % YoGraph.MAX_NUM_GRAPHS]);
-            this.getChildren().add(thisPoly);
+            gc.setStroke(colors[i % YoGraph.MAX_NUM_GRAPHS]);
+            gc.strokePolyline(toDarray(xData), toDarray(yData), xData.length);
 
             // Draw a Cross Hairs:
             int index = graphIndicesHolder.getIndex();
 
             if ((index < xData.length) && (index < yData.length) & (index >= 0)) {
-                Line horizontal = new Line();
-                horizontal.setStartX(xData[index] - 5);
-                horizontal.setStartY(yData[index]);
-                horizontal.setEndX(xData[index] + 5);
-                horizontal.setEndY(yData[index]);
-
-                Line vertical = new Line();
-                vertical.setStartX(xData[index]);
-                vertical.setStartY(yData[index] - 10);
-                vertical.setEndX(xData[index]);
-                vertical.setEndY(yData[index] + 10);
+                gc.setStroke(javafx.scene.paint.Color.BLACK);
+                gc.strokeLine(xData[index] - 5, yData[index], xData[index] + 5, yData[index]);
+                gc.strokeLine(xData[index], yData[index] - 10, xData[index], yData[index] + 10);
             }
         }
 
         paintVariableNamesAndValues(true);
     }
 
-    private final Stroke dashedStroke = new BasicStroke(2.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0.0f, new float[]{9}, 0);
-    private final Stroke wideStroke = new BasicStroke(1.5f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0.0f);
-    private final Stroke normalStroke = new BasicStroke();
+    public void paintTimePlot(int leftPlotIndex, int rightPlotIndex) {
+        System.out.println(leftPlotIndex+", "+rightPlotIndex);
 
-    public void paintTimePlot() {
         double graphWidth = this.getWidth();
         double graphHeight = this.getHeight();
 
@@ -798,48 +757,13 @@ public class YoGraph extends Pane implements FocusListener, EventHandler<Event> 
             calculateRequiredEntryPaintWidthsAndRows();
         }
 
-        // TODO: replace
-        //FontMetrics fontMetrics = this.getFontMetrics(getFont());
-
-        int index = graphIndicesHolder.getIndex();
-        int inPoint = graphIndicesHolder.getInPoint();
-        int outPoint = graphIndicesHolder.getOutPoint();
-
-        int leftPlotIndex = graphIndicesHolder.getLeftPlotIndex();
-        int rightPlotIndex = graphIndicesHolder.getRightPlotIndex();
-
         int numVars = entriesOnThisGraph.size();
 
-        if (numVars == 0) {
-            // TODO: replace
-            //graphics.setColor(Color.white);
-            //int messageWidth = fontMetrics.stringWidth(clickMessage);
-            //graphics.drawString(clickMessage, (graphWidth - messageWidth) / 2, graphHeight / 2);
-        }
-
-        // int cumulativeOffset = 3;
-        // int previousRow = 0;
+        GraphicsContext gc = ((Canvas) this.getChildren().get(0)).getGraphicsContext2D();
 
         for (int i = 0; i < numVars; i++) {
             DataEntry entry = entriesOnThisGraph.get(i);
-            double[] data = entry.getData();
-
-            double minVal = 0.0, maxVal = 1.0;
-            if (graphConfiguration.getScalingMethod() == INDIVIDUAL_SCALING) {
-                if (entry.isAutoScaleEnabled()) {
-                    minVal = entry.getMin();
-                    maxVal = entry.getMax();
-                } else {
-                    minVal = entry.getManualMinScaling();
-                    maxVal = entry.getManualMaxScaling();
-                }
-            } else if (graphConfiguration.getScalingMethod() == AUTO_SCALING) {
-                minVal = this.min;
-                maxVal = this.max;
-            } else if (graphConfiguration.getScalingMethod() == MANUAL_SCALING) {
-                minVal = graphConfiguration.getManualScalingMin();
-                maxVal = graphConfiguration.getManualScalingMax();
-            }
+            double[] data = entry.getData(leftPlotIndex, rightPlotIndex);
 
             int nPoints = data.length;
             if ((xData.length != nPoints) || (yData.length != nPoints)) {
@@ -849,36 +773,40 @@ public class YoGraph extends Pane implements FocusListener, EventHandler<Event> 
 
             int totalDontPlotBottomPixels = DONT_PLOT_BOTTOM_PIXELS + PIXELS_PER_BOTTOM_ROW * (totalEntryNamePaintRows - 1);
 
-            calcXYData(entry, nPoints, xData, yData, minVal, maxVal, (graphWidth - 6), graphHeight - totalDontPlotBottomPixels, 3, 5, leftPlotIndex,
-                    rightPlotIndex);
+            calcXYData(entry, nPoints, xData, yData, leftPlotIndex);
 
-            Polyline thisPoly = new Polyline(toDarray(zip(xData, yData)));
-            thisPoly.setStroke(colors[i % YoGraph.MAX_NUM_GRAPHS]);
-            this.getChildren().add(thisPoly);
+            if (xData.length > 1) {
+                final int x = i;
+                Platform.runLater(() -> {
+                    gc.clearRect(xData[0], 0, xData[xData.length - 1], this.getHeight() - 1);
+                    gc.setStroke(colors[x % YoGraph.MAX_NUM_GRAPHS]);
+                    gc.strokePolyline(toDarray(xData), toDarray(yData), xData.length);
+                });
+            }
 
             if (graphConfiguration.getShowBaseLines()) {
                 double[] baseLines = graphConfiguration.getBaseLines();
 
                 for (int j = 0; j < baseLines.length; j++) {
                     double baseLine = baseLines[j];
-                    int baseY = (int) (graphHeight - totalDontPlotBottomPixels)
-                            - (int) ((baseLine - minVal) / (maxVal - minVal) * (graphHeight - totalDontPlotBottomPixels)) + 5;
+                    final int baseY = (int) (graphHeight - totalDontPlotBottomPixels) - (int) ((baseLine - this.minFor(entry)) / (this.maxFor(entry) - this.minFor(entry)) * (graphHeight - totalDontPlotBottomPixels)) + 5;
 
-                    Line baseline = new Line();
-                    baseline.setStroke(baseLineColors[j]);
-                    baseline.setStartX(0);
-                    baseline.setStartY(baseY);
-                    baseline.setEndX(this.getWidth());
-                    baseline.setEndY(baseY);
+                    final int x = j;
+                    Platform.runLater(() -> {
+                        GraphicsContext gc2 = ((Canvas) this.getChildren().get(1)).getGraphicsContext2D();
+                        gc2.clearRect(0, 0, this.getWidth(), this.getHeight());
+                        gc2.setStroke(baseLineColors[x]);
+                        gc2.strokeLine(0, baseY, this.getWidth(), baseY);
+                    });
                 }
             }
         }
 
-        // Paint vertical index line (but only once):
-
-        paintVerticalIndexLines(graphWidth, graphHeight, index, inPoint, outPoint, leftPlotIndex, rightPlotIndex);
+        Platform.runLater(() -> {
+            paintVerticalIndexLines();
+            paintVariableNamesAndValues(false);
+        });
         //paintVerticalTimeGrids(graphWidth,graphHeight);
-        paintVariableNamesAndValues(false);
     }
 
     // TODO: this is functionally not doing anything - can it be removed?
@@ -894,71 +822,49 @@ public class YoGraph extends Pane implements FocusListener, EventHandler<Event> 
       g2d.setStroke(normalStroke);
    }*/
 
+    private void paintVerticalIndexLines() {
+        double width = this.getWidth();
+        double height = this.getHeight();
+        int inPoint = this.graphIndicesHolder.getInPoint();
+        int outPoint = this.graphIndicesHolder.getOutPoint();
+        int leftIndex = this.graphIndicesHolder.getLeftPlotIndex();
+        int rightIndex = this.graphIndicesHolder.getRightPlotIndex();
 
-    private void paintVerticalIndexLines(double graphWidth, double graphHeight, int index, int inPoint, int outPoint, int leftPlotIndex,
-                                         int rightPlotIndex) {
+        GraphicsContext gc = ((Canvas) this.getChildren().get(2)).getGraphicsContext2D();
+        gc.clearRect(0, 0, width, height);
+        gc.setLineWidth(1.5f);
 
-        int leftToRightPlotIndexDelta = rightPlotIndex - leftPlotIndex;
-        if (leftToRightPlotIndexDelta == 0) {
-            return;
+        double linex;
+
+        if (inPoint >= leftIndex) {
+            linex = (((inPoint - leftIndex) * width) / (rightIndex - leftIndex));
+            gc.setStroke(javafx.scene.paint.Color.GREEN);
+            gc.strokeLine(linex, 0, linex, height);
         }
 
-        double linex = ((graphWidth - 6) * (inPoint - leftPlotIndex)) / leftToRightPlotIndexDelta + 3;
-
-        int totalDontPlotTimelineBottomPixels = DONT_PLOT_TIMELINE_BOTTOM_PIXELS + PIXELS_PER_BOTTOM_ROW * (totalEntryNamePaintRows - 1);
-        double graphTopYValue = graphHeight - totalDontPlotTimelineBottomPixels;
-
-        {
-            Line startLine = new Line();
-            startLine.setStroke(javafx.scene.paint.Color.GREEN);
-            startLine.setStartX(linex);
-            startLine.setStartY(0);
-            startLine.setEndX(linex);
-            startLine.setEndY(graphTopYValue);
-            startLine.setStrokeWidth(1.5f);
-            this.getChildren().add(startLine);
-        }
-
-        {
-            linex = ((graphWidth - 6) * (outPoint - leftPlotIndex)) / leftToRightPlotIndexDelta + 3;
-
-            Line endLine = new Line();
-            endLine.setStroke(javafx.scene.paint.Color.RED);
-            endLine.setStartX(linex);
-            endLine.setStartY(0);
-            endLine.setEndX(linex);
-            endLine.setEndY(graphTopYValue);
-            endLine.setStrokeWidth(1.5f);
-            this.getChildren().add(endLine);
+        if (outPoint <= rightIndex) {
+            linex = (((outPoint - leftIndex) * width) / (rightIndex - leftIndex));
+            gc.setStroke(javafx.scene.paint.Color.RED);
+            gc.strokeLine(linex, 0, linex, height);
         }
 
         {
             ArrayList<Integer> keys = graphIndicesHolder.getKeyPoints();
 
             for (int i = 0; i < keys.size(); i++) {
-                linex = ((graphWidth - 6) * (keys.get(i) - leftPlotIndex)) / leftToRightPlotIndexDelta + 3;
-
-                Line key = new Line();
-                key.setStroke(javafx.scene.paint.Color.ORANGE);
-                key.setStartX(linex);
-                key.setStartY(0);
-                key.setEndX(linex);
-                key.setEndY(graphTopYValue);
-                key.setStrokeWidth(1.5f);
-                this.getChildren().add(key);
+                int value = keys.get(i);
+                if (value >= leftIndex && value <= rightIndex) {
+                    linex = ((value * width) / (rightIndex - leftIndex));
+                    gc.setStroke(javafx.scene.paint.Color.ORANGE);
+                    gc.strokeLine(linex, 0, linex, height);
+                }
             }
         }
 
         {
-            linex = ((graphWidth - 6) * (index - leftPlotIndex)) / leftToRightPlotIndexDelta + 3;
-
-            Line endLine = new Line();
-            endLine.setStartX(linex);
-            endLine.setStartY(0);
-            endLine.setEndX(linex);
-            endLine.setEndY(graphTopYValue);
-            endLine.setStrokeWidth(1.5f);
-            this.getChildren().add(endLine);
+            linex = ((this.graphIndicesHolder.getIndex() * width) / (rightIndex - leftIndex));
+            gc.setStroke(javafx.scene.paint.Color.BLACK);
+            gc.strokeLine(linex, 0, linex, height);
         }
     }
 

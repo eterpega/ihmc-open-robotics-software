@@ -46,11 +46,24 @@ public class DataBufferEntry implements DataEntry
    {
       return data.length;
    }
+
+   @Override
+   public double[] getData(int leftIndex, int rightIndex) throws IndexOutOfBoundsException {
+      if (leftIndex > rightIndex) throw new IndexOutOfBoundsException("leftIndex must be <= rightIndex");
+
+      double[] ret = new double[rightIndex-leftIndex];
+
+      for (int i = leftIndex; i < rightIndex; ++i) {
+         ret[i-leftIndex] = this.data[i];
+      }
+
+      return ret;
+   }
    
    @Override
    public double[] getData()
    {
-      return this.data;
+      return this.getData(0, this.data.length-1);
    }
 
    @Override
