@@ -1,228 +1,68 @@
 package us.ihmc.ihmcPerception.generateTrainingData;
-//
 
-//import javax.swing.ImageIcon;
-//import javax.swing.JFrame;
-//import javax.swing.JLabel;
-//
-//import org.bytedeco.javacpp.opencv_core.IplImage;
-//import org.bytedeco.javacv.FFmpegFrameGrabber;
-//import org.opencv.core.Core;
-//import org.opencv.core.Mat;
-//import org.opencv.videoio.VideoCapture;
-//
-//import us.ihmc.ihmcPerception.OpenCVTools;
-//
-//
-//
-//public class extractImagesFromVideo
-//{
-//   public extractImagesFromVideo(String path)
-//   {
-//      extract(path);
-//   }
-//   
-//   private void extract(String path)
-//   {
-//      Mat frame = new Mat();
-//      System.out.println("Here");
-//      VideoCapture camera = new VideoCapture(path);
-//      JFrame jframe = new JFrame("Image");
-//      jframe.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-//      JLabel vidpanel = new JLabel();
-//      jframe.setContentPane(vidpanel);
-//      jframe.setVisible(true);
-//      System.out.println(camera.isOpened());
-//      while(camera.isOpened())
-//      {
-//         if(camera.read(frame))
-//         {
-//            System.out.println("True");
-//            ImageIcon image = new ImageIcon(OpenCVTools.convertMatToBufferedImage(frame));
-//            vidpanel.setIcon(image);
-//            vidpanel.repaint();
-//         }
-//      }
-//   }
-//   
-//   public static void main(String[] args)
-//   {
-//      System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-//      new extractImagesFromVideo("atlasgui_video.mp4");
-//   }
-//   
-//}
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
-import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javafx.application.Application;
-import javafx.application.Platform;
-import javafx.embed.swing.SwingFXUtils;
-import javafx.scene.Scene;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.StackPane;
-import javafx.stage.Stage;
-import javax.sound.sampled.AudioFormat;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.DataLine;
-import javax.sound.sampled.SourceDataLine;
-import org.bytedeco.javacv.FFmpegFrameGrabber;
-import org.bytedeco.javacv.Frame;
-import org.bytedeco.javacv.Java2DFrameConverter;
-import org.bytedeco.javacv.OpenCVFrameConverter;
+import javax.imageio.ImageIO;
 
-public class extractImagesFromVideo extends Application
+import org.jcodec.api.JCodecException;
+import org.jcodec.api.awt.FrameGrab;
+import org.jcodec.common.DemuxerTrack;
+import org.jcodec.common.FileChannelWrapper;
+import org.jcodec.common.NIOUtils;
+import org.jcodec.containers.mp4.demuxer.MP4Demuxer;
+
+public class extractImagesFromVideo
 {
 
-   private static final Logger LOG = Logger.getLogger(extractImagesFromVideo.class.getName());
-   private static final double SC16 = (double) 0x7FFF + 0.4999999999999999;
-
-   private static volatile Thread playThread;
-
-   public static void main(String[] args)
+   public static void main(String[] args) throws IOException, JCodecException
    {
-      launch(args);
+      new extractImagesFromVideo().st();
    }
 
-   @Override
-   public void start(Stage primaryStage) throws Exception
+   void st() throws IOException, JCodecException
    {
-      StackPane root = new StackPane();
-      ImageView imageView = new ImageView();
+      File file = new File("src/us/ihmc/ihmcPerception/generateTrainingData/SampleVideo.mp4");
+      File directory = new File("src/us/ihmc/ihmcPerception/generateTrainingData/extractedTestImages");
 
-      root.getChildren().add(imageView);
-      imageView.fitWidthProperty().bind(primaryStage.widthProperty());
-      imageView.fitHeightProperty().bind(primaryStage.heightProperty());
+      if (!directory.exists())
+         directory.mkdir();
 
-      Scene scene = new Scene(root, 640, 480);
+      this.getFrame(file);
+   }
 
-      primaryStage.setTitle("Video + audio");
-      primaryStage.setScene(scene);
-      primaryStage.show();
+   void getFrame(File file) throws IOException, JCodecException
+   {
+      FileChannelWrapper ch = null;
+      try
+      {
+         ch = NIOUtils.readableFileChannel(file);
+         FrameGrab frameGrab = new FrameGrab(ch);
 
-      playThread = new Thread(() -> {
-         try
+         MP4Demuxer demuxer = new MP4Demuxer(ch);
+         DemuxerTrack video_track = demuxer.getVideoTrack();
+
+         double duration = video_track.getMeta().getTotalDuration();
+         int numberOfFrames = video_track.getMeta().getTotalFrames();
+         System.out.println("Video duration: " + duration + " seconds");
+         System.out.println("Number of frames: " + numberOfFrames);
+
+         BufferedImage[] frame = new BufferedImage[numberOfFrames];
+
+         System.out.println("Extracting images please wait!");
+         for (int i = 0; i < numberOfFrames; i++)
          {
-            FFmpegFrameGrabber grabber = new FFmpegFrameGrabber("drop.avi");
-            grabber.start();
-            System.out.println(grabber.getLengthInFrames());
-            AudioFormat audioFormat = new AudioFormat(44100, 16, 1, true, true);
-
-            DataLine.Info info = new DataLine.Info(SourceDataLine.class, audioFormat);
-            SourceDataLine soundLine = (SourceDataLine) AudioSystem.getLine(info);
-            soundLine.open(audioFormat);
-            soundLine.start();
-
-            OpenCVFrameConverter converter = new OpenCVFrameConverter.ToIplImage();
-            Java2DFrameConverter paintConverter = new Java2DFrameConverter();
-
-            ExecutorService executor = Executors.newSingleThreadExecutor();
-
-            while (!Thread.interrupted())
-            {
-               Frame frame = grabber.grab();
-               if (frame == null)
-               {
-                  break;
-               }
-               if (frame.image != null)
-               {
-                  Image image = SwingFXUtils.toFXImage(paintConverter.convert(frame), null);
-                  Platform.runLater(() -> {
-                     imageView.setImage(image);
-                  });
-               }
-               else if (frame.samples != null)
-               {
-                  FloatBuffer channelSamplesFloatBuffer = (FloatBuffer) frame.samples[0];
-                  channelSamplesFloatBuffer.rewind();
-
-                  ByteBuffer outBuffer = ByteBuffer.allocate(channelSamplesFloatBuffer.capacity() * 2);
-
-                  for (int i = 0; i < channelSamplesFloatBuffer.capacity(); i++)
-                  {
-                     /**
-                      * FloatBuffer is converted to ByteBuffer with some
-                      * magic constant SC16 (~Short.MAX_VALUE). I found
-                      * it on some forum with this explanation:
-                      *
-                      * For 16 bit signed to float, divide by 32768. For
-                      * float to 16 bit, multiply by 32768.
-                      *
-                      * Going from float to integer, do the initial
-                      * conversion into a container bigger than the
-                      * destination container so that it doesn't
-                      * accidentally wrap on overs. For instance, on 16
-                      * or 24 bit, you can use signed int 32.
-                      *
-                      * Or alternately, do the clipping on the scaled
-                      * float value, before casting into integer. That
-                      * way you can save the clipped float direct to a 16
-                      * bit container and not have to fool with an
-                      * intermediate 32 bit container.
-                      *
-                      * Clip the float to int results to stay in bounds.
-                      * Anything lower than 0x8000 clipped to 0x8000, and
-                      * anything higher than 0x7FFFF clipped to 0x7FFFF.
-                      *
-                      * The advantage of using a factor of 32768 is that
-                      * bit patterns will stay the same after conversion.
-                      * If you use 32767, the bit patterns will change.
-                      * Not much change, but it just doesn't seem elegant
-                      * to have them change if it can be avoided.
-                      *
-                      * If you want to do it as fast as possible it is
-                      * just a matter of optimizing the code in whatever
-                      * way seems sensible.
-                      */
-                     // Could be replaced with: short val = (short) (channelSamplesFloatBuffer.get(i) * Short.MAX_VALUE);
-                     short val = (short) ((double) channelSamplesFloatBuffer.get(i) * SC16);
-                     outBuffer.putShort(val);
-                  }
-
-                  /**
-                   * We need this because soundLine.write ignores
-                   * interruptions during writing.
-                   */
-                  try
-                  {
-                     executor.submit(() -> {
-                        soundLine.write(outBuffer.array(), 0, outBuffer.capacity());
-                        outBuffer.clear();
-                     }).get();
-                  }
-                  catch (InterruptedException interruptedException)
-                  {
-                     Thread.currentThread().interrupt();
-                  }
-               }
-            }
-            executor.shutdownNow();
-            executor.awaitTermination(10, TimeUnit.SECONDS);
-            soundLine.stop();
-            grabber.stop();
-            grabber.release();
-            Platform.exit();
+            frame[i] = ((FrameGrab) frameGrab.seekToFramePrecise(i)).getFrame();
+            ImageIO.write(frame[i], "jpg", new File("src/us/ihmc/ihmcPerception/generateTrainingData/extractedTestImages/test" + i + ".jpg"));
+            if (i % 30 == 0)
+               System.out.print(i + " frames extracted\r");
          }
-         catch (Exception exception)
-         {
-            LOG.log(Level.SEVERE, null, exception);
-            System.exit(1);
-         }
-      });
-      playThread.start();
-   }
 
-   @Override
-   public void stop() throws Exception
-   {
-      playThread.interrupt();
+      } finally
+      {
+         NIOUtils.closeQuietly(ch);
+         System.out.println("Done!");
+      }
    }
-
 }
