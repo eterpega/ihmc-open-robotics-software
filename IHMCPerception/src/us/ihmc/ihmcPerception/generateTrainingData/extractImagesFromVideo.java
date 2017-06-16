@@ -23,7 +23,7 @@ public class extractImagesFromVideo
 
    void st() throws IOException, JCodecException
    {
-      File file = new File("src/us/ihmc/ihmcPerception/generateTrainingData/SampleVideo.mp4");
+      File file = new File("src/us/ihmc/ihmcPerception/generateTrainingData/SampleVideo1.mp4");
       File directory = new File("src/us/ihmc/ihmcPerception/generateTrainingData/extractedTestImages");
 
       if (!directory.exists())
