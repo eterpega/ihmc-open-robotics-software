@@ -30,6 +30,7 @@ import us.ihmc.euclid.tuple4D.interfaces.QuaternionBasics;
 import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
 import us.ihmc.euclid.tuple4D.interfaces.Vector4DBasics;
 import us.ihmc.euclid.tuple4D.interfaces.Vector4DReadOnly;
+import us.ihmc.robotics.geometry.RotationTools;
 import us.ihmc.robotics.geometry.interfaces.PoseTransform;
 
 public class Pose implements GeometryObject<Pose>, PoseTransform
@@ -186,7 +187,7 @@ public class Pose implements GeometryObject<Pose>, PoseTransform
    @Override
    public boolean epsilonEquals(Pose other, double epsilon)
    {
-      return orientation.epsilonEquals(other.getOrientation(), epsilon) && position.epsilonEquals(other.getPosition(), epsilon);
+      return RotationTools.quaternionEpsilonEquals(orientation, other.getOrientation(), epsilon) && position.epsilonEquals(other.getPosition(), epsilon);
    }
 
    @Override
