@@ -9,16 +9,9 @@ if (!rootProject.name.equals('ihmc-open-robotics-software')) {
 sourceCompatibility = 1.8
 
 
-repositories ihmc.ihmcDefaultArtifactProxies()
 
-repositories {
-    mavenLocal()
-    jcenter()
-    mavenCentral()
-    maven {
-        url "http://artifactory.ihmc.us/artifactory/thirdparty/"
-    }
-}
+
+
 
 def strings = ['ihmc', 'robotics']
 ihmc.configureForIHMCOpenSourceBintrayPublish(false, "mavenJava", "maven-release", strings)

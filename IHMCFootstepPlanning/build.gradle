@@ -4,16 +4,9 @@ sourceCompatibility = 1.8
 
 
 
-repositories ihmc.ihmcDefaultArtifactProxies()
 
-repositories {
-    mavenLocal()
-    jcenter()
-    mavenCentral()
-    maven {
-        url "http://artifactory.ihmc.us/artifactory/thirdparty/"
-    }
-}
+
+
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.11'

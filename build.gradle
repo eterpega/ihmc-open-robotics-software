@@ -51,6 +51,7 @@ project.ext.vcsUrl = "https://github.com/ihmcrobotics/ihmc-open-robotics-softwar
 
 subprojects {
    sourceCompatibility = 1.8
+   targetCompatibility = 1.8
 
    version = rootProject.version
    project.ext.fullVersion = rootProject.ext.fullVersion
@@ -58,6 +59,9 @@ subprojects {
    project.ext.licenseURL = "http://www.apache.org/licenses/LICENSE-2.0.txt"
    project.ext.licenseName = "Apache License, Version 2.0"
    project.ext.bintrayLicenseName = "Apache-2.0"
+   project.ext.companyName = "IHMC"
+   project.ext.author = "IHMC Gradle Build Script"
+   project.ext.groupId = "us.ihmc"
 
    repositories ihmc.setupCommonArtifactProxies()
 
@@ -69,6 +73,9 @@ subprojects {
 
    ihmc.setupAggressiveResolutionStrategy(project)
    ihmc.setupJavaSourceSets(project)
+
+   ihmc.setupCommonJARConfiguration(project)
+   ihmc.setupCommonPublishingConfiguration(project)
 }
 
 //   subproject.ext {
@@ -126,15 +133,15 @@ subprojects {
 //      }
 //   }
 
-//task performRelease(type: GradleBuild) {
-//   if (!publishMode.equals("STABLE"))
-//   {
-//      return
-//   }
-//   buildFile "build.gradle"
-//   startParameter gradle.startParameter
-//   tasks = ["bintrayUpload", ":ihmc-robot-data-logger:publishLoggerDistributionToBintray"]
-//}
+task performRelease(type: GradleBuild) {
+   if (!publishMode.equals("STABLE"))
+   {
+      return
+   }
+   buildFile "build.gradle"
+   startParameter gradle.startParameter
+   tasks = ["bintrayUpload", ":ihmc-robot-data-logger:publishLoggerDistributionToBintray"]
+}
 
 //task publishAllToMavenLocal(type: GradleBuild) {
 //   buildFile "build.gradle"

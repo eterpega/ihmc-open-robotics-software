@@ -8,7 +8,7 @@ sourceCompatibility = 1.8
 apply plugin: 'application'
 
 
-repositories ihmc.ihmcDefaultArtifactProxies()
+
 
 repositories {
     mavenLocal()

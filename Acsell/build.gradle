@@ -18,7 +18,7 @@ if (!rootProject.name.equals('ihmc-open-robotics-software'))
 
 sourceCompatibility = 1.8
 
-repositories ihmc.ihmcDefaultArtifactProxies()
+
 
 repositories {
    mavenLocal()
