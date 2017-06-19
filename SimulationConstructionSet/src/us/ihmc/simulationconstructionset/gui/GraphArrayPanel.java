@@ -5,6 +5,7 @@ import javafx.scene.Node;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.RowConstraints;
 import us.ihmc.graphicsDescription.graphInterfaces.GraphIndicesHolder;
 import us.ihmc.graphicsDescription.graphInterfaces.SelectedVariableHolder;
 import us.ihmc.javaFXToolkit.graphing.JavaFX3DGraph;
@@ -51,13 +52,10 @@ public class GraphArrayPanel extends GridPane implements GraphIndicesHolder, YoG
 
         this.javaFX3DGraphs = new ArrayList<>();
 
+        this.resetRows();
         this.resetColumns();
 
         this.setPrefSize(800, 400);
-    }
-
-    public int getNumberOfColumns() {
-        return numColumns;
     }
 
     public ArrayList<YoGraph> getGraphsOnThisPanel() {
@@ -70,11 +68,23 @@ public class GraphArrayPanel extends GridPane implements GraphIndicesHolder, YoG
         return graphs;
     }
 
+    void resetRows() {
+        this.getRowConstraints().clear();
+        for (Node n : this.getChildren()) {
+            if (GridPane.getRowIndex(n) >= this.getRowConstraints().size()) {
+                RowConstraints newRow = new RowConstraints();
+                newRow.setPercentHeight(25.0d);
+                this.getRowConstraints().add(newRow);
+            }
+        }
+    }
+
     void resetColumns() {
         this.getColumnConstraints().clear();
         for (int i = 0; i < numColumns; ++i) {
             ColumnConstraints newColumn = new ColumnConstraints();
             newColumn.setPercentWidth(100.0d / (double) numColumns);
+            this.getColumnConstraints().add(newColumn);
         }
     }
 
@@ -426,6 +436,8 @@ public class GraphArrayPanel extends GridPane implements GraphIndicesHolder, YoG
             Platform.runLater(() -> this.getChildren().remove(removeGraph));
             removeEmptyGraphs();
         } else {
+            this.resetColumns();
+            this.resetRows();
             this.updateGraphs();
         }
     }
@@ -453,20 +465,26 @@ public class GraphArrayPanel extends GridPane implements GraphIndicesHolder, YoG
 
         Platform.runLater(() -> {
             int[] useThis = nextAvailableGraphLocation();
+
             GridPane.setConstraints(graph, useThis[1], useThis[0]);
+
             graph.setStyle("-fx-border-style: solid bevel;" +
                     "-fx-border-width: 1px;" +
                     "-fx-border-radius: 3px;" +
-                    "-fx-border-color: black" +
+                    "-fx-border-color: black;" +
                     "-fx-margin: 5px");
-            GridPane.setVgrow(graph, Priority.ALWAYS);
+
+            /*GridPane.setVgrow(graph, Priority.ALWAYS);
             GridPane.setHgrow(graph, Priority.ALWAYS);
             GridPane.setFillHeight(graph, true);
-            GridPane.setFillWidth(graph, true);
-            this.getChildren().add(graph);
-        });
+            GridPane.setFillWidth(graph, true);*/
 
-        this.updateGraphs();
+            this.getChildren().add(graph);
+
+            this.resetColumns();
+            this.resetRows();
+            this.updateGraphs();
+        });
     }
 
     @Override
