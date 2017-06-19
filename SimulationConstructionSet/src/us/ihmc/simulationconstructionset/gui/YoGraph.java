@@ -32,7 +32,7 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class YoGraph extends Pane implements FocusListener, EventHandler<Event> {
+public class YoGraph extends Pane implements EventHandler<Event> {
     private static final int DONT_PLOT_BOTTOM_PIXELS = 25;
     private static final int PIXELS_PER_BOTTOM_ROW = 14;    // 16;
     private static final int DONT_PLOT_TIMELINE_BOTTOM_PIXELS = 16;
@@ -133,7 +133,7 @@ public class YoGraph extends Pane implements FocusListener, EventHandler<Event> 
             popupMenu.setVisible(false);
             thisYoGraph.yoGraphRemover.removeGraph(thisYoGraph);
         });
-        popupMenu.addFocusListener(this);
+        //popupMenu.addFocusListener(this);
         //this.setTransferHandler(new YoGraphTransferHandler()); TODO: replace
         this.showNameSpace = false;
     }
@@ -1243,29 +1243,6 @@ public class YoGraph extends Pane implements FocusListener, EventHandler<Event> 
 
             // graphArrayPanel.repaintGraphs();
         }
-    }
-
-    public void handleFocusGained() {
-        if (hadFocus) {
-            popupMenu.setVisible(false);
-        }
-
-        hadFocus = true;
-    }
-
-    public void handleFocusLost() {
-        popupMenu.setVisible(false);
-        hadFocus = false;
-    }
-
-    @Override
-    public void focusGained(FocusEvent arg0) {
-        this.handleFocusGained();
-    }
-
-    @Override
-    public void focusLost(FocusEvent arg0) {
-        this.handleFocusLost();
     }
 
     public static int getActionPerformedByDragAndDrop() {
