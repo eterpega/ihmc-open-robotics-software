@@ -1,72 +1,36 @@
-
-
-if(!rootProject.name.equals('ihmc-open-robotics-software')) { evaluationDependsOn(':ihmc-open-robotics-software') }
-
-sourceCompatibility = 1.8
-
+if (!rootProject.name.equals('ihmc-open-robotics-software'))
+{
+   evaluationDependsOn(':ihmc-open-robotics-software')
+}
 
 apply plugin: 'application'
 
-
-
-
-repositories {
-    mavenLocal()
-    jcenter()
-    mavenCentral()
-    maven {
-        url "http://artifactory.ihmc.us/artifactory/thirdparty/"
-    }
-    
-    maven {
-        url "http://artifactory.ihmc.us/artifactory/releases/"
-   	}
-}
-
-def strings = ['ihmc', 'robotics']
-ihmc.configureForIHMCOpenSourceBintrayPublish(false, "mavenJava", "maven-release", strings)
-
 dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.11'
-    testCompile group: 'us.ihmc', name: 'ihmc-continuous-integration-framework', version: '0.9.4'
+   testCompile group: 'junit', name: 'junit', version: '4.11'
+   testCompile group: 'us.ihmc', name: 'ihmc-continuous-integration-framework', version: '0.9.4'
 
-	compile group: 'com.martiansoftware', name: 'jsap', version: '2.1'
-	compile group: 'net.wimpi', name: 'jamod', version: '1.2'
-    compile group: 'commons-collections', name: 'commons-collections', version: '3.2.1'
+   compile group: 'com.martiansoftware', name: 'jsap', version: '2.1'
+   compile group: 'net.wimpi', name: 'jamod', version: '1.2'
+   compile group: 'commons-collections', name: 'commons-collections', version: '3.2.1'
 
-    compile ihmc.getProjectDependency(":ihmc-humanoid-robotics")
-	compile ihmc.getProjectDependency(":ihmc-avatar-interfaces")
-	compile ihmc.getProjectDependency(":ihmc-communication")
-	compile ihmc.getProjectDependency(":simulation-construction-set")
-	compile ihmc.getProjectDependency(":ihmc-whole-body-controller")
-	compile ihmc.getProjectDependency(":ihmc-java-toolkit")
-    compile ihmc.getProjectDependency(":ihmc-java-extensions")
-    compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
-	compile ihmc.getProjectDependency(":ihmc-robotics-toolkit")
-	compile ihmc.getProjectDependency(":ihmc-graphics-description")
+   compile ihmc.getProjectDependency(":ihmc-humanoid-robotics")
+   compile ihmc.getProjectDependency(":ihmc-avatar-interfaces")
+   compile ihmc.getProjectDependency(":ihmc-communication")
+   compile ihmc.getProjectDependency(":simulation-construction-set")
+   compile ihmc.getProjectDependency(":ihmc-whole-body-controller")
+   compile ihmc.getProjectDependency(":ihmc-java-toolkit")
+   compile ihmc.getProjectDependency(":ihmc-java-extensions")
+   compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
+   compile ihmc.getProjectDependency(":ihmc-robotics-toolkit")
+   compile ihmc.getProjectDependency(":ihmc-graphics-description")
 
-	testCompile ihmc.getProjectTestDependency(":ihmc-robotics-toolkit")
-	testCompile ihmc.getProjectTestDependency(":ihmc-java-extensions")
-    testCompile group: 'us.ihmc', name: 'ihmc-commons-testing', version: '0.11.0-alpha'
+   testCompile ihmc.getProjectTestDependency(":ihmc-robotics-toolkit")
+   testCompile ihmc.getProjectTestDependency(":ihmc-java-extensions")
+   testCompile group: 'us.ihmc', name: 'ihmc-commons-testing', version: '0.11.0-alpha'
 }
 applicationName = 'RobotiqControlThread'
 mainClassName = 'us.ihmc.robotiq.control.RobotiqControlThread'
 
 applicationDistribution.from(file("IHMCNetworkParameters.ini")) {
-    into "bin"
-}
-
-jar {
-    manifest {
-        attributes(
-                "Created-By": "IHMC Gradle Build Script",
-                "Implementation-Title": project.name,
-                "Implementation-Version": project.version,
-                "Implementation-Vendor": "IHMC",
-
-                "Bundle-Name": project.name,
-                "Bundle-Version": project.version,
-                "Bundle-License": "${project.ext.licenseURL}",
-                "Bundle-Vendor": "IHMC")
-    }
+   into "bin"
 }

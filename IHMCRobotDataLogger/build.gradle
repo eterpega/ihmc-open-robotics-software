@@ -1,47 +1,35 @@
 buildscript {
-  repositories {
-    mavenLocal()
-    maven {
-    	url "http://dl.bintray.com/ihmcrobotics/maven-release"
-    }
-    maven {
-  		url "https://plugins.gradle.org/m2/"
-    }
-  }
-  dependencies {
-    classpath "org.hidetake:gradle-ssh-plugin:2.1.1"
-    classpath group: 'us.ihmc', name: 'IHMCPubSubGenerator', version: '0.2.5'
-  }
+   repositories {
+      mavenLocal()
+      maven {
+         url "http://dl.bintray.com/ihmcrobotics/maven-release"
+      }
+      maven {
+         url "https://plugins.gradle.org/m2/"
+      }
+   }
+   dependencies {
+      classpath "org.hidetake:gradle-ssh-plugin:2.1.1"
+      classpath group: 'us.ihmc', name: 'IHMCPubSubGenerator', version: '0.2.5'
+   }
 }
 
 apply plugin: "org.hidetake.ssh"
 
-if (!rootProject.name.equals('ihmc-open-robotics-software')) {
+if (!rootProject.name.equals('ihmc-open-robotics-software'))
+{
    evaluationDependsOn(':ihmc-open-robotics-software')
 }
 
-sourceCompatibility = 1.8
-
-
 apply plugin: 'application'
 
-
-
-
-
 sourceSets {
-        main {
-                java {
-                        srcDirs += ['generated-src']
-                }
-
-        }
-
+   main {
+      java {
+         srcDirs += ['generated-src']
+      }
+   }
 }
-
-
-def strings = ['ihmc', 'robotics']
-ihmc.configureForIHMCOpenSourceBintrayPublish(false, "mavenJava", "maven-release", strings)
 
 dependencies {
    testCompile group: 'junit', name: 'junit', version: '4.11'
@@ -59,34 +47,19 @@ dependencies {
    compile group: 'org.tukaani', name: 'xz', version: '1.5'
    compile group: 'us.ihmc', name: 'IHMCPubSub', version: '0.2.6'
    compile group: 'us.ihmc', name: 'IHMCPubSubSerializersExtra', version: '0.2.4'
-   
+
    compile ihmc.getProjectDependency(":model-file-loader")
    compile ihmc.getProjectDependency(":ihmc-communication")
    compile ihmc.getProjectDependency(":ihmc-java-toolkit")
    compile ihmc.getProjectDependency(":ihmc-java-extensions")
-    compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
+   compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
    compile ihmc.getProjectDependency(":ihmc-robotics-toolkit")
    compile ihmc.getProjectDependency(":ihmc-graphics-description")
-    compile ihmc.getProjectDependency(":ihmc-robot-description")
-    compile ihmc.getProjectDependency(":ihmc-robot-models")
+   compile ihmc.getProjectDependency(":ihmc-robot-description")
+   compile ihmc.getProjectDependency(":ihmc-robot-models")
 }
 
 mainClassName = hasProperty('mainClass') ? mainClass : "us.ihmc.robotDataLogger.logger.YoVariableLoggerDispatcher"
-
-jar {
-   manifest {
-      attributes(
-              "Created-By": "IHMC Gradle Build Script",
-              "Implementation-Title": project.name,
-              "Implementation-Version": project.version,
-              "Implementation-Vendor": "IHMC",
-
-              "Bundle-Name": project.name,
-              "Bundle-Version": project.version,
-              "Bundle-License": "${project.ext.licenseURL}",
-              "Bundle-Vendor": "IHMC")
-   }
-}
 
 task loggerStartScripts(type: CreateStartScripts) {
    outputDir = file("build/scripts")
@@ -96,10 +69,10 @@ task loggerStartScripts(type: CreateStartScripts) {
 }
 
 task compileIDL(type: us.ihmc.idl.generator.IDLGeneratorTask) {
-	idlFiles = fileTree(dir: 'idl')
-	includeDirs = files(".")
-	targetDirectory = file("generated-src")
-	packagePrefix = ""
+   idlFiles = fileTree(dir: 'idl')
+   includeDirs = files(".")
+   targetDirectory = file("generated-src")
+   packagePrefix = ""
 }
 
 compileJava.dependsOn compileIDL
@@ -133,7 +106,6 @@ task setupDeployLoggerRemote << {
    }
 }
 
-
 task deployLogger(dependsOn: [loggerDistTar, setupDeployLoggerRemote]) << {
    ssh.run {
       session(remotes.deployLoggerTarget) {
@@ -162,7 +134,8 @@ task checkThatDistributionDoesntAlreadyExist(type: Exec) {
    doLast {
       execResult.assertNormalExitValue()
       def output = standardOutput.toString()
-      if(output.equals("200")) {
+      if (output.equals("200"))
+      {
          throw new GradleException("Distribution ${distTarFile.name} already exists on Bintray. Distributions versions should not be overwritten. Did you mean to release a new version or hotfix?")
       }
    }
@@ -181,7 +154,8 @@ task publishLoggerDistributionToBintray(type: Exec, dependsOn: [checkThatDistrib
    doLast {
       execResult.assertNormalExitValue()
       def output = standardOutput.toString()
-      if(!output.equals("201")) {
+      if (!output.equals("201"))
+      {
          throw new GradleException("Upload failed! HTTP Response code: ${output}.")
       }
    }

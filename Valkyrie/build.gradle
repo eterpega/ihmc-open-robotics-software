@@ -18,29 +18,9 @@ if (!rootProject.name.equals('ihmc-open-robotics-software'))
    evaluationDependsOn(':ihmc-open-robotics-software')
 }
 
-sourceCompatibility = 1.8
-
-
-
-
-repositories {
-   mavenLocal()
-   jcenter()
-   mavenCentral()
-   maven {
-      url "http://artifactory.ihmc.us/artifactory/thirdparty/"
-   }
-   maven {
-      url "http://artifactory.ihmc.us/artifactory/releases/"
-   }
-}
-
-def strings = ['ihmc', 'robotics']
-ihmc.configureForIHMCOpenSourceBintrayPublish(false, "mavenJava", "maven-release", strings)
-
 dependencies {
    testCompile group: 'junit', name: 'junit', version: '4.11'
-    testCompile group: 'us.ihmc', name: 'ihmc-continuous-integration-framework', version: '0.9.4'
+   testCompile group: 'us.ihmc', name: 'ihmc-continuous-integration-framework', version: '0.9.4'
 
    compile group: 'us.ihmc', name: 'euclid-core', version: '0.4.3'
    compile group: 'com.martiansoftware', name: 'jsap', version: '2.1'
@@ -72,8 +52,8 @@ dependencies {
    compile ihmc.getProjectDependency(":ihmc-perception")
    compile ihmc.getProjectDependency(":ihmc-whole-body-controller")
    compile ihmc.getProjectDependency(":ihmc-java-toolkit")
-    compile ihmc.getProjectDependency(":ihmc-java-extensions")
-    compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
+   compile ihmc.getProjectDependency(":ihmc-java-extensions")
+   compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
    compile ihmc.getProjectDependency(":ihmc-robotics-toolkit")
    compile ihmc.getProjectDependency(":ihmc-graphics-description")
    compile ihmc.getProjectDependency(":ihmc-robot-description")
@@ -81,9 +61,9 @@ dependencies {
    compile ihmc.getProjectDependency(":ihmc-robot-data-visualizer")
    compile ihmc.getProjectDependency(":ihmc-simulation-toolkit")
 
-	testCompile ihmc.getProjectTestDependency(":ihmc-robotics-toolkit")
-	testCompile ihmc.getProjectTestDependency(":ihmc-java-extensions")
-    testCompile group: 'us.ihmc', name: 'ihmc-commons-testing', version: '0.11.0-alpha'
+   testCompile ihmc.getProjectTestDependency(":ihmc-robotics-toolkit")
+   testCompile ihmc.getProjectTestDependency(":ihmc-java-extensions")
+   testCompile group: 'us.ihmc', name: 'ihmc-commons-testing', version: '0.11.0-alpha'
    testCompile ihmc.getProjectTestDependency(":ihmc-avatar-interfaces")
 }
 
@@ -139,16 +119,16 @@ jar {
 
    manifest {
       attributes(
-              "Created-By": "IHMC Gradle Build Script",
-              "Implementation-Title": project.name,
-              "Implementation-Version": project.version,
-              "Implementation-Vendor": "IHMC",
+            "Created-By": "IHMC Gradle Build Script",
+            "Implementation-Title": project.name,
+            "Implementation-Version": project.version,
+            "Implementation-Vendor": "IHMC",
 
-              "Bundle-Name": project.name,
-              "Bundle-Version": project.version,
-              "Bundle-License": "${project.ext.licenseURL}",
-              "Bundle-Vendor": "IHMC",
-              'Class-Path': depend.join(' '))
+            "Bundle-Name": project.name,
+            "Bundle-Version": project.version,
+            "Bundle-License": "${project.ext.licenseURL}",
+            "Bundle-Vendor": "IHMC",
+            'Class-Path': depend.join(' '))
    }
 }
 
@@ -244,16 +224,15 @@ task createRosJar(type: Jar) {
    if (!project.parent.hasProperty("repo"))
    {
       gitRepo = Grgit.open(projectDir.canonicalFile.parent)
-   }
-   else
+   } else
    {
       gitRepo = project.parent.repo
    }
    version = gitRepo.head().abbreviatedId;
    manifest {
       attributes 'Implementation-Title': 'ROSAPI',
-              'Implementation-Version': version,
-              'Main-Class': 'us.ihmc.valkyrie.OpenHumanoidsSimulator'
+            'Implementation-Version': version,
+            'Main-Class': 'us.ihmc.valkyrie.OpenHumanoidsSimulator'
    }
 
    baseName = 'OpenHumanoidsSimulator'

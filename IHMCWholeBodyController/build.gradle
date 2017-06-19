@@ -1,55 +1,31 @@
-
-
-if(!rootProject.name.equals('ihmc-open-robotics-software')) { evaluationDependsOn(':ihmc-open-robotics-software') }
-
-sourceCompatibility = 1.8
-
-
-
-
-
-
-def strings = ['ihmc', 'robotics']
-ihmc.configureForIHMCOpenSourceBintrayPublish(false, "mavenJava", "maven-release", strings)
-
-dependencies {
-	compile group: 'us.ihmc', name: 'euclid-core', version: '0.4.3'
-    compile group: 'commons-net', name: 'commons-net', version: '3.3'
-	compile group: 'org.yaml', name: 'snakeyaml', version: '1.17' //1.11
-	compile group: 'us.ihmc', name: 'IHMCRealtime', version: '1.1.2'
-    compile group: 'org.ejml', name: 'core', version: '0.30'
-    compile group: 'org.ejml', name: 'dense64', version: '0.30'
-    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
-    compile group: 'commons-io', name: 'commons-io', version: '2.4'
-    compile group: 'org.apache.commons', name: 'commons-math3', version: '3.5'
-    compile group: 'com.google.guava', name: 'guava', version: '18.0'
-
-	compile ihmc.getProjectDependency(":common-walking-control-modules")
-	compile ihmc.getProjectDependency(":ihmc-communication")
-	compile ihmc.getProjectDependency(":ihmc-humanoid-robotics")
-	compile ihmc.getProjectDependency(":simulation-construction-set")
-
-	compile ihmc.getProjectDependency(":sensor-processing")
-	compile ihmc.getProjectDependency(":simulation-construction-set-tools")
-	compile ihmc.getProjectDependency(":ihmc-java-toolkit")
-    compile ihmc.getProjectDependency(":ihmc-java-extensions")
-    compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
-	compile ihmc.getProjectDependency(":ihmc-robotics-toolkit")
-	compile ihmc.getProjectDependency(":ihmc-robot-models")
-	compile ihmc.getProjectDependency(":ihmc-graphics-description")
+if (!rootProject.name.equals('ihmc-open-robotics-software'))
+{
+   evaluationDependsOn(':ihmc-open-robotics-software')
 }
 
-jar {
-    manifest {
-        attributes(
-                "Created-By": "IHMC Gradle Build Script",
-                "Implementation-Title": project.name,
-                "Implementation-Version": project.version,
-                "Implementation-Vendor": "IHMC",
+dependencies {
+   compile group: 'us.ihmc', name: 'euclid-core', version: '0.4.3'
+   compile group: 'commons-net', name: 'commons-net', version: '3.3'
+   compile group: 'org.yaml', name: 'snakeyaml', version: '1.17' //1.11
+   compile group: 'us.ihmc', name: 'IHMCRealtime', version: '1.1.2'
+   compile group: 'org.ejml', name: 'core', version: '0.30'
+   compile group: 'org.ejml', name: 'dense64', version: '0.30'
+   compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
+   compile group: 'commons-io', name: 'commons-io', version: '2.4'
+   compile group: 'org.apache.commons', name: 'commons-math3', version: '3.5'
+   compile group: 'com.google.guava', name: 'guava', version: '18.0'
 
-                "Bundle-Name": project.name,
-                "Bundle-Version": project.version,
-                "Bundle-License": "${project.ext.licenseURL}",
-                "Bundle-Vendor": "IHMC")
-    }
+   compile ihmc.getProjectDependency(":common-walking-control-modules")
+   compile ihmc.getProjectDependency(":ihmc-communication")
+   compile ihmc.getProjectDependency(":ihmc-humanoid-robotics")
+   compile ihmc.getProjectDependency(":simulation-construction-set")
+
+   compile ihmc.getProjectDependency(":sensor-processing")
+   compile ihmc.getProjectDependency(":simulation-construction-set-tools")
+   compile ihmc.getProjectDependency(":ihmc-java-toolkit")
+   compile ihmc.getProjectDependency(":ihmc-java-extensions")
+   compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
+   compile ihmc.getProjectDependency(":ihmc-robotics-toolkit")
+   compile ihmc.getProjectDependency(":ihmc-robot-models")
+   compile ihmc.getProjectDependency(":ihmc-graphics-description")
 }

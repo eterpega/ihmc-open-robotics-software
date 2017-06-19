@@ -1,45 +1,15 @@
-
-
-if (!rootProject.name.equals('ihmc-open-robotics-software')) {
-    evaluationDependsOn(':ihmc-open-robotics-software')
+if (!rootProject.name.equals('ihmc-open-robotics-software'))
+{
+   evaluationDependsOn(':ihmc-open-robotics-software')
 }
-
-sourceCompatibility = 1.8
-
-
-jar {
-    manifest {
-        attributes(
-                "Created-By": "IHMC Gradle Build Script",
-                "Implementation-Title": project.name,
-                "Implementation-Version": project.version,
-                "Implementation-Vendor": "IHMC",
-
-                "Bundle-Name": project.name,
-                "Bundle-Version": project.version,
-                "Bundle-License": "${project.ext.licenseURL}",
-                "Bundle-Vendor": "IHMC")
-    }
-}
-
-repositories {
-    mavenCentral()
-    mavenLocal()
-    jcenter()
-}
-
-
-
-def strings = ['ihmc', 'robotics']
-ihmc.configureForIHMCOpenSourceBintrayPublish(false, "mavenJava", "maven-release", strings)
 
 dependencies {
-    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
-    compile group: 'commons-io', name: 'commons-io', version: '2.4'
-    compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
-    
-    testCompile group: 'junit', name: 'junit', version: '4.11'
-    testCompile group: 'us.ihmc', name: 'ihmc-continuous-integration-framework', version: '0.9.4'
-    testCompile group: 'org.pitest', name: 'pitest-command-line', version: '1.1.9'
-    testCompile group: 'us.ihmc', name: 'ihmc-commons-testing', version: '0.11.0-alpha'
+   compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
+   compile group: 'commons-io', name: 'commons-io', version: '2.4'
+   compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
+
+   testCompile group: 'junit', name: 'junit', version: '4.11'
+   testCompile group: 'us.ihmc', name: 'ihmc-continuous-integration-framework', version: '0.9.4'
+   testCompile group: 'org.pitest', name: 'pitest-command-line', version: '1.1.9'
+   testCompile group: 'us.ihmc', name: 'ihmc-commons-testing', version: '0.11.0-alpha'
 }

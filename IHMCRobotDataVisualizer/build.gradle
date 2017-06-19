@@ -1,25 +1,22 @@
 buildscript {
-  repositories {
-    maven {
-      url "https://plugins.gradle.org/m2/"
-    }
-  }
-  dependencies {
-    classpath "org.hidetake:gradle-ssh-plugin:2.1.1"
-  }
+   repositories {
+      maven {
+         url "https://plugins.gradle.org/m2/"
+      }
+   }
+   dependencies {
+      classpath "org.hidetake:gradle-ssh-plugin:2.1.1"
+   }
 }
 
 apply plugin: "org.hidetake.ssh"
 
-if (!rootProject.name.equals('ihmc-open-robotics-software')) {
+if (!rootProject.name.equals('ihmc-open-robotics-software'))
+{
    evaluationDependsOn(':ihmc-open-robotics-software')
 }
 
 apply plugin: 'application'
-
-
-def strings = ['ihmc', 'robotics']
-ihmc.configureForIHMCOpenSourceBintrayPublish(false, "mavenJava", "maven-release", strings)
 
 dependencies {
    testCompile group: 'junit', name: 'junit', version: '4.11'
@@ -29,37 +26,22 @@ dependencies {
    compile group: 'com.martiansoftware', name: 'jsap', version: '2.1'
    compile group: 'net.sourceforge.jmatio', name: 'jmatio', version: '1.0'
    compile group: 'us.ihmc', name: 'IHMCVideoCodecs', version: '2.0.12'
-   
+
    compile ihmc.getProjectDependency(":model-file-loader")
    compile ihmc.getProjectDependency(":simulation-construction-set")
    compile ihmc.getProjectDependency(":ihmc-communication")
    compile ihmc.getProjectDependency(":ihmc-javafx-toolkit")
    compile ihmc.getProjectDependency(":ihmc-java-toolkit")
-    compile ihmc.getProjectDependency(":ihmc-java-extensions")
-    compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
+   compile ihmc.getProjectDependency(":ihmc-java-extensions")
+   compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
    compile ihmc.getProjectDependency(":ihmc-humanoid-robotics")
    compile ihmc.getProjectDependency(":ihmc-robotics-toolkit")
    compile ihmc.getProjectDependency(":ihmc-graphics-description")
-    compile ihmc.getProjectDependency(":ihmc-robot-description")
+   compile ihmc.getProjectDependency(":ihmc-robot-description")
    compile ihmc.getProjectDependency(":ihmc-robot-data-logger")
 }
 
 mainClassName = hasProperty('mainClass') ? mainClass : "us.ihmc.robotDataVisualizer.visualizer.SCSVisualizer"
-
-jar {
-   manifest {
-      attributes(
-              "Created-By": "IHMC Gradle Build Script",
-              "Implementation-Title": project.name,
-              "Implementation-Version": project.version,
-              "Implementation-Vendor": "IHMC",
-
-              "Bundle-Name": project.name,
-              "Bundle-Version": project.version,
-              "Bundle-License": "${project.ext.licenseURL}",
-              "Bundle-Vendor": "IHMC")
-   }
-}
 
 task viewerStartScripts(type: CreateStartScripts) {
    outputDir = file("build/scripts")

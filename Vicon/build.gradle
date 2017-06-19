@@ -1,41 +1,15 @@
-
-
-if (!rootProject.name.equals('ihmc-open-robotics-software')) {
-    evaluationDependsOn(':ihmc-open-robotics-software')
+if (!rootProject.name.equals('ihmc-open-robotics-software'))
+{
+   evaluationDependsOn(':ihmc-open-robotics-software')
 }
-
-sourceCompatibility = 1.8
-
-
-
-
-
-
-def strings = ['ihmc', 'robotics']
-ihmc.configureForIHMCOpenSourceBintrayPublish(false, "mavenJava", "maven-release", strings)
 
 dependencies {
-    compile group: 'us.ihmc', name: 'euclid-core', version: '0.4.3'
+   compile group: 'us.ihmc', name: 'euclid-core', version: '0.4.3'
 
-    compile ihmc.getProjectDependency(":ihmc-java-toolkit")
-    compile ihmc.getProjectDependency(":ihmc-java-extensions")
-    compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
-    compile ihmc.getProjectDependency(":ihmc-communication")
-    compile ihmc.getProjectDependency(":ihmc-robotics-toolkit")
-    compile ihmc.getProjectDependency(":simulation-construction-set")
-}
-
-jar {
-    manifest {
-        attributes(
-                "Created-By": "IHMC Gradle Build Script",
-                "Implementation-Title": project.name,
-                "Implementation-Version": project.version,
-                "Implementation-Vendor": "IHMC",
-
-                "Bundle-Name": project.name,
-                "Bundle-Version": project.version,
-                "Bundle-License": "${project.ext.licenseURL}",
-                "Bundle-Vendor": "IHMC")
-    }
+   compile ihmc.getProjectDependency(":ihmc-java-toolkit")
+   compile ihmc.getProjectDependency(":ihmc-java-extensions")
+   compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
+   compile ihmc.getProjectDependency(":ihmc-communication")
+   compile ihmc.getProjectDependency(":ihmc-robotics-toolkit")
+   compile ihmc.getProjectDependency(":simulation-construction-set")
 }

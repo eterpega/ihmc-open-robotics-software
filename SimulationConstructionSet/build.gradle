@@ -1,88 +1,64 @@
-
-
 apply plugin: 'java-library-distribution'
 
-if(!rootProject.name.equals('ihmc-open-robotics-software')) { evaluationDependsOn(':ihmc-open-robotics-software') }
-
-sourceCompatibility = 1.8
-
-
-
-
-
-
-def strings = ['ihmc', 'robotics']
-ihmc.configureForIHMCOpenSourceBintrayPublish(false, "mavenJava", "maven-release", strings)
-
-dependencies {
-	testCompile group: 'junit', name: 'junit', version: '4.11'
-    testCompile group: 'us.ihmc', name: 'ihmc-continuous-integration-framework', version: '0.9.4'
-	compile group: 'us.ihmc', name: 'euclid-core', version: '0.4.3'
-
-	compile group: 'net.jafama', name: 'jafama', version: '2.1.0'
-   	compile group: 'us.ihmc.thirdparty.jinput', name: 'jinput', version: '160414'
-	compile group: 'us.ihmc', name: 'IHMCVideoCodecs', version: '2.0.12'
-	compile group: 'org.jfree', name: 'jfreechart', version: '1.0.17'
-	compile group: 'org.apache.xmlgraphics', name: 'batik-svggen', version: '1.7'
-	compile group: 'org.apache.xmlgraphics', name: 'batik-dom', version: '1.7'
-	compile group: 'net.sourceforge.jexcelapi', name: 'jxl', version: '2.6.12'
-	compile group: 'com.github.wendykierp', name: 'JTransforms', version: '3.1'
-	compile group: 'org.apache.commons', name: 'commons-math3', version: '3.3'
-	compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
-	compile group: 'org.apache.pdfbox', name: 'pdfbox', version: '1.8.4'
-	compile group: 'net.sourceforge.jmatio', name: 'jmatio', version: '1.0'
-	compile group: 'org.ejml', name: 'core', version: '0.30'
-	compile group: 'junit', name: 'junit', version: '4.11'
-	compile group: 'xml-apis', name: 'xml-apis', version: '2.0.2'
-	compile group: 'com.badlogicgames.gdx', name: 'gdx-bullet', version: '1.9.4'
-	compile group: 'com.badlogicgames.gdx', name: 'gdx', version: '1.9.4'
-	compile group: 'com.google.guava', name: 'guava', version: '18.0'
-
-	compile group: 'org.easytesting', name: 'fest', version: '1.0.3'
-	compile('org.easytesting:fest-swing:1.2.1' )
-	{
-		exclude group: 'org.easytesting', module: 'fest'
-	}
-
-    runtime group: 'com.badlogicgames.gdx', name: 'gdx-bullet-platform', version: '1.9.4', classifier: 'natives-desktop' // runtime?
-
-	compile ihmc.getProjectDependency(":ihmc-jmonkey-engine-toolkit")
-	compile ihmc.getProjectDependency(":ihmc-robot-description")
-	compile ihmc.getProjectDependency(":ihmc-java-toolkit")
-    compile ihmc.getProjectDependency(":parameter-optimization")
-    compile ihmc.getProjectDependency(":ihmc-java-extensions")
-    compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
-	compile ihmc.getProjectDependency(":ihmc-robotics-toolkit")
-    compile ihmc.getProjectDependency(":ihmc-graphics-description")
-	compile ihmc.getProjectDependency(":ihmc-javafx-toolkit")
-    compile ihmc.getProjectDependency(":ihmc-swing-plotting")
-	compile ihmc.getProjectDependency(":ihmc-communication")
-    compile ihmc.getProjectDependency(":ihmc-geometry")
-
-    testCompile group: 'org.ejml', name: 'dense64', version: '0.30'
-
-	testCompile ihmc.getProjectTestDependency(":ihmc-robotics-toolkit")
-	testCompile ihmc.getProjectTestDependency(":ihmc-java-extensions")
-    testCompile group: 'us.ihmc', name: 'ihmc-commons-testing', version: '0.11.0-alpha'
+if (!rootProject.name.equals('ihmc-open-robotics-software'))
+{
+   evaluationDependsOn(':ihmc-open-robotics-software')
 }
 
-jar {
-    manifest {
-        attributes(
-                "Created-By": "IHMC Gradle Build Script",
-                "Implementation-Title": project.name,
-                "Implementation-Version": project.version,
-                "Implementation-Vendor": "IHMC",
+dependencies {
+   testCompile group: 'junit', name: 'junit', version: '4.11'
+   testCompile group: 'us.ihmc', name: 'ihmc-continuous-integration-framework', version: '0.9.4'
+   compile group: 'us.ihmc', name: 'euclid-core', version: '0.4.3'
 
-                "Bundle-Name": project.name,
-                "Bundle-Version": project.version,
-                "Bundle-License": "${project.ext.licenseURL}",
-                "Bundle-Vendor": "IHMC")
-    }
+   compile group: 'net.jafama', name: 'jafama', version: '2.1.0'
+   compile group: 'us.ihmc.thirdparty.jinput', name: 'jinput', version: '160414'
+   compile group: 'us.ihmc', name: 'IHMCVideoCodecs', version: '2.0.12'
+   compile group: 'org.jfree', name: 'jfreechart', version: '1.0.17'
+   compile group: 'org.apache.xmlgraphics', name: 'batik-svggen', version: '1.7'
+   compile group: 'org.apache.xmlgraphics', name: 'batik-dom', version: '1.7'
+   compile group: 'net.sourceforge.jexcelapi', name: 'jxl', version: '2.6.12'
+   compile group: 'com.github.wendykierp', name: 'JTransforms', version: '3.1'
+   compile group: 'org.apache.commons', name: 'commons-math3', version: '3.3'
+   compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
+   compile group: 'org.apache.pdfbox', name: 'pdfbox', version: '1.8.4'
+   compile group: 'net.sourceforge.jmatio', name: 'jmatio', version: '1.0'
+   compile group: 'org.ejml', name: 'core', version: '0.30'
+   compile group: 'junit', name: 'junit', version: '4.11'
+   compile group: 'xml-apis', name: 'xml-apis', version: '2.0.2'
+   compile group: 'com.badlogicgames.gdx', name: 'gdx-bullet', version: '1.9.4'
+   compile group: 'com.badlogicgames.gdx', name: 'gdx', version: '1.9.4'
+   compile group: 'com.google.guava', name: 'guava', version: '18.0'
+
+   compile group: 'org.easytesting', name: 'fest', version: '1.0.3'
+   compile('org.easytesting:fest-swing:1.2.1')
+         {
+            exclude group: 'org.easytesting', module: 'fest'
+         }
+
+   runtime group: 'com.badlogicgames.gdx', name: 'gdx-bullet-platform', version: '1.9.4', classifier: 'natives-desktop' // runtime?
+
+   compile ihmc.getProjectDependency(":ihmc-jmonkey-engine-toolkit")
+   compile ihmc.getProjectDependency(":ihmc-robot-description")
+   compile ihmc.getProjectDependency(":ihmc-java-toolkit")
+   compile ihmc.getProjectDependency(":parameter-optimization")
+   compile ihmc.getProjectDependency(":ihmc-java-extensions")
+   compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
+   compile ihmc.getProjectDependency(":ihmc-robotics-toolkit")
+   compile ihmc.getProjectDependency(":ihmc-graphics-description")
+   compile ihmc.getProjectDependency(":ihmc-javafx-toolkit")
+   compile ihmc.getProjectDependency(":ihmc-swing-plotting")
+   compile ihmc.getProjectDependency(":ihmc-communication")
+   compile ihmc.getProjectDependency(":ihmc-geometry")
+
+   testCompile group: 'org.ejml', name: 'dense64', version: '0.30'
+
+   testCompile ihmc.getProjectTestDependency(":ihmc-robotics-toolkit")
+   testCompile ihmc.getProjectTestDependency(":ihmc-java-extensions")
+   testCompile group: 'us.ihmc', name: 'ihmc-commons-testing', version: '0.11.0-alpha'
 }
 
 distributions {
-    main {
-        baseName = 'SimulationConstructionSet'
-    }
+   main {
+      baseName = 'SimulationConstructionSet'
+   }
 }

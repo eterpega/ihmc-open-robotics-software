@@ -1,32 +1,21 @@
-
-
-if (!rootProject.name.equals('ihmc-open-robotics-software')) {
-    evaluationDependsOn(':ihmc-open-robotics-software')
-    evaluationDependsOn(ihmc.getProjectDependencyGradlePath("IHMCQuadrupedRobotics"))
+if (!rootProject.name.equals('ihmc-open-robotics-software'))
+{
+   evaluationDependsOn(':ihmc-open-robotics-software')
+   evaluationDependsOn(ihmc.getProjectDependencyGradlePath("IHMCQuadrupedRobotics"))
 }
-
-sourceCompatibility = 1.8
-
-
-
-
-
-
-def strings = ['ihmc', 'robotics']
-ihmc.configureForIHMCOpenSourceBintrayPublish(false, "mavenJava", "maven-release", strings)
 
 dependencies {
    testCompile group: 'junit', name: 'junit', version: '4.11'
 
    compile group: 'us.ihmc', name: 'euclid-core', version: '0.4.3'
    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
-    
-    testCompile group: 'us.ihmc', name: 'ihmc-continuous-integration-framework', version: '0.9.4'
+
+   testCompile group: 'us.ihmc', name: 'ihmc-continuous-integration-framework', version: '0.9.4'
 
    compile ihmc.getProjectDependency(":ihmc-quadruped-robotics")
    compile ihmc.getProjectDependency(":ihmc-java-toolkit")
-    compile ihmc.getProjectDependency(":ihmc-java-extensions")
-    compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
+   compile ihmc.getProjectDependency(":ihmc-java-extensions")
+   compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
    compile ihmc.getProjectDependency(":ihmc-robotics-toolkit")
    compile ihmc.getProjectDependency(":ihmc-communication")
    compile ihmc.getProjectDependency(":model-file-loader")
@@ -37,24 +26,20 @@ dependencies {
    compile ihmc.getProjectDependency(":sensor-processing")
    compile ihmc.getProjectDependency(":ihmc-robot-description")
    compile ihmc.getProjectDependency(":ihmc-robot-models")
-   
-	testCompile ihmc.getProjectTestDependency(":ihmc-robotics-toolkit")
-	testCompile ihmc.getProjectTestDependency(":ihmc-java-extensions")
-    testCompile group: 'us.ihmc', name: 'ihmc-commons-testing', version: '0.11.0-alpha'
-   
-}
 
+   testCompile ihmc.getProjectTestDependency(":ihmc-robotics-toolkit")
+   testCompile ihmc.getProjectTestDependency(":ihmc-java-extensions")
+   testCompile group: 'us.ihmc', name: 'ihmc-commons-testing', version: '0.11.0-alpha'
+}
 
 // Do not disable/remove this block to make your compile work. It will break the Quarduped deployment infrastructure.
 afterEvaluate {
-	project.configurations.runtime.each {
-	
-		if(it.name.contains("SimulationConstructionSet") || it.name.contains("IHMCJMonkeyEngineToolkit") )
-		{
-			throw new GradleException("LLAQuardupedController cannot depend on SimulationConstructionSet in order to optimize Ahead-of-Time compilation. Please fix your dependency graph. Note that testCompile dependencies are fine.")
-		}
-	
-	}
+   project.configurations.runtime.each {
+      if (it.name.contains("SimulationConstructionSet") || it.name.contains("IHMCJMonkeyEngineToolkit"))
+      {
+         throw new GradleException("LLAQuardupedController cannot depend on SimulationConstructionSet in order to optimize Ahead-of-Time compilation. Please fix your dependency graph. Note that testCompile dependencies are fine.")
+      }
+   }
 }
 
 jar {
@@ -63,55 +48,51 @@ jar {
       depend.add('lib/' + it.name)
    }
 
+   manifest {
+      attributes(
+            "Created-By": "IHMC Gradle Build Script",
+            "Implementation-Title": project.name,
+            "Implementation-Version": project.version,
+            "Implementation-Vendor": "IHMC",
 
-    manifest {
-        attributes(
-                "Created-By": "IHMC Gradle Build Script",
-                "Implementation-Title": project.name,
-                "Implementation-Version": project.version,
-                "Implementation-Vendor": "IHMC",
-
-                "Bundle-Name": project.name,
-                "Bundle-Version": project.version,
-                "Bundle-License": "${project.ext.licenseURL}",
-                "Bundle-Vendor": "IHMC",
-                'Class-Path': depend.join(' '))
-                
-    }
+            "Bundle-Name": project.name,
+            "Bundle-Version": project.version,
+            "Bundle-License": "${project.ext.licenseURL}",
+            "Bundle-Vendor": "IHMC",
+            'Class-Path': depend.join(' '))
+   }
 }
 
 task install(dependsOn: ['jar']) {
-
    doLast {
 
-   	def projectDir = project.buildscript.sourceFile.parent
+      def projectDir = project.buildscript.sourceFile.parent
 
-    File dest = new File(project.rootDir, 'install')
-    
-    File libdest = new File(dest, 'lib')
-    dest.mkdir();
-    libdest.mkdir();
-    
-    
-   configurations.runtime.each {
-   	   def fileToCopy = it.toString()
-       copy{
-    	 from fileToCopy
-    	 into libdest    	 
-       }
-    }
-    
-    copy{
-    	from jar.archivePath
-    	into dest
-    	rename (jar.archiveName, 'LLAQuadrupedController.jar')
-    }
-    
-    File scriptDir = new File(projectDir, "launchScripts/local")
-    copy{
-    	from scriptDir
-    	into dest
-    }
-    
-    	}
+      File dest = new File(project.rootDir, 'install')
+
+      File libdest = new File(dest, 'lib')
+      dest.mkdir();
+      libdest.mkdir();
+
+      configurations.runtime.each {
+         def fileToCopy = it.toString()
+         copy {
+            from fileToCopy
+            into libdest
+         }
+      }
+
+      copy {
+         from jar.archivePath
+         into dest
+         rename(jar.archiveName, 'LLAQuadrupedController.jar')
+      }
+
+      File scriptDir = new File(projectDir, "launchScripts/local")
+      copy {
+         from scriptDir
+         into dest
+      }
+
    }
+}

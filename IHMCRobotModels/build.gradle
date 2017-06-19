@@ -1,56 +1,19 @@
-buildscript {
-  repositories {
-    maven {
-      url "https://plugins.gradle.org/m2/"
-    }
-  }
-  dependencies {
-    classpath "gradle.plugin.us.ihmc.gradle:ihmc-build:0.0.17"
-  }
+if (!rootProject.name.equals('ihmc-open-robotics-software'))
+{
+   evaluationDependsOn(':ihmc-open-robotics-software')
 }
-
-apply plugin: "us.ihmc.gradle.ihmc-build"
-
-if (!rootProject.name.equals('ihmc-open-robotics-software')) {
-    evaluationDependsOn(':ihmc-open-robotics-software')
-}
-
-sourceCompatibility = 1.8
-
-
-
-
-
-
-def strings = ['ihmc', 'robotics']
-ihmc.configureForIHMCOpenSourceBintrayPublish(false, "mavenJava", "maven-release", strings)
 
 dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.11'
-    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
-    compile group: 'javax.vecmath', name: 'vecmath', version:'1.5.2'
-    compile group: 'com.google.guava', name: 'guava', version: '18.0'
+   testCompile group: 'junit', name: 'junit', version: '4.11'
+   compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
+   compile group: 'javax.vecmath', name: 'vecmath', version: '1.5.2'
+   compile group: 'com.google.guava', name: 'guava', version: '18.0'
 
-    compile ihmc.getProjectDependency(":ihmc-java-toolkit")
-    compile ihmc.getProjectDependency(":ihmc-java-extensions")
-    compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
-    compile ihmc.getProjectDependency(":ihmc-robotics-toolkit")
-    compile ihmc.getProjectDependency(":ihmc-robot-description")
-    compile ihmc.getProjectDependency(":ihmc-graphics-description")
-    
-}
+   compile ihmc.getProjectDependency(":ihmc-java-toolkit")
+   compile ihmc.getProjectDependency(":ihmc-java-extensions")
+   compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
+   compile ihmc.getProjectDependency(":ihmc-robotics-toolkit")
+   compile ihmc.getProjectDependency(":ihmc-robot-description")
+   compile ihmc.getProjectDependency(":ihmc-graphics-description")
 
-jar {
-    manifest {
-        attributes(
-                "Created-By": "IHMC Gradle Build Script",
-                "Implementation-Title": project.name,
-                "Implementation-Version": project.version,
-                "Implementation-Vendor": "IHMC",
-
-                "Bundle-Name": project.name,
-                "Bundle-Version": project.version,
-                "Bundle-License": "${project.ext.licenseURL}",
-                "Bundle-Vendor": "IHMC")
-    }
 }

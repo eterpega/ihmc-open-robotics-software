@@ -61,10 +61,11 @@ subprojects {
    project.ext.companyName = "IHMC"
    project.ext.author = "IHMC Gradle Build Script"
    project.ext.groupId = "us.ihmc"
-   project.ext.artifactoryRepo = "snapshots"
+   project.ext.artifactoryRepo = "lib-snapshots-local"
    project.ext.bintrayRepo = "maven-release"
    project.ext.bintrayOrg = "ihmcrobotics"
    project.ext.bintrayLicenseName = "Apache-2.0"
+   project.ext.bintrayDryRun = true
 
    repositories ihmc.setupCommonArtifactProxies()
 

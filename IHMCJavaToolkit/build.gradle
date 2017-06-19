@@ -1,43 +1,9 @@
-
-
 apply plugin: 'jacoco'
 
 if (!rootProject.name == 'ihmc-open-robotics-software')
 {
    evaluationDependsOn(':ihmc-open-robotics-software')
 }
-
-sourceCompatibility = 1.8
-
-
-jar {
-   manifest {
-      attributes(
-            "Created-By": "IHMC Gradle Build Script",
-            "Implementation-Title": project.name,
-            "Implementation-Version": project.version,
-            "Implementation-Vendor": "IHMC",
-
-            "Bundle-Name": project.name,
-            "Bundle-Version": project.version,
-            "Bundle-License": "${project.ext.licenseURL}",
-            "Bundle-Vendor": "IHMC")
-   }
-}
-
-repositories {
-   mavenCentral()
-   mavenLocal()
-   jcenter()
-   maven {
-      url "http://artifactory.ihmc.us/artifactory/thirdparty/"
-   }
-}
-
-
-
-def strings = ['ihmc', 'robotics']
-ihmc.configureForIHMCOpenSourceBintrayPublish(false, "mavenJava", "maven-release", strings)
 
 dependencies {
    testCompile group: 'junit', name: 'junit', version: '4.11'
