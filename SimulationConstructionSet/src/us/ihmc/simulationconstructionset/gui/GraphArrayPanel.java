@@ -123,15 +123,10 @@ public class GraphArrayPanel extends GridPane implements GraphIndicesHolder, YoG
 
         if (index == oldIndex && index == doIndex) return;
 
-        int leftPlotIndex = this.getLeftPlotIndex();
-        int rightPlotIndex = this.getRightPlotIndex();
+        boolean repaintAll = false;
 
-        boolean repaintAll = (index < leftPlotIndex || index > rightPlotIndex);
-
-        if ((index < leftPlotIndex) || (index > rightPlotIndex)) {
+        if ((index < this.getLeftPlotIndex()) || (index > this.getRightPlotIndex())) {
             this.recenter();
-            leftPlotIndex = getLeftPlotIndex();
-            rightPlotIndex = getRightPlotIndex();
             repaintAll = true;
         }
 
