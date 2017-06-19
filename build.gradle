@@ -58,10 +58,13 @@ subprojects {
    project.ext.vcsUrl = rootProject.ext.vcsUrl
    project.ext.licenseURL = "http://www.apache.org/licenses/LICENSE-2.0.txt"
    project.ext.licenseName = "Apache License, Version 2.0"
-   project.ext.bintrayLicenseName = "Apache-2.0"
    project.ext.companyName = "IHMC"
    project.ext.author = "IHMC Gradle Build Script"
    project.ext.groupId = "us.ihmc"
+   project.ext.artifactoryRepo = "snapshots"
+   project.ext.bintrayRepo = "maven-release"
+   project.ext.bintrayOrg = "ihmcrobotics"
+   project.ext.bintrayLicenseName = "Apache-2.0"
 
    repositories ihmc.setupCommonArtifactProxies()
 
@@ -76,6 +79,9 @@ subprojects {
 
    ihmc.setupCommonJARConfiguration(project)
    ihmc.setupCommonPublishingConfiguration(project)
+
+   ihmc.setupArtifactoryPublishingConfiguration(project)
+   ihmc.setupBintrayPublishingConfiguration(project)
 }
 
 //   subproject.ext {
