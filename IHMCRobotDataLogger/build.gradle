@@ -1,3 +1,5 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+
 buildscript {
    repositories {
       mavenLocal()
@@ -73,6 +75,21 @@ task compileIDL(type: us.ihmc.idl.generator.IDLGeneratorTask) {
    includeDirs = files(".")
    targetDirectory = file("generated-src")
    packagePrefix = ""
+
+   if (Os.isFamily(Os.FAMILY_WINDOWS))
+   {
+      doLast {
+         println "Please download dos2unix from https://waterlan.home.xs4all.nl/dos2unix.html and add to PATH."
+
+         fileTree("generated-src").matching { include "**/*.java" }.each { aFile ->
+            exec {
+               commandLine 'dos2unix'
+               args aFile.absolutePath
+            }
+         }
+         //ihmc.convertDirectoryLineEndingsFromDosToUnix(project, "generated-src");
+      }
+   }
 }
 
 compileJava.dependsOn compileIDL
