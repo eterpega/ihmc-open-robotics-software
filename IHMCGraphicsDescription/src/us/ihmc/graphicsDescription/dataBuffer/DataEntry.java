@@ -47,4 +47,8 @@ public interface DataEntry
    public abstract boolean hasDataChanged();
 
    public abstract void resetDataChanged();
+
+   public abstract boolean havePointsChanged();
+
+   public abstract void resetPointsChanged();
 }
