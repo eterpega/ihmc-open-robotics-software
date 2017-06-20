@@ -82,11 +82,11 @@ public class SimulationConstructionSetFestTest
 
       testFixture.selectVariableInSearchTab("q_y");
       testFixture.clickNewGraphButton();
-      testFixture.middleClickInEmptyGraph();
+      //testFixture.middleClickInEmptyGraph();
 
       testFixture.selectVariableInSearchTab("q_z");
       testFixture.clickNewGraphButton();
-      testFixture.middleClickInEmptyGraph();
+      //testFixture.middleClickInEmptyGraph();
 
       testFixture.removeAllGraphs();
 
@@ -117,7 +117,7 @@ public class SimulationConstructionSetFestTest
       testFixture.selectVariableInSearchTab("q_x");
       testFixture.clickRemoveEmptyGraphButton();
       testFixture.clickNewGraphButton();
-      testFixture.middleClickInEmptyGraph();
+      //testFixture.middleClickInEmptyGraph();
 
       testFixture.clickNewGraphButton();
       testFixture.clickNewGraphButton();
@@ -277,7 +277,7 @@ public class SimulationConstructionSetFestTest
          testFixture.selectVariableInSearchTab("q_z");
 
          testFixture.focusNthGraphArrayWindow(0);
-         testFixture.middleClickInEmptyGraph();
+         //testFixture.middleClickInEmptyGraph();
 
          testFixture.focusMainSCSWindow();
          testFixture.selectSearchTab();
@@ -287,7 +287,7 @@ public class SimulationConstructionSetFestTest
 
          testFixture.focusNthGraphArrayWindow(1);
          testFixture.clickNewGraphButton();
-         testFixture.middleClickInEmptyGraph();
+         //testFixture.middleClickInEmptyGraph();
 
          testFixture.closeAndDispose();
          scs.closeAndDispose();

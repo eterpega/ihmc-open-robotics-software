@@ -70,7 +70,7 @@ public class SpringFlamingoSimulationTest
 
       testFixture.clickRemoveEmptyGraphButton();
       testFixture.clickNewGraphButton();
-      testFixture.middleClickInEmptyGraph();
+      //testFixture.middleClickInEmptyGraph();
 
       testFixture.selectVariableInSearchTab("q_z");
       testFixture.middleClickInNthGraph(1);

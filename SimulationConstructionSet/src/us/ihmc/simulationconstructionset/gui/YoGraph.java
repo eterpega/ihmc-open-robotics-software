@@ -7,29 +7,23 @@ import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.*;
-import javafx.scene.control.Menu;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.shape.Polyline;
-import javafx.stage.*;
-import us.ihmc.graphicsDescription.dataBuffer.DataEntry;
-import us.ihmc.graphicsDescription.dataBuffer.DataEntryHolder;
-import us.ihmc.graphicsDescription.dataBuffer.TimeDataHolder;
 import us.ihmc.graphicsDescription.graphInterfaces.GraphIndicesHolder;
 import us.ihmc.graphicsDescription.graphInterfaces.SelectedVariableHolder;
-import us.ihmc.robotics.dataStructures.registry.NameSpace;
-import us.ihmc.robotics.dataStructures.variable.YoVariable;
 import us.ihmc.simulationconstructionset.GraphConfiguration;
 import us.ihmc.simulationconstructionset.gui.dialogs.GraphPropertiesDialog;
+import us.ihmc.yoVariables.dataBuffer.DataEntry;
+import us.ihmc.yoVariables.dataBuffer.DataEntryHolder;
+import us.ihmc.yoVariables.dataBuffer.TimeDataHolder;
+import us.ihmc.yoVariables.registry.NameSpace;
+import us.ihmc.yoVariables.variable.YoVariable;
 
 import javax.swing.*;
-import java.awt.*;
-import java.awt.MenuItem;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
 import java.text.FieldPosition;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -1058,8 +1052,7 @@ public class YoGraph extends Pane implements EventHandler<Event> {
         if ((evt.getClickCount() == 2) && (!entriesOnThisGraph.isEmpty())) {
             if (parentFrame != null) {
                 GraphPropertiesDialog dialog = new GraphPropertiesDialog(parentFrame, this);
-                dialog.pack();
-                dialog.setVisible(true);
+                dialog.show();
 
                 // parentFrame.repaint(); // This is a horrible way to get the graphs to repaint...
             }
