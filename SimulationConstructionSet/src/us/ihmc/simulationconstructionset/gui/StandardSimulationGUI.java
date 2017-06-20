@@ -582,13 +582,13 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
       {
          myEntryBoxArrayPanel = new EntryBoxArrayTabbedPanel(parentContainer, selectedVariableHolder);
 
+         myGraphArrayPanel = new GraphArrayPanel(selectedVariableHolder, myDataBuffer, jFrame, this);
+
          yoVariableExplorerTabbedPane = new YoVariableExplorerTabbedPane(new YoVariableDoubleClickListener(myDataBuffer, jFrame), jFrame, bookmarkedVariablesHolder,
-               selectedVariableHolder, null, sim, rootRegistry);
+               selectedVariableHolder, null, sim, rootRegistry, myGraphArrayPanel);
          YoVariableSearchPanel variableSearchPanel = new YoVariableSearchPanel(selectedVariableHolder, myDataBuffer, myGraphArrayPanel, myEntryBoxArrayPanel,
                bookmarkedVariablesHolder, yoVariableExplorerTabbedPane);
          yoVariableExplorerTabbedPane.addVariableSearchPanel(variableSearchPanel);
-
-         myGraphArrayPanel = new GraphArrayPanel(selectedVariableHolder, myDataBuffer, jFrame, this);
       }
 
       if (jFrame != null)

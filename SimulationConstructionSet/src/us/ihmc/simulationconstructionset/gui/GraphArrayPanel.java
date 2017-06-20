@@ -68,6 +68,22 @@ public class GraphArrayPanel extends GridPane implements GraphIndicesHolder, YoG
         return graphs;
     }
 
+    void packGraphs() {
+        int row = 0;
+        int col = 0;
+
+        for (Node n : this.getChildren()) {
+            GridPane.setConstraints(n, col, row);
+
+            if (col + 1 >= numColumns) {
+                col = 0;
+                row++;
+            } else {
+                col++;
+            }
+        }
+    }
+
     void resetRows() {
         this.getRowConstraints().clear();
         for (Node n : this.getChildren()) {
@@ -91,6 +107,7 @@ public class GraphArrayPanel extends GridPane implements GraphIndicesHolder, YoG
     public void setNumColumns(int numColumns) {
         this.numColumns = numColumns;
         this.resetColumns();
+        this.packGraphs();
         updateGraphs();
     }
 
@@ -99,6 +116,7 @@ public class GraphArrayPanel extends GridPane implements GraphIndicesHolder, YoG
             return;
         numColumns++;
         this.resetColumns();
+        this.packGraphs();
         updateGraphs();
     }
 
@@ -107,6 +125,7 @@ public class GraphArrayPanel extends GridPane implements GraphIndicesHolder, YoG
             return;
         this.numColumns--;
         this.resetColumns();
+        this.packGraphs();
         updateGraphs();
     }
 
@@ -438,6 +457,7 @@ public class GraphArrayPanel extends GridPane implements GraphIndicesHolder, YoG
         } else {
             this.resetColumns();
             this.resetRows();
+            this.packGraphs();
             this.updateGraphs();
         }
     }
@@ -481,6 +501,7 @@ public class GraphArrayPanel extends GridPane implements GraphIndicesHolder, YoG
 
             this.getChildren().add(graph);
 
+            this.packGraphs();
             this.resetColumns();
             this.resetRows();
             this.updateGraphs();
@@ -553,6 +574,9 @@ public class GraphArrayPanel extends GridPane implements GraphIndicesHolder, YoG
     public void removeGraph(YoGraph graph) {
         Platform.runLater(() -> {
             this.getChildren().remove(graph);
+            this.packGraphs();
+            this.resetRows();
+            this.resetColumns();
             this.updateGraphs();
         });
     }
@@ -560,6 +584,9 @@ public class GraphArrayPanel extends GridPane implements GraphIndicesHolder, YoG
     public void removeAllGraphs() {
         Platform.runLater(() -> {
             this.getChildren().clear();
+            this.packGraphs();
+            this.resetRows();
+            this.resetColumns();
             this.updateGraphs();
         });
     }

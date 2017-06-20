@@ -43,4 +43,8 @@ public interface DataEntry
    public abstract void setInverted(boolean selected);
 
    public abstract boolean getInverted();
+
+   public abstract boolean hasDataChanged();
+
+   public abstract void resetDataChanged();
 }

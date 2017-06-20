@@ -635,7 +635,6 @@ public class YoGraph extends Pane implements EventHandler<Event> {
     }
 
     double minFor(DataEntry entry) {
-        this.reCalcMinMax();
         double minVal = 0.0;
         if (graphConfiguration.getScalingMethod() == INDIVIDUAL_SCALING) {
             if (entry.isAutoScaleEnabled()) {
@@ -644,6 +643,7 @@ public class YoGraph extends Pane implements EventHandler<Event> {
                 minVal = entry.getManualMinScaling();
             }
         } else if (graphConfiguration.getScalingMethod() == AUTO_SCALING) {
+            this.reCalcMinMax();
             minVal = this.min;
         } else if (graphConfiguration.getScalingMethod() == MANUAL_SCALING) {
             minVal = graphConfiguration.getManualScalingMin();
@@ -660,6 +660,7 @@ public class YoGraph extends Pane implements EventHandler<Event> {
                 maxVal = entry.getManualMaxScaling();
             }
         } else if (graphConfiguration.getScalingMethod() == AUTO_SCALING) {
+            this.minMaxChanged();
             maxVal = this.max;
         } else if (graphConfiguration.getScalingMethod() == MANUAL_SCALING) {
             maxVal = graphConfiguration.getManualScalingMax();
@@ -745,6 +746,10 @@ public class YoGraph extends Pane implements EventHandler<Event> {
         double graphWidth = this.getWidth();
         double graphHeight = this.getHeight();
 
+        if (this.minMaxChanged() && graphConfiguration.getScalingMethod() == AUTO_SCALING) {
+            leftPlotIndex = graphIndicesHolder.getLeftPlotIndex();
+        }
+
         if (graphWidth != previousGraphWidth) {
             calculateRequiredEntryPaintWidthsAndRows();
         }
@@ -756,42 +761,47 @@ public class YoGraph extends Pane implements EventHandler<Event> {
         for (int i = 0; i < numVars; i++) {
             DataEntry entry = entriesOnThisGraph.get(i);
 
-            int nPoints = rightPlotIndex - leftPlotIndex;
-            if ((xData.length != nPoints) || (yData.length != nPoints)) {
-                xData = new int[nPoints];
-                yData = new int[nPoints];
-            }
+            if (entry.hasDataChanged() | entry.minMaxChanged()) {
+                int nPoints = rightPlotIndex - leftPlotIndex;
+                if ((xData.length != nPoints) || (yData.length != nPoints)) {
+                    xData = new int[nPoints];
+                    yData = new int[nPoints];
+                }
 
-            totalDontPlotBottomPixels = DONT_PLOT_BOTTOM_PIXELS + PIXELS_PER_BOTTOM_ROW * (totalEntryNamePaintRows - 1);
+                totalDontPlotBottomPixels = DONT_PLOT_BOTTOM_PIXELS + PIXELS_PER_BOTTOM_ROW * (totalEntryNamePaintRows - 1);
 
-            calcXYData(entry, nPoints, xData, yData, leftPlotIndex);
+                calcXYData(entry, nPoints, xData, yData, leftPlotIndex);
 
-            if (xData.length > 1) {
-                final int x = i;
-                final int[] xD = xData.clone();
-                final int[] yD = yData.clone();
-                Platform.runLater(() -> {
-                    if (x == 0) gc.clearRect(xD[0], 0, xD[xD.length - 1] - xD[0], this.getHeight());
-                    gc.setStroke(colors[x % YoGraph.MAX_NUM_GRAPHS]);
-                    gc.strokePolyline(toDarray(xD), toDarray(yD), xD.length);
-                });
-            }
-
-            if (graphConfiguration.getShowBaseLines()) {
-                double[] baseLines = graphConfiguration.getBaseLines();
-
-                for (int j = 0; j < baseLines.length; j++) {
-                    double baseLine = baseLines[j];
-                    final int baseY = (int) (graphHeight - totalDontPlotBottomPixels) - (int) ((baseLine - this.minFor(entry)) / (this.maxFor(entry) - this.minFor(entry)) * (graphHeight - totalDontPlotBottomPixels)) + 5;
-
-                    final int x = j;
+                if (xData.length > 1) {
+                    final int x = i;
+                    final int[] xD = xData.clone();
+                    final int[] yD = yData.clone();
                     Platform.runLater(() -> {
-                        GraphicsContext gc2 = ((Canvas) this.getChildren().get(1)).getGraphicsContext2D();
-                        gc2.clearRect(0, 0, this.getWidth(), this.getHeight());
-                        gc2.setStroke(baseLineColors[x]);
-                        gc2.strokeLine(0, baseY, this.getWidth(), baseY);
+                        if (x == 0) gc.clearRect(xD[0], 0, xD[xD.length - 1] - xD[0], this.getHeight());
+                        gc.setStroke(colors[x % YoGraph.MAX_NUM_GRAPHS]);
+                        gc.strokePolyline(toDarray(xD), toDarray(yD), xD.length);
                     });
                 }
+
+                if (graphConfiguration.getShowBaseLines()) {
+                    double[] baseLines = graphConfiguration.getBaseLines();
+
+                    for (int j = 0; j < baseLines.length; j++) {
+                        double baseLine = baseLines[j];
+                        final int baseY = (int) (graphHeight - totalDontPlotBottomPixels) - (int) ((baseLine - this.minFor(entry)) / (this.maxFor(entry) - this.minFor(entry)) * (graphHeight - totalDontPlotBottomPixels)) + 5;
+
+                        final int x = j;
+                        Platform.runLater(() -> {
+                            GraphicsContext gc2 = ((Canvas) this.getChildren().get(1)).getGraphicsContext2D();
+                            gc2.clearRect(0, 0, this.getWidth(), this.getHeight());
+                            gc2.setStroke(baseLineColors[x]);
+                            gc2.strokeLine(0, baseY, this.getWidth(), baseY);
+                        });
+                    }
+                }
+
+                entry.resetDataChanged();
+                entry.resetMinMaxChanged();
             }
         }
 

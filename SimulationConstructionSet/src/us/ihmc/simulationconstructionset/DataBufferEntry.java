@@ -12,6 +12,7 @@ public class DataBufferEntry implements DataEntry
    
    private double min, max;
    private boolean minMaxChanged = true;
+   private boolean dataChanged = true;
 
    private boolean minMaxStale = true;
 
@@ -180,6 +181,7 @@ public class DataBufferEntry implements DataEntry
 
       // Calculate the Min and Max values for the new set
       reCalcMinMax();
+      this.dataChanged = true;
 
       // Indicate the data length
       return data.length;
@@ -220,6 +222,7 @@ public class DataBufferEntry implements DataEntry
 
       // Calculate the Min and Max values for the new set
       reCalcMinMax();
+      this.dataChanged = true;
 
       // Indicate the data length
       return data.length;
@@ -241,6 +244,8 @@ public class DataBufferEntry implements DataEntry
          
          oldDataIndex = oldDataIndex + keepEveryNthPoint;
       }
+
+      this.dataChanged = true;
       
       return newNumberOfPoints;
    }
@@ -279,6 +284,7 @@ public class DataBufferEntry implements DataEntry
 
       // Recalculate the new min and max values
       reCalcMinMax();
+      this.dataChanged = true;
    }
 
    protected double getVariableValueAsADouble()
@@ -291,31 +297,39 @@ public class DataBufferEntry implements DataEntry
       double newVal = variable.getValueAsDouble();
       double oldVal = data[index];
 
-      data[index] = newVal;
+      if (newVal != oldVal) {
+         dataChanged = true;
 
-      if (newVal < this.min)
-      {
-         this.min = newVal;
-         setMinMaxChanged();
+         data[index] = newVal;
+
+         if (newVal < this.min)
+         {
+            this.min = newVal;
+            setMinMaxChanged();
+         }
+
+         if (newVal > this.max)
+         {
+            this.max = newVal;
+            setMinMaxChanged();
+         }
+
+         if (oldVal >= this.max)
+         {
+            setMinMaxChanged();
+            minMaxStale = true;
+         } // reCalcMinMax();
+
+         if (oldVal <= this.min)
+         {
+            setMinMaxChanged();
+            minMaxStale = true;
+         } // reCalcMinMax();
       }
+   }
 
-      if (newVal > this.max)
-      {
-         this.max = newVal;
-         setMinMaxChanged();
-      }
-
-      if (oldVal >= this.max)
-      {
-         setMinMaxChanged();
-         minMaxStale = true;
-      } // reCalcMinMax();
-
-      if (oldVal <= this.min)
-      {
-         setMinMaxChanged();
-         minMaxStale = true;
-      } // reCalcMinMax();
+   public boolean hasDataChanged() {
+      return this.dataChanged;
    }
 
    protected void setYoVariableValueToDataAtIndex(int index)
@@ -345,6 +359,10 @@ public class DataBufferEntry implements DataEntry
    // public boolean minMaxChanged()
    {
       return minMaxChanged;
+   }
+
+   public void resetDataChanged() {
+      this.dataChanged = false;
    }
 
    // private boolean reCalcMinMax()
@@ -407,6 +425,8 @@ public class DataBufferEntry implements DataEntry
    {
       this.data = data;
 
+      this.dataChanged = true;
+
       // this.nPoints = nPoints;
 
       if (data.length != nPoints)
@@ -416,16 +436,21 @@ public class DataBufferEntry implements DataEntry
 
    protected void setData(double data, int index)
    {
-      this.data[index] = data;
-      if (data > max)
-      {
-         max = data;
-         setMinMaxChanged();
-      }
-      if (data < min)
-      {
-         min = data;
-         setMinMaxChanged();
+      if (this.data[index] != data) {
+         this.dataChanged = true;
+
+         this.data[index] = data;
+
+         if (data > max)
+         {
+            max = data;
+            setMinMaxChanged();
+         }
+         if (data < min)
+         {
+            min = data;
+            setMinMaxChanged();
+         }
       }
    }
    
