@@ -31,7 +31,7 @@ dependencies {
    testCompile group: 'org.jfree', name: 'jcommon', version: '1.0.21'
    testCompile group: 'us.ihmc', name: 'ihmc-continuous-integration-framework', version: '0.9.4'
 
-   testCompile "us.ihmc:ihmc-java-extensions:SNAPSHOT-0"
+   testCompile ihmc.getDynamicVersion("us.ihmc", "ihmc-java-extensions", dependencyMode)
    testCompile group: 'us.ihmc', name: 'ihmc-commons-testing', version: '0.11.0-alpha'
 
    compile group: 'us.ihmc', name: 'euclid-core', version: '0.4.3'
@@ -52,7 +52,7 @@ dependencies {
    compile group: 'com.google.guava', name: 'guava', version: '18.0'
 
    // NOTE: IHMCRoboticsToolkit should not depend on any other IHMC project(!), especially it should not depend on IHMCJavaToolkit.
-   compile "us.ihmc:ihmc-java-extensions:SNAPSHOT-0"
+   compile ihmc.getDynamicVersion("us.ihmc", "ihmc-java-extensions", dependencyMode)
    compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
 }
 
