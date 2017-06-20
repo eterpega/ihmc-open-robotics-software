@@ -12,8 +12,8 @@ dependencies {
    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
    compile 'net.sf.trove4j:trove4j:3.0.3'
 
-   compile ihmc.getProjectDependency(":ihmc-java-toolkit")
-   compile ihmc.getProjectDependency(":ihmc-robotics-toolkit")
+   compile project(":ihmc-java-toolkit")
+   compile project(":ihmc-robotics-toolkit")
 
    testCompile group: 'us.ihmc', name: 'ihmc-continuous-integration-framework', version: '0.9.4'
    testCompile group: 'us.ihmc', name: 'ihmc-commons-testing', version: '0.11.0-alpha'

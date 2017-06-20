@@ -14,14 +14,14 @@ dependencies {
    compile group: 'org.ejml', name: 'dense64', version: '0.28'
    compile group: 'org.boofcv', name: 'geo', version: '0.24.1'
 
-   compile ihmc.getProjectDependency(":ihmc-java-toolkit")
-   compile ihmc.getProjectDependency(":ihmc-robotics-toolkit")
-   compile ihmc.getProjectDependency(":ihmc-communication")
-   compile ihmc.getProjectDependency(":ihmc-robot-models")
-   compile ihmc.getProjectDependency(":sensor-processing")
-   compile ihmc.getProjectDependency(":ihmc-graphics-description")
-   compile ihmc.getProjectDependency(":simulation-construction-set")
-   compile ihmc.getProjectDependency(":ihmc-whole-body-controller")
+   compile project(":ihmc-java-toolkit")
+   compile project(":ihmc-robotics-toolkit")
+   compile project(":ihmc-communication")
+   compile project(":ihmc-robot-models")
+   compile project(":sensor-processing")
+   compile project(":ihmc-graphics-description")
+   compile project(":simulation-construction-set")
+   compile project(":ihmc-whole-body-controller")
 
 
    testCompile ihmc.getProjectTestDependency(":ihmc-communication")

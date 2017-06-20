@@ -24,17 +24,17 @@ dependencies {
    compile group: 'us.ihmc.thirdparty.jme', name: 'jme3-core', version: '3.1.0-internal4'
    compile "org.boofcv:geo:0.19"
 
-   compile ihmc.getProjectDependency(":ihmc-communication")
-   compile ihmc.getProjectDependency(":kalman-project")
-   compile ihmc.getProjectDependency(":ihmc-java-toolkit")
-   compile ihmc.getProjectDependency(":ihmc-java-extensions")
+   compile project(":ihmc-communication")
+   compile project(":kalman-project")
+   compile project(":ihmc-java-toolkit")
+   compile project(":ihmc-java-extensions")
    compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
-   compile ihmc.getProjectDependency(":ihmc-robotics-toolkit")
-   compile ihmc.getProjectDependency(":ihmc-graphics-description")
-   compile ihmc.getProjectDependency(":ihmc-robot-models")
+   compile project(":ihmc-robotics-toolkit")
+   compile project(":ihmc-graphics-description")
+   compile project(":ihmc-robot-models")
 
 
-   testCompile ihmc.getProjectDependency(":simulation-construction-set")
+   testCompile project(":simulation-construction-set")
    testCompile ihmc.getProjectTestDependency(":ihmc-robotics-toolkit")
    testCompile ihmc.getProjectTestDependency(":ihmc-java-extensions")
    testCompile group: 'us.ihmc', name: 'ihmc-commons-testing', version: '0.11.0-alpha'

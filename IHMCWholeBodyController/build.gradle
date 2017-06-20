@@ -15,17 +15,17 @@ dependencies {
    compile group: 'org.apache.commons', name: 'commons-math3', version: '3.5'
    compile group: 'com.google.guava', name: 'guava', version: '18.0'
 
-   compile ihmc.getProjectDependency(":common-walking-control-modules")
-   compile ihmc.getProjectDependency(":ihmc-communication")
-   compile ihmc.getProjectDependency(":ihmc-humanoid-robotics")
-   compile ihmc.getProjectDependency(":simulation-construction-set")
+   compile project(":common-walking-control-modules")
+   compile project(":ihmc-communication")
+   compile project(":ihmc-humanoid-robotics")
+   compile project(":simulation-construction-set")
 
-   compile ihmc.getProjectDependency(":sensor-processing")
-   compile ihmc.getProjectDependency(":simulation-construction-set-tools")
-   compile ihmc.getProjectDependency(":ihmc-java-toolkit")
-   compile ihmc.getProjectDependency(":ihmc-java-extensions")
+   compile project(":sensor-processing")
+   compile project(":simulation-construction-set-tools")
+   compile project(":ihmc-java-toolkit")
+   compile project(":ihmc-java-extensions")
    compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
-   compile ihmc.getProjectDependency(":ihmc-robotics-toolkit")
-   compile ihmc.getProjectDependency(":ihmc-robot-models")
-   compile ihmc.getProjectDependency(":ihmc-graphics-description")
+   compile project(":ihmc-robotics-toolkit")
+   compile project(":ihmc-robot-models")
+   compile project(":ihmc-graphics-description")
 }

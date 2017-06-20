@@ -13,16 +13,16 @@ dependencies {
    compile group: 'net.wimpi', name: 'jamod', version: '1.2'
    compile group: 'commons-collections', name: 'commons-collections', version: '3.2.1'
 
-   compile ihmc.getProjectDependency(":ihmc-humanoid-robotics")
-   compile ihmc.getProjectDependency(":ihmc-avatar-interfaces")
-   compile ihmc.getProjectDependency(":ihmc-communication")
-   compile ihmc.getProjectDependency(":simulation-construction-set")
-   compile ihmc.getProjectDependency(":ihmc-whole-body-controller")
-   compile ihmc.getProjectDependency(":ihmc-java-toolkit")
-   compile ihmc.getProjectDependency(":ihmc-java-extensions")
+   compile project(":ihmc-humanoid-robotics")
+   compile project(":ihmc-avatar-interfaces")
+   compile project(":ihmc-communication")
+   compile project(":simulation-construction-set")
+   compile project(":ihmc-whole-body-controller")
+   compile project(":ihmc-java-toolkit")
+   compile project(":ihmc-java-extensions")
    compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
-   compile ihmc.getProjectDependency(":ihmc-robotics-toolkit")
-   compile ihmc.getProjectDependency(":ihmc-graphics-description")
+   compile project(":ihmc-robotics-toolkit")
+   compile project(":ihmc-graphics-description")
 
    testCompile ihmc.getProjectTestDependency(":ihmc-robotics-toolkit")
    testCompile ihmc.getProjectTestDependency(":ihmc-java-extensions")

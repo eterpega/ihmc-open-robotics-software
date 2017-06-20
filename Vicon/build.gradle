@@ -6,10 +6,10 @@ if (!rootProject.name.equals('ihmc-open-robotics-software'))
 dependencies {
    compile group: 'us.ihmc', name: 'euclid-core', version: '0.4.3'
 
-   compile ihmc.getProjectDependency(":ihmc-java-toolkit")
-   compile ihmc.getProjectDependency(":ihmc-java-extensions")
+   compile project(":ihmc-java-toolkit")
+   compile project(":ihmc-java-extensions")
    compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
-   compile ihmc.getProjectDependency(":ihmc-communication")
-   compile ihmc.getProjectDependency(":ihmc-robotics-toolkit")
-   compile ihmc.getProjectDependency(":simulation-construction-set")
+   compile project(":ihmc-communication")
+   compile project(":ihmc-robotics-toolkit")
+   compile project(":simulation-construction-set")
 }

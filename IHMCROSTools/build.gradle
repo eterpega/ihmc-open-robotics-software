@@ -37,11 +37,11 @@ dependencies {
    compile group: 'org.ros.rosjava_messages', name: 'tf2_msgs', version: '0.5.9'
    compile group: 'org.ros.rosjava_messages', name: 'tf', version: '1.10.8'
 
-   compile ihmc.getProjectDependency(":ihmc-communication")
-   compile ihmc.getProjectDependency(":ihmc-java-toolkit")
-   compile ihmc.getProjectDependency(":ihmc-java-extensions")
+   compile project(":ihmc-communication")
+   compile project(":ihmc-java-toolkit")
+   compile project(":ihmc-java-extensions")
    compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
-   compile ihmc.getProjectDependency(":ihmc-robotics-toolkit")
+   compile project(":ihmc-robotics-toolkit")
 
    testCompile ihmc.getProjectTestDependency(":ihmc-robotics-toolkit")
    testCompile ihmc.getProjectTestDependency(":ihmc-java-extensions")

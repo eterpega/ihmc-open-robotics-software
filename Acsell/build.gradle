@@ -11,10 +11,10 @@ buildscript {
 
 apply plugin: "org.hidetake.ssh"
 
-if (!rootProject.name.equals('ihmc-open-robotics-software'))
-{
-   evaluationDependsOn(':ihmc-open-robotics-software')
-}
+//if (!rootProject.name.equals('ihmc-open-robotics-software'))
+//{
+//   evaluationDependsOn(':ihmc-open-robotics-software')
+//}
 
 dependencies {
    testCompile group: 'junit', name: 'junit', version: '4.11'
@@ -32,27 +32,27 @@ dependencies {
 
    testCompile group: 'us.ihmc', name: 'ihmc-continuous-integration-framework', version: '0.9.4'
 
-   compile ihmc.getProjectDependency(":ihmc-communication")
-   compile ihmc.getProjectDependency(":ihmc-humanoid-robotics")
-   compile ihmc.getProjectDependency(":ihmc-state-estimation")
-   compile ihmc.getProjectDependency(":common-walking-control-modules")
-   compile ihmc.getProjectDependency(":ihmc-avatar-interfaces")
-   compile ihmc.getProjectDependency(":ihmc-jmonkey-engine-toolkit")
-   compile ihmc.getProjectDependency(":model-file-loader")
-   compile ihmc.getProjectDependency(":sensor-processing")
-   compile ihmc.getProjectDependency(":simulation-construction-set")
-   compile ihmc.getProjectDependency(":ihmc-robot-data-logger")
-   compile ihmc.getProjectDependency(":ihmc-perception")
-   compile ihmc.getProjectDependency(":ihmc-whole-body-controller")
-   compile ihmc.getProjectDependency(":ihmc-java-toolkit")
-   compile ihmc.getProjectDependency(":ihmc-java-extensions")
+   compile "us.ihmc:ihmc-communication:SNAPSHOT-0"
+   compile project(":ihmc-humanoid-robotics")
+   compile project(":ihmc-state-estimation")
+   compile project(":common-walking-control-modules")
+   compile project(":ihmc-avatar-interfaces")
+   compile project(":ihmc-jmonkey-engine-toolkit")
+   compile project(":model-file-loader")
+   compile project(":sensor-processing")
+   compile project(":simulation-construction-set")
+   compile project(":ihmc-robot-data-logger")
+   compile project(":ihmc-perception")
+   compile project(":ihmc-whole-body-controller")
+   compile project(":ihmc-java-toolkit")
+   compile project(":ihmc-java-extensions")
    compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
-   compile ihmc.getProjectDependency(":ihmc-robotics-toolkit")
-   compile ihmc.getProjectDependency(":ihmc-robot-description")
-   compile ihmc.getProjectDependency(":ihmc-robot-models")
-   compile ihmc.getProjectDependency(":ihmc-robot-data-visualizer")
-   compile ihmc.getProjectDependency(":ihmc-graphics-description")
-   testCompile ihmc.getProjectTestDependency(":ihmc-robotics-toolkit")
+   compile project(":ihmc-robotics-toolkit")
+   compile project(":ihmc-robot-description")
+   compile project(":ihmc-robot-models")
+   compile project(":ihmc-robot-data-visualizer")
+   compile project(":ihmc-graphics-description")
+   testCompile project(path: project(":ihmc-robotics-toolkit").path, configuration: "testOutput")
    testCompile ihmc.getProjectTestDependency(":ihmc-java-extensions")
    testCompile group: 'us.ihmc', name: 'ihmc-commons-testing', version: '0.11.0-alpha'
 }

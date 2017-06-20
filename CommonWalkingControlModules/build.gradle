@@ -27,23 +27,23 @@ dependencies {
 
    testCompile group: 'us.ihmc', name: 'ihmc-continuous-integration-framework', version: '0.9.4'
 
-   compile ihmc.getProjectDependency(":ihmc-robot-models")
-   compile ihmc.getProjectDependency(":sensor-processing")
-   compile ihmc.getProjectDependency(":ihmc-communication")
-   compile ihmc.getProjectDependency(":convex-optimization-adapter")
-   compile ihmc.getProjectDependency(":ihmc-robotics-toolkit")
-   compile ihmc.getProjectDependency(":ihmc-java-toolkit")
-   compile ihmc.getProjectDependency(":ihmc-java-extensions")
+   compile project(":ihmc-robot-models")
+   compile project(":sensor-processing")
+   compile project(":ihmc-communication")
+   compile project(":convex-optimization-adapter")
+   compile project(":ihmc-robotics-toolkit")
+   compile project(":ihmc-java-toolkit")
+   compile project(":ihmc-java-extensions")
    compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
-   compile ihmc.getProjectDependency(":ihmc-humanoid-robotics")
-   compile ihmc.getProjectDependency(":ihmc-java-toolkit")
-   compile ihmc.getProjectDependency(":ihmc-java-extensions")
+   compile project(":ihmc-humanoid-robotics")
+   compile project(":ihmc-java-toolkit")
+   compile project(":ihmc-java-extensions")
    compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
-   compile ihmc.getProjectDependency(":ihmc-graphics-description")
+   compile project(":ihmc-graphics-description")
 
 
-   testCompile ihmc.getProjectDependency(":simulation-construction-set")
-   testCompile ihmc.getProjectDependency(":simulation-construction-set-tools")
+   testCompile project(":simulation-construction-set")
+   testCompile project(":simulation-construction-set-tools")
    testCompile ihmc.getProjectTestDependency(":ihmc-robotics-toolkit")
    testCompile ihmc.getProjectTestDependency(":ihmc-java-extensions")
    testCompile group: 'us.ihmc', name: 'ihmc-commons-testing', version: '0.11.0-alpha'

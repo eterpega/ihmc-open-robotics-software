@@ -1,1 +1,3 @@
 rootProject.name = 'ihmc-robotics-toolkit'
+
+includeBuild "../IHMCJavaExtensions"

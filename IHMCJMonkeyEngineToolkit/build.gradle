@@ -26,12 +26,12 @@ dependencies {
    compile group: 'org.boofcv', name: 'geo', version: '0.24.1'
    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
 
-   compile ihmc.getProjectDependency(":ihmc-java-toolkit")
-   compile ihmc.getProjectDependency(":ihmc-java-extensions")
+   compile project(":ihmc-java-toolkit")
+   compile project(":ihmc-java-extensions")
    compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
-   compile ihmc.getProjectDependency(":ihmc-graphics-description")
-   compile ihmc.getProjectDependency(":ihmc-robotics-toolkit")
-   compile ihmc.getProjectDependency(":ihmc-communication")
+   compile project(":ihmc-graphics-description")
+   compile project(":ihmc-robotics-toolkit")
+   compile project(":ihmc-communication")
    testCompile ihmc.getProjectTestDependency(":ihmc-communication")
    testCompile ihmc.getProjectTestDependency(":ihmc-robotics-toolkit")
    testCompile ihmc.getProjectTestDependency(":ihmc-java-extensions")

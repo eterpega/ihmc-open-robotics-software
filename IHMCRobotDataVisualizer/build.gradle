@@ -27,18 +27,18 @@ dependencies {
    compile group: 'net.sourceforge.jmatio', name: 'jmatio', version: '1.0'
    compile group: 'us.ihmc', name: 'IHMCVideoCodecs', version: '2.0.12'
 
-   compile ihmc.getProjectDependency(":model-file-loader")
-   compile ihmc.getProjectDependency(":simulation-construction-set")
-   compile ihmc.getProjectDependency(":ihmc-communication")
-   compile ihmc.getProjectDependency(":ihmc-javafx-toolkit")
-   compile ihmc.getProjectDependency(":ihmc-java-toolkit")
-   compile ihmc.getProjectDependency(":ihmc-java-extensions")
+   compile project(":model-file-loader")
+   compile project(":simulation-construction-set")
+   compile project(":ihmc-communication")
+   compile project(":ihmc-javafx-toolkit")
+   compile project(":ihmc-java-toolkit")
+   compile project(":ihmc-java-extensions")
    compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
-   compile ihmc.getProjectDependency(":ihmc-humanoid-robotics")
-   compile ihmc.getProjectDependency(":ihmc-robotics-toolkit")
-   compile ihmc.getProjectDependency(":ihmc-graphics-description")
-   compile ihmc.getProjectDependency(":ihmc-robot-description")
-   compile ihmc.getProjectDependency(":ihmc-robot-data-logger")
+   compile project(":ihmc-humanoid-robotics")
+   compile project(":ihmc-robotics-toolkit")
+   compile project(":ihmc-graphics-description")
+   compile project(":ihmc-robot-description")
+   compile project(":ihmc-robot-data-logger")
 }
 
 mainClassName = hasProperty('mainClass') ? mainClass : "us.ihmc.robotDataVisualizer.visualizer.SCSVisualizer"
