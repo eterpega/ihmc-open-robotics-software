@@ -1,16 +1,20 @@
 package us.ihmc.simulationconstructionset.gui;
 
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.*;
+import javafx.scene.control.Menu;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.shape.Polyline;
+import javafx.stage.*;
 import us.ihmc.graphicsDescription.dataBuffer.DataEntry;
 import us.ihmc.graphicsDescription.dataBuffer.DataEntryHolder;
 import us.ihmc.graphicsDescription.dataBuffer.TimeDataHolder;
@@ -23,8 +27,7 @@ import us.ihmc.simulationconstructionset.gui.dialogs.GraphPropertiesDialog;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.MenuItem;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.text.FieldPosition;
@@ -63,13 +66,13 @@ public class YoGraph extends Pane implements EventHandler<Event> {
 
     private double min = 0.0, max = 1.1;
 
-    private int[] xData, yData;
+    private double[] xData, yData;
 
     private final ArrayList<Integer> entryNamePaintWidths = new ArrayList<>();
     private final ArrayList<Integer> entryNamePaintRows = new ArrayList<>();
     private int totalEntryNamePaintRows = 1;
-    private JPopupMenu popupMenu;
-    private JMenuItem delete;
+    private ContextMenu popupMenu;
+    private javafx.scene.control.MenuItem delete;
     private static int actionPerformedByDragAndDrop = -1;
     private static Object sourceOfDrag = null;
     private static Object recipientOfDrag = null;
@@ -82,8 +85,8 @@ public class YoGraph extends Pane implements EventHandler<Event> {
         this.dataEntryHolder = dataEntryHolder;
         this.timeDataHolder = timeDataHolder;
 
-        xData = new int[0];
-        yData = new int[0];
+        xData = new double[0];
+        yData = new double[0];
 
         this.graphIndicesHolder = graphIndicesHolder;
         this.yoGraphRemover = yoGraphRemover;
@@ -123,17 +126,18 @@ public class YoGraph extends Pane implements EventHandler<Event> {
 
         this.addEventHandler(javafx.scene.input.MouseEvent.ANY, this);
         this.addEventHandler(javafx.scene.input.KeyEvent.ANY, this);
+
         //this.setDropTarget(new DropTarget(this, new YoGraphTargetListener(this))); TODO: replace
 
-        popupMenu = new ForcedRepaintPopupMenu();
-        delete = new JMenuItem("Delete Graph");
-        final YoGraph thisYoGraph = this;
-        delete.addActionListener(e -> {
-            setVisible(false);
-            popupMenu.setVisible(false);
-            thisYoGraph.yoGraphRemover.removeGraph(thisYoGraph);
+        popupMenu = new ContextMenu();
+
+        this.setOnContextMenuRequested(e -> {
+            popupMenu.show(this, this.getWidth(), this.getHeight());
         });
-        //popupMenu.addFocusListener(this);
+
+        delete = new javafx.scene.control.MenuItem("Delete Graph");
+        delete.addEventHandler(Event.ANY, this);
+
         //this.setTransferHandler(new YoGraphTransferHandler()); TODO: replace
         this.showNameSpace = false;
     }
@@ -388,45 +392,36 @@ public class YoGraph extends Pane implements EventHandler<Event> {
 
     private int totalDontPlotBottomPixels = 0;
 
-    private void calcXYData(DataEntry entry, int nPoints, int[] xData, int[] yData, int beginningAt) {
-        double width = this.getWidth();
+    private void calcXYData(DataEntry entry, int nPoints, double[] xData, double[] yData, int beginningAt) {
         double height = this.getHeight() - totalDontPlotBottomPixels;
-        int rightPlotIndex = this.graphIndicesHolder.getRightPlotIndex();
         int leftPlotIndex = this.graphIndicesHolder.getLeftPlotIndex();
 
         double minVal = this.minFor(entry);
-        double maxVal = this.maxFor(entry);
 
         double[] data = entry.getData(beginningAt, beginningAt + nPoints);
 
-        boolean inverted = entry.getInverted();
-
         for (int i = 0; i < nPoints; i++) {
-            double dataAtTick = data[i];
-
-            if (inverted) dataAtTick = -dataAtTick;
-
-            xData[i] = (int) (((i + beginningAt) - leftPlotIndex) * width) / (rightPlotIndex - leftPlotIndex);
-            yData[i] = (int) height - (int) ((dataAtTick - minVal) / (maxVal - minVal) * height);
+            xData[i] = (((i + beginningAt) - leftPlotIndex) * this.getWidth()) / (this.graphIndicesHolder.getRightPlotIndex() - leftPlotIndex);
+            yData[i] = height - (((entry.getInverted() ? -data[i] : data[i]) - minVal) / (this.maxFor(entry) - minVal) * height);
         }
     }
 
-    private void calcScatterData(DataEntry entryX, DataEntry entryY, int nPoints, int[] xData, int[] yData, double minX, double maxX, double minY, double maxY, double width, double height, int offsetFromLeft, int offsetFromTop) {
+    private void calcScatterData(DataEntry entryX, DataEntry entryY, int nPoints, double[] xData, double[] yData, double minX, double maxX, double minY, double maxY, double width, double height, int offsetFromLeft, int offsetFromTop) {
         double[] dataX = entryX.getData();
         double[] dataY = entryY.getData();
 
         for (int i = 0; i < nPoints; i++) {
-            xData[i] = (int) ((dataX[i] - minX) / (maxX - minX) * width) + offsetFromLeft;
-            yData[i] = (int) height - (int) ((dataY[i] - minY) / (maxY - minY) * height) + offsetFromTop;
+            xData[i] = ((dataX[i] - minX) / (maxX - minX) * width) + offsetFromLeft;
+            yData[i] = height - (int) ((dataY[i] - minY) / (maxY - minY) * height) + offsetFromTop;
         }
     }
 
-    private int[] zip(int[] a, int[] b) {
+    private double[] zip(double[] a, double[] b) {
         if (a.length != b.length) {
-            return new int[0];
+            return new double[0];
         }
 
-        int[] c = new int[a.length + b.length];
+        double[] c = new double[a.length + b.length];
 
         for (int i = 0; i < a.length; ++i) {
             c[i * 2] = a[i];
@@ -434,16 +429,6 @@ public class YoGraph extends Pane implements EventHandler<Event> {
         }
 
         return c;
-    }
-
-    private double[] toDarray(int[] convert) {
-        double[] converted = new double[convert.length];
-
-        for (int i = 0; i < convert.length; ++i) {
-            converted[i] = (double) convert[i];
-        }
-
-        return converted;
     }
 
     protected synchronized void printGraph(int printWidth, int printHeight) {
@@ -488,8 +473,8 @@ public class YoGraph extends Pane implements EventHandler<Event> {
             int length;
             length = (length = ((outPoint - inPoint + 1 + nPoints) % nPoints)) == 0 ? nPoints : length;
 
-            int[] xDataPrint = new int[length];
-            int[] yDataPrint = new int[length];
+            double[] xDataPrint = new double[length];
+            double[] yDataPrint = new double[length];
 
             for (int j = 0; j < length; j++) {
                 int index = (inPoint + j) % nPoints;
@@ -498,7 +483,7 @@ public class YoGraph extends Pane implements EventHandler<Event> {
                         - (int) ((data[index] - minVal) / (maxVal - minVal) * (printHeight - DONT_PLOT_BOTTOM_PIXELS));
             }
 
-            Polyline thisPoly = new Polyline(toDarray(zip(xDataPrint, yDataPrint)));
+            Polyline thisPoly = new Polyline(zip(xDataPrint, yDataPrint));
             thisPoly.setStroke(colors[i % YoGraph.MAX_NUM_GRAPHS]);
             this.getChildren().add(thisPoly);
         }
@@ -717,8 +702,8 @@ public class YoGraph extends Pane implements EventHandler<Event> {
 
             int nPoints = dataX.length;
             if ((xData.length != nPoints) || (yData.length != nPoints)) {
-                xData = new int[nPoints];
-                yData = new int[nPoints];
+                xData = new double[nPoints];
+                yData = new double[nPoints];
             }
 
             int totalDontPlotBottomPixels = DONT_PLOT_BOTTOM_PIXELS + PIXELS_PER_BOTTOM_ROW * (totalEntryNamePaintRows - 1);
@@ -727,7 +712,7 @@ public class YoGraph extends Pane implements EventHandler<Event> {
                     3, 5);
 
             gc.setStroke(colors[i % YoGraph.MAX_NUM_GRAPHS]);
-            gc.strokePolyline(toDarray(xData), toDarray(yData), xData.length);
+            gc.strokePolyline(xData, yData, xData.length);
 
             // Draw a Cross Hairs:
             int index = graphIndicesHolder.getIndex();
@@ -761,25 +746,35 @@ public class YoGraph extends Pane implements EventHandler<Event> {
         for (int i = 0; i < numVars; i++) {
             DataEntry entry = entriesOnThisGraph.get(i);
 
-            if (entry.hasDataChanged() | entry.minMaxChanged()) {
-                int nPoints = rightPlotIndex - leftPlotIndex;
+            int entryLeftIndex = leftPlotIndex;
+            int entryRightIndex = rightPlotIndex;
+
+            if (entry.havePointsChanged()) {
+                entryLeftIndex = graphIndicesHolder.getLeftPlotIndex();
+                entryRightIndex = graphIndicesHolder.getRightPlotIndex();
+            }
+
+            if (entry.havePointsChanged() || entry.hasDataChanged() || entry.minMaxChanged()) {
+                int nPoints = entryRightIndex - entryLeftIndex;
                 if ((xData.length != nPoints) || (yData.length != nPoints)) {
-                    xData = new int[nPoints];
-                    yData = new int[nPoints];
+                    xData = new double[nPoints];
+                    yData = new double[nPoints];
                 }
 
                 totalDontPlotBottomPixels = DONT_PLOT_BOTTOM_PIXELS + PIXELS_PER_BOTTOM_ROW * (totalEntryNamePaintRows - 1);
 
-                calcXYData(entry, nPoints, xData, yData, leftPlotIndex);
+                calcXYData(entry, nPoints, xData, yData, entryLeftIndex);
 
                 if (xData.length > 1) {
                     final int x = i;
-                    final int[] xD = xData.clone();
-                    final int[] yD = yData.clone();
+                    final double[] xD = xData.clone();
+                    final double[] yD = yData.clone();
                     Platform.runLater(() -> {
-                        if (x == 0) gc.clearRect(xD[0], 0, xD[xD.length - 1] - xD[0], this.getHeight());
+                        if (x == 0) gc.clearRect(Math.ceil(xD[0]), 0, Math.floor(xD[xD.length - 1] - xD[0]), this.getHeight());
                         gc.setStroke(colors[x % YoGraph.MAX_NUM_GRAPHS]);
-                        gc.strokePolyline(toDarray(xD), toDarray(yD), xD.length);
+                        for (int z = 0; z < xD.length-1; ++z) {
+                            gc.strokeLine(xD[z], yD[z], xD[z+1], yD[z+1]);
+                        }
                     });
                 }
 
@@ -802,6 +797,7 @@ public class YoGraph extends Pane implements EventHandler<Event> {
 
                 entry.resetDataChanged();
                 entry.resetMinMaxChanged();
+                entry.resetPointsChanged();
             }
         }
 
@@ -811,7 +807,7 @@ public class YoGraph extends Pane implements EventHandler<Event> {
         });
     }
 
-    private void paintVerticalIndexLines() {
+    void paintVerticalIndexLines() {
         double width = this.getWidth();
         double height = this.getHeight() - totalDontPlotBottomPixels;
         int inPoint = this.graphIndicesHolder.getInPoint();
@@ -857,7 +853,7 @@ public class YoGraph extends Pane implements EventHandler<Event> {
         }
     }
 
-    private void paintVariableNamesAndValues(boolean phasePlot) {
+    void paintVariableNamesAndValues(boolean phasePlot) {
         int previousRow = 0;
         int cumulativeOffset = 3;
 
@@ -874,9 +870,9 @@ public class YoGraph extends Pane implements EventHandler<Event> {
             DataEntry entry = entriesOnThisGraph.get(i);
 
             if (phasePlot) {
-                gc.setStroke(colors[i / 2 % YoGraph.MAX_NUM_GRAPHS]);
+                gc.setFill(colors[i / 2 % YoGraph.MAX_NUM_GRAPHS]);
             } else {
-                gc.setStroke(colors[i % YoGraph.MAX_NUM_GRAPHS]);
+                gc.setFill(colors[i % YoGraph.MAX_NUM_GRAPHS]);
             }
 
             // Draw the variable name
@@ -906,11 +902,13 @@ public class YoGraph extends Pane implements EventHandler<Event> {
         double total = 0.0;
 
         GraphicsContext gc = ((Canvas) this.getChildren().get(1)).getGraphicsContext2D();
+        gc.clearRect(0,this.getHeight()-yToDrawAt, this.getWidth(), yToDrawAt);
 
-        gc.setStroke(javafx.scene.paint.Color.BLACK);
-        gc.strokeText("BaseLines: ", cumOffset, yToDrawAt);
+        gc.setFill(javafx.scene.paint.Color.BLACK);
+        gc.fillText("BaseLines: ", cumOffset, yToDrawAt);
         cumOffset += 80;
 
+        gc.setLineWidth(1.5f);
         for (int i = 0; i < baseLines.length; i++) {
             stringBuffer.delete(0, stringBuffer.length());    // Erase the string buffer...
             double baseLine = baseLines[i];
@@ -921,8 +919,8 @@ public class YoGraph extends Pane implements EventHandler<Event> {
 
             int baseLineStringWidth = (int) gc.getFont().getSize() * baseLineString.length();
 
-            gc.setStroke(colors[i]);
-            gc.strokeText(baseLineString, cumOffset, yToDrawAt);
+            gc.setFill(colors[i]);
+            gc.fillText(baseLineString, cumOffset, yToDrawAt);
             cumOffset = cumOffset + baseLineStringWidth + 10;
         }
 
@@ -932,10 +930,9 @@ public class YoGraph extends Pane implements EventHandler<Event> {
         formatDouble(stringBuffer, average);
         String averageString = stringBuffer.toString();
 
-        gc.setStroke(javafx.scene.paint.Color.BLACK);
-        gc.strokeText("    Average = " + averageString, cumOffset, yToDrawAt);
+        gc.setFill(javafx.scene.paint.Color.BLACK);
+        gc.fillText("    Average = " + averageString, cumOffset, yToDrawAt);
     }
-
 
     private void drawVariableNameAndValue(int cumOffset, int row, DataEntry entry) {
         double graphHeight = this.getHeight();
@@ -1042,10 +1039,6 @@ public class YoGraph extends Pane implements EventHandler<Event> {
     }
 
     private void handleMousePressed(javafx.scene.input.MouseEvent evt) {
-        if (evt.getSource().equals(this)) {
-            popupMenu.setVisible(false);
-        }
-
         this.requestFocus();
         double y = evt.getY();
         double x = evt.getX();
@@ -1130,28 +1123,24 @@ public class YoGraph extends Pane implements EventHandler<Event> {
             }
 
         } else if (evt.isSecondaryButtonDown()) {
-            popupMenu.setLocation((int)evt.getScreenX(), (int)evt.getScreenY());
-            popupMenu.remove(delete);
-            Component[] components = popupMenu.getComponents();
-            for (Component component : components) {
-                popupMenu.remove(component);
-            }
+            //popupMenu.setLocation((int)evt.getScreenX(), (int)evt.getScreenY());
+
+            popupMenu.getItems().clear();
 
             for (final DataEntry dataBufferEntry : entriesOnThisGraph) {
-                final JMenuItem menuItem = new JMenuItem("Remove " + dataBufferEntry.getVariableName());
-                menuItem.addActionListener(e -> {
+                final javafx.scene.control.MenuItem menuItem = new javafx.scene.control.MenuItem("Remove " + dataBufferEntry.getVariableName());
+
+                menuItem.addEventHandler(ActionEvent.ANY, e -> {
                     removeEntry(dataBufferEntry);
                     repaintAllGraph();
-                    popupMenu.remove(menuItem);
-                    popupMenu.setVisible(false);
-                    popupMenu.invalidate();
-                    popupMenu.revalidate();
+                    popupMenu.getItems().remove(menuItem);
+                    popupMenu.hide();
                 });
-                popupMenu.add(menuItem);
+
+                popupMenu.getItems().add(menuItem);
             }
 
-            popupMenu.add(delete);
-            popupMenu.setVisible(true);
+            popupMenu.getItems().add(delete);
         }
     }
 
@@ -1301,12 +1290,22 @@ public class YoGraph extends Pane implements EventHandler<Event> {
         }
     }
 
+    private void handleActionEvent(ActionEvent aevt) {
+        if (aevt.getSource().equals(delete)) {
+            setVisible(false);
+            popupMenu.hide();
+            this.yoGraphRemover.removeGraph(this);
+        }
+    }
+
     @Override
     public void handle(Event event) {
         if (event instanceof javafx.scene.input.MouseEvent) {
             this.handleMouseEvent((javafx.scene.input.MouseEvent) event);
         } else if (event instanceof javafx.scene.input.KeyEvent) {
             this.handleKeyEvent((javafx.scene.input.KeyEvent) event);
+        } else if (event instanceof ActionEvent) {
+            this.handleActionEvent((ActionEvent) event);
         }
     }
 }

@@ -13,6 +13,7 @@ public class DataBufferEntry implements DataEntry
    private double min, max;
    private boolean minMaxChanged = true;
    private boolean dataChanged = true;
+   private boolean pointsChanged = true;
 
    private boolean minMaxStale = true;
 
@@ -182,6 +183,7 @@ public class DataBufferEntry implements DataEntry
       // Calculate the Min and Max values for the new set
       reCalcMinMax();
       this.dataChanged = true;
+      this.pointsChanged = true;
 
       // Indicate the data length
       return data.length;
@@ -223,6 +225,7 @@ public class DataBufferEntry implements DataEntry
       // Calculate the Min and Max values for the new set
       reCalcMinMax();
       this.dataChanged = true;
+      this.pointsChanged = true;
 
       // Indicate the data length
       return data.length;
@@ -246,6 +249,7 @@ public class DataBufferEntry implements DataEntry
       }
 
       this.dataChanged = true;
+      this.pointsChanged = true;
       
       return newNumberOfPoints;
    }
@@ -285,6 +289,7 @@ public class DataBufferEntry implements DataEntry
       // Recalculate the new min and max values
       reCalcMinMax();
       this.dataChanged = true;
+      this.pointsChanged = true;
    }
 
    protected double getVariableValueAsADouble()
@@ -328,8 +333,24 @@ public class DataBufferEntry implements DataEntry
       }
    }
 
+   @Override
    public boolean hasDataChanged() {
       return this.dataChanged;
+   }
+
+   @Override
+   public void resetDataChanged() {
+      this.dataChanged = false;
+   }
+
+   @Override
+   public boolean havePointsChanged() {
+      return this.pointsChanged;
+   }
+
+   @Override
+   public void resetPointsChanged() {
+      this.pointsChanged = false;
    }
 
    protected void setYoVariableValueToDataAtIndex(int index)
@@ -359,10 +380,6 @@ public class DataBufferEntry implements DataEntry
    // public boolean minMaxChanged()
    {
       return minMaxChanged;
-   }
-
-   public void resetDataChanged() {
-      this.dataChanged = false;
    }
 
    // private boolean reCalcMinMax()
