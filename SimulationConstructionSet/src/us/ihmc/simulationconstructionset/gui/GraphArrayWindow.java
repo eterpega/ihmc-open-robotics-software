@@ -15,7 +15,7 @@ import javax.swing.JPanel;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.Scene;
 import us.ihmc.graphicsDescription.graphInterfaces.SelectedVariableHolder;
-import us.ihmc.simulationconstructionset.DataBuffer;
+import us.ihmc.yoVariables.dataBuffer.DataBuffer;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
 import us.ihmc.simulationconstructionset.commands.AllCommandsExecutor;
 import us.ihmc.simulationconstructionset.commands.SelectGraphConfigurationCommandExecutor;

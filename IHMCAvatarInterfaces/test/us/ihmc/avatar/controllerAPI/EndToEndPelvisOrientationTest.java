@@ -26,8 +26,8 @@ import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessag
 import us.ihmc.humanoidRobotics.communication.packets.walking.PelvisOrientationTrajectoryMessage;
 import us.ihmc.humanoidRobotics.frames.HumanoidReferenceFrames;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
-import us.ihmc.robotics.dataStructures.variable.EnumYoVariable;
-import us.ihmc.robotics.dataStructures.variable.YoVariable;
+import us.ihmc.yoVariables.variable.YoEnum;
+import us.ihmc.yoVariables.variable.YoVariable;
 import us.ihmc.robotics.geometry.FrameOrientation;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.math.QuaternionCalculus;
@@ -71,7 +71,7 @@ public abstract class EndToEndPelvisOrientationTest implements MultiRobotTestInt
       PelvisOrientationTrajectoryMessage message = new PelvisOrientationTrajectoryMessage(trajectoryTime, pelvisOrientation.getQuaternion());
       SO3TrajectoryPointMessage waypoint = message.taskspaceTrajectoryPoints[0];
       drcSimulationTestHelper.send(message);
-      drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(2.0 * getRobotModel().getControllerDT());
+      drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(4.0 * getRobotModel().getControllerDT());
 
       String pelvisName = fullRobotModel.getPelvis().getName();
       String postFix = "Orientation";
@@ -261,7 +261,7 @@ public abstract class EndToEndPelvisOrientationTest implements MultiRobotTestInt
    {
       String managerName = PelvisOrientationManager.class.getSimpleName();
       YoVariable<?> variable = scs.getVariable(managerName, managerName + "State");
-      return ((EnumYoVariable<PelvisOrientationControlMode>) variable).getEnumValue();
+      return ((YoEnum<PelvisOrientationControlMode>) variable).getEnumValue();
    }
 
    private double createWalkingMessage(int steps, FootstepDataListMessage messageToPack, boolean squareUp)

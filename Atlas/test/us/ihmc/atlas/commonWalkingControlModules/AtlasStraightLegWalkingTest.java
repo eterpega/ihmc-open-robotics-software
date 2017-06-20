@@ -13,7 +13,7 @@ import us.ihmc.commonWalkingControlModules.momentumBasedController.optimization.
 import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationPlan;
 import us.ihmc.continuousIntegration.IntegrationCategory;
 import us.ihmc.robotics.controllers.YoOrientationPIDGainsInterface;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.simulationconstructionset.util.simulationRunner.BlockingSimulationRunner.SimulationExceededMaximumTimeException;
 
 @ContinuousIntegrationPlan(categories = {IntegrationCategory.FAST})
@@ -47,6 +47,31 @@ public class AtlasStraightLegWalkingTest extends AvatarStraightLegWalkingTest
 
                   return gains;
                }
+
+               @Override
+               public double getDefaultTransferTime()
+               {
+                  return 0.15;
+               }
+
+               @Override
+               public double getDefaultSwingTime()
+               {
+                  return 0.9 - getDefaultTransferTime();
+               }
+
+               @Override
+               public boolean checkCoPLocationToTriggerToeOff()
+               {
+                  return true;
+               }
+
+               @Override
+               public double getCoPProximityForToeOff()
+               {
+                  return 0.04;
+               }
+
                @Override
                public boolean doHeelTouchdownIfPossible()
                {
@@ -86,7 +111,7 @@ public class AtlasStraightLegWalkingTest extends AvatarStraightLegWalkingTest
                @Override
                public double getICPPercentOfStanceForSSToeOff()
                {
-                  return 0.1;
+                  return 0.08;
                }
 
                @Override
@@ -110,7 +135,7 @@ public class AtlasStraightLegWalkingTest extends AvatarStraightLegWalkingTest
                @Override
                public boolean editStepTimingForReachability()
                {
-                  return false; // // TODO: 4/27/17  
+                  return false; // // TODO: 4/27/17
                }
 
                @Override
@@ -151,13 +176,13 @@ public class AtlasStraightLegWalkingTest extends AvatarStraightLegWalkingTest
                      @Override
                      public double getFractionOfSwingToCollapseStanceLeg()
                      {
-                        return 0.95;
+                        return 0.92;
                      }
 
                      @Override
                      public double getSupportKneeCollapsingDuration()
                      {
-                        return 0.2;
+                        return 0.15;
                      }
 
                      @Override
