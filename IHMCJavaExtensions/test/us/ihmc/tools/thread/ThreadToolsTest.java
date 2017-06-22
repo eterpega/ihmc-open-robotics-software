@@ -8,6 +8,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
@@ -124,6 +125,7 @@ public class ThreadToolsTest
       }
    }
 
+   @Ignore
    @ContinuousIntegrationTest(estimatedDuration = 3.0)
    @Test(timeout = 30000)
    public void testThreadSleepEvenWhenInterrupted()
