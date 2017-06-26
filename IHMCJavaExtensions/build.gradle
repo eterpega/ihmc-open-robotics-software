@@ -3,14 +3,15 @@
 //   evaluationDependsOn(':ihmc-open-robotics-software')
 //}
 
-//buildscript {
-//   repositories {
-//      mavenLocal()
-//      jcenter()
-//      maven {
-//         url "https://plugins.gradle.org/m2/"
-//      }
-//   }
+buildscript {
+   repositories {
+      mavenLocal()
+      jcenter()
+      maven {
+         url "https://plugins.gradle.org/m2/"
+      }
+   }
+}
 //
 //   dependencies {
 //      classpath "us.ihmc.gradle:ihmc-build:0.0.30"
