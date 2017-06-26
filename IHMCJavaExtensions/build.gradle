@@ -5,6 +5,7 @@
 
 //buildscript {
 //   repositories {
+//      mavenLocal()
 //      jcenter()
 //      maven {
 //         url "https://plugins.gradle.org/m2/"
@@ -12,14 +13,15 @@
 //   }
 //
 //   dependencies {
-//      classpath "gradle.plugin.us.ihmc.gradle:ihmc-build:0.0.26"
+//      classpath "us.ihmc.gradle:ihmc-build:0.0.30"
 //   }
 //}
 //
 //apply plugin: 'us.ihmc.gradle.ihmc-build'
 
 plugins {
-   id 'us.ihmc.gradle.ihmc-build' version '0.0.28'
+   id 'us.ihmc.gradle.ihmc-build' version '0.0.29'
+   id 'us.ihmc.continuousIntegration.IHMCContinuousIntegrationGradlePlugin' version '0.11.1'
 }
 
 ihmc.configureProjectForOpenRobotics(project);
