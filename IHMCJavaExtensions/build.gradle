@@ -1,3 +1,20 @@
+//buildscript {
+//   repositories {
+//      mavenLocal()
+//      jcenter()
+//      maven {
+//         url "http://dl.bintray.com/ihmcrobotics/maven-release"
+//      }
+//   }
+////}
+//
+//   dependencies {
+//      classpath "us.ihmc.gradle:ihmc-build:0.0.31"
+//   }
+//}
+//
+//apply plugin: 'us.ihmc.gradle.ihmc-build'
+
 buildscript {
    repositories {
       maven {
@@ -5,16 +22,9 @@ buildscript {
       }
    }
 }
-//
-//   dependencies {
-//      classpath "us.ihmc.gradle:ihmc-build:0.0.30"
-//   }
-//}
-//
-//apply plugin: 'us.ihmc.gradle.ihmc-build'
 
 plugins {
-   id 'us.ihmc.gradle.ihmc-build' version '0.0.29'
+   id 'us.ihmc.gradle.ihmc-build' version '0.0.31'
    id 'us.ihmc.continuousIntegration.IHMCContinuousIntegrationGradlePlugin' version '0.11.2'
 }
 
