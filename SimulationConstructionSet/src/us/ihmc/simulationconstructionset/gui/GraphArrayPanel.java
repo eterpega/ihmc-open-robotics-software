@@ -4,7 +4,6 @@ import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.RowConstraints;
 import us.ihmc.graphicsDescription.graphInterfaces.GraphIndicesHolder;
 import us.ihmc.graphicsDescription.graphInterfaces.SelectedVariableHolder;
@@ -206,8 +205,9 @@ public class GraphArrayPanel extends GridPane implements GraphIndicesHolder, YoG
 
       boolean repaintAll = false;
 
-      if ((index < this.getLeftPlotIndex()) || (index > this.getRightPlotIndex()))
+      if (((index < this.getLeftPlotIndex()) || (index > this.getRightPlotIndex())) || dataBuffer.hasBufferChanged())
       {
+         dataBuffer.resetBufferChanged();
          this.recenter();
          repaintAll = true;
       }

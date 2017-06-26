@@ -930,6 +930,8 @@ public class YoGraph extends Pane implements EventHandler<Event>
       paintVariableNamesAndValues(true);
    }
 
+   private int lastLeft = -1;
+
    public void paintTimePlot(int leftPlotIndex, int rightPlotIndex)
    {
       double graphWidth = this.getWidth();
@@ -940,9 +942,19 @@ public class YoGraph extends Pane implements EventHandler<Event>
          this.reCalcMinMax();
       }
 
+      if (this.lastLeft != graphIndicesHolder.getLeftPlotIndex()) {
+         System.out.println("Moved left index (lastLeft "+lastLeft+", leftPlot "+graphIndicesHolder.getLeftPlotIndex()+")");
+         rightPlotIndex = graphIndicesHolder.getRightPlotIndex();
+         this.shouldRefresh = true;
+      }
+
       if (this.shouldRefresh) {
          leftPlotIndex = graphIndicesHolder.getLeftPlotIndex();
       }
+
+      this.lastLeft = graphIndicesHolder.getLeftPlotIndex();
+
+      System.out.println(leftPlotIndex + ", " + rightPlotIndex);
 
       Platform.runLater(() ->
       {
@@ -978,7 +990,7 @@ public class YoGraph extends Pane implements EventHandler<Event>
 
          Platform.runLater(() ->
          {
-            dataLayer.clearRect(Math.ceil(xData[0][0]), 0, Math.floor(xData[0][xData[0].length - 1] - xData[0][0]), graphHeight);
+            dataLayer.clearRect(0.5 + Math.ceil(xData[0][0]), 0, 0.5 + Math.floor(xData[0][xData[0].length - 1] - xData[0][0]), graphHeight);
             baselineLayer.clearRect(0, 0, graphWidth, graphHeight);
          });
 
