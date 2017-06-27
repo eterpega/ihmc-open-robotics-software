@@ -1,1 +1,6 @@
 rootProject.name = 'ihmc-geometry'
+
+if (startParameter.searchUpwards)
+{
+   includeBuild "../IHMCRoboticsToolkit"
+}

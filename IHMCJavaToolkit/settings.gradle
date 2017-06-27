@@ -1,1 +1,10 @@
 rootProject.name = 'ihmc-java-toolkit'
+
+println 'Evaluating IHMCJavaToolkit settings.gradle'
+println 'startParameter: ' + startParameter
+
+if (startParameter.searchUpwards)
+{
+   includeBuild "../IHMCJavaExtensions"
+   includeBuild "../IHMCRoboticsToolkit"
+}
