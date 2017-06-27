@@ -1,1 +1,3 @@
 rootProject.name = 'ihmc-java-extensions'
+
+println 'Evaluating IHMCJavaExtensions settings.gradle'

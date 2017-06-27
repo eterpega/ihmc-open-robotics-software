@@ -1,17 +1,9 @@
 rootProject.name = 'ihmc-java-toolkit'
 
+println 'Evaluating IHMCJavaToolkit settings.gradle'
+
 if (startParameter.searchUpwards)
 {
-   includeBuild('../IHMCJavaExtensions') {
-      dependencySubstitution {
-         substitute module('us.ihmc:ihmc-java-extensions') with project(':')
-         substitute module('us.ihmc:ihmc-java-extensions-test') with project(':')
-      }
-   }
-   includeBuild('../IHMCRoboticsToolkit') {
-      dependencySubstitution {
-         substitute module('us.ihmc:ihmc-robotics-toolkit') with project(':')
-         substitute module('us.ihmc:ihmc-robotics-toolkit-test') with project(':')
-      }
-   }
+   includeBuild '../IHMCJavaExtensions'
+   includeBuild '../IHMCRoboticsToolkit'
 }
