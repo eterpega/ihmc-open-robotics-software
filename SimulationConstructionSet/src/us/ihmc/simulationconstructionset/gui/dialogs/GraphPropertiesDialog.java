@@ -36,7 +36,7 @@ public class GraphPropertiesDialog extends Stage implements EventHandler<javafx.
         GridPane main = new GridPane();
         main.setPadding(new Insets(10, 10, 10, 10));
 
-        ArrayList<DataEntry> entries = graph.getEntriesOnThisGraph();
+        ArrayList<DataEntry> entries = graph.getEntries();
 
         graphPropertiesPanel = new GraphPropertiesPanel(graph);
         GridPane.setConstraints(graphPropertiesPanel, 0, 0);
@@ -100,7 +100,6 @@ public class GraphPropertiesDialog extends Stage implements EventHandler<javafx.
                 varPropertiesPanel.commitChanges();
             }
 
-            graph.repaint();
         } else if (event.getSource() == okButton) {
             graphPropertiesPanel.commitChanges();
 
@@ -108,7 +107,6 @@ public class GraphPropertiesDialog extends Stage implements EventHandler<javafx.
                 varPropertiesPanel.commitChanges();
             }
 
-            graph.repaint();
             this.hide();
         }
 

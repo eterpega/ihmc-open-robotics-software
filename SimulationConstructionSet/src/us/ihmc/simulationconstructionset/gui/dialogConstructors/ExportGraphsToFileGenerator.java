@@ -83,14 +83,14 @@ public class ExportGraphsToFileGenerator implements ExportGraphsToFileConstructo
          {
             for (YoGraph graph : myGUI.getGraphArrayPanel().getGraphsOnThisPanel())
             {
-               entriesToExport.addAll(graph.getEntriesOnThisGraph());
+               entriesToExport.addAll(graph.getEntries());
             }
             
             for(GraphArrayWindow graphArrayWindow : myGUI.getGraphArrayWindows())
             {
                for (YoGraph graph : graphArrayWindow.getGraphArrayPanel().getGraphsOnThisPanel())
                {
-                  entriesToExport.addAll(graph.getEntriesOnThisGraph());
+                  entriesToExport.addAll(graph.getEntries());
                }   
             }
          }
@@ -98,7 +98,7 @@ public class ExportGraphsToFileGenerator implements ExportGraphsToFileConstructo
          {
             for (YoGraph graph : graphArrayPanel.getGraphsOnThisPanel())
             {
-               entriesToExport.addAll(graph.getEntriesOnThisGraph());
+               entriesToExport.addAll(graph.getEntries());
             }
          }
 

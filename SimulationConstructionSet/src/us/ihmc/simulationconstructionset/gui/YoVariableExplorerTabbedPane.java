@@ -46,6 +46,7 @@ public class YoVariableExplorerTabbedPane extends JTabbedPane implements Registr
    private final long OBSERVER_NOTIFICATION_PERIOD = 250;
    private JScrollPane bookmarkedVariablesScrollPane;
 
+   private GraphArrayPanel graphArrayPanel;
    private final SelectedVariableHolder selectedVariableHolder;
    private YoVariablePanelJPopupMenu varPanelJPopupMenu;
    private int tabIndex = 0;
@@ -53,10 +54,11 @@ public class YoVariableExplorerTabbedPane extends JTabbedPane implements Registr
   
    public YoVariableExplorerTabbedPane(YoVariableDoubleClickListener yoVariableDoubleClickListener, JFrame frame, BookmarkedVariablesHolder bookmarkedVariablesHolder,
                            final SelectedVariableHolder selectedVariableHolder, EntryBoxArrayPanel entryBoxArrayPanel,
-                           WriteDataCommandExecutor writeDataCommandExecutor, YoVariableRegistry rootRegistry)
+                           WriteDataCommandExecutor writeDataCommandExecutor, YoVariableRegistry rootRegistry, GraphArrayPanel graphArrayPanel)
    {
       this.setName("CombinedVarPanel");
 
+      this.graphArrayPanel = graphArrayPanel;
       this.rootRegistry = rootRegistry;
       this.selectedVariableHolder = selectedVariableHolder;
 
@@ -85,7 +87,7 @@ public class YoVariableExplorerTabbedPane extends JTabbedPane implements Registr
       NameSpaceSearchPanel nameSpaceSearchPanel = new NameSpaceSearchPanel(nameSpaceHierarchyTree);
 
       BookmarkedVariablesPanel bookmarkedVariablesPanel = new BookmarkedVariablesPanel(new YoVariableList("Bookmarked Variables"), selectedVariableHolder,
-                                                             bookmarkedVariablesHolder);
+                                                             bookmarkedVariablesHolder, graphArrayPanel);
       bookmarkedVariablesScrollPane = new JScrollPane(bookmarkedVariablesPanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
               ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 

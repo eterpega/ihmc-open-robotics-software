@@ -63,7 +63,7 @@ public class YoVariableExporter extends YoVariableLogReader
          
          for (YoGraph graph : gui.getGraphArrayPanel().getGraphsOnThisPanel())
          {
-            for (DataEntry entry : graph.getEntriesOnThisGraph())
+            for (DataEntry entry : graph.getEntries())
             {
                graphEntries.add(entry);
             }
@@ -73,7 +73,7 @@ public class YoVariableExporter extends YoVariableLogReader
          {
             for (YoGraph graph : graphArrayWindow.getGraphArrayPanel().getGraphsOnThisPanel())
             {
-               for (DataEntry entry : graph.getEntriesOnThisGraph())
+               for (DataEntry entry : graph.getEntries())
                {
                   graphEntries.add(entry);
                }

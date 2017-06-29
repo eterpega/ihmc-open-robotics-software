@@ -46,6 +46,8 @@ import javax.swing.JWindow;
 import javax.swing.SwingUtilities;
 
 import javafx.animation.AnimationTimer;
+import javafx.embed.swing.JFXPanel;
+import javafx.scene.Scene;
 import us.ihmc.communication.producers.VideoDataServer;
 import us.ihmc.euclid.tuple3D.interfaces.Tuple3DBasics;
 import us.ihmc.graphicsDescription.Graphics3DObject;
@@ -580,13 +582,13 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
       {
          myEntryBoxArrayPanel = new EntryBoxArrayTabbedPanel(parentContainer, selectedVariableHolder);
 
+         myGraphArrayPanel = new GraphArrayPanel(selectedVariableHolder, myDataBuffer, jFrame, this);
+
          yoVariableExplorerTabbedPane = new YoVariableExplorerTabbedPane(new YoVariableDoubleClickListener(myDataBuffer, jFrame), jFrame, bookmarkedVariablesHolder,
-               selectedVariableHolder, null, sim, rootRegistry);
+               selectedVariableHolder, null, sim, rootRegistry, myGraphArrayPanel);
          YoVariableSearchPanel variableSearchPanel = new YoVariableSearchPanel(selectedVariableHolder, myDataBuffer, myGraphArrayPanel, myEntryBoxArrayPanel,
                bookmarkedVariablesHolder, yoVariableExplorerTabbedPane);
          yoVariableExplorerTabbedPane.addVariableSearchPanel(variableSearchPanel);
-
-         myGraphArrayPanel = new GraphArrayPanel(selectedVariableHolder, myDataBuffer, jFrame, this);
       }
 
       if (jFrame != null)
@@ -826,7 +828,10 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
 
          JPanel graphArrayAndButtonPanel = new JPanel(new BorderLayout());
 
-         graphArrayAndButtonPanel.add("Center", myGraphArrayPanel);
+         JFXPanel mGAPHolder = new JFXPanel();
+         mGAPHolder.setScene(new Scene(myGraphArrayPanel));
+
+         graphArrayAndButtonPanel.add("Center", mGAPHolder);
 
          JPanel graphButtonPanel = myGraphArrayPanel.createGraphButtonPanel();
 
@@ -1203,7 +1208,7 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
       if (myGraphArrayPanel == null)
          return;
 
-      myGraphArrayPanel.repaint(); // .updateUI();
+      //myGraphArrayPanel.repaint(); // .updateUI();
 
       for (int i = 0; i < this.graphArrayWindows.size(); i++)
       {
@@ -1251,8 +1256,6 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
       {
          myGraphArrayPanel.setIndexLater(myDataBuffer.getInPoint());
       }
-
-      // myGraphArrayPanel.updateUI();
    }
 
    public void gotoInPointNow()
@@ -1263,8 +1266,6 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
       {
          myGraphArrayPanel.goToInPointNow();
       }
-
-      // myGraphArrayPanel.updateUI();
    }
 
    public void gotoOutPoint()
@@ -1273,9 +1274,6 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
       {
          myGraphArrayPanel.setIndexLater(myDataBuffer.getOutPoint());
       }
-
-      // myCombinedVarPanel.goToOutPoint();
-      // myGraphArrayPanel.updateUI();
    }
 
    public void gotoOutPointNow()
@@ -1290,10 +1288,10 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
    {
       myDataBuffer.setInPoint();
 
-      if (rePaintOnSetPoint)
-      {
-         myGraphArrayPanel.RepaintOnSetPoint();
-      }
+//      if (rePaintOnSetPoint)
+//      {
+//         myGraphArrayPanel.repaintGraphs();
+//      }
 
       repaintWindows();
    }
@@ -1302,10 +1300,10 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
    {
       myDataBuffer.setOutPoint();
 
-      if (rePaintOnSetPoint)
-      {
-         myGraphArrayPanel.RepaintOnSetPoint();
-      }
+//      if (rePaintOnSetPoint)
+//      {
+//        myGraphArrayPanel.repaintGraphs();
+//      }
 
       repaintWindows();
    }
@@ -1314,10 +1312,10 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
    {
       myDataBuffer.setInOutPointFullBuffer();
 
-      if (rePaintOnSetPoint)
-      {
-         myGraphArrayPanel.RepaintOnSetPoint();
-      }
+//      if (rePaintOnSetPoint)
+//      {
+//         myGraphArrayPanel.repaintGraphs();
+//      }
 
       repaintWindows();
    }
@@ -1442,7 +1440,7 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
 
    public void repaintWindows()
    {
-      if (myGraphArrayPanel != null) myGraphArrayPanel.repaint();
+      if (myGraphArrayPanel != null) myGraphArrayPanel.repaintGraphs();
 
       for (int i = 0; i < graphArrayWindows.size(); i++)
       {
@@ -2494,7 +2492,7 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
 
       for (GraphArrayWindow grapharray : getGraphArrayWindows())
       {
-         if (grapharray.isVisable())
+         if (grapharray.isVisible())
          {
             numberOfGraphWindows++;
          }
@@ -2505,7 +2503,7 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
       int window = 1;
       for (GraphArrayWindow grapharray : getGraphArrayWindows())
       {
-         if (grapharray.isVisable())
+         if (grapharray.isVisible())
          {
             textToWrite += "<Graph Array Window" + window + ">\n";
             textToWrite += "<ScreenID>" + grapharray.getScreenID() + "</ScreenID>\n";

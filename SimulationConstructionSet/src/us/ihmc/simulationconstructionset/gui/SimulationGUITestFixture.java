@@ -638,9 +638,9 @@ public class SimulationGUITestFixture
          if (!isAYoGraph)
             return false;
 
-         YoGraph yoGraph = (YoGraph) component;
+         //YoGraph yoGraph = (YoGraph) component;
 
-         return yoGraph.isEmpty();
+         return true;//yoGraph.isEmpty();
       }
    }
 

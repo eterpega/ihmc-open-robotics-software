@@ -467,7 +467,7 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
       attachPlaybackListener(new PlaybackListener()
       {
          @Override
-         public void indexChanged(int newIndex, double newTime)
+         public void notifyOfIndexChange(int newIndex, double newTime)
          {
 
          }
@@ -2525,7 +2525,7 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
     * Enables or disables graph updates during playback. Disabling updates may grant some improved performance but the current data point will nolonger be highlighted on the graphs.
     * This is true by default.
     *
-    * @param updateGraphs Specify whether or not graphs should update during playback.
+    * @param updateGraphsDuringPlayback Specify whether or not graphs should update during playback.
     */
    public void setGraphsUpdatedDuringPlayback(boolean updateGraphsDuringPlayback)
    {
@@ -2556,8 +2556,6 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
 
    /**
     * Return whether simulation will slow down when faster than real time to simulate at exactly real time rate.
-    *
-    * @param simulateNoFasterThanRealTime
     */
    public boolean getSimulateNoFasterThanRealTime()
    {
@@ -2744,7 +2742,7 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
             }
          }
 
-         myDataBuffer.notifySimulationRewoundListenerListeners();
+         myDataBuffer.notifySimulationRewoundListeners();
       }
 
    }

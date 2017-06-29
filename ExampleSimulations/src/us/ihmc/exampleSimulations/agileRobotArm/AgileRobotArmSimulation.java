@@ -44,10 +44,10 @@ public class AgileRobotArmSimulation
 
       // Set up some initial graphs:
 
-      GraphConfiguration auto = new GraphConfiguration("auto", GraphConfiguration.AUTO_SCALING);
-      GraphConfiguration manual1 = new GraphConfiguration("manual1", GraphConfiguration.MANUAL_SCALING, -1.0, 1.0);
-      GraphConfiguration phase1 = new GraphConfiguration("phase1", GraphConfiguration.AUTO_SCALING);
-      phase1.setPlotType(GraphConfiguration.PHASE_PLOT);
+      GraphConfiguration auto = new GraphConfiguration("auto", GraphConfiguration.ScaleType.AUTO);
+      GraphConfiguration manual1 = new GraphConfiguration("manual1", GraphConfiguration.ScaleType.MANUAL, -1.0, 1.0);
+      GraphConfiguration phase1 = new GraphConfiguration("phase1", GraphConfiguration.ScaleType.AUTO);
+      phase1.setGraphType(GraphConfiguration.GraphType.PHASE);
 
       sim.setupGraphConfigurations(new GraphConfiguration[] {auto, manual1, phase1});
 

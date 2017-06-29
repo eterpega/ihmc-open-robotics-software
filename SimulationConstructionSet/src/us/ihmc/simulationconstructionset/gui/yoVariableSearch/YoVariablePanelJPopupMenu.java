@@ -9,6 +9,7 @@ import java.awt.event.ActionListener;
 import javax.swing.JFrame;
 import javax.swing.JMenuItem;
 
+import com.sun.corba.se.impl.orbutil.graph.Graph;
 import us.ihmc.graphicsDescription.graphInterfaces.SelectedVariableHolder;
 import us.ihmc.simulationconstructionset.gui.BookmarkedVariablesHolder;
 import us.ihmc.simulationconstructionset.gui.EntryBoxArrayTabbedPanel;
@@ -35,9 +36,21 @@ public class YoVariablePanelJPopupMenu extends ForcedRepaintPopupMenu
    public YoVariablePanelJPopupMenu(SelectedVariableHolder selectedVariableHolder)
    {
       super();
+
       this.selectedVariableHolder = selectedVariableHolder;
 
       this.graphArrayPanel = null;
+      this.entryBoxArrayPanel = null;
+      this.combinedVarPanel = null;
+      this.bookmarkedVariablesHolder = null;
+   }
+
+   public YoVariablePanelJPopupMenu(SelectedVariableHolder selectedVariableHolder, GraphArrayPanel graphArrayPanel) {
+      super();
+
+      this.selectedVariableHolder = selectedVariableHolder;
+
+      this.graphArrayPanel = graphArrayPanel;
       this.entryBoxArrayPanel = null;
       this.combinedVarPanel = null;
       this.bookmarkedVariablesHolder = null;
@@ -59,159 +72,119 @@ public class YoVariablePanelJPopupMenu extends ForcedRepaintPopupMenu
    private void initialize()
    {
       JMenuItem addToNewGraph = new JMenuItem("Add Variable to New Graph");
-      addToNewGraph.addActionListener(new ActionListener()
-      {
-         @Override
-         public void actionPerformed(ActionEvent e)
+      addToNewGraph.addActionListener(e -> {
+         if (graphArrayPanel != null)
          {
-            if (graphArrayPanel != null)
-            {
-               graphArrayPanel.addSelectedVariableGraph();
-            }
-            else
-            {
-               System.err.println("Warning: Could not add variable to a new graph because graphArrayPanel was null.");
-            }
-
-            setVisible(false);
+            graphArrayPanel.addSelectedVariableGraph();
          }
+         else
+         {
+            System.err.println("Warning: Could not add variable to a new graph because graphArrayPanel was null.");
+         }
+
+         setVisible(false);
       });
 
       this.add(addToNewGraph);
       JMenuItem addToNewEntryBox = new JMenuItem("Add Variable to new Entry Box");
-      addToNewEntryBox.addActionListener(new ActionListener()
-      {
-         @Override
-         public void actionPerformed(ActionEvent e)
+      addToNewEntryBox.addActionListener(e -> {
+         if (entryBoxArrayPanel != null)
          {
-            if (entryBoxArrayPanel != null)
+            if (selectedVariableHolder.getSelectedVariable() != null)
             {
-               if (selectedVariableHolder.getSelectedVariable() != null)
-               {
-                  entryBoxArrayPanel.addEntryBox(selectedVariableHolder.getSelectedVariable());
-                  entryBoxArrayPanel.updateUI();
-               }
+               entryBoxArrayPanel.addEntryBox(selectedVariableHolder.getSelectedVariable());
+               entryBoxArrayPanel.updateUI();
             }
-            else
-            {
-               System.err.println("Warning: Could not add variable to a new entry box because entryBoxArrayPanel was null.");
-            }
-
-            setVisible(false);
          }
+         else
+         {
+            System.err.println("Warning: Could not add variable to a new entry box because entryBoxArrayPanel was null.");
+         }
+
+         setVisible(false);
       });
 
       this.add(addToNewEntryBox);
       JMenuItem copyToClipBoard = new JMenuItem("Copy Name to Clipboard");
-      copyToClipBoard.addActionListener(new ActionListener()
-      {
-         @Override
-         public void actionPerformed(ActionEvent e)
+      copyToClipBoard.addActionListener(e -> {
+         if (selectedVariableHolder.getSelectedVariable() != null)
          {
-            if (selectedVariableHolder.getSelectedVariable() != null)
-            {
-               StringSelection stringSelection = new StringSelection(selectedVariableHolder.getSelectedVariable().getName());
-               Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-               clipboard.setContents(stringSelection, null);
-            }
-
-            setVisible(false);
+            StringSelection stringSelection = new StringSelection(selectedVariableHolder.getSelectedVariable().getName());
+            Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+            clipboard.setContents(stringSelection, null);
          }
+
+         setVisible(false);
       });
 
       this.add(copyToClipBoard);
       JMenuItem copyFullNameToClipBoard = new JMenuItem("Copy Full Name to Clipboard");
-      copyFullNameToClipBoard.addActionListener(new ActionListener()
-      {
-         @Override
-         public void actionPerformed(ActionEvent e)
+      copyFullNameToClipBoard.addActionListener(e -> {
+         if (selectedVariableHolder.getSelectedVariable() != null)
          {
-            if (selectedVariableHolder.getSelectedVariable() != null)
-            {
-               StringSelection stringSelection = new StringSelection(selectedVariableHolder.getSelectedVariable().getFullNameWithNameSpace());
-               Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-               clipboard.setContents(stringSelection, null);
-            }
-
-            setVisible(false);
+            StringSelection stringSelection = new StringSelection(selectedVariableHolder.getSelectedVariable().getFullNameWithNameSpace());
+            Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+            clipboard.setContents(stringSelection, null);
          }
+
+         setVisible(false);
       });
 
       this.add(copyFullNameToClipBoard);
       JMenuItem showNameSpace = new JMenuItem("Open Name Space");
-      showNameSpace.addActionListener(new ActionListener()
-      {
-         @Override
-         public void actionPerformed(ActionEvent e)
+      showNameSpace.addActionListener(e -> {
+         if (combinedVarPanel != null)
          {
-            if (combinedVarPanel != null)
-            {
 
-               combinedVarPanel.setVisibleVarPanel(selectedVariableHolder.getSelectedVariable().getYoVariableRegistry());
-            }
-
-            setVisible(false);
+            combinedVarPanel.setVisibleVarPanel(selectedVariableHolder.getSelectedVariable().getYoVariableRegistry());
          }
+
+         setVisible(false);
       });
 
       this.add(showNameSpace);
 
       JMenuItem displayNameSpaces = new JMenuItem("Display Name Spaces");
-      displayNameSpaces.addActionListener(new ActionListener()
-      {
-         @Override
-         public void actionPerformed(ActionEvent e)
+      displayNameSpaces.addActionListener(e -> {
+         if (combinedVarPanel != null)
          {
-            if (combinedVarPanel != null)
-            {
-               YoVariablePanel.addNameSpaceToVarNames();
-            }
-
-            setVisible(false);
+            YoVariablePanel.addNameSpaceToVarNames();
          }
+
+         setVisible(false);
       });
 
       this.add(displayNameSpaces);
 
       bookmarkVariable = new JMenuItem("Bookmark Variable");
-      bookmarkVariable.addActionListener(new ActionListener()
-      {
-         @Override
-         public void actionPerformed(ActionEvent e)
+      bookmarkVariable.addActionListener(e -> {
+         if (bookmarkedVariablesHolder != null)
          {
-            if (bookmarkedVariablesHolder != null)
+            if (selectedVariableHolder.getSelectedVariable() != null)
             {
-               if (selectedVariableHolder.getSelectedVariable() != null)
-               {
-                  bookmarkedVariablesHolder.addBookmark(selectedVariableHolder.getSelectedVariable());
-               }
+               bookmarkedVariablesHolder.addBookmark(selectedVariableHolder.getSelectedVariable());
             }
-            else
-            {
-               System.err.println("Warning: Could not bookmark variable because bookmarkedVariablesHolder is null.");
-            }
-
-            setVisible(false);
          }
+         else
+         {
+            System.err.println("Warning: Could not bookmark variable because bookmarkedVariablesHolder is null.");
+         }
+
+         setVisible(false);
       });
 
       this.add(bookmarkVariable);
 
       addToSliderBoard = new JMenuItem("addToSliderBoard");
-      addToSliderBoard.addActionListener(new ActionListener()
-      {
-         @Override
-         public void actionPerformed(ActionEvent e)
+      addToSliderBoard.addActionListener(e -> {
+         if (selectedVariableHolder.getSelectedVariable() != null)
          {
-            if (selectedVariableHolder.getSelectedVariable() != null)
-            {
-               JFrame tmp = new JFrame();
-               tmp.getContentPane().add(new YoSliderpanel(selectedVariableHolder.getSelectedVariable()));
-               tmp.setVisible(true);
-            }
-
-            setVisible(false);
+            JFrame tmp = new JFrame();
+            tmp.getContentPane().add(new YoSliderpanel(selectedVariableHolder.getSelectedVariable()));
+            tmp.setVisible(true);
          }
+
+         setVisible(false);
       });
 
       this.add(addToSliderBoard);

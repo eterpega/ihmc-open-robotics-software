@@ -31,6 +31,14 @@ public class BookmarkedVariablesPanel extends YoVariableListPanel
       initBookMarks();
    }
 
+   public BookmarkedVariablesPanel(YoVariableList list, SelectedVariableHolder holder, BookmarkedVariablesHolder bookmarkedVariablesHolder,
+                                   GraphArrayPanel graphArrayPanel)
+   {
+      super(list, holder, new YoVariablePanelJPopupMenu(holder, graphArrayPanel));
+      this.bookmarkedVariablesHolder = bookmarkedVariablesHolder;
+      initBookMarks();
+   }
+
    public BookmarkedVariablesPanel(YoVariableList list, SelectedVariableHolder holder, GraphArrayPanel graphArrayPanel, EntryBoxArrayTabbedPanel entryBoxArrayPanel,
                                    BookmarkedVariablesHolder bookmarkedVariablesHolder, YoVariableExplorerTabbedPane combinedVarPanel)
    {

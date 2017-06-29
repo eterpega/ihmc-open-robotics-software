@@ -63,7 +63,7 @@ public class YoGraphTester
       
       yoGraph.addVariable(dataEntry);
 
-      jFrame.getContentPane().add(yoGraph);
+      //jFrame.getContentPane().add(yoGraph);
       jFrame.setSize(800, 200);
       jFrame.setVisible(true);
 

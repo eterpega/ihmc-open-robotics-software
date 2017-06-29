@@ -1,21 +1,14 @@
 package us.ihmc.simulationconstructionset.gui;
 
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.GridLayout;
-import java.awt.print.PageFormat;
-import java.awt.print.Printable;
-import java.util.ArrayList;
-
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-
+import javafx.application.Platform;
+import javafx.scene.Node;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.RowConstraints;
 import us.ihmc.graphicsDescription.graphInterfaces.GraphIndicesHolder;
 import us.ihmc.graphicsDescription.graphInterfaces.SelectedVariableHolder;
 import us.ihmc.javaFXToolkit.graphing.JavaFX3DGraph;
+import us.ihmc.yoVariables.dataBuffer.IndexChangedListener;
 import us.ihmc.yoVariables.variable.YoVariable;
 import us.ihmc.yoVariables.dataBuffer.DataBuffer;
 import us.ihmc.yoVariables.dataBuffer.DataBufferEntry;
@@ -23,11 +16,16 @@ import us.ihmc.simulationconstructionset.ExtraPanelConfiguration;
 import us.ihmc.simulationconstructionset.GraphConfiguration;
 import us.ihmc.simulationconstructionset.commands.ZoomGraphCommandExecutor;
 
-public class GraphArrayPanel extends JPanel implements GraphIndicesHolder, YoGraphRemover, DataBufferChangeListener, Printable, ZoomGraphCommandExecutor
-{
-   private static final long serialVersionUID = -4366771635271760899L;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.print.PageFormat;
+import java.awt.print.Printable;
+import java.util.ArrayList;
 
-   private ArrayList<YoGraph> graphsOnThisPanel;
+public class GraphArrayPanel extends GridPane implements GraphIndicesHolder, YoGraphRemover, DataBufferChangeListener,
+      us.ihmc.yoVariables.dataBuffer.DataBufferChangeListener, Printable, ZoomGraphCommandExecutor,
+      IndexChangedListener
+{
    private ArrayList<JavaFX3DGraph> javaFX3DGraphs;
 
    private StandardSimulationGUI standardSimulationGUI;
@@ -45,125 +43,195 @@ public class GraphArrayPanel extends JPanel implements GraphIndicesHolder, YoGra
 
    public GraphArrayPanel(SelectedVariableHolder holder, DataBuffer buffer, JFrame frame, StandardSimulationGUI standardSimulationGUI)
    {
-      // super(new GridLayout(0,2,2,2));
-      super(new GridLayout(0, 1, 2, 2));
+      super();
+
       this.selectedVariableHolder = holder;
-      this.setBackground(Color.lightGray);
 
       this.standardSimulationGUI = standardSimulationGUI;
       this.parentFrame = frame;
       this.dataBuffer = buffer;
 
+      this.dataBuffer.addDataBufferChangedListener(this);
+      this.dataBuffer.attachIndexChangedListener(this);
+
       leftPlotIndex = 0;
       rightPlotIndex = getMaxIndex();
 
-      this.setOpaque(true);
-      this.graphsOnThisPanel = new ArrayList<>(16);
       this.javaFX3DGraphs = new ArrayList<>();
 
-      this.setPreferredSize(new Dimension(800, 400));
-   }
+      this.resetRows();
+      this.resetColumns();
 
-   public int getNumberOfColumns()
-   {
-      return numColumns;
+      this.setPrefSize(800, 400);
    }
 
    public ArrayList<YoGraph> getGraphsOnThisPanel()
    {
-      return graphsOnThisPanel;
+      ArrayList<YoGraph> graphs = new ArrayList<>();
+      for (Node n : this.getChildren())
+      {
+         if (n instanceof YoGraph)
+         {
+            graphs.add((YoGraph) n);
+         }
+      }
+      return graphs;
+   }
+
+   private void packGraphs()
+   {
+      int row = 0;
+      int col = 0;
+
+      for (Node n : this.getChildren())
+      {
+         GridPane.setConstraints(n, col, row);
+
+         if (col + 1 >= numColumns)
+         {
+            col = 0;
+            row++;
+         }
+         else
+         {
+            col++;
+         }
+      }
+   }
+
+   private void resetRows()
+   {
+      this.getRowConstraints().clear();
+
+      int num = this.getRowConstraints().size();
+
+      for (Node n : this.getChildren())
+      {
+         if (GridPane.getRowIndex(n) >= this.getRowConstraints().size())
+         {
+            num = GridPane.getRowIndex(n);
+            this.getRowConstraints().add(new RowConstraints());
+         }
+      }
+
+      for (RowConstraints rc : this.getRowConstraints())
+      {
+         rc.setPercentHeight(100.0d / (double) num);
+      }
+   }
+
+   private void resetColumns()
+   {
+      this.getColumnConstraints().clear();
+      for (int i = 0; i < numColumns; ++i)
+      {
+         ColumnConstraints newColumn = new ColumnConstraints();
+         newColumn.setPercentWidth(100.0d / (double) numColumns);
+         this.getColumnConstraints().add(newColumn);
+      }
+   }
+
+   private void refreshGraphs()
+   {
+      this.resetColumns();
+      this.resetRows();
+      this.packGraphs();
+      this.updateGraphs();
    }
 
    public void setNumColumns(int numColumns)
    {
       this.numColumns = numColumns;
-      this.setLayout(new GridLayout(0, numColumns, 2, 2));
-      updateGraphs(); 
+
+      this.refreshGraphs();
    }
 
    public void addColumn()
    {
       if (numColumns >= this.MAX_COLS)
+      {
          return;
+      }
+
       numColumns++;
-      this.setLayout(new GridLayout(0, numColumns, 2, 2));
-      updateGraphs();
+
+      this.refreshGraphs();
    }
 
    public void subColumn()
    {
       if (numColumns <= 1)
+      {
          return;
+      }
+
       this.numColumns--;
-      this.setLayout(new GridLayout(0, numColumns, 2, 2));
-      updateGraphs();
+
+      this.refreshGraphs();
    }
 
-   @Override
-   public void dataBufferChanged()
+   @Override public void dataBufferChanged()
    {
       this.zoomFullView();
    }
 
    public void setInteractionEnable(boolean enable)
    {
-      for (int i = 0; i < this.graphsOnThisPanel.size(); i++)
+      for (int i = 0; i < this.getChildren().size(); i++)
       {
-         YoGraph yoGraph = this.graphsOnThisPanel.get(i);
-         yoGraph.setInteractionEnable(enable);
+         Node n = this.getChildren().get(i);
+         if (n instanceof YoGraph)
+         {
+            YoGraph yoGraph = (YoGraph) n;
+            yoGraph.setInteractionEnable(enable);
+         }
       }
-
    }
 
    private int oldIndex = 99;
 
-   // private boolean repaintAll = true;
    public void repaintGraphs()
    {
       int index = this.getIndex();
 
-      // if (index == oldIndex) return;
+      /*if (index == oldIndex && index == doIndex)
+      {
+         return;
+      }
 
-      int inPoint = this.getInPoint();
-      int outPoint = this.getOutPoint();
+      boolean repaintAll = false;
 
-      int leftPlotIndex = this.getLeftPlotIndex();
-      int rightPlotIndex = this.getRightPlotIndex();
-
-      boolean repaintAll = (index < oldIndex);
-
-      if ((index < leftPlotIndex) || (index > rightPlotIndex))
+      if ((index < this.getLeftPlotIndex()) || (index > this.getRightPlotIndex()))
       {
          this.recenter();
-         leftPlotIndex = getLeftPlotIndex();
-         rightPlotIndex = getRightPlotIndex();
          repaintAll = true;
       }
 
-      for (int i = 0; i < this.graphsOnThisPanel.size(); i++)
+      for (int i = 0; i < this.getChildren().size(); i++)
       {
-         YoGraph g = this.graphsOnThisPanel.get(i);
-         if (g.getNumVars() > 0)
+         Node n = this.getChildren().get(i);
+         if (n instanceof YoGraph)
          {
-            if (repaintAll)
-               g.repaintAllGraph();
-            else
-               g.repaintPartialGraph(index, oldIndex, inPoint, outPoint, leftPlotIndex, rightPlotIndex);
+            YoGraph g = (YoGraph) n;
+            if (g.getNumVars() > 0)
+            {
+               if (repaintAll)
+               {
+                  g.repaintGraph(leftPlotIndex, rightPlotIndex);
+               }
+               else if (oldIndex != index)
+               {
+                  g.repaintGraph((oldIndex < index ? Math.max(0, oldIndex) : Math.max(0, index)),
+                        (oldIndex > Math.max(0, index + 1) ? oldIndex : Math.max(0, index + 1)));
+               }
+            }
          }
-      }
+      }*/
 
       oldIndex = index;
    }
 
    private boolean isPainting = false;
-
-   @Override
-   public void paint(Graphics g)
-   {
-      isPainting = true;
-      super.paint(g);
-      isPainting = false;
-   }
 
    public boolean isPaintingPanel()
    {
@@ -183,67 +251,55 @@ public class GraphArrayPanel extends JPanel implements GraphIndicesHolder, YoGra
    public boolean tick(int n)
    {
       boolean ret = dataBuffer.tick(n);
-      this.repaintGraphs();
-
-      // this.repaint(); //+++JEP
       return ret;
    }
 
-   @Override
-   public int getInPoint()
+   @Override public int getInPoint()
    {
       return dataBuffer.getInPoint();
    }
 
-   @Override
-   public int getOutPoint()
+   @Override public int getOutPoint()
    {
       return dataBuffer.getOutPoint();
    }
 
-   @Override
-   public int getIndex()
+   @Override public int getIndex()
    {
       return dataBuffer.getIndex();
    }
 
-   @Override
-   public boolean isIndexAtOutPoint()
+   @Override public boolean isIndexAtOutPoint()
    {
       return (getIndex() == getOutPoint());
    }
 
-   @Override
-   public int getMaxIndex()
+   @Override public int getMaxIndex()
    {
       return dataBuffer.getBufferSize() - 1;
    }
 
-   @Override
-   public int getLeftPlotIndex()
+   @Override public int getLeftPlotIndex()
    {
       return this.leftPlotIndex;
    }
 
-   @Override
-   public int getRightPlotIndex()
+   @Override public int getRightPlotIndex()
    {
       return this.rightPlotIndex;
    }
 
-   @Override
-   public void setLeftPlotIndex(int idx)
+   @Override public void setLeftPlotIndex(int idx)
    {
       this.leftPlotIndex = idx;
-      repaintGraphs();
-   } 
+      //repaintGraphs();
+   }
 
-   @Override
-   public void setRightPlotIndex(int idx)
+   @Override public void setRightPlotIndex(int idx)
    {
       this.rightPlotIndex = idx;
-      repaintGraphs();
-   } 
+      //repaintGraphs();
+   }
 
    public void zoomFullView()
    {
@@ -252,8 +308,7 @@ public class GraphArrayPanel extends JPanel implements GraphIndicesHolder, YoGra
       updateGraphs();
    }
 
-   @Override
-   public void zoomIn()
+   @Override public void zoomIn()
    {
       zoomIn(2);
    }
@@ -285,12 +340,9 @@ public class GraphArrayPanel extends JPanel implements GraphIndicesHolder, YoGra
          if (leftPlotIndex < 0)
             leftPlotIndex = 0;
       }
-
-      repaint();
    }
 
-   @Override
-   public void zoomOut()
+   @Override public void zoomOut()
    {
       zoomOut(2);
    }
@@ -319,8 +371,6 @@ public class GraphArrayPanel extends JPanel implements GraphIndicesHolder, YoGra
          if (leftPlotIndex < 0)
             leftPlotIndex = 0;
       }
-
-      repaint();
    }
 
    public void recenter()
@@ -331,22 +381,26 @@ public class GraphArrayPanel extends JPanel implements GraphIndicesHolder, YoGra
    private int doTick = 0;
    private int doIndex = -1;
 
-   @Override
-   public void tickLater(int n)
+   @Override public void tickLater(int n)
    {
       if (dataBuffer.isKeyPointModeToggled())
       {
          if (n > 0)
+         {
             setIndexLater(dataBuffer.getNextTime());
+         }
          else
+         {
             setIndexLater(dataBuffer.getPreviousTime());
+         }
       }
       else
+      {
          this.doTick = n;
+      }
    }
 
-   @Override
-   public void setIndexLater(int idx)
+   @Override public void setIndexLater(int idx)
    {
       this.doIndex = idx;
    }
@@ -359,7 +413,6 @@ public class GraphArrayPanel extends JPanel implements GraphIndicesHolder, YoGra
       {
          dataBuffer.tick(doTick);
 
-         // this.repaintGraphs();
          ret = true;
          doTick = 0;
       }
@@ -367,12 +420,9 @@ public class GraphArrayPanel extends JPanel implements GraphIndicesHolder, YoGra
       if (this.doIndex != -1)
       {
          dataBuffer.setIndex(this.doIndex);
+
          this.doIndex = -1;
-
-         // this.repaintGraphs();
          ret = true;
-
-         // this.repaint();
       }
 
       return ret;
@@ -387,8 +437,7 @@ public class GraphArrayPanel extends JPanel implements GraphIndicesHolder, YoGra
       {
          EventDispatchThreadHelper.invokeAndWait(new Runnable()
          {
-            @Override
-            public void run()
+            @Override public void run()
             {
                YoGraph g = new YoGraph(getGraphArrayPanel(), getGraphArrayPanel(), selectedVariableHolder, dataBuffer, dataBuffer, parentFrame);
                g.addVariable(entry);
@@ -409,24 +458,19 @@ public class GraphArrayPanel extends JPanel implements GraphIndicesHolder, YoGra
       if (varnames == null)
          return;
 
-      EventDispatchThreadHelper.invokeAndWait(new Runnable()
+      EventDispatchThreadHelper.invokeAndWait(() ->
       {
-         @Override
-         public void run()
+         YoGraph g = new YoGraph(getGraphArrayPanel(), getGraphArrayPanel(), selectedVariableHolder, dataBuffer, dataBuffer, parentFrame);
+
+         for (int i = 0; i < varnames.length; i++)
          {
-            YoGraph g = new YoGraph(getGraphArrayPanel(), getGraphArrayPanel(), selectedVariableHolder, dataBuffer, dataBuffer, parentFrame);
+            DataBufferEntry entry = dataBuffer.getEntry(varnames[i]);
 
-            for (int i = 0; i < varnames.length; i++)
-            {
-               DataBufferEntry entry = dataBuffer.getEntry(varnames[i]);
-
-               if (entry != null)
-                  g.addVariable(entry);
-            }
-
-            addGraph(g);
+            if (entry != null)
+               g.addVariable(entry);
          }
 
+         addGraph(g);
       });
    }
 
@@ -448,14 +492,6 @@ public class GraphArrayPanel extends JPanel implements GraphIndicesHolder, YoGra
       addGraph(g);
    }
 
-   public void RepaintOnSetPoint()
-   {
-      for (int i = 0; i < graphsOnThisPanel.size(); i++)
-      {
-         graphsOnThisPanel.get(i).repaintGraphOnSetPoint(this.getInPoint(), this.getOutPoint(), getLeftPlotIndex(), getRightPlotIndex());
-      }
-   }
-
    public void addSelectedVariableGraph()
    {
       YoVariable<?> variable = selectedVariableHolder.getSelectedVariable();
@@ -475,9 +511,7 @@ public class GraphArrayPanel extends JPanel implements GraphIndicesHolder, YoGra
    {
       JavaFX3DGraph javaFX3DGraph = new JavaFX3DGraph(this, selectedVariableHolder, dataBuffer, dataBuffer);
       javaFX3DGraphs.add(javaFX3DGraph);
-      standardSimulationGUI.setupExtraPanels(new ExtraPanelConfiguration("3D Graph " + javaFX3DGraphs.size(),
-                                                                         javaFX3DGraph.getPanel(),
-                                                                         true));
+      standardSimulationGUI.setupExtraPanels(new ExtraPanelConfiguration("3D Graph " + javaFX3DGraphs.size(), javaFX3DGraph.getPanel(), true));
       standardSimulationGUI.selectPanel("3D Graph " + javaFX3DGraphs.size());
    }
 
@@ -487,47 +521,89 @@ public class GraphArrayPanel extends JPanel implements GraphIndicesHolder, YoGra
 
       // Get the last one that has zero elements that needs to be deleted
 
-      for (int i = 0; i < graphsOnThisPanel.size(); i++)
+      for (int i = 0; i < this.getChildren().size(); i++)
       {
-         YoGraph graph = graphsOnThisPanel.get(i);
-         if (graph.getNumVars() == 0)
+         Node n = this.getChildren().get(i);
+         if (n instanceof YoGraph)
          {
-            emptyGraph = graph;
+            YoGraph graph = (YoGraph) n;
+            if (graph.getNumVars() == 0)
+            {
+               emptyGraph = graph;
+            }
          }
       }
 
       if (emptyGraph != null)
       {
-         this.remove(emptyGraph);
-         this.graphsOnThisPanel.remove(emptyGraph);
+         final YoGraph removeGraph = emptyGraph;
+         Platform.runLater(() -> this.getChildren().remove(removeGraph));
          removeEmptyGraphs();
       }
-
       else
       {
-          this.updateGraphs();
+         this.resetColumns();
+         this.resetRows();
+         this.packGraphs();
+         this.updateGraphs();
+      }
+   }
+
+   private synchronized int[] nextAvailableGraphLocation()
+   {
+      for (int row = 0; true; ++row)
+      {
+         thisCell:
+         for (int col = 0; col < numColumns; ++col)
+         {
+            for (Node aGraphsOnThisPanel : this.getChildren())
+            {
+               if (getColumnIndex(aGraphsOnThisPanel) == col && getRowIndex(aGraphsOnThisPanel) == row)
+               {
+                  continue thisCell;
+               }
+            }
+            return new int[] {row, col};
+         }
       }
    }
 
    public void addGraph(YoGraph graph)
    {
-      int numGraphs = graphsOnThisPanel.size();
+      int numGraphs = this.getChildren().size();
 
       if (numGraphs >= this.MAX_GRAPHS)
+      {
          return;
+      }
 
-      this.graphsOnThisPanel.add(graph);
-      this.add(graph);
+      Platform.runLater(() ->
+      {
+         int[] useThis = nextAvailableGraphLocation();
 
-       this.updateGraphs();
+         GridPane.setConstraints(graph, useThis[1], useThis[0]);
+
+         graph.setStyle(
+               "-fx-border-style: solid bevel;" + "-fx-border-width: 1px;" + "-fx-border-radius: 3px;" + "-fx-border-color: black;" + "-fx-margin: 5px");
+
+            /*GridPane.setVgrow(graph, Priority.ALWAYS);
+            GridPane.setHgrow(graph, Priority.ALWAYS);
+            GridPane.setFillHeight(graph, true);
+            GridPane.setFillWidth(graph, true);*/
+
+         this.getChildren().add(graph);
+
+         this.packGraphs();
+         this.resetColumns();
+         this.resetRows();
+         this.updateGraphs();
+      });
    }
 
-   @Override
-   public int print(Graphics g, PageFormat pageFormat, int pageNumber)
+   @Override public int print(Graphics graphics, PageFormat pageFormat, int pageNumber)
    {
-      Graphics2D g2 = (Graphics2D) g;
+      Graphics2D g2 = (Graphics2D) graphics;
 
-      // System.out.println("In GraphArrayPanel.print");
       if (pageNumber == 0)
       {
          // First clear the graphics...
@@ -542,7 +618,7 @@ public class GraphArrayPanel extends JPanel implements GraphIndicesHolder, YoGra
          double pageWidth = pageFormat.getImageableWidth();
          double pageHeight = pageFormat.getImageableHeight();
 
-         YoGraph graph = this.graphsOnThisPanel.get(0);
+         //YoGraph graph = this.graphsOnThisPanel.get(0);
 
          // double width = graph.getWidth();
          // double height = this.graphsOnThisPanel.size() * graph.getHeight() * 1.25;
@@ -554,17 +630,21 @@ public class GraphArrayPanel extends JPanel implements GraphIndicesHolder, YoGra
 
          // g2.scale(scaleFactor, scaleFactor);
 
-         for (int i = 0; i < this.graphsOnThisPanel.size(); i++)
+         for (int i = 0; i < this.getChildren().size(); i++)
          {
-            graph = this.graphsOnThisPanel.get(i);
-
-            if (graph.getEntriesOnThisGraph().size() > 0)
+            Node n = this.getChildren().get(i);
+            if (n instanceof YoGraph)
             {
-               // graph.paint(g2);
-               graph.printGraph(g2, (int) pageWidth, (int) (pageHeight / 10.0));
+               YoGraph g = (YoGraph) n;
 
-               // g2.translate(0.0, graph.getHeight()*1.25);
-               g2.translate(0.0, pageHeight / 8.0);
+               if (g.getEntries().size() > 0)
+               {
+                  // graph.paint(g2);
+                  g.printGraph((int) pageWidth, (int) (pageHeight / 10.0));
+
+                  // g2.translate(0.0, graph.getHeight()*1.25);
+                  g2.translate(0.0, pageHeight / 8.0);
+               }
             }
          }
 
@@ -577,54 +657,38 @@ public class GraphArrayPanel extends JPanel implements GraphIndicesHolder, YoGra
       return Printable.NO_SUCH_PAGE;
    }
 
-   @Override
-   public void paintComponent(Graphics g)
-   {
-      // System.out.println("Painting GraphArrayPanel");
-      super.paintComponent(g);
-
-      // this.paintChildren(g);
-
-      // Repaint all the graphs.  I thought this should be done automatically!!!!
-      // for (int i=0; i<this.graphsOnThisPanel.size();i++)
-      // {
-      // YoGraph child = (YoGraph) this.graphsOnThisPanel.get(i);
-
-      // System.out.println("Requesting child " + i + " to repaint itself");
-      // child.repaint();
-
-      // }
-   }
-
    public void closeAndDispose()
    {
       parentFrame = null;
       dataBuffer = null;
 
-      if (graphsOnThisPanel != null)
-      {
-         graphsOnThisPanel.clear();
-         graphsOnThisPanel = null;
-      }
-
       selectedVariableHolder = null;
 
-      this.removeAll();
+      this.getChildren().clear();
    }
 
-   @Override
-   public void removeGraph(YoGraph graph)
+   @Override public void removeGraph(YoGraph graph)
    {
-      this.graphsOnThisPanel.remove(graph);
-      this.remove(graph);
-      this.updateGraphs();
+      Platform.runLater(() ->
+      {
+         this.getChildren().remove(graph);
+         this.packGraphs();
+         this.resetRows();
+         this.resetColumns();
+         this.updateGraphs();
+      });
    }
 
    public void removeAllGraphs()
    {
-      this.graphsOnThisPanel.clear();
-      this.removeAll();
-      this.updateGraphs();
+      Platform.runLater(() ->
+      {
+         this.getChildren().clear();
+         this.packGraphs();
+         this.resetRows();
+         this.resetColumns();
+         this.updateGraphs();
+      });
    }
 
    public JPanel createGraphButtonPanel()
@@ -635,8 +699,7 @@ public class GraphArrayPanel extends JPanel implements GraphIndicesHolder, YoGra
       newGraphButton.setName("New Graph");
       newGraphButton.addActionListener(new java.awt.event.ActionListener()
       {
-         @Override
-         public void actionPerformed(java.awt.event.ActionEvent evt)
+         @Override public void actionPerformed(java.awt.event.ActionEvent evt)
          {
             addEmptyGraph();
          }
@@ -647,8 +710,7 @@ public class GraphArrayPanel extends JPanel implements GraphIndicesHolder, YoGra
       removeEmptyGraphsButton.setName("Remove Empty");
       removeEmptyGraphsButton.addActionListener(new java.awt.event.ActionListener()
       {
-         @Override
-         public void actionPerformed(java.awt.event.ActionEvent evt)
+         @Override public void actionPerformed(java.awt.event.ActionEvent evt)
          {
             removeEmptyGraphs();
          }
@@ -659,8 +721,7 @@ public class GraphArrayPanel extends JPanel implements GraphIndicesHolder, YoGra
       addColumnButton.setName("Add Column");
       addColumnButton.addActionListener(new java.awt.event.ActionListener()
       {
-         @Override
-         public void actionPerformed(java.awt.event.ActionEvent evt)
+         @Override public void actionPerformed(java.awt.event.ActionEvent evt)
          {
             addColumn();
          }
@@ -671,20 +732,18 @@ public class GraphArrayPanel extends JPanel implements GraphIndicesHolder, YoGra
       subColumnButton.setName("Sub Column");
       subColumnButton.addActionListener(new java.awt.event.ActionListener()
       {
-         @Override
-         public void actionPerformed(java.awt.event.ActionEvent evt)
+         @Override public void actionPerformed(java.awt.event.ActionEvent evt)
          {
             subColumn();
          }
       });
       graphButtonPanel.add(subColumnButton);
-      
+
       JButton new3DGraphButton = new JButton("New 3D Graph");
       new3DGraphButton.setName("New 3D Graph");
       new3DGraphButton.addActionListener(new java.awt.event.ActionListener()
       {
-         @Override
-         public void actionPerformed(java.awt.event.ActionEvent evt)
+         @Override public void actionPerformed(java.awt.event.ActionEvent evt)
          {
             addNew3dGraph();
          }
@@ -699,25 +758,30 @@ public class GraphArrayPanel extends JPanel implements GraphIndicesHolder, YoGra
       String returnString = "<GraphGroup>\n";
       returnString += "\t<Cols>" + numColumns + "</Cols>\n";
 
-      for (int j = 0; j < graphsOnThisPanel.size(); j++)
+      for (int j = 0; j < this.getChildren().size(); j++)
       {
-         YoGraph graph = graphsOnThisPanel.get(j);
-         returnString += "\t<Graph>\n";
-         returnString += "\t\t<Variables>";
-
-         if (graph.getEntriesOnThisGraph().size() > 0)
+         Node n = this.getChildren().get(j);
+         if (n instanceof YoGraph)
          {
-            returnString += graph.getEntriesOnThisGraph().get(0).getFullVariableNameWithNameSpace();
+            YoGraph graph = (YoGraph) n;
 
-            for (int i = 1; i < graph.getEntriesOnThisGraph().size(); i++)
+            returnString += "\t<Graph>\n";
+            returnString += "\t\t<Variables>";
+
+            if (graph.getEntries().size() > 0)
             {
-               returnString += "," + graph.getEntriesOnThisGraph().get(i).getFullVariableNameWithNameSpace();
-            }
-         }
+               returnString += graph.getEntries().get(0).getFullVariableNameWithNameSpace();
 
-         returnString += "</Variables>";
-         returnString += "\n" + graph.getGraphConfiguration().getXMLStyleRepresentationOfClass();
-         returnString += "\n\t</Graph>\n";
+               for (int i = 1; i < graph.getEntries().size(); i++)
+               {
+                  returnString += "," + graph.getEntries().get(i).getFullVariableNameWithNameSpace();
+               }
+            }
+
+            returnString += "</Variables>";
+            returnString += "\n" + graph.getGraphConfiguration().getXMLStyleRepresentationOfClass();
+            returnString += "\n\t</Graph>\n";
+         }
       }
 
       returnString += "</GraphGroup>";
@@ -725,16 +789,36 @@ public class GraphArrayPanel extends JPanel implements GraphIndicesHolder, YoGra
       return returnString;
    }
 
-   @Override
-   public ArrayList<Integer> getKeyPoints()
+   @Override public ArrayList<Integer> getKeyPoints()
    {
       return dataBuffer.getKeyPoints();
    }
-   
+
    private void updateGraphs()
    {
-      //TODO: Why does this need to be updateUI instead of repaint()?
-//      this.repaint();
-      this.updateUI();
+      this.repaintGraphs();
+   }
+
+   @Override public void notifyOfIndexChange(int newIndex, double newTime)
+   {
+      for (Node child : this.getChildren()) {
+         if (child instanceof YoGraph) {
+            ((YoGraph) child).notifyOfIndexChange(newIndex, newTime);
+         }
+      }
+   }
+
+   @Override public void notifyOfBufferChange()
+   {
+      for (Node child : this.getChildren()) {
+         if (child instanceof YoGraph) {
+            ((YoGraph) child).notifyOfBufferChange();
+         }
+      }
+   }
+
+   @Override public void wasRewound()
+   {
+      // do nothing; data isn't changing and paintIndexLines will be called anyway
    }
 }

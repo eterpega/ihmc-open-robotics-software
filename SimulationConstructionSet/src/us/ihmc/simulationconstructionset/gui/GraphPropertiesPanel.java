@@ -3,6 +3,7 @@ package us.ihmc.simulationconstructionset.gui;
 import javafx.event.EventHandler;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
+import us.ihmc.simulationconstructionset.GraphConfiguration;
 
 public class GraphPropertiesPanel extends GridPane implements EventHandler<javafx.event.ActionEvent> {
     private final static java.text.NumberFormat numFormat = new java.text.DecimalFormat(" 0.00000;-0.00000");
@@ -25,8 +26,8 @@ public class GraphPropertiesPanel extends GridPane implements EventHandler<javaf
 
         // this.selectedVariable = variable;
         // selectedVariable.reCalcMinMax();
-        newMinVal = graph.getManualMinScaling();
-        newMaxVal = graph.getManualMaxScaling();
+        newMinVal = graph.getGraphConfiguration().getManualScalingMin();
+        newMaxVal = graph.getGraphConfiguration().getManualScalingMax();
 
         double[] baseLines = graph.getBaseLines();
         if ((baseLines != null) && (baseLines.length > 0)) {
@@ -44,19 +45,19 @@ public class GraphPropertiesPanel extends GridPane implements EventHandler<javaf
         GridPane.setConstraints(scalingLabel, 0, 0);
 
         individualButton = new RadioButton("Individual");
-        individualButton.setSelected((graph.getScalingMethod() == YoGraph.INDIVIDUAL_SCALING));
+        individualButton.setSelected((graph.getGraphConfiguration().getScaleType() == GraphConfiguration.ScaleType.INDIVIDUAL));
         individualButton.addEventHandler(javafx.event.ActionEvent.ACTION, this);
         individualButton.setToggleGroup(scaleControlGroup);
         GridPane.setConstraints(individualButton, 1, 0);
 
         autoButton = new RadioButton("Auto");
-        autoButton.setSelected((graph.getScalingMethod() == YoGraph.AUTO_SCALING));
+        autoButton.setSelected((graph.getGraphConfiguration().getScaleType() == GraphConfiguration.ScaleType.AUTO));
         autoButton.addEventHandler(javafx.event.ActionEvent.ACTION, this);
         autoButton.setToggleGroup(scaleControlGroup);
         GridPane.setConstraints(autoButton, 3, 0);
 
         manualButton = new RadioButton("Manual");
-        manualButton.setSelected((graph.getScalingMethod() == YoGraph.MANUAL_SCALING));
+        manualButton.setSelected((graph.getGraphConfiguration().getScaleType() == GraphConfiguration.ScaleType.MANUAL));
         manualButton.addEventHandler(javafx.event.ActionEvent.ACTION, this);
         manualButton.setToggleGroup(scaleControlGroup);
         GridPane.setConstraints(manualButton, 5, 0);
@@ -72,7 +73,7 @@ public class GraphPropertiesPanel extends GridPane implements EventHandler<javaf
         String minValString = numFormat.format(newMinVal);
         minTextField = new TextField(minValString);
         minTextField.addEventHandler(javafx.event.ActionEvent.ACTION, this);
-        minTextField.setDisable(graph.getScalingMethod() != YoGraph.MANUAL_SCALING);
+        minTextField.setDisable(graph.getGraphConfiguration().getScaleType() != GraphConfiguration.ScaleType.MANUAL);
         GridPane.setConstraints(minTextField, 2, 1);
 
         Label maxSettingsLabel = new Label("Max:");
@@ -81,7 +82,7 @@ public class GraphPropertiesPanel extends GridPane implements EventHandler<javaf
         String maxValString = numFormat.format(newMaxVal);
         maxTextField = new TextField(maxValString);
         maxTextField.addEventHandler(javafx.event.ActionEvent.ACTION, this);
-        maxTextField.setDisable(graph.getScalingMethod() != YoGraph.MANUAL_SCALING);
+        maxTextField.setDisable(graph.getGraphConfiguration().getScaleType() != GraphConfiguration.ScaleType.MANUAL);
         GridPane.setConstraints(maxTextField, 5, 1);
 
         // Row 2:
@@ -109,14 +110,14 @@ public class GraphPropertiesPanel extends GridPane implements EventHandler<javaf
         GridPane.setConstraints(typeLabel, 0, 3);
 
         timePlotButton = new RadioButton("Time");
-        timePlotButton.setSelected(graph.getPlotType() == YoGraph.TIME_PLOT);
+        timePlotButton.setSelected(graph.getGraphConfiguration().getGraphType() == GraphConfiguration.GraphType.TIME);
         timePlotButton.addEventHandler(javafx.event.ActionEvent.ACTION, this);
         timePlotButton.setToggleGroup(plotTypeGroup);
         GridPane.setConstraints(timePlotButton, 1, 3);
 
         // TODO: can this be removed?
       /*
-       * scatterPlotButton = new JRadioButton("Scatter",(graph.getPlotType()==graph.SCATTER_PLOT));
+       * scatterPlotButton = new JRadioButton("Scatter",(graph.getGraphType()==graph.SCATTER_PLOT));
        * scatterPlotButton.addActionListener(this);
        * constraints.gridx = 3; constraints.gridy = 3;
        * constraints.gridwidth = 2;
@@ -125,7 +126,7 @@ public class GraphPropertiesPanel extends GridPane implements EventHandler<javaf
        */
 
         phasePlotButton = new RadioButton("Phase");
-        phasePlotButton.setSelected(graph.getPlotType() == YoGraph.PHASE_PLOT);
+        phasePlotButton.setSelected(graph.getGraphConfiguration().getGraphType() == GraphConfiguration.GraphType.PHASE);
         phasePlotButton.addEventHandler(javafx.event.ActionEvent.ACTION, this);
         phasePlotButton.setToggleGroup(plotTypeGroup);
         GridPane.setConstraints(phasePlotButton, 3, 3);
@@ -155,7 +156,7 @@ public class GraphPropertiesPanel extends GridPane implements EventHandler<javaf
 
         baseLineButton = new RadioButton("Show Base Line");
         // TODO: this line was replaced in original code with setSelected(true) - is this line needed?
-        //baseLineButton.setSelected(graph.getShowBaseLines());
+        //baseLineButton.setSelected(graph.getShowBaselines());
         baseLineButton.setSelected(true);
         baseLineButton.addEventHandler(javafx.event.ActionEvent.ACTION, this);
         GridPane.setConstraints(baseLineButton, 3, 4);
@@ -191,32 +192,26 @@ public class GraphPropertiesPanel extends GridPane implements EventHandler<javaf
         updateMaxTextField();
         updateBaseLineTextField();
 
-        graph.setManualScaling(newMinVal, newMaxVal);
+        GraphConfiguration graphConfiguration = graph.getGraphConfiguration();
+
+        graphConfiguration.setManualScalingMinMax(newMinVal, newMaxVal);
 
         if (this.individualButton.isSelected()) {
-            graph.setScalingMethod(YoGraph.INDIVIDUAL_SCALING);
+            graphConfiguration.setScaleType(GraphConfiguration.ScaleType.INDIVIDUAL);
         } else if (this.autoButton.isSelected()) {
-            graph.setScalingMethod(YoGraph.AUTO_SCALING);
+            graphConfiguration.setScaleType(GraphConfiguration.ScaleType.AUTO);
         } else {
-            graph.setScalingMethod(YoGraph.MANUAL_SCALING);
+            graphConfiguration.setScaleType(GraphConfiguration.ScaleType.MANUAL);
         }
 
         if (this.timePlotButton.isSelected()) {
-            graph.setPlotType(YoGraph.TIME_PLOT);
+            graphConfiguration.setGraphType(GraphConfiguration.GraphType.TIME);
         } else if (this.phasePlotButton.isSelected()) {
-            graph.setPlotType(YoGraph.PHASE_PLOT);
+            graphConfiguration.setGraphType(GraphConfiguration.GraphType.PHASE);
         }
 
-        /* TODO: can this scatterplot catch be removed too?
-        else if (this.scatterPlotButton.isSelected()) {
-            graph.setPlotType(graph.SCATTER_PLOT);
-        }*/
-
-
-        graph.setShowBaseLines(baseLineButton.isSelected());
-        graph.setBaseLines(newBaseVal);
-
-
+        graphConfiguration.setShowBaselines(baseLineButton.isSelected());
+        graphConfiguration.setBaselines(newBaseVal);
     }
 
     public void updateMaxTextField() {

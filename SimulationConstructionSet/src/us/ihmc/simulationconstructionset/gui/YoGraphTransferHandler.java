@@ -31,25 +31,25 @@ public class YoGraphTransferHandler extends TransferHandler
    @Override
    public int getSourceActions(JComponent c)
    {
-      if (c instanceof YoGraph)
+      //if (c instanceof YoGraph)
       {
          return TransferHandler.COPY_OR_MOVE;
       }
 
-      return TransferHandler.NONE;
+      //return TransferHandler.NONE;
    }
 
    @Override
    public Transferable createTransferable(JComponent c)
    {
-      if (c instanceof YoGraph)
+      //if (c instanceof YoGraph)
       {
          Transferable tip = new YoVariablePanelTransferable();
 
          return tip;
       }
 
-      return null;
+      //return null;
    }
 
    @Override

@@ -1,38 +1,50 @@
 package us.ihmc.simulationconstructionset;
 
-import java.util.StringTokenizer;
-
+import us.ihmc.simulationconstructionset.gui.YoGraph;
 import us.ihmc.tools.io.xml.XMLReaderUtility;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.StringTokenizer;
 
 public class GraphConfiguration
 {
+   public enum GraphType
+   {
+      TIME, PHASE
+   }
+
+   public enum ScaleType
+   {
+      AUTO, MANUAL, INDIVIDUAL
+   }
+
    private final String name;
    private static int id = 1;
 
+   private ArrayList<GraphConfigurationChangeListener> changeListeners = new ArrayList<>();
+
    // private String[] varNames;
 
-   public static final int
-      INDIVIDUAL_SCALING = 0, AUTO_SCALING = 1, MANUAL_SCALING = 2;
-   public static final int
-      TIME_PLOT = 100, PHASE_PLOT = 101;
    private double manualMinScaling = 0.0, manualMaxScaling = 1.0;
 
    // private final double manualMinScaling, manualMaxScaling;
-   @SuppressWarnings("unused")
-   private double minPhaseXScaling = 0.0, maxPhaseXScaling = 1.0;
-   private int scalingMethod = AUTO_SCALING;
+   @SuppressWarnings("unused") private double minPhaseXScaling = 0.0, maxPhaseXScaling = 1.0;
 
-   private int plotType = TIME_PLOT;
+   private ScaleType scaleType = ScaleType.AUTO;
+   private GraphType graphType = GraphType.TIME;
 
-   private boolean showBaseLines = true;
-   private double[] baseLines = new double[] {0};
+   private boolean showBaselines = true;
+   private boolean showBaselinesInfo = false;
+   private boolean showNamespaces = false;
+   private double[] baselines = new double[] {0};
 
-   private static final GraphConfiguration standardAutoScalingConfiguration = new GraphConfiguration("auto", GraphConfiguration.AUTO_SCALING);
+   private static final GraphConfiguration standardAutoScalingConfiguration = new GraphConfiguration("auto", GraphConfiguration.ScaleType.AUTO);
 
    static
    {
-      standardAutoScalingConfiguration.setBaseLine(0.0);
-      standardAutoScalingConfiguration.setShowBaseLines(true);
+      standardAutoScalingConfiguration.setBaseline(0.0);
+      standardAutoScalingConfiguration.setShowBaselines(true);
    }
 
    public static GraphConfiguration getStandardAutoScalingConfiguration()
@@ -45,117 +57,166 @@ public class GraphConfiguration
       this.name = name;
    }
 
-   public GraphConfiguration(String name, int scalingMethod)
+   public GraphConfiguration(String name, ScaleType scaleType)
    {
       this.name = name;
-      this.scalingMethod = scalingMethod;
-
-      // System.out.println("Creating Graph Configuration with name " + name + ", scalingMethod = " + scalingMethod);
+      this.scaleType = scaleType;
    }
 
-   public GraphConfiguration(String name, int scalingMethod, double minScaling, double maxScaling)
+   public GraphConfiguration(String name, ScaleType scaleType, double minScaling, double maxScaling)
    {
       this.name = name;
-      this.scalingMethod = scalingMethod;
-
+      this.scaleType = scaleType;
       this.manualMinScaling = minScaling;
       this.manualMaxScaling = maxScaling;
-
-      // System.out.println("Creating Graph Configuration with name " + name + ", scalingMethod = " + scalingMethod);
-      // System.out.println("  manualMinScaling = " + manualMinScaling + ", manualMaxScaling = " + manualMaxScaling);
    }
-
 
    public String getName()
    {
       return this.name;
    }
 
-
-   public void setScalingMethod(int scalingMethod)
+   public void setScaleType(ScaleType scaleType)
    {
-      this.scalingMethod = scalingMethod;
+      if (this.scaleType != scaleType)
+      {
+         this.scaleType = scaleType;
+
+         this.notifyScaleChangeListeners();
+      }
    }
 
-   public int getScalingMethod()
+   public ScaleType getScaleType()
    {
-      return this.scalingMethod;
+      return this.scaleType;
    }
 
-   public void setPlotType(int plotType)
+   public void setGraphType(GraphType graphType)
    {
-      this.plotType = plotType;
+      if (this.graphType != graphType)
+      {
+         this.graphType = graphType;
+
+         this.notifyGraphTypeChangeListeners();
+      }
    }
 
-   public int getPlotType()
+   public GraphType getGraphType()
    {
-      return this.plotType;
+      return this.graphType;
    }
 
-   public void setShowBaseLines(boolean showBaseLines)
+   public void setShowNamespaces(boolean showNamespaces)
    {
-      this.showBaseLines = showBaseLines;
+      if (this.showNamespaces != showNamespaces)
+      {
+         this.showNamespaces = showNamespaces;
+
+         this.notifyDisplayChangeListeners();
+      }
    }
 
-   public void setBaseLine(double baseLine)
+   public void setShowBaselines(boolean showBaselines)
    {
-      this.baseLines = new double[] {baseLine};
+      if (this.showBaselines != showBaselines)
+      {
+         this.showBaselines = showBaselines;
+
+         this.notifyBaselineChangeListeners();
+      }
    }
 
-   public void setBaseLines(double baseLine1, double baseLine2)
+   public void setShowBaselinesInfo(boolean showBaselinesInfo)
    {
-      this.baseLines = new double[] {baseLine1, baseLine2};
+      if (this.showBaselinesInfo != showBaselinesInfo)
+      {
+         this.showBaselinesInfo = showBaselinesInfo;
+
+         this.notifyDisplayChangeListeners();
+      }
    }
 
-   public void setPositiveNegativeBaseLines(double baseLine)
+   public void setBaseline(double baseline)
    {
-      this.baseLines = new double[] {-baseLine, baseLine};
+      this.baselines = new double[] {baseline};
+
+      this.notifyBaselineChangeListeners();
    }
 
-   public void setBaseLines(double[] baseLines)
+   public void setBaselines(double... baselines)
    {
-      this.baseLines = baseLines;
+      if (baselines.length < YoGraph.MAX_NUM_BASELINES)
+      {
+         this.baselines = baselines;
+      }
+      else
+      {
+         this.baselines = Arrays.copyOfRange(baselines, 0, YoGraph.MAX_NUM_BASELINES);
+      }
+
+      this.notifyBaselineChangeListeners();
    }
 
-   public void setBaseLine(int baseLineIndex, double value)
+   public void setPositiveNegativeBaselines(double baseline)
    {
-      if (baseLineIndex >= baseLines.length) return;
-      this.baseLines[baseLineIndex] = value;
-   }
-   
-   public void incrementBaseLine(int baseLineIndex, double amountToIncrement)
-   {
-      if (baseLineIndex >= baseLines.length) return;
-      this.baseLines[baseLineIndex] += amountToIncrement;
+      this.baselines = new double[] {-baseline, baseline};
+
+      this.notifyBaselineChangeListeners();
    }
 
-   public boolean getShowBaseLines()
+   public void setBaseline(int baselineIndex, double value)
    {
-      return this.showBaseLines;
+      if (baselineIndex >= baselines.length)
+         return;
+
+      this.baselines[baselineIndex] = value;
+
+      this.notifyBaselineChangeListeners();
    }
 
-   public double[] getBaseLines()
+   public void incrementBaseline(int baselineIndex, double amountToIncrement)
    {
-      return this.baseLines;
+      if (baselineIndex >= baselines.length)
+         return;
+
+      this.baselines[baselineIndex] += amountToIncrement;
+
+      this.notifyBaselineChangeListeners();
+   }
+
+   public boolean getShowNamespaces()
+   {
+      return this.showNamespaces;
+   }
+
+   public boolean getShowBaselines()
+   {
+      return this.showBaselines;
+   }
+
+   public boolean getShowBaselinesInfo()
+   {
+      return this.showBaselinesInfo;
+   }
+
+   public double[] getBaselines()
+   {
+      return this.baselines;
    }
 
    public void setManualScalingMinMax(double minScaling, double maxScaling)
    {
-      // System.out.println("Changing " + name + ". Values were:  manualMinScaling = " + manualMinScaling + ", manualMaxScaling = " + manualMaxScaling);
-
       this.manualMinScaling = minScaling;
       this.manualMaxScaling = maxScaling;
-
-      // System.out.println("Changing " + name + ". Values are now:  manualMinScaling = " + manualMinScaling + ", manualMaxScaling = " + manualMaxScaling);
-
+      this.notifyScaleChangeListeners();
    }
 
    public void setPhasePlotXScalingMinMax(double minPhaseXScaling, double maxPhaseXScaling)
    {
       this.minPhaseXScaling = minPhaseXScaling;
       this.maxPhaseXScaling = maxPhaseXScaling;
+      this.notifyScaleChangeListeners();
    }
-
 
    public double getManualScalingMin()
    {
@@ -167,6 +228,42 @@ public class GraphConfiguration
       return manualMaxScaling;
    }
 
+   public void addChangeListener(GraphConfigurationChangeListener listener) {
+      this.changeListeners.add(listener);
+   }
+
+   private void notifyGraphTypeChangeListeners()
+   {
+      for (GraphConfigurationChangeListener listener : this.changeListeners)
+      {
+         listener.notifyOfGraphTypeChange();
+      }
+   }
+
+   private void notifyScaleChangeListeners()
+   {
+      for (GraphConfigurationChangeListener listener : this.changeListeners)
+      {
+         listener.notifyOfScaleChange();
+      }
+   }
+
+   private void notifyBaselineChangeListeners()
+   {
+      for (GraphConfigurationChangeListener listener : this.changeListeners)
+      {
+         listener.notifyOfBaselineChange();
+      }
+   }
+
+   private void notifyDisplayChangeListeners()
+   {
+      for (GraphConfigurationChangeListener listener : this.changeListeners)
+      {
+         listener.notifyOfDisplayChange();
+      }
+   }
+
    public String getXMLStyleRepresentationOfClass()
    {
       String returnString = "\t\t<GraphConfiguration>\n";
@@ -176,25 +273,25 @@ public class GraphConfiguration
       id++;
       returnString += "</Name>\n";
       returnString += "\t\t\t<ScalingMethod>";
-      returnString += scalingMethod;
+      returnString += scaleType.ordinal();
       returnString += "</ScalingMethod>\n";
       returnString += "\t\t\t<PlotType>";
-      returnString += plotType;
+      returnString += graphType.ordinal();
       returnString += "</PlotType>\n";
-      returnString += "\t\t\t<ShowBaseLines>";
-      returnString += showBaseLines;
-      returnString += "</ShowBaseLines>\n";
-      returnString += "\t\t\t<BaseLines>";
+      returnString += "\t\t\t<ShowBaselines>";
+      returnString += showBaselines;
+      returnString += "</ShowBaselines>\n";
+      returnString += "\t\t\t<Baselines>";
 
-      if (baseLines != null)
+      if (baselines != null)
       {
-         for (double baseLine : baseLines)
+         for (double baseline : baselines)
          {
-            returnString += baseLine + ",";
+            returnString += baseline + ",";
          }
       }
 
-      returnString += "</BaseLines>\n";
+      returnString += "</Baselines>\n";
       returnString += "\t\t\t<MaxScaling>";
       returnString += manualMaxScaling;
       returnString += "</MaxScaling>\n";
@@ -213,55 +310,68 @@ public class GraphConfiguration
       {
          String graphConfigurationString = XMLReaderUtility.getMiddleString(start, xmlRepresentation, "<GraphConfiguration>", "</GraphConfig>");
 
-//       System.out.println("        GraphConfiguration: " + graphConfigurationString);
+         //       System.out.println("        GraphConfiguration: " + graphConfigurationString);
 
          String name = XMLReaderUtility.getMiddleString(0, graphConfigurationString, "<Name>", "</Name>");
 
-//       System.out.println("            Name: " + name);
+         //       System.out.println("            Name: " + name);
 
-         int scalingMethod = XMLReaderUtility.parseIntegerBetweenTwoStrings(0, graphConfigurationString, "<ScalingMethod>", "</ScalingMethod>");    // Integer.parseInt(XMLReaderUtility.getMiddleString(0, graphConfigurationString, "<ScalingMethod>", "</ScalingMethod>"));
+         ScaleType scaleType = ScaleType.AUTO;
+         int scaleTypeVal = XMLReaderUtility.parseIntegerBetweenTwoStrings(0, graphConfigurationString, "<ScalingMethod>",
+               "</ScalingMethod>");    // Integer.parseInt(XMLReaderUtility.getMiddleString(0, graphConfigurationString, "<ScalingMethod>", "</ScalingMethod>"));
 
-//       System.out.println("            ScalingMethod: " + scalingMethod);
+         if (scaleTypeVal >= 0 && scaleTypeVal < ScaleType.values().length) {
+            scaleType = ScaleType.values()[scaleTypeVal];
+         }
 
-         int plotType = XMLReaderUtility.parseIntegerBetweenTwoStrings(0, graphConfigurationString, "<PlotType>", "</PlotType>");    // Integer.parseInt(XMLReaderUtility.getMiddleString(0, graphConfigurationString, "<PlotType>", "</PlotType>"));
+         //       System.out.println("            ScalingMethod: " + scaleType);
 
-//       System.out.println("            PlotType: " + plotType);
+         GraphType graphType = GraphType.TIME;
+         int graphTypeVal = XMLReaderUtility.parseIntegerBetweenTwoStrings(0, graphConfigurationString, "<PlotType>",
+               "</PlotType>");    // Integer.parseInt(XMLReaderUtility.getMiddleString(0, graphConfigurationString, "<PlotType>", "</PlotType>"));
 
-         boolean showBaseLines = XMLReaderUtility.parseBooleanBetweenTwoStrings(0, graphConfigurationString, "<ShowBaseLines>", "</ShowBaseLines>");    // Boolean.parseBoolean(XMLReaderUtility.getMiddleString(0, graphConfigurationString, "<ShowBaseLines>", "</ShowBaseLines>"));
+         if (graphTypeVal >= 0 && graphTypeVal < GraphType.values().length) {
+            graphType = GraphType.values()[graphTypeVal];
+         }
 
-//       System.out.println("            ShowBaseLines: " + showBaseLines);
+         //       System.out.println("            PlotType: " + graphType);
 
-         String baseLinesString = XMLReaderUtility.getMiddleString(0, graphConfigurationString, "<BaseLines>", "</BaseLines>");
+         boolean showBaselines = XMLReaderUtility.parseBooleanBetweenTwoStrings(0, graphConfigurationString, "<ShowBaselines>",
+               "</ShowBaselines>");    // Boolean.parseBoolean(XMLReaderUtility.getMiddleString(0, graphConfigurationString, "<ShowBaselines>", "</ShowBaselines>"));
 
-//       System.out.println("            BaseLines: " + baseLines);
+         //       System.out.println("            ShowBaselines: " + showBaselines);
 
-         StringTokenizer tokenizer = new StringTokenizer(baseLinesString, " /t/n/r/f,");
-         double[] baseLines = new double[tokenizer.countTokens()];
+         String baselinesString = XMLReaderUtility.getMiddleString(0, graphConfigurationString, "<Baselines>", "</Baselines>");
+
+         //       System.out.println("            Baselines: " + baselines);
+
+         StringTokenizer tokenizer = new StringTokenizer(baselinesString, " /t/n/r/f,");
+         double[] baselines = new double[tokenizer.countTokens()];
          int numberOfTokens = tokenizer.countTokens();
          for (int i = 0; i < numberOfTokens; i++)
          {
-            baseLines[i] = XMLReaderUtility.parseDouble(tokenizer.nextToken());    // Double.parseDouble(tokenizer.nextToken());
+            baselines[i] = XMLReaderUtility.parseDouble(tokenizer.nextToken());    // Double.parseDouble(tokenizer.nextToken());
 
-//          System.out.println("                BaseLine: " + baseLines[i]);
+            //          System.out.println("                Baseline: " + baselines[i]);
          }
 
-         double manualMaxScaling = XMLReaderUtility.parseDoubleBetweenTwoStrings(0, graphConfigurationString, "<MaxScaling>", "</MaxScaling>");    // Double.parseDouble(XMLReaderUtility.getMiddleString(0, graphConfigurationString, "<MaxScaling>", "</MaxScaling>"));
+         double manualMaxScaling = XMLReaderUtility.parseDoubleBetweenTwoStrings(0, graphConfigurationString, "<MaxScaling>",
+               "</MaxScaling>");    // Double.parseDouble(XMLReaderUtility.getMiddleString(0, graphConfigurationString, "<MaxScaling>", "</MaxScaling>"));
 
-//       System.out.println("            ManualMaxScaling: " + manualMaxScaling);
+         //       System.out.println("            ManualMaxScaling: " + manualMaxScaling);
 
-         double manualMinScaling = XMLReaderUtility.parseDoubleBetweenTwoStrings(0, graphConfigurationString, "<MinScaling>", "</MinScaling>");    // Double.parseDouble(XMLReaderUtility.getMiddleString(0, graphConfigurationString, "<MinScaling>", "</MinScaling>"));
+         double manualMinScaling = XMLReaderUtility.parseDoubleBetweenTwoStrings(0, graphConfigurationString, "<MinScaling>",
+               "</MinScaling>");    // Double.parseDouble(XMLReaderUtility.getMiddleString(0, graphConfigurationString, "<MinScaling>", "</MinScaling>"));
 
-//       System.out.println("            ManualMinScaling: " + manualMinScaling);
+         //       System.out.println("            ManualMinScaling: " + manualMinScaling);
 
-
-         tmp = new GraphConfiguration(name, scalingMethod, manualMinScaling, manualMaxScaling);
-
+         tmp = new GraphConfiguration(name, scaleType, manualMinScaling, manualMaxScaling);
 
          // this.name = name;
-         // this.scalingMethod = scalingMethod;
-         tmp.setPlotType(plotType);
-         tmp.setShowBaseLines(showBaseLines);
-         tmp.setBaseLines(baseLines);
+         // this.scaleType = scaleType;
+         tmp.setGraphType(graphType);
+         tmp.setShowBaselines(showBaselines);
+         tmp.setBaselines(baselines);
 
          // this.manualMaxScaling = manualMaxScaling;
          // this.manualMinScaling = manualMinScaling;
@@ -276,10 +386,4 @@ public class GraphConfiguration
 
       return tmp;
    }
-
-
-
-
-
-
 }
