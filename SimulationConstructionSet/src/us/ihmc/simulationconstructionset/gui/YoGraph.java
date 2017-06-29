@@ -6,6 +6,7 @@ import javafx.beans.Observable;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
+import javafx.scene.CacheHint;
 import javafx.scene.Node;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -127,6 +128,10 @@ public class YoGraph extends Pane
 
       info.setFocusTraversable(false);
       index.setFocusTraversable(false);
+      info.setCache(true);
+      index.setCache(true);
+      info.setCacheHint(CacheHint.SPEED);
+      index.setCacheHint(CacheHint.SPEED);
 
       this.graphConfiguration.addChangeListener(this);
 
@@ -137,6 +142,7 @@ public class YoGraph extends Pane
          this.repaintGraph(graphIndicesHolder.getLeftPlotIndex(), graphIndicesHolder.getRightPlotIndex());
          this.paintIndexLines();
       });
+
       this.heightProperty().addListener(observable -> {
          this.resetCanvasSizes();
          this.repaintGraph(graphIndicesHolder.getLeftPlotIndex(), graphIndicesHolder.getRightPlotIndex());
@@ -155,6 +161,8 @@ public class YoGraph extends Pane
 
       delete = new javafx.scene.control.MenuItem("Delete Graph");
       delete.addEventHandler(Event.ANY, this);
+
+      this.setCache(true);
    }
 
    public GraphConfiguration getGraphConfiguration()
@@ -389,8 +397,16 @@ public class YoGraph extends Pane
 
       entry.attachDataEntryChangeListener(this);
 
-      this.getChildren().add(this.getChildren().size() - 2, new Canvas());
-      this.getChildren().add(this.getChildren().size() - 2, new Canvas());
+      Canvas forData = new Canvas();
+      Canvas forBase = new Canvas();
+
+      forData.setCache(true);
+      forBase.setCache(true);
+      forData.setCacheHint(CacheHint.SPEED);
+      forBase.setCacheHint(CacheHint.SPEED);
+
+      this.getChildren().add(this.getChildren().size() - 2, forData);
+      this.getChildren().add(this.getChildren().size() - 2, forBase);
 
       this.recalculateMinMax();
       calculateRequiredEntryPaintWidthsAndRows();
@@ -889,14 +905,18 @@ public class YoGraph extends Pane
    public void paintTimeEntryData(DataEntry entry, int requestLeftIndex, int requestPoints)
    {
       if (requestPoints < 2)
+      {
          return;
+      }
 
       final int points = Math.min(entry.getData().length, requestPoints);
 
       int index = this.entries.indexOf(entry);
 
       if (index == -1)
+      {
          return;
+      }
 
       Platform.runLater(() ->
       {
