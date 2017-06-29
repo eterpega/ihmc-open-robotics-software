@@ -18,8 +18,8 @@ import us.ihmc.humanoidRobotics.communication.packets.walking.PauseWalkingMessag
 import us.ihmc.humanoidRobotics.communication.packets.walking.WalkingStatusMessage;
 import us.ihmc.humanoidRobotics.footstep.Footstep;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.IntegerYoVariable;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoInteger;
 import us.ihmc.robotics.geometry.FrameOrientation;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.robotSide.RobotSide;
@@ -32,15 +32,16 @@ public class FootstepListBehavior extends AbstractBehavior
    private final ConcurrentListeningQueue<FootstepStatus> footstepStatusQueue;
    private final ConcurrentListeningQueue<WalkingStatusMessage> walkingStatusQueue;
 
-   private final BooleanYoVariable packetHasBeenSent = new BooleanYoVariable("packetHasBeenSent" + behaviorName, registry);
-   private final IntegerYoVariable numberOfFootsteps = new IntegerYoVariable("numberOfFootsteps" + behaviorName, registry);
-   private final BooleanYoVariable isPaused = new BooleanYoVariable("isPaused", registry);
-   private final BooleanYoVariable isStopped = new BooleanYoVariable("isStopped", registry);
-   private final BooleanYoVariable isDone = new BooleanYoVariable("isDone", registry);
-   private final BooleanYoVariable hasLastStepBeenReached = new BooleanYoVariable("hasLastStepBeenReached", registry);
-   private final BooleanYoVariable isRobotDoneWalking = new BooleanYoVariable("isRobotDoneWalking", registry);
-   private final BooleanYoVariable hasRobotStartedWalking = new BooleanYoVariable("hasRobotStartedWalking", registry);
-   
+   private final YoBoolean packetHasBeenSent = new YoBoolean("packetHasBeenSent" + behaviorName, registry);
+   private final YoInteger numberOfFootsteps = new YoInteger("numberOfFootsteps" + behaviorName, registry);
+   private final YoBoolean isPaused = new YoBoolean("isPaused", registry);
+   private final YoBoolean isStopped = new YoBoolean("isStopped", registry);
+   private final YoBoolean isDone = new YoBoolean("isDone", registry);
+   private final YoBoolean hasLastStepBeenReached = new YoBoolean("hasLastStepBeenReached", registry);
+   private final YoBoolean isRobotDoneWalking = new YoBoolean("isRobotDoneWalking", registry);
+   private final YoBoolean hasRobotStartedWalking = new YoBoolean("hasRobotStartedWalking", registry);
+
+
    private double defaultSwingTime;
    private double defaultTranferTime;
 
@@ -93,21 +94,12 @@ public class FootstepListBehavior extends AbstractBehavior
    @Override
    public void doControl()
    {
+      checkForNewStatusPacket();
+
       if (!packetHasBeenSent.getBooleanValue() && outgoingFootstepDataList != null)
       {
-         int count = 0;
-         while (walkingStatusQueue.isNewPacketAvailable())
-         {
-            WalkingStatusMessage walkingStatus = walkingStatusQueue.poll();
-            if (walkingStatus != null)
-               PrintTools.info("Had old status in queue: " + walkingStatus.getWalkingStatus() + " " + count++);
-         }
-         
-         walkingStatusQueue.clear();
          sendFootsepListToController();
       }
-
-      checkForNewStatusPacket();
    }
 
    private void sendFootsepListToController()
@@ -154,7 +146,7 @@ public class FootstepListBehavior extends AbstractBehavior
             }
          }
       }
-      
+
       if (walkingStatusQueue.isNewPacketAvailable())
       {
          WalkingStatusMessage newestPacket = walkingStatusQueue.poll();
@@ -164,14 +156,6 @@ public class FootstepListBehavior extends AbstractBehavior
             {
             case COMPLETED:
                isRobotDoneWalking.set(true);
-//               try
-//               {
-//                  throw new RuntimeException("Walking complete.");
-//               }
-//               catch (Exception e)
-//               {
-//                  e.printStackTrace();
-//               }
                break;
             case STARTED:
                hasRobotStartedWalking.set(true);
@@ -192,7 +176,6 @@ public class FootstepListBehavior extends AbstractBehavior
       hasLastStepBeenReached.set(false);
       isRobotDoneWalking.set(false);
 
-      isDone.set(false);
       isPaused.set(false);
       isStopped.set(false);
       hasBeenInitialized.set(true);
