@@ -29,8 +29,6 @@ import us.ihmc.humanoidRobotics.communication.packets.walking.PelvisHeightTrajec
 import us.ihmc.humanoidRobotics.communication.packets.walking.PelvisOrientationTrajectoryMessage;
 import us.ihmc.humanoidRobotics.frames.HumanoidReferenceFrames;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
 import us.ihmc.robotics.geometry.FrameOrientation;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FramePose;
@@ -44,6 +42,8 @@ import us.ihmc.robotics.trajectories.TrajectoryType;
 //import us.ihmc.simulationConstructionSetTools.util.environments.HatchEnvironment;
 import us.ihmc.simulationConstructionSetTools.util.environments.Hatch;
 import us.ihmc.wholeBodyController.WholeBodyControllerParameters;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
 
 public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHatchBehaviorState>
 {
@@ -168,8 +168,8 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
    private double defaultStepWidth;
    private double wideStepWidth = 0.20; //0.33
       
-   private final DoubleYoVariable swingTime = new DoubleYoVariable("BehaviorSwingTime", registry);
-   private final DoubleYoVariable transferTime = new DoubleYoVariable("BehaviorTransferTime", registry);
+   private final YoDouble swingTime = new YoDouble("BehaviorSwingTime", registry);
+   private final YoDouble transferTime = new YoDouble("BehaviorTransferTime", registry);
    
    PositionOptimizedTrajectoryGenerator trajectory = new PositionOptimizedTrajectoryGenerator("optimizer", registry);
 
@@ -182,7 +182,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
 
    RobotSide side = RobotSide.RIGHT;
    
-   public WalkThroughHatchBehavior(CommunicationBridge communicationBridge, DoubleYoVariable yoTime, BooleanYoVariable yoDoubleSupport,
+   public WalkThroughHatchBehavior(CommunicationBridge communicationBridge, YoDouble yoTime, YoBoolean yoDoubleSupport,
          FullHumanoidRobotModel fullRobotModel, HumanoidReferenceFrames referenceFrames, WholeBodyControllerParameters wholeBodyControllerParameters,
          AtlasPrimitiveActions atlasPrimitiveActions, YoGraphicsListRegistry graphicsListRegistry)
    {

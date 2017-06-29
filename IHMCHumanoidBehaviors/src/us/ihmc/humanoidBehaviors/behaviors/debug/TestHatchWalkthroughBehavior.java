@@ -24,16 +24,16 @@ import us.ihmc.humanoidRobotics.communication.packets.walking.PelvisOrientationT
 import us.ihmc.humanoidRobotics.communication.packets.walking.PelvisTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.wholebody.WholeBodyTrajectoryMessage;
 import us.ihmc.humanoidRobotics.frames.HumanoidReferenceFrames;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
 import us.ihmc.robotics.geometry.FrameOrientation;
 import us.ihmc.robotics.geometry.FramePose;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.time.YoStopwatch;
 import us.ihmc.robotics.trajectories.TrajectoryType;
-import us.ihmc.simulationConstructionSetTools.util.environments.HatchEnvironment;
 import us.ihmc.simulationConstructionSetTools.util.environments.Hatch;
+import us.ihmc.simulationConstructionSetTools.util.environments.HatchEnvironment;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
 
 public class TestHatchWalkthroughBehavior extends AbstractBehavior
 {
@@ -42,12 +42,12 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
    private final ReferenceFrame hatchFrame;
    
    private final HumanoidReferenceFrames referenceFrames;
-   private final DoubleYoVariable swingTime = new DoubleYoVariable("BehaviorSwingTime", registry);
-   private final DoubleYoVariable sleepTime = new DoubleYoVariable("BehaviorSleepTime", registry);
-   private final DoubleYoVariable transferTime = new DoubleYoVariable("BehaviorTransferTime", registry);
-   private final DoubleYoVariable stepLength = new DoubleYoVariable("BehaviorStepLength", registry);
-   private final BooleanYoVariable stepInPlace = new BooleanYoVariable("StepInPlace", registry);
-   private final BooleanYoVariable abortBehavior = new BooleanYoVariable("AbortBehavior", registry);
+   private final YoDouble swingTime = new YoDouble("BehaviorSwingTime", registry);
+   private final YoDouble sleepTime = new YoDouble("BehaviorSleepTime", registry);
+   private final YoDouble transferTime = new YoDouble("BehaviorTransferTime", registry);
+   private final YoDouble stepLength = new YoDouble("BehaviorStepLength", registry);
+   private final YoBoolean stepInPlace = new YoBoolean("StepInPlace", registry);
+   private final YoBoolean abortBehavior = new YoBoolean("AbortBehavior", registry);
 
    private final YoStopwatch timer;
    
@@ -95,7 +95,7 @@ public class TestHatchWalkthroughBehavior extends AbstractBehavior
 
    private int version = 2;
 
-   public TestHatchWalkthroughBehavior(CommunicationBridgeInterface communicationBridge, HumanoidReferenceFrames referenceFrames, DoubleYoVariable yoTime)
+   public TestHatchWalkthroughBehavior(CommunicationBridgeInterface communicationBridge, HumanoidReferenceFrames referenceFrames, YoDouble yoTime)
    {
       super(communicationBridge);
       this.referenceFrames = referenceFrames;
