@@ -537,7 +537,7 @@ public class GraphArrayPanel extends GridPane implements GraphIndicesHolder, YoG
       if (emptyGraph != null)
       {
          final YoGraph removeGraph = emptyGraph;
-         Platform.runLater(() -> this.getChildren().remove(removeGraph));
+         Platform.runLater(() -> this.removeGraph(removeGraph));
          removeEmptyGraphs();
       }
       else
@@ -664,6 +664,10 @@ public class GraphArrayPanel extends GridPane implements GraphIndicesHolder, YoG
 
       selectedVariableHolder = null;
 
+      for (YoGraph graph : getGraphsOnThisPanel()) {
+         graph.clear();
+      }
+
       this.getChildren().clear();
    }
 
@@ -671,6 +675,7 @@ public class GraphArrayPanel extends GridPane implements GraphIndicesHolder, YoG
    {
       Platform.runLater(() ->
       {
+         graph.clear();
          this.getChildren().remove(graph);
          this.packGraphs();
          this.resetRows();
@@ -683,7 +688,12 @@ public class GraphArrayPanel extends GridPane implements GraphIndicesHolder, YoG
    {
       Platform.runLater(() ->
       {
+         for (YoGraph graph : getGraphsOnThisPanel()) {
+            graph.clear();
+         }
+
          this.getChildren().clear();
+
          this.packGraphs();
          this.resetRows();
          this.resetColumns();
@@ -804,6 +814,15 @@ public class GraphArrayPanel extends GridPane implements GraphIndicesHolder, YoG
       for (Node child : this.getChildren()) {
          if (child instanceof YoGraph) {
             ((YoGraph) child).notifyOfIndexChange(newIndex, newTime);
+         }
+      }
+   }
+
+   @Override public void notifyOfManualEndChange(int inPoint, int outPoint)
+   {
+      for (Node child : this.getChildren()) {
+         if (child instanceof YoGraph) {
+            ((YoGraph) child).notifyOfManualEndChange(inPoint, outPoint);
          }
       }
    }

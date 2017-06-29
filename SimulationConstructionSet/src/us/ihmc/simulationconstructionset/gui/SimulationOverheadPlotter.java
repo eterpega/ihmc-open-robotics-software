@@ -155,6 +155,11 @@ public class SimulationOverheadPlotter implements PlaybackListener
       update();
    }
 
+   @Override public void notifyOfManualEndChange(int inPoint, int outPoint)
+   {
+      update();
+   }
+
    @Override
    public void play(double realTimeRate)
    {

@@ -1,8 +1,6 @@
 package us.ihmc.simulationconstructionset.gui;
 
 import javafx.application.Platform;
-import javafx.beans.InvalidationListener;
-import javafx.beans.Observable;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
@@ -80,6 +78,7 @@ public class YoGraph extends Pane
    private static final int DONT_PLOT_BOTTOM_PIXELS = 25;
    private static final int PIXELS_PER_BOTTOM_ROW = 14;
    private static final int DONT_PLOT_TIMELINE_BOTTOM_PIXELS = 16;
+   private static final int DONT_PLOT_TOP_PIXELS = 5;
 
    private GraphConfiguration graphConfiguration = new GraphConfiguration("default");
 
@@ -137,13 +136,15 @@ public class YoGraph extends Pane
 
       this.getChildren().addAll(info, index);
 
-      this.widthProperty().addListener(observable ->  {
+      this.widthProperty().addListener(observable ->
+      {
          this.resetCanvasSizes();
          this.repaintGraph(graphIndicesHolder.getLeftPlotIndex(), graphIndicesHolder.getRightPlotIndex());
          this.paintIndexLines();
       });
 
-      this.heightProperty().addListener(observable -> {
+      this.heightProperty().addListener(observable ->
+      {
          this.resetCanvasSizes();
          this.repaintGraph(graphIndicesHolder.getLeftPlotIndex(), graphIndicesHolder.getRightPlotIndex());
          this.paintIndexLines();
@@ -426,15 +427,17 @@ public class YoGraph extends Pane
 
    public void removeEntry(DataEntry entry)
    {
-      if (entries.contains(entry))
-      {
-         entry.detachDataEntryChangeListener(this);
-         entries.remove(entry);
-      }
+      Platform.runLater(() -> {
+         if (entries.contains(entry))
+         {
+            entry.detachDataEntryChangeListener(this);
+            entries.remove(entry);
+         }
 
-      this.recalculateMinMax();
-      calculateRequiredEntryPaintWidthsAndRows();
-      this.repaintGraph(this.graphIndicesHolder.getLeftPlotIndex(), this.graphIndicesHolder.getRightPlotIndex());
+         this.recalculateMinMax();
+         calculateRequiredEntryPaintWidthsAndRows();
+         this.repaintGraph(this.graphIndicesHolder.getLeftPlotIndex(), this.graphIndicesHolder.getRightPlotIndex());
+      });
    }
 
    private boolean hasMinMaxChanged()
@@ -496,7 +499,7 @@ public class YoGraph extends Pane
    private void calculateTimePlotData(DataEntry entry, double[] xData, double[] yData, int points, int beginningAt)
    {
       double width = this.getWidth();
-      double height = this.getHeight() - totalDontPlotBottomPixels;
+      double height = this.getHeight() - totalDontPlotBottomPixels - DONT_PLOT_TOP_PIXELS;
 
       int left = graphIndicesHolder.getLeftPlotIndex();
       int right = graphIndicesHolder.getRightPlotIndex();
@@ -512,7 +515,7 @@ public class YoGraph extends Pane
       for (int i = 0; i < points; ++i)
       {
          xData[i] = snap((beginningAt - left + i) * scaleX);
-         yData[i] = snap(height - (realData[i] - min) * scaleY);
+         yData[i] = snap(height - (realData[i] - min) * scaleY) + DONT_PLOT_TOP_PIXELS;
       }
    }
 
@@ -640,8 +643,29 @@ public class YoGraph extends Pane
       {
          if (this.hasMinMaxChanged() || override)
          {
+            double curMin = this.min, curMax = this.max;
+
             this.recalculateMinMax();
-            this.paintTimePlot(graphIndicesHolder.getLeftPlotIndex(), graphIndicesHolder.getRightPlotIndex());
+
+            if (override)
+            {
+               this.paintTimePlot(graphIndicesHolder.getLeftPlotIndex(), graphIndicesHolder.getRightPlotIndex());
+            }
+            else
+            {
+               for (Node child : this.getChildren())
+               {
+                  if (child != info && child != index)
+                  {
+                     Platform.runLater(() ->
+                     {
+                        Canvas canvas = (Canvas) child;
+                        GraphicsContext control = canvas.getGraphicsContext2D();
+                        control.scale(1.0, (this.max - this.min) / (curMax - curMin));
+                     });
+                  }
+               }
+            }
          }
          else
          {
@@ -909,7 +933,7 @@ public class YoGraph extends Pane
          return;
       }
 
-      final int points = Math.min(entry.getData().length, requestPoints);
+      final int points = Math.min(entry.getData().length-requestLeftIndex, requestPoints);
 
       int index = this.entries.indexOf(entry);
 
@@ -918,56 +942,61 @@ public class YoGraph extends Pane
          return;
       }
 
+      double height = this.getHeight();
+      double width = this.getWidth();
+
+      double[] xData = new double[points];
+      double[] yData = new double[points];
+
+      final Canvas forData = (Canvas) this.getChildren().get(2 * index);
+      final GraphicsContext dataLayer = forData.getGraphicsContext2D();
+
       Platform.runLater(() ->
       {
-         double height = this.getHeight();
-         double width = this.getWidth();
-
-         Canvas forData = (Canvas) this.getChildren().get(2 * index);
+         calculateTimePlotData(entry, xData, yData, points, requestLeftIndex);
 
          forData.setWidth(width);
          forData.setHeight(height);
-
-         GraphicsContext dataLayer = forData.getGraphicsContext2D();
-
-         double[] xData = new double[points];
-         double[] yData = new double[points];
-
-         calculateTimePlotData(entry, xData, yData, points, requestLeftIndex);
 
          dataLayer.clearRect(snap(Math.ceil(xData[0])), 0, snap(Math.floor(xData[points - 1] - xData[0])), height);
 
          dataLayer.setStroke(dataColors[index]);
 
          dataLayer.strokePolyline(xData, yData, points);
+      });
 
-         if (this.graphConfiguration.getShowBaselines())
+      if (this.graphConfiguration.getShowBaselines())
+      {
+         final Canvas forBase = (Canvas) this.getChildren().get((2 * index) + 1);
+         final GraphicsContext baseLayer = forBase.getGraphicsContext2D();
+
+         Platform.runLater(() ->
          {
-            Canvas forBase = (Canvas) this.getChildren().get((2 * index) + 1);
-
             forBase.setWidth(width);
             forBase.setHeight(height);
 
-            GraphicsContext baseLayer = forBase.getGraphicsContext2D();
-
             baseLayer.clearRect(0, 0, width, height);
+         });
 
-            double[] baselines = this.graphConfiguration.getBaselines();
+         double[] baselines = this.graphConfiguration.getBaselines();
 
-            for (int j = 0; j < baselines.length; j++)
+         for (int j = 0; j < baselines.length; j++)
+         {
+            double entryMin = this.minFor(entry);
+
+            double baseY = height - this.totalDontPlotBottomPixels - (baselines[j] - entryMin) / (this.maxFor(entry) - entryMin) * (height
+                  - this.totalDontPlotBottomPixels) + 5;
+
+            final int y = j;
+            Platform.runLater(() ->
             {
-               double entryMin = this.minFor(entry);
-
-               double baseY = height - this.totalDontPlotBottomPixels - (baselines[j] - entryMin) / (this.maxFor(entry) - entryMin) * (height
-                     - this.totalDontPlotBottomPixels) + 5;
-
-               baseLayer.setStroke(baselineColors[j]);
+               baseLayer.setStroke(baselineColors[y]);
                baseLayer.strokeLine(0, baseY, this.getWidth(), baseY);
-            }
+            });
          }
+      }
 
-         paintVariableNamesAndValues();
-      });
+      paintVariableNamesAndValues();
    }
 
    public void paintIndexLines()
@@ -1029,131 +1058,142 @@ public class YoGraph extends Pane
 
    private void paintVariableNamesAndValues()
    {
-      Platform.runLater(() ->
+      calculateRequiredEntryPaintWidthsAndRows(true);
+      this.totalDontPlotBottomPixels = DONT_PLOT_BOTTOM_PIXELS + PIXELS_PER_BOTTOM_ROW * (this.totalEntryNamePaintRows - 1);
+
+      double height = this.getHeight();
+
+      GraphicsContext baselineLayer = info.getGraphicsContext2D();
+
+      Platform.runLater(() -> baselineLayer.clearRect(0, height - this.totalDontPlotBottomPixels, this.getWidth(), this.totalDontPlotBottomPixels));
+
+      drawBaselineInfo();
+
+      if (this.graphConfiguration.getShowBaselinesInfo())
       {
-         calculateRequiredEntryPaintWidthsAndRows(true);
-         this.totalDontPlotBottomPixels = DONT_PLOT_BOTTOM_PIXELS + PIXELS_PER_BOTTOM_ROW * (this.totalEntryNamePaintRows - 1);
+         return;
+      }
 
-         double height = this.getHeight();
+      int numVars = this.entries.size();
 
-         GraphicsContext baselineLayer = info.getGraphicsContext2D();
+      int previousRow = 0;
+      int cumulativeOffset = 3;
 
-         baselineLayer.clearRect(0, height - this.totalDontPlotBottomPixels, this.getWidth(), this.totalDontPlotBottomPixels);
+      for (int i = 0; i < numVars; i++)
+      {
+         DataEntry entry = this.entries.get(i);
 
-         drawBaselineInfo();
+         final Color colorToSet;
 
-         if (this.graphConfiguration.getShowBaselinesInfo())
+         if (this.graphConfiguration.getGraphType() == GraphConfiguration.GraphType.PHASE)
          {
-            return;
+
+            colorToSet = dataColors[i / 2 % DEFAULT_MAX_ENTRIES];
+         }
+         else
+         {
+            colorToSet = dataColors[i % DEFAULT_MAX_ENTRIES];
          }
 
-         baselineLayer.setFill(Color.BLACK);
-         baselineLayer.setLineWidth(1.5f);
-
-         int numVars = this.entries.size();
-
-         int previousRow = 0;
-         int cumulativeOffset = 3;
-
-         for (int i = 0; i < numVars; i++)
+         // Draw the variable name
+         int row = entryNamePaintRows.get(i);
+         if (row != previousRow)
          {
-            DataEntry entry = this.entries.get(i);
-
-            if (this.graphConfiguration.getGraphType() == GraphConfiguration.GraphType.PHASE)
-            {
-               baselineLayer.setFill(dataColors[i / 2 % DEFAULT_MAX_ENTRIES]);
-            }
-            else
-            {
-               baselineLayer.setFill(dataColors[i % DEFAULT_MAX_ENTRIES]);
-            }
-
-            // Draw the variable name
-            int row = entryNamePaintRows.get(i);
-            if (row != previousRow)
-            {
-               cumulativeOffset = 3;
-               previousRow = row;
-            }
-
-            String display = "";
-
-            if (this.graphConfiguration.getShowNamespaces())
-            {
-               display = entry.getVariable().getNameSpace() + ".";
-            }
-
-            display += entry.getVariable().getName();
-
-            if (this.graphIndicesHolder.getIndex() < this.graphIndicesHolder.getOutPoint())
-            {
-               display += String.format(": %.4f", entry.getData()[this.graphIndicesHolder.getIndex()]);
-            }
-            else if (this.graphIndicesHolder.getOutPoint() > 0)
-            {
-               display += String.format(": %.4f", entry.getData()[this.graphIndicesHolder.getOutPoint() - 1]);
-            }
-
-            int yToDrawAt = (int) height - 5 - (PIXELS_PER_BOTTOM_ROW * (this.totalEntryNamePaintRows - row - 1));
-
-            baselineLayer.fillText(display, cumulativeOffset, yToDrawAt);
-
-            cumulativeOffset += entryNamePaintWidths.get(i);
+            cumulativeOffset = 3;
+            previousRow = row;
          }
-      });
+
+         String display = "";
+
+         if (this.graphConfiguration.getShowNamespaces())
+         {
+            display = entry.getVariable().getNameSpace() + ".";
+         }
+
+         display += entry.getVariable().getName();
+
+         if (this.graphIndicesHolder.getIndex() < this.graphIndicesHolder.getOutPoint())
+         {
+            display += String.format(": %.4f", entry.getData()[this.graphIndicesHolder.getIndex()]);
+         }
+         else if (this.graphIndicesHolder.getOutPoint() > 0)
+         {
+            display += String.format(": %.4f", entry.getData()[this.graphIndicesHolder.getOutPoint() - 1]);
+         }
+
+         int yToDrawAt = (int) height - 5 - (PIXELS_PER_BOTTOM_ROW * (this.totalEntryNamePaintRows - row - 1));
+
+         final String drawText = display;
+         final int cumOffset = cumulativeOffset;
+         Platform.runLater(() ->
+         {
+            baselineLayer.setFill(colorToSet);
+            baselineLayer.fillText(drawText, cumOffset, yToDrawAt);
+         });
+
+         cumulativeOffset += entryNamePaintWidths.get(i);
+      }
    }
 
    private void drawBaselineInfo()
    {
+      double graphHeight = this.getHeight();
+      int yToDrawAt = (int) graphHeight - 5 - (PIXELS_PER_BOTTOM_ROW * (this.totalEntryNamePaintRows - 1));
+
+      double total = 0.0;
+
+      GraphicsContext baselineLayer = info.getGraphicsContext2D();
+
+      if (!this.graphConfiguration.getShowBaselinesInfo())
+      {
+         return;
+      }
+
+      double[] baselines = this.graphConfiguration.getBaselines();
+
+      if (baselines.length == 0)
+      {
+         return;
+      }
+
+      int cumulativeOffset = 3;
+
+      final int cumOffset1 = cumulativeOffset;
+      Platform.runLater(() -> {
+         baselineLayer.setFill(Color.BLACK);
+         baselineLayer.fillText("Baselines: ", cumOffset1, yToDrawAt);
+      });
+      cumulativeOffset += 80;
+
+      for (int i = 0; i < baselines.length; i++)
+      {
+         String display = "";
+         double baseline = baselines[i];
+         total = total + baseline;
+
+         display += String.format("%.4f", baseline);
+
+         int baseLineStringWidth = (int) baselineLayer.getFont().getSize() * display.length();
+
+         final int y = i;
+         final int cumOffset2 = cumulativeOffset;
+         final String drawText = display;
+         Platform.runLater(() ->
+         {
+            baselineLayer.setFill(dataColors[y]);
+            baselineLayer.fillText(drawText, cumOffset2, yToDrawAt);
+         });
+
+         cumulativeOffset = cumulativeOffset + baseLineStringWidth + 10;
+      }
+
+      double average = total / ((double) baselines.length);
+
+      final int cumOffset3 = cumulativeOffset;
       Platform.runLater(() ->
       {
-         double graphHeight = this.getHeight();
-         int yToDrawAt = (int) graphHeight - 5 - (PIXELS_PER_BOTTOM_ROW * (this.totalEntryNamePaintRows - 1));
-
-         double total = 0.0;
-
-         GraphicsContext baselineLayer = info.getGraphicsContext2D();
-
-         if (!this.graphConfiguration.getShowBaselinesInfo())
-         {
-            return;
-         }
-
-         double[] baselines = this.graphConfiguration.getBaselines();
-
-         if (baselines.length == 0)
-         {
-            return;
-         }
-
-         int cumOffset = 3;
-
          baselineLayer.setFill(Color.BLACK);
-         baselineLayer.fillText("Baselines: ", cumOffset, yToDrawAt);
-         cumOffset += 80;
-
-         baselineLayer.setLineWidth(1.5f);
-
-         for (int i = 0; i < baselines.length; i++)
-         {
-            String display = "";
-            double baseline = baselines[i];
-            total = total + baseline;
-
-            display += String.format("%.4f", baseline);
-
-            int baseLineStringWidth = (int) baselineLayer.getFont().getSize() * display.length();
-
-            baselineLayer.setFill(dataColors[i]);
-            baselineLayer.fillText(display, cumOffset, yToDrawAt);
-            cumOffset = cumOffset + baseLineStringWidth + 10;
-         }
-
-         double average = total / ((double) baselines.length);
-
-         baselineLayer.setFill(Color.BLACK);
-
-         baselineLayer.fillText(String.format("     Average = %.4f", average), cumOffset, yToDrawAt);
+         baselineLayer.fillText(String.format("     Average = %.4f", average), cumOffset3, yToDrawAt);
       });
    }
 
@@ -1389,6 +1429,17 @@ public class YoGraph extends Pane
       return left + (int) Math.floor(mouseX / this.getWidth() * (this.graphIndicesHolder.getRightPlotIndex() - left));
    }
 
+   public void clear()
+   {
+      Platform.runLater(() ->
+      {
+         for (DataEntry entry : this.entries)
+         {
+            this.removeEntry(entry);
+         }
+      });
+   }
+
    @SuppressWarnings("unused") private double clickedX, clickedY;
    @SuppressWarnings("unused") private double draggedX, draggedY;
    private int clickedIndex, clickedLeftIndex, clickedRightIndex;
@@ -1580,6 +1631,11 @@ public class YoGraph extends Pane
    @Override public void notifyOfIndexChange(int newIndex, double newTime)
    {
       this.paintVariableNamesAndValues();
+      this.paintIndexLines();
+   }
+
+   @Override public void notifyOfManualEndChange(int inPoint, int outPoint)
+   {
       this.paintIndexLines();
    }
 }

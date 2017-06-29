@@ -472,6 +472,11 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
 
          }
 
+         @Override public void notifyOfManualEndChange(int inPoint, int outPoint)
+         {
+
+         }
+
          @Override
          public void stop()
          {

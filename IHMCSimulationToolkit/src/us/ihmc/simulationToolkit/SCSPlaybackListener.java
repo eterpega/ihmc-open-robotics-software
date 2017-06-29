@@ -14,18 +14,22 @@ public class SCSPlaybackListener implements PlaybackListener
       this.networkServer = dataProducer;
    }
 
-   public void play(double realTimeRate)
+   @Override public void play(double realTimeRate)
    {
    }
 
-   public void stop()
+   @Override public void stop()
    {
-//      System.out.println("SCSPlaybackListener: stopped");
       if (networkServer != null)
          networkServer.queueDataToSend(new SCSListenerPacket());
    }
 
-   public void notifyOfIndexChange(int newIndex, double newTime)
+   @Override public void notifyOfIndexChange(int newIndex, double newTime)
    {
+   }
+
+   @Override public void notifyOfManualEndChange(int inPoint, int outPoint)
+   {
+
    }
 }
