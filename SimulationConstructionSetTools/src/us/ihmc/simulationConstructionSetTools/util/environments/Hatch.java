@@ -11,6 +11,16 @@ public class Hatch
       private double hatchWidth;
       private double hatchThickness;
       
+      private static final double defaultHatchStepHeight = 0.16;
+      private static final double defaultHatchOpeningHeight = 1.70;
+      private static final double defaultHatchWidth = 0.90;
+      private static final double defaultHatchThickness = 0.10;
+      
+      public Hatch(RigidBodyTransform hatchToWorldTransform)
+      {
+         this(hatchToWorldTransform, defaultHatchStepHeight, defaultHatchOpeningHeight, defaultHatchWidth, defaultHatchThickness);
+      }
+      
       public Hatch(RigidBodyTransform hatchToWorldTransform, double hatchStepHeight, double hatchOpeningHeight, double hatchWidth, double hatchThickness)
       {
          this.hatchToWorldTransform = hatchToWorldTransform;
