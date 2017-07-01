@@ -18,7 +18,7 @@ public class AtlasStepAdjustmentDemo
 {
    private static StepScriptType stepScriptType = StepScriptType.FORWARD_FAST;
    private static TestType testType = TestType.FEEDBACK_ONLY;
-   private static PushDirection pushDirection = PushDirection.BACKWARD_IN_30;
+   private static PushDirection pushDirection = PushDirection.FORWARD_IN_30;
 
    private static String forwardFastScript = "scripts/stepAdjustment_forwardWalkingFast.xml";
    private static String forwardSlowScript = "scripts/stepAdjustment_forwardWalkingSlow.xml";
@@ -1356,10 +1356,11 @@ public class AtlasStepAdjustmentDemo
             };
          }
 
-      }, stepScriptType, pushDirection, percentWeight, showGui);
+      }, stepScriptType, testType, pushDirection, percentWeight, showGui);
    }
 
-   public AtlasStepAdjustmentDemo(AtlasRobotModel robotModel, StepScriptType stepScriptType, PushDirection pushDirection, double percentWeight, boolean showGui)
+   public AtlasStepAdjustmentDemo(AtlasRobotModel robotModel, StepScriptType stepScriptType, TestType testType, PushDirection pushDirection, double percentWeight,
+                                  boolean showGui)
    {
       String script;
       switch (stepScriptType)
