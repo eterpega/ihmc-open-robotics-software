@@ -12,7 +12,7 @@
         <location>
           <x>0.5</x>
           <y>-0.168</y>
-          <z>0.08720333059715135</z>
+          <z>0.0</z>
         </location>
         <orientation>
           <x>2.152526913793795E-4</x>
@@ -31,7 +31,7 @@
         <location>
           <x>1.0</x>
           <y>0.082</y>
-          <z>0.0899105387040812</z>
+          <z>0.0</z>
         </location>
         <orientation>
           <x>2.152526913793793E-4</x>
@@ -50,7 +50,7 @@
         <location>
           <x>1.5</x>
           <y>-0.168</y>
-          <z>0.0923983180204497</z>
+          <z>0.0</z>
         </location>
         <orientation>
           <x>2.1525269137937961E-4</x>
@@ -69,48 +69,10 @@
         <location>
           <x>2.0</x>
           <y>0.082</y>
-          <z>0.09510537190316294</z>
+          <z>0.0</z>
         </location>
         <orientation>
           <x>2.1525269137938043E-4</x>
-          <y>-0.003926732389557398</y>
-          <z>-0.0010246821224833887</z>
-          <s>0.9999917421986881</s>
-        </orientation>
-        <trajectoryType>DEFAULT</trajectoryType>
-        <swingHeight>0.0</swingHeight>
-      </us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage>
-      <us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage>
-        <uniqueId>0</uniqueId>
-        <destination>0</destination>
-        <origin>AT_ANKLE_FRAME</origin>
-        <robotSide>RIGHT</robotSide>
-        <location>
-          <x>2.5</x>
-          <y>-0.168</y>
-          <z>0.09759315121953145</z>
-        </location>
-        <orientation>
-          <x>2.1525269137937961E-4</x>
-          <y>-0.003926732389557398</y>
-          <z>-0.0010246821224833887</z>
-          <s>0.9999917421986881</s>
-        </orientation>
-        <trajectoryType>DEFAULT</trajectoryType>
-        <swingHeight>0.0</swingHeight>
-      </us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage>
-      <us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage>
-        <uniqueId>0</uniqueId>
-        <destination>0</destination>
-        <origin>AT_ANKLE_FRAME</origin>
-        <robotSide>LEFT</robotSide>
-        <location>
-          <x>3.0</x>
-          <y>0.082</y>
-          <z>0.09770278850270381</z>
-        </location>
-        <orientation>
-          <x>2.1525269137938037E-4</x>
           <y>-0.003926732389557398</y>
           <z>-0.0010246821224833887</z>
           <s>0.9999917421986881</s>

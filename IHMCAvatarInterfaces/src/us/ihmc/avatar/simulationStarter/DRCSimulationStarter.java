@@ -464,6 +464,11 @@ public class DRCSimulationStarter implements SimulationStarterInterface
       return avatarSimulation;
    }
 
+   public void disposeOfAvatarSimulation()
+   {
+      avatarSimulation.dispose();
+   }
+
    public ConcurrentLinkedQueue<Command<?, ?>> getQueuedControllerCommands()
    {
       return controllerCommands;

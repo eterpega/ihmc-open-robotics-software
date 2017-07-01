@@ -42,7 +42,7 @@ public class StepAdjustmentDemoHelper
    // Increase to 10 when you want the sims to run a little faster and don't need the data.
    private final int recordFrequencySpeedup = 1;
 
-   private final SimulationConstructionSet scs;
+   private SimulationConstructionSet scs;
    private BlockingSimulationRunner blockingSimulationRunner;
 
    private DRCSimulationStarter simulationStarter;
@@ -62,6 +62,11 @@ public class StepAdjustmentDemoHelper
    private double initialTransferTime;
 
    public StepAdjustmentDemoHelper(AtlasRobotModel robotModel, String scriptName)
+   {
+      this(robotModel, scriptName, true);
+   }
+
+   public StepAdjustmentDemoHelper(AtlasRobotModel robotModel, String scriptName, boolean showGui)
    {
       this.scriptName = scriptName;
       this.robotModel = robotModel;
@@ -83,6 +88,7 @@ public class StepAdjustmentDemoHelper
       FullHumanoidRobotModel fullRobotModel = robotModel.createFullRobotModel();
 
       DRCGuiInitialSetup guiInitialSetup = new DRCGuiInitialSetup(false, false, simulationTestingParameters);
+      guiInitialSetup.setCreateGUI(showGui);
 
       simulationStarter = new DRCSimulationStarter(robotModel, flatGround);
       simulationStarter.setRunMultiThreaded(simulationTestingParameters.getRunMultiThreaded());
@@ -95,7 +101,9 @@ public class StepAdjustmentDemoHelper
       DRCNetworkModuleParameters networkProcessorParameters = new DRCNetworkModuleParameters();
       networkProcessorParameters.enableNetworkProcessor(false);
 
-      simulationStarter.createSimulation(networkProcessorParameters, true, false);
+      //simulationStarter.createSimulation(networkProcessorParameters, true, false);
+      simulationStarter.setupControllerNetworkSubscriber(false);
+      simulationStarter.createSimulation(null, true, false);
 
       scs = simulationStarter.getSimulationConstructionSet();
       blockingSimulationRunner = new BlockingSimulationRunner(scs, 60.0 * 10.0);
@@ -147,7 +155,9 @@ public class StepAdjustmentDemoHelper
       blockingSimulationRunner.destroySimulation();
       blockingSimulationRunner = null;
 
+      simulationStarter.disposeOfAvatarSimulation();
       simulationStarter.close();
+      simulationStarter = null;
    }
 
    public boolean simulateAndBlockAndCatchExceptions(double simulationTime)
