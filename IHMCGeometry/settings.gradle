@@ -5,4 +5,5 @@ println 'Evaluating IHMCGeometry settings.gradle'
 if (startParameter.searchUpwards)
 {
    includeBuild "../IHMCRoboticsToolkit"
+   includeBuild "../IHMCCommonsStaging"
 }

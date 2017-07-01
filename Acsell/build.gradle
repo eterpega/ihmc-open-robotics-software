@@ -45,7 +45,7 @@ dependencies {
    compile project(":ihmc-perception")
    compile project(":ihmc-whole-body-controller")
    compile project(":ihmc-java-toolkit")
-   compile project(":ihmc-java-extensions")
+   compile project(":ihmc-commons-staging")
    compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
    compile project(":ihmc-robotics-toolkit")
    compile project(":ihmc-robot-description")
@@ -53,7 +53,7 @@ dependencies {
    compile project(":ihmc-robot-data-visualizer")
    compile project(":ihmc-graphics-description")
    testCompile project(path: project(":ihmc-robotics-toolkit").path, configuration: "testOutput")
-   testCompile ihmc.getProjectTestDependency(":ihmc-java-extensions")
+   testCompile ihmc.getProjectTestDependency(":ihmc-commons-staging")
    testCompile group: 'us.ihmc', name: 'ihmc-commons-testing', version: '0.11.0-alpha'
 }
 

@@ -1,0 +1,3 @@
+rootProject.name = 'ihmc-commons-staging'
+
+println 'Evaluating IHMCCommonsStaging settings.gradle'

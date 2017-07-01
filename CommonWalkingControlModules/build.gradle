@@ -33,11 +33,11 @@ dependencies {
    compile project(":convex-optimization-adapter")
    compile project(":ihmc-robotics-toolkit")
    compile project(":ihmc-java-toolkit")
-   compile project(":ihmc-java-extensions")
+   compile project(":ihmc-commons-staging")
    compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
    compile project(":ihmc-humanoid-robotics")
    compile project(":ihmc-java-toolkit")
-   compile project(":ihmc-java-extensions")
+   compile project(":ihmc-commons-staging")
    compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
    compile project(":ihmc-graphics-description")
 
@@ -45,7 +45,7 @@ dependencies {
    testCompile project(":simulation-construction-set")
    testCompile project(":simulation-construction-set-tools")
    testCompile ihmc.getProjectTestDependency(":ihmc-robotics-toolkit")
-   testCompile ihmc.getProjectTestDependency(":ihmc-java-extensions")
+   testCompile ihmc.getProjectTestDependency(":ihmc-commons-staging")
    testCompile group: 'us.ihmc', name: 'ihmc-commons-testing', version: '0.11.0-alpha'
    testCompile ihmc.getProjectTestDependency(":ihmc-robotics-toolkit")
    testCompile ihmc.getProjectTestDependency(":convex-optimization-adapter")

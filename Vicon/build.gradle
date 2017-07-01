@@ -7,7 +7,7 @@ dependencies {
    compile group: 'us.ihmc', name: 'euclid-core', version: '0.4.3'
 
    compile project(":ihmc-java-toolkit")
-   compile project(":ihmc-java-extensions")
+   compile project(":ihmc-commons-staging")
    compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
    compile project(":ihmc-communication")
    compile project(":ihmc-robotics-toolkit")

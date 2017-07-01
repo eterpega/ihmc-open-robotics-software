@@ -22,7 +22,7 @@ dependencies {
    compile project(":convex-optimization-adapter")
    compile project(":ihmc-humanoid-robotics")
    compile project(":ihmc-java-toolkit")
-   compile project(":ihmc-java-extensions")
+   compile project(":ihmc-commons-staging")
    compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
    compile project(":ihmc-robotics-toolkit")
    compile project(":ihmc-communication")
@@ -34,7 +34,7 @@ dependencies {
 
    testCompile group: 'com.google.caliper', name: 'caliper', version: '1.0-beta-2'
    testCompile ihmc.getProjectTestDependency(":ihmc-robotics-toolkit")
-   testCompile ihmc.getProjectTestDependency(":ihmc-java-extensions")
+   testCompile ihmc.getProjectTestDependency(":ihmc-commons-staging")
    testCompile group: 'us.ihmc', name: 'ihmc-commons-testing', version: '0.11.0-alpha'
 
    testCompile project(":simulation-construction-set")

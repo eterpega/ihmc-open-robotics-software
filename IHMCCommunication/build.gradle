@@ -1,7 +1,17 @@
-if (!rootProject.name.equals('ihmc-open-robotics-software'))
-{
-   evaluationDependsOn(':ihmc-open-robotics-software')
+buildscript {
+   repositories {
+      maven {
+         url "http://dl.bintray.com/ihmcrobotics/maven-release"
+      }
+   }
 }
+
+plugins {
+   id 'us.ihmc.gradle.ihmc-build' version '0.0.31'
+   id 'us.ihmc.continuousIntegration.IHMCContinuousIntegrationGradlePlugin' version '0.11.2'
+}
+
+ihmc.configureProjectForOpenRobotics(project);
 
 dependencies {
    testCompile group: 'junit', name: 'junit', version: '4.11'
@@ -15,15 +25,13 @@ dependencies {
    compile group: 'org.boofcv', name: 'geo', version: '0.24.1'
    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
    compile group: 'com.google.guava', name: 'guava', version: '18.0'
+   compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.2'
+   compile ihmc.getDynamicVersion("us.ihmc", "ihmc-robotics-toolkit", dependencyMode)
+   compile ihmc.getDynamicVersion("us.ihmc", "ihmc-commons-staging", dependencyMode)
+   compile ihmc.getDynamicVersion("us.ihmc", "ihmc-java-toolkit", dependencyMode)
 
    testCompile group: 'us.ihmc', name: 'ihmc-continuous-integration-framework', version: '0.9.4'
-
-   compile project(":ihmc-java-toolkit")
-   compile project(":ihmc-java-extensions")
-   compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
-   compile project(":ihmc-robotics-toolkit")
-
-   testCompile ihmc.getProjectTestDependency(":ihmc-robotics-toolkit")
-   testCompile ihmc.getProjectTestDependency(":ihmc-java-extensions")
-   testCompile group: 'us.ihmc', name: 'ihmc-commons-testing', version: '0.11.0-alpha'
+   testCompile group: 'us.ihmc', name: 'ihmc-commons-testing', version: '0.11.2'
+   testCompile ihmc.getDynamicVersion("us.ihmc", "ihmc-robotics-toolkit", dependencyMode)
+   testCompile ihmc.getDynamicVersion("us.ihmc", "ihmc-commons-staging", dependencyMode)
 }

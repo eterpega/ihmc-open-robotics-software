@@ -17,7 +17,7 @@ dependencies {
 
    compile project(":model-file-loader")
    compile project(":ihmc-java-toolkit")
-   compile project(":ihmc-java-extensions")
+   compile project(":ihmc-commons-staging")
    compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
    compile project(":ihmc-quadruped-robotics")
    compile project(":simulation-construction-set")
@@ -36,6 +36,6 @@ dependencies {
    compile project(":ihmc-simulation-toolkit")
 
    testCompile ihmc.getProjectTestDependency(":ihmc-robotics-toolkit")
-   testCompile ihmc.getProjectTestDependency(":ihmc-java-extensions")
+   testCompile ihmc.getProjectTestDependency(":ihmc-commons-staging")
    testCompile group: 'us.ihmc', name: 'ihmc-commons-testing', version: '0.11.0-alpha'
 }

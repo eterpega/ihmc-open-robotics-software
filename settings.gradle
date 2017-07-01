@@ -1,5 +1,15 @@
 rootProject.name = 'ihmc-open-robotics-software'
 
+println 'Evaluating IHMCOpenRoboticsSoftware settings.gradle'
+
+if (startParameter.searchUpwards)
+{
+   includeBuild 'IHMCJavaExtensions'
+   includeBuild 'IHMCRoboticsToolkit'
+   includeBuild 'IHMCJavaToolkit'
+   includeBuild 'IHMCGeometry'
+}
+
 //def siblingDirs = rootProject.dir.list(new FilenameFilter() {
 //  @Override
 //  boolean accept(File dir, String name) {
@@ -12,7 +22,7 @@ rootProject.name = 'ihmc-open-robotics-software'
 //  include it
 //}
 
-//includeBuild "ihmc-java-extensions"
+//includeBuild "ihmc-commons-staging"
 //includeBuild "IHMCRoboticsToolkit"
 
 //project(":Acsell").name = "acsell"
@@ -27,7 +37,7 @@ rootProject.name = 'ihmc-open-robotics-software'
 //project(":IHMCGraphicsDescription").name = "ihmc-graphics-description"
 //project(":IHMCHumanoidBehaviors").name = "ihmc-humanoid-behaviors"
 //project(":IHMCHumanoidRobotics").name = "ihmc-humanoid-robotics"
-//project(":IHMCJavaExtensions").name = "ihmc-java-extensions"
+//project(":IHMCJavaExtensions").name = "ihmc-commons-staging"
 //project(":IHMCJavaFXToolkit").name = "ihmc-javafx-toolkit"
 //project(":IHMCJavaToolkit").name = "ihmc-java-toolkit"
 //project(":IHMCJMonkeyEngineToolkit").name = "ihmc-jmonkey-engine-toolkit"

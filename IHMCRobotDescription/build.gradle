@@ -15,7 +15,7 @@ dependencies {
    compile project(":ihmc-geometry")
    compile project(":ihmc-graphics-description")
    testCompile ihmc.getProjectTestDependency(":ihmc-robotics-toolkit")
-   testCompile ihmc.getProjectTestDependency(":ihmc-java-extensions")
+   testCompile ihmc.getProjectTestDependency(":ihmc-commons-staging")
    testCompile group: 'us.ihmc', name: 'ihmc-commons-testing', version: '0.11.0-alpha'
    testCompile ihmc.getProjectTestDependency(":ihmc-robotics-toolkit")
 }
