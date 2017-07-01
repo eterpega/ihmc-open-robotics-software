@@ -4,6 +4,6 @@ println 'Evaluating IHMCJavaToolkit settings.gradle'
 
 if (startParameter.searchUpwards)
 {
-   includeBuild '../IHMCJavaExtensions'
+   includeBuild '../IHMCCommonsStaging'
    includeBuild '../IHMCRoboticsToolkit'
 }
