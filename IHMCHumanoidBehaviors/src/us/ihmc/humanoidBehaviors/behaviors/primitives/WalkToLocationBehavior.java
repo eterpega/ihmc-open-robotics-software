@@ -48,6 +48,7 @@ public class WalkToLocationBehavior extends AbstractBehavior
 
    private double swingTime;
    private double transferTime;
+   private boolean trustHeightOfFootsteps = true;
 
    private final FramePose robotPose = new FramePose();
    private final Point3D robotLocation = new Point3D();
@@ -75,7 +76,14 @@ public class WalkToLocationBehavior extends AbstractBehavior
    private double minDistanceThresholdForWalking, minYawThresholdForWalking;
 
    public WalkToLocationBehavior(CommunicationBridgeInterface outgoingCommunicationBridge, FullHumanoidRobotModel fullRobotModel,
-         HumanoidReferenceFrames referenceFrames, WalkingControllerParameters walkingControllerParameters)
+                                 HumanoidReferenceFrames referenceFrames, WalkingControllerParameters walkingControllerParameters)
+   {
+      this(outgoingCommunicationBridge, fullRobotModel, referenceFrames, walkingControllerParameters, true);
+   }
+   
+   public WalkToLocationBehavior(CommunicationBridgeInterface outgoingCommunicationBridge, FullHumanoidRobotModel fullRobotModel,
+                                 HumanoidReferenceFrames referenceFrames, WalkingControllerParameters walkingControllerParameters,
+                                 boolean trustHeightOfFootsteps)
    {
       super(outgoingCommunicationBridge);
 
@@ -95,6 +103,8 @@ public class WalkToLocationBehavior extends AbstractBehavior
          feet.put(robotSide, fullRobotModel.getFoot(robotSide));
          soleFrames.put(robotSide, fullRobotModel.getSoleFrame(robotSide));
       }
+      
+      this.trustHeightOfFootsteps = trustHeightOfFootsteps;
 
    }
 
@@ -190,6 +200,11 @@ public class WalkToLocationBehavior extends AbstractBehavior
       if (hasTargetBeenProvided.getBooleanValue())
          generateFootsteps();
    }
+   
+   public void setTrustHeightOfFootsteps(boolean trustHeight)
+   {
+      this.trustHeightOfFootsteps = trustHeight;
+   }
 
    @Override
    public void onBehaviorEntered()
@@ -266,7 +281,7 @@ public class WalkToLocationBehavior extends AbstractBehavior
          }
       }
 
-      footstepListBehavior.set(footsteps, swingTime, transferTime);
+      footstepListBehavior.set(footsteps, swingTime, transferTime, trustHeightOfFootsteps);
       haveFootstepsBeenGenerated.set(true);
 
       if (DEBUG)

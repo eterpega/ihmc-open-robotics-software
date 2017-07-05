@@ -312,6 +312,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
             
             atlasPrimitiveActions.walkToLocationBehavior.setWalkingStepWidth(defaultStepWidth);
             atlasPrimitiveActions.walkToLocationBehavior.setTarget(targetPose);
+            atlasPrimitiveActions.walkToLocationBehavior.setTrustHeightOfFootsteps(false);
          }
       };
       
@@ -395,6 +396,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
             
             atlasPrimitiveActions.walkToLocationBehavior.setWalkingStepWidth(wideStepWidth);
             atlasPrimitiveActions.walkToLocationBehavior.setTarget(targetPose);
+            atlasPrimitiveActions.walkToLocationBehavior.setTrustHeightOfFootsteps(false);
          }
       };
       
@@ -549,6 +551,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
             
             atlasPrimitiveActions.walkToLocationBehavior.setWalkingStepWidth(defaultStepWidth);
             atlasPrimitiveActions.walkToLocationBehavior.setTarget(targetPose);
+            atlasPrimitiveActions.walkToLocationBehavior.setTrustHeightOfFootsteps(false);
          }
       };
       
@@ -579,6 +582,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
             
             atlasPrimitiveActions.walkToLocationBehavior.setWalkingStepWidth(defaultStepWidth);
             atlasPrimitiveActions.walkToLocationBehavior.setTarget(targetPose);
+            atlasPrimitiveActions.walkToLocationBehavior.setTrustHeightOfFootsteps(false);
          }
       };
 

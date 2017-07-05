@@ -65,9 +65,13 @@ public class FootstepListBehavior extends AbstractBehavior
       numberOfFootsteps.set(outgoingFootstepDataList.getDataList().size());
       packetHasBeenSent.set(false);
    }
-
-
+   
    public void set(ArrayList<Footstep> footsteps, double swingTime, double transferTime)
+   {
+      set(footsteps, swingTime, transferTime, true);
+   }
+
+   public void set(ArrayList<Footstep> footsteps, double swingTime, double transferTime, boolean trustHeight)
    {
       FootstepDataListMessage footstepDataList = new FootstepDataListMessage(swingTime,transferTime);
 
@@ -82,6 +86,7 @@ public class FootstepListBehavior extends AbstractBehavior
          FootstepDataMessage footstepData = new FootstepDataMessage(footstepSide, position.getPoint(), orientation.getQuaternion());
          footstepDataList.add(footstepData);
       }
+      footstepDataList.setTrustHeightOfFootsteps(trustHeight);
       set(footstepDataList);
    }
 
