@@ -7,10 +7,11 @@ videos="$@"
 
 for i in $videos
 do
-    echo "Extracting image from: " + ${i}
-    mkdir extractedImages-${i}
-    ffmpeg -i ${i} extractedImages-${i}/${i}-image%04d.jpg -hide_banner
+    file=${i%.*}
+    file=${file##*/}
+    tput setaf 1
+    echo "Extracting image from: ${file}"
+    tput sgr0
+    mkdir -p extractedImages-${file}
+    ffmpeg -i ${i} extractedImages-${file}/${file}-image%04d.jpg -hide_banner
 done
-
-# Delete all files with size zero
-# find ~/Akshat/DetectAtlas/Dataset -size  0 -print0 | xargs -0 rm
