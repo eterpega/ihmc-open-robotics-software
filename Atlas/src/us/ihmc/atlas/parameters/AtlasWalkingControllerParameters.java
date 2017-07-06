@@ -11,6 +11,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import gnu.trove.map.hash.TObjectDoubleHashMap;
 import us.ihmc.atlas.AtlasJointMap;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
+import us.ihmc.commonWalkingControlModules.configurations.DynamicReachabilityParameters;
 import us.ihmc.commonWalkingControlModules.configurations.JointPrivilegedConfigurationParameters;
 import us.ihmc.commonWalkingControlModules.configurations.StraightLegWalkingParameters;
 import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParameters;
@@ -81,6 +82,7 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
 
    private final JointPrivilegedConfigurationParameters jointPrivilegedConfigurationParameters;
    private final StraightLegWalkingParameters straightLegWalkingParameters;
+   private final DynamicReachabilityParameters dynamicReachabilityParameters;
 
    public AtlasWalkingControllerParameters(DRCRobotModel.RobotTarget target, AtlasJointMap jointMap, AtlasContactPointParameters contactPointParameters)
    {
@@ -101,6 +103,7 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
 
       jointPrivilegedConfigurationParameters = new AtlasJointPrivilegedConfigurationParameters(runningOnRealRobot);
       straightLegWalkingParameters = new AtlasStraightLegWalkingParameters(runningOnRealRobot);
+      dynamicReachabilityParameters = new AtlasDynamicReachabilityParameters(runningOnRealRobot);
 
       for (RobotSide robotSide : RobotSide.values)
       {
@@ -1412,6 +1415,13 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
    public StraightLegWalkingParameters getStraightLegWalkingParameters()
    {
       return straightLegWalkingParameters;
+   }
+
+   /** {@inheritDoc} */
+   @Override
+   public DynamicReachabilityParameters getDynamicReachabilityParameters()
+   {
+      return dynamicReachabilityParameters;
    }
 
    /** {@inheritDoc} */
