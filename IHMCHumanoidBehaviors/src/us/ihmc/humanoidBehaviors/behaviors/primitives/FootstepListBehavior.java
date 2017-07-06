@@ -99,12 +99,21 @@ public class FootstepListBehavior extends AbstractBehavior
    @Override
    public void doControl()
    {
-      checkForNewStatusPacket();
-
       if (!packetHasBeenSent.getBooleanValue() && outgoingFootstepDataList != null)
       {
+         int count = 0;
+         while (walkingStatusQueue.isNewPacketAvailable())
+         {
+            WalkingStatusMessage walkingStatus = walkingStatusQueue.poll();
+            if (walkingStatus != null)
+               PrintTools.info("Had old status in queue: " + walkingStatus.getWalkingStatus() + " " + count++);
+         }
+         
+         walkingStatusQueue.clear();
          sendFootsepListToController();
       }
+
+      checkForNewStatusPacket();
    }
 
    private void sendFootsepListToController()
@@ -181,6 +190,7 @@ public class FootstepListBehavior extends AbstractBehavior
       hasLastStepBeenReached.set(false);
       isRobotDoneWalking.set(false);
 
+      isDone.set(false);
       isPaused.set(false);
       isStopped.set(false);
       hasBeenInitialized.set(true);
