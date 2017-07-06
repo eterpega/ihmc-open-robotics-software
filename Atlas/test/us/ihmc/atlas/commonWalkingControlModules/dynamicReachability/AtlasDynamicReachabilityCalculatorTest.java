@@ -37,19 +37,6 @@ public class AtlasDynamicReachabilityCalculatorTest extends AvatarDynamicReachab
                   {
                      return 0.92; // height for straight leg steps
                   }
-
-                  @Override
-                  public DynamicReachabilityParameters getDynamicReachabilityParameters()
-                  {
-                     return new DynamicReachabilityParameters()
-                     {
-                        @Override
-                        public double getMaximumDesiredKneeBend()
-                        {
-                           return 0.4;
-                        }
-                     };
-                  }
                };
             }
 
