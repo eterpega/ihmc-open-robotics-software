@@ -1,0 +1,20 @@
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="stickbot_humanoid_32dof" >
+    <xacro:include filename="$(find stickbot_humanoid_32dof)/models/stickbot_humanoid_32dof/xacro/stickbot_humanoid_32dof_base.xacro" />
+    <stickbot_humanoid_32dof />
+
+    <link name="world">
+        <!-- Virtual Link -->
+        <inertial>
+            <mass value="0.1"/>
+            <origin rpy="0 0 0" xyz="0 0 1.2"/>
+            <inertia ixx="8.33333333333e-05" ixy="0.0" ixz="0.0" iyy="8.33333333333e-05" iyz="0.0" izz="0.000125"/>
+        </inertial>
+    </link>
+
+    <joint name="footOffset" type="fixed">
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+        <axis xyz="0 0 1"/>
+        <parent link="world"/>
+        <child link="pelvis"/>
+    </joint>
+</robot>

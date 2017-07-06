@@ -1,0 +1,1218 @@
+<?xml version="1.0" ?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro" name="stickbot_humanoid_32dof">
+
+  <macro name="stickbot_humanoid_32dof">
+    <link name="pelvis">
+      <inertial>
+        <mass value="2"/>
+        <origin xyz="0.0 0.0 0.05"/>
+        <inertia ixx="0.008667" ixy="0" ixz="0" iyy="0.008667" iyz="0" izz="0.01667"/>
+      </inertial>
+      <visual>
+        <origin rpy="0 0 0 " xyz="0.0 -0.0 0.05"/>
+        <geometry name="pelvis">
+          <box size="0.05 0.4 0.1"/>
+        </geometry>
+        <material name="grey">
+          <color rgba="0.627 0.627 0.627 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin rpy="0 0 0 " xyz="0.0 -0.0 0.05"/>
+        <geometry name="pelvis">
+          <box size="0.05 0.4 0.1"/>
+        </geometry>
+      </collision>
+    </link>
+
+  <!--LEFT LEG-->
+    <joint name="leftHipJoint1" type="continuous">
+      <axis xyz="0 0 1"/>
+      <origin rpy="0 0 0" xyz="0 0.2 0.0"/>
+      <parent link="pelvis"/>
+      <child link="leftHipLink1"/>
+      <dynamics damping="0.1"/>
+      <limit effort="100" lower="-3.14" upper="3.14" velocity="1"/>
+      <provide_feedback>true</provide_feedback>
+    </joint>
+
+    <link name="leftHipLink1">
+      <inertial>
+        <mass value="2.0"/>
+        <origin xyz="0.0 0.0 -0.015"/>
+        <inertia ixx="0.00015" ixy="0" ixz="0" iyy="0.00015" iyz="0" izz="0.000225"/>
+      </inertial>
+      <visual>
+        <origin rpy="0 1.507 0" xyz="0 0.0 -0.015"/>
+        <geometry name="leftHipLink1">
+          <cylinder radius="0.03" length="0.03"/>
+        </geometry>
+        <material name="grey">
+          <color rgba="0.627 0.627 0.627 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin rpy="1.507 0 0.0 " xyz="0 0.0 -0.015"/>
+        <geometry name="leftHipLink1">
+          <cylinder radius="0.03" length="0.03"/>
+        </geometry>
+      </collision>
+    </link>
+
+     <joint name="leftHipExtensor" type="continuous">
+      <axis xyz="0 1 0"/>
+      <origin rpy="0 0 0" xyz="0 0 -0.03"/>
+      <parent link="leftHipLink1"/>
+      <child link="leftHipExtensorLink"/>
+      <dynamics damping="0.1"/>
+      <limit effort="100" lower="-3.14" upper="3.14" velocity="1"/>
+      <provide_feedback>true</provide_feedback>
+    </joint>
+
+    <link name="leftHipExtensorLink">
+      <inertial>
+        <mass value="2.0"/>
+        <origin xyz="0.0 0.0 -0.015"/>
+        <inertia ixx="0.00015" ixy="0" ixz="0" iyy="0.00015" iyz="0" izz="0.000225"/>
+      </inertial>
+      <visual>
+        <origin rpy="1.507 0 0" xyz="0 0 -0.015"/>
+        <geometry name="leftHipExtensorLink">
+          <cylinder radius="0.03" length="0.03"/>
+        </geometry>
+        <material name="grey">
+          <color rgba="0.627 0.627 0.627 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin rpy="1.507 0 0.0 " xyz="0 0 -0.015"/>
+        <geometry name="leftHipExtensorLink">
+          <cylinder radius="0.03" length="0.03"/>
+        </geometry>
+      </collision>
+    </link>
+
+     <joint name="leftHipAductor" type="continuous">
+      <axis xyz="1 0 0"/>
+      <origin rpy="0 0 0" xyz="0 0 -0.03"/>
+      <parent link="leftHipExtensorLink"/>
+      <child link="leftUpperLeg"/>
+      <dynamics damping="0.1"/>
+      <limit effort="100" lower="-3.14" upper="3.14" velocity="1"/>
+      <provide_feedback>true</provide_feedback>
+    </joint>
+
+    <link name="leftUpperLeg">
+      <inertial>
+        <mass value="2.0"/>
+        <origin xyz="-0.0 0 -0.15"/>
+        <inertia ixx="0.01545" ixy="0" ixz="0" iyy="0.01545" iyz="0" izz="0.0009"/>
+      </inertial>
+      <visual>
+        <origin rpy="0 0 0 " xyz="0 0 -0.15"/>
+        <geometry name="leftUpperLeg">
+          <cylinder radius="0.03" length="0.3"/>
+        </geometry>
+        <material name="grey">
+          <color rgba="0.627 0.627 0.627 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin rpy="0 0 0 " xyz="0 0 -0.3"/>
+        <geometry name="leftUpperLeg">
+          <cylinder radius="0.03" length="0.3"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="leftKnee" type="continuous">
+      <axis xyz="0 1 0"/>
+      <origin rpy="0 0 0" xyz="0 0 -0.3"/>
+      <parent link="leftUpperLeg"/>
+      <child link="leftLowerLeg"/>
+      <dynamics damping="0.1"/>
+      <limit effort="100" lower="-3.14" upper="3.14" velocity="1"/>
+      <provide_feedback>true</provide_feedback>
+    </joint>
+
+    <link name="leftLowerLeg">
+      <inertial>
+        <mass value="2.0"/>
+        <origin xyz="-0.0 0 -0.15"/>
+        <inertia ixx="0.01545" ixy="0" ixz="0" iyy="0.01545" iyz="0" izz="0.0009"/>
+      </inertial>
+      <visual>
+        <origin rpy="0 0 0 " xyz="0 0 -0.15"/>
+        <geometry name="leftLowerLeg">
+          <cylinder radius="0.03" length="0.3"/>
+        </geometry>
+        <material name="grey">
+          <color rgba="0.627 0.627 0.627 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin rpy="0 0 0 " xyz="0 0 -0.15"/>
+        <geometry name="leftLowerLeg">
+          <cylinder radius="0.03" length="0.3"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="leftAnklePitch" type="continuous">
+      <axis xyz="0 1 0"/>
+      <origin rpy="0 0 0" xyz="0 0 -0.3"/>
+      <parent link="leftLowerLeg"/>
+      <child link="leftAnkleLink"/>
+      <dynamics damping="0.1"/>
+      <limit effort="100" lower="-3.14" upper="3.14" velocity="1"/>
+      <provide_feedback>true</provide_feedback>
+    </joint>
+
+    <link name="leftAnkleLink">
+      <inertial>
+        <mass value="3.0"/>
+        <origin xyz="0.0 0.0 -0.015"/>
+        <inertia ixx="0.00015" ixy="0" ixz="0" iyy="0.00015" iyz="0" izz="0.000225"/>
+      </inertial>
+      <visual>
+        <origin rpy="1.507 0 0" xyz="0 0 -0.015"/>
+        <geometry name="leftAnkleLink">
+          <cylinder radius="0.03" length="0.03"/>
+        </geometry>
+        <material name="grey">
+          <color rgba="0.627 0.627 0.627 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin rpy="0 0 0.0 " xyz="0 0 -0.015"/>
+        <geometry name="leftAnkleLink">
+          <cylinder radius="0.03" length="0.03"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="leftAnkleRoll" type="continuous">
+      <axis xyz="1 0 0"/>
+      <origin rpy="0 0 0" xyz="0.025 0 -0.03"/>
+      <parent link="leftAnkleLink"/>
+      <child link="leftFoot"/>
+      <dynamics damping="0.1"/>
+      <limit effort="100" lower="-3.14" upper="3.14" velocity="1"/>
+      <provide_feedback>true</provide_feedback>
+    </joint>
+
+    <link name="leftFoot">
+      <inertial>
+        <mass value="10"/>
+        <origin xyz="0.03 0 -0.01"/>
+        <inertia ixx="0.008667" ixy="0" ixz="0" iyy="0.008667" iyz="0" izz="0.01667"/>
+      </inertial>
+      <visual>
+        <origin rpy="0 0 0 " xyz="0.0 0 -0.02"/>
+        <geometry name="leftFoot">
+        <box size="0.5 0.3 0.04"/>
+        </geometry>
+        <material name="grey">
+          <color rgba="0.627 0.627 0.627 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin rpy="0 0 0 " xyz="0.0 0 -0.02"/>
+        <geometry name="leftFoot">
+          <box size="0.5 0.3 0.04"/>
+        </geometry>
+      </collision>
+    </link>
+
+  <!--RIGHT LEG-->
+    <joint name="rightHipJoint1" type="continuous">
+      <axis xyz="0 0 1"/>
+      <origin rpy="0 0 0" xyz="0 -0.2 0.0"/>
+      <dynamics damping="0.1"/>
+      <parent link="pelvis"/>
+      <child link="rightHipLink1"/>
+      <limit effort="100" lower="-3.14" upper="3.14" velocity="1"/>
+      <provide_feedback>true</provide_feedback>
+    </joint>
+
+    <link name="rightHipLink1">
+      <inertial>
+        <mass value="2.0"/>
+        <origin xyz="0.0 0.0 -0.015"/>
+        <inertia ixx="0.00015" ixy="0" ixz="0" iyy="0.00015" iyz="0" izz="0.000225"/>
+      </inertial>
+      <visual>
+        <origin rpy="0 1.507 0" xyz="0 0.0 -0.015"/>
+        <geometry name="rightHipLink1">
+          <cylinder radius="0.03" length="0.03"/>
+        </geometry>
+        <material name="grey">
+          <color rgba="0.627 0.627 0.627 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin rpy="1.507 0 0.0 " xyz="0 0.0 -0.015"/>
+        <geometry name="rightHipLink1">
+          <cylinder radius="0.03" length="0.03"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="rightHipExtensor" type="continuous">
+      <axis xyz="0 1 0"/>
+      <origin rpy="0 0 0" xyz="0 0 -0.03"/>
+      <dynamics damping="0.1"/>
+      <parent link="rightHipLink1"/>
+      <child link="rightHipExtensorLink"/>
+      <limit effort="100" lower="-3.14" upper="3.14" velocity="1"/>
+      <provide_feedback>true</provide_feedback>
+    </joint>
+
+    <link name="rightHipExtensorLink">
+      <inertial>
+        <mass value="2.0"/>
+        <origin xyz="0.0 0.0 -0.015"/>
+        <inertia ixx="0.00015" ixy="0" ixz="0" iyy="0.00015" iyz="0" izz="0.000225"/>
+      </inertial>
+      <visual>
+        <origin rpy="1.507 0 0" xyz="0 0 -0.015"/>
+        <geometry name="rightHipExtensorLink">
+          <cylinder radius="0.03" length="0.03"/>
+        </geometry>
+        <material name="grey">
+          <color rgba="0.627 0.627 0.627 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin rpy="1.507 0 0.0 " xyz="0 0 -0.015"/>
+        <geometry name="rightHipExtensorLink">
+          <cylinder radius="0.03" length="0.03"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="rightHipAductor" type="continuous">
+      <axis xyz="1 0 0"/>
+      <origin rpy="0 0 0" xyz="0 0 -0.03"/>
+      <parent link="rightHipExtensorLink"/>
+      <child link="rightUpperLeg"/>
+      <dynamics damping="0.1"/>
+      <limit effort="100" lower="-3.14" upper="3.14" velocity="1"/>
+      <provide_feedback>true</provide_feedback>
+    </joint>
+
+    <link name="rightUpperLeg">
+      <inertial>
+        <mass value="2.0"/>
+        <origin xyz="-0.0 0 -0.15"/>
+        <inertia ixx="0.01545" ixy="0" ixz="0" iyy="0.01545" iyz="0" izz="0.0009"/>
+      </inertial>
+      <visual>
+        <origin rpy="0 0 0 " xyz="0 0 -0.15"/>
+        <geometry name="rightUpperLeg">
+          <cylinder radius="0.03" length="0.3"/>
+        </geometry>
+        <material name="grey">
+          <color rgba="0.627 0.627 0.627 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin rpy="0 0 0 " xyz="0 0 -0.3"/>
+        <geometry name="rightUpperLeg">
+          <cylinder radius="0.03" length="0.3"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="rightKnee" type="continuous">
+      <axis xyz="0 1 0"/>
+      <origin rpy="0 0 0" xyz="0 0 -0.3"/>
+      <parent link="rightUpperLeg"/>
+      <child link="rightLowerLeg"/>
+      <dynamics damping="0.1"/>
+      <limit effort="100" lower="-3.14" upper="3.14" velocity="1"/>
+      <provide_feedback>true</provide_feedback>
+    </joint>
+
+    <link name="rightLowerLeg">
+      <inertial>
+        <mass value="2.0"/>
+        <origin xyz="-0.0 0 -0.15"/>
+        <inertia ixx="0.01545" ixy="0" ixz="0" iyy="0.01545" iyz="0" izz="0.0009"/>
+      </inertial>
+      <visual>
+        <origin rpy="0 0 0 " xyz="0 0 -0.15"/>
+        <geometry name="rightLowerLeg">
+          <cylinder radius="0.03" length="0.3"/>
+        </geometry>
+        <material name="grey">
+          <color rgba="0.627 0.627 0.627 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin rpy="0 0 0 " xyz="0 0 -0.15"/>
+        <geometry name="rightLowerLeg">
+          <cylinder radius="0.03" length="0.3"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="rightAnklePitch" type="continuous">
+      <axis xyz="0 1 0"/>
+      <origin rpy="0 0 0" xyz="0 0 -0.3"/>
+      <dynamics damping="0.1"/>
+      <parent link="rightLowerLeg"/>
+      <child link="rightAnkleLink"/>
+      <limit effort="100" lower="-3.14" upper="3.14" velocity="1"/>
+      <provide_feedback>true</provide_feedback>
+    </joint>
+
+    <link name="rightAnkleLink">
+      <inertial>
+        <mass value="3.0"/>
+        <origin xyz="0.0 0.0 -0.015"/>
+        <inertia ixx="0.00015" ixy="0" ixz="0" iyy="0.00015" iyz="0" izz="0.000225"/>
+      </inertial>
+      <visual>
+        <origin rpy="1.507 0 0" xyz="0 0 -0.015"/>
+        <geometry name="rightAnkleLink">
+          <cylinder radius="0.03" length="0.03"/>
+        </geometry>
+        <material name="grey">
+          <color rgba="0.627 0.627 0.627 1"/>
+        </material>
+      </visual>
+      <collision>
+         <origin rpy="1.507 0 0" xyz="0 0 -0.015"/>
+        <geometry name="rightAnkleLink">
+          <cylinder radius="0.03" length="0.03"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="rightAnkleRoll" type="continuous">
+      <axis xyz="1 0 0"/>
+      <origin rpy="0 0 0" xyz="0.025 0 -0.03"/>
+      <parent link="rightAnkleLink"/>
+      <child link="rightFoot"/>
+      <dynamics damping="0.1"/>
+      <limit effort="100" lower="-3.14" upper="3.14" velocity="1"/>
+      <provide_feedback>true</provide_feedback>
+    </joint>
+
+    <link name="rightFoot">
+      <inertial>
+        <mass value="10"/>
+        <origin xyz="0.03 0 -0.02"/>
+        <inertia ixx="0.008667" ixy="0" ixz="0" iyy="0.008667" iyz="0" izz="0.01667"/>
+      </inertial>
+      <visual>
+        <origin rpy="0 0 0 " xyz="0.0 0 -0.02"/>
+        <geometry name="rightFoot">
+          <box size="0.5 0.3 0.04"/>
+        </geometry>
+        <material name="grey">
+          <color rgba="0.627 0.627 0.627 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin rpy="0 0 0 " xyz="0.0 0 -0.02"/>
+        <geometry name="rightFoot">
+          <box size="0.5 0.3 0.04"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="waist_rotator" type="continuous">
+      <axis xyz="0 0 1"/>
+      <origin rpy="0 0 0" xyz="0.0 0.0 0.1"/>
+      <dynamics damping="0.1"/>
+      <parent link="pelvis"/>
+      <child link="abdomen"/>
+      <limit effort="100" lower="-3.14" upper="3.14" velocity="10"/>
+      <provide_feedback>true</provide_feedback>
+    </joint>
+
+    <link name="abdomen">
+      <inertial>
+        <mass value="1.0"/>
+        <origin xyz="0.0 0.0 0.125"/>
+        <inertia ixx="0.028125" ixy="0" ixz="0" iyy="0.045" iyz="0" izz="0.028125"/>
+      </inertial>
+      <visual>
+        <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.015"/>
+        <geometry name="torso">
+          <cylinder radius="0.1" length="0.03"/>
+        </geometry>
+        <material name="grey">
+          <color rgba="0.627 0.627 0.627 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.015"/>
+        <geometry name="torso">
+          <cylinder radius="0.1" length="0.03"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="torso_extensor" type="continuous">
+      <axis xyz="0 1 0"/>
+      <origin rpy="0 0 0" xyz="0.0 0.0 0.03"/>
+      <dynamics damping="0.1"/>
+      <parent link="abdomen"/>
+      <child link="torso"/>
+      <limit effort="100" lower="-3.14" upper="3.14" velocity="10"/>
+      <provide_feedback>true</provide_feedback>
+    </joint>
+
+    <link name="torso">
+      <inertial>
+        <mass value="2"/>
+        <origin xyz="0.0 0.0 0.125"/>
+        <inertia ixx="0.028125" ixy="0" ixz="0" iyy="0.045" iyz="0" izz="0.028125"/>
+      </inertial>
+      <visual>
+        <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.125"/>
+        <geometry name="torso">
+          <box size="0.12 0.25 0.25"/>
+        </geometry>
+        <material name="grey">
+          <color rgba="0.627 0.627 0.627 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.125"/>
+        <geometry name="torso">
+          <box size="0.12 0.25 0.25"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="chest_extensor" type="continuous">
+      <axis xyz="0 1 0"/>
+      <origin rpy="0 0 0" xyz="0.0 0.0 0.25"/>
+      <dynamics damping="0.1"/>
+      <parent link="torso"/>
+      <child link="chest"/>
+      <limit effort="100" lower="-3.14" upper="3.14" velocity="10"/>
+      <provide_feedback>true</provide_feedback>
+    </joint>
+
+    <link name="chest">
+      <inertial>
+        <mass value="2"/>
+        <origin xyz="0.0 0.0 0.125"/>
+        <inertia ixx="0.028125" ixy="0" ixz="0" iyy="0.045" iyz="0" izz="0.028125"/>
+      </inertial>
+      <visual>
+        <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.125"/>
+        <geometry name="chest">
+          <box size="0.12 0.25 0.25"/>
+        </geometry>
+        <material name="grey">
+          <color rgba="0.627 0.627 0.627 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.125"/>
+        <geometry name="chest">
+          <box size="0.12 0.25 0.25"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="right_shoulder_extensor" type="continuous">
+      <axis xyz="0 1 0"/>
+      <origin rpy="0 0 0" xyz="0.0 -0.125 0.22"/>
+      <dynamics damping="0.1"/>
+      <parent link="chest"/>
+      <child link="right_shoulder_extensor"/>
+      <limit effort="100" lower="-3.14" upper="3.14" velocity="10"/>
+      <provide_feedback>true</provide_feedback>
+    </joint>
+
+    <link name="right_shoulder_extensor">
+      <inertial>
+        <mass value="1"/>
+        <origin xyz="0.0 -0.01 0.0"/>
+        <inertia ixx="0.028125" ixy="0" ixz="0" iyy="0.045" iyz="0" izz="0.028125"/>
+      </inertial>
+      <visual>
+        <origin rpy="1.57 0.0 0.0" xyz="0.0 -0.01 0.0"/>
+        <geometry name="right_shoulder_extensor">
+          <cylinder radius="0.06" length="0.02"/>
+        </geometry>
+        <material name="grey">
+          <color rgba="0.627 0.627 0.627 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin rpy="1.57 0.0 0.0" xyz="0.0 -0.01 0.0"/>
+        <geometry name="right_shoulder_extensor">
+          <cylinder radius="0.06" length="0.02"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="right_shoulder_adductor" type="continuous">
+      <axis xyz="1 0 0"/>
+      <origin rpy="0 0 0" xyz="0.0 -0.04 0.0"/>
+      <dynamics damping="0.1"/>
+      <parent link="right_shoulder_extensor"/>
+      <child link="right_shoulder_adductor"/>
+      <limit effort="100" lower="-3.14" upper="3.14" velocity="10"/>
+      <provide_feedback>true</provide_feedback>
+    </joint>
+
+    <link name="right_shoulder_adductor">
+      <inertial>
+        <mass value="1"/>
+        <origin xyz="0.0 -0.02 0.0"/>
+        <inertia ixx="0.028125" ixy="0" ixz="0" iyy="0.045" iyz="0" izz="0.028125"/>
+      </inertial>
+      <visual>
+        <origin rpy="0.0 1.57 0.0" xyz="0.0 -0.02 0.0"/>
+        <geometry name="right_shoulder_adductor">
+          <cylinder radius="0.04" length="0.1"/>
+        </geometry>
+        <material name="grey">
+          <color rgba="0.627 0.627 0.627 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin rpy="0.0 1.57 0.0" xyz="0.0 -0.02 0.0"/>
+        <geometry name="right_shoulder_adductor">
+          <cylinder radius="0.04" length="0.1"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="right_shoulder_rotator" type="continuous">
+      <axis xyz="0 0 1"/>
+      <origin rpy="0 0 0" xyz="0.0 -0.02 -0.02"/>
+      <dynamics damping="0.1"/>
+      <parent link="right_shoulder_adductor"/>
+      <child link="right_shoulder_rotator"/>
+      <limit effort="100" lower="-3.14" upper="3.14" velocity="10"/>
+      <provide_feedback>true</provide_feedback>
+    </joint>
+
+    <link name="right_shoulder_rotator">
+      <inertial>
+        <mass value="2"/>
+        <origin xyz="0.0 0.0 -0.1"/>
+        <inertia ixx="0.028125" ixy="0" ixz="0" iyy="0.045" iyz="0" izz="0.028125"/>
+      </inertial>
+      <visual>
+        <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.1"/>
+        <geometry name="right_shoulder_rotator">
+          <cylinder radius="0.03" length="0.2"/>
+        </geometry>
+        <material name="grey">
+          <color rgba="0.627 0.627 0.627 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.1"/>
+        <geometry name="right_shoulder_rotator">
+          <cylinder radius="0.03" length="0.2"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="right_elbow_extensor" type="continuous">
+      <axis xyz="0 1 0"/>
+      <origin rpy="0 0 0" xyz="0.0 -0.0 -0.2"/>
+      <dynamics damping="0.1"/>
+      <parent link="right_shoulder_rotator"/>
+      <child link="right_elbow_extensor"/>
+      <limit effort="100" lower="-3.14" upper="3.14" velocity="10"/>
+      <provide_feedback>true</provide_feedback>
+    </joint>
+
+    <link name="right_elbow_extensor">
+      <inertial>
+        <mass value="2"/>
+        <origin xyz="0.0 0.0 -0.1"/>
+        <inertia ixx="0.028125" ixy="0" ixz="0" iyy="0.045" iyz="0" izz="0.028125"/>
+      </inertial>
+      <visual>
+        <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.1"/>
+        <geometry name="right_elbow_extensor">
+          <cylinder radius="0.03" length="0.2"/>
+        </geometry>
+        <material name="grey">
+          <color rgba="0.627 0.627 0.627 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.1"/>
+        <geometry name="right_elbow_extensor">
+          <cylinder radius="0.03" length="0.2"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="right_wrist_rotator" type="continuous">
+      <axis xyz="0 0 1"/>
+      <origin rpy="0 0 0" xyz="0.0 -0.0 -0.2"/>
+      <dynamics damping="0.1"/>
+      <parent link="right_elbow_extensor"/>
+      <child link="right_wrist_rotator"/>
+      <limit effort="100" lower="-3.14" upper="3.14" velocity="10"/>
+      <provide_feedback>true</provide_feedback>
+    </joint>
+
+    <link name="right_wrist_rotator">
+      <inertial>
+        <mass value="2"/>
+        <origin xyz="0.0 0.0 -0.02"/>
+        <inertia ixx="0.028125" ixy="0" ixz="0" iyy="0.045" iyz="0" izz="0.028125"/>
+      </inertial>
+      <visual>
+        <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.02"/>
+        <geometry name="right_wrist_rotator">
+          <cylinder radius="0.03" length="0.04"/>
+        </geometry>
+        <material name="grey">
+          <color rgba="0.627 0.627 0.627 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.02"/>
+        <geometry name="right_wrist_rotator">
+          <cylinder radius="0.03" length="0.04"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="right_wrist_extensor" type="continuous">
+      <axis xyz="0 1 0"/>
+      <origin rpy="0 0 0" xyz="0.0 -0.0 -0.02"/>
+      <dynamics damping="0.1"/>
+      <parent link="right_wrist_rotator"/>
+      <child link="right_wrist_extensor"/>
+      <limit effort="100" lower="-3.14" upper="3.14" velocity="10"/>
+      <provide_feedback>true</provide_feedback>
+    </joint>
+
+    <link name="right_wrist_extensor">
+      <inertial>
+        <mass value="1"/>
+        <origin xyz="0.0 0.0 -0.02"/>
+        <inertia ixx="0.028125" ixy="0" ixz="0" iyy="0.045" iyz="0" izz="0.028125"/>
+      </inertial>
+      <visual>
+        <origin rpy="1.57 0.0 0.0" xyz="0.0 0.0 -0.02"/>
+        <geometry name="right_wrist_extensor">
+          <cylinder radius="0.03" length="0.04"/>
+        </geometry>
+        <material name="grey">
+          <color rgba="0.627 0.627 0.627 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin rpy="1.57 0.0 0.0" xyz="0.0 0.0 -0.02"/>
+        <geometry name="right_wrist_extensor">
+          <cylinder radius="0.03" length="0.04"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="right_wrist_adductor" type="continuous">
+      <axis xyz="0 1 0"/>
+      <origin rpy="0 0 0" xyz="0.0 -0.0 -0.02"/>
+      <dynamics damping="0.1"/>
+      <parent link="right_wrist_extensor"/>
+      <child link="right_wrist_adductor"/>
+      <limit effort="100" lower="-3.14" upper="3.14" velocity="10"/>
+      <provide_feedback>true</provide_feedback>
+    </joint>
+
+    <link name="right_wrist_adductor">
+      <inertial>
+        <mass value="1"/>
+        <origin xyz="0.0 0.0 -0.06"/>
+        <inertia ixx="0.028125" ixy="0" ixz="0" iyy="0.045" iyz="0" izz="0.028125"/>
+      </inertial>
+      <visual>
+        <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.06"/>
+        <geometry name="right_wrist_adductor">
+          <box size="0.1 0.02 0.12"/>
+        </geometry>
+        <material name="grey">
+          <color rgba="0.627 0.627 0.627 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.06"/>
+        <geometry name="right_wrist_adductor">
+          <box size="0.1 0.02 0.12"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="left_shoulder_extensor" type="continuous">
+      <axis xyz="0 1 0"/>
+      <origin rpy="0 0 0" xyz="0.0 0.125 0.22"/>
+      <dynamics damping="0.1"/>
+      <parent link="chest"/>
+      <child link="left_shoulder_extensor"/>
+      <limit effort="100" lower="-3.14" upper="3.14" velocity="10"/>
+      <provide_feedback>true</provide_feedback>
+    </joint>
+
+    <link name="left_shoulder_extensor">
+      <inertial>
+        <mass value="1"/>
+        <origin xyz="0.0 0.01 0.0"/>
+        <inertia ixx="0.028125" ixy="0" ixz="0" iyy="0.045" iyz="0" izz="0.028125"/>
+      </inertial>
+      <visual>
+        <origin rpy="1.57 0.0 0.0" xyz="0.0 0.01 0.0"/>
+        <geometry name="left_shoulder_extensor">
+          <cylinder radius="0.06" length="0.02"/>
+        </geometry>
+        <material name="grey">
+          <color rgba="0.627 0.627 0.627 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin rpy="1.57 0.0 0.0" xyz="0.0 0.01 0.0"/>
+        <geometry name="left_shoulder_extensor">
+          <cylinder radius="0.06" length="0.02"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="left_shoulder_adductor" type="continuous">
+      <axis xyz="1 0 0"/>
+      <origin rpy="0 0 0" xyz="0.0 0.04 0.0"/>
+      <dynamics damping="0.1"/>
+      <parent link="left_shoulder_extensor"/>
+      <child link="left_shoulder_adductor"/>
+      <limit effort="100" lower="-3.14" upper="3.14" velocity="10"/>
+      <provide_feedback>true</provide_feedback>
+    </joint>
+
+    <link name="left_shoulder_adductor">
+      <inertial>
+        <mass value="1"/>
+        <origin xyz="0.0 0.02 0.0"/>
+        <inertia ixx="0.028125" ixy="0" ixz="0" iyy="0.045" iyz="0" izz="0.028125"/>
+      </inertial>
+      <visual>
+        <origin rpy="0.0 1.57 0.0" xyz="0.0 0.02 0.0"/>
+        <geometry name="left_shoulder_adductor">
+          <cylinder radius="0.04" length="0.1"/>
+        </geometry>
+        <material name="grey">
+          <color rgba="0.627 0.627 0.627 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin rpy="0.0 1.57 0.0" xyz="0.0 0.02 0.0"/>
+        <geometry name="left_shoulder_adductor">
+          <cylinder radius="0.04" length="0.1"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="left_shoulder_rotator" type="continuous">
+      <axis xyz="0 0 1"/>
+      <origin rpy="0 0 0" xyz="0.0 0.02 -0.02"/>
+      <dynamics damping="0.1"/>
+      <parent link="left_shoulder_adductor"/>
+      <child link="left_shoulder_rotator"/>
+      <limit effort="100" lower="-3.14" upper="3.14" velocity="10"/>
+      <provide_feedback>true</provide_feedback>
+    </joint>
+
+    <link name="left_shoulder_rotator">
+      <inertial>
+        <mass value="2"/>
+        <origin xyz="0.0 0.0 -0.1"/>
+        <inertia ixx="0.028125" ixy="0" ixz="0" iyy="0.045" iyz="0" izz="0.028125"/>
+      </inertial>
+      <visual>
+        <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.1"/>
+        <geometry name="left_shoulder_rotator">
+          <cylinder radius="0.03" length="0.2"/>
+        </geometry>
+        <material name="grey">
+          <color rgba="0.627 0.627 0.627 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.1"/>
+        <geometry name="left_shoulder_rotator">
+          <cylinder radius="0.03" length="0.2"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="left_elbow_extensor" type="continuous">
+      <axis xyz="0 1 0"/>
+      <origin rpy="0 0 0" xyz="0.0 -0.0 -0.2"/>
+      <dynamics damping="0.1"/>
+      <parent link="left_shoulder_rotator"/>
+      <child link="left_elbow_extensor"/>
+      <limit effort="100" lower="-3.14" upper="3.14" velocity="10"/>
+      <provide_feedback>true</provide_feedback>
+    </joint>
+
+    <link name="left_elbow_extensor">
+      <inertial>
+        <mass value="2"/>
+        <origin xyz="0.0 0.0 -0.1"/>
+        <inertia ixx="0.028125" ixy="0" ixz="0" iyy="0.045" iyz="0" izz="0.028125"/>
+      </inertial>
+      <visual>
+        <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.1"/>
+        <geometry name="left_elbow_extensor">
+          <cylinder radius="0.03" length="0.2"/>
+        </geometry>
+        <material name="grey">
+          <color rgba="0.627 0.627 0.627 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.1"/>
+        <geometry name="left_elbow_extensor">
+          <cylinder radius="0.03" length="0.2"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="left_wrist_rotator" type="continuous">
+      <axis xyz="0 0 1"/>
+      <origin rpy="0 0 0" xyz="0.0 -0.0 -0.2"/>
+      <dynamics damping="0.1"/>
+      <parent link="left_elbow_extensor"/>
+      <child link="left_wrist_rotator"/>
+      <limit effort="100" lower="-3.14" upper="3.14" velocity="10"/>
+      <provide_feedback>true</provide_feedback>
+    </joint>
+
+    <link name="left_wrist_rotator">
+      <inertial>
+        <mass value="2"/>
+        <origin xyz="0.0 0.0 -0.02"/>
+        <inertia ixx="0.028125" ixy="0" ixz="0" iyy="0.045" iyz="0" izz="0.028125"/>
+      </inertial>
+      <visual>
+        <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.02"/>
+        <geometry name="left_wrist_rotator">
+          <cylinder radius="0.03" length="0.04"/>
+        </geometry>
+        <material name="grey">
+          <color rgba="0.627 0.627 0.627 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.02"/>
+        <geometry name="left_wrist_rotator">
+          <cylinder radius="0.03" length="0.04"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="left_wrist_extensor" type="continuous">
+      <axis xyz="0 1 0"/>
+      <origin rpy="0 0 0" xyz="0.0 -0.0 -0.02"/>
+      <dynamics damping="0.1"/>
+      <parent link="left_wrist_rotator"/>
+      <child link="left_wrist_extensor"/>
+      <limit effort="100" lower="-3.14" upper="3.14" velocity="10"/>
+      <provide_feedback>true</provide_feedback>
+    </joint>
+
+    <link name="left_wrist_extensor">
+      <inertial>
+        <mass value="1"/>
+        <origin xyz="0.0 0.0 -0.02"/>
+        <inertia ixx="0.028125" ixy="0" ixz="0" iyy="0.045" iyz="0" izz="0.028125"/>
+      </inertial>
+      <visual>
+        <origin rpy="1.57 0.0 0.0" xyz="0.0 0.0 -0.02"/>
+        <geometry name="left_wrist_extensor">
+          <cylinder radius="0.03" length="0.04"/>
+        </geometry>
+        <material name="grey">
+          <color rgba="0.627 0.627 0.627 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin rpy="1.57 0.0 0.0" xyz="0.0 0.0 -0.02"/>
+        <geometry name="left_wrist_extensor">
+          <cylinder radius="0.03" length="0.04"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="left_wrist_adductor" type="continuous">
+      <axis xyz="0 1 0"/>
+      <origin rpy="0 0 0" xyz="0.0 -0.0 -0.02"/>
+      <dynamics damping="0.1"/>
+      <parent link="left_wrist_extensor"/>
+      <child link="left_wrist_adductor"/>
+      <limit effort="100" lower="-3.14" upper="3.14" velocity="10"/>
+      <provide_feedback>true</provide_feedback>
+    </joint>
+
+    <link name="left_wrist_adductor">
+      <inertial>
+        <mass value="1"/>
+        <origin xyz="0.0 0.0 -0.06"/>
+        <inertia ixx="0.028125" ixy="0" ixz="0" iyy="0.045" iyz="0" izz="0.028125"/>
+      </inertial>
+      <visual>
+        <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.06"/>
+        <geometry name="left_wrist_adductor">
+          <box size="0.1 0.02 0.12"/>
+        </geometry>
+        <material name="grey">
+          <color rgba="0.627 0.627 0.627 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.06"/>
+        <geometry name="left_wrist_adductor">
+          <box size="0.1 0.02 0.12"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="neck_rotator" type="continuous">
+      <axis xyz="0 0 1"/>
+      <origin rpy="0 0 0" xyz="0.0 -0.0 0.25"/>
+      <dynamics damping="0.1"/>
+      <parent link="chest"/>
+      <child link="neck_rotator"/>
+      <limit effort="100" lower="-3.14" upper="3.14" velocity="10"/>
+      <provide_feedback>true</provide_feedback>
+    </joint>
+
+    <link name="neck_rotator">
+      <inertial>
+        <mass value="0.5"/>
+        <origin xyz="0.0 0.0 0.01"/>
+        <inertia ixx="0.0028125" ixy="0" ixz="0" iyy="0.0045" iyz="0" izz="0.0028125"/>
+      </inertial>
+      <visual>
+        <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
+        <geometry name="neck_rotator">
+           <cylinder radius="0.03" length="0.04"/>
+        </geometry>
+        <material name="grey">
+          <color rgba="0.627 0.627 0.627 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
+        <geometry name="neck_rotator">
+           <cylinder radius="0.03" length="0.04"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="neck_extensor" type="continuous">
+      <axis xyz="0 1 0"/>
+      <origin rpy="0 0 0" xyz="0.0 -0.0 0.02"/>
+      <dynamics damping="0.1"/>
+      <parent link="neck_rotator"/>
+      <child link="neck_extensor"/>
+      <limit effort="100" lower="-3.14" upper="3.14" velocity="10"/>
+      <provide_feedback>true</provide_feedback>
+    </joint>
+
+    <link name="neck_extensor">
+      <inertial>
+        <mass value="0.5"/>
+        <origin xyz="0.0 0.0 0.01"/>
+        <inertia ixx="0.0028125" ixy="0" ixz="0" iyy="0.0045" iyz="0" izz="0.0028125"/>
+      </inertial>
+      <visual>
+        <origin rpy="1.57 0.0 0.0" xyz="0.0 0.0 0.01"/>
+        <geometry name="neck_rotator">
+           <cylinder radius="0.03" length="0.04"/>
+        </geometry>
+        <material name="grey">
+          <color rgba="0.627 0.627 0.627 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin rpy="1.57 0.0 0.0" xyz="0.0 0.0 0.01"/>
+        <geometry name="neck_rotator">
+           <cylinder radius="0.03" length="0.04"/>
+        </geometry>
+      </collision>
+    </link>
+
+
+    <joint name="neck_adductor" type="continuous">
+      <axis xyz="1 0 0"/>
+      <origin rpy="0 0 0" xyz="0.0 -0.0 0.02"/>
+      <dynamics damping="0.1"/>
+      <parent link="neck_extensor"/>
+      <child link="neck_adductor"/>
+      <limit effort="100" lower="-3.14" upper="3.14" velocity="10"/>
+      <provide_feedback>true</provide_feedback>
+    </joint>
+
+    <link name="neck_adductor">
+      <inertial>
+        <mass value="0.5"/>
+        <origin xyz="0.0 0.0 0.01"/>
+        <inertia ixx="0.0028125" ixy="0" ixz="0" iyy="0.0045" iyz="0" izz="0.0028125"/>
+      </inertial>
+      <visual>
+        <origin rpy="0.0 1.57 0.0" xyz="0.0 0.0 0.01"/>
+        <geometry name="neck_adductor">
+           <cylinder radius="0.03" length="0.04"/>
+        </geometry>
+        <material name="grey">
+          <color rgba="0.627 0.627 0.627 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin rpy="0.0 1.57 0.0" xyz="0.0 0.0 0.01"/>
+        <geometry name="neck_adductor">
+           <cylinder radius="0.03" length="0.04"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="head" type="fixed">
+      <axis xyz="1 0 0"/>
+      <origin rpy="0 0 0" xyz="0.0 -0.0 0.02"/>
+      <dynamics damping="0.1"/>
+      <parent link="neck_adductor"/>
+      <child link="head"/>
+      <limit effort="100" lower="-3.14" upper="3.14" velocity="10"/>
+      <provide_feedback>true</provide_feedback>
+    </joint>
+
+    <link name="head">
+      <inertial>
+        <mass value="2"/>
+        <origin xyz="0.0 0.0 0.11"/>
+        <inertia ixx="0.0028125" ixy="0" ixz="0" iyy="0.0045" iyz="0" izz="0.0028125"/>
+      </inertial>
+      <visual>
+        <origin rpy="0.0 1.57 0.0" xyz="0.0 0.0 0.11"/>
+        <geometry name="head">
+           <sphere radius="0.1"/>
+        </geometry>
+        <material name="grey">
+          <color rgba="0.627 0.627 0.627 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin rpy="0.0 1.57 0.0" xyz="0.0 0.0 0.11"/>
+        <geometry name="head">
+           <sphere radius="0.1"/>
+        </geometry>
+      </collision>
+    </link>
+
+
+    <gazebo reference="leftHipJoint1">
+      <provideFeedback value="true"/>
+    </gazebo>
+    <gazebo reference="leftHipExtensor">
+      <provideFeedback value="true"/>
+    </gazebo>
+    <gazebo reference="leftHipAductor">
+      <provideFeedback value="true"/>
+    </gazebo>
+    <gazebo reference="leftKnee">
+      <provideFeedback value="true"/>
+    </gazebo>
+    <gazebo reference="leftAnklePitch">
+      <provideFeedback value="true"/>
+    </gazebo>
+    <gazebo reference="leftAnkleRoll">
+      <provideFeedback value="true"/>
+    </gazebo>
+    <gazebo reference="rightHipJoint1">
+      <provideFeedback value="true"/>
+    </gazebo>
+    <gazebo reference="rightHipExtensor">
+      <provideFeedback value="true"/>
+    </gazebo>
+    <gazebo reference="rightHipAductor">
+      <provideFeedback value="true"/>
+    </gazebo>
+    <gazebo reference="rightKnee">
+      <provideFeedback value="true"/>
+    </gazebo>
+    <gazebo reference="rightAnklePitch">
+      <provideFeedback value="true"/>
+    </gazebo>
+    <gazebo reference="rightAnkleRoll">
+      <provideFeedback value="true"/>
+    </gazebo>
+    <gazebo reference="waist_rotator">
+      <provideFeedback value="true"/>
+    </gazebo>
+    <gazebo reference="torso_extensor">
+      <provideFeedback value="true"/>
+    </gazebo>
+    <gazebo reference="chest_extensor">
+      <provideFeedback value="true"/>
+    </gazebo>
+    <gazebo reference="left_shoulder_extensor">
+      <provideFeedback value="true"/>
+    </gazebo>
+    <gazebo reference="left_shoulder_adductor">
+      <provideFeedback value="true"/>
+    </gazebo>
+    <gazebo reference="left_shoulder_rotator">
+      <provideFeedback value="true"/>
+    </gazebo>
+    <gazebo reference="left_elbow_extensor">
+      <provideFeedback value="true"/>
+    </gazebo>
+    <gazebo reference="left_wrist_rotator">
+      <provideFeedback value="true"/>
+    </gazebo>
+    <gazebo reference="left_wrist_extensor">
+      <provideFeedback value="true"/>
+    </gazebo>
+    <gazebo reference="left_wrist_adductor">
+      <provideFeedback value="true"/>
+    </gazebo>
+    <gazebo reference="neck_rotator">
+      <provideFeedback value="true"/>
+    </gazebo>
+    <gazebo reference="neck_extensor">
+      <provideFeedback value="true"/>
+    </gazebo>
+    <gazebo reference="neck_adductor">
+      <provideFeedback value="true"/>
+    </gazebo>
+    <gazebo reference="right_shoulder_extensor">
+      <provideFeedback value="true"/>
+    </gazebo>
+    <gazebo reference="right_shoulder_adductor">
+      <provideFeedback value="true"/>
+    </gazebo>
+    <gazebo reference="right_shoulder_rotator">
+      <provideFeedback value="true"/>
+    </gazebo>
+    <gazebo reference="right_elbow_extensor">
+      <provideFeedback value="true"/>
+    </gazebo>
+    <gazebo reference="right_wrist_rotator">
+      <provideFeedback value="true"/>
+    </gazebo>
+    <gazebo reference="right_wrist_extensor">
+      <provideFeedback value="true"/>
+    </gazebo>
+    <gazebo reference="right_wrist_adductor">
+      <provideFeedback value="true"/>
+    </gazebo>
+  </macro>
+</robot>
