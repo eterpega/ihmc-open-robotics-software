@@ -13,6 +13,14 @@ public class AtlasDynamicReachabilityParameters extends DynamicReachabilityParam
 
    @Override
    /** {@inheritDoc} */
+   public double getMaximumDesiredKneeBend()
+   {
+      return 0.45;
+   }
+
+
+   @Override
+   /** {@inheritDoc} */
    public double getMinimumSwingDuration()
    {
       return runningOnRealRobot ? 0.7 : 0.3;
