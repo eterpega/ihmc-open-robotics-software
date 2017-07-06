@@ -25,11 +25,32 @@ public class AtlasAutomatedStepAdjustmentDemo
 
    public double computeMaxPushPercent(StepScriptType stepScriptType, TestType testType, PushDirection pushDirection)
    {
+      double incrementSize = 50.0 * pushIncrement;
+      double pushPercent = computePushPercent(stepScriptType, testType, pushDirection, initialPushPercent, incrementSize);
+
+      incrementSize = 25.0 * pushIncrement;
+      pushPercent = computePushPercent(stepScriptType, testType, pushDirection, pushPercent + incrementSize, incrementSize);
+
+      incrementSize = 10.0 * pushIncrement;
+      pushPercent = computePushPercent(stepScriptType, testType, pushDirection, pushPercent + incrementSize, incrementSize);
+
+      incrementSize = 5.0 * pushIncrement;
+      pushPercent = computePushPercent(stepScriptType, testType, pushDirection, pushPercent + incrementSize, incrementSize);
+
+      pushPercent = computePushPercent(stepScriptType, testType, pushDirection, pushPercent + pushIncrement, pushIncrement);
+
+
+      PrintTools.info("\n\nThe maximum recoverable push for step type " + stepScriptType + ", test type " + testType + ", and push direction " +
+                            pushDirection + " is weight percent " + pushPercent + ".\n\n");
+
+      return pushPercent;
+   }
+
+   private static double computePushPercent(StepScriptType stepScriptType, TestType testType, PushDirection pushDirection, double initialPushPercent, double pushIncrement)
+   {
       boolean successful = true;
       boolean previousSuccessful = false;
-
-      boolean failedOnce = false;
-      boolean passedOnce = false;
+      boolean firstTick = true;
 
       boolean executeAgain = true;
 
@@ -53,19 +74,16 @@ public class AtlasAutomatedStepAdjustmentDemo
 
       while (executeAgain)
       {
-
          AtlasStepAdjustmentDemo demo = new AtlasStepAdjustmentDemo(stepScriptType, testType, pushDirection, pushPercent, showGui);
 
          successful = true;
          try
          {
             demo.simulateAndBlock(simulationTime);
-            passedOnce = true;
          }
          catch (ControllerFailureException e)
          {
             successful = false;
-            failedOnce = true;
          }
          catch (Exception e)
          { }
@@ -74,33 +92,33 @@ public class AtlasAutomatedStepAdjustmentDemo
          demo = null;
 
 
-         if (!successful && previousSuccessful && failedOnce && passedOnce)
+         if (!successful && previousSuccessful)
+         {
             executeAgain = false;
+            pushPercent -= pushIncrement;
+         }
+         else if (successful && !previousSuccessful && !firstTick)
+         {
+            executeAgain = false;
+         }
          else
+         {
             executeAgain = true;
+         }
 
-         if (failedOnce && passedOnce)
-            previousSuccessful = successful;
+         previousSuccessful = successful;
 
          if (executeAgain)
          {
-            double increment = pushIncrement;
-            if (!failedOnce || !passedOnce)
-               increment = 10.0 * pushIncrement;
-
             if (successful)
-               pushPercent += increment;
+               pushPercent += pushIncrement;
             else
-               pushPercent -= increment;
+               pushPercent -= pushIncrement;
          }
-         else
-         {
-            pushPercent -= pushIncrement;
-         }
+
+         firstTick = false;
       }
 
-      PrintTools.info("\n\nThe maximum recoverable push for step type " + stepScriptType + ", test type " + testType + ", and push direction " +
-                            pushDirection + " is weight percent " + pushPercent + ".\n\n");
 
       return pushPercent;
    }
@@ -196,6 +214,16 @@ public class AtlasAutomatedStepAdjustmentDemo
 
    public static void main(String[] args)
    {
+
+      StepScriptType stepScriptType = StepScriptType.FORWARD_FAST;
+      TestType testType = TestType.BIG_ADJUSTMENT;
+      PushDirection pushDirection = PushDirection.FORWARD_30;
+      double initialPushPercent = 0.94;
+      double incrementSize = 0.01;
+      double pushPercent = computePushPercent(stepScriptType, testType, pushDirection, initialPushPercent, incrementSize);
+      PrintTools.info("\n\nThe maximum recoverable push for step type " + stepScriptType + ", test type " + testType + ", and push direction " +
+                            pushDirection + " is weight percent " + pushPercent + ".\n\n");
+      /*
       StepScriptType stepScriptType = StepScriptType.FORWARD_FAST;
       File forwardFastFile = new File("/home/robert/StepAdjustmentForwardFast.xls");
       WritableWorkbook forwardFastWorkbook = createWorkbook(forwardFastFile);
@@ -220,11 +248,13 @@ public class AtlasAutomatedStepAdjustmentDemo
          colNumber++;
       }
       saveWorkbook(forwardFastWorkbook, forwardFastFile);
+      */
 
 
 
+      /*
 
-      stepScriptType = StepScriptType.FORWARD_SLOW;
+      StepScriptType stepScriptType = StepScriptType.FORWARD_SLOW;
       File forwardSlowFile = new File("/home/robert/StepAdjustmentForwardSlow.xls");
       WritableWorkbook forwardSlowWorkbook = createWorkbook(forwardSlowFile);
       WritableSheet forwardSlowSheet = forwardSlowWorkbook.createSheet(stepScriptType.toString(), forwardSlowWorkbook.getNumberOfSheets());
@@ -233,7 +263,7 @@ public class AtlasAutomatedStepAdjustmentDemo
       addPushDirectionHeaders(forwardSlowSheet);
       addControlTypeRowName(forwardSlowSheet);
 
-      colNumber = 1;
+      int colNumber = 1;
       for (PushDirection pushDirection : PushDirection.values())
       {
          int rowNumber = 1;
@@ -248,10 +278,12 @@ public class AtlasAutomatedStepAdjustmentDemo
          colNumber++;
       }
       saveWorkbook(forwardSlowWorkbook, forwardSlowFile);
+      */
 
 
 
 
+      /*
       stepScriptType = StepScriptType.STATIONARY_FAST;
       File stationaryFastFile = new File("/home/robert/StepAdjustmentStationaryFast.xls");
       WritableWorkbook stationaryFastWorkbook = createWorkbook(stationaryFastFile);
@@ -301,6 +333,7 @@ public class AtlasAutomatedStepAdjustmentDemo
          colNumber++;
       }
       saveWorkbook(stationarySlowWorkbook, stationarySlowFile);
+      */
 
    }
 }
