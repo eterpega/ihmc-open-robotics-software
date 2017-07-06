@@ -97,6 +97,8 @@ public class StickRobotModel implements DRCRobotModel, SDFDescriptionMutator
    
    private boolean enableJointDamping = true;
    
+   
+   // One of the three constructors below calls the fourth constructor with different configuration settings
    public StickRobotModel(DRCRobotModel.RobotTarget target, boolean headless, FootContactPoints simulationContactPoints)
    {
       this(target,headless, "DEFAULT", simulationContactPoints);
@@ -112,6 +114,7 @@ public class StickRobotModel implements DRCRobotModel, SDFDescriptionMutator
       this(target, headless, model, null);
    }
 
+   // main constructor being called 
    public StickRobotModel(DRCRobotModel.RobotTarget target, boolean headless, String model, FootContactPoints simulationContactPoints)
    {
       this.target = target;

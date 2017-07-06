@@ -18,7 +18,6 @@ import us.ihmc.simulationconstructionset.Link;
 import us.ihmc.simulationconstructionset.OneDegreeOfFreedomJoint;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
 
-
 public class StickRobotSDFLoadingDemo
 {
    private static final boolean SHOW_ELLIPSOIDS = false;
@@ -28,10 +27,12 @@ public class StickRobotSDFLoadingDemo
 
    public StickRobotSDFLoadingDemo()
    {
+      // The first argument suggests that the robot is loaded for the SCS platform
+      // The default model of the robot from the resources directory would be called.
       StickRobotModel robotModel = new StickRobotModel(DRCRobotModel.RobotTarget.SCS, false);
 
       FloatingRootJointRobot stickRobot = robotModel.createHumanoidFloatingRootJointRobot(false);
-      stickRobot.setPositionInWorld(new Vector3D());
+      stickRobot.setPositionInWorld(new Vector3D(0,0,0.75));
 
       if (SHOW_ELLIPSOIDS)
       {
@@ -44,13 +45,14 @@ public class StickRobotSDFLoadingDemo
       FullRobotModel fullRobotModel = robotModel.createFullRobotModel();
 
       YoGraphicsListRegistry yoGraphicsListRegistry = new YoGraphicsListRegistry();
-      CommonInertiaEllipsoidsVisualizer inertiaVis = new CommonInertiaEllipsoidsVisualizer(fullRobotModel.getElevator(), yoGraphicsListRegistry);
-      inertiaVis.update();
 
+      // Enable this to view the inertia ellipsoids
+      //      CommonInertiaEllipsoidsVisualizer inertiaVis = new CommonInertiaEllipsoidsVisualizer(fullRobotModel.getElevator(), yoGraphicsListRegistry);
+      //      inertiaVis.update();
 
       scs = new SimulationConstructionSet(stickRobot);
       scs.addYoGraphicsListRegistry(yoGraphicsListRegistry);
-      scs.setGroundVisible(false);
+      scs.setGroundVisible(true);
       scs.startOnAThread();
    }
 
