@@ -2,9 +2,14 @@ rootProject.name = 'ihmc-communication'
 
 println 'Evaluating IHMCCommunication settings.gradle'
 
+def includes = [
+'../IHMCJavaToolkit',
+'../IHMCRoboticsToolkit',
+'../IHMCCommonsStaging',
+]
+
 if (startParameter.searchUpwards)
-{
-   includeBuild "../IHMCJavaToolkit"
-   includeBuild "../IHMCRoboticsToolkit"
-   includeBuild "../IHMCCommonsStaging"
-}
+   includes.each { include ->
+      if (new File(rootProject.projectDir, include).exists())
+         includeBuild include
+   }

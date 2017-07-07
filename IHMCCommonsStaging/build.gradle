@@ -15,17 +15,8 @@
 //
 //apply plugin: 'us.ihmc.gradle.ihmc-build'
 
-buildscript {
-   repositories {
-      maven {
-         url "http://dl.bintray.com/ihmcrobotics/maven-release"
-      }
-   }
-}
-
 plugins {
-   id 'us.ihmc.gradle.ihmc-build' version '0.0.31'
-   id 'us.ihmc.continuousIntegration.IHMCContinuousIntegrationGradlePlugin' version '0.11.2'
+   id 'us.ihmc.gradle.ihmc-build' version '0.1.7'
 }
 
 ihmc.configureProjectForOpenRobotics(project);

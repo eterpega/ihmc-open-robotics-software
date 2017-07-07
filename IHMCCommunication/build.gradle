@@ -3,18 +3,29 @@ buildscript {
       maven {
          url "http://dl.bintray.com/ihmcrobotics/maven-release"
       }
+      //mavenLocal()
    }
+   //dependencies {
+   // classpath "us.ihmc.gradle:ihmc-build:0.1.8"
+  //}
 }
 
+//apply plugin: "us.ihmc.gradle.ihmc-build"
+
 plugins {
-   id 'us.ihmc.gradle.ihmc-build' version '0.1.5'
+   id 'us.ihmc.gradle.ihmc-build' version '0.1.16'
+}
+
+testSuites {
+   bambooUrl = "http://bamboo.ihmc.us/"
+   pascalCasedName = "IHMCCommunication"
+   bambooPlanKeys = ["LIBS-FAST2", "LIBS-SLOW2"]
+   maximumSuiteDuration = 6.0
 }
 
 ihmc.configureProjectForOpenRobotics(project);
 
-testSuites {
-   disableBambooConfigurationCheck = true
-}
+println testSuites.pascalCasedName
 
 dependencies {
    testCompile group: 'junit', name: 'junit', version: '4.11'
@@ -29,12 +40,12 @@ dependencies {
    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
    compile group: 'com.google.guava', name: 'guava', version: '18.0'
    compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.2'
-   compile ihmc.getDynamicVersion("us.ihmc", "ihmc-robotics-toolkit", dependencyMode)
-   compile ihmc.getDynamicVersion("us.ihmc", "ihmc-commons-staging", dependencyMode)
-   compile ihmc.getDynamicVersion("us.ihmc", "ihmc-java-toolkit", dependencyMode)
+   compile ihmc.getBuildVersion("us.ihmc", "ihmc-robotics-toolkit", dependencyMode)
+   compile ihmc.getBuildVersion("us.ihmc", "ihmc-commons-staging", dependencyMode)
+   compile ihmc.getBuildVersion("us.ihmc", "ihmc-java-toolkit", dependencyMode)
 
    testCompile group: 'us.ihmc', name: 'ihmc-continuous-integration-framework', version: '0.9.4'
    testCompile group: 'us.ihmc', name: 'ihmc-commons-testing', version: '0.11.2'
-   testCompile ihmc.getDynamicVersion("us.ihmc", "ihmc-robotics-toolkit", dependencyMode)
-   testCompile ihmc.getDynamicVersion("us.ihmc", "ihmc-commons-staging", dependencyMode)
+   testCompile ihmc.getBuildVersion("us.ihmc", "ihmc-robotics-toolkit", dependencyMode)
+   testCompile ihmc.getBuildVersion("us.ihmc", "ihmc-commons-staging", dependencyMode)
 }
