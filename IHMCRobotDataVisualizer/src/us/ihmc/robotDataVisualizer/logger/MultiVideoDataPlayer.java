@@ -69,6 +69,11 @@ public class MultiVideoDataPlayer implements PlaybackListener, RewoundListener
       }
    }
 
+   @Override public void notifyOfManualEndChange(int inPoint, int outPoint)
+   {
+      
+   }
+
    @Override
    public void wasRewound()
    {

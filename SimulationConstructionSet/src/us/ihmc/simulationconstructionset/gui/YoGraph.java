@@ -1,5 +1,6 @@
 package us.ihmc.simulationconstructionset.gui;
 
+import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
@@ -14,6 +15,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Polyline;
+import javafx.util.Pair;
 import us.ihmc.graphicsDescription.graphInterfaces.GraphIndicesHolder;
 import us.ihmc.graphicsDescription.graphInterfaces.SelectedVariableHolder;
 import us.ihmc.simulationconstructionset.GraphConfiguration;
@@ -27,6 +29,7 @@ import java.text.FieldPosition;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Graphical (JavaFX) display for up to a maximum number of <code>DataEntry</code> objects.
@@ -108,22 +111,63 @@ public class YoGraph extends Pane
    private static Object sourceOfDrag = null;
    private static Object recipientOfDrag = null;
 
+   private YoGraphAnimator animation;
+
    private Canvas info = new Canvas(), index = new Canvas();
 
    private int focusedBaseLine = 0;
 
+   private class YoGraphAnimator extends AnimationTimer
+   {
+      @Override public void handle(long l)
+      {
+         if (shouldRepaintIndexLines)
+         {
+            paintIndexLines();
+            shouldRepaintIndexLines = false;
+         }
+
+         if (shouldRepaintVariableDisplay)
+         {
+            paintVariableNamesAndValues();
+            shouldRepaintVariableDisplay = false;
+         }
+
+         if (shouldRepaintPlot)
+         {
+            repaintGraph(shouldRepaintLeft, shouldRepaintRight, shouldOverride);
+            shouldRepaintPlot = false;
+            shouldOverride = false;
+         }
+         else
+         {
+            if (shouldRepaintEntriesAgainstTime.size() > 0) {
+               shouldRepaintEntriesAgainstTime.forEach((entry, indices) -> paintTimeEntryData(entry, indices.getKey(), indices.getValue()));
+
+               shouldRepaintEntriesAgainstTime.clear();
+            }
+         }
+      }
+   }
+
    public YoGraph(GraphIndicesHolder graphIndicesHolder, YoGraphRemover yoGraphRemover, SelectedVariableHolder holder, DataEntryHolder dataEntryHolder,
          TimeDataHolder timeDataHolder, JFrame jFrame)
    {
+      // Initialize all necessary fields
+
       this.selectedVariableHolder = holder;
       this.dataEntryHolder = dataEntryHolder;
       this.timeDataHolder = timeDataHolder;
-
       this.graphIndicesHolder = graphIndicesHolder;
       this.yoGraphRemover = yoGraphRemover;
       this.parentFrame = jFrame;
-
       this.entries = new ArrayList<>();
+
+      // Event handler for changing graph config
+
+      this.graphConfiguration.addChangeListener(this);
+
+      // Caching to save rendering
 
       info.setFocusTraversable(false);
       index.setFocusTraversable(false);
@@ -131,10 +175,11 @@ public class YoGraph extends Pane
       index.setCache(true);
       info.setCacheHint(CacheHint.SPEED);
       index.setCacheHint(CacheHint.SPEED);
-
-      this.graphConfiguration.addChangeListener(this);
+      this.setCache(true);
 
       this.getChildren().addAll(info, index);
+
+      // Listeners for resizing
 
       this.widthProperty().addListener(observable ->
       {
@@ -150,8 +195,12 @@ public class YoGraph extends Pane
          this.paintIndexLines();
       });
 
+      // Event handlers for mouse/key
+
       this.addEventHandler(javafx.scene.input.MouseEvent.ANY, this);
       this.addEventHandler(javafx.scene.input.KeyEvent.ANY, this);
+
+      // Initializing popup menu
 
       this.popupMenu = new ContextMenu();
 
@@ -163,7 +212,8 @@ public class YoGraph extends Pane
       delete = new javafx.scene.control.MenuItem("Delete Graph");
       delete.addEventHandler(Event.ANY, this);
 
-      this.setCache(true);
+      this.animation = new YoGraphAnimator();
+      this.animation.start();
    }
 
    public GraphConfiguration getGraphConfiguration()
@@ -174,7 +224,9 @@ public class YoGraph extends Pane
    public void incrementBaseLine(int baseLineIndex, double scale)
    {
       if (baseLineIndex >= graphConfiguration.getBaselines().length)
+      {
          baseLineIndex = 0;
+      }
 
       double min = this.getMin();
       double max = this.getMax();
@@ -427,7 +479,8 @@ public class YoGraph extends Pane
 
    public void removeEntry(DataEntry entry)
    {
-      Platform.runLater(() -> {
+      Platform.runLater(() ->
+      {
          if (entries.contains(entry))
          {
             entry.detachDataEntryChangeListener(this);
@@ -657,12 +710,12 @@ public class YoGraph extends Pane
                {
                   if (child != info && child != index)
                   {
-                     Platform.runLater(() ->
-                     {
-                        Canvas canvas = (Canvas) child;
-                        GraphicsContext control = canvas.getGraphicsContext2D();
-                        control.scale(1.0, (this.max - this.min) / (curMax - curMin));
-                     });
+                     //Platform.runLater(() ->
+                     //{
+                     Canvas canvas = (Canvas) child;
+                     GraphicsContext control = canvas.getGraphicsContext2D();
+                     control.scale(1.0, (this.max - this.min) / (curMax - curMin));
+                     //});
                   }
                }
             }
@@ -933,7 +986,7 @@ public class YoGraph extends Pane
          return;
       }
 
-      final int points = Math.min(entry.getData().length-requestLeftIndex, requestPoints);
+      final int points = Math.min(entry.getData().length - requestLeftIndex, requestPoints);
 
       int index = this.entries.indexOf(entry);
 
@@ -951,32 +1004,26 @@ public class YoGraph extends Pane
       final Canvas forData = (Canvas) this.getChildren().get(2 * index);
       final GraphicsContext dataLayer = forData.getGraphicsContext2D();
 
-      Platform.runLater(() ->
-      {
-         calculateTimePlotData(entry, xData, yData, points, requestLeftIndex);
+      calculateTimePlotData(entry, xData, yData, points, requestLeftIndex);
 
-         forData.setWidth(width);
-         forData.setHeight(height);
+      forData.setWidth(width);
+      forData.setHeight(height);
 
-         dataLayer.clearRect(snap(Math.ceil(xData[0])), 0, snap(Math.floor(xData[points - 1] - xData[0])), height);
+      dataLayer.clearRect(snap(Math.ceil(xData[0])), 0, snap(Math.floor(xData[points - 1] - xData[0])), height);
 
-         dataLayer.setStroke(dataColors[index]);
+      dataLayer.setStroke(dataColors[index]);
 
-         dataLayer.strokePolyline(xData, yData, points);
-      });
+      dataLayer.strokePolyline(xData, yData, points);
 
       if (this.graphConfiguration.getShowBaselines())
       {
          final Canvas forBase = (Canvas) this.getChildren().get((2 * index) + 1);
          final GraphicsContext baseLayer = forBase.getGraphicsContext2D();
 
-         Platform.runLater(() ->
-         {
-            forBase.setWidth(width);
-            forBase.setHeight(height);
+         forBase.setWidth(width);
+         forBase.setHeight(height);
 
-            baseLayer.clearRect(0, 0, width, height);
-         });
+         baseLayer.clearRect(0, 0, width, height);
 
          double[] baselines = this.graphConfiguration.getBaselines();
 
@@ -987,12 +1034,8 @@ public class YoGraph extends Pane
             double baseY = height - this.totalDontPlotBottomPixels - (baselines[j] - entryMin) / (this.maxFor(entry) - entryMin) * (height
                   - this.totalDontPlotBottomPixels) + 5;
 
-            final int y = j;
-            Platform.runLater(() ->
-            {
-               baseLayer.setStroke(baselineColors[y]);
-               baseLayer.strokeLine(0, baseY, this.getWidth(), baseY);
-            });
+            baseLayer.setStroke(baselineColors[j]);
+            baseLayer.strokeLine(0, baseY, this.getWidth(), baseY);
          }
       }
 
@@ -1001,71 +1044,69 @@ public class YoGraph extends Pane
 
    public void paintIndexLines()
    {
-      Platform.runLater(() ->
+      double width = this.getWidth();
+      double height = this.getHeight() - totalDontPlotBottomPixels;
+      int inPoint = this.graphIndicesHolder.getInPoint();
+      int outPoint = this.graphIndicesHolder.getOutPoint();
+      int leftIndex = this.graphIndicesHolder.getLeftPlotIndex();
+      int rightIndex = this.graphIndicesHolder.getRightPlotIndex();
+
+      index.setWidth(width);
+      index.setHeight(height);
+
+      GraphicsContext gc = index.getGraphicsContext2D();
+
+      gc.clearRect(0, 0, width, height);
+      gc.setLineWidth(1.5d);
+
+      double linex;
+
+      if (inPoint >= leftIndex)
       {
-         double width = this.getWidth();
-         double height = this.getHeight() - totalDontPlotBottomPixels;
-         int inPoint = this.graphIndicesHolder.getInPoint();
-         int outPoint = this.graphIndicesHolder.getOutPoint();
-         int leftIndex = this.graphIndicesHolder.getLeftPlotIndex();
-         int rightIndex = this.graphIndicesHolder.getRightPlotIndex();
+         linex = snap(((inPoint - leftIndex) * width) / (rightIndex - leftIndex));
+         gc.setStroke(Color.GREEN);
+         gc.strokeLine(linex, 0, linex, height);
+      }
 
-         index.setWidth(width);
-         index.setHeight(height);
+      if (outPoint <= rightIndex)
+      {
+         linex = snap(((outPoint - leftIndex) * width) / (rightIndex - leftIndex));
+         gc.setStroke(Color.RED);
+         gc.strokeLine(linex, 0, linex, height);
+      }
 
-         GraphicsContext gc = index.getGraphicsContext2D();
+      {
+         ArrayList<Integer> keys = graphIndicesHolder.getKeyPoints();
 
-         gc.clearRect(0, 0, width, height);
-         gc.setLineWidth(1.5d);
-
-         double linex;
-
-         if (inPoint >= leftIndex)
+         for (Integer key : keys)
          {
-            linex = snap(((inPoint - leftIndex) * width) / (rightIndex - leftIndex));
-            gc.setStroke(Color.GREEN);
-            gc.strokeLine(linex, 0, linex, height);
-         }
-
-         if (outPoint <= rightIndex)
-         {
-            linex = snap(((outPoint - leftIndex) * width) / (rightIndex - leftIndex));
-            gc.setStroke(Color.RED);
-            gc.strokeLine(linex, 0, linex, height);
-         }
-
-         {
-            ArrayList<Integer> keys = graphIndicesHolder.getKeyPoints();
-
-            for (Integer key : keys)
+            if (key >= leftIndex && key <= rightIndex)
             {
-               if (key >= leftIndex && key <= rightIndex)
-               {
-                  linex = snap((key * width) / (rightIndex - leftIndex));
-                  gc.setStroke(Color.ORANGE);
-                  gc.strokeLine(linex, 0, linex, height);
-               }
+               linex = snap((key * width) / (rightIndex - leftIndex));
+               gc.setStroke(Color.ORANGE);
+               gc.strokeLine(linex, 0, linex, height);
             }
          }
+      }
 
-         {
-            linex = snap(((this.graphIndicesHolder.getIndex() - leftIndex) * width) / (rightIndex - leftIndex));
-            gc.setStroke(Color.BLACK);
-            gc.strokeLine(linex, 0, linex, height);
-         }
-      });
+      {
+         linex = snap(((this.graphIndicesHolder.getIndex() - leftIndex) * width) / (rightIndex - leftIndex));
+         gc.setStroke(Color.BLACK);
+         gc.strokeLine(linex, 0, linex, height);
+      }
    }
 
    private void paintVariableNamesAndValues()
    {
-      calculateRequiredEntryPaintWidthsAndRows(true);
-      this.totalDontPlotBottomPixels = DONT_PLOT_BOTTOM_PIXELS + PIXELS_PER_BOTTOM_ROW * (this.totalEntryNamePaintRows - 1);
 
       double height = this.getHeight();
 
       GraphicsContext baselineLayer = info.getGraphicsContext2D();
 
-      Platform.runLater(() -> baselineLayer.clearRect(0, height - this.totalDontPlotBottomPixels, this.getWidth(), this.totalDontPlotBottomPixels));
+      baselineLayer.clearRect(0, 0, this.getWidth(), height);
+
+      calculateRequiredEntryPaintWidthsAndRows(true);
+      this.totalDontPlotBottomPixels = DONT_PLOT_BOTTOM_PIXELS + PIXELS_PER_BOTTOM_ROW * (this.totalEntryNamePaintRows - 1);
 
       drawBaselineInfo();
 
@@ -1125,11 +1166,9 @@ public class YoGraph extends Pane
 
          final String drawText = display;
          final int cumOffset = cumulativeOffset;
-         Platform.runLater(() ->
-         {
-            baselineLayer.setFill(colorToSet);
-            baselineLayer.fillText(drawText, cumOffset, yToDrawAt);
-         });
+
+         baselineLayer.setFill(colorToSet);
+         baselineLayer.fillText(drawText, cumOffset, yToDrawAt);
 
          cumulativeOffset += entryNamePaintWidths.get(i);
       }
@@ -1159,10 +1198,10 @@ public class YoGraph extends Pane
       int cumulativeOffset = 3;
 
       final int cumOffset1 = cumulativeOffset;
-      Platform.runLater(() -> {
-         baselineLayer.setFill(Color.BLACK);
-         baselineLayer.fillText("Baselines: ", cumOffset1, yToDrawAt);
-      });
+
+      baselineLayer.setFill(Color.BLACK);
+      baselineLayer.fillText("Baselines: ", cumOffset1, yToDrawAt);
+
       cumulativeOffset += 80;
 
       for (int i = 0; i < baselines.length; i++)
@@ -1178,11 +1217,9 @@ public class YoGraph extends Pane
          final int y = i;
          final int cumOffset2 = cumulativeOffset;
          final String drawText = display;
-         Platform.runLater(() ->
-         {
-            baselineLayer.setFill(dataColors[y]);
-            baselineLayer.fillText(drawText, cumOffset2, yToDrawAt);
-         });
+
+         baselineLayer.setFill(dataColors[y]);
+         baselineLayer.fillText(drawText, cumOffset2, yToDrawAt);
 
          cumulativeOffset = cumulativeOffset + baseLineStringWidth + 10;
       }
@@ -1190,11 +1227,9 @@ public class YoGraph extends Pane
       double average = total / ((double) baselines.length);
 
       final int cumOffset3 = cumulativeOffset;
-      Platform.runLater(() ->
-      {
-         baselineLayer.setFill(Color.BLACK);
-         baselineLayer.fillText(String.format("     Average = %.4f", average), cumOffset3, yToDrawAt);
-      });
+
+      baselineLayer.setFill(Color.BLACK);
+      baselineLayer.fillText(String.format("     Average = %.4f", average), cumOffset3, yToDrawAt);
    }
 
    public void handleKeyPressed(javafx.scene.input.KeyEvent evt)
@@ -1444,7 +1479,7 @@ public class YoGraph extends Pane
    @SuppressWarnings("unused") private double draggedX, draggedY;
    private int clickedIndex, clickedLeftIndex, clickedRightIndex;
 
-   public void handleMouseDragged(javafx.scene.input.MouseEvent evt)
+   private void handleMouseDragged(javafx.scene.input.MouseEvent evt)
    {
       draggedX = evt.getX();
       draggedY = evt.getY();
@@ -1586,9 +1621,46 @@ public class YoGraph extends Pane
       }
    }
 
+   private boolean shouldOverride;
+   private int shouldRepaintLeft;
+   private int shouldRepaintRight;
+   private boolean shouldRepaintVariableDisplay;
+   private boolean shouldRepaintIndexLines;
+   private boolean shouldRepaintPlot;
+   private ConcurrentHashMap<DataEntry, javafx.util.Pair<Integer, Integer>> shouldRepaintEntriesAgainstTime = new ConcurrentHashMap<>();
+
+   private void shouldRepaintGraph(int fromLeftIndex, int toRightIndex, boolean andOverride)
+   {
+      this.shouldRepaintPlot = true;
+      this.shouldRepaintLeft = Math.min(this.shouldRepaintLeft, fromLeftIndex);
+      this.shouldRepaintRight = Math.max(this.shouldRepaintRight, toRightIndex);
+      this.shouldOverride |= andOverride;
+      this.shouldRepaintEntriesAgainstTime.clear();
+   }
+
+   private void shouldPaintTimeEntryData(DataEntry forEntry, int fromLeftIndex, int forPoints)
+   {
+      this.shouldRepaintEntriesAgainstTime.put(forEntry, new javafx.util.Pair<>(fromLeftIndex, forPoints));
+   }
+
+   private void shouldPaintVariableNamesAndValues()
+   {
+      this.shouldRepaintVariableDisplay |= true;
+   }
+
+   private void shouldPaintIndexLines()
+   {
+      this.shouldRepaintIndexLines |= true;
+   }
+
+   private void shouldPaintPhasePlot()
+   {
+      this.shouldRepaintPlot = true;
+   }
+
    @Override public void notifyOfGraphTypeChange()
    {
-      this.repaintGraph(this.graphIndicesHolder.getLeftPlotIndex(), this.graphIndicesHolder.getRightPlotIndex(), true);
+      this.shouldRepaintGraph(this.graphIndicesHolder.getLeftPlotIndex(), this.graphIndicesHolder.getRightPlotIndex(), true);
    }
 
    @Override public void notifyOfBaselineChange()
@@ -1598,29 +1670,46 @@ public class YoGraph extends Pane
 
    @Override public void notifyOfScaleChange()
    {
-      this.repaintGraph(this.graphIndicesHolder.getLeftPlotIndex(), this.graphIndicesHolder.getRightPlotIndex(), true);
+      this.shouldRepaintGraph(this.graphIndicesHolder.getLeftPlotIndex(), this.graphIndicesHolder.getRightPlotIndex(), true);
    }
 
    @Override public void notifyOfDisplayChange()
    {
-      this.repaintGraph(this.graphIndicesHolder.getLeftPlotIndex(), this.graphIndicesHolder.getRightPlotIndex(), true);
+      this.shouldRepaintGraph(this.graphIndicesHolder.getLeftPlotIndex(), this.graphIndicesHolder.getRightPlotIndex(), true);
    }
 
    @Override public void notifyOfDataChange(DataEntry entry, int index)
    {
       if (this.graphConfiguration.getGraphType() == GraphConfiguration.GraphType.TIME)
       {
-         this.paintTimeEntryData(entry, Math.max(0, index - 1), 2);
+         if (this.shouldRepaintEntriesAgainstTime.containsKey(entry))
+         {
+            javafx.util.Pair<Integer, Integer> past = this.shouldRepaintEntriesAgainstTime.get(entry);
+
+            int pastLeft = past.getKey();
+            int thisLeft = Math.max(0, index - 1);
+            int newLeft = Math.min(thisLeft, past.getKey());
+
+            int pastRight = pastLeft + past.getValue();
+            int thisRight = thisLeft + 2;
+            int newRight = Math.max(pastRight, thisRight);
+
+            int newPoints = newRight - newLeft;
+
+            this.shouldPaintTimeEntryData(entry, newLeft, newPoints);
+         } else {
+            this.shouldPaintTimeEntryData(entry, Math.max(0, index - 1), 2);
+         }
       }
       else if (this.graphConfiguration.getGraphType() == GraphConfiguration.GraphType.PHASE)
       {
-         this.paintPhasePlot();
+         this.shouldPaintPhasePlot();
       }
    }
 
    @Override public void notifyOfBufferChange()
    {
-      this.repaintGraph(this.graphIndicesHolder.getLeftPlotIndex(), this.graphIndicesHolder.getRightPlotIndex(), true);
+      this.shouldRepaintGraph(this.graphIndicesHolder.getLeftPlotIndex(), this.graphIndicesHolder.getRightPlotIndex(), true);
    }
 
    @Override public void wasRewound()
@@ -1630,12 +1719,12 @@ public class YoGraph extends Pane
 
    @Override public void notifyOfIndexChange(int newIndex, double newTime)
    {
-      this.paintVariableNamesAndValues();
-      this.paintIndexLines();
+      this.shouldPaintVariableNamesAndValues();
+      this.shouldPaintIndexLines();
    }
 
    @Override public void notifyOfManualEndChange(int inPoint, int outPoint)
    {
-      this.paintIndexLines();
+      this.shouldPaintIndexLines();
    }
 }

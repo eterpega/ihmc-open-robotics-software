@@ -1619,6 +1619,11 @@ public class SimulationConstructionSetUsingDirectCallsTest
 
          }
 
+         @Override public void notifyOfManualEndChange(int inPoint, int outPoint)
+         {
+
+         }
+
          @Override
          public void play(double realTimeRate)
          {

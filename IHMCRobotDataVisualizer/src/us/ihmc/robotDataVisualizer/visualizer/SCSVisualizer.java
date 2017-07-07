@@ -383,6 +383,11 @@ public class SCSVisualizer implements YoVariablesUpdatedListener, ExitActionList
             updateYoGraphics();
          }
 
+         @Override public void notifyOfManualEndChange(int inPoint, int outPoint)
+         {
+
+         }
+
          @Override
          public void stop()
          {

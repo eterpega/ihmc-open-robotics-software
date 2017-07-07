@@ -294,6 +294,11 @@ public class LogVisualizer
             updateYoGraphics(yoGraphicsListRegistry);
          }
 
+         @Override public void notifyOfManualEndChange(int inPoint, int outPoint)
+         {
+
+         }
+
          @Override
          public void stop()
          {
