@@ -35,8 +35,8 @@ import us.ihmc.robotics.screwTheory.*;
 
 public class WholeBodyInverseDynamicsSolver
 {
-   private static final boolean USE_DYNAMIC_MATRIX_CALCULATOR = false;
-   private static final boolean MINIMIZE_JOINT_TORQUES = false;
+   private static final boolean USE_DYNAMIC_MATRIX_CALCULATOR = true;
+   private static final boolean MINIMIZE_JOINT_TORQUES = true;
 
    private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
 
@@ -181,6 +181,8 @@ public class WholeBodyInverseDynamicsSolver
 
          ScrewTools.setDesiredAccelerations(jointsToOptimizeFor, jointAccelerations);
          ScrewTools.setJointTorques(controlledOneDoFJoints, tauSolution);
+
+         optimizationControlModule.setJointTorqueSolutions(tauSolution);
       }
       else
       {

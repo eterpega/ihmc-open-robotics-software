@@ -43,9 +43,49 @@ public interface ControllerCoreOptimizationSettings
     */
    double getJointJerkWeight();
 
+   /**
+    * Gets the weight specifying how much high joint torque values should be penalized in the
+    * optimization problem.
+    * <p>
+    * This parameter is used in {@link InverseDynamicsOptimizationControlModule} which itself is
+    * used when running the {@link WholeBodyControllerCore} in the
+    * {@link WholeBodyControllerCoreMode#INVERSE_DYNAMICS} mode.
+    * </p>
+    * <p>
+    *    This parameter is as only used when matrices are used to calculate the joint torques,
+    *    as opposed to using screw tools. This is set in low level booleans for the time being.
+    * </p>
+    * <p>
+    * A non-zero positive value should be used to ensure the Hessian matrix in the optimization is
+    * invertible. It is should preferably be above {@code 1.0e-8}. A high value will cause the
+    * system to become too 'lazy'.
+    * </p>
+    *
+    * @return the weight to use for joint torque regularization.
+    */
    default double getJointTorqueWeight()
    {
       return 0.005;
+   }
+
+   /**
+    * Gets the weight specifying how much high joint torque rate values should be penalized in the
+    * optimization problem.
+    * <p>
+    * This parameter is used in {@link InverseDynamicsOptimizationControlModule} which itself is
+    * used when running the {@link WholeBodyControllerCore} in the
+    * {@link WholeBodyControllerCoreMode#INVERSE_DYNAMICS} mode.
+    * </p>
+    * <p>
+    * A positive value should be used but does not necessarily need to be non-zero. This weight
+    * helps to improve smoothness of the resulting motions.
+    * </p>
+    *
+    * @return the weight to use for joint torque rate regularization.
+    */
+   default double getJointTorqueRateWeight()
+   {
+      return 0.1;
    }
 
    /**

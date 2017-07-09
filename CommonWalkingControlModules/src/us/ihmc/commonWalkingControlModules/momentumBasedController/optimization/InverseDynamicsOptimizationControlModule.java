@@ -126,6 +126,7 @@ public class InverseDynamicsOptimizationControlModule
       qpSolver.setAccelerationRegularizationWeight(optimizationSettings.getJointAccelerationWeight());
       qpSolver.setJerkRegularizationWeight(optimizationSettings.getJointJerkWeight());
       qpSolver.setJointTorqueWeight(optimizationSettings.getJointTorqueWeight());
+      qpSolver.setJointTorqueRateWeight(optimizationSettings.getJointTorqueRateWeight());
 
       parentRegistry.addChild(registry);
    }
@@ -204,6 +205,11 @@ public class InverseDynamicsOptimizationControlModule
       return momentumModuleSolution;
    }
 
+   public void setJointTorqueSolutions(DenseMatrix64F jointTorqueSolutions)
+   {
+      qpSolver.setJointTorqueSolutions(jointTorqueSolutions);
+   }
+
    private void computeJointAccelerationLimits()
    {
       boundCalculator.computeJointAccelerationLimits(absoluteMaximumJointAcceleration.getDoubleValue(), qDDotMinMatrix, qDDotMaxMatrix);
@@ -256,9 +262,12 @@ public class InverseDynamicsOptimizationControlModule
 
    public void setupTorqueMinimizationCommand()
    {
-      qpSolver.addTorqueMinimizationObjective(dynamicsMatrixCalculator.getTorqueMinimizationAccelerationJacobian(),
-                                              dynamicsMatrixCalculator.getTorqueMinimizationRhoJacobian(),
-                                              dynamicsMatrixCalculator.getTorqueMinimizationObjective());
+      DenseMatrix64F torqueQddotJacobian = dynamicsMatrixCalculator.getTorqueMinimizationAccelerationJacobian();
+      DenseMatrix64F torqueRhoJacobian = dynamicsMatrixCalculator.getTorqueMinimizationRhoJacobian();
+      DenseMatrix64F torqueObjective = dynamicsMatrixCalculator.getTorqueMinimizationObjective();
+
+      qpSolver.addTorqueMinimizationObjective(torqueQddotJacobian, torqueRhoJacobian, torqueObjective);
+      qpSolver.addTorqueRateMinimizationObjective(torqueQddotJacobian, torqueRhoJacobian, torqueObjective);
    }
 
    public void submitSpatialAccelerationCommand(SpatialAccelerationCommand command)
