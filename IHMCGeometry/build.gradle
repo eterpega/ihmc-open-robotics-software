@@ -1,8 +1,13 @@
 plugins {
-   id 'us.ihmc.gradle.ihmc-build' version '0.1.7'
+   id 'us.ihmc.gradle.ihmc-build' version '0.1.17'
 }
 
 ihmc.configureProjectForOpenRobotics(project);
+
+testSuites {
+   bambooPlanKeys = ["LIBS-FAST2"]
+}
+
 
 dependencies {
    compile group: 'us.ihmc', name: 'euclid-core', version: '0.4.3'

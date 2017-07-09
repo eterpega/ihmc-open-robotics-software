@@ -1,25 +1,25 @@
-buildscript {
-   repositories {
-      maven {
-         url "http://dl.bintray.com/ihmcrobotics/maven-release"
-      }
-      //mavenLocal()
-   }
-   //dependencies {
-   // classpath "us.ihmc.gradle:ihmc-build:0.1.8"
-  //}
-}
+//buildscript {
+//   repositories {
+//      maven {
+//         url "http://dl.bintray.com/ihmcrobotics/maven-release"
+//      }
+//      //mavenLocal()
+//   }
+//   //dependencies {
+//   // classpath "us.ihmc.gradle:ihmc-build:0.1.8"
+//  //}
+//}
 
 //apply plugin: "us.ihmc.gradle.ihmc-build"
 
 plugins {
-   id 'us.ihmc.gradle.ihmc-build' version '0.1.16'
+   id 'us.ihmc.gradle.ihmc-build' version '0.1.17'
 }
 
 testSuites {
    bambooUrl = "http://bamboo.ihmc.us/"
    pascalCasedName = "IHMCCommunication"
-   bambooPlanKeys = ["LIBS-FAST2", "LIBS-SLOW2"]
+   bambooPlanKeys = ["LIBS-FAST2"]
    maximumSuiteDuration = 6.0
 }
 

@@ -16,10 +16,14 @@
 //apply plugin: 'us.ihmc.gradle.ihmc-build'
 
 plugins {
-   id 'us.ihmc.gradle.ihmc-build' version '0.1.7'
+   id 'us.ihmc.gradle.ihmc-build' version '0.1.17'
 }
 
 ihmc.configureProjectForOpenRobotics(project);
+
+testSuites {
+   bambooPlanKeys = ["LIBS-FAST2"]
+}
 
 dependencies {
    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
