@@ -86,7 +86,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
    private final HumanoidReferenceFrames referenceFrames;
    
    private final double defaultLowerPelvisHeight = 0.788;
-   private final double defaultUpperPelvisHeight = 0.850;
+   private final double defaultUpperPelvisHeight = 0.800; //was 0.850
    
    private final PoseReferenceFrame hatchFrame = new PoseReferenceFrame("HatchFrame", ReferenceFrame.getWorldFrame());
    private final YoGraphicReferenceFrame hatchFrameViz;

@@ -26,7 +26,7 @@ public class HatchEnvironment implements CommonAvatarEnvironmentInterface
    private static final Point3D ORIGINS[] = {new Point3D(1.00, -0.00, 0.00), new Point3D(5.00, 1.00, 0.00), new Point3D(8.00, -1.00, 0.00), new Point3D(11.00, 0.00, 0.00)};
    private static final double YAWS[] = {0.00, 0.00, 0.00, 0.00};
    private static final double STEP_HEIGHTS[] = {0.16, 0.05, 0.20, 0.10};        // {0.15, 0.05, 0.20, 0.10};
-   private static final double OPENING_HEIGHTS[] = {1.70, 1.60, 1.60, 1.60};     // {1.55, 1.55, 1.55, 1.55};
+   private static final double OPENING_HEIGHTS[] = {1.64, 1.60, 1.60, 1.60};     // {1.55, 1.55, 1.55, 1.55};
    private static final double OPENING_WIDTHS[] = {0.90, 0.86, 0.86, 0.86};      // {0.86, 0.86, 0.86, 0.86};
    private static final double OPENING_THICKNESSES[] = {0.10, 0.10, 0.03, 0.10}; // {0.12, 0.12, 0.05, 0.12};
    
