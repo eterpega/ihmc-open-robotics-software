@@ -15,6 +15,7 @@ testSuites {
    pascalCasedName = "IHMCCommunication"
    bambooPlanKeys = ["LIBS-FAST2"]
    maximumSuiteDuration = 6.0
+   disableBambooConfigurationCheck = true
 }
 
 ihmc.configureProjectForOpenRobotics(project);
