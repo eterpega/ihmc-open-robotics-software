@@ -266,8 +266,9 @@ public class InverseDynamicsOptimizationControlModule
       DenseMatrix64F torqueRhoJacobian = dynamicsMatrixCalculator.getTorqueMinimizationRhoJacobian();
       DenseMatrix64F torqueObjective = dynamicsMatrixCalculator.getTorqueMinimizationObjective();
 
-      qpSolver.addTorqueMinimizationObjective(torqueQddotJacobian, torqueRhoJacobian, torqueObjective);
-      qpSolver.addTorqueRateMinimizationObjective(torqueQddotJacobian, torqueRhoJacobian, torqueObjective);
+      qpSolver.computeTorqueObjective(torqueQddotJacobian, torqueRhoJacobian, torqueObjective);
+      qpSolver.addTorqueMinimizationObjective(torqueObjective, false);
+      qpSolver.addTorqueRateMinimizationObjective(torqueObjective, false);
    }
 
    public void submitSpatialAccelerationCommand(SpatialAccelerationCommand command)

@@ -1,17 +1,22 @@
 package us.ihmc.atlas.parameters;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import gnu.trove.map.hash.TObjectDoubleHashMap;
+import gnu.trove.map.hash.TObjectIntHashMap;
 import us.ihmc.atlas.AtlasJointMap;
 import us.ihmc.commonWalkingControlModules.momentumBasedController.optimization.MomentumOptimizationSettings;
 import us.ihmc.euclid.tuple2D.Vector2D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.robotics.partNames.ArmJointName;
+import us.ihmc.robotics.partNames.LegJointName;
 import us.ihmc.robotics.partNames.NeckJointName;
 import us.ihmc.robotics.partNames.SpineJointName;
 import us.ihmc.robotics.robotSide.RobotSide;
+import us.ihmc.robotics.screwTheory.OneDoFJoint;
 
 public class AtlasMomentumOptimizationSettings extends MomentumOptimizationSettings
 {
@@ -39,7 +44,8 @@ public class AtlasMomentumOptimizationSettings extends MomentumOptimizationSetti
 
    private final double jointAccelerationWeight = 0.005;
    private final double jointJerkWeight = 0.1;
-   private final double jointTorqueWeight = 0.005;
+   private final double jointTorqueWeight = 0.0;
+   private final double jointTorqueRateWeight = 0.0;
    private final Vector2D copWeight = new Vector2D(100.0, 200.0);
    private final Vector2D copRateDefaultWeight = new Vector2D(20000.0, 20000.0);
    private final Vector2D copRateHighWeight = new Vector2D(2500000.0, 10000000.0);
@@ -155,6 +161,13 @@ public class AtlasMomentumOptimizationSettings extends MomentumOptimizationSetti
    public double getJointTorqueWeight()
    {
       return jointTorqueWeight;
+   }
+
+   /** @inheritDoc */
+   @Override
+   public double getJointTorqueRateWeight()
+   {
+      return jointTorqueRateWeight;
    }
 
    /** @inheritDoc */
