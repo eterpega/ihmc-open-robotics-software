@@ -1,13 +1,5 @@
-buildscript {
-   repositories {
-      maven {
-         url "http://dl.bintray.com/ihmcrobotics/maven-release"
-      }
-   }
-}
-
 plugins {
-   id 'us.ihmc.gradle.ihmc-build' version '0.1.21'
+   id 'us.ihmc.gradle.ihmc-build' version '0.1.22'
 }
 
 testSuites {
@@ -18,7 +10,7 @@ testSuites {
    disableBambooConfigurationCheck = true
 }
 
-ihmc.configureProjectForOpenRobotics(project);
+ihmc.configureProjectForOpenRobotics(project)
 
 println testSuites.pascalCasedName
 
