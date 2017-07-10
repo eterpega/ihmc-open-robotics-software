@@ -6,7 +6,6 @@ ihmc.configureProjectForOpenRobotics(project)
 
 testSuites {
    bambooPlanKeys = ["LIBS-FAST2"]
-   disableBambooConfigurationCheck = true
 }
 
 
