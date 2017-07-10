@@ -138,6 +138,11 @@ public class AtlasHeadLoopKinematicCalibrator extends AtlasKinematicCalibrator
             if (alignCamera)
                scsAlignCameraToRobotCamera();
          }
+
+         @Override public void notifyOfManualEndChange(int inPoint, int outPoint)
+         {
+
+         }
       });
 
       //Set Camera Info

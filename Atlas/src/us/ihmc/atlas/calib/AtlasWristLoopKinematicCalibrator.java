@@ -36,6 +36,11 @@ public class AtlasWristLoopKinematicCalibrator extends AtlasCalibrationDataViewe
             System.out.println("showing yoIndex: " + yoIndex.getIntegerValue() + "newIndex: " + newIndex);
             debugPrint(yoIndex.getIntegerValue());
          }
+
+         @Override public void notifyOfManualEndChange(int inPoint, int outPoint)
+         {
+            
+         }
       });
    }
 
