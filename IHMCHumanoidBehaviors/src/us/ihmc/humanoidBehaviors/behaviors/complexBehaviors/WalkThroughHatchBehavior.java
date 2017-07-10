@@ -171,6 +171,8 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
    private final YoDouble swingTime = new YoDouble("BehaviorSwingTime", registry);
    private final YoDouble transferTime = new YoDouble("BehaviorTransferTime", registry);
    
+   private YoBoolean trustGroundHeight = new YoBoolean("BehaviorTrustGroundDuringWalking", registry);
+   
    PositionOptimizedTrajectoryGenerator trajectory = new PositionOptimizedTrajectoryGenerator("optimizer", registry);
 
 
@@ -196,6 +198,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
       
       swingTime.set(swingTimeHatch);
       transferTime.set(transferTimeHatch);
+      trustGroundHeight.set(false);
 
       setupStateMachine();
       
@@ -312,7 +315,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
             
             atlasPrimitiveActions.walkToLocationBehavior.setWalkingStepWidth(defaultStepWidth);
             atlasPrimitiveActions.walkToLocationBehavior.setTarget(targetPose);
-            atlasPrimitiveActions.walkToLocationBehavior.setTrustHeightOfFootsteps(false);
+            atlasPrimitiveActions.walkToLocationBehavior.setTrustHeightOfFootsteps(trustGroundHeight.getBooleanValue());
          }
       };
       
@@ -396,7 +399,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
             
             atlasPrimitiveActions.walkToLocationBehavior.setWalkingStepWidth(wideStepWidth);
             atlasPrimitiveActions.walkToLocationBehavior.setTarget(targetPose);
-            atlasPrimitiveActions.walkToLocationBehavior.setTrustHeightOfFootsteps(false);
+            atlasPrimitiveActions.walkToLocationBehavior.setTrustHeightOfFootsteps(trustGroundHeight.getBooleanValue());
          }
       };
       
@@ -551,7 +554,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
             
             atlasPrimitiveActions.walkToLocationBehavior.setWalkingStepWidth(defaultStepWidth);
             atlasPrimitiveActions.walkToLocationBehavior.setTarget(targetPose);
-            atlasPrimitiveActions.walkToLocationBehavior.setTrustHeightOfFootsteps(false);
+            atlasPrimitiveActions.walkToLocationBehavior.setTrustHeightOfFootsteps(trustGroundHeight.getBooleanValue());
          }
       };
       
@@ -582,7 +585,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
             
             atlasPrimitiveActions.walkToLocationBehavior.setWalkingStepWidth(defaultStepWidth);
             atlasPrimitiveActions.walkToLocationBehavior.setTarget(targetPose);
-            atlasPrimitiveActions.walkToLocationBehavior.setTrustHeightOfFootsteps(false);
+            atlasPrimitiveActions.walkToLocationBehavior.setTrustHeightOfFootsteps(trustGroundHeight.getBooleanValue());
          }
       };
 

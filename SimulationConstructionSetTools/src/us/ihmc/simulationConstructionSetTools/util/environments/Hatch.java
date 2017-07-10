@@ -12,7 +12,7 @@ public class Hatch
       private double hatchThickness;
       
       private static final double defaultHatchStepHeight = 0.16;
-      private static final double defaultHatchOpeningHeight = 1.70;
+      private static final double defaultHatchOpeningHeight = 1.60;
       private static final double defaultHatchWidth = 0.90;
       private static final double defaultHatchThickness = 0.10;
       
