@@ -16,7 +16,7 @@ buildscript {
 //apply plugin: 'us.ihmc.gradle.ihmc-build'
 
 plugins {
-   id 'us.ihmc.gradle.ihmc-build' version '0.1.19'
+   id 'us.ihmc.gradle.ihmc-build' version '0.1.21'
 }
 
 ihmc.configureProjectForOpenRobotics(project);
