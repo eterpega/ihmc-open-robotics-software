@@ -1,19 +1,13 @@
-//buildscript {
-//   repositories {
-//      maven {
-//         url "http://dl.bintray.com/ihmcrobotics/maven-release"
-//      }
-//      //mavenLocal()
-//   }
-//   //dependencies {
-//   // classpath "us.ihmc.gradle:ihmc-build:0.1.8"
-//  //}
-//}
-
-//apply plugin: "us.ihmc.gradle.ihmc-build"
+buildscript {
+   repositories {
+      maven {
+         url "http://dl.bintray.com/ihmcrobotics/maven-release"
+      }
+   }
+}
 
 plugins {
-   id 'us.ihmc.gradle.ihmc-build' version '0.1.17'
+   id 'us.ihmc.gradle.ihmc-build' version '0.1.19'
 }
 
 testSuites {
