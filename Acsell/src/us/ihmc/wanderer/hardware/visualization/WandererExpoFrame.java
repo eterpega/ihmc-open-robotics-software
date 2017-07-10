@@ -330,6 +330,11 @@ public class WandererExpoFrame extends JFrame implements PlaybackListener
       COT_value.setText(String.format("%.1f",COT.getDoubleValue()));
    }
 
+   @Override public void notifyOfManualEndChange(int inPoint, int outPoint)
+   {
+
+   }
+
    private String displayTime(int time)
    {
       int hours = time/3600;

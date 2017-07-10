@@ -256,6 +256,11 @@ public class WandererPDSliderboard extends SCSVisualizer implements IndexChanged
       }
    }
 
+   @Override public void notifyOfManualEndChange(int inPoint, int outPoint)
+   {
+
+   }
+
    public static void main(String[] args)
    {
       SCSVisualizer scsYoVariablesUpdatedListener = new WandererPDSliderboard(16384);

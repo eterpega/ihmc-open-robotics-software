@@ -290,6 +290,11 @@ public class StepprDashboard extends JPanel implements PlaybackListener
 
    }
 
+   @Override public void notifyOfManualEndChange(int inPoint, int outPoint)
+   {
+
+   }
+
    @Override
    public void play(double realTimeRate)
    {

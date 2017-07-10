@@ -1,19 +1,19 @@
 <GraphGroup>
 	<Cols>2</Cols>
 	<Graph>
-		<Variables>root.AgileHexapod.q_x,root.AgileHexapod.AgileHexapodController.fX</Variables>
+		<Variables>root.AgileHexapod.AgileHexapodController.q_d_z</Variables>
 		<GraphConfiguration>
 			<Name>config1</Name>
 			<ScalingMethod>0</ScalingMethod>
 			<PlotType>0</PlotType>
-			<ShowBaselines>false</ShowBaselines>
+			<ShowBaselines>true</ShowBaselines>
 			<Baselines>0.0,</Baselines>
 			<MaxScaling>1.0</MaxScaling>
 			<MinScaling>0.0</MinScaling>
 		</GraphConfig>
 	</Graph>
 	<Graph>
-		<Variables>root.AgileHexapod.AgileHexapodController.fXa,root.AgileHexapod.AgileHexapodController.fXb</Variables>
+		<Variables></Variables>
 		<GraphConfiguration>
 			<Name>config2</Name>
 			<ScalingMethod>0</ScalingMethod>
@@ -25,19 +25,19 @@
 		</GraphConfig>
 	</Graph>
 	<Graph>
-		<Variables>root.AgileHexapod.q_y,root.AgileHexapod.AgileHexapodController.fY</Variables>
+		<Variables>root.AgileHexapod.AgileHexapodController.fZ,root.AgileHexapod.AgileHexapodController.fZa,root.AgileHexapod.AgileHexapodController.fZb</Variables>
 		<GraphConfiguration>
 			<Name>config3</Name>
 			<ScalingMethod>0</ScalingMethod>
 			<PlotType>0</PlotType>
-			<ShowBaselines>false</ShowBaselines>
+			<ShowBaselines>true</ShowBaselines>
 			<Baselines>0.0,</Baselines>
 			<MaxScaling>1.0</MaxScaling>
 			<MinScaling>0.0</MinScaling>
 		</GraphConfig>
 	</Graph>
 	<Graph>
-		<Variables>root.AgileHexapod.AgileHexapodController.fYa,root.AgileHexapod.AgileHexapodController.fYb</Variables>
+		<Variables>root.AgileHexapod.AgileHexapodController.walk_state</Variables>
 		<GraphConfiguration>
 			<Name>config4</Name>
 			<ScalingMethod>0</ScalingMethod>
@@ -49,19 +49,19 @@
 		</GraphConfig>
 	</Graph>
 	<Graph>
-		<Variables>root.AgileHexapod.q_z,root.AgileHexapod.AgileHexapodController.fZ</Variables>
+		<Variables>root.AgileHexapod.AgileHexapodController.vel_x,root.AgileHexapod.AgileHexapodController.vel_y</Variables>
 		<GraphConfiguration>
 			<Name>config5</Name>
 			<ScalingMethod>0</ScalingMethod>
 			<PlotType>0</PlotType>
-			<ShowBaselines>false</ShowBaselines>
+			<ShowBaselines>true</ShowBaselines>
 			<Baselines>0.0,</Baselines>
 			<MaxScaling>1.0</MaxScaling>
 			<MinScaling>0.0</MinScaling>
 		</GraphConfig>
 	</Graph>
 	<Graph>
-		<Variables>root.AgileHexapod.AgileHexapodController.fZa,root.AgileHexapod.AgileHexapodController.fZb</Variables>
+		<Variables>root.AgileHexapod.AgileHexapodController.ground_height</Variables>
 		<GraphConfiguration>
 			<Name>config6</Name>
 			<ScalingMethod>0</ScalingMethod>
@@ -93,8 +93,207 @@ Tab0
 <Visible> true</Visible>
 </Main Viewport>
 
-<Graph Array Window Size>0</Graph Array Window Size>
-
+<Graph Array Window Size>1</Graph Array Window Size>
+<Graph Array Window1>
+<ScreenID>1</ScreenID>
+<WindowLocation>2625.0, 24.0</WindowLocation>
+<WindowSize>1855.0, 1176.0</WindowSize>
+<GraphGroup>
+	<Cols>2</Cols>
+	<Graph>
+		<Variables>root.AgileHexapod.q_hip1_x,root.AgileHexapod.q_hip1_z</Variables>
+		<GraphConfiguration>
+			<Name>config7</Name>
+			<ScalingMethod>2</ScalingMethod>
+			<PlotType>0</PlotType>
+			<ShowBaselines>true</ShowBaselines>
+			<Baselines>0.0,</Baselines>
+			<MaxScaling>1.0</MaxScaling>
+			<MinScaling>0.0</MinScaling>
+		</GraphConfig>
+	</Graph>
+	<Graph>
+		<Variables>root.AgileHexapod.q_x,root.AgileHexapod.q_qx</Variables>
+		<GraphConfiguration>
+			<Name>config8</Name>
+			<ScalingMethod>2</ScalingMethod>
+			<PlotType>0</PlotType>
+			<ShowBaselines>true</ShowBaselines>
+			<Baselines>0.0,</Baselines>
+			<MaxScaling>1.0</MaxScaling>
+			<MinScaling>0.0</MinScaling>
+		</GraphConfig>
+	</Graph>
+	<Graph>
+		<Variables>root.AgileHexapod.q_hip2_z,root.AgileHexapod.q_hip2_x</Variables>
+		<GraphConfiguration>
+			<Name>config9</Name>
+			<ScalingMethod>2</ScalingMethod>
+			<PlotType>0</PlotType>
+			<ShowBaselines>true</ShowBaselines>
+			<Baselines>0.0,</Baselines>
+			<MaxScaling>1.0</MaxScaling>
+			<MinScaling>0.0</MinScaling>
+		</GraphConfig>
+	</Graph>
+	<Graph>
+		<Variables>root.AgileHexapod.q_y,root.AgileHexapod.q_qy</Variables>
+		<GraphConfiguration>
+			<Name>config10</Name>
+			<ScalingMethod>2</ScalingMethod>
+			<PlotType>0</PlotType>
+			<ShowBaselines>true</ShowBaselines>
+			<Baselines>0.0,</Baselines>
+			<MaxScaling>1.0</MaxScaling>
+			<MinScaling>0.0</MinScaling>
+		</GraphConfig>
+	</Graph>
+	<Graph>
+		<Variables>root.AgileHexapod.q_hip3_z,root.AgileHexapod.q_hip3_x</Variables>
+		<GraphConfiguration>
+			<Name>config11</Name>
+			<ScalingMethod>2</ScalingMethod>
+			<PlotType>0</PlotType>
+			<ShowBaselines>true</ShowBaselines>
+			<Baselines>0.0,</Baselines>
+			<MaxScaling>1.0</MaxScaling>
+			<MinScaling>0.0</MinScaling>
+		</GraphConfig>
+	</Graph>
+	<Graph>
+		<Variables>root.AgileHexapod.q_z,root.AgileHexapod.q_qz</Variables>
+		<GraphConfiguration>
+			<Name>config12</Name>
+			<ScalingMethod>2</ScalingMethod>
+			<PlotType>0</PlotType>
+			<ShowBaselines>true</ShowBaselines>
+			<Baselines>0.0,</Baselines>
+			<MaxScaling>1.0</MaxScaling>
+			<MinScaling>0.0</MinScaling>
+		</GraphConfig>
+	</Graph>
+	<Graph>
+		<Variables>root.AgileHexapod.q_hip4_z,root.AgileHexapod.q_hip4_x</Variables>
+		<GraphConfiguration>
+			<Name>config13</Name>
+			<ScalingMethod>2</ScalingMethod>
+			<PlotType>0</PlotType>
+			<ShowBaselines>true</ShowBaselines>
+			<Baselines>0.0,</Baselines>
+			<MaxScaling>1.0</MaxScaling>
+			<MinScaling>0.0</MinScaling>
+		</GraphConfig>
+	</Graph>
+	<Graph>
+		<Variables></Variables>
+		<GraphConfiguration>
+			<Name>config14</Name>
+			<ScalingMethod>0</ScalingMethod>
+			<PlotType>0</PlotType>
+			<ShowBaselines>true</ShowBaselines>
+			<Baselines>0.0,</Baselines>
+			<MaxScaling>1.0</MaxScaling>
+			<MinScaling>0.0</MinScaling>
+		</GraphConfig>
+	</Graph>
+	<Graph>
+		<Variables>root.AgileHexapod.q_hip5_z,root.AgileHexapod.q_hip5_x</Variables>
+		<GraphConfiguration>
+			<Name>config15</Name>
+			<ScalingMethod>2</ScalingMethod>
+			<PlotType>0</PlotType>
+			<ShowBaselines>true</ShowBaselines>
+			<Baselines>0.0,</Baselines>
+			<MaxScaling>1.0</MaxScaling>
+			<MinScaling>0.0</MinScaling>
+		</GraphConfig>
+	</Graph>
+	<Graph>
+		<Variables>root.AgileHexapod.q_knee1,root.AgileHexapod.q_knee2,root.AgileHexapod.q_knee3</Variables>
+		<GraphConfiguration>
+			<Name>config16</Name>
+			<ScalingMethod>2</ScalingMethod>
+			<PlotType>0</PlotType>
+			<ShowBaselines>true</ShowBaselines>
+			<Baselines>0.0,</Baselines>
+			<MaxScaling>1.0</MaxScaling>
+			<MinScaling>0.0</MinScaling>
+		</GraphConfig>
+	</Graph>
+	<Graph>
+		<Variables>root.AgileHexapod.q_hip6_z,root.AgileHexapod.q_hip6_x</Variables>
+		<GraphConfiguration>
+			<Name>config17</Name>
+			<ScalingMethod>2</ScalingMethod>
+			<PlotType>0</PlotType>
+			<ShowBaselines>true</ShowBaselines>
+			<Baselines>0.0,</Baselines>
+			<MaxScaling>1.0</MaxScaling>
+			<MinScaling>0.0</MinScaling>
+		</GraphConfig>
+	</Graph>
+	<Graph>
+		<Variables>root.AgileHexapod.q_knee4,root.AgileHexapod.q_knee5,root.AgileHexapod.q_knee6</Variables>
+		<GraphConfiguration>
+			<Name>config18</Name>
+			<ScalingMethod>2</ScalingMethod>
+			<PlotType>0</PlotType>
+			<ShowBaselines>true</ShowBaselines>
+			<Baselines>0.0,</Baselines>
+			<MaxScaling>1.0</MaxScaling>
+			<MinScaling>0.0</MinScaling>
+		</GraphConfig>
+	</Graph>
+	<Graph>
+		<Variables>root.AgileHexapod.q_pend1,root.AgileHexapod.q_pend2</Variables>
+		<GraphConfiguration>
+			<Name>config19</Name>
+			<ScalingMethod>2</ScalingMethod>
+			<PlotType>0</PlotType>
+			<ShowBaselines>true</ShowBaselines>
+			<Baselines>0.0,</Baselines>
+			<MaxScaling>1.0</MaxScaling>
+			<MinScaling>0.0</MinScaling>
+		</GraphConfig>
+	</Graph>
+	<Graph>
+		<Variables>root.AgileHexapod.AgileHexapodController.q_pitch,root.AgileHexapod.AgileHexapodController.q_roll,root.AgileHexapod.AgileHexapodController.q_yaw</Variables>
+		<GraphConfiguration>
+			<Name>config20</Name>
+			<ScalingMethod>2</ScalingMethod>
+			<PlotType>0</PlotType>
+			<ShowBaselines>true</ShowBaselines>
+			<Baselines>0.0,</Baselines>
+			<MaxScaling>1.0</MaxScaling>
+			<MinScaling>0.0</MinScaling>
+		</GraphConfig>
+	</Graph>
+	<Graph>
+		<Variables>root.AgileHexapod.AgileHexapodController.q_d_x,root.AgileHexapod.AgileHexapodController.q_d_y,root.AgileHexapod.AgileHexapodController.q_d_z</Variables>
+		<GraphConfiguration>
+			<Name>config21</Name>
+			<ScalingMethod>2</ScalingMethod>
+			<PlotType>0</PlotType>
+			<ShowBaselines>true</ShowBaselines>
+			<Baselines>0.0,</Baselines>
+			<MaxScaling>1.0</MaxScaling>
+			<MinScaling>0.0</MinScaling>
+		</GraphConfig>
+	</Graph>
+	<Graph>
+		<Variables>root.AgileHexapod.AgileHexapodController.q_d_yaw,root.AgileHexapod.AgileHexapodController.q_d_pitch,root.AgileHexapod.AgileHexapodController.q_d_roll</Variables>
+		<GraphConfiguration>
+			<Name>config22</Name>
+			<ScalingMethod>2</ScalingMethod>
+			<PlotType>0</PlotType>
+			<ShowBaselines>true</ShowBaselines>
+			<Baselines>0.0,</Baselines>
+			<MaxScaling>1.0</MaxScaling>
+			<MinScaling>0.0</MinScaling>
+		</GraphConfig>
+	</Graph>
+</GraphGroup>
+</Graph Array Window1>
 
 <Extra Panels>
 <Main Viewport>
@@ -129,8 +328,8 @@ Tab0
 </Track Booleans>
 </Track data>
 <Fix Position>
-<Fix X>0.4909339240778713</Fix X>
-<Fix Y>-0.04782248206748346</Fix Y>
+<Fix X>-0.20345962533344175</Fix X>
+<Fix Y>-0.04951543724541452</Fix Y>
 <Fix Z>0.2</Fix Z>
 </Fix Position>
 </Canvas 1>

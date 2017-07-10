@@ -256,6 +256,11 @@ public class StepprPDSliderboard extends SCSVisualizer implements IndexChangedLi
       }
    }
 
+   @Override public void notifyOfManualEndChange(int inPoint, int outPoint)
+   {
+
+   }
+
    public static void main(String[] args)
    {
       SCSVisualizer scsYoVariablesUpdatedListener = new StepprPDSliderboard(16384);

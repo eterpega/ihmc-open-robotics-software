@@ -263,6 +263,11 @@ public class StepprStandPrepSliderboard extends SCSVisualizer implements IndexCh
 
    }
 
+   @Override public void notifyOfManualEndChange(int inPoint, int outPoint)
+   {
+
+   }
+
    public static void main(String[] args)
    {
       SCSVisualizer scsYoVariablesUpdatedListener = new StepprStandPrepSliderboard(64000);

@@ -100,6 +100,11 @@ public class StepprDeflectionMeasurementSliderboardjava extends SCSVisualizer im
       allSetpoints.get(joint).update();
    }
 
+   @Override public void notifyOfManualEndChange(int inPoint, int outPoint)
+   {
+
+   }
+
    public static void main(String[] args)
    {
       SCSVisualizer scsYoVariablesUpdatedListener = new StepprDeflectionMeasurementSliderboardjava(64000);
