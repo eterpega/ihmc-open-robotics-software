@@ -86,7 +86,9 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
    private final HumanoidReferenceFrames referenceFrames;
    
    private final double defaultLowerPelvisHeight = 0.788;
-   private final double defaultUpperPelvisHeight = 0.800; //was 0.850
+   private final double defaultUpperPelvisHeight = 0.788; //was 0.850
+   private final double maxPelvisHeight = 0.788;
+   private final double minPelvisHeight = 0.650;
    
    private final PoseReferenceFrame hatchFrame = new PoseReferenceFrame("HatchFrame", ReferenceFrame.getWorldFrame());
    private final YoGraphicReferenceFrame hatchFrameViz;
@@ -806,6 +808,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
       pelvisYawPitchRollInitializeDesired[2] = Math.toRadians(0.0);
       
       pelvisPositionInHatchFrameInitializeDesired.set(0.0, 0.0, defaultUpperPelvisHeight);
+      clipPelvisHeightBetweenLimits(pelvisPositionInHatchFrameInitializeDesired);
       
       pelvisYawPitchRollSetupDesired[0] = Math.toRadians(0.0);
       pelvisYawPitchRollSetupDesired[1] = Math.toRadians(-hatch.getStepHeight()*100.0); //TEST: was -15.0 for 0.15 height
@@ -815,6 +818,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
       if(pelvisMovementInitializationZ > 0.0)
          pelvisMovementInitializationZ = 0.0;
       pelvisPositionInHatchFrameSetupDesired.set(0.0, 0.0, defaultLowerPelvisHeight + pelvisMovementInitializationZ);
+      clipPelvisHeightBetweenLimits(pelvisPositionInHatchFrameSetupDesired);
       
       pelvisYawPitchRollFirstHatchStepDesired[0] = Math.toRadians(10.0); //7.0
       pelvisYawPitchRollFirstHatchStepDesired[1] = Math.toRadians(-hatch.getStepHeight()*100.0); //5.0
@@ -822,6 +826,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
       
       pelvisPositionInHatchFrameFirstHatchStepDesired.set(pelvisPositionInHatchFrameSetupDesired);
       pelvisPositionInHatchFrameFirstHatchStepDesired.add(0.0, 0.0, -0.02); //0.02 in z (0.05 in x)
+      clipPelvisHeightBetweenLimits(pelvisPositionInHatchFrameFirstHatchStepDesired);
       
       pelvisYawPitchRollTransitionDesired[0] = Math.toRadians(0.0); //0.0
       pelvisYawPitchRollTransitionDesired[1] = Math.toRadians(4.0 + 2.0 * hatch.getStepHeight()/0.05);
@@ -829,6 +834,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
 
       pelvisPositionInHatchFrameTransitionDesired.set(pelvisPositionInHatchFrameFirstHatchStepDesired);
       pelvisPositionInHatchFrameTransitionDesired.add(0.0, 0.0, 0.05); // 0.05 height, 0.025 + 0.025*hatchLowerHeight/0.05 - 0.04 in x
+      clipPelvisHeightBetweenLimits(pelvisPositionInHatchFrameTransitionDesired);
    
       pelvisYawPitchRollSecondHatchStepDesired[0] = Math.toRadians(-8.0); // -5
       pelvisYawPitchRollSecondHatchStepDesired[1] = Math.toRadians(hatch.getStepHeight()*100.0);
@@ -836,6 +842,7 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
       
       pelvisPositionInHatchFrameSecondHatchStepDesired.set(pelvisPositionInHatchFrameTransitionDesired);
       pelvisPositionInHatchFrameSecondHatchStepDesired.add(0.0, 0.0, 0.0);    
+      clipPelvisHeightBetweenLimits(pelvisPositionInHatchFrameSecondHatchStepDesired);
       
       pelvisYawPitchRollResetDesired[0] = Math.toRadians(0.0);
       pelvisYawPitchRollResetDesired[1] = Math.toRadians(0.0);
@@ -843,8 +850,24 @@ public class WalkThroughHatchBehavior extends StateMachineBehavior<WalkThroughHa
       
       pelvisPositionInHatchFrameRealignDesired.set(pelvisPositionInHatchFrameSecondHatchStepDesired); //pelvisPositionInHatchFrameFirstHatchStepDesired
       pelvisPositionInHatchFrameRealignDesired.add(0.0, 0.0, -0.01);
+      clipPelvisHeightBetweenLimits(pelvisPositionInHatchFrameRealignDesired);
       
       pelvisPositionInHatchFrameStraightenDesired.set(0.0, 0.0, defaultUpperPelvisHeight);
+      clipPelvisHeightBetweenLimits(pelvisPositionInHatchFrameStraightenDesired);
+   }
+   
+   private void clipPelvisHeightBetweenLimits(Point3D pelvisPositionInHatchFrame)
+   {
+      if(pelvisPositionInHatchFrame.getZ() > maxPelvisHeight)
+      {
+         PrintTools.info("Pelvis height: tried " + pelvisPositionInHatchFrame.getZ() + " --> clipped to MAX");
+         pelvisPositionInHatchFrame.setZ(maxPelvisHeight);
+      }
+      else if(pelvisPositionInHatchFrame.getZ() < minPelvisHeight)
+      {
+         PrintTools.info("Pelvis height: tried " + pelvisPositionInHatchFrame.getZ() + " --> clipped to MIN");
+         pelvisPositionInHatchFrame.setZ(minPelvisHeight);
+      }
    }
    
    private void setFootTrajectoriesBasedOnHatchDimensions()
