@@ -28,7 +28,8 @@ public enum HumanoidBehaviorType
    TEST_HATCH_WALKTHROUGH,
    SOLARPANEL_BEHAVIOR,
    PUSH_AND_WALK,
-   COLLABORATIVE_TASK;
+   COLLABORATIVE_TASK,
+   FIRE_FIGHTING;
 
    public static final HumanoidBehaviorType[] values = values();
 }
