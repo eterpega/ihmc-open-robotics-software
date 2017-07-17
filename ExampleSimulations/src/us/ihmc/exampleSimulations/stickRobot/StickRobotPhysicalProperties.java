@@ -6,11 +6,19 @@ import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
 
+
+/**
+ * 
+ * @author Shlok Agarwal
+ * This class defines the physical properties of the robot foot dimensions and other supporting parameters
+ * It can be used to add more physical robot specific parameters
+ */
 public class StickRobotPhysicalProperties implements DRCRobotPhysicalProperties
 {
    public static final double footsizeReduction = 0.01;
 
-   public static final double ankleHeight = 0.09; // Should be 0.075 + 0.015 (sole thickness)
+   
+   public static final double ankleHeight = 0.02; // modified: 0.09; // Should be 0.075 + 0.015 (sole thickness)
    public static final double footLength = 0.25 - footsizeReduction;
    public static final double footBack = 0.073 - footsizeReduction/2.0;
    public static final double footForward = footLength - footBack;

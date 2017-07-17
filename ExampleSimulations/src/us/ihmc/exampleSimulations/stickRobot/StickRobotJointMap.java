@@ -60,6 +60,8 @@ public class StickRobotJointMap implements DRCRobotJointMap
       armJoints = new ArmJointName[] {ArmJointName.SHOULDER_PITCH, ArmJointName.SHOULDER_ROLL, ArmJointName.SHOULDER_YAW, ArmJointName.ELBOW_PITCH,
             ArmJointName.ELBOW_ROLL, ArmJointName.WRIST_ROLL, ArmJointName.FIRST_WRIST_PITCH};
 
+      
+      // populating the legJointNames,armJointNames, limbNames and neckJointNames hash maps 
       for (RobotSide robotSide : RobotSide.values)
       {
          String[] forcedSideJointNames = StickRobotOrderedJointMap.forcedSideDependentJointNames.get(robotSide);
@@ -105,6 +107,7 @@ public class StickRobotJointMap implements DRCRobotJointMap
       neckJointNames.put(jointNames[StickRobotOrderedJointMap.NeckYaw], NeckJointName.DISTAL_NECK_YAW);
       neckJointNames.put(jointNames[StickRobotOrderedJointMap.NeckRoll], NeckJointName.DISTAL_NECK_PITCH);
 
+      // assigning joint role to different joints like LEG, ARM, SPINE, NECK;
       for (String legJointString : legJointNames.keySet())
       {
          RobotSide robotSide = legJointNames.get(legJointString).getLeft();
@@ -133,12 +136,14 @@ public class StickRobotJointMap implements DRCRobotJointMap
          jointRoles.put(neckJointString, JointRole.NECK);
       }
 
-      for (RobotSide robtSide : RobotSide.values)
+      //  no idea why and where this is used
+      for (RobotSide robotSide : RobotSide.values)
       {
-         nameOfJointsBeforeThighs.put(robtSide, legJointStrings.get(robtSide).get(LegJointName.HIP_PITCH));
-         nameOfJointsBeforeHands.put(robtSide, armJointStrings.get(robtSide).get(ArmJointName.FIRST_WRIST_PITCH));
+         nameOfJointsBeforeThighs.put(robotSide, legJointStrings.get(robotSide).get(LegJointName.HIP_PITCH));
+         nameOfJointsBeforeHands.put(robotSide, armJointStrings.get(robotSide).get(ArmJointName.FIRST_WRIST_PITCH));
       }
 
+      // joint before the left and right foot end effector
       jointNamesBeforeFeet[0] = getJointBeforeFootName(RobotSide.LEFT);
       jointNamesBeforeFeet[1] = getJointBeforeFootName(RobotSide.RIGHT);
    }
@@ -163,7 +168,7 @@ public class StickRobotJointMap implements DRCRobotJointMap
    @Override
    public String getModelName()
    {
-      return "stickbot_humanoid_32dof";
+      return "stickRobot";
    }
 
    @Override

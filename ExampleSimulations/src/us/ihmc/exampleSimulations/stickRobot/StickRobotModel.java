@@ -119,7 +119,11 @@ public class StickRobotModel implements DRCRobotModel, SDFDescriptionMutator
    {
       this.target = target;
       jointMap = new StickRobotJointMap();
+      
+      // in our case, simulationConactPoints are null currently. will call the createDefaultFootContactPoints according to SCS
       contactPointParameters = new StickRobotContactPointParameters(jointMap, simulationContactPoints);
+      
+      // physical robot dimensions required for calculations
       physicalProperties = new StickRobotPhysicalProperties();
       InputStream sdf = null;
 
@@ -146,17 +150,23 @@ public class StickRobotModel implements DRCRobotModel, SDFDescriptionMutator
 
       }
 
+      // loads the SDF directory located in the resources folder 
       this.loader = DRCRobotSDFLoader.loadDRCRobot(getResourceDirectories(), sdf, this);
 
-      boolean runningOnRealRobot = target == RobotTarget.REAL_ROBOT;
+      //TODO currently set to null: change for walking 
       capturePointPlannerParameters = null;
       walkingControllerParameters = null;
       stateEstimatorParamaters = null;
+      
+      // 
       robotDescription = createRobotDescription();
    }
 
    private RobotDescription createRobotDescription()
    {
+      // this function would create the robot description from the SDF file.
+      // it uses the joint map, SDF model and contact parameters as arguments
+      
       boolean useCollisionMeshes = false;
 
       GeneralizedSDFRobotModel generalizedSDFRobotModel = getGeneralizedRobotModel();
@@ -184,11 +194,7 @@ public class StickRobotModel implements DRCRobotModel, SDFDescriptionMutator
    
    private String getSdfFile()
    {
-      return "models/stickRobot/sdf/stickbot_humanoid_32dof.sdf";
-//      if(this.target == RobotTarget.REAL_ROBOT)
-//         return ValkyrieConfigurationRoot.REAL_ROBOT_SDF_FILE;
-//      else
-//         return ValkyrieConfigurationRoot.SIM_SDF_FILE;
+      return "models/stickRobot/sdf/stickRobot.sdf";
    }
 
    private String[] getResourceDirectories()
@@ -229,7 +235,6 @@ public class StickRobotModel implements DRCRobotModel, SDFDescriptionMutator
    @Override
    public ICPOptimizationParameters getICPOptimizationParameters()
    {
-      // TODO Auto-generated method stub
       return null;
    }
 
@@ -252,27 +257,6 @@ public class StickRobotModel implements DRCRobotModel, SDFDescriptionMutator
    }
 
    @Override
-   public OutputProcessor getOutputProcessor(FullRobotModel controllerFullRobotModel)
-   {
-      // TODO Auto-generated method stub
-      return null;
-   }
-
-   @Override
-   public DefaultArmConfigurations getDefaultArmConfigurations()
-   {
-      // TODO Auto-generated method stub
-      return null;
-   }
-
-   @Override
-   public DRCRobotSensorInformation getSensorInformation()
-   {
-      // TODO Auto-generated method stub
-      return null;
-   }
-
-   @Override
    public FullHumanoidRobotModel createFullRobotModel()
    {    
       return new FullHumanoidRobotModelFromDescription(robotDescription, jointMap);
@@ -282,55 +266,6 @@ public class StickRobotModel implements DRCRobotModel, SDFDescriptionMutator
    public RobotDescription getRobotDescription()
    {
       return robotDescription;
-   }
-
-   @Override
-   public void mutateJointForModel(GeneralizedSDFRobotModel model, SDFJointHolder jointHolder)
-   {
-
-      
-   }
-
-   @Override
-   public void mutateLinkForModel(GeneralizedSDFRobotModel model, SDFLinkHolder linkHolder)
-   {
-      // TODO Auto-generated method stub
-      
-   }
-
-   @Override
-   public void mutateSensorForModel(GeneralizedSDFRobotModel model, SDFSensor sensor)
-   {
-      // TODO Auto-generated method stub
-      
-   }
-
-   @Override
-   public void mutateForceSensorForModel(GeneralizedSDFRobotModel model, SDFForceSensor forceSensor)
-   {
-      // TODO Auto-generated method stub
-      
-   }
-
-   @Override
-   public void mutateContactSensorForModel(GeneralizedSDFRobotModel model, SDFContactSensor contactSensor)
-   {
-      // TODO Auto-generated method stub
-      
-   }
-
-   @Override
-   public void mutateModelWithAdditions(GeneralizedSDFRobotModel model)
-   {
-      // TODO Auto-generated method stub
-      
-   }
-
-   @Override
-   public FootstepPlanningParameterization getFootstepParameters()
-   {
-      // TODO Auto-generated method stub
-      return null;
    }
 
    @Override
@@ -367,18 +302,8 @@ public class StickRobotModel implements DRCRobotModel, SDFDescriptionMutator
    @Override
    public boolean getEnableJointDamping()
    {
-      // TODO Auto-generated method stub
       return enableJointDamping;
    }
-
-   @Override
-   public HandModel getHandModel()
-   {
-      // TODO Auto-generated method stub
-      // it is present for valkyrie
-      return null;
-   }
-
    @Override
    public Transform getJmeTransformWristToHand(RobotSide side)
    {
@@ -402,12 +327,6 @@ public class StickRobotModel implements DRCRobotModel, SDFDescriptionMutator
          offsetHandFromWrist.set(robotSide, new Transform(centerOfHandToWristTranslation, centerOfHandToWristRotation));
       }
    }
-   @Override
-   public RigidBodyTransform getTransform3dWristToHand(RobotSide side)
-   {
-      // TODO Auto-generated method stub
-      return null;
-   }
 
    @Override
    public double getSimulateDT()
@@ -422,47 +341,9 @@ public class StickRobotModel implements DRCRobotModel, SDFDescriptionMutator
    }
 
    @Override
-   public double getStandPrepAngle(String jointName)
-   {
-      // TODO Auto-generated method stub
-      return 0;
-   }
-
-   @Override
    public DRCROSPPSTimestampOffsetProvider getPPSTimestampOffsetProvider()
    {
       return new DRCROSAlwaysZeroOffsetPPSTimestampOffsetProvider();
-   }
-
-   @Override
-   public DRCSensorSuiteManager getSensorSuiteManager()
-   {
-      // TODO Auto-generated method stub
-      return null;
-   }
-
-   @Override
-   public SideDependentList<HandCommandManager> createHandCommandManager()
-   {
-      // TODO Auto-generated method stub
-      return null;
-   }
-
-   @Override
-   public MultiThreadedRobotControlElement createSimulatedHandController(FloatingRootJointRobot simulatedRobot,
-                                                                         ThreadDataSynchronizerInterface threadDataSynchronizer,
-                                                                         HumanoidGlobalDataProducer globalDataProducer,
-                                                                         CloseableAndDisposableRegistry closeableAndDisposableRegistry)
-   {
-      // TODO Auto-generated method stub
-      return null;
-   }
-
-   @Override
-   public DRCHandType getDRCHandType()
-   {
-      // TODO Auto-generated method stub
-      return null;
    }
 
    @Override
@@ -492,22 +373,128 @@ public class StickRobotModel implements DRCRobotModel, SDFDescriptionMutator
    @Override
    public String getSimpleRobotName()
    {
-      // TODO Auto-generated method stub
       return "StickRobot";
    }
 
    @Override
-   public CollisionBoxProvider getCollisionBoxProvider()
+   public RigidBodyTransform getTransform3dWristToHand(RobotSide side)
    {
       // TODO Auto-generated method stub
+      return null;
+   }
+   @Override
+   public double getStandPrepAngle(String jointName)
+   {
+      // TODO Auto-generated method stub
+      return 0;
+   }
+   @Override
+   public DRCSensorSuiteManager getSensorSuiteManager()
+   {
+      // TODO Auto-generated method stub
+      return null;
+   }
+
+   @Override
+   public SideDependentList<HandCommandManager> createHandCommandManager()
+   {
+      // TODO Auto-generated method stub
+      return null;
+   }
+   @Override
+   public HandModel getHandModel()
+   {
+      return null;
+   }
+
+
+   @Override
+   public MultiThreadedRobotControlElement createSimulatedHandController(FloatingRootJointRobot simulatedRobot,
+                                                                         ThreadDataSynchronizerInterface threadDataSynchronizer,
+                                                                         HumanoidGlobalDataProducer globalDataProducer,
+                                                                         CloseableAndDisposableRegistry closeableAndDisposableRegistry)
+   {
+      // TODO Auto-generated method stub
+      return null;
+   }
+
+   @Override
+   public DRCHandType getDRCHandType()
+   {
+      // TODO Auto-generated method stub
+      return null;
+   }
+   @Override
+   public CollisionBoxProvider getCollisionBoxProvider()
+   {
       return null;
    }
 
    @Override
    public FootstepSnappingParameters getSnappingParameters()
    {
+      return null;
+   }
+   @Override
+   public OutputProcessor getOutputProcessor(FullRobotModel controllerFullRobotModel)
+   {
+      return null;
+   }
+
+   @Override
+   public DefaultArmConfigurations getDefaultArmConfigurations()
+   {
+      return null;
+   }
+
+   @Override
+   public DRCRobotSensorInformation getSensorInformation()
+   {
+      return null;
+   }
+
+   @Override
+   public void mutateJointForModel(GeneralizedSDFRobotModel model, SDFJointHolder jointHolder)
+   {
+
+   }
+
+   @Override
+   public void mutateLinkForModel(GeneralizedSDFRobotModel model, SDFLinkHolder linkHolder)
+   {
+      
+   }
+
+   @Override
+   public void mutateSensorForModel(GeneralizedSDFRobotModel model, SDFSensor sensor)
+   {
+      
+   }
+
+   @Override
+   public void mutateForceSensorForModel(GeneralizedSDFRobotModel model, SDFForceSensor forceSensor)
+   {
+      
+   }
+
+   @Override
+   public void mutateContactSensorForModel(GeneralizedSDFRobotModel model, SDFContactSensor contactSensor)
+   {
+      
+   }
+
+   @Override
+   public void mutateModelWithAdditions(GeneralizedSDFRobotModel model)
+   {
+      
+   }
+
+   @Override
+   public FootstepPlanningParameterization getFootstepParameters()
+   {
       // TODO Auto-generated method stub
       return null;
    }
+
    
 }

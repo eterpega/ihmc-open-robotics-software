@@ -1,5 +1,5 @@
 <sdf version='1.6'>
-  <model name='stickbot_humanoid_32dof'>
+  <model name='stickRobot'>
     <link name='pelvis'>
       <pose frame=''>0 0 0 0 -0 0</pose>
       <inertial>
