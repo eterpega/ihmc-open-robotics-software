@@ -1547,6 +1547,9 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
 
          listener.exitActionPerformed();
       }
+
+      this.sim.notifyOfGuiSideClose();
+      this.sim.closeAndDispose();
    }
 
    protected void frameResized()

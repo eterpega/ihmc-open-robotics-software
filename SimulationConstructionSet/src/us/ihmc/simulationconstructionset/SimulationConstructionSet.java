@@ -1185,7 +1185,7 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
 
    public void notifyExitActionListeners()
    {
-      if (myGUI != null)
+      if (myGUI != null && !notifiedOfGUISideClose)
       {
          myGUI.notifyExitActionListeners();
       }
@@ -1202,6 +1202,12 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
       {
          Thread.yield();
       }
+   }
+
+   private boolean notifiedOfGUISideClose = false;
+
+   public void notifyOfGuiSideClose() {
+      notifiedOfGUISideClose = true;
    }
 
    @Override
@@ -1261,7 +1267,7 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
 
       System.out.flush();
 
-      if (myGUI != null)
+      if (myGUI != null && !notifiedOfGUISideClose)
       {
          if (DEBUG_CLOSE_AND_DISPOSE)
             System.out.println("Disposing StandardSimulationGUI and myGUI != null ");
@@ -1327,6 +1333,7 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
 
    public void addJLabel(JLabel label)
    {
+
       if (myGUI != null)
       {
          myGUI.addJLabel(label);
@@ -2747,7 +2754,10 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
             }
          }
 
-         myDataBuffer.notifySimulationRewoundListeners();
+         if (myDataBuffer != null)
+         {
+            myDataBuffer.notifySimulationRewoundListeners();
+         }
       }
 
    }

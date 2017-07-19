@@ -512,6 +512,7 @@ public class StandardGUIActions implements GUIEnablerAndDisabler {
             @Override
             public void actionPerformed(ActionEvent e) {
                 exitActionListenerNotifier.notifyExitActionListeners();
+                System.exit(0);
             }
         });
 
