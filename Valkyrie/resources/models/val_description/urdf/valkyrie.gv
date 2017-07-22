@@ -1,0 +1,236 @@
+digraph G {
+node [shape=box];
+"pelvis" [label="pelvis"];
+"leftHipYawLink" [label="leftHipYawLink"];
+"leftHipRollLink" [label="leftHipRollLink"];
+"leftHipPitchLink" [label="leftHipPitchLink"];
+"leftKneePitchLink" [label="leftKneePitchLink"];
+"leftAnklePitchLink" [label="leftAnklePitchLink"];
+"leftFoot" [label="leftFoot"];
+"leftCOP_Frame" [label="leftCOP_Frame"];
+"pelvisMiddleImu_Frame" [label="pelvisMiddleImu_Frame"];
+"pelvisRearImu_Frame" [label="pelvisRearImu_Frame"];
+"rightHipYawLink" [label="rightHipYawLink"];
+"rightHipRollLink" [label="rightHipRollLink"];
+"rightHipPitchLink" [label="rightHipPitchLink"];
+"rightKneePitchLink" [label="rightKneePitchLink"];
+"rightAnklePitchLink" [label="rightAnklePitchLink"];
+"rightFoot" [label="rightFoot"];
+"rightCOP_Frame" [label="rightCOP_Frame"];
+"torsoYawLink" [label="torsoYawLink"];
+"torsoPitchLink" [label="torsoPitchLink"];
+"torso" [label="torso"];
+"leftHazardCamera_Frame" [label="leftHazardCamera_Frame"];
+"leftShoulderPitchLink" [label="leftShoulderPitchLink"];
+"leftShoulderRollLink" [label="leftShoulderRollLink"];
+"leftShoulderYawLink" [label="leftShoulderYawLink"];
+"leftElbowPitchLink" [label="leftElbowPitchLink"];
+"leftForearmLink" [label="leftForearmLink"];
+"leftWristRollLink" [label="leftWristRollLink"];
+"leftPalm" [label="leftPalm"];
+"leftIndexFingerPitch1Link" [label="leftIndexFingerPitch1Link"];
+"leftIndexFingerPitch2Link" [label="leftIndexFingerPitch2Link"];
+"leftIndexFingerPitch3Link" [label="leftIndexFingerPitch3Link"];
+"leftMiddleFingerPitch1Link" [label="leftMiddleFingerPitch1Link"];
+"leftMiddleFingerPitch2Link" [label="leftMiddleFingerPitch2Link"];
+"leftMiddleFingerPitch3Link" [label="leftMiddleFingerPitch3Link"];
+"leftPinkyPitch1Link" [label="leftPinkyPitch1Link"];
+"leftPinkyPitch2Link" [label="leftPinkyPitch2Link"];
+"leftPinkyPitch3Link" [label="leftPinkyPitch3Link"];
+"leftThumbRollLink" [label="leftThumbRollLink"];
+"leftThumbPitch1Link" [label="leftThumbPitch1Link"];
+"leftThumbPitch2Link" [label="leftThumbPitch2Link"];
+"leftThumbPitch3Link" [label="leftThumbPitch3Link"];
+"leftTorsoImu_Frame" [label="leftTorsoImu_Frame"];
+"lowerNeckPitchLink" [label="lowerNeckPitchLink"];
+"neckYawLink" [label="neckYawLink"];
+"upperNeckPitchLink" [label="upperNeckPitchLink"];
+"head" [label="head"];
+"center_bottom_led_frame" [label="center_bottom_led_frame"];
+"center_top_led_frame" [label="center_top_led_frame"];
+"head_imu_link" [label="head_imu_link"];
+"hokuyo_link" [label="hokuyo_link"];
+"head_hokuyo_frame" [label="head_hokuyo_frame"];
+"left_camera_frame" [label="left_camera_frame"];
+"left_camera_optical_frame" [label="left_camera_optical_frame"];
+"left_led_frame" [label="left_led_frame"];
+"right_camera_frame" [label="right_camera_frame"];
+"right_camera_optical_frame" [label="right_camera_optical_frame"];
+"right_led_frame" [label="right_led_frame"];
+"rightHazardCamera_Frame" [label="rightHazardCamera_Frame"];
+"rightShoulderPitchLink" [label="rightShoulderPitchLink"];
+"rightShoulderRollLink" [label="rightShoulderRollLink"];
+"rightShoulderYawLink" [label="rightShoulderYawLink"];
+"rightElbowPitchLink" [label="rightElbowPitchLink"];
+"rightForearmLink" [label="rightForearmLink"];
+"rightWristRollLink" [label="rightWristRollLink"];
+"rightPalm" [label="rightPalm"];
+"rightIndexFingerPitch1Link" [label="rightIndexFingerPitch1Link"];
+"rightIndexFingerPitch2Link" [label="rightIndexFingerPitch2Link"];
+"rightIndexFingerPitch3Link" [label="rightIndexFingerPitch3Link"];
+"rightMiddleFingerPitch1Link" [label="rightMiddleFingerPitch1Link"];
+"rightMiddleFingerPitch2Link" [label="rightMiddleFingerPitch2Link"];
+"rightMiddleFingerPitch3Link" [label="rightMiddleFingerPitch3Link"];
+"rightPinkyPitch1Link" [label="rightPinkyPitch1Link"];
+"rightPinkyPitch2Link" [label="rightPinkyPitch2Link"];
+"rightPinkyPitch3Link" [label="rightPinkyPitch3Link"];
+"rightThumbRollLink" [label="rightThumbRollLink"];
+"rightThumbPitch1Link" [label="rightThumbPitch1Link"];
+"rightThumbPitch2Link" [label="rightThumbPitch2Link"];
+"rightThumbPitch3Link" [label="rightThumbPitch3Link"];
+node [shape=ellipse, color=blue, fontcolor=blue];
+"pelvis" -> "leftHipYaw" [label="xyz: 0 0.1016 -0.1853 \nrpy: 0 -0 0"]
+"leftHipYaw" -> "leftHipYawLink"
+"leftHipYawLink" -> "leftHipRoll" [label="xyz: 0 0 0 \nrpy: 0 -0 0"]
+"leftHipRoll" -> "leftHipRollLink"
+"leftHipRollLink" -> "leftHipPitch" [label="xyz: 0 0 -0.0609 \nrpy: 0 -0 0"]
+"leftHipPitch" -> "leftHipPitchLink"
+"leftHipPitchLink" -> "leftKneePitch" [label="xyz: 0.000112225 0.0361046 -0.430959 \nrpy: 0 -0 0"]
+"leftKneePitch" -> "leftKneePitchLink"
+"leftKneePitchLink" -> "leftAnklePitch" [label="xyz: -0.0102381 0 -0.40627 \nrpy: 0 -0 0"]
+"leftAnklePitch" -> "leftAnklePitchLink"
+"leftAnklePitchLink" -> "leftAnkleRoll" [label="xyz: 0 0 0 \nrpy: 0 -0 0"]
+"leftAnkleRoll" -> "leftFoot"
+"leftFoot" -> "leftCOP_Offset" [label="xyz: 0.0189 0 -0.0783 \nrpy: 0 -0 0"]
+"leftCOP_Offset" -> "leftCOP_Frame"
+"pelvis" -> "pelvisMiddleImu_Offset" [label="xyz: 0 0 -0.108196 \nrpy: 3.14159 -0 0"]
+"pelvisMiddleImu_Offset" -> "pelvisMiddleImu_Frame"
+"pelvis" -> "pelvisRearImu_Offset" [label="xyz: -0.0758449 0 -0.111056 \nrpy: -3.14159 0.476467 -3.14159"]
+"pelvisRearImu_Offset" -> "pelvisRearImu_Frame"
+"pelvis" -> "rightHipYaw" [label="xyz: 0 -0.1016 -0.1853 \nrpy: 0 -0 0"]
+"rightHipYaw" -> "rightHipYawLink"
+"rightHipYawLink" -> "rightHipRoll" [label="xyz: 0 0 0 \nrpy: 0 -0 0"]
+"rightHipRoll" -> "rightHipRollLink"
+"rightHipRollLink" -> "rightHipPitch" [label="xyz: 0 0 -0.0609 \nrpy: 0 -0 0"]
+"rightHipPitch" -> "rightHipPitchLink"
+"rightHipPitchLink" -> "rightKneePitch" [label="xyz: 0.000112225 -0.0361046 -0.430959 \nrpy: 0 -0 0"]
+"rightKneePitch" -> "rightKneePitchLink"
+"rightKneePitchLink" -> "rightAnklePitch" [label="xyz: -0.0102381 0 -0.40627 \nrpy: 0 -0 0"]
+"rightAnklePitch" -> "rightAnklePitchLink"
+"rightAnklePitchLink" -> "rightAnkleRoll" [label="xyz: 0 0 0 \nrpy: 0 -0 0"]
+"rightAnkleRoll" -> "rightFoot"
+"rightFoot" -> "rightCOP_Offset" [label="xyz: 0.0189 0 -0.0783 \nrpy: 0 -0 0"]
+"rightCOP_Offset" -> "rightCOP_Frame"
+"pelvis" -> "torsoYaw" [label="xyz: 0 0 0 \nrpy: 0 -0 0"]
+"torsoYaw" -> "torsoYawLink"
+"torsoYawLink" -> "torsoPitch" [label="xyz: 0.04191 0 0 \nrpy: 0 -0 0"]
+"torsoPitch" -> "torsoPitchLink"
+"torsoPitchLink" -> "torsoRoll" [label="xyz: 0 0 0.0203 \nrpy: 0 -0 0"]
+"torsoRoll" -> "torso"
+"torso" -> "leftHazardCamera_Offset" [label="xyz: 0.0345 0.0406 0.1135 \nrpy: 1.57 -5.55112e-17 1.57"]
+"leftHazardCamera_Offset" -> "leftHazardCamera_Frame"
+"torso" -> "leftShoulderPitch" [label="xyz: -0.0316 0 0.2984 \nrpy: 0 -0 0"]
+"leftShoulderPitch" -> "leftShoulderPitchLink"
+"leftShoulderPitchLink" -> "leftShoulderRoll" [label="xyz: 0 0.2499 0 \nrpy: 0 -0 0"]
+"leftShoulderRoll" -> "leftShoulderRollLink"
+"leftShoulderRollLink" -> "leftShoulderYaw" [label="xyz: 0 0 0 \nrpy: 0 -0 0"]
+"leftShoulderYaw" -> "leftShoulderYawLink"
+"leftShoulderYawLink" -> "leftElbowPitch" [label="xyz: 0.0254 0.33 0 \nrpy: 0 -0 0"]
+"leftElbowPitch" -> "leftElbowPitchLink"
+"leftElbowPitchLink" -> "leftForearmYaw" [label="xyz: -0.0254 0 0 \nrpy: 0 -0 0"]
+"leftForearmYaw" -> "leftForearmLink"
+"leftForearmLink" -> "leftWristRoll" [label="xyz: 0 0.2871 0 \nrpy: 0 -0 0"]
+"leftWristRoll" -> "leftWristRollLink"
+"leftWristRollLink" -> "leftWristPitch" [label="xyz: 0 0 0 \nrpy: 0 -0 0"]
+"leftWristPitch" -> "leftPalm"
+"leftPalm" -> "leftIndexFingerPitch1" [label="xyz: 0.0022 0.0976 0.0235 \nrpy: 0.1745 -0 0"]
+"leftIndexFingerPitch1" -> "leftIndexFingerPitch1Link"
+"leftIndexFingerPitch1Link" -> "leftIndexFingerPitch2" [label="xyz: 0 0.0381 0 \nrpy: 0 -0 0"]
+"leftIndexFingerPitch2" -> "leftIndexFingerPitch2Link"
+"leftIndexFingerPitch2Link" -> "leftIndexFingerPitch3" [label="xyz: 0 0.0229 0 \nrpy: 0 -0 0"]
+"leftIndexFingerPitch3" -> "leftIndexFingerPitch3Link"
+"leftPalm" -> "leftMiddleFingerPitch1" [label="xyz: 0.0022 0.097 -0.0119 \nrpy: -0.1222 0 0"]
+"leftMiddleFingerPitch1" -> "leftMiddleFingerPitch1Link"
+"leftMiddleFingerPitch1Link" -> "leftMiddleFingerPitch2" [label="xyz: 0 0.0381 0 \nrpy: 0 -0 0"]
+"leftMiddleFingerPitch2" -> "leftMiddleFingerPitch2Link"
+"leftMiddleFingerPitch2Link" -> "leftMiddleFingerPitch3" [label="xyz: 0 0.0229 0 \nrpy: 0 -0 0"]
+"leftMiddleFingerPitch3" -> "leftMiddleFingerPitch3Link"
+"leftPalm" -> "leftPinkyPitch1" [label="xyz: 0.0022 0.0838 -0.041 \nrpy: -0.1222 0 0"]
+"leftPinkyPitch1" -> "leftPinkyPitch1Link"
+"leftPinkyPitch1Link" -> "leftPinkyPitch2" [label="xyz: 0 0.0381 0 \nrpy: 0 -0 0"]
+"leftPinkyPitch2" -> "leftPinkyPitch2Link"
+"leftPinkyPitch2Link" -> "leftPinkyPitch3" [label="xyz: 0 0.0229 0 \nrpy: 0 -0 0"]
+"leftPinkyPitch3" -> "leftPinkyPitch3Link"
+"leftPalm" -> "leftThumbRoll" [label="xyz: 0.0049 0.0351 0.0228 \nrpy: -0.3491 0 0"]
+"leftThumbRoll" -> "leftThumbRollLink"
+"leftThumbRollLink" -> "leftThumbPitch1" [label="xyz: 0 0 0.0229 \nrpy: 0.3491 -0 0"]
+"leftThumbPitch1" -> "leftThumbPitch1Link"
+"leftThumbPitch1Link" -> "leftThumbPitch2" [label="xyz: 0 0.0066 0.0375 \nrpy: 0 -0 0"]
+"leftThumbPitch2" -> "leftThumbPitch2Link"
+"leftThumbPitch2Link" -> "leftThumbPitch3" [label="xyz: 0 0.0049 0.0275 \nrpy: 0 -0 0"]
+"leftThumbPitch3" -> "leftThumbPitch3Link"
+"torso" -> "leftTorsoImu_Offset" [label="xyz: -0.0627634 0.134239 0.363068 \nrpy: -1.5707 0 0"]
+"leftTorsoImu_Offset" -> "leftTorsoImu_Frame"
+"torso" -> "lowerNeckPitch" [label="xyz: 0.0203518 0 0.33845 \nrpy: 0 -0 0"]
+"lowerNeckPitch" -> "lowerNeckPitchLink"
+"lowerNeckPitchLink" -> "neckYaw" [label="xyz: -0.051924 0 0 \nrpy: 0 -0 0"]
+"neckYaw" -> "neckYawLink"
+"neckYawLink" -> "upperNeckPitch" [label="xyz: -0.06 0 0.195997 \nrpy: 0 -0 0"]
+"upperNeckPitch" -> "upperNeckPitchLink"
+"upperNeckPitchLink" -> "multisense_head_root_joint" [label="xyz: 0.183586 0 0.0753538 \nrpy: -3.14159 0.1309 2.66982e-23"]
+"multisense_head_root_joint" -> "head"
+"head" -> "center_bottom_led_frame_joint" [label="xyz: 0.01125 0 -0.0155 \nrpy: 0 -0 0"]
+"center_bottom_led_frame_joint" -> "center_bottom_led_frame"
+"head" -> "center_top_led_frame_joint" [label="xyz: 0.01125 0 0.0105 \nrpy: 0 -0 0"]
+"center_top_led_frame_joint" -> "center_top_led_frame"
+"head" -> "head_imu_joint" [label="xyz: -0.0475 0.035 0 \nrpy: 0 -0 0"]
+"head_imu_joint" -> "head_imu_link"
+"head" -> "hokuyo_joint" [label="xyz: -0.0446 0 0.088 \nrpy: 0 -0 0"]
+"hokuyo_joint" -> "hokuyo_link"
+"hokuyo_link" -> "head_hokuyo_joint" [label="xyz: 0.03 0 0.015 \nrpy: 0 -0 0"]
+"head_hokuyo_joint" -> "head_hokuyo_frame"
+"head" -> "left_camera_frame_joint" [label="xyz: 0 0.035 -0.002 \nrpy: 0 -0 0"]
+"left_camera_frame_joint" -> "left_camera_frame"
+"left_camera_frame" -> "left_camera_optical_frame_joint" [label="xyz: 0 0 0 \nrpy: -1.5708 -0 -1.5708"]
+"left_camera_optical_frame_joint" -> "left_camera_optical_frame"
+"head" -> "left_led_frame_joint" [label="xyz: -0.01443 0.07452 0.050346 \nrpy: 0 -0.15 0.53"]
+"left_led_frame_joint" -> "left_led_frame"
+"head" -> "right_camera_frame_joint" [label="xyz: 0 -0.035 -0.002 \nrpy: 0 -0 0"]
+"right_camera_frame_joint" -> "right_camera_frame"
+"right_camera_frame" -> "right_camera_optical_frame_joint" [label="xyz: 0 0 0 \nrpy: -1.5708 -0 -1.5708"]
+"right_camera_optical_frame_joint" -> "right_camera_optical_frame"
+"head" -> "right_led_frame_joint" [label="xyz: -0.01443 -0.07452 0.050346 \nrpy: 0 -0.15 -0.53"]
+"right_led_frame_joint" -> "right_led_frame"
+"torso" -> "rightHazardCamera_Offset" [label="xyz: 0.0345 -0.0406 0.1135 \nrpy: 1.57 -5.55112e-17 1.57"]
+"rightHazardCamera_Offset" -> "rightHazardCamera_Frame"
+"torso" -> "rightShoulderPitch" [label="xyz: -0.0316 0 0.2984 \nrpy: 0 -0 0"]
+"rightShoulderPitch" -> "rightShoulderPitchLink"
+"rightShoulderPitchLink" -> "rightShoulderRoll" [label="xyz: 0 -0.2499 0 \nrpy: 0 -0 0"]
+"rightShoulderRoll" -> "rightShoulderRollLink"
+"rightShoulderRollLink" -> "rightShoulderYaw" [label="xyz: 0 0 0 \nrpy: 0 -0 0"]
+"rightShoulderYaw" -> "rightShoulderYawLink"
+"rightShoulderYawLink" -> "rightElbowPitch" [label="xyz: 0.0254 -0.33 0 \nrpy: 0 -0 0"]
+"rightElbowPitch" -> "rightElbowPitchLink"
+"rightElbowPitchLink" -> "rightForearmYaw" [label="xyz: -0.0254 0 0 \nrpy: 0 -0 0"]
+"rightForearmYaw" -> "rightForearmLink"
+"rightForearmLink" -> "rightWristRoll" [label="xyz: 0 -0.2871 0 \nrpy: 0 -0 0"]
+"rightWristRoll" -> "rightWristRollLink"
+"rightWristRollLink" -> "rightWristPitch" [label="xyz: 0 0 0 \nrpy: 0 -0 0"]
+"rightWristPitch" -> "rightPalm"
+"rightPalm" -> "rightIndexFingerPitch1" [label="xyz: 0.0022 -0.0976 0.0235 \nrpy: -0.1745 0 0"]
+"rightIndexFingerPitch1" -> "rightIndexFingerPitch1Link"
+"rightIndexFingerPitch1Link" -> "rightIndexFingerPitch2" [label="xyz: 0 -0.0381 0 \nrpy: 0 -0 0"]
+"rightIndexFingerPitch2" -> "rightIndexFingerPitch2Link"
+"rightIndexFingerPitch2Link" -> "rightIndexFingerPitch3" [label="xyz: 0 -0.0229 0 \nrpy: 0 -0 0"]
+"rightIndexFingerPitch3" -> "rightIndexFingerPitch3Link"
+"rightPalm" -> "rightMiddleFingerPitch1" [label="xyz: 0.0022 -0.097 -0.0119 \nrpy: 0.1222 -0 0"]
+"rightMiddleFingerPitch1" -> "rightMiddleFingerPitch1Link"
+"rightMiddleFingerPitch1Link" -> "rightMiddleFingerPitch2" [label="xyz: 0 -0.0381 0 \nrpy: 0 -0 0"]
+"rightMiddleFingerPitch2" -> "rightMiddleFingerPitch2Link"
+"rightMiddleFingerPitch2Link" -> "rightMiddleFingerPitch3" [label="xyz: 0 -0.0229 0 \nrpy: 0 -0 0"]
+"rightMiddleFingerPitch3" -> "rightMiddleFingerPitch3Link"
+"rightPalm" -> "rightPinkyPitch1" [label="xyz: 0.0022 -0.0838 -0.041 \nrpy: 0.1222 -0 0"]
+"rightPinkyPitch1" -> "rightPinkyPitch1Link"
+"rightPinkyPitch1Link" -> "rightPinkyPitch2" [label="xyz: 0 -0.0381 0 \nrpy: 0 -0 0"]
+"rightPinkyPitch2" -> "rightPinkyPitch2Link"
+"rightPinkyPitch2Link" -> "rightPinkyPitch3" [label="xyz: 0 -0.0229 0 \nrpy: 0 -0 0"]
+"rightPinkyPitch3" -> "rightPinkyPitch3Link"
+"rightPalm" -> "rightThumbRoll" [label="xyz: 0.0049 -0.0351 0.0228 \nrpy: 0.3491 -0 0"]
+"rightThumbRoll" -> "rightThumbRollLink"
+"rightThumbRollLink" -> "rightThumbPitch1" [label="xyz: 0 0 0.0229 \nrpy: -0.3491 0 0"]
+"rightThumbPitch1" -> "rightThumbPitch1Link"
+"rightThumbPitch1Link" -> "rightThumbPitch2" [label="xyz: 0 -0.0066 0.0375 \nrpy: 0 -0 0"]
+"rightThumbPitch2" -> "rightThumbPitch2Link"
+"rightThumbPitch2Link" -> "rightThumbPitch3" [label="xyz: 0 -0.0049 0.0275 \nrpy: 0 -0 0"]
+"rightThumbPitch3" -> "rightThumbPitch3Link"
+}
