@@ -1,39 +1,36 @@
 package us.ihmc.simulationconstructionset.gui.actions;
 
-import us.ihmc.simulationconstructionset.commands.ToggleKeyPointModeCommandExecutor;
-import us.ihmc.simulationconstructionset.commands.ToggleKeyPointModeCommandListener;
-import us.ihmc.simulationconstructionset.gui.SCSAction;
-import javax.swing.*;
-import java.awt.event.KeyEvent;
+import java.awt.event.ActionEvent;
 import java.net.URL;
 
-@SuppressWarnings("serial")
-public class ToggleKeyPointModeAction extends SCSAction implements ToggleKeyPointModeCommandListener
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.ImageIcon;
+
+import us.ihmc.simulationconstructionset.commands.ToggleKeyPointModeCommandExecutor;
+import us.ihmc.simulationconstructionset.commands.ToggleKeyPointModeCommandListener;
+
+public class ToggleKeyPointModeAction extends AbstractAction implements ToggleKeyPointModeCommandListener
 {
-   private URL iconURL = ToggleKeyPointModeAction.class.getClassLoader().getResource("icons/ToggleKeyMode.png");
+   private static final long serialVersionUID = 1500047530568017379L;
+   private URL iconURL = ToggleKeyPointModeAction.class.getClassLoader().getResource("icons/toggleKey.gif");
    private ImageIcon icon = new ImageIcon(iconURL);
+
    private ToggleKeyPointModeCommandExecutor executor;
+
 
    public ToggleKeyPointModeAction(ToggleKeyPointModeCommandExecutor executor)
    {
-      super("Toggle Key Mode",
-              "icons/ToggleKeyMode.png",
-              KeyEvent.VK_F,
-              "?",
-              "?"
-      );
-
+      super("Toggle Key Mode");
       this.executor = executor;
 
       this.putValue(Action.SMALL_ICON, icon);
 
-      executor.registerToggleKeyPointModeCommandListener(this);
-   }
+      // this.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_F));
+      this.putValue(Action.LONG_DESCRIPTION, "Long Description");
+      this.putValue(Action.SHORT_DESCRIPTION, "Short Description");
 
-   @Override
-   public void doAction()
-   {
-      executor.toggleKeyPointMode();
+      executor.registerToggleKeyPointModeCommandListener(this);
    }
 
    @Override
@@ -41,16 +38,22 @@ public class ToggleKeyPointModeAction extends SCSAction implements ToggleKeyPoin
    {
       if (executor.isKeyPointModeToggled())
       {
-         iconURL = ToggleKeyPointModeAction.class.getClassLoader().getResource("icons/ToggleKeyModePressed.png");
+         iconURL = ToggleKeyPointModeAction.class.getClassLoader().getResource("icons/toggleKeyPressed.gif");
          ImageIcon tmp = new ImageIcon(iconURL);
          icon.setImage(tmp.getImage());
       }
       else
       {
-         iconURL = ToggleKeyPointModeAction.class.getClassLoader().getResource("icons/ToggleKeyMode.png");
+         iconURL = ToggleKeyPointModeAction.class.getClassLoader().getResource("icons/toggleKey.gif");
          ImageIcon tmp = new ImageIcon(iconURL);
          icon.setImage(tmp.getImage());
       }
+   }
+
+   @Override
+   public void actionPerformed(ActionEvent actionEvent)
+   {
+      executor.toggleKeyPointMode();
    }
 
    @Override
@@ -61,4 +64,6 @@ public class ToggleKeyPointModeAction extends SCSAction implements ToggleKeyPoin
       if (executor != null) executor.closeAndDispose();
       executor = null;
    }
+
+
 }
