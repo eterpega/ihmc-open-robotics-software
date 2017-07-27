@@ -6,34 +6,44 @@ import us.ihmc.atlas.AtlasRobotVersion;
 import us.ihmc.atlas.parameters.*;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
 import us.ihmc.commonWalkingControlModules.AvatarStraightLegWalkingTest;
+import us.ihmc.commonWalkingControlModules.configurations.LeapOfFaithParameters;
 import us.ihmc.commonWalkingControlModules.configurations.ICPWithTimeFreezingPlannerParameters;
 import us.ihmc.commonWalkingControlModules.configurations.PelvisOffsetWhileWalkingParameters;
 import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParameters;
-import us.ihmc.commonWalkingControlModules.controlModules.foot.YoFootOrientationGains;
 import us.ihmc.commonWalkingControlModules.momentumBasedController.optimization.MomentumOptimizationSettings;
-import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations;
-import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationPlan;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
 import us.ihmc.continuousIntegration.IntegrationCategory;
 import us.ihmc.euclid.tuple2D.Vector2D;
-import us.ihmc.robotics.controllers.YoOrientationPIDGainsInterface;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.simulationconstructionset.util.simulationRunner.BlockingSimulationRunner.SimulationExceededMaximumTimeException;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@ContinuousIntegrationPlan(categories = {IntegrationCategory.FAST})
 public class AtlasStraightLegWalkingTest extends AvatarStraightLegWalkingTest
 {
    private final AtlasRobotModel atlasRobotModel = new MyAtlasRobotModel();
 
-   @ContinuousIntegrationAnnotations.ContinuousIntegrationTest(estimatedDuration =  20.0)
+   @ContinuousIntegrationTest(estimatedDuration =  20.0, categoriesOverride = {IntegrationCategory.FAST})
    @Test(timeout = 120000)
    public void testForwardWalking() throws SimulationExceededMaximumTimeException
    {
       try
       {
          super.testForwardWalking();
+      }
+      catch(SimulationExceededMaximumTimeException e)
+      {
+
+      }
+   }
+
+   @ContinuousIntegrationTest(estimatedDuration =  167.7, categoriesOverride = {IntegrationCategory.IN_DEVELOPMENT})
+   @Test(timeout = 120000)
+   public void testWalkingOverCinderBlockField() throws Exception
+   {
+      try
+      {
+         super.testWalkingOverCinderBlockField();
       }
       catch(SimulationExceededMaximumTimeException e)
       {
@@ -65,26 +75,7 @@ public class AtlasStraightLegWalkingTest extends AvatarStraightLegWalkingTest
       {
          return new AtlasWalkingControllerParameters(RobotTarget.SCS, getJointMap(), getContactPointParameters())
          {
-            @Override
-            public YoOrientationPIDGainsInterface createPelvisOrientationControlGains(YoVariableRegistry registry)
-            {
-               YoFootOrientationGains gains = new YoFootOrientationGains("PelvisOrientation", registry);
-
-               double kpXY = 80.0;
-               double kpZ = 80.0;
-               double zeta = 0.8;
-               double maxAccel = 36.0;
-               double maxJerk = 540.0;
-
-               gains.setProportionalGains(kpXY, kpZ);
-               gains.setDampingRatio(zeta);
-               gains.setMaximumFeedback(maxAccel);
-               gains.setMaximumFeedbackRate(maxJerk);
-               gains.createDerivativeGainUpdater(true);
-
-               return gains;
-            }
-
+            /*
             @Override
             public double getDefaultTransferTime()
             {
@@ -95,6 +86,13 @@ public class AtlasStraightLegWalkingTest extends AvatarStraightLegWalkingTest
             public double getDefaultSwingTime()
             {
                return 0.9 - getDefaultTransferTime();
+            }
+            */
+
+            @Override
+            public double getMaximumToeOffAngle()
+            {
+               return Math.toRadians(20);
             }
 
             @Override
@@ -130,7 +128,7 @@ public class AtlasStraightLegWalkingTest extends AvatarStraightLegWalkingTest
             @Override
             public double getAnkleLowerLimitToTriggerToeOff()
             {
-               return -0.60;
+               return -0.75;
             }
 
             @Override
@@ -182,6 +180,44 @@ public class AtlasStraightLegWalkingTest extends AvatarStraightLegWalkingTest
             }
 
             @Override
+            public boolean useSingularityAvoidanceInSwing()
+            {
+               return false;
+            }
+
+            @Override
+            public boolean useSingularityAvoidanceInSupport()
+            {
+               return false;
+            }
+
+
+            @Override
+            public LeapOfFaithParameters getLeapOfFaithParameters()
+            {
+               return new LeapOfFaithParameters()
+               {
+                  @Override
+                  public boolean scaleFootWeight()
+                  {
+                     return true;
+                  }
+
+                  @Override
+                  public boolean usePelvisRotation()
+                  {
+                     return true;
+                  }
+
+                  @Override
+                  public boolean relaxPelvisControl()
+                  {
+                     return false;
+                  }
+               };
+            }
+
+            @Override
             public double[] getSwingWaypointProportions()
             {
                return new double[] {0.15, 0.80};
@@ -195,48 +231,13 @@ public class AtlasStraightLegWalkingTest extends AvatarStraightLegWalkingTest
                   @Override
                   public double getSpeedForSupportKneeStraightening()
                   {
-                     return 1.0;
+                     return 1.5;
                   }
-
-                  public boolean blendPrivilegedConfigurationPositionError()
-                  {
-                     return true;
-                  }
-
-                  public boolean blendPrivilegedConfigurationVelocityError()
-                  {
-                     return false;
-                  }
-
 
                   @Override
                   public double getPrivilegedMaxVelocity()
                   {
                      return super.getPrivilegedMaxVelocity();
-                  }
-
-                  @Override
-                  public double getFractionOfSwingToStraightenLeg()
-                  {
-                     return 0.7;
-                  }
-
-                  @Override
-                  public double getFractionOfTransferToCollapseLeg()
-                  {
-                     return 0.7;
-                  }
-
-                  @Override
-                  public double getFractionOfSwingToCollapseStanceLeg()
-                  {
-                     return 0.92;
-                  }
-
-                  @Override
-                  public double getSupportKneeCollapsingDuration()
-                  {
-                     return 0.15;
                   }
 
                   @Override
@@ -246,39 +247,9 @@ public class AtlasStraightLegWalkingTest extends AvatarStraightLegWalkingTest
                   }
 
                   @Override
-                  public double getStraightKneeAngle()
-                  {
-                     return 0.1;
-                  }
-
-                  @Override
                   public double getLegPitchPrivilegedWeight()
                   {
                      return 10.0;
-                  }
-
-                  @Override
-                  public double getStraightLegJointSpacePrivilegedConfigurationGain()
-                  {
-                     return 40.0;
-                  }
-
-                  @Override
-                  public double getStraightLegActuatorSpacePrivilegedConfigurationGain()
-                  {
-                     return 60.0;
-                  }
-
-                  @Override
-                  public double getStraightLegJointSpacePrivilegedVelocityGain()
-                  {
-                     return 4.0; // 6.0;
-                  }
-
-                  @Override
-                  public double getStraightLegActuatorSpacePrivilegedVelocityGain()
-                  {
-                     return 6.0;
                   }
 
                   @Override
@@ -288,39 +259,9 @@ public class AtlasStraightLegWalkingTest extends AvatarStraightLegWalkingTest
                   }
 
                   @Override
-                  public double getBentLegJointSpacePrivilegedConfigurationGain()
-                  {
-                     return 150.0;
-                  }
-
-                  @Override
-                  public double getBentLegActuatorSpacePrivilegedConfigurationGain()
-                  {
-                     return 200.0;
-                  }
-
-                  @Override
-                  public double getBentLegJointSpacePrivilegedVelocityGain()
-                  {
-                     return 4.0;
-                  }
-
-                  @Override
-                  public double getBentLegActuatorSpacePrivilegedVelocityGain()
-                  {
-                     return 6.0;
-                  }
-
-                  @Override
                   public double getKneeBentLegPrivilegedWeight()
                   {
                      return 10.0;
-                  }
-
-                  @Override
-                  public double getPrivilegedMaxAcceleration()
-                  {
-                     return 200.0;
                   }
                };
             }
@@ -351,7 +292,6 @@ public class AtlasStraightLegWalkingTest extends AvatarStraightLegWalkingTest
                   }
                };
             }
-
          };
       }
 
@@ -363,7 +303,7 @@ public class AtlasStraightLegWalkingTest extends AvatarStraightLegWalkingTest
             @Override
             public double getMinTimeToSpendOnExitCoPInSingleSupport()
             {
-               return 0.15;
+               return 0.0;//0.05; //0.15;
             }
 
             @Override
@@ -393,5 +333,11 @@ public class AtlasStraightLegWalkingTest extends AvatarStraightLegWalkingTest
             }
          };
       }
+   }
+
+   public static void main(String[] args) throws Exception
+   {
+      AtlasStraightLegWalkingTest test = new AtlasStraightLegWalkingTest();
+      test.testForwardWalking();
    }
 }

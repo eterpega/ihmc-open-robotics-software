@@ -50,6 +50,10 @@ public abstract class AbstractICPPlanner implements ICPPlannerInterface
    protected final YoFramePoint desiredCMPPosition = new YoFramePoint(namePrefix + "DesiredCentroidalMomentumPosition", worldFrame, registry);
    /** Desired velocity for the Centroidal Momentum Pivot (CMP) */
    protected final YoFrameVector desiredCMPVelocity = new YoFrameVector(namePrefix + "DesiredCentroidalMomentumVelocity", worldFrame, registry);
+   /** Desired position for the Center of Pressure (CoP) */
+   protected final YoFramePoint desiredCoPPosition = new YoFramePoint(namePrefix + "DesiredCenterOfPressurePosition", worldFrame, registry);
+   /** Desired velocity for the Center of Pressure (CoP) */
+   protected final YoFrameVector desiredCoPVelocity = new YoFrameVector(namePrefix + "DesiredCenterOfPressureVelocity", worldFrame, registry);
    /** Desired position for the Center of Mass (CoM) */
    protected final YoFramePoint2d desiredCoMPosition = new YoFramePoint2d(namePrefix + "DesiredCoMPosition", worldFrame, registry);
 
@@ -94,6 +98,25 @@ public abstract class AbstractICPPlanner implements ICPPlannerInterface
    protected final YoDouble timeInCurrentState = new YoDouble(namePrefix + "TimeInCurrentState", registry);
    /** Time remaining before the end of the current state. */
    protected final YoDouble timeInCurrentStateRemaining = new YoDouble(namePrefix + "RemainingTime", registry);
+
+   /**
+    * Duration parameter used to linearly decrease the desired ICP velocity once the current state
+    * is done.
+    * <p>
+    * This reduction in desired ICP velocity is particularly useful to reduce the ICP tracking error
+    * when the robot is getting stuck at the end of transfer.
+    * </p>
+    */
+   private final YoDouble velocityDecayDurationWhenDone = new YoDouble(namePrefix + "VelocityDecayDurationWhenDone", registry);
+   /**
+    * Output of the linear reduction being applied on the desired ICP velocity when the current
+    * state is done.
+    * <p>
+    * This reduction in desired ICP velocity is particularly useful to reduce the ICP tracking error
+    * when the robot is getting stuck at the end of transfer.
+    true* </p>
+    */
+   private final YoDouble velocityReductionFactor = new YoDouble(namePrefix + "VelocityReductionFactor", registry);
 
    protected final YoFramePointInMultipleFrames singleSupportInitialICP;
    protected final YoFrameVector singleSupportInitialICPVelocity = new YoFrameVector(namePrefix + "SingleSupportInitialICPVelocity", worldFrame, registry);
@@ -171,6 +194,13 @@ public abstract class AbstractICPPlanner implements ICPPlannerInterface
          swingDurationAlpha.setToNaN();
          swingDurationAlphas.add(swingDurationAlpha);
       }
+      YoDouble transferDuration = new YoDouble(namePrefix + "TransferDuration" + numberOfFootstepsToConsider, registry);
+      YoDouble transferDurationAlpha = new YoDouble(namePrefix + "TransferDurationAlpha" + numberOfFootstepsToConsider,
+                                                    "Repartition of the transfer duration around the entry corner point.", registry);
+      transferDuration.setToNaN();
+      transferDurationAlpha.setToNaN();
+      transferDurations.add(transferDuration);
+      transferDurationAlphas.add(transferDurationAlpha);
    }
 
    public void initializeParameters(ICPTrajectoryPlannerParameters parameters)
@@ -178,6 +208,9 @@ public abstract class AbstractICPPlanner implements ICPPlannerInterface
       defaultTransferDurationAlpha.set(parameters.getTransferSplitFraction());
       defaultSwingDurationAlpha.set(parameters.getSwingSplitFraction());
       finalTransferDurationAlpha.set(parameters.getTransferSplitFraction());
+
+      velocityDecayDurationWhenDone.set(parameters.getVelocityDecayDurationWhenDone());
+      velocityReductionFactor.set(Double.NaN);
    }
 
 
@@ -243,6 +276,27 @@ public abstract class AbstractICPPlanner implements ICPPlannerInterface
       estimatedTimeRemaining = MathTools.clamp(estimatedTimeRemaining, 0.0, Double.POSITIVE_INFINITY);
 
       return estimatedTimeRemaining;
+   }
+
+   protected void decayDesiredVelocityIfNeeded()
+   {
+      if (velocityDecayDurationWhenDone.isNaN() || isStanding.getBooleanValue())
+      {
+         velocityReductionFactor.set(Double.NaN);
+         return;
+      }
+
+      double hasBeenDoneForDuration = -timeInCurrentStateRemaining.getDoubleValue();
+
+      if (hasBeenDoneForDuration <= 0.0)
+      {
+         velocityReductionFactor.set(Double.NaN);
+      }
+      else
+      {
+         velocityReductionFactor.set(MathTools.clamp(1.0 - hasBeenDoneForDuration / velocityDecayDurationWhenDone.getDoubleValue(), 0.0, 1.0));
+         desiredICPVelocity.scale(velocityReductionFactor.getDoubleValue());
+      }
    }
 
    @Override
@@ -401,6 +455,12 @@ public abstract class AbstractICPPlanner implements ICPPlannerInterface
    {
       desiredCMPPosition.getFrameTuple2dIncludingFrame(desiredCentroidalMomentumPivotPositionToPack);
    }
+   
+   /** {@inheritDoc} */
+   public void getDesiredCentroidalMomentumPivotPosition(YoFramePoint desiredCentroidalMomentumPivotPositionToPack)
+   {
+      desiredCentroidalMomentumPivotPositionToPack.set(desiredCMPPosition);
+   }
 
    @Override
    /** {@inheritDoc} */
@@ -414,6 +474,48 @@ public abstract class AbstractICPPlanner implements ICPPlannerInterface
    public void getDesiredCentroidalMomentumPivotVelocity(FrameVector2d desiredCentroidalMomentumPivotVelocityToPack)
    {
       desiredCMPVelocity.getFrameTuple2dIncludingFrame(desiredCentroidalMomentumPivotVelocityToPack);
+   }
+   
+   /** {@inheritDoc} */
+   public void getDesiredCentroidalMomentumPivotVelocity(YoFrameVector desiredCentroidalMomentumPivotVelocityToPack)
+   {
+      desiredCentroidalMomentumPivotVelocityToPack.set(desiredCMPVelocity);
+   }
+   
+   /** {@inheritDoc} */
+   public void getDesiredCenterOfPressurePosition(FramePoint desiredCenterOfPressurePositionToPack)
+   {
+      desiredCoPPosition.getFrameTupleIncludingFrame(desiredCenterOfPressurePositionToPack);
+   }
+
+   /** {@inheritDoc} */
+   public void getDesiredCenterOfPressurePosition(FramePoint2d desiredCenterOfPressurePositionToPack)
+   {
+      desiredCoPPosition.getFrameTuple2dIncludingFrame(desiredCenterOfPressurePositionToPack);
+   }
+
+   /** {@inheritDoc} */
+   public void getDesiredCenterOfPressurePosition(YoFramePoint desiredCenterOfPressurePositionToPack)
+   {
+      desiredCenterOfPressurePositionToPack.set(desiredCoPPosition);
+   }
+   
+   /** {@inheritDoc} */
+   public void getDesiredCenterOfPressureVelocity(FrameVector desiredCenterOfPressureVelocityToPack)
+   {
+      desiredCoPVelocity.getFrameTupleIncludingFrame(desiredCenterOfPressureVelocityToPack);
+   }
+
+   /** {@inheritDoc} */
+   public void getDesiredCenterOfPressureVelocity(FrameVector2d desiredCenterOfPressureVelocityToPack)
+   {
+      desiredCoPVelocity.getFrameTuple2dIncludingFrame(desiredCenterOfPressureVelocityToPack);
+   }
+
+   /** {@inheritDoc} */
+   public void getDesiredCenterOfPressureVelocity(YoFrameVector desiredCenterOfPressureVelocityToPack)
+   {
+      desiredCenterOfPressureVelocityToPack.set(desiredCoPVelocity);
    }
 
    @Override

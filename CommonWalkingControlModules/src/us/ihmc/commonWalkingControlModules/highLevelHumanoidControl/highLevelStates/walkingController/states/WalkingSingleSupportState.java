@@ -55,7 +55,6 @@ public class WalkingSingleSupportState extends SingleSupportState
    private final YoBoolean minimizeAngularMomentumRateZDuringSwing = new YoBoolean("minimizeAngularMomentumRateZDuringSwing", registry);
 
    private final FrameVector touchdownErrorVector = new FrameVector(ReferenceFrame.getWorldFrame());
-   private final YoBoolean offsetFootstepPlanOnTouchdown = new YoBoolean("offsetFootstepPlanOnTouchdown", registry);
 
    public WalkingSingleSupportState(RobotSide supportSide, WalkingMessageHandler walkingMessageHandler, HighLevelHumanoidControllerToolbox controllerToolbox,
          HighLevelControlManagerFactory managerFactory, WalkingControllerParameters walkingControllerParameters,
@@ -78,8 +77,6 @@ public class WalkingSingleSupportState extends SingleSupportState
       icpErrorThresholdToSpeedUpSwing.set(walkingControllerParameters.getICPErrorThresholdToSpeedUpSwing());
       finishSingleSupportWhenICPPlannerIsDone.set(walkingControllerParameters.finishSingleSupportWhenICPPlannerIsDone());
       minimizeAngularMomentumRateZDuringSwing.set(walkingControllerParameters.minimizeAngularMomentumRateZDuringSwing());
-
-      offsetFootstepPlanOnTouchdown.set(walkingControllerParameters.offsetFootstepPlanOnTouchdown());
 
       setYoVariablesToNaN();
    }
@@ -129,6 +126,7 @@ public class WalkingSingleSupportState extends SingleSupportState
             feetManager.replanSwingTrajectory(swingSide, nextFootstep, swingTime, true);
 
             balanceManager.updateCurrentICPPlan();
+            legConfigurationManager.setLegBracing(swingSide, true);
          }
       }
       else if (balanceManager.isPushRecoveryEnabled())
@@ -162,12 +160,14 @@ public class WalkingSingleSupportState extends SingleSupportState
          double swingTimeRemaining = requestSwingSpeedUpIfNeeded();
          balanceManager.updateSwingTimeRemaining(swingTimeRemaining);
       }
+      boolean feetAreWellPositioned = legConfigurationManager.areFeetWellPositionedForCollapse(swingSide.getOppositeSide(), nextFootstep.getSoleReferenceFrame());
 
       if (getTimeInCurrentState() > fractionOfSwingToStraightenSwingLeg.getDoubleValue() * swingTime)
       {
          legConfigurationManager.straightenLegDuringSwing(swingSide);
       }
-      if (getTimeInCurrentState() > fractionOfSwingToCollapseStanceLeg.getDoubleValue() * swingTime && !legConfigurationManager.isLegCollapsed(supportSide))
+      if (getTimeInCurrentState() > fractionOfSwingToCollapseStanceLeg.getDoubleValue() * swingTime && !legConfigurationManager.isLegCollapsed(supportSide) &&
+            feetAreWellPositioned)
       {
          legConfigurationManager.collapseLegDuringSwing(swingSide.getOppositeSide());
       }
@@ -273,13 +273,10 @@ public class WalkingSingleSupportState extends SingleSupportState
       actualFootPoseInWorld.setToZero(fullRobotModel.getSoleFrame(swingSide));
       actualFootPoseInWorld.changeFrame(worldFrame);
 
-      if (offsetFootstepPlanOnTouchdown.getBooleanValue())
-      {
-         actualFootPoseInWorld.checkReferenceFrameMatch(desiredFootPoseInWorld);
-         touchdownErrorVector.sub(actualFootPoseInWorld.getPosition(), desiredFootPoseInWorld.getPosition());
-         touchdownErrorVector.setZ(0.0);
-         walkingMessageHandler.addOffsetVector(touchdownErrorVector);
-      }
+      actualFootPoseInWorld.checkReferenceFrameMatch(desiredFootPoseInWorld);
+      touchdownErrorVector.sub(actualFootPoseInWorld.getPosition(), desiredFootPoseInWorld.getPosition());
+      touchdownErrorVector.setZ(0.0);
+      walkingMessageHandler.addOffsetVector(touchdownErrorVector);
 
       walkingMessageHandler.reportFootstepCompleted(swingSide, actualFootPoseInWorld);
       walkingMessageHandler.registerCompletedDesiredFootstep(nextFootstep);
@@ -355,7 +352,7 @@ public class WalkingSingleSupportState extends SingleSupportState
 
       pelvisOrientationManager.setTrajectoryTime(swingTime);
       pelvisOrientationManager.setUpcomingFootstep(nextFootstep);
-      pelvisOrientationManager.setTrajectoryFromFootstep();
+      pelvisOrientationManager.updateTrajectoryFromFootstep(); // fixme this shouldn't be called when the footstep is updated
 
       TransferToAndNextFootstepsData transferToAndNextFootstepsData = walkingMessageHandler.createTransferToAndNextFootstepDataForSingleSupport(nextFootstep, swingSide);
       transferToAndNextFootstepsData.setTransferFromDesiredFootstep(walkingMessageHandler.getLastDesiredFootstep(supportSide));
