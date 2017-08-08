@@ -1,9 +1,10 @@
 package us.ihmc.robotics.math.trajectories.waypoints;
 
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector3d;
-
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
+import us.ihmc.commons.PrintTools;
+import us.ihmc.euclid.tuple3D.interfaces.Point3DBasics;
+import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
+import us.ihmc.euclid.tuple3D.interfaces.Vector3DBasics;
+import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FrameVector;
 import us.ihmc.robotics.geometry.transformables.EuclideanWaypoint;
@@ -12,6 +13,9 @@ import us.ihmc.robotics.math.frames.YoFramePoint;
 import us.ihmc.robotics.math.frames.YoFrameVector;
 import us.ihmc.robotics.math.trajectories.waypoints.interfaces.EuclideanTrajectoryPointInterface;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
+import us.ihmc.yoVariables.listener.VariableChangedListener;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoFrameEuclideanTrajectoryPoint
       extends YoFrameTrajectoryPoint<YoFrameEuclideanTrajectoryPoint, FrameEuclideanTrajectoryPoint, SimpleEuclideanTrajectoryPoint>
@@ -28,7 +32,7 @@ public class YoFrameEuclideanTrajectoryPoint
    }
 
    @Override
-   public void setPosition(Point3d position)
+   public void setPosition(Point3DReadOnly position)
    {
       this.position.set(position);
    }
@@ -39,7 +43,7 @@ public class YoFrameEuclideanTrajectoryPoint
    }
 
    @Override
-   public void setLinearVelocity(Vector3d linearVelocity)
+   public void setLinearVelocity(Vector3DReadOnly linearVelocity)
    {
       this.linearVelocity.set(linearVelocity);
    }
@@ -56,7 +60,7 @@ public class YoFrameEuclideanTrajectoryPoint
       getYoValuesFromFrameWaypoint();
    }
 
-   public void set(double time, Point3d position, Vector3d linearVelocity)
+   public void set(double time, Point3DReadOnly position, Vector3DReadOnly linearVelocity)
    {
       this.time.set(time);
       this.position.set(position);
@@ -126,13 +130,13 @@ public class YoFrameEuclideanTrajectoryPoint
    }
 
    @Override
-   public void getPosition(Point3d positionToPack)
+   public void getPosition(Point3DBasics positionToPack)
    {
       position.get(positionToPack);
    }
 
    @Override
-   public void getLinearVelocity(Vector3d linearVelocityToPack)
+   public void getLinearVelocity(Vector3DBasics linearVelocityToPack)
    {
       linearVelocity.get(linearVelocityToPack);
    }

@@ -17,28 +17,30 @@ import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.vecmath.Vector3d;
 
 import org.apache.batik.dom.util.HashTable;
 
-import us.ihmc.robotModels.FullHumanoidRobotModel;
-import us.ihmc.robotics.partNames.ArmJointName;
 import us.ihmc.atlas.AtlasRobotModel;
 import us.ihmc.atlas.AtlasRobotVersion;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
-import us.ihmc.graphics3DAdapter.camera.CameraConfiguration;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
-import us.ihmc.robotDataLogger.YoVariableHandshakeParser;
+import us.ihmc.avatar.drcRobot.RobotTarget;
+import us.ihmc.commons.PrintTools;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.jMonkeyEngineToolkit.camera.CameraConfiguration;
+import us.ihmc.robotDataLogger.handshake.YoVariableHandshakeParser;
 import us.ihmc.robotDataLogger.logger.LogPropertiesReader;
 import us.ihmc.robotDataLogger.logger.YoVariableLoggerListener;
 import us.ihmc.robotDataVisualizer.logger.MultiVideoDataPlayer;
 import us.ihmc.robotDataVisualizer.logger.YoVariableLogPlaybackRobot;
-import us.ihmc.robotics.dataStructures.variable.YoVariable;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
+import us.ihmc.robotModels.FullHumanoidRobotModel;
+import us.ihmc.yoVariables.variable.YoVariable;
+import us.ihmc.robotics.partNames.ArmJointName;
 import us.ihmc.robotics.robotDescription.RobotDescription;
 import us.ihmc.robotics.robotSide.RobotSide;
-import us.ihmc.simulationconstructionset.DataBuffer;
-import us.ihmc.simulationconstructionset.DataBufferEntry;
+import us.ihmc.yoVariables.dataBuffer.DataBuffer;
+import us.ihmc.yoVariables.dataBuffer.DataBufferEntry;
 import us.ihmc.simulationconstructionset.Joint;
 import us.ihmc.simulationconstructionset.Robot;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
@@ -46,7 +48,6 @@ import us.ihmc.simulationconstructionset.SimulationConstructionSetParameters;
 import us.ihmc.simulationconstructionset.SimulationDoneListener;
 import us.ihmc.simulationconstructionset.UnreasonableAccelerationException;
 import us.ihmc.tools.gui.SwingUtils;
-import us.ihmc.tools.io.printing.PrintTools;
 import us.ihmc.tools.thread.ThreadTools;
 import us.ihmc.wholeBodyController.DRCRobotJointMap;
 
@@ -76,7 +77,7 @@ public class AtlasMultiDataExporter implements SimulationDoneListener
    {
       final AtlasRobotVersion ATLAS_ROBOT_VERSION = AtlasRobotVersion.ATLAS_UNPLUGGED_V5_NO_HANDS;
       int numberOfEntries = 0;
-      DRCRobotModel model = new AtlasRobotModel(ATLAS_ROBOT_VERSION, DRCRobotModel.RobotTarget.SCS, false);
+      DRCRobotModel model = new AtlasRobotModel(ATLAS_ROBOT_VERSION, RobotTarget.SCS, false);
       DRCRobotJointMap jointMap = model.getJointMap();
       ArmJointName[] joints = jointMap.getArmJointNames();
       FullHumanoidRobotModel robotModel = model.createFullRobotModel();
@@ -343,10 +344,10 @@ public class AtlasMultiDataExporter implements SimulationDoneListener
    private void readLogFile(File selectedFile, DRCRobotModel robotModel) throws IOException
    {
       LogPropertiesReader logProperties = new LogPropertiesReader(new File(selectedFile, YoVariableLoggerListener.propertyFile));
-      File handshake = new File(selectedFile, logProperties.getHandshakeFile());
+      File handshake = new File(selectedFile, logProperties.getVariables().getHandshakeAsString());
       if (!handshake.exists())
       {
-         throw new RuntimeException("Cannot find " + logProperties.getHandshakeFile());
+         throw new RuntimeException("Cannot find " + logProperties.getVariables().getHandshakeAsString());
       }
 
       DataInputStream handshakeStream = new DataInputStream(new FileInputStream(handshake));
@@ -354,7 +355,7 @@ public class AtlasMultiDataExporter implements SimulationDoneListener
       handshakeStream.readFully(handshakeData);
       handshakeStream.close();
 
-      parser = new YoVariableHandshakeParser("logged");
+      parser = YoVariableHandshakeParser.create(logProperties.getVariables().getHandshakeFileType());
       parser.parseFrom(handshakeData);
 
 //      boolean useCollisionMeshes = false;
@@ -375,7 +376,7 @@ public class AtlasMultiDataExporter implements SimulationDoneListener
       scs.setDT(dt, 1);
       scs.setPlaybackDesiredFrameRate(0.04);
 
-      YoGraphicsListRegistry yoGraphicsListRegistry = parser.getDynamicGraphicObjectsListRegistry();
+      YoGraphicsListRegistry yoGraphicsListRegistry = parser.getYoGraphicsListRegistry();
       scs.addYoGraphicsListRegistry(yoGraphicsListRegistry);
       scs.getRootRegistry().addChild(parser.getRootRegistry());
       scs.setGroundVisible(false);
@@ -396,8 +397,8 @@ public class AtlasMultiDataExporter implements SimulationDoneListener
          e.printStackTrace();
       }
 
-      scs.hideAllDynamicGraphicObjects();
-      scs.setDynamicGraphicObjectsListVisible("DesiredExternalWrench", true);
+      scs.hideAllYoGraphics();
+      scs.setYoGraphicsListVisible("DesiredExternalWrench", true);
    }
 
    public void setSimulateExport(SimulateAndExport simulateExport)
@@ -505,9 +506,9 @@ public class AtlasMultiDataExporter implements SimulationDoneListener
          double height = cameraParameters[2];
 
          RigidBodyTransform ret = new RigidBodyTransform();
-         Vector3d cameraFix = new Vector3d();
+         Vector3D cameraFix = new Vector3D();
          double angle = Math.PI / 2 + ((hour) * Math.PI / 6);
-         Vector3d cameraPosition = new Vector3d(radius * Math.sin(angle), radius * Math.cos(angle), height);
+         Vector3D cameraPosition = new Vector3D(radius * Math.sin(angle), radius * Math.cos(angle), height);
 
          Robot[] robot = exportM3Data.scs.getRobots();
          ArrayList<Joint> joint = robot[0].getRootJoints();

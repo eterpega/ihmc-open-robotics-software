@@ -9,20 +9,19 @@ import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
 
+import us.ihmc.commons.Conversions;
 import us.ihmc.robotDataLogger.LogIndex;
 import us.ihmc.robotDataLogger.jointState.JointState;
 import us.ihmc.robotDataLogger.logger.LogPropertiesReader;
 import us.ihmc.robotDataVisualizer.VisualizerRobot;
 import us.ihmc.robotDataVisualizer.visualizer.JointUpdater;
-import us.ihmc.robotics.dataStructures.listener.RewoundListener;
-import us.ihmc.robotics.dataStructures.listener.VariableChangedListener;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.IntegerYoVariable;
-import us.ihmc.robotics.dataStructures.variable.LongYoVariable;
-import us.ihmc.robotics.dataStructures.variable.YoVariable;
+import us.ihmc.yoVariables.listener.RewoundListener;
+import us.ihmc.yoVariables.listener.VariableChangedListener;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoInteger;
+import us.ihmc.yoVariables.variable.YoLong;
+import us.ihmc.yoVariables.variable.YoVariable;
 import us.ihmc.robotics.robotDescription.RobotDescription;
-import us.ihmc.robotics.time.TimeTools;
-import us.ihmc.simulationconstructionset.Joint;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
 import us.ihmc.tools.compression.SnappyUtils;
 
@@ -30,8 +29,8 @@ public class YoVariableLogPlaybackRobot extends VisualizerRobot implements Rewou
 {
 
    private final SimulationConstructionSet scs;
-   private final LongYoVariable timestamp;
-   private final DoubleYoVariable robotTime;
+   private final YoLong timestamp;
+   private final YoDouble robotTime;
    private final FileChannel logChannel;
    private final List<YoVariable<?>> variables;
 
@@ -49,7 +48,7 @@ public class YoVariableLogPlaybackRobot extends VisualizerRobot implements Rewou
    private final ByteBuffer logLine;
    private final LongBuffer logLongArray;
 
-   private final IntegerYoVariable currentRecordTick;
+   private final YoInteger currentRecordTick;
 
    private final int numberOfEntries;
    private final long initialTimestamp;
@@ -63,8 +62,8 @@ public class YoVariableLogPlaybackRobot extends VisualizerRobot implements Rewou
    {
       super(robotDescription);
 
-      this.timestamp = new LongYoVariable("timestamp", getRobotsYoVariableRegistry());
-      this.robotTime = new DoubleYoVariable("robotTime", getRobotsYoVariableRegistry());
+      this.timestamp = new YoLong("timestamp", getRobotsYoVariableRegistry());
+      this.robotTime = new YoDouble("robotTime", getRobotsYoVariableRegistry());
 
 
 
@@ -76,20 +75,20 @@ public class YoVariableLogPlaybackRobot extends VisualizerRobot implements Rewou
       int numberOfJointStates = JointState.getNumberOfJointStates(jointStates);
       int bufferSize = (1 + jointStateOffset + numberOfJointStates) * 8;
 
-      File logdata = new File(selectedFile, logProperties.getVariableDataFile());
+      File logdata = new File(selectedFile, logProperties.getVariables().getDataAsString());
       if (!logdata.exists())
       {
-         throw new RuntimeException("Cannot find " + logProperties.getVariableDataFile());
+         throw new RuntimeException("Cannot find " + logProperties.getVariables().getDataAsString());
       }
       this.logChannel = new FileInputStream(logdata).getChannel();
 
-      this.compressed = logProperties.getCompressed();
+      this.compressed = logProperties.getVariables().getCompressed();
       if (this.compressed)
       {
-         File indexData = new File(selectedFile, logProperties.getVariablesIndexFile());
+         File indexData = new File(selectedFile, logProperties.getVariables().getIndexAsString());
          if (!indexData.exists())
          {
-            throw new RuntimeException("Cannot find " + logProperties.getVariablesIndexFile());
+            throw new RuntimeException("Cannot find " + logProperties.getVariables().getIndexAsString());
          }
          logIndex = new LogIndex(indexData, logChannel.size());
          compressedBuffer = ByteBuffer.allocate(SnappyUtils.maxCompressedLength(bufferSize));
@@ -107,7 +106,7 @@ public class YoVariableLogPlaybackRobot extends VisualizerRobot implements Rewou
       logLine = ByteBuffer.allocate(bufferSize);
       logLongArray = logLine.asLongBuffer();
 
-      currentRecordTick = new IntegerYoVariable("currentRecordTick", getRobotsYoVariableRegistry());
+      currentRecordTick = new YoInteger("currentRecordTick", getRobotsYoVariableRegistry());
 
       try
       {
@@ -147,7 +146,7 @@ public class YoVariableLogPlaybackRobot extends VisualizerRobot implements Rewou
       return numberOfEntries;
    }
 
-   public LongYoVariable getTimestamp()
+   public YoLong getTimestamp()
    {
       return timestamp;
    }
@@ -204,7 +203,7 @@ public class YoVariableLogPlaybackRobot extends VisualizerRobot implements Rewou
          }
 
          timestamp.set(logLongArray.get());
-         robotTime.set(TimeTools.nanoSecondstoSeconds(timestamp.getLongValue() - initialTimestamp));
+         robotTime.set(Conversions.nanosecondsToSeconds(timestamp.getLongValue() - initialTimestamp));
 
          for (int i = 0; i < variables.size(); i++)
          {

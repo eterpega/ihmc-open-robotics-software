@@ -1,9 +1,8 @@
 package us.ihmc.simulationconstructionset.physics;
 
-import javax.vecmath.Vector3d;
-
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.geometry.FrameVector;
 import us.ihmc.robotics.math.frames.YoFrameVector;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
@@ -13,18 +12,18 @@ public class ExternalForcePointPIDConstraintToIntegrate extends ExternalForcePoi
 {
    private final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
 
-   private final DoubleYoVariable integralStiffness;
+   private final YoDouble integralStiffness;
    private final YoFrameVector yoConnectionPositionIntegratedError;
    private final FrameVector integralForce;
 
-   private final Vector3d tempForce = new Vector3d();
+   private final Vector3D tempForce = new Vector3D();
 
    public ExternalForcePointPIDConstraintToIntegrate(String name, ExternalForcePoint connectionPointA, ExternalForcePoint connectionPointB,
          YoVariableRegistry parentRegistry)
    {
       super(name, connectionPointA, connectionPointB, parentRegistry);
 
-      integralStiffness = new DoubleYoVariable(name + "_IntegralStiffness", registry);
+      integralStiffness = new YoDouble(name + "_IntegralStiffness", registry);
       yoConnectionPositionIntegratedError = new YoFrameVector(name + "_ConnectionPositionIntegratedError", worldFrame, registry);
 
       integralForce = new FrameVector(worldFrame);
@@ -35,6 +34,7 @@ public class ExternalForcePointPIDConstraintToIntegrate extends ExternalForcePoi
       this.integralStiffness.set(integralStiffness);
    }
 
+   @Override
    protected void updateClosedJoint()
    {
       super.updateClosedJoint();
@@ -63,9 +63,9 @@ public class ExternalForcePointPIDConstraintToIntegrate extends ExternalForcePoi
    }
 
    @Override
-   public DoubleYoVariable[] getOutputVariables()
+   public YoDouble[] getOutputVariables()
    {
-      return new DoubleYoVariable[] {yoConnectionPositionIntegratedError.getYoX(), yoConnectionPositionIntegratedError.getYoY(),
+      return new YoDouble[] {yoConnectionPositionIntegratedError.getYoX(), yoConnectionPositionIntegratedError.getYoY(),
             yoConnectionPositionIntegratedError.getYoZ()};
    }
 

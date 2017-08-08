@@ -4,6 +4,10 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.euclid.geometry.ConvexPolygon2D;
+import us.ihmc.continuousIntegration.IntegrationCategory;
 import us.ihmc.footstepPlanning.FootstepPlan;
 import us.ihmc.footstepPlanning.SimpleFootstep;
 import us.ihmc.footstepPlanning.graphSearch.BipedalFootstepPlannerParameters;
@@ -12,16 +16,12 @@ import us.ihmc.footstepPlanning.graphSearch.SimplePlanarRegionBipedalAnytimeFoot
 import us.ihmc.footstepPlanning.polygonSnapping.PlanarRegionsListExamples;
 import us.ihmc.footstepPlanning.testTools.PlanningTest;
 import us.ihmc.footstepPlanning.testTools.PlanningTestTools;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.geometry.ConvexPolygon2d;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.robotics.geometry.FramePose;
-import us.ihmc.robotics.geometry.PlanarRegion;
 import us.ihmc.robotics.geometry.PlanarRegionsList;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations;
-import us.ihmc.tools.continuousIntegration.IntegrationCategory;
 import us.ihmc.tools.thread.ThreadTools;
 
 @ContinuousIntegrationAnnotations.ContinuousIntegrationPlan(categories = {IntegrationCategory.IN_DEVELOPMENT})
@@ -31,17 +31,19 @@ public class AnytimeFootstepPlannerOnRoughTerrainTest implements PlanningTest
    private static final boolean visualize = false;
    private static final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
 
-   @ContinuousIntegrationAnnotations.ContinuousIntegrationTest(estimatedDuration = 0.5)
+   @ContinuousIntegrationTest(estimatedDuration = 0.5)
    @Test(timeout = 300000)
    public void testOverCinderBlockFieldWithGoalTooFarAway()
    {
       double startX = 0.0;
       double startY = 0.0;
+      double cinderBlockHeight = 0.15;
       double cinderBlockSize = 0.4;
       int courseWidthXInNumberOfBlocks = 21;
       int courseLengthYInNumberOfBlocks = 6;
+      double heightVariation = 0.1;
 
-      PlanarRegionsList cinderBlockField = PlanarRegionsListExamples.generateCinderBlockField(startX, startY, cinderBlockSize, courseWidthXInNumberOfBlocks, courseLengthYInNumberOfBlocks);
+      PlanarRegionsList cinderBlockField = PlanarRegionsListExamples.generateCinderBlockField(startX, startY, cinderBlockSize, cinderBlockHeight, courseWidthXInNumberOfBlocks, courseLengthYInNumberOfBlocks, heightVariation);
 
       FramePose initialStanceFootPose = new FramePose(worldFrame);
       initialStanceFootPose.setPosition(0.0, -0.7, 0.0);
@@ -55,7 +57,7 @@ public class AnytimeFootstepPlannerOnRoughTerrainTest implements PlanningTest
       for(RobotSide robotSide : RobotSide.values)
       {
          FramePose footstepGoalPose = new FramePose(goalPose);
-         footstepGoalPose.translate(0.0, robotSide.negateIfRightSide(0.2), 0.0);
+         footstepGoalPose.prependTranslation(0.0, robotSide.negateIfRightSide(0.2), 0.0);
          goalPoses.put(robotSide, footstepGoalPose);
       }
 
@@ -76,16 +78,18 @@ public class AnytimeFootstepPlannerOnRoughTerrainTest implements PlanningTest
       }
    }
 
-   @ContinuousIntegrationAnnotations.ContinuousIntegrationTest(estimatedDuration = 0.5)
+   @ContinuousIntegrationTest(estimatedDuration = 0.5)
    @Test(timeout = 300000)
    public void testOverCinderBlockFieldWithIncrementalKnowledgeOfTerrain()
    {
+      double cinderBlockHeight = 0.15;
       double cinderBlockSize = 0.4;
       int courseLengthYInNumberOfBlocks = 6;
+      double heightVariation = 0.1;
 
-      PlanarRegionsList cinderBlockFieldOneThird = PlanarRegionsListExamples.generateCinderBlockField(0.0, 0.0, cinderBlockSize, 7, courseLengthYInNumberOfBlocks);
-      PlanarRegionsList cinderBlockFieldTwoThirds = PlanarRegionsListExamples.generateCinderBlockField(0.0, 0.0, cinderBlockSize, 14, courseLengthYInNumberOfBlocks);
-      PlanarRegionsList cinderBlockEntireField = PlanarRegionsListExamples.generateCinderBlockField(0.0, 0.0, cinderBlockSize, 21, courseLengthYInNumberOfBlocks);
+      PlanarRegionsList cinderBlockFieldOneThird = PlanarRegionsListExamples.generateCinderBlockField(0.0, 0.0, cinderBlockHeight, cinderBlockSize, 7, courseLengthYInNumberOfBlocks, heightVariation);
+      PlanarRegionsList cinderBlockFieldTwoThirds = PlanarRegionsListExamples.generateCinderBlockField(0.0, 0.0, cinderBlockHeight, cinderBlockSize, 14, courseLengthYInNumberOfBlocks, heightVariation);
+      PlanarRegionsList cinderBlockEntireField = PlanarRegionsListExamples.generateCinderBlockField(0.0, 0.0, cinderBlockHeight, cinderBlockSize, 21, courseLengthYInNumberOfBlocks, heightVariation);
 
       FramePose initialStanceFootPose = new FramePose(worldFrame);
       initialStanceFootPose.setPosition(0.0, -0.7, 0.0);
@@ -99,7 +103,7 @@ public class AnytimeFootstepPlannerOnRoughTerrainTest implements PlanningTest
       for(RobotSide robotSide : RobotSide.values)
       {
          FramePose footstepGoalPose = new FramePose(goalPose);
-         footstepGoalPose.translate(0.0, robotSide.negateIfRightSide(0.2), 0.0);
+         footstepGoalPose.prependTranslation(0.0, robotSide.negateIfRightSide(0.2), 0.0);
          goalPoses.put(robotSide, footstepGoalPose);
       }
 
@@ -198,7 +202,7 @@ public class AnytimeFootstepPlannerOnRoughTerrainTest implements PlanningTest
       parameters.setIdealFootstep(idealFootstepLength, idealFootstepWidth);
 
       SimplePlanarRegionBipedalAnytimeFootstepPlanner planner = new SimplePlanarRegionBipedalAnytimeFootstepPlanner(parameters, registry);
-      SideDependentList<ConvexPolygon2d> footPolygonsInSoleFrame = PlanningTestTools.createDefaultFootPolygons();
+      SideDependentList<ConvexPolygon2D> footPolygonsInSoleFrame = PlanningTestTools.createDefaultFootPolygons();
       planner.setFeetPolygons(footPolygonsInSoleFrame);
 
       if (visualize)

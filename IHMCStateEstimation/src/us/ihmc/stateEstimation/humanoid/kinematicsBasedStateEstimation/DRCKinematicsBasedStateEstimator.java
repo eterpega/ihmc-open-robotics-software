@@ -6,33 +6,32 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.vecmath.Quat4d;
-import javax.vecmath.Tuple3d;
-
 import org.ejml.data.DenseMatrix64F;
 
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicReferenceFrame;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.commons.Conversions;
+import us.ihmc.commons.PrintTools;
+import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
+import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicReferenceFrame;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.humanoidRobotics.bipedSupportPolygons.ContactablePlaneBody;
 import us.ihmc.humanoidRobotics.communication.packets.sensing.StateEstimatorModePacket.StateEstimatorMode;
 import us.ihmc.humanoidRobotics.communication.subscribers.PelvisPoseCorrectionCommunicatorInterface;
 import us.ihmc.humanoidRobotics.communication.subscribers.RequestWristForceSensorCalibrationSubscriber;
 import us.ihmc.humanoidRobotics.communication.subscribers.StateEstimatorModeSubscriber;
 import us.ihmc.humanoidRobotics.model.CenterOfPressureDataHolder;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.EnumYoVariable;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoEnum;
 import us.ihmc.robotics.geometry.FrameOrientation;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FrameVector;
 import us.ihmc.robotics.screwTheory.RigidBody;
-import us.ihmc.robotics.screwTheory.TwistCalculator;
 import us.ihmc.robotics.sensors.CenterOfMassDataHolder;
 import us.ihmc.robotics.sensors.FootSwitchInterface;
 import us.ihmc.robotics.sensors.ForceSensorDataHolder;
 import us.ihmc.robotics.sensors.ForceSensorDataHolderReadOnly;
-import us.ihmc.robotics.time.TimeTools;
 import us.ihmc.sensorProcessing.imu.FusedIMUSensor;
 import us.ihmc.sensorProcessing.model.RobotMotionStatusHolder;
 import us.ihmc.sensorProcessing.sensorProcessors.SensorOutputMapReadOnly;
@@ -41,7 +40,6 @@ import us.ihmc.sensorProcessing.stateEstimation.StateEstimator;
 import us.ihmc.sensorProcessing.stateEstimation.StateEstimatorParameters;
 import us.ihmc.sensorProcessing.stateEstimation.evaluation.FullInverseDynamicsStructure;
 import us.ihmc.stateEstimation.humanoid.DRCStateEstimatorInterface;
-import us.ihmc.tools.io.printing.PrintTools;
 
 public class DRCKinematicsBasedStateEstimator implements DRCStateEstimatorInterface, StateEstimator
 {
@@ -51,9 +49,9 @@ public class DRCKinematicsBasedStateEstimator implements DRCStateEstimatorInterf
 
    private final String name = getClass().getSimpleName();
    private final YoVariableRegistry registry = new YoVariableRegistry(name);
-   private final DoubleYoVariable yoTime = new DoubleYoVariable("t_stateEstimator", registry);
+   private final YoDouble yoTime = new YoDouble("t_stateEstimator", registry);
    private final AtomicReference<StateEstimatorMode> atomicOperationMode = new AtomicReference<>(null);
-   private final EnumYoVariable<StateEstimatorMode> operatingMode = new EnumYoVariable<>("stateEstimatorOperatingMode", registry, StateEstimatorMode.class, false);
+   private final YoEnum<StateEstimatorMode> operatingMode = new YoEnum<>("stateEstimatorOperatingMode", registry, StateEstimatorMode.class, false);
 
    private final FusedIMUSensor fusedIMUSensor;
    private final JointStateUpdater jointStateUpdater;
@@ -68,18 +66,18 @@ public class DRCKinematicsBasedStateEstimator implements DRCStateEstimatorInterf
    private final double estimatorDT;
 
    private boolean visualizeMeasurementFrames = false;
-   private final ArrayList<YoGraphicReferenceFrame> dynamicGraphicMeasurementFrames = new ArrayList<>();
+   private final ArrayList<YoGraphicReferenceFrame> yoGraphicMeasurementFrames = new ArrayList<>();
 
    private final CenterOfPressureVisualizer copVisualizer;
 
-   private final BooleanYoVariable usePelvisCorrector;
+   private final YoBoolean usePelvisCorrector;
    private final SensorOutputMapReadOnly sensorOutputMapReadOnly;
 
    private final JointTorqueFromForceSensorVisualizer jointTorqueFromForceSensorVisualizer;
 
    private StateEstimatorModeSubscriber stateEstimatorModeSubscriber = null;
 
-   private final BooleanYoVariable reinitializeStateEstimator = new BooleanYoVariable("reinitializeStateEstimator", registry);
+   private final YoBoolean reinitializeStateEstimator = new YoBoolean("reinitializeStateEstimator", registry);
 
    public DRCKinematicsBasedStateEstimator(FullInverseDynamicsStructure inverseDynamicsStructure, StateEstimatorParameters stateEstimatorParameters,
          SensorOutputMapReadOnly sensorOutputMapReadOnly, ForceSensorDataHolder forceSensorDataHolderToUpdate,
@@ -91,7 +89,7 @@ public class DRCKinematicsBasedStateEstimator implements DRCStateEstimatorInterf
       estimatorDT = stateEstimatorParameters.getEstimatorDT();
       this.sensorOutputMapReadOnly = sensorOutputMapReadOnly;
 
-      usePelvisCorrector = new BooleanYoVariable("useExternalPelvisCorrector", registry);
+      usePelvisCorrector = new YoBoolean("useExternalPelvisCorrector", registry);
       usePelvisCorrector.set(true);
       if(forceSensorDataHolderToUpdate != null)
       {
@@ -131,9 +129,8 @@ public class DRCKinematicsBasedStateEstimator implements DRCStateEstimatorInterf
          imusToUse.addAll(imuProcessedOutputs);
       }
 
-      TwistCalculator twistCalculator = inverseDynamicsStructure.getTwistCalculator();
       boolean isAccelerationIncludingGravity = stateEstimatorParameters.cancelGravityFromAccelerationMeasurement();
-      imuBiasStateEstimator = new IMUBiasStateEstimator(imuProcessedOutputs, feet.keySet(), twistCalculator, gravitationalAcceleration, isAccelerationIncludingGravity, estimatorDT, registry);
+      imuBiasStateEstimator = new IMUBiasStateEstimator(imuProcessedOutputs, feet.keySet(), gravitationalAcceleration, isAccelerationIncludingGravity, estimatorDT, registry);
       imuBiasStateEstimator.configureModuleParameters(stateEstimatorParameters);
       imuYawDriftEstimator = new IMUYawDriftEstimator(inverseDynamicsStructure, footSwitches, feet, estimatorDT, registry);
       imuYawDriftEstimator.configureModuleParameters(stateEstimatorParameters);
@@ -177,7 +174,7 @@ public class DRCKinematicsBasedStateEstimator implements DRCStateEstimatorInterf
          imusToDisplay.add(fusedIMUSensor);
 
       if (visualizeMeasurementFrames)
-         setupDynamicGraphicObjects(yoGraphicsListRegistry, imusToDisplay);
+         setupYoGraphics(yoGraphicsListRegistry, imusToDisplay);
 
       if (stateEstimatorParameters.requestFrozenModeAtStart())
          operatingMode.set(StateEstimatorMode.FROZEN);
@@ -185,14 +182,14 @@ public class DRCKinematicsBasedStateEstimator implements DRCStateEstimatorInterf
          operatingMode.set(StateEstimatorMode.NORMAL);
    }
 
-   private void setupDynamicGraphicObjects(YoGraphicsListRegistry yoGraphicsListRegistry, List<? extends IMUSensorReadOnly> imuProcessedOutputs)
+   private void setupYoGraphics(YoGraphicsListRegistry yoGraphicsListRegistry, List<? extends IMUSensorReadOnly> imuProcessedOutputs)
    {
       for (int i = 0; i < imuProcessedOutputs.size(); i++)
       {
-         YoGraphicReferenceFrame dynamicGraphicMeasurementFrame = new YoGraphicReferenceFrame(imuProcessedOutputs.get(i).getMeasurementFrame(), registry, 1.0);
-         dynamicGraphicMeasurementFrames.add(dynamicGraphicMeasurementFrame);
+         YoGraphicReferenceFrame yoGraphicMeasurementFrame = new YoGraphicReferenceFrame(imuProcessedOutputs.get(i).getMeasurementFrame(), registry, 1.0);
+         yoGraphicMeasurementFrames.add(yoGraphicMeasurementFrame);
       }
-      yoGraphicsListRegistry.registerYoGraphics("imuFrame", dynamicGraphicMeasurementFrames);
+      yoGraphicsListRegistry.registerYoGraphics("imuFrame", yoGraphicMeasurementFrames);
    }
 
    @Override
@@ -232,7 +229,7 @@ public class DRCKinematicsBasedStateEstimator implements DRCStateEstimatorInterf
          reinitializeStateEstimator.set(false);
          initialize();
       }
-      yoTime.set(TimeTools.nanoSecondstoSeconds(sensorOutputMapReadOnly.getTimestamp()));
+      yoTime.set(Conversions.nanosecondsToSeconds(sensorOutputMapReadOnly.getTimestamp()));
 
       if (fusedIMUSensor != null)
          fusedIMUSensor.update();
@@ -294,8 +291,8 @@ public class DRCKinematicsBasedStateEstimator implements DRCStateEstimatorInterf
 
       if (visualizeMeasurementFrames)
       {
-         for (int i = 0; i < dynamicGraphicMeasurementFrames.size(); i++)
-            dynamicGraphicMeasurementFrames.get(i).update();
+         for (int i = 0; i < yoGraphicMeasurementFrames.size(); i++)
+            yoGraphicMeasurementFrames.get(i).update();
       }
 
       if (ENABLE_JOINT_TORQUES_FROM_FORCE_SENSORS_VIZ)
@@ -303,7 +300,7 @@ public class DRCKinematicsBasedStateEstimator implements DRCStateEstimatorInterf
    }
 
    @Override
-   public void initializeEstimatorToActual(Tuple3d initialCoMPosition, Quat4d initialEstimationLinkOrientation)
+   public void initializeEstimatorToActual(Tuple3DReadOnly initialCoMPosition, QuaternionReadOnly initialEstimationLinkOrientation)
    {
       pelvisLinearStateUpdater.initializeCoMPositionToActual(initialCoMPosition);
       // Do nothing for the orientation since the IMU is trusted

@@ -13,13 +13,13 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
-import us.ihmc.tools.FormattingTools;
-import us.ihmc.tools.thread.ThreadTools;
-
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.EndPoint;
 import com.esotericsoftware.kryonet.FrameworkMessage.KeepAlive;
 import com.esotericsoftware.kryonet.Listener;
+
+import us.ihmc.tools.FormattingTools;
+import us.ihmc.tools.thread.ThreadTools;
 
 public abstract class KryoObjectCommunicator implements NetworkedObjectCommunicator
 {
@@ -28,7 +28,7 @@ public abstract class KryoObjectCommunicator implements NetworkedObjectCommunica
    private final LinkedHashMap<Class<?>, ArrayList<ObjectConsumer<?>>> listeners = new LinkedHashMap<Class<?>, ArrayList<ObjectConsumer<?>>>();
 
    private final ArrayList<TcpNetStateListener> tcpStateListeners = new ArrayList<TcpNetStateListener>();
-   private final ArrayList<NetStateListener> stateListeners = new ArrayList<NetStateListener>();
+   private final ArrayList<ConnectionStateListener> stateListeners = new ArrayList<ConnectionStateListener>();
    
    private final ArrayList<GlobalObjectConsumer> globalListeners = new ArrayList<GlobalObjectConsumer>();
    
@@ -83,7 +83,7 @@ public abstract class KryoObjectCommunicator implements NetworkedObjectCommunica
    }
    
    @Override
-   public void attachStateListener(NetStateListener stateListener)
+   public void attachStateListener(ConnectionStateListener stateListener)
    {
       stateListeners.add(stateListener);
    }
@@ -262,7 +262,7 @@ public abstract class KryoObjectCommunicator implements NetworkedObjectCommunica
    }
    
    @Override
-   public final void close()
+   public final void disconnect()
    {
       closeConnection();
       for(ExecutorService executor : listenerExecutors.values())
@@ -283,6 +283,7 @@ public abstract class KryoObjectCommunicator implements NetworkedObjectCommunica
    /**
     * Disconnect the connection, but leave the executor listeners alive. This allows re-connecting at a later moment.
     */
+   @Override
    public abstract void closeConnection();
 
    private class TableData

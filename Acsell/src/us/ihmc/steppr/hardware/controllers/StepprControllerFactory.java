@@ -7,13 +7,11 @@ import javax.xml.bind.JAXBException;
 
 import com.martiansoftware.jsap.JSAPException;
 
-import us.ihmc.robotics.partNames.LegJointName;
 import us.ihmc.acsell.hardware.AcsellAffinity;
 import us.ihmc.acsell.hardware.AcsellSetup;
 import us.ihmc.avatar.DRCEstimatorThread;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
-import us.ihmc.commonWalkingControlModules.configurations.ArmControllerParameters;
-import us.ihmc.commonWalkingControlModules.configurations.CapturePointPlannerParameters;
+import us.ihmc.commonWalkingControlModules.configurations.ICPWithTimeFreezingPlannerParameters;
 import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParameters;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.ContactableBodiesFactory;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.MomentumBasedControllerFactory;
@@ -29,6 +27,7 @@ import us.ihmc.humanoidRobotics.communication.subscribers.PelvisPoseCorrectionCo
 import us.ihmc.humanoidRobotics.kryo.IHMCCommunicationKryoNetClassList;
 import us.ihmc.realtime.PriorityParameters;
 import us.ihmc.robotDataLogger.YoVariableServer;
+import us.ihmc.robotics.partNames.LegJointName;
 import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.sensorProcessing.parameters.DRCRobotSensorInformation;
 import us.ihmc.steppr.hardware.output.StepprOutputWriter;
@@ -37,6 +36,7 @@ import us.ihmc.steppr.parameters.BonoRobotModel;
 import us.ihmc.tools.io.logging.LogTools;
 import us.ihmc.tools.thread.ThreadTools;
 import us.ihmc.util.PeriodicRealtimeThreadScheduler;
+import us.ihmc.util.PeriodicRealtimeThreadSchedulerFactory;
 import us.ihmc.wholeBodyController.DRCControllerThread;
 import us.ihmc.wholeBodyController.DRCOutputWriter;
 import us.ihmc.wholeBodyController.DRCOutputWriterWithAccelerationIntegration;
@@ -56,7 +56,7 @@ public class StepprControllerFactory
    private final PriorityParameters controllerPriority = new PriorityParameters(PriorityParameters.getMaximumPriority() - 5);
    private final PriorityParameters loggerPriority = new PriorityParameters(40);
    private final PriorityParameters poseCommunicatorPriority = new PriorityParameters(45);
-   
+
    public StepprControllerFactory() throws IOException, JAXBException
    {
 
@@ -71,7 +71,7 @@ public class StepprControllerFactory
        * Create network servers/clients
        */
       PacketCommunicator controllerPacketCommunicator = PacketCommunicator.createTCPPacketCommunicatorServer(NetworkPorts.CONTROLLER_PORT, new IHMCCommunicationKryoNetClassList());
-      YoVariableServer yoVariableServer = new YoVariableServer(getClass(), new PeriodicRealtimeThreadScheduler(loggerPriority), robotModel.getLogModelProvider(), robotModel.getLogSettings(),
+      YoVariableServer yoVariableServer = new YoVariableServer(getClass(), new PeriodicRealtimeThreadSchedulerFactory(loggerPriority), robotModel.getLogModelProvider(), robotModel.getLogSettings(),
             robotModel.getEstimatorDT());
       HumanoidGlobalDataProducer dataProducer = new HumanoidGlobalDataProducer(controllerPacketCommunicator);
 
@@ -94,7 +94,7 @@ public class StepprControllerFactory
       controllerFactory.attachControllerStateChangedListener(stepprOutputWriter);
       controllerFactory.attachControllerFailureListener(stepprOutputWriter);
       DRCOutputWriter drcOutputWriter = stepprOutputWriter;
-      
+
       boolean INTEGRATE_ACCELERATIONS_AND_CONTROL_VELOCITIES = true;
       if (INTEGRATE_ACCELERATIONS_AND_CONTROL_VELOCITIES)
       {
@@ -104,7 +104,7 @@ public class StepprControllerFactory
          stepprOutputWriterWithAccelerationIntegration.setAlphaDesiredPosition(0.0, 0.0);
          stepprOutputWriterWithAccelerationIntegration.setVelocityGains(0.0, 0.0);
          stepprOutputWriterWithAccelerationIntegration.setPositionGains(0.0, 0.0);
-         
+
          drcOutputWriter = stepprOutputWriterWithAccelerationIntegration;
       }
       /*
@@ -122,6 +122,8 @@ public class StepprControllerFactory
       estimatorThread.setExternalPelvisCorrectorSubscriber(externalPelvisPoseSubscriber);
       DRCControllerThread controllerThread = new DRCControllerThread(robotModel, robotModel.getSensorInformation(), controllerFactory, threadDataSynchronizer,
             drcOutputWriter, dataProducer, yoVariableServer, gravity, robotModel.getEstimatorDT());
+      StepprOutputProcessor outputProcessor = new StepprOutputProcessor(threadDataSynchronizer.getControllerFullRobotModel());
+      controllerThread.addOutputProcessorToController(outputProcessor);
 
       MultiThreadedRealTimeRobotController robotController = new MultiThreadedRealTimeRobotController(estimatorThread);
       if (stepprAffinity.setAffinity())
@@ -155,10 +157,10 @@ public class StepprControllerFactory
       robotController.start();
       StepprRunner runner = new StepprRunner(estimatorPriority, sensorReaderFactory, robotController);
       runner.start();
-      
+
       ThreadTools.sleep(2000);
       yoVariableServer.start();
-      
+
       runner.join();
 
       System.exit(0);
@@ -171,29 +173,26 @@ public class StepprControllerFactory
 
       final HighLevelState initialBehavior = HighLevelState.DO_NOTHING_BEHAVIOR; // HERE!!
       WalkingControllerParameters walkingControllerParamaters = robotModel.getWalkingControllerParameters();
-      ArmControllerParameters armControllerParamaters = robotModel.getArmControllerParameters();
-      CapturePointPlannerParameters capturePointPlannerParameters = robotModel.getCapturePointPlannerParameters();
-      ICPOptimizationParameters icpOptimizationParameters = robotModel.getICPOptimizationParameters();
+      ICPWithTimeFreezingPlannerParameters capturePointPlannerParameters = robotModel.getCapturePointPlannerParameters();
 
       SideDependentList<String> feetContactSensorNames = sensorInformation.getFeetContactSensorNames();
       SideDependentList<String> feetForceSensorNames = sensorInformation.getFeetForceSensorNames();
       SideDependentList<String> wristForceSensorNames = sensorInformation.getWristForceSensorNames();
       MomentumBasedControllerFactory controllerFactory = new MomentumBasedControllerFactory(contactableBodiesFactory, feetForceSensorNames,
-            feetContactSensorNames, wristForceSensorNames , walkingControllerParamaters, armControllerParamaters, capturePointPlannerParameters, initialBehavior);
-      controllerFactory.setICPOptimizationControllerParameters(icpOptimizationParameters);
+            feetContactSensorNames, wristForceSensorNames , walkingControllerParamaters, capturePointPlannerParameters, initialBehavior);
 
       HumanoidJointPoseList humanoidJointPoseList = new HumanoidJointPoseList();
       humanoidJointPoseList.createPoseSettersJustLegs();
-      
+
       boolean useArms = false;
       boolean robotIsHanging = true;
-      
+
       DiagnosticsWhenHangingControllerFactory diagnosticsWhenHangingHighLevelBehaviorFactory = new DiagnosticsWhenHangingControllerFactory(humanoidJointPoseList, useArms, robotIsHanging, null);
       // Configure the MomentumBasedControllerFactory so we start with the diagnostic controller
       diagnosticsWhenHangingHighLevelBehaviorFactory.setTransitionRequested(true);
       controllerFactory.addHighLevelBehaviorFactory(diagnosticsWhenHangingHighLevelBehaviorFactory);
       controllerFactory.createControllerNetworkSubscriber(new PeriodicRealtimeThreadScheduler(poseCommunicatorPriority), packetCommunicator);
-      
+
       if (walkingProvider == WalkingProvider.VELOCITY_HEADING_COMPONENT)
          controllerFactory.createComponentBasedFootstepDataMessageGenerator();
 

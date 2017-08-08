@@ -1,71 +1,61 @@
 package us.ihmc.simulationconstructionset;
 
-import javax.vecmath.Matrix3d;
-import javax.vecmath.Quat4d;
-import javax.vecmath.Tuple3d;
-import javax.vecmath.Vector3d;
-
 import net.jafama.FastMath;
-import us.ihmc.simulationconstructionset.physics.engine.jerry.FloatJointPhysics;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.euclid.matrix.RotationMatrix;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple3D.interfaces.Tuple3DBasics;
+import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.geometry.FrameVector;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
-import us.ihmc.robotics.geometry.RotationTools;
+import us.ihmc.simulationconstructionset.physics.engine.featherstone.FloatingJointPhysics;
 
-/**
- * Title:        Yobotics! Simulation Construction Set<p>
- * Description:  Package for Simulating Dynamic Robots and Mechanisms<p>
- * Copyright:    Copyright (c) Jerry Pratt<p>
- * Company:      Yobotics, Inc. <p>
- * @author Jerry Pratt
- * @version Beta 1.0
- */
 public class FloatingJoint extends Joint implements FloatingSCSJoint
 {
    private static final long serialVersionUID = 6863566500545068060L;
 
-   private Quat4d tempOrientation1 = new Quat4d();
-   private Vector3d tempPosition1 = new Vector3d();
+   private Quaternion tempOrientation1 = new Quaternion();
+   private Vector3D tempPosition1 = new Vector3D();
 
-   public DoubleYoVariable q_x, q_y, q_z;    // in world-fixed frame
-   public DoubleYoVariable qd_x;
-   public DoubleYoVariable qd_y;
-   public DoubleYoVariable qd_z;    // in world-fixed frame
-   public DoubleYoVariable q_qs;
-   public DoubleYoVariable q_qx;
-   public DoubleYoVariable q_qy;
-   public DoubleYoVariable q_qz;    // Unit quaternion (Euler parameters). q_qs is the 'scalar part', q_q{x,y,z} form the vector part
-   public DoubleYoVariable qd_wx;
-   public DoubleYoVariable qd_wy;
-   public DoubleYoVariable qd_wz;    // angular velocity, expressed in body-fixed frame.
-   public DoubleYoVariable qdd_x, qdd_y, qdd_z;    // in world-fixed frame
-   public DoubleYoVariable qdd_wx, qdd_wy, qdd_wz;    // angular acceleration, expressed in body-fixed frame.
+   public YoDouble q_x, q_y, q_z;    // in world-fixed frame
+   public YoDouble qd_x;
+   public YoDouble qd_y;
+   public YoDouble qd_z;    // in world-fixed frame
+   public YoDouble q_qs;
+   public YoDouble q_qx;
+   public YoDouble q_qy;
+   public YoDouble q_qz;    // Unit quaternion (Euler parameters). q_qs is the 'scalar part', q_q{x,y,z} form the vector part
+   public YoDouble qd_wx;
+   public YoDouble qd_wy;
+   public YoDouble qd_wz;    // angular velocity, expressed in body-fixed frame.
+   public YoDouble qdd_x, qdd_y, qdd_z;    // in world-fixed frame
+   public YoDouble qdd_wx, qdd_wy, qdd_wz;    // angular acceleration, expressed in body-fixed frame.
 
    private final boolean createYawPitchRollYoVariable;
-   public DoubleYoVariable q_yaw, q_pitch, q_roll;    // in world-fixed frame.
+   public YoDouble q_yaw, q_pitch, q_roll;    // in world-fixed frame.
    
-   public FloatingJoint(String jname, Vector3d offset, Robot rob)
+   public FloatingJoint(String jname, Vector3D offset, Robot rob)
    {
       this(jname, null, offset, rob, false);
    }
 
-   public FloatingJoint(String jname, Vector3d offset, Robot rob, boolean createYawPitchRollYoVariable)
+   public FloatingJoint(String jname, Vector3D offset, Robot rob, boolean createYawPitchRollYoVariable)
    {
       this(jname, null, offset, rob, createYawPitchRollYoVariable);
    }
 
-   public FloatingJoint(String jname, String varName, Vector3d offset, Robot rob)
+   public FloatingJoint(String jname, String varName, Vector3D offset, Robot rob)
    {
       this(jname, varName, offset, rob, false);
    }
    
-   public FloatingJoint(String jname, String varName, Vector3d offset, Robot rob, boolean createYawPitchRollYoVariable)
+   public FloatingJoint(String jname, String varName, Vector3D offset, Robot rob, boolean createYawPitchRollYoVariable)
    {
       super(jname, offset, rob, 6);
 
-      physics = new FloatJointPhysics(this);
+      physics = new FloatingJointPhysics(this);
 
       YoVariableRegistry registry = rob.getRobotsYoVariableRegistry();
 
@@ -80,32 +70,32 @@ public class FloatingJoint extends Joint implements FloatingSCSJoint
          varName += "_";
       }
       
-      q_x = new DoubleYoVariable("q_" + varName + "x", "FloatingJoint x position", registry);
-      q_y = new DoubleYoVariable("q_" + varName + "y", "FloatingJoint y position", registry);
-      q_z = new DoubleYoVariable("q_" + varName + "z", "FloatingJoint z position", registry);
-      qd_x = new DoubleYoVariable("qd_" + varName + "x", "FloatingJoint x velocity", registry);
-      qd_y = new DoubleYoVariable("qd_" + varName + "y", "FloatingJoint y velocity", registry);
-      qd_z = new DoubleYoVariable("qd_" + varName + "z", "FloatingJoint z velocity", registry);
-      qdd_x = new DoubleYoVariable("qdd_" + varName + "x", "FloatingJoint x acceleration", registry);
-      qdd_y = new DoubleYoVariable("qdd_" + varName + "y", "FloatingJoint yx acceleration", registry);
-      qdd_z = new DoubleYoVariable("qdd_" + varName + "z", "FloatingJoint z acceleration", registry);
-      q_qs = new DoubleYoVariable("q_" + varName + "qs", "FloatingJoint orientation quaternion qs", registry);
+      q_x = new YoDouble("q_" + varName + "x", "FloatingJoint x position", registry);
+      q_y = new YoDouble("q_" + varName + "y", "FloatingJoint y position", registry);
+      q_z = new YoDouble("q_" + varName + "z", "FloatingJoint z position", registry);
+      qd_x = new YoDouble("qd_" + varName + "x", "FloatingJoint x velocity", registry);
+      qd_y = new YoDouble("qd_" + varName + "y", "FloatingJoint y velocity", registry);
+      qd_z = new YoDouble("qd_" + varName + "z", "FloatingJoint z velocity", registry);
+      qdd_x = new YoDouble("qdd_" + varName + "x", "FloatingJoint x acceleration", registry);
+      qdd_y = new YoDouble("qdd_" + varName + "y", "FloatingJoint yx acceleration", registry);
+      qdd_z = new YoDouble("qdd_" + varName + "z", "FloatingJoint z acceleration", registry);
+      q_qs = new YoDouble("q_" + varName + "qs", "FloatingJoint orientation quaternion qs", registry);
       q_qs.set(1.0);
-      q_qx = new DoubleYoVariable("q_" + varName + "qx", "FloatingJoint orientation quaternion qx", registry);
-      q_qy = new DoubleYoVariable("q_" + varName + "qy", "FloatingJoint orientation quaternion qy", registry);
-      q_qz = new DoubleYoVariable("q_" + varName + "qz", "FloatingJoint orientation quaternion qz", registry);
-      qd_wx = new DoubleYoVariable("qd_" + varName + "wx", "FloatingJoint rotational velocity about x", registry);
-      qd_wy = new DoubleYoVariable("qd_" + varName + "wy", "FloatingJoint rotational velocity about y", registry);
-      qd_wz = new DoubleYoVariable("qd_" + varName + "wz", "FloatingJoint rotational velocity about z", registry);
-      qdd_wx = new DoubleYoVariable("qdd_" + varName + "wx", "FloatingJoint rotational acceleration about x", registry);
-      qdd_wy = new DoubleYoVariable("qdd_" + varName + "wy", "FloatingJoint rotational acceleration about y", registry);
-      qdd_wz = new DoubleYoVariable("qdd_" + varName + "wz", "FloatingJoint rotational acceleration about z", registry);
+      q_qx = new YoDouble("q_" + varName + "qx", "FloatingJoint orientation quaternion qx", registry);
+      q_qy = new YoDouble("q_" + varName + "qy", "FloatingJoint orientation quaternion qy", registry);
+      q_qz = new YoDouble("q_" + varName + "qz", "FloatingJoint orientation quaternion qz", registry);
+      qd_wx = new YoDouble("qd_" + varName + "wx", "FloatingJoint rotational velocity about x", registry);
+      qd_wy = new YoDouble("qd_" + varName + "wy", "FloatingJoint rotational velocity about y", registry);
+      qd_wz = new YoDouble("qd_" + varName + "wz", "FloatingJoint rotational velocity about z", registry);
+      qdd_wx = new YoDouble("qdd_" + varName + "wx", "FloatingJoint rotational acceleration about x", registry);
+      qdd_wy = new YoDouble("qdd_" + varName + "wy", "FloatingJoint rotational acceleration about y", registry);
+      qdd_wz = new YoDouble("qdd_" + varName + "wz", "FloatingJoint rotational acceleration about z", registry);
 
       if(createYawPitchRollYoVariable)
       {
-         q_yaw = new DoubleYoVariable("q_" + varName + "yaw", "FloatingJoint yaw orientation", registry);
-         q_pitch = new DoubleYoVariable("q_" + varName + "pitch", "FloatingJoint pitch orientation", registry);
-         q_roll = new DoubleYoVariable("q_" + varName + "roll", "FloatingJoint roll orientation", registry);
+         q_yaw = new YoDouble("q_" + varName + "yaw", "FloatingJoint yaw orientation", registry);
+         q_pitch = new YoDouble("q_" + varName + "pitch", "FloatingJoint pitch orientation", registry);
+         q_roll = new YoDouble("q_" + varName + "roll", "FloatingJoint roll orientation", registry);
       }
       else
       {
@@ -128,7 +118,7 @@ public class FloatingJoint extends Joint implements FloatingSCSJoint
       qd_z.set(dz);
    }
 
-   public void setPositionAndVelocity(Tuple3d position, Tuple3d velocity)
+   public void setPositionAndVelocity(Tuple3DBasics position, Tuple3DBasics velocity)
    {
       q_x.set(position.getX());
       q_y.set(position.getY());
@@ -138,7 +128,7 @@ public class FloatingJoint extends Joint implements FloatingSCSJoint
       qd_z.set(velocity.getZ());
    }
 
-   public void setPosition(Tuple3d position)
+   public void setPosition(Tuple3DBasics position)
    {
       q_x.set(position.getX());
       q_y.set(position.getY());
@@ -152,7 +142,8 @@ public class FloatingJoint extends Joint implements FloatingSCSJoint
       q_z.set(z);
    }
 
-   public void setVelocity(Tuple3d velocity)
+   @Override
+   public void setVelocity(Tuple3DBasics velocity)
    {
       qd_x.set(velocity.getX());
       qd_y.set(velocity.getY());
@@ -166,7 +157,7 @@ public class FloatingJoint extends Joint implements FloatingSCSJoint
       qd_z.set(zd);
    }
 
-   public void setAcceleration(Tuple3d acceleration)
+   public void setAcceleration(Tuple3DBasics acceleration)
    {
       qdd_x.set(acceleration.getX());
       qdd_y.set(acceleration.getY());
@@ -175,10 +166,10 @@ public class FloatingJoint extends Joint implements FloatingSCSJoint
 
    public void setYawPitchRoll(double yaw, double pitch, double roll)
    {
-      Quat4d q = new Quat4d();
-      RotationTools.convertYawPitchRollToQuaternion(yaw, pitch, roll, q);
-      RotationTools.checkQuaternionNormalized(q);
-      q_qs.set(q.getW());
+      Quaternion q = new Quaternion();
+      q.setYawPitchRoll(yaw, pitch, roll);
+      q.checkIfUnitary();
+      q_qs.set(q.getS());
       q_qx.set(q.getX());
       q_qy.set(q.getY());
       q_qz.set(q.getZ());
@@ -192,7 +183,7 @@ public class FloatingJoint extends Joint implements FloatingSCSJoint
       qd_wx.set(wx);
    }
 
-   public void setRotation(Matrix3d rotation)
+   public void setRotation(RotationMatrix rotation)
    {
       double r11, r12, r13, r21, r22, r23, r31, r32, r33;
 
@@ -211,207 +202,211 @@ public class FloatingJoint extends Joint implements FloatingSCSJoint
       q_qz.set((r21 - r12) / (4.0 * q_qs.getDoubleValue()));
    }
 
-   public void setQuaternion(Quat4d q)
+   public void setQuaternion(Quaternion q)
    {
-      q_qs.set(q.getW());
+      q_qs.set(q.getS());
       q_qx.set(q.getX());
       q_qy.set(q.getY());
       q_qz.set(q.getZ());
    }
 
+   @Override
    public void setRotationAndTranslation(RigidBodyTransform transform)
    {
-      Matrix3d rotationMatrix = new Matrix3d();
+      RotationMatrix rotationMatrix = new RotationMatrix();
       transform.getRotation(rotationMatrix);
       setRotation(rotationMatrix);
 
-      Vector3d translation = new Vector3d();
+      Vector3D translation = new Vector3D();
       transform.getTranslation(translation);
       setPosition(translation);
    }
 
-   public void setAngularVelocityInBody(Vector3d angularVelocityInBody)
+   @Override
+   public void setAngularVelocityInBody(Vector3D angularVelocityInBody)
    {
       qd_wx.set(angularVelocityInBody.getX());
       qd_wy.set(angularVelocityInBody.getY());
       qd_wz.set(angularVelocityInBody.getZ());
    }
 
-   public void setAngularAccelerationInBody(Vector3d angularAccelerationInBody)
+   public void setAngularAccelerationInBody(Vector3D angularAccelerationInBody)
    {
       qdd_wx.set(angularAccelerationInBody.getX());
       qdd_wy.set(angularAccelerationInBody.getY());
       qdd_wz.set(angularAccelerationInBody.getZ());
    }
 
-   public void getPosition(DoubleYoVariable x, DoubleYoVariable y, DoubleYoVariable z)
+   public void getPosition(YoDouble x, YoDouble y, YoDouble z)
    {
       x.set(q_x.getDoubleValue());
       y.set(q_y.getDoubleValue());
       z.set(q_z.getDoubleValue());
    }
 
-   public void getVelocity(DoubleYoVariable xDot, DoubleYoVariable yDot, DoubleYoVariable zDot)
+   public void getVelocity(YoDouble xDot, YoDouble yDot, YoDouble zDot)
    {
       xDot.set(qd_x.getDoubleValue());
       yDot.set(qd_y.getDoubleValue());
       zDot.set(qd_z.getDoubleValue());
    }
    
+   @Override
    public void getVelocity(FrameVector linearVelocityToPack)
    {
       linearVelocityToPack.setIncludingFrame(ReferenceFrame.getWorldFrame(), qd_x.getDoubleValue(), qd_y.getDoubleValue(), qd_z.getDoubleValue());
    }
    
 
+   @Override
    public void getAngularVelocity(FrameVector angularVelocityToPack, ReferenceFrame bodyFrame)
    {
       angularVelocityToPack.setIncludingFrame(bodyFrame, qd_wx.getDoubleValue(), qd_wy.getDoubleValue(), qd_wz.getDoubleValue());
    }
 
-   public void getPositionAndVelocity(DoubleYoVariable x, DoubleYoVariable y, DoubleYoVariable z, DoubleYoVariable xDot, DoubleYoVariable yDot, DoubleYoVariable zDot)
+   public void getPositionAndVelocity(YoDouble x, YoDouble y, YoDouble z, YoDouble xDot, YoDouble yDot, YoDouble zDot)
    {
       getPosition(x, y, z);
       getVelocity(xDot, yDot, zDot);
    }
 
-   public void getPosition(Tuple3d position)
+   public void getPosition(Tuple3DBasics position)
    {
       position.set(q_x.getDoubleValue(), q_y.getDoubleValue(), q_z.getDoubleValue());
    }
    
-   public void getVelocity(Tuple3d velocity)
+   public void getVelocity(Tuple3DBasics velocity)
    {
       velocity.set(qd_x.getDoubleValue(), qd_y.getDoubleValue(), qd_z.getDoubleValue());
    }
 
-   public void getPositionAndVelocity(Tuple3d position, Tuple3d velocity)
+   public void getPositionAndVelocity(Tuple3DBasics position, Tuple3DBasics velocity)
    {
       getPosition(position);
       getVelocity(velocity);
    }
 
-   public DoubleYoVariable getQx()
+   public YoDouble getQx()
    {
       return q_x;
    }
 
-   public DoubleYoVariable getQy()
+   public YoDouble getQy()
    {
       return q_y;
    }
 
-   public DoubleYoVariable getQz()
+   public YoDouble getQz()
    {
       return q_z;
    }
 
-   public DoubleYoVariable getQdx()
+   public YoDouble getQdx()
    {
       return qd_x;
    }
 
-   public DoubleYoVariable getQdy()
+   public YoDouble getQdy()
    {
       return qd_y;
    }
 
-   public DoubleYoVariable getQdz()
+   public YoDouble getQdz()
    {
       return qd_z;
    }
 
-   public DoubleYoVariable getQddx()
+   public YoDouble getQddx()
    {
       return qdd_x;
    }
 
-   public DoubleYoVariable getQddy()
+   public YoDouble getQddy()
    {
       return qdd_y;
    }
 
-   public DoubleYoVariable getQddz()
+   public YoDouble getQddz()
    {
       return qdd_z;
    }
 
-   public DoubleYoVariable getQuaternionQs()
+   public YoDouble getQuaternionQs()
    {
       return q_qs;
    }
 
-   public DoubleYoVariable getQuaternionQx()
+   public YoDouble getQuaternionQx()
    {
       return q_qx;
    }
 
-   public DoubleYoVariable getQuaternionQy()
+   public YoDouble getQuaternionQy()
    {
       return q_qy;
    }
 
-   public DoubleYoVariable getQuaternionQz()
+   public YoDouble getQuaternionQz()
    {
       return q_qz;
    }
 
-   public Quat4d getQuaternion()
+   public Quaternion getQuaternion()
    {
-      return new Quat4d(q_qx.getDoubleValue(), q_qy.getDoubleValue(), q_qz.getDoubleValue(), q_qs.getDoubleValue());
+      return new Quaternion(q_qx.getDoubleValue(), q_qy.getDoubleValue(), q_qz.getDoubleValue(), q_qs.getDoubleValue());
    }
    
-   public void getQuaternion(Quat4d quaternionToPack)
+   public void getQuaternion(Quaternion quaternionToPack)
    {
       quaternionToPack.set(q_qx.getDoubleValue(), q_qy.getDoubleValue(), q_qz.getDoubleValue(), q_qs.getDoubleValue());
    }
 
-   public DoubleYoVariable getAngularVelocityX()
+   public YoDouble getAngularVelocityX()
    {
       return qd_wx;
    }
 
-   public DoubleYoVariable getAngularVelocityY()
+   public YoDouble getAngularVelocityY()
    {
       return qd_wy;
    }
 
-   public DoubleYoVariable getAngularVelocityZ()
+   public YoDouble getAngularVelocityZ()
    {
       return qd_wz;
    }
 
-   public Vector3d getAngularVelocityInBody()
+   public Vector3D getAngularVelocityInBody()
    {
-      return new Vector3d(qd_wx.getDoubleValue(), qd_wy.getDoubleValue(), qd_wz.getDoubleValue());
+      return new Vector3D(qd_wx.getDoubleValue(), qd_wy.getDoubleValue(), qd_wz.getDoubleValue());
    }
    
-   public void getAngularVelocityInBody(Vector3d vectorToPack)
+   public void getAngularVelocityInBody(Vector3D vectorToPack)
    {
       vectorToPack.set(qd_wx.getDoubleValue(), qd_wy.getDoubleValue(), qd_wz.getDoubleValue());
    }
 
-   public DoubleYoVariable getAngularAccelerationX()
+   public YoDouble getAngularAccelerationX()
    {
       return qdd_wx;
    }
 
-   public DoubleYoVariable getAngularAccelerationY()
+   public YoDouble getAngularAccelerationY()
    {
       return qdd_wy;
    }
 
-   public DoubleYoVariable getAngularAccelerationZ()
+   public YoDouble getAngularAccelerationZ()
    {
       return qdd_wz;
    }
 
-   public Vector3d getAngularAccelerationInBody()
+   public Vector3D getAngularAccelerationInBody()
    {
-      return new Vector3d(qdd_wx.getDoubleValue(), qdd_wy.getDoubleValue(), qdd_wz.getDoubleValue());
+      return new Vector3D(qdd_wx.getDoubleValue(), qdd_wy.getDoubleValue(), qdd_wz.getDoubleValue());
    }
    
-   public void getAngularAccelerationInBody(Vector3d angularAccelerationInBodyToPack)
+   public void getAngularAccelerationInBody(Vector3D angularAccelerationInBodyToPack)
    {
       angularAccelerationInBodyToPack.set(qdd_wx.getDoubleValue(), qdd_wy.getDoubleValue(), qdd_wz.getDoubleValue());
    }
@@ -421,7 +416,7 @@ public class FloatingJoint extends Joint implements FloatingSCSJoint
       angularAccelerationToPack.setIncludingFrame(bodyFrame, qdd_wx.getDoubleValue(), qdd_wy.getDoubleValue(), qdd_wz.getDoubleValue());      
    }
    
-   public void getLinearAccelerationInWorld(Vector3d accelerationInWorldToPack)
+   public void getLinearAccelerationInWorld(Vector3D accelerationInWorldToPack)
    {
       accelerationInWorldToPack.set(qdd_x.getDoubleValue(), qdd_y.getDoubleValue(), qdd_z.getDoubleValue()); 
    }
@@ -431,7 +426,7 @@ public class FloatingJoint extends Joint implements FloatingSCSJoint
       linearAccelerationToPack.setIncludingFrame(ReferenceFrame.getWorldFrame(), qdd_x.getDoubleValue(), qdd_y.getDoubleValue(), qdd_z.getDoubleValue()); 
    }
 
-   public void getYawPitchRoll(DoubleYoVariable yaw, DoubleYoVariable pitch, DoubleYoVariable roll)
+   public void getYawPitchRoll(YoDouble yaw, YoDouble pitch, YoDouble roll)
    {
 
       double pitchArgument = -2.0 * q_qx.getDoubleValue() * q_qz.getDoubleValue() + 2.0 * q_qs.getDoubleValue() * q_qy.getDoubleValue();
@@ -482,6 +477,7 @@ public class FloatingJoint extends Joint implements FloatingSCSJoint
       return yawPitchRollToReturn;
    }
 
+   @Override
    public void update()
    {
       this.setFloatingTransform3D(this.jointTransform3D);

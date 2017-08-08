@@ -1,10 +1,9 @@
 package us.ihmc.avatar.visualization;
 
-import us.ihmc.SdfLoader.GeneralizedSDFRobotModel;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
 import us.ihmc.simulationconstructionset.util.CommonNames;
-import us.ihmc.simulationconstructionset.util.inputdevices.SliderBoardConfigurationManager;
+import us.ihmc.simulationConstructionSetTools.util.inputdevices.SliderBoardConfigurationManager;
 
 public class GainControllerSliderBoard
 {

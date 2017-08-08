@@ -4,28 +4,28 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import us.ihmc.commons.Conversions;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotics.controllers.ControllerStateChangedListener;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.math.filters.AlphaFilteredYoVariable;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
 import us.ihmc.robotics.sensors.ForceSensorDataHolderReadOnly;
-import us.ihmc.robotics.time.TimeTools;
 import us.ihmc.sensorProcessing.sensors.RawJointSensorDataHolderMap;
 
 public class DRCOutputWriterWithStateChangeSmoother implements DRCOutputWriter
 {
    private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
 
-   private final DoubleYoVariable alphaForJointTorqueForStateChanges = new DoubleYoVariable("alphaJointTorqueForStateChanges", registry);
+   private final YoDouble alphaForJointTorqueForStateChanges = new YoDouble("alphaJointTorqueForStateChanges", registry);
 
    private final ArrayList<OneDoFJoint> allJoints = new ArrayList<>();
    private final LinkedHashMap<OneDoFJoint, AlphaFilteredYoVariable> jointTorquesSmoothedAtStateChange = new LinkedHashMap<>();
 
    private final AtomicBoolean hasHighLevelControllerStateChanged = new AtomicBoolean(false);
-   private final DoubleYoVariable timeAtHighLevelControllerStateChange = new DoubleYoVariable("timeAtControllerStateChange", registry);
-   private final DoubleYoVariable slopTime = new DoubleYoVariable("slopTimeForSmoothedJointTorques", registry);
+   private final YoDouble timeAtHighLevelControllerStateChange = new YoDouble("timeAtControllerStateChange", registry);
+   private final YoDouble slopTime = new YoDouble("slopTimeForSmoothedJointTorques", registry);
 
    private final DRCOutputWriter drcOutputWriter;
 
@@ -51,10 +51,10 @@ public class DRCOutputWriterWithStateChangeSmoother implements DRCOutputWriter
       if (hasHighLevelControllerStateChanged.get())
       {
          hasHighLevelControllerStateChanged.set(false);
-         timeAtHighLevelControllerStateChange.set(TimeTools.nanoSecondstoSeconds(timestamp));
+         timeAtHighLevelControllerStateChange.set(Conversions.nanosecondsToSeconds(timestamp));
       }
 
-      double currentTime = TimeTools.nanoSecondstoSeconds(timestamp);
+      double currentTime = Conversions.nanosecondsToSeconds(timestamp);
       double deltaTime = Math.max(currentTime - timeAtHighLevelControllerStateChange.getDoubleValue(), 0.0);
       
       if (deltaTime < slopTime.getDoubleValue())

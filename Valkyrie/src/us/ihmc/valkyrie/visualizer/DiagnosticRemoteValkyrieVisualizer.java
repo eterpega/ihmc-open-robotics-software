@@ -5,7 +5,7 @@ import us.ihmc.communication.configuration.NetworkParameters;
 import us.ihmc.robotDataLogger.YoVariableClient;
 import us.ihmc.robotDataVisualizer.visualizer.SCSVisualizer;
 import us.ihmc.robotDataVisualizer.visualizer.SCSVisualizerStateListener;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.simulationconstructionset.Robot;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
 
@@ -23,7 +23,7 @@ public class DiagnosticRemoteValkyrieVisualizer implements SCSVisualizerStateLis
       scsVisualizer.addSCSVisualizerStateListener(this);
       scsVisualizer.setShowOverheadView(false);
 
-      YoVariableClient client = new YoVariableClient(scsVisualizer, "remote", new ValkyrieIpToNiceNameRemapper());
+      YoVariableClient client = new YoVariableClient(scsVisualizer);
       client.start();
    }
    

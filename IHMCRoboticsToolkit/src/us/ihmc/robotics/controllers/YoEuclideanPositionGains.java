@@ -1,28 +1,36 @@
 package us.ihmc.robotics.controllers;
 
-import javax.vecmath.Matrix3d;
-
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.euclid.matrix.Matrix3D;
+import us.ihmc.euclid.matrix.interfaces.Matrix3DReadOnly;
+import us.ihmc.yoVariables.listener.VariableChangedListener;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoEuclideanPositionGains implements YoPositionPIDGainsInterface
 {
    private static final String[] directionNames = new String[] {"x", "y", "z"};
 
-   private final DoubleYoVariable[] proportionalGains = new DoubleYoVariable[3];
-   private final DoubleYoVariable[] derivativeGains = new DoubleYoVariable[3];
-   private final DoubleYoVariable[] integralGains = new DoubleYoVariable[3];
+   private final YoDouble[] proportionalGains = new YoDouble[3];
+   private final YoDouble[] derivativeGains = new YoDouble[3];
+   private final YoDouble[] integralGains = new YoDouble[3];
+   private final YoDouble[] dampingRatios;
 
-   private final DoubleYoVariable maxIntegralError;
-   private final DoubleYoVariable maxDerivativeError;
-   private final DoubleYoVariable maxProportionalError;
+   private final YoDouble maxIntegralError;
+   private final YoDouble maxDerivativeError;
+   private final YoDouble maxProportionalError;
 
-   private final DoubleYoVariable maxFeedback;
-   private final DoubleYoVariable maxFeedbackRate;
+   private final YoDouble maxFeedback;
+   private final YoDouble maxFeedbackRate;
 
    private final YoTangentialDampingGains tangentialDampingGains;
 
    public YoEuclideanPositionGains(String prefix, YoVariableRegistry registry)
+   {
+      this(prefix, false, registry);
+   }
+
+   public YoEuclideanPositionGains(String prefix, boolean createDampingRatio, YoVariableRegistry registry)
    {
       String baseProportionalGainName = prefix + "PositionProportionalGain";
       String baseDerivativeGainName = prefix + "PositionDerivativeGain";
@@ -30,17 +38,32 @@ public class YoEuclideanPositionGains implements YoPositionPIDGainsInterface
 
       for (int i = 0; i < 3; i++)
       {
-         proportionalGains[i] = new DoubleYoVariable(baseProportionalGainName + directionNames[i], registry);
-         derivativeGains[i] = new DoubleYoVariable(baseDerivativeGainName + directionNames[i], registry);
-         integralGains[i] = new DoubleYoVariable(baseIntegralGainName + directionNames[i], registry);
+         proportionalGains[i] = new YoDouble(baseProportionalGainName + directionNames[i], registry);
+         derivativeGains[i] = new YoDouble(baseDerivativeGainName + directionNames[i], registry);
+         integralGains[i] = new YoDouble(baseIntegralGainName + directionNames[i], registry);
       }
 
-      maxIntegralError = new DoubleYoVariable(prefix + "PositionMaxIntegralError", registry);
-      maxDerivativeError = new DoubleYoVariable(prefix + "PositionMaxDerivativeError", registry);
-      maxProportionalError = new DoubleYoVariable(prefix + "PositionMaxProportionalError", registry);
+      if (createDampingRatio)
+      {
+         String baseDampingRatioName = prefix + "PositionZeta";
 
-      maxFeedback = new DoubleYoVariable(prefix + "PositionMaxFeedback", registry);
-      maxFeedbackRate = new DoubleYoVariable(prefix + "PositionMaxFeedbackRate", registry);
+         dampingRatios = new YoDouble[3];
+         for (int i = 0; i < 3; i++)
+         {
+            dampingRatios[i] = new YoDouble(baseDampingRatioName + directionNames[i], registry);
+         }
+      }
+      else
+      {
+         dampingRatios = null;
+      }
+
+      maxIntegralError = new YoDouble(prefix + "PositionMaxIntegralError", registry);
+      maxDerivativeError = new YoDouble(prefix + "PositionMaxDerivativeError", registry);
+      maxProportionalError = new YoDouble(prefix + "PositionMaxProportionalError", registry);
+
+      maxFeedback = new YoDouble(prefix + "PositionMaxFeedback", registry);
+      maxFeedbackRate = new YoDouble(prefix + "PositionMaxFeedbackRate", registry);
 
       tangentialDampingGains = new YoTangentialDampingGains(prefix, registry);
 
@@ -60,6 +83,12 @@ public class YoEuclideanPositionGains implements YoPositionPIDGainsInterface
          integralGains[i].set(0.0);
       }
 
+      if (dampingRatios != null)
+      {
+         for (int i = 0; i < 3; i++)
+            dampingRatios[i].set(0.0);
+      }
+
       maxIntegralError.set(0.0);
       maxFeedback.set(Double.POSITIVE_INFINITY);
       maxFeedbackRate.set(Double.POSITIVE_INFINITY);
@@ -71,9 +100,9 @@ public class YoEuclideanPositionGains implements YoPositionPIDGainsInterface
    }
 
    @Override
-   public Matrix3d createProportionalGainMatrix()
+   public Matrix3DReadOnly createProportionalGainMatrix()
    {
-      Matrix3d proportionalGainMatrix = new Matrix3d();
+      Matrix3D proportionalGainMatrix = new Matrix3D();
 
       for (int i = 0; i < 3; i++)
       {
@@ -85,9 +114,9 @@ public class YoEuclideanPositionGains implements YoPositionPIDGainsInterface
    }
 
    @Override
-   public Matrix3d createDerivativeGainMatrix()
+   public Matrix3DReadOnly createDerivativeGainMatrix()
    {
-      Matrix3d derivativeGainMatrix = new Matrix3d();
+      Matrix3D derivativeGainMatrix = new Matrix3D();
 
       for (int i = 0; i < 3; i++)
       {
@@ -99,9 +128,9 @@ public class YoEuclideanPositionGains implements YoPositionPIDGainsInterface
    }
 
    @Override
-   public Matrix3d createIntegralGainMatrix()
+   public Matrix3DReadOnly createIntegralGainMatrix()
    {
-      Matrix3d integralGainMatrix = new Matrix3d();
+      Matrix3D integralGainMatrix = new Matrix3D();
 
       for (int i = 0; i < 3; i++)
       {
@@ -167,6 +196,18 @@ public class YoEuclideanPositionGains implements YoPositionPIDGainsInterface
       this.maxIntegralError.set(maxIntegralError);
    }
 
+   public void setDampingRatio(double dampingRatio)
+   {
+      setDampingRatios(dampingRatio, dampingRatio, dampingRatio);
+   }
+
+   public void setDampingRatios(double dampingRatioX, double dampingRatioY, double dampingRatioZ)
+   {
+      dampingRatios[0].set(dampingRatioX);
+      dampingRatios[1].set(dampingRatioY);
+      dampingRatios[2].set(dampingRatioZ);
+   }
+
    @Override
    public void setMaxFeedbackAndFeedbackRate(double maxFeedback, double maxFeedbackRate)
    {
@@ -211,25 +252,25 @@ public class YoEuclideanPositionGains implements YoPositionPIDGainsInterface
    }
 
    @Override
-   public DoubleYoVariable getYoMaximumFeedback()
+   public YoDouble getYoMaximumFeedback()
    {
       return maxFeedback;
    }
 
    @Override
-   public DoubleYoVariable getYoMaximumFeedbackRate()
+   public YoDouble getYoMaximumFeedbackRate()
    {
       return maxFeedbackRate;
    }
 
    @Override
-   public DoubleYoVariable getYoMaximumDerivativeError()
+   public YoDouble getYoMaximumDerivativeError()
    {
       return maxDerivativeError;
    }
 
    @Override
-   public DoubleYoVariable getYoMaximumProportionalError()
+   public YoDouble getYoMaximumProportionalError()
    {
       return maxProportionalError;
    }
@@ -306,4 +347,27 @@ public class YoEuclideanPositionGains implements YoPositionPIDGainsInterface
       return maxProportionalError.getDoubleValue();
    }
 
+   public void createDerivativeGainUpdater(boolean updateNow)
+   {
+      for (int i = 0; i < 3; i++)
+      {
+         int index = i;
+
+         VariableChangedListener kdUpdater = new VariableChangedListener()
+         {
+            @Override
+            public void variableChanged(YoVariable<?> v)
+            {
+               derivativeGains[index].set(GainCalculator.computeDerivativeGain(proportionalGains[index].getDoubleValue(),
+                                                                               dampingRatios[index].getDoubleValue()));
+            }
+         };
+
+         proportionalGains[i].addVariableChangedListener(kdUpdater);
+         dampingRatios[i].addVariableChangedListener(kdUpdater);
+
+         if (updateNow)
+            kdUpdater.variableChanged(null);
+      }
+   }
 }

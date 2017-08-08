@@ -4,10 +4,6 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 
-import javax.vecmath.Point3d;
-import javax.vecmath.Quat4d;
-import javax.vecmath.Vector3d;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,54 +13,51 @@ import us.ihmc.avatar.MultiRobotTestInterface;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
 import us.ihmc.avatar.initialSetup.OffsetAndYawRobotInitialSetup;
 import us.ihmc.avatar.testTools.DRCSimulationTestHelper;
-import us.ihmc.commonWalkingControlModules.controlModules.foot.ExploreFootPolygonState.ExplorationMethod;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.continuousIntegration.IntegrationCategory;
+import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.humanoidRobotics.communication.packets.TrajectoryPoint1DMessage;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.ArmTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.OneDoFJointTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataListMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage;
-import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage.FootstepOrigin;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.EnumYoVariable;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
-import us.ihmc.simulationconstructionset.bambooTools.BambooTools;
-import us.ihmc.simulationconstructionset.bambooTools.SimulationTestingParameters;
-import us.ihmc.simulationconstructionset.util.environments.CommonAvatarEnvironmentInterface;
-import us.ihmc.simulationconstructionset.util.environments.PointyRocksWorld;
-import us.ihmc.simulationconstructionset.util.environments.PointyRocksWorld.PointyRocksType;
+import us.ihmc.simulationConstructionSetTools.bambooTools.BambooTools;
+import us.ihmc.simulationConstructionSetTools.util.environments.CommonAvatarEnvironmentInterface;
+import us.ihmc.simulationConstructionSetTools.util.environments.PointyRocksWorld;
+import us.ihmc.simulationConstructionSetTools.util.environments.PointyRocksWorld.PointyRocksType;
 import us.ihmc.simulationconstructionset.util.simulationRunner.BlockingSimulationRunner.SimulationExceededMaximumTimeException;
+import us.ihmc.simulationconstructionset.util.simulationTesting.SimulationTestingParameters;
 import us.ihmc.tools.MemoryTools;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
-import us.ihmc.tools.continuousIntegration.IntegrationCategory;
 import us.ihmc.tools.thread.ThreadTools;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
 
 public abstract class HumanoidPointyRocksEnvironmentContactsTest implements MultiRobotTestInterface
 {
    private SimulationTestingParameters simulationTestingParameters = SimulationTestingParameters.createFromEnvironmentVariables();
-   private OffsetAndYawRobotInitialSetup location = new OffsetAndYawRobotInitialSetup(new Vector3d(0.0, 0.0, 0.0), 0.0);
+   private OffsetAndYawRobotInitialSetup location = new OffsetAndYawRobotInitialSetup(new Vector3D(0.0, 0.0, 0.0), 0.0);
    private DRCSimulationTestHelper drcSimulationTestHelper;
 
-   private BooleanYoVariable doFootExplorationInTransferToStanding;
-   private DoubleYoVariable transferTime;
-   private DoubleYoVariable swingTime;
-   private DoubleYoVariable percentageChickenSupport;
-   private DoubleYoVariable timeBeforeExploring;
-   private SideDependentList<BooleanYoVariable> autoCropToLineAfterExploration = new SideDependentList<>();
-   private SideDependentList<BooleanYoVariable> holdFlatDuringExploration = new SideDependentList<>(); // old hold position
-   private SideDependentList<BooleanYoVariable> holdFlatDuringHoldPosition = new SideDependentList<>(); // old hold position
-   private SideDependentList<BooleanYoVariable> holdFlat = new SideDependentList<>(); // new supportState
-   private SideDependentList<BooleanYoVariable> smartHoldPosition = new SideDependentList<>();
-   private SideDependentList<EnumYoVariable<ExplorationMethod>> explorationMethods = new SideDependentList<>();
-   private BooleanYoVariable allowUpperBodyMomentumInSingleSupport;
-   private BooleanYoVariable allowUpperBodyMomentumInDoubleSupport;
-   private BooleanYoVariable allowUsingHighMomentumWeight;
-   private BooleanYoVariable doToeOffIfPossible;
-   private SideDependentList<BooleanYoVariable> requestExploration = new SideDependentList<>();
-   private SideDependentList<BooleanYoVariable> doPartialDetection = new SideDependentList<>();
-   private SideDependentList<BooleanYoVariable> cropToConvexHullOfCoPs = new SideDependentList<>();
+   private YoBoolean doFootExplorationInTransferToStanding;
+   private YoDouble percentageChickenSupport;
+   private YoDouble timeBeforeExploring;
+   private SideDependentList<YoBoolean> autoCropToLineAfterExploration = new SideDependentList<>();
+   private SideDependentList<YoBoolean> holdFlatDuringExploration = new SideDependentList<>(); // old hold position
+   private SideDependentList<YoBoolean> holdFlatDuringHoldPosition = new SideDependentList<>(); // old hold position
+   private SideDependentList<YoBoolean> holdFlat = new SideDependentList<>(); // new supportState
+   private SideDependentList<YoBoolean> smartHoldPosition = new SideDependentList<>();
+   private YoBoolean allowUpperBodyMomentumInSingleSupport;
+   private YoBoolean allowUpperBodyMomentumInDoubleSupport;
+   private YoBoolean allowUsingHighMomentumWeight;
+   private YoBoolean doToeOffIfPossible;
+   private SideDependentList<YoBoolean> requestExploration = new SideDependentList<>();
+   private SideDependentList<YoBoolean> doPartialDetection = new SideDependentList<>();
+   private SideDependentList<YoBoolean> cropToConvexHullOfCoPs = new SideDependentList<>();
 
    protected abstract DRCRobotModel getRobotModel(int xContactPoints, int yContactPoints, boolean createOnlyEdgePoints);
 
@@ -75,8 +68,8 @@ public abstract class HumanoidPointyRocksEnvironmentContactsTest implements Mult
       PointyRocksWorld world = new PointyRocksWorld(PointyRocksType.LINES, 6);
       setupTest(world, true);
 
-      Point3d cameraFix = new Point3d();
-      Point3d cameraPosition = new Point3d();
+      Point3D cameraFix = new Point3D();
+      Point3D cameraPosition = new Point3D();
       world.setupCamera(cameraFix, cameraPosition);
       drcSimulationTestHelper.setupCameraForUnitTest(cameraFix, cameraPosition);
 
@@ -97,8 +90,6 @@ public abstract class HumanoidPointyRocksEnvironmentContactsTest implements Mult
             holdFlatDuringExploration.get(robotSide).set(true);
          if (smartHoldPosition.get(robotSide) != null)
             smartHoldPosition.get(robotSide).set(false);
-         if (explorationMethods.get(robotSide) != null)
-            explorationMethods.get(robotSide).set(ExplorationMethod.FAST_LINE);
 
          if (holdFlat.get(robotSide) != null)
             holdFlat.get(robotSide).set(true);
@@ -108,9 +99,10 @@ public abstract class HumanoidPointyRocksEnvironmentContactsTest implements Mult
       doFootExplorationInTransferToStanding.set(true);
       percentageChickenSupport.set(0.4);
       timeBeforeExploring.set(1.0);
-      transferTime.set(0.15);
-      swingTime.set(0.8);
       doToeOffIfPossible.set(false);
+
+      double swingTime = 0.8;
+      double transferTime = 0.15;
 
       ArrayList<FramePoint> stepLocations = world.getStepLocations();
       for (int i = 0; i < stepLocations.size(); i++)
@@ -121,15 +113,14 @@ public abstract class HumanoidPointyRocksEnvironmentContactsTest implements Mult
             doFootExplorationInTransferToStanding.set(false);
          }
 
-         FootstepDataListMessage message = new FootstepDataListMessage();
+         FootstepDataListMessage message = new FootstepDataListMessage(swingTime, transferTime);
          FootstepDataMessage footstepData = new FootstepDataMessage();
 
-         Point3d position = stepLocations.get(i).getPointCopy();
+         Point3D position = stepLocations.get(i).getPointCopy();
          RobotSide robotSide = position.getY() > 0.0 ? RobotSide.LEFT : RobotSide.RIGHT;
          footstepData.setLocation(position);
-         footstepData.setOrientation(new Quat4d(0.0, 0.0, 0.0, 1.0));
+         footstepData.setOrientation(new Quaternion(0.0, 0.0, 0.0, 1.0));
          footstepData.setRobotSide(robotSide);
-         footstepData.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
          message.add(footstepData);
 
          drcSimulationTestHelper.send(message);
@@ -148,8 +139,8 @@ public abstract class HumanoidPointyRocksEnvironmentContactsTest implements Mult
       PointyRocksWorld world = new PointyRocksWorld(PointyRocksType.POINT, 0);
       setupTest(world, false);
 
-      Point3d cameraFix = new Point3d();
-      Point3d cameraPosition = new Point3d();
+      Point3D cameraFix = new Point3D();
+      Point3D cameraPosition = new Point3D();
       world.setupCamera(cameraFix, cameraPosition);
       drcSimulationTestHelper.setupCameraForUnitTest(cameraFix, cameraPosition);
 
@@ -170,8 +161,6 @@ public abstract class HumanoidPointyRocksEnvironmentContactsTest implements Mult
             holdFlatDuringExploration.get(robotSide).set(true);
          if (smartHoldPosition.get(robotSide) != null)
             smartHoldPosition.get(robotSide).set(false);
-         if (explorationMethods.get(robotSide) != null)
-            explorationMethods.get(robotSide).set(ExplorationMethod.FAST_LINE);
 
          if (holdFlat.get(robotSide) != null)
             holdFlat.get(robotSide).set(true);
@@ -181,9 +170,10 @@ public abstract class HumanoidPointyRocksEnvironmentContactsTest implements Mult
       doFootExplorationInTransferToStanding.set(true);
       percentageChickenSupport.set(0.3);
       timeBeforeExploring.set(1.0);
-      transferTime.set(0.15);
-      swingTime.set(0.4);
       doToeOffIfPossible.set(false);
+
+      double swingTime = 0.8;
+      double transferTime = 0.15;
 
       ArrayList<FramePoint> stepLocations = world.getStepLocations();
       for (int i = 0; i < stepLocations.size(); i++)
@@ -194,15 +184,14 @@ public abstract class HumanoidPointyRocksEnvironmentContactsTest implements Mult
             doFootExplorationInTransferToStanding.set(false);
          }
 
-         FootstepDataListMessage message = new FootstepDataListMessage();
+         FootstepDataListMessage message = new FootstepDataListMessage(swingTime, transferTime);
          FootstepDataMessage footstepData = new FootstepDataMessage();
 
-         Point3d position = stepLocations.get(i).getPointCopy();
+         Point3D position = stepLocations.get(i).getPointCopy();
          RobotSide robotSide = position.getY() > 0.0 ? RobotSide.LEFT : RobotSide.RIGHT;
          footstepData.setLocation(position);
-         footstepData.setOrientation(new Quat4d(0.0, 0.0, 0.0, 1.0));
+         footstepData.setOrientation(new Quaternion(0.0, 0.0, 0.0, 1.0));
          footstepData.setRobotSide(robotSide);
-         footstepData.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
          message.add(footstepData);
 
          drcSimulationTestHelper.send(message);
@@ -253,26 +242,24 @@ public abstract class HumanoidPointyRocksEnvironmentContactsTest implements Mult
             return location;
          }
       };
-      DRCRobotModel robotModel = getRobotModel(30, 15, onlyEdgeContacts);
+      DRCRobotModel robotModel = getRobotModel(15, 8, onlyEdgeContacts);
       drcSimulationTestHelper = new DRCSimulationTestHelper(environment, className, startingLocation, simulationTestingParameters, robotModel);
-      drcSimulationTestHelper.getSimulationConstructionSet().hideAllDynamicGraphicObjects();
+      drcSimulationTestHelper.getSimulationConstructionSet().hideAllYoGraphics();
 
       // increase ankle damping to match the real robot better
-      DoubleYoVariable damping_l_akx = (DoubleYoVariable) drcSimulationTestHelper.getYoVariable("b_damp_l_leg_akx");
-      DoubleYoVariable damping_l_aky = (DoubleYoVariable) drcSimulationTestHelper.getYoVariable("b_damp_l_leg_aky");
-      DoubleYoVariable damping_r_akx = (DoubleYoVariable) drcSimulationTestHelper.getYoVariable("b_damp_r_leg_akx");
-      DoubleYoVariable damping_r_aky = (DoubleYoVariable) drcSimulationTestHelper.getYoVariable("b_damp_r_leg_aky");
+      YoDouble damping_l_akx = (YoDouble) drcSimulationTestHelper.getYoVariable("b_damp_l_leg_akx");
+      YoDouble damping_l_aky = (YoDouble) drcSimulationTestHelper.getYoVariable("b_damp_l_leg_aky");
+      YoDouble damping_r_akx = (YoDouble) drcSimulationTestHelper.getYoVariable("b_damp_r_leg_akx");
+      YoDouble damping_r_aky = (YoDouble) drcSimulationTestHelper.getYoVariable("b_damp_r_leg_aky");
       damping_l_akx.set(1.0);
       damping_l_aky.set(1.0);
       damping_r_akx.set(1.0);
       damping_r_aky.set(1.0);
 
       // get a bunch of relevant variables
-      doFootExplorationInTransferToStanding = (BooleanYoVariable) drcSimulationTestHelper.getYoVariable("doFootExplorationInTransferToStanding");
-      transferTime = (DoubleYoVariable) drcSimulationTestHelper.getYoVariable("transferTime");
-      swingTime = (DoubleYoVariable) drcSimulationTestHelper.getYoVariable("swingTime");
-      percentageChickenSupport = (DoubleYoVariable) drcSimulationTestHelper.getYoVariable("PercentageChickenSupport");
-      timeBeforeExploring = (DoubleYoVariable) drcSimulationTestHelper.getYoVariable("ExplorationState_TimeBeforeExploring");
+      doFootExplorationInTransferToStanding = (YoBoolean) drcSimulationTestHelper.getYoVariable("doFootExplorationInTransferToStanding");
+      percentageChickenSupport = (YoDouble) drcSimulationTestHelper.getYoVariable("PercentageChickenSupport");
+      timeBeforeExploring = (YoDouble) drcSimulationTestHelper.getYoVariable("ExplorationState_TimeBeforeExploring");
       for (RobotSide robotSide : RobotSide.values)
       {
          String footName = drcSimulationTestHelper.getControllerFullRobotModel().getFoot(robotSide).getName();
@@ -280,31 +267,29 @@ public abstract class HumanoidPointyRocksEnvironmentContactsTest implements Mult
          String footControlNamespace = robotSide.getLowerCaseName() + "FootControlModule";
          String partialfootControlNamespace = footName + "PartialFootholdControlModule";
 
-         BooleanYoVariable autoCrop = (BooleanYoVariable) drcSimulationTestHelper.getYoVariable(footName + "ExpectingLineContact");
+         YoBoolean autoCrop = (YoBoolean) drcSimulationTestHelper.getYoVariable(footName + "ExpectingLineContact");
          autoCropToLineAfterExploration.put(robotSide, autoCrop);
-         BooleanYoVariable holdFlatDuringExploration = (BooleanYoVariable) drcSimulationTestHelper.getYoVariable(footControlNamespace, footName + "DoHoldFootFlatOrientation");
+         YoBoolean holdFlatDuringExploration = (YoBoolean) drcSimulationTestHelper.getYoVariable(footControlNamespace, footName + "DoHoldFootFlatOrientation");
          this.holdFlatDuringExploration.put(robotSide, holdFlatDuringExploration);
-         BooleanYoVariable holdFlatDuringHoldPosition = (BooleanYoVariable) drcSimulationTestHelper.getYoVariable("ExploreFootPolygon", footName + "DoHoldFootFlatOrientation");
+         YoBoolean holdFlatDuringHoldPosition = (YoBoolean) drcSimulationTestHelper.getYoVariable("ExploreFootPolygon", footName + "DoHoldFootFlatOrientation");
          this.holdFlatDuringHoldPosition.put(robotSide, holdFlatDuringHoldPosition);
-         BooleanYoVariable smartHoldPosition = (BooleanYoVariable) drcSimulationTestHelper.getYoVariable(footControlNamespace, footName + "DoSmartHoldPosition");
+         YoBoolean smartHoldPosition = (YoBoolean) drcSimulationTestHelper.getYoVariable(footControlNamespace, footName + "DoSmartHoldPosition");
          this.smartHoldPosition.put(robotSide, smartHoldPosition);
-         EnumYoVariable<ExplorationMethod> explorationMethod = (EnumYoVariable<ExplorationMethod>) drcSimulationTestHelper.getYoVariable(footName + "ExplorationMethod");
-         explorationMethods.put(robotSide, explorationMethod);
-         BooleanYoVariable requestExplorationForFoot = (BooleanYoVariable) drcSimulationTestHelper.getYoVariable(footControlNamespace, longFootName + "RequestExploration");
+         YoBoolean requestExplorationForFoot = (YoBoolean) drcSimulationTestHelper.getYoVariable(footControlNamespace, longFootName + "RequestExploration");
          requestExploration.put(robotSide, requestExplorationForFoot);
-         BooleanYoVariable doPartialDetectionForFoot = (BooleanYoVariable) drcSimulationTestHelper.getYoVariable(partialfootControlNamespace, footName + "DoPartialFootholdDetection");
+         YoBoolean doPartialDetectionForFoot = (YoBoolean) drcSimulationTestHelper.getYoVariable(partialfootControlNamespace, footName + "DoPartialFootholdDetection");
          doPartialDetection.put(robotSide, doPartialDetectionForFoot);
-         BooleanYoVariable cropToConvexHullOfCoPsForFoot = (BooleanYoVariable) drcSimulationTestHelper.getYoVariable(partialfootControlNamespace, footName + "CropToConvexHullOfCoPs");
+         YoBoolean cropToConvexHullOfCoPsForFoot = (YoBoolean) drcSimulationTestHelper.getYoVariable(partialfootControlNamespace, footName + "CropToConvexHullOfCoPs");
          cropToConvexHullOfCoPs.put(robotSide, cropToConvexHullOfCoPsForFoot);
 
          // new support state:
-         BooleanYoVariable holdFlat = (BooleanYoVariable) drcSimulationTestHelper.getYoVariable(longFootName + "SupportState", longFootName + "HoldFlatOrientation");
+         YoBoolean holdFlat = (YoBoolean) drcSimulationTestHelper.getYoVariable(longFootName + "SupportState", longFootName + "HoldFlatOrientation");
          this.holdFlat.put(robotSide, holdFlat);
       }
-      allowUpperBodyMomentumInSingleSupport = (BooleanYoVariable) drcSimulationTestHelper.getYoVariable("allowUpperBodyMomentumInSingleSupport");
-      allowUpperBodyMomentumInDoubleSupport = (BooleanYoVariable) drcSimulationTestHelper.getYoVariable("allowUpperBodyMomentumInDoubleSupport");
-      allowUsingHighMomentumWeight = (BooleanYoVariable) drcSimulationTestHelper.getYoVariable("allowUsingHighMomentumWeight");
-      doToeOffIfPossible = (BooleanYoVariable) drcSimulationTestHelper.getYoVariable("doToeOffIfPossible");
+      allowUpperBodyMomentumInSingleSupport = (YoBoolean) drcSimulationTestHelper.getYoVariable("allowUpperBodyMomentumInSingleSupport");
+      allowUpperBodyMomentumInDoubleSupport = (YoBoolean) drcSimulationTestHelper.getYoVariable("allowUpperBodyMomentumInDoubleSupport");
+      allowUsingHighMomentumWeight = (YoBoolean) drcSimulationTestHelper.getYoVariable("allowUsingHighMomentumWeight");
+      doToeOffIfPossible = (YoBoolean) drcSimulationTestHelper.getYoVariable("doToeOffIfPossible");
 
       ThreadTools.sleep(1000);
    }

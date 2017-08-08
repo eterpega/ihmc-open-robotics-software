@@ -10,7 +10,7 @@ import us.ihmc.commonWalkingControlModules.controllerCore.command.lowLevel.LowLe
 import us.ihmc.commonWalkingControlModules.momentumBasedController.HighLevelHumanoidControllerToolbox;
 import us.ihmc.humanoidRobotics.bipedSupportPolygons.ContactablePlaneBody;
 import us.ihmc.humanoidRobotics.communication.packets.dataobjects.HighLevelState;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
@@ -19,7 +19,7 @@ public class DoNothingBehavior extends HighLevelBehavior
 {
    private static final HighLevelState controllerState = HighLevelState.DO_NOTHING_BEHAVIOR;
 
-   private final HighLevelHumanoidControllerToolbox momentumBasedController;
+   private final HighLevelHumanoidControllerToolbox controllerToolbox;
    private final BipedSupportPolygons bipedSupportPolygons;
    private final SideDependentList<YoPlaneContactState> footContactStates = new SideDependentList<>();
 
@@ -28,18 +28,18 @@ public class DoNothingBehavior extends HighLevelBehavior
    private final ControllerCoreCommand controllerCoreCommand = new ControllerCoreCommand(WholeBodyControllerCoreMode.OFF);
    private final LowLevelOneDoFJointDesiredDataHolder lowLevelOneDoFJointDesiredDataHolder;
 
-   public DoNothingBehavior(HighLevelHumanoidControllerToolbox momentumBasedController)
+   public DoNothingBehavior(HighLevelHumanoidControllerToolbox controllerToolbox)
    {
       super(controllerState);
 
-      this.bipedSupportPolygons = momentumBasedController.getBipedSupportPolygons();
-      this.momentumBasedController = momentumBasedController;
-      allRobotJoints = momentumBasedController.getFullRobotModel().getOneDoFJoints();
+      this.bipedSupportPolygons = controllerToolbox.getBipedSupportPolygons();
+      this.controllerToolbox = controllerToolbox;
+      allRobotJoints = controllerToolbox.getFullRobotModel().getOneDoFJoints();
 
       for (RobotSide robotSide : RobotSide.values)
       {
-         ContactablePlaneBody contactableFoot = momentumBasedController.getContactableFeet().get(robotSide);
-         footContactStates.put(robotSide, momentumBasedController.getContactState(contactableFoot));
+         ContactablePlaneBody contactableFoot = controllerToolbox.getContactableFeet().get(robotSide);
+         footContactStates.put(robotSide, controllerToolbox.getFootContactState(robotSide));
       }
 
       lowLevelOneDoFJointDesiredDataHolder = new LowLevelOneDoFJointDesiredDataHolder(allRobotJoints.length);
@@ -56,7 +56,7 @@ public class DoNothingBehavior extends HighLevelBehavior
    public void doAction()
    {
       bipedSupportPolygons.updateUsingContactStates(footContactStates);
-      momentumBasedController.update();
+      controllerToolbox.update();
       for (int i = 0; i < allRobotJoints.length; i++)
       {
          allRobotJoints[i].setTau(0.0);

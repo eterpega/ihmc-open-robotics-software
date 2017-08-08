@@ -1,10 +1,9 @@
 package us.ihmc.humanoidRobotics.footstep.footstepSnapper;
 
-import javax.vecmath.Matrix3d;
-import javax.vecmath.Vector3d;
-
+import us.ihmc.euclid.geometry.ConvexPolygon2D;
+import us.ihmc.euclid.matrix.RotationMatrix;
+import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage;
-import us.ihmc.robotics.geometry.ConvexPolygon2d;
 
 /**
  * Created by agrabertilton on 1/20/15.
@@ -24,9 +23,9 @@ public class SimpleFootstepValueFunction implements FootstepValueFunction
    @Override
    public double getFootstepValue(FootstepDataMessage footstepData)
    {
-      Matrix3d rotationMatrix = new Matrix3d();
+      RotationMatrix rotationMatrix = new RotationMatrix();
       rotationMatrix.set(footstepData.getOrientation());
-      Vector3d footstepNormal = new Vector3d();
+      Vector3D footstepNormal = new Vector3D();
       rotationMatrix.getColumn(2, footstepNormal);
 
       double offHorizontalAngle = Math.acos(footstepNormal.getZ());
@@ -38,7 +37,7 @@ public class SimpleFootstepValueFunction implements FootstepValueFunction
       if (footstepData.predictedContactPoints == null || footstepData.predictedContactPoints.isEmpty())
          return Double.NEGATIVE_INFINITY;
 
-      ConvexPolygon2d supportPolygon = new ConvexPolygon2d(footstepData.getPredictedContactPoints());
+      ConvexPolygon2D supportPolygon = new ConvexPolygon2D(footstepData.getPredictedContactPoints());
       supportPolygon.update();
       double inPlaneArea = supportPolygon.getArea();
       double horizonalArea = inPlaneArea * footstepNormal.getZ();

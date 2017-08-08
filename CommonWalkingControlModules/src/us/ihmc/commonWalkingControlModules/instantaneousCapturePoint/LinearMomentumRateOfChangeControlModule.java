@@ -1,35 +1,32 @@
 package us.ihmc.commonWalkingControlModules.instantaneousCapturePoint;
 
-import static us.ihmc.graphics3DDescription.appearance.YoAppearance.Purple;
+import static us.ihmc.graphicsDescription.appearance.YoAppearance.Purple;
 
-import javax.vecmath.Vector3d;
-
-import org.ejml.data.DenseMatrix64F;
-import org.ejml.ops.CommonOps;
-
-import us.ihmc.commonWalkingControlModules.bipedSupportPolygons.BipedSupportPolygons;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.MomentumRateCommand;
+import us.ihmc.commonWalkingControlModules.instantaneousCapturePoint.icpOptimization.ICPOptimizationController;
 import us.ihmc.commonWalkingControlModules.wrenchDistribution.WrenchDistributorTools;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicPosition;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
-import us.ihmc.graphics3DDescription.yoGraphics.plotting.YoArtifactPosition;
+import us.ihmc.commons.PrintTools;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.graphicsDescription.yoGraphics.plotting.YoArtifactPosition;
 import us.ihmc.humanoidRobotics.footstep.Footstep;
+import us.ihmc.humanoidRobotics.footstep.FootstepTiming;
 import us.ihmc.robotics.MathTools;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.EnumYoVariable;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoEnum;
 import us.ihmc.robotics.geometry.FrameConvexPolygon2d;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FramePoint2d;
 import us.ihmc.robotics.geometry.FrameVector;
 import us.ihmc.robotics.geometry.FrameVector2d;
-import us.ihmc.robotics.linearAlgebra.MatrixTools;
 import us.ihmc.robotics.math.frames.YoFrameConvexPolygon2d;
 import us.ihmc.robotics.math.frames.YoFramePoint2d;
 import us.ihmc.robotics.math.frames.YoFrameVector;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
-import us.ihmc.robotics.screwTheory.SpatialForceVector;
+import us.ihmc.robotics.screwTheory.SelectionMatrix6D;
 import us.ihmc.sensorProcessing.frames.ReferenceFrames;
 
 public abstract class LinearMomentumRateOfChangeControlModule
@@ -44,16 +41,15 @@ public abstract class LinearMomentumRateOfChangeControlModule
    protected final YoFrameVector angularMomentumRateWeight;
    protected final YoFrameVector linearMomentumRateWeight;
 
-   protected final EnumYoVariable<RobotSide> supportLegPreviousTick;
-   protected final BooleanYoVariable minimizeAngularMomentumRateZ;
+   protected final YoEnum<RobotSide> supportLegPreviousTick;
+   protected final YoBoolean minimizeAngularMomentumRateZ;
 
    protected final YoFrameVector controlledCoMAcceleration;
 
    protected final MomentumRateCommand momentumRateCommand = new MomentumRateCommand();
-   protected final SpatialForceVector desiredMomentumRate = new SpatialForceVector();
-   protected final DenseMatrix64F linearAndAngularZSelectionMatrix = CommonOps.identity(6);
-   protected final DenseMatrix64F linearXYSelectionMatrix = CommonOps.identity(6);
-   protected final DenseMatrix64F linearXYAndAngularZSelectionMatrix = CommonOps.identity(6);
+   protected final SelectionMatrix6D linearAndAngularZSelectionMatrix = new SelectionMatrix6D();
+   protected final SelectionMatrix6D linearXYSelectionMatrix = new SelectionMatrix6D();
+   protected final SelectionMatrix6D linearXYAndAngularZSelectionMatrix = new SelectionMatrix6D();
 
    protected double omega0 = 0.0;
    protected double totalMass;
@@ -77,7 +73,7 @@ public abstract class LinearMomentumRateOfChangeControlModule
    protected final FrameConvexPolygon2d areaToProjectInto = new FrameConvexPolygon2d();
    protected final FrameConvexPolygon2d safeArea = new FrameConvexPolygon2d();
 
-   protected final BooleanYoVariable desiredCMPinSafeArea;
+   protected final YoBoolean desiredCMPinSafeArea;
 
    private boolean controlHeightWithMomentum;
 
@@ -91,10 +87,10 @@ public abstract class LinearMomentumRateOfChangeControlModule
    protected RobotSide supportSide = null;
    protected RobotSide transferToSide = null;
 
-   public LinearMomentumRateOfChangeControlModule(String namePrefix, ReferenceFrames referenceFrames, double gravityZ, 
+   public LinearMomentumRateOfChangeControlModule(String namePrefix, ReferenceFrames referenceFrames, double gravityZ,
          double totalMass, YoVariableRegistry parentRegistry, YoGraphicsListRegistry yoGraphicsListRegistry, boolean use2DProjection)
    {
-      MathTools.checkIfInRange(gravityZ, 0.0, Double.POSITIVE_INFINITY);
+      MathTools.checkIntervalContains(gravityZ, 0.0, Double.POSITIVE_INFINITY);
 
       this.totalMass = totalMass;
       this.gravityZ = gravityZ;
@@ -117,26 +113,24 @@ public abstract class LinearMomentumRateOfChangeControlModule
       angularMomentumRateWeight = new YoFrameVector(namePrefix + "AngularMomentumRateWeight", worldFrame, registry);
       linearMomentumRateWeight = new YoFrameVector(namePrefix + "LinearMomentumRateWeight", worldFrame, registry);
 
-      supportLegPreviousTick = EnumYoVariable.create(namePrefix + "SupportLegPreviousTick", "", RobotSide.class, registry, true);
-      minimizeAngularMomentumRateZ = new BooleanYoVariable(namePrefix + "MinimizeAngularMomentumRateZ", registry);
+      supportLegPreviousTick = YoEnum.create(namePrefix + "SupportLegPreviousTick", "", RobotSide.class, registry, true);
+      minimizeAngularMomentumRateZ = new YoBoolean(namePrefix + "MinimizeAngularMomentumRateZ", registry);
 
-      desiredCMPinSafeArea = new BooleanYoVariable("DesiredCMPinSafeArea", registry);
+      desiredCMPinSafeArea = new YoBoolean("DesiredCMPinSafeArea", registry);
 
       yoUnprojectedDesiredCMP = new YoFramePoint2d("unprojectedDesiredCMP", worldFrame, registry);
       yoSafeAreaPolygon = new YoFrameConvexPolygon2d("yoSafeAreaPolygon", worldFrame, 10, registry);
       yoProjectionPolygon = new YoFrameConvexPolygon2d("yoProjectionPolygon", worldFrame, 10, registry);
 
-      MatrixTools.removeRow(linearAndAngularZSelectionMatrix, 0);
-      MatrixTools.removeRow(linearAndAngularZSelectionMatrix, 0);
+      linearAndAngularZSelectionMatrix.selectAngularX(false);
+      linearAndAngularZSelectionMatrix.selectAngularY(false);
 
-      MatrixTools.removeRow(linearXYSelectionMatrix, 5); // remove height
-      MatrixTools.removeRow(linearXYSelectionMatrix, 0);
-      MatrixTools.removeRow(linearXYSelectionMatrix, 0);
-      MatrixTools.removeRow(linearXYSelectionMatrix, 0);
+      linearXYSelectionMatrix.setToLinearSelectionOnly();
+      linearXYSelectionMatrix.selectLinearZ(false); // remove height
 
-      MatrixTools.removeRow(linearXYAndAngularZSelectionMatrix, 5); // remove height
-      MatrixTools.removeRow(linearXYAndAngularZSelectionMatrix, 0);
-      MatrixTools.removeRow(linearXYAndAngularZSelectionMatrix, 0);
+      linearXYAndAngularZSelectionMatrix.setToLinearSelectionOnly();
+      linearXYAndAngularZSelectionMatrix.selectLinearZ(false); // remove height
+      linearXYAndAngularZSelectionMatrix.selectAngularZ(true);
 
       angularMomentumRateWeight.set(defaultAngularMomentumRateWeight);
       linearMomentumRateWeight.set(defaultLinearMomentumRateWeight);
@@ -163,23 +157,23 @@ public abstract class LinearMomentumRateOfChangeControlModule
    }
 
 
-   public void setMomentumWeight(Vector3d angularWeight, Vector3d linearWeight)
+   public void setMomentumWeight(Vector3D angularWeight, Vector3D linearWeight)
    {
       defaultLinearMomentumRateWeight.set(linearWeight);
       defaultAngularMomentumRateWeight.set(angularWeight);
    }
 
-   public void setMomentumWeight(Vector3d linearWeight)
+   public void setMomentumWeight(Vector3D linearWeight)
    {
       defaultLinearMomentumRateWeight.set(linearWeight);
    }
 
-   public void setAngularMomentumWeight(Vector3d angularWeight)
+   public void setAngularMomentumWeight(Vector3D angularWeight)
    {
       defaultAngularMomentumRateWeight.set(angularWeight);
    }
 
-   public void setHighMomentumWeightForRecovery(Vector3d highLinearWeight)
+   public void setHighMomentumWeightForRecovery(Vector3D highLinearWeight)
    {
       highLinearMomentumRateWeight.set(highLinearWeight);
    }
@@ -277,6 +271,8 @@ public abstract class LinearMomentumRateOfChangeControlModule
       return groundReactionForce;
    }
 
+   private boolean desiredCMPcontainedNaN = false;
+
    public void compute(FramePoint2d desiredCMPPreviousValue, FramePoint2d desiredCMPToPack)
    {
       computeCMPInternal(desiredCMPPreviousValue);
@@ -285,8 +281,14 @@ public abstract class LinearMomentumRateOfChangeControlModule
       desiredCMP.changeFrame(worldFrame);
       if (desiredCMP.containsNaN())
       {
+         if (!desiredCMPcontainedNaN)
+            PrintTools.error("Desired CMP containes NaN, setting it to the ICP - only showing this error once");
          desiredCMP.set(capturePoint);
-         System.err.println(getClass().getSimpleName() + ": desiredCMP contained NaN. Set it to capturePoint.");
+         desiredCMPcontainedNaN = true;
+      }
+      else
+      {
+         desiredCMPcontainedNaN = false;
       }
 
       desiredCMPToPack.setIncludingFrame(desiredCMP);
@@ -305,11 +307,11 @@ public abstract class LinearMomentumRateOfChangeControlModule
       controlledCoMAcceleration.set(linearMomentumRateOfChange);
       controlledCoMAcceleration.scale(1.0 / totalMass);
 
+      linearMomentumRateOfChange.changeFrame(worldFrame);
+      momentumRateCommand.setLinearMomentumRate(linearMomentumRateOfChange);
+
       if (minimizeAngularMomentumRateZ.getBooleanValue())
       {
-         desiredMomentumRate.setToZero(centerOfMassFrame);
-         desiredMomentumRate.setLinearPart(linearMomentumRateOfChange);
-         momentumRateCommand.set(desiredMomentumRate);
          if (!controlHeightWithMomentum)
             momentumRateCommand.setSelectionMatrix(linearXYAndAngularZSelectionMatrix);
          else
@@ -317,9 +319,10 @@ public abstract class LinearMomentumRateOfChangeControlModule
       }
       else
       {
-         momentumRateCommand.setLinearMomentumRateOfChange(linearMomentumRateOfChange);
          if (!controlHeightWithMomentum)
             momentumRateCommand.setSelectionMatrix(linearXYSelectionMatrix);
+         else
+            momentumRateCommand.setSelectionMatrixForLinearControl();
       }
 
       momentumRateCommand.setWeights(angularMomentumRateWeight.getX(), angularMomentumRateWeight.getY(), angularMomentumRateWeight.getZ(),
@@ -362,13 +365,11 @@ public abstract class LinearMomentumRateOfChangeControlModule
       this.controlHeightWithMomentum = controlHeightWithMomentum;
    }
 
-   public abstract void setDoubleSupportDuration(double doubleSupportDuration);
-
-   public abstract void setSingleSupportDuration(double singleSupportDuration);
-
    public abstract void clearPlan();
 
-   public abstract void addFootstepToPlan(Footstep footstep);
+   public abstract void addFootstepToPlan(Footstep footstep, FootstepTiming timing);
+
+   public abstract void setFinalTransferDuration(double finalTransferDuration);
 
    public abstract void initializeForStanding();
 
@@ -379,4 +380,10 @@ public abstract class LinearMomentumRateOfChangeControlModule
    public abstract boolean getUpcomingFootstepSolution(Footstep footstepToPack);
 
    public abstract void submitRemainingTimeInSwingUnderDisturbance(double remainingTimeForSwing);
+
+   public abstract ICPOptimizationController getICPOptimizationController();
+
+   public abstract double getOptimizedTimeRemaining();
+
+   public abstract void setReferenceICPVelocity(FrameVector2d referenceICPVelocity);
 }

@@ -8,13 +8,14 @@ import org.junit.Test;
 import us.ihmc.avatar.DRCFlatGroundWalkingTrack;
 import us.ihmc.avatar.DRCFlatGroundWalkingWithIMUDriftTest;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
+import us.ihmc.avatar.drcRobot.RobotTarget;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
 import us.ihmc.robotics.controllers.ControllerFailureException;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.YoVariable;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoVariable;
 import us.ihmc.sensorProcessing.signalCorruption.OrientationConstantAcceleratingYawDriftCorruptor;
-import us.ihmc.simulationconstructionset.bambooTools.BambooTools;
+import us.ihmc.simulationConstructionSetTools.bambooTools.BambooTools;
 import us.ihmc.simulationconstructionset.util.simulationRunner.BlockingSimulationRunner.SimulationExceededMaximumTimeException;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
 import us.ihmc.valkyrie.ValkyrieRobotModel;
 
 public class ValkyrieFlatGroundWalkingWithIMUDriftTest extends DRCFlatGroundWalkingWithIMUDriftTest
@@ -35,17 +36,17 @@ public class ValkyrieFlatGroundWalkingWithIMUDriftTest extends DRCFlatGroundWalk
       BambooTools.reportTestStartedMessage(getSimulationTestingParameters().getShowWindows());
 
       String runName = "ValkyrieFlatGroundWalkingTest";
-      robotModel = new ValkyrieRobotModel(DRCRobotModel.RobotTarget.SCS, false);
+      robotModel = new ValkyrieRobotModel(RobotTarget.SCS, false);
 
       DRCFlatGroundWalkingTrack track = setupFlatGroundSimulationTrack(robotModel);
       YoVariable[] allVariables = track.getSimulationConstructionSet().getAllVariablesArray();
 
-      ArrayList<DoubleYoVariable> yawDriftAccelerationVariables = new ArrayList<>();
+      ArrayList<YoDouble> yawDriftAccelerationVariables = new ArrayList<>();
 
       for (YoVariable<?> yoVariable : allVariables)
       {
          if (yoVariable.getName().endsWith(OrientationConstantAcceleratingYawDriftCorruptor.SIMULATED_YAW_DRIFT_ACCELERATION))
-            yawDriftAccelerationVariables.add((DoubleYoVariable) yoVariable);
+            yawDriftAccelerationVariables.add((YoDouble) yoVariable);
       }
 
       double driftAccelerationMagnitude = 1.0;

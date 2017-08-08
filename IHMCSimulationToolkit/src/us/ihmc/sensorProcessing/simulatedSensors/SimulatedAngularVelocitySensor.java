@@ -1,9 +1,8 @@
 package us.ihmc.sensorProcessing.simulatedSensors;
 
-import javax.vecmath.Vector3d;
-
 import us.ihmc.controlFlow.ControlFlowOutputPort;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.robotics.math.frames.YoFrameVector;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.screwTheory.RigidBody;
@@ -11,17 +10,17 @@ import us.ihmc.robotics.screwTheory.Twist;
 import us.ihmc.robotics.screwTheory.TwistCalculator;
 
 
-public class SimulatedAngularVelocitySensor extends SimulatedSensor<Vector3d>
+public class SimulatedAngularVelocitySensor extends SimulatedSensor<Vector3D>
 {
    private final TwistCalculator twistCalculator;
    private final RigidBody rigidBody;
    private final ReferenceFrame measurementFrame;
    private final Twist twist = new Twist();
    
-   private final Vector3d angularVelocity = new Vector3d();
+   private final Vector3D angularVelocity = new Vector3D();
    private final YoFrameVector yoFrameVectorPerfect, yoFrameVectorNoisy;
    
-   private final ControlFlowOutputPort<Vector3d> angularVelocityOutputPort = createOutputPort("angularVelocityOutputPort");
+   private final ControlFlowOutputPort<Vector3D> angularVelocityOutputPort = createOutputPort("angularVelocityOutputPort");
 
    public SimulatedAngularVelocitySensor(String name, TwistCalculator twistCalculator, RigidBody rigidBody, ReferenceFrame measurementFrame, YoVariableRegistry registry)
    {
@@ -35,7 +34,7 @@ public class SimulatedAngularVelocitySensor extends SimulatedSensor<Vector3d>
 
    public void startComputation()
    {
-      twistCalculator.getTwistOfBody(twist, rigidBody);
+      twistCalculator.getTwistOfBody(rigidBody, twist);
 
       twist.changeFrame(measurementFrame);
       twist.getAngularPart(angularVelocity);
@@ -52,7 +51,7 @@ public class SimulatedAngularVelocitySensor extends SimulatedSensor<Vector3d>
       // empty
    }
 
-   public ControlFlowOutputPort<Vector3d> getAngularVelocityOutputPort()
+   public ControlFlowOutputPort<Vector3D> getAngularVelocityOutputPort()
    {
       return angularVelocityOutputPort;
    }

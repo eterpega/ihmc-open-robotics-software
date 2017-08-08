@@ -1,14 +1,13 @@
 package us.ihmc.commonWalkingControlModules.controllerAPI.input.userDesired;
 
-import javax.vecmath.Vector3d;
-
 import us.ihmc.communication.controllerAPI.CommandInputManager;
+import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.ChestTrajectoryCommand;
-import us.ihmc.robotics.dataStructures.listener.VariableChangedListener;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.YoVariable;
+import us.ihmc.yoVariables.listener.VariableChangedListener;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoVariable;
 import us.ihmc.robotics.geometry.FrameOrientation;
 import us.ihmc.robotics.math.frames.YoFrameOrientation;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
@@ -17,9 +16,9 @@ public class UserDesiredChestOrientationControllerCommandGenerator
 {
    private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
 
-   private final BooleanYoVariable userDesiredChestGoToHomeOrientation = new BooleanYoVariable("userDesiredChestGoToHomeOrientation", registry);
-   private final DoubleYoVariable userDesiredChestTrajectoryTime = new DoubleYoVariable("userDesiredChestTrajectoryTime", registry);
-   private final BooleanYoVariable userDoChestOrientation = new BooleanYoVariable("userDoChestOrientation", registry);
+   private final YoBoolean userDesiredChestGoToHomeOrientation = new YoBoolean("userDesiredChestGoToHomeOrientation", registry);
+   private final YoDouble userDesiredChestTrajectoryTime = new YoDouble("userDesiredChestTrajectoryTime", registry);
+   private final YoBoolean userDoChestOrientation = new YoBoolean("userDoChestOrientation", registry);
    private final YoFrameOrientation userDesiredChestOrientation;
 
    private final FrameOrientation frameOrientation = new FrameOrientation();
@@ -37,7 +36,7 @@ public class UserDesiredChestOrientationControllerCommandGenerator
                userDesiredChestOrientation.getFrameOrientationIncludingFrame(frameOrientation);
 
                ChestTrajectoryCommand chestTrajectoryControllerCommand = new ChestTrajectoryCommand();
-               chestTrajectoryControllerCommand.addTrajectoryPoint(userDesiredChestTrajectoryTime.getDoubleValue(), frameOrientation.getQuaternionCopy(), new Vector3d());
+               chestTrajectoryControllerCommand.addTrajectoryPoint(userDesiredChestTrajectoryTime.getDoubleValue(), frameOrientation.getQuaternionCopy(), new Vector3D());
                controllerCommandInputManager.submitCommand(chestTrajectoryControllerCommand);
 
                userDoChestOrientation.set(false);

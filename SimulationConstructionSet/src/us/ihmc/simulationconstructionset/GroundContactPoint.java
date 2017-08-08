@@ -1,16 +1,14 @@
 package us.ihmc.simulationconstructionset;
 
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector3d;
-
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.IntegerYoVariable;
+import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoInteger;
 import us.ihmc.robotics.math.frames.YoFramePoint;
 import us.ihmc.robotics.math.frames.YoFrameVector;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
-
 
 public class GroundContactPoint extends ExternalForcePoint
 {
@@ -18,11 +16,11 @@ public class GroundContactPoint extends ExternalForcePoint
  
    private final YoFramePoint touchdownLocation;
    
-   private final DoubleYoVariable fs;    // Foot Switch TODO: BooleanYoVariable or EnumYoVariable
+   private final YoDouble fs;    // Foot Switch TODO: YoBoolean or YoEnum
    private final YoFrameVector surfaceNormal;
 
-   private final BooleanYoVariable slip;    // Whether or not it is slipping.
-   private final IntegerYoVariable collisionCount;   
+   private final YoBoolean slip;    // Whether or not it is slipping.
+   private final YoInteger collisionCount;
 
    public GroundContactPoint(String name, Robot robot)
    {
@@ -34,21 +32,21 @@ public class GroundContactPoint extends ExternalForcePoint
       this(name, null, registry);
    }
 
-   public GroundContactPoint(String name, Vector3d offset, Robot robot)
+   public GroundContactPoint(String name, Vector3D offset, Robot robot)
    {
       this(name, offset, robot.getRobotsYoVariableRegistry());
    }
    
-   public GroundContactPoint(String name, Vector3d offset, YoVariableRegistry registry)
+   public GroundContactPoint(String name, Vector3D offset, YoVariableRegistry registry)
    {
       super(name, offset, registry);
 
       touchdownLocation = new YoFramePoint(name + "_td", "", ReferenceFrame.getWorldFrame(), registry);
 
-      fs = new DoubleYoVariable(name + "_fs", "GroundContactPoint foot switch", registry);
+      fs = new YoDouble(name + "_fs", "GroundContactPoint foot switch", registry);
 
-      slip = new BooleanYoVariable(name + "_slip", "GroundContactPoint slipping", registry);
-      collisionCount = new IntegerYoVariable(name + "_coll", "GroundContactPoint colliding", registry);
+      slip = new YoBoolean(name + "_slip", "GroundContactPoint slipping", registry);
+      collisionCount = new YoInteger(name + "_coll", "GroundContactPoint colliding", registry);
       
       surfaceNormal = new YoFrameVector(name + "_n", "", ReferenceFrame.getWorldFrame(), registry);
    }
@@ -104,7 +102,7 @@ public class GroundContactPoint extends ExternalForcePoint
       else setNotInContact();
    }
 
-   public void getTouchdownLocation(Point3d touchdownLocationToPack)
+   public void getTouchdownLocation(Point3D touchdownLocationToPack)
    {
       touchdownLocation.get(touchdownLocationToPack);
    }
@@ -114,12 +112,12 @@ public class GroundContactPoint extends ExternalForcePoint
       return touchdownLocation;
    }
    
-   public DoubleYoVariable getYoFootSwitch()
+   public YoDouble getYoFootSwitch()
    {
       return fs;
    }
 
-   public void setTouchdownLocation(Point3d touchdownLocation)
+   public void setTouchdownLocation(Point3D touchdownLocation)
    {
       this.touchdownLocation.set(touchdownLocation);
    }
@@ -130,12 +128,12 @@ public class GroundContactPoint extends ExternalForcePoint
    }
 
    
-   public void getSurfaceNormal(Vector3d vectorToPack)
+   public void getSurfaceNormal(Vector3D vectorToPack)
    {
       surfaceNormal.get(vectorToPack);
    }
 
-   public void setSurfaceNormal(Vector3d surfaceNormal)
+   public void setSurfaceNormal(Vector3D surfaceNormal)
    {
       this.surfaceNormal.set(surfaceNormal);
    }

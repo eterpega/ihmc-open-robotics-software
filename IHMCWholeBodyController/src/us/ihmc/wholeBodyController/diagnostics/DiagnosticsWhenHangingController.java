@@ -6,11 +6,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.LinkedHashMap;
 
-import us.ihmc.robotModels.FullHumanoidRobotModel;
-import us.ihmc.robotModels.FullRobotModel;
-import us.ihmc.robotics.partNames.ArmJointName;
-import us.ihmc.robotics.partNames.LegJointName;
-import us.ihmc.robotics.partNames.SpineJointName;
 import us.ihmc.commonWalkingControlModules.bipedSupportPolygons.BipedSupportPolygons;
 import us.ihmc.commonWalkingControlModules.bipedSupportPolygons.YoPlaneContactState;
 import us.ihmc.commonWalkingControlModules.controllerCore.WholeBodyControllerCoreMode;
@@ -22,17 +17,21 @@ import us.ihmc.commonWalkingControlModules.controllers.Updatable;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.DiagnosticsWhenHangingHelper;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.highLevelStates.HighLevelBehavior;
 import us.ihmc.commonWalkingControlModules.momentumBasedController.HighLevelHumanoidControllerToolbox;
-import us.ihmc.humanoidRobotics.bipedSupportPolygons.ContactablePlaneBody;
 import us.ihmc.humanoidRobotics.communication.packets.dataobjects.HighLevelState;
+import us.ihmc.robotModels.FullHumanoidRobotModel;
+import us.ihmc.robotModels.FullRobotModel;
 import us.ihmc.robotics.controllers.PDController;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.geometry.FrameVector;
 import us.ihmc.robotics.math.filters.AlphaFilteredYoFrameVector;
 import us.ihmc.robotics.math.filters.AlphaFilteredYoVariable;
 import us.ihmc.robotics.math.frames.YoFrameVector;
 import us.ihmc.robotics.math.trajectories.YoMinimumJerkTrajectory;
+import us.ihmc.robotics.partNames.ArmJointName;
+import us.ihmc.robotics.partNames.LegJointName;
+import us.ihmc.robotics.partNames.SpineJointName;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotController.RobotController;
 import us.ihmc.robotics.robotSide.RobotSide;
@@ -41,10 +40,10 @@ import us.ihmc.robotics.screwTheory.InverseDynamicsJoint;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
 import us.ihmc.robotics.screwTheory.Wrench;
 import us.ihmc.robotics.sensors.FootSwitchInterface;
-import us.ihmc.robotics.stateMachines.State;
-import us.ihmc.robotics.stateMachines.StateMachine;
-import us.ihmc.robotics.stateMachines.StateTransition;
-import us.ihmc.robotics.stateMachines.StateTransitionCondition;
+import us.ihmc.robotics.stateMachines.conditionBasedStateMachine.State;
+import us.ihmc.robotics.stateMachines.conditionBasedStateMachine.StateMachine;
+import us.ihmc.robotics.stateMachines.conditionBasedStateMachine.StateTransition;
+import us.ihmc.robotics.stateMachines.conditionBasedStateMachine.StateTransitionCondition;
 import us.ihmc.wholeBodyController.JointTorqueOffsetProcessor;
 
 public class DiagnosticsWhenHangingController extends HighLevelBehavior implements RobotController, JointTorqueOffsetEstimator
@@ -59,45 +58,45 @@ public class DiagnosticsWhenHangingController extends HighLevelBehavior implemen
    private final ArrayList<OneDoFJoint> oneDoFJoints = new ArrayList<OneDoFJoint>();
 
    private final LinkedHashMap<OneDoFJoint, PDController> pdControllers = new LinkedHashMap<OneDoFJoint, PDController>();
-   private final LinkedHashMap<OneDoFJoint, DoubleYoVariable> initialPositions = new LinkedHashMap<OneDoFJoint, DoubleYoVariable>();
-   private final LinkedHashMap<OneDoFJoint, DoubleYoVariable> finalPositions = new LinkedHashMap<OneDoFJoint, DoubleYoVariable>();
+   private final LinkedHashMap<OneDoFJoint, YoDouble> initialPositions = new LinkedHashMap<OneDoFJoint, YoDouble>();
+   private final LinkedHashMap<OneDoFJoint, YoDouble> finalPositions = new LinkedHashMap<OneDoFJoint, YoDouble>();
    private final LinkedHashMap<OneDoFJoint, YoMinimumJerkTrajectory> transitionSplines = new LinkedHashMap<OneDoFJoint, YoMinimumJerkTrajectory>();
 
-   private final BooleanYoVariable manualMode = new BooleanYoVariable("diagnosticsWhenHangingManualMode", registry);
-   private final LinkedHashMap<OneDoFJoint, DoubleYoVariable> desiredPositions = new LinkedHashMap<OneDoFJoint, DoubleYoVariable>();
-   private final LinkedHashMap<OneDoFJoint, DoubleYoVariable> desiredVelocities = new LinkedHashMap<OneDoFJoint, DoubleYoVariable>();
+   private final YoBoolean manualMode = new YoBoolean("diagnosticsWhenHangingManualMode", registry);
+   private final LinkedHashMap<OneDoFJoint, YoDouble> desiredPositions = new LinkedHashMap<OneDoFJoint, YoDouble>();
+   private final LinkedHashMap<OneDoFJoint, YoDouble> desiredVelocities = new LinkedHashMap<OneDoFJoint, YoDouble>();
 
    private final LinkedHashMap<OneDoFJoint, DiagnosticsWhenHangingHelper> helpers = new LinkedHashMap<OneDoFJoint, DiagnosticsWhenHangingHelper>();
    private final LinkedHashMap<OneDoFJoint, Double> torqueOffsetSigns = new LinkedHashMap<OneDoFJoint, Double>();
 
-   private DoubleYoVariable yoTime;
+   private YoDouble yoTime;
 
-   private final BooleanYoVariable startDiagnostics = new BooleanYoVariable("startDiagnostics", registry);
-   private final BooleanYoVariable pauseDiagnostics = new BooleanYoVariable("pauseDiagnostics", registry);
-   private final BooleanYoVariable finishedDiagnostics = new BooleanYoVariable("finishedDiagnostics", registry);
+   private final YoBoolean startDiagnostics = new YoBoolean("startDiagnostics", registry);
+   private final YoBoolean pauseDiagnostics = new YoBoolean("pauseDiagnostics", registry);
+   private final YoBoolean finishedDiagnostics = new YoBoolean("finishedDiagnostics", registry);
 
-   private final DoubleYoVariable splineDuration = new DoubleYoVariable("splineDuration", registry);
+   private final YoDouble splineDuration = new YoDouble("splineDuration", registry);
 
-   private final DoubleYoVariable ditherAmplitude = new DoubleYoVariable("ditherAmplitude", registry);
-   private final DoubleYoVariable ditherFrequency = new DoubleYoVariable("ditherFrequency", registry);
+   private final YoDouble ditherAmplitude = new YoDouble("ditherAmplitude", registry);
+   private final YoDouble ditherFrequency = new YoDouble("ditherFrequency", registry);
 
-   private final DoubleYoVariable diagnosticsPDMasterGain = new DoubleYoVariable("diagnosticsPDMasterGain", registry);
-   private final DoubleYoVariable maximumTorqueOffset = new DoubleYoVariable("maximumTorqueOffset", registry);
+   private final YoDouble diagnosticsPDMasterGain = new YoDouble("diagnosticsPDMasterGain", registry);
+   private final YoDouble maximumTorqueOffset = new YoDouble("maximumTorqueOffset", registry);
 
-   private final BooleanYoVariable adaptTorqueOffset = new BooleanYoVariable("adaptTorqueOffset", registry);
-   private final BooleanYoVariable printTorqueOffsets = new BooleanYoVariable("printTorqueOffsets", registry);
-   private final BooleanYoVariable transferTorqueOffsets = new BooleanYoVariable("transferTorqueOffsets", registry);
+   private final YoBoolean adaptTorqueOffset = new YoBoolean("adaptTorqueOffset", registry);
+   private final YoBoolean printTorqueOffsets = new YoBoolean("printTorqueOffsets", registry);
+   private final YoBoolean transferTorqueOffsets = new YoBoolean("transferTorqueOffsets", registry);
 
    private StateMachine<DiagnosticsWhenHangingState> stateMachine;
 
    private final boolean useArms;
 
-   private final BooleanYoVariable updateFootForceSensorOffsets = new BooleanYoVariable("updateFootForceSensorOffsets", registry);
-   private final BooleanYoVariable printForceSensorsOffsets = new BooleanYoVariable("printForceSensorsOffsets", registry);
+   private final YoBoolean updateFootForceSensorOffsets = new YoBoolean("updateFootForceSensorOffsets", registry);
+   private final YoBoolean printForceSensorsOffsets = new YoBoolean("printForceSensorsOffsets", registry);
    private final SideDependentList<FootSwitchInterface> footSwitches;
    private final SideDependentList<YoFrameVector> footForcesRaw = new SideDependentList<YoFrameVector>();
    private final SideDependentList<YoFrameVector> footTorquesRaw = new SideDependentList<YoFrameVector>();
-   private final DoubleYoVariable alphaFootForce = new DoubleYoVariable("alphaDiagFootForce", registry);
+   private final YoDouble alphaFootForce = new YoDouble("alphaDiagFootForce", registry);
    private final SideDependentList<AlphaFilteredYoFrameVector> footForcesRawFiltered = new SideDependentList<AlphaFilteredYoFrameVector>();
    private final SideDependentList<AlphaFilteredYoFrameVector> footTorquesRawFiltered = new SideDependentList<AlphaFilteredYoFrameVector>();
 
@@ -105,26 +104,22 @@ public class DiagnosticsWhenHangingController extends HighLevelBehavior implemen
 
    private final HumanoidJointPoseList humanoidJointPoseList;
 
-   private final HighLevelHumanoidControllerToolbox momentumBasedController;
+   private final HighLevelHumanoidControllerToolbox controllerToolbox;
    private final BipedSupportPolygons bipedSupportPolygons;
-   private final SideDependentList<YoPlaneContactState> footContactStates = new SideDependentList<>();
+   private final SideDependentList<YoPlaneContactState> footContactStates;
 
    private final ControllerCoreCommand controllerCoreCommand = new ControllerCoreCommand(WholeBodyControllerCoreMode.OFF);
    private final LowLevelOneDoFJointDesiredDataHolder lowLevelOneDoFJointDesiredDataHolder = new LowLevelOneDoFJointDesiredDataHolder();
 
    public DiagnosticsWhenHangingController(HumanoidJointPoseList humanoidJointPoseList, boolean useArms, boolean robotIsHanging,
-         HighLevelHumanoidControllerToolbox momentumBasedController, TorqueOffsetPrinter torqueOffsetPrinter)
+         HighLevelHumanoidControllerToolbox controllerToolbox, TorqueOffsetPrinter torqueOffsetPrinter)
    {
       super(HighLevelState.DIAGNOSTICS);
 
       this.humanoidJointPoseList = humanoidJointPoseList;
-      this.bipedSupportPolygons = momentumBasedController.getBipedSupportPolygons();
-      for (RobotSide robotSide : RobotSide.values)
-      {
-         ContactablePlaneBody contactableFoot = momentumBasedController.getContactableFeet().get(robotSide);
-         footContactStates.put(robotSide, momentumBasedController.getContactState(contactableFoot));
-      }
-      this.momentumBasedController = momentumBasedController;
+      this.bipedSupportPolygons = controllerToolbox.getBipedSupportPolygons();
+      this.footContactStates = controllerToolbox.getFootContactStates();
+      this.controllerToolbox = controllerToolbox;
       humanoidJointPoseList.setParentRegistry(registry);
 
       splineDuration.set(3.0);
@@ -143,8 +138,8 @@ public class DiagnosticsWhenHangingController extends HighLevelBehavior implemen
       adaptTorqueOffset.set(false);
       transferTorqueOffsets.set(false);
 
-      this.yoTime = momentumBasedController.getYoTime();
-      this.fullRobotModel = momentumBasedController.getFullRobotModel();
+      this.yoTime = controllerToolbox.getYoTime();
+      this.fullRobotModel = controllerToolbox.getFullRobotModel();
       fullRobotModel.getOneDoFJoints(oneDoFJoints);
 
       OneDoFJoint[] jointArray = fullRobotModel.getOneDoFJoints();
@@ -154,8 +149,8 @@ public class DiagnosticsWhenHangingController extends HighLevelBehavior implemen
       for (int i = 0; i < oneDoFJoints.size(); i++)
       {
          OneDoFJoint oneDoFJoint = oneDoFJoints.get(i);
-         DoubleYoVariable initialPosition = new DoubleYoVariable(oneDoFJoint.getName() + "InitialPosition", registry);
-         DoubleYoVariable finalPosition = new DoubleYoVariable(oneDoFJoint.getName() + "FinalPosition", registry);
+         YoDouble initialPosition = new YoDouble(oneDoFJoint.getName() + "InitialPosition", registry);
+         YoDouble finalPosition = new YoDouble(oneDoFJoint.getName() + "FinalPosition", registry);
          initialPosition.set(oneDoFJoint.getQ());
          finalPosition.set(oneDoFJoint.getQ());
 
@@ -215,8 +210,8 @@ public class DiagnosticsWhenHangingController extends HighLevelBehavior implemen
       stateMachine.addState(finishedState);
 
       // Foot force sensors tarring stuff
-      footSwitches = momentumBasedController.getFootSwitches();
-      alphaFootForce.set(AlphaFilteredYoVariable.computeAlphaGivenBreakFrequencyProperly(0.1, momentumBasedController.getControlDT()));
+      footSwitches = controllerToolbox.getFootSwitches();
+      alphaFootForce.set(AlphaFilteredYoVariable.computeAlphaGivenBreakFrequencyProperly(0.1, controllerToolbox.getControlDT()));
       updateFootForceSensorOffsets.set(true);
 
       for (RobotSide robotSide : RobotSide.values)
@@ -330,7 +325,7 @@ public class DiagnosticsWhenHangingController extends HighLevelBehavior implemen
       }
 
       bipedSupportPolygons.updateUsingContactStates(footContactStates);
-      momentumBasedController.update();
+      controllerToolbox.update();
    }
 
    public void updateDiagnosticsWhenHangingHelpers()
@@ -371,7 +366,7 @@ public class DiagnosticsWhenHangingController extends HighLevelBehavior implemen
       return 0.0;
    }
 
-   public DoubleYoVariable getEstimatedTorqueYoVariable(OneDoFJoint oneDoFJoint)
+   public YoDouble getEstimatedTorqueYoVariable(OneDoFJoint oneDoFJoint)
    {
       DiagnosticsWhenHangingHelper diagnosticsWhenHangingHelper = helpers.get(oneDoFJoint);
       if (diagnosticsWhenHangingHelper != null)
@@ -380,7 +375,7 @@ public class DiagnosticsWhenHangingController extends HighLevelBehavior implemen
       return null;
    }
 
-   public DoubleYoVariable getAppliedTorqueYoVariable(OneDoFJoint oneDoFJoint)
+   public YoDouble getAppliedTorqueYoVariable(OneDoFJoint oneDoFJoint)
    {
       DiagnosticsWhenHangingHelper diagnosticsWhenHangingHelper = helpers.get(oneDoFJoint);
       if (diagnosticsWhenHangingHelper != null)
@@ -397,7 +392,7 @@ public class DiagnosticsWhenHangingController extends HighLevelBehavior implemen
       }
    }
 
-   private void setDesiredPositionsFromPoseList(LinkedHashMap<OneDoFJoint, DoubleYoVariable> positionListToSet)
+   private void setDesiredPositionsFromPoseList(LinkedHashMap<OneDoFJoint, YoDouble> positionListToSet)
    {
       SideDependentList<ArrayList<OneDoFJoint>> armJointList = humanoidJointPoseList.getArmJoints(fullRobotModel);
       SideDependentList<double[]> armJointAngleList = humanoidJointPoseList.getArmJointAngles();
@@ -626,8 +621,8 @@ public class DiagnosticsWhenHangingController extends HighLevelBehavior implemen
 
          //       spline.setParams(initialPositions.get(oneDoFJoint), 0.0, 0.0, finalPositions.get(oneDoFJoint), 0.0, 0.0, 0.0, 3.0);
 
-         DoubleYoVariable desiredPosition = new DoubleYoVariable("q_d_" + oneDoFJoint.getName(), registry);
-         DoubleYoVariable desiredVelocity = new DoubleYoVariable("qd_d_" + oneDoFJoint.getName(), registry);
+         YoDouble desiredPosition = new YoDouble("q_d_" + oneDoFJoint.getName(), registry);
+         YoDouble desiredVelocity = new YoDouble("qd_d_" + oneDoFJoint.getName(), registry);
 
          desiredPositions.put(oneDoFJoint, desiredPosition);
          desiredVelocities.put(oneDoFJoint, desiredVelocity);
@@ -650,8 +645,8 @@ public class DiagnosticsWhenHangingController extends HighLevelBehavior implemen
    {
       for (int i = 0; i < oneDoFJoints.size(); i++)
       {
-         DoubleYoVariable initialPosition = initialPositions.get(oneDoFJoints.get(i));
-         DoubleYoVariable finalPosition = finalPositions.get(oneDoFJoints.get(i));
+         YoDouble initialPosition = initialPositions.get(oneDoFJoints.get(i));
+         YoDouble finalPosition = finalPositions.get(oneDoFJoints.get(i));
          initialPosition.set(finalPosition.getDoubleValue());
       }
    }
@@ -760,16 +755,16 @@ public class DiagnosticsWhenHangingController extends HighLevelBehavior implemen
       return new double[] { waistPitchTorqueOffset * waistPitchTorqueOffsetSign, waistRollTorqueOffset * waistRollTorqueOffsetSign };
    }
 
-   public ArrayList<DoubleYoVariable> getTorqueOffsetVariables()
+   public ArrayList<YoDouble> getTorqueOffsetVariables()
    {
-      ArrayList<DoubleYoVariable> torqueOffsetVariables = new ArrayList<DoubleYoVariable>();
+      ArrayList<YoDouble> torqueOffsetVariables = new ArrayList<YoDouble>();
 
       for (int i = 0; i < oneDoFJoints.size(); i++)
       {
          DiagnosticsWhenHangingHelper diagnosticsWhenHangingHelper = helpers.get(oneDoFJoints.get(i));
          if (diagnosticsWhenHangingHelper != null)
          {
-            DoubleYoVariable torqueOffsetVariable = diagnosticsWhenHangingHelper.getTorqueOffsetVariable();
+            YoDouble torqueOffsetVariable = diagnosticsWhenHangingHelper.getTorqueOffsetVariable();
             torqueOffsetVariables.add(torqueOffsetVariable);
          }
       }
@@ -777,7 +772,7 @@ public class DiagnosticsWhenHangingController extends HighLevelBehavior implemen
       return torqueOffsetVariables;
    }
 
-   public DoubleYoVariable getTorqueOffsetVariable(OneDoFJoint oneDoFJoint)
+   public YoDouble getTorqueOffsetVariable(OneDoFJoint oneDoFJoint)
    {
       DiagnosticsWhenHangingHelper diagnosticsWhenHangingHelper = helpers.get(oneDoFJoint);
       if (diagnosticsWhenHangingHelper != null)
@@ -961,7 +956,7 @@ public class DiagnosticsWhenHangingController extends HighLevelBehavior implemen
    @Override
    public void setControllerCoreOutput(ControllerCoreOutputReadOnly controllerCoreOutput)
    {
-      
+
    }
 
    @Override

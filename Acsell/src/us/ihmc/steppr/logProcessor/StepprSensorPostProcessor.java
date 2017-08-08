@@ -10,25 +10,24 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.vecmath.Matrix3d;
-import javax.vecmath.Quat4d;
-import javax.vecmath.Vector3d;
-
-import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
 import us.ihmc.avatar.logProcessor.LogDataProcessorFunction;
 import us.ihmc.avatar.logProcessor.LogDataProcessorHelper;
 import us.ihmc.avatar.logProcessor.LogDataRawSensorMap;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.ContactableBodiesFactory;
 import us.ihmc.commonWalkingControlModules.sensors.footSwitch.WrenchBasedFootSwitch;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.euclid.matrix.RotationMatrix;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.humanoidRobotics.bipedSupportPolygons.ContactablePlaneBody;
 import us.ihmc.humanoidRobotics.frames.HumanoidReferenceFrames;
 import us.ihmc.humanoidRobotics.model.CenterOfPressureDataHolder;
-import us.ihmc.robotics.dataStructures.YoVariableHolder;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.robotModels.FullHumanoidRobotModel;
+import us.ihmc.yoVariables.dataBuffer.YoVariableHolder;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.geometry.FramePoint2d;
 import us.ihmc.robotics.geometry.FrameVector;
 import us.ihmc.robotics.math.frames.YoFrameOrientation;
@@ -38,11 +37,11 @@ import us.ihmc.robotics.math.frames.YoFrameVector;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
+import us.ihmc.robotics.screwTheory.FloatingInverseDynamicsJoint;
 import us.ihmc.robotics.screwTheory.InverseDynamicsJoint;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
 import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.robotics.screwTheory.ScrewTools;
-import us.ihmc.robotics.screwTheory.FloatingInverseDynamicsJoint;
 import us.ihmc.robotics.screwTheory.Twist;
 import us.ihmc.robotics.screwTheory.Wrench;
 import us.ihmc.robotics.sensors.CenterOfMassDataHolder;
@@ -74,8 +73,8 @@ public class StepprSensorPostProcessor implements LogDataProcessorFunction
    private final DRCKinematicsBasedStateEstimator stateEstimator;
    private final LogDataProcessorHelper logDataProcessorHelper;
 
-   private final LinkedHashMap<OneDoFJoint, DoubleYoVariable> estimatedJointPositionMap = new LinkedHashMap<>();
-   private final LinkedHashMap<OneDoFJoint, DoubleYoVariable> estimatedJointVelocityMap = new LinkedHashMap<>();
+   private final LinkedHashMap<OneDoFJoint, YoDouble> estimatedJointPositionMap = new LinkedHashMap<>();
+   private final LinkedHashMap<OneDoFJoint, YoDouble> estimatedJointVelocityMap = new LinkedHashMap<>();
 
    private final YoFramePoint estimatedRootJointPosition = new YoFramePoint("log_estimatedRootJoint", worldFrame, registry);
    private final YoFrameQuaternion estimatedRootJointQuaternion = new YoFrameQuaternion("log_estimatedRootJoint", worldFrame, registry);
@@ -108,7 +107,7 @@ public class StepprSensorPostProcessor implements LogDataProcessorFunction
          @Override
          public void configureSensorProcessing(SensorProcessing sensorProcessing)
          {
-            DoubleYoVariable maxDeflection = sensorProcessing.createMaxDeflection("jointAngleMaxDeflection", 0.1);
+            YoDouble maxDeflection = sensorProcessing.createMaxDeflection("jointAngleMaxDeflection", 0.1);
             double defaultJointStiffness = Double.POSITIVE_INFINITY;
             Map<String, Double> jointSpecificStiffness = new HashMap<>();
 
@@ -124,11 +123,11 @@ public class StepprSensorPostProcessor implements LogDataProcessorFunction
             jointSpecificStiffness.put(StepprJoint.LEFT_KNEE_Y.getSdfName(), 6000.0);
             jointSpecificStiffness.put(StepprJoint.RIGHT_KNEE_Y.getSdfName(), 6000.0);
 
-            Map<OneDoFJoint, DoubleYoVariable> jointPositionStiffness = sensorProcessing.createStiffness("_log_stiffness", defaultJointStiffness, jointSpecificStiffness);
-            DoubleYoVariable jointVelocityAlphaFilter = sensorProcessing.createAlphaFilter("log_jointVelocityAlphaFilter", 16.0);
+            Map<OneDoFJoint, YoDouble> jointPositionStiffness = sensorProcessing.createStiffness("_log_stiffness", defaultJointStiffness, jointSpecificStiffness);
+            YoDouble jointVelocityAlphaFilter = sensorProcessing.createAlphaFilter("log_jointVelocityAlphaFilter", 16.0);
 
-            DoubleYoVariable angularVelocityAlphaFilter = sensorProcessing.createAlphaFilter("log_angularVelocityAlphaFilter", 16.0);
-            DoubleYoVariable linearAccelerationAlphaFilter = sensorProcessing.createAlphaFilter("log_linearAccelerationAlphaFilter", 67.0);
+            YoDouble angularVelocityAlphaFilter = sensorProcessing.createAlphaFilter("log_angularVelocityAlphaFilter", 16.0);
+            YoDouble linearAccelerationAlphaFilter = sensorProcessing.createAlphaFilter("log_linearAccelerationAlphaFilter", 67.0);
 
             sensorProcessing.addJointPositionElasticyCompensator(jointPositionStiffness, maxDeflection, false);
 
@@ -162,10 +161,10 @@ public class StepprSensorPostProcessor implements LogDataProcessorFunction
 
       for (OneDoFJoint joint : stateEstimatorSensorDefinitions.getJointSensorDefinitions())
       {
-         DoubleYoVariable estimatedJointPosition = new DoubleYoVariable("log_q_" + joint.getName(), registry);
+         YoDouble estimatedJointPosition = new YoDouble("log_q_" + joint.getName(), registry);
          estimatedJointPositionMap.put(joint, estimatedJointPosition);
 
-         DoubleYoVariable estimatedJointVelocity = new DoubleYoVariable("log_qd_" + joint.getName(), registry);
+         YoDouble estimatedJointVelocity = new YoDouble("log_qd_" + joint.getName(), registry);
          estimatedJointVelocityMap.put(joint, estimatedJointVelocity);
       }
 
@@ -237,9 +236,9 @@ public class StepprSensorPostProcessor implements LogDataProcessorFunction
          String namePrefix = contactableFoot.getName() + "StateEstimator";
          String nameSpaceEnding = namePrefix + WrenchBasedFootSwitch.class.getSimpleName();
          YoVariableHolder yoVariableHolder = logDataProcessorHelper.getLogYoVariableHolder();
-         final BooleanYoVariable hasFootHitGround = (BooleanYoVariable) yoVariableHolder.getVariable(nameSpaceEnding, namePrefix + "FilteredFootHitGround");
-         final BooleanYoVariable forceMagnitudePastThreshhold = (BooleanYoVariable) yoVariableHolder.getVariable(nameSpaceEnding, namePrefix +  "ForcePastThresh");
-         final DoubleYoVariable footLoadPercentage = (DoubleYoVariable) yoVariableHolder.getVariable(nameSpaceEnding, namePrefix + "FootLoadPercentage");
+         final YoBoolean hasFootHitGround = (YoBoolean) yoVariableHolder.getVariable(nameSpaceEnding, namePrefix + "FilteredFootHitGround");
+         final YoBoolean forceMagnitudePastThreshhold = (YoBoolean) yoVariableHolder.getVariable(nameSpaceEnding, namePrefix +  "ForcePastThresh");
+         final YoDouble footLoadPercentage = (YoDouble) yoVariableHolder.getVariable(nameSpaceEnding, namePrefix + "FootLoadPercentage");
 
          FootSwitchInterface footSwitch = new FootSwitchInterface()
          {
@@ -315,17 +314,17 @@ public class StepprSensorPostProcessor implements LogDataProcessorFunction
    {
    }
 
-   private final Vector3d translation = new Vector3d();
-   private final Quat4d orientation = new Quat4d();
-   private final Vector3d angularVelocity = new Vector3d();
-   private final Vector3d linearAcceleration = new Vector3d();
+   private final Vector3D translation = new Vector3D();
+   private final Quaternion orientation = new Quaternion();
+   private final Vector3D angularVelocity = new Vector3D();
+   private final Vector3D linearAcceleration = new Vector3D();
    private final Twist twist = new Twist();
    private final FrameVector linearFrameVelocity = new FrameVector();
    private final FrameVector angularFrameVelocity = new FrameVector();
 
-   private final Matrix3d processedOrientation = new Matrix3d();
-   private final Vector3d processedAngularVelocity = new Vector3d();
-   private final Vector3d processedLinearAcceleration = new Vector3d();
+   private final RotationMatrix processedOrientation = new RotationMatrix();
+   private final Vector3D processedAngularVelocity = new Vector3D();
+   private final Vector3D processedLinearAcceleration = new Vector3D();
 
    @Override
    public void processDataAtStateEstimatorRate()

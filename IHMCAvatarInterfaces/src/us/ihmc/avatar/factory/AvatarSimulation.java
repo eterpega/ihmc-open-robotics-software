@@ -11,8 +11,8 @@ import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotics.robotController.RobotController;
 import us.ihmc.simulationconstructionset.HumanoidFloatingRootJointRobot;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
-import us.ihmc.simulationconstructionset.robotController.AbstractThreadedRobotController;
-import us.ihmc.simulationconstructionset.util.environments.CommonAvatarEnvironmentInterface;
+import us.ihmc.simulationConstructionSetTools.robotController.AbstractThreadedRobotController;
+import us.ihmc.simulationConstructionSetTools.util.environments.CommonAvatarEnvironmentInterface;
 import us.ihmc.tools.thread.CloseableAndDisposableRegistry;
 import us.ihmc.wholeBodyController.DRCControllerThread;
 import us.ihmc.wholeBodyController.concurrent.ThreadDataSynchronizerInterface;
@@ -182,5 +182,10 @@ public class AvatarSimulation
    public void setThreadDataSynchronizer(ThreadDataSynchronizerInterface threadDataSynchronizer)
    {
       this.threadDataSynchronizer = threadDataSynchronizer;
+   }
+
+   public void addRobotControllerOnEstimatorThread(RobotController controller)
+   {
+      stateEstimationThread.addRobotController(controller);
    }
 }

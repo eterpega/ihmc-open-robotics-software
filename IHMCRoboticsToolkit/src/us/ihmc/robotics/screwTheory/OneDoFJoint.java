@@ -1,17 +1,13 @@
 package us.ihmc.robotics.screwTheory;
 
-import java.util.ArrayList;
-
 import org.ejml.data.DenseMatrix64F;
 
+import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.robotics.MathTools;
 import us.ihmc.robotics.geometry.FrameVector;
-import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 
 public abstract class OneDoFJoint extends AbstractInverseDynamicsJoint
 {
-   protected final OneDoFJointReferenceFrame afterJointFrame;
-
    protected Twist unitJointTwist;
    protected Twist unitSuccessorTwist;
    protected Twist unitPredecessorTwist;
@@ -19,8 +15,6 @@ public abstract class OneDoFJoint extends AbstractInverseDynamicsJoint
    protected SpatialAccelerationVector unitJointAcceleration;
    protected SpatialAccelerationVector unitSuccessorAcceleration;
    protected SpatialAccelerationVector unitPredecessorAcceleration;
-
-   private FrameVector jointAxis;
 
    private double q;
    private double qd;
@@ -33,6 +27,8 @@ public abstract class OneDoFJoint extends AbstractInverseDynamicsJoint
    private double effortLimitUpper = Double.POSITIVE_INFINITY;
    private double jointLimitLower = Double.NEGATIVE_INFINITY;
    private double jointLimitUpper = Double.POSITIVE_INFINITY;
+   private double velocityLimitLower = Double.NEGATIVE_INFINITY;
+   private double velocityLimitUpper = Double.POSITIVE_INFINITY;
 
    //   private double tauDamping;
 
@@ -49,10 +45,6 @@ public abstract class OneDoFJoint extends AbstractInverseDynamicsJoint
    private double kp;
    private double kd;
 
-//   // Friction parameters are here, maybe move when creating a new class with parameters that don't belong to the OneDofJoint
-//   private FrictionModel frictionModel = FrictionModel.OFF;
-//   private double frictionCompensationEffectiveness = 0.0;
-//   private boolean useBeforeTransmissionVelocityForFriction = false;
 
    private boolean isUnderPositionControl = false;
    private boolean enabled = true;
@@ -63,24 +55,9 @@ public abstract class OneDoFJoint extends AbstractInverseDynamicsJoint
     */
    private boolean isOnline = true;
 
-   public OneDoFJoint(String name, RigidBody predecessor, RigidBody successor, ReferenceFrame beforeJointFrame, OneDoFJointReferenceFrame afterJointFrame,
-         FrameVector jointAxis)
+   public OneDoFJoint(String name, RigidBody predecessor, RigidBodyTransform transformToParent)
    {
-      this(name, predecessor, beforeJointFrame, afterJointFrame);
-      setSuccessor(successor);
-      this.jointAxis = jointAxis;
-   }
-
-   public OneDoFJoint(String name, RigidBody predecessor, ReferenceFrame beforeJointFrame, OneDoFJointReferenceFrame afterJointFrame)
-   {
-      super(name, predecessor, beforeJointFrame);
-      this.afterJointFrame = afterJointFrame;
-   }
-
-   @Override
-   public ReferenceFrame getFrameAfterJoint()
-   {
-      return afterJointFrame;
+      super(name, predecessor, transformToParent);
    }
 
    @Override
@@ -140,26 +117,32 @@ public abstract class OneDoFJoint extends AbstractInverseDynamicsJoint
    }
 
    @Override
+   public void setJointTorque(DenseMatrix64F matrix, int rowStart)
+   {
+      setTau(matrix.get(rowStart, 0));
+   }
+
+   @Override
    public void getTauMatrix(DenseMatrix64F matrix)
    {
-      MathTools.checkIfInRange(matrix.getNumRows(), 1, Integer.MAX_VALUE);
-      MathTools.checkIfInRange(matrix.getNumCols(), 1, Integer.MAX_VALUE);
+      MathTools.checkIntervalContains(matrix.getNumRows(), 1, Integer.MAX_VALUE);
+      MathTools.checkIntervalContains(matrix.getNumCols(), 1, Integer.MAX_VALUE);
       matrix.set(0, 0, tau);
    }
 
    @Override
    public void getVelocityMatrix(DenseMatrix64F matrix, int rowStart)
    {
-      MathTools.checkIfInRange(matrix.getNumRows(), 1, Integer.MAX_VALUE);
-      MathTools.checkIfInRange(matrix.getNumCols(), 1, Integer.MAX_VALUE);
+      MathTools.checkIntervalContains(matrix.getNumRows(), 1, Integer.MAX_VALUE);
+      MathTools.checkIntervalContains(matrix.getNumCols(), 1, Integer.MAX_VALUE);
       matrix.set(rowStart, 0, qd);
    }
 
    @Override
    public void getDesiredAccelerationMatrix(DenseMatrix64F matrix, int rowStart)
    {
-      MathTools.checkIfInRange(matrix.getNumRows(), 1, Integer.MAX_VALUE);
-      MathTools.checkIfInRange(matrix.getNumCols(), 1, Integer.MAX_VALUE);
+      MathTools.checkIntervalContains(matrix.getNumRows(), 1, Integer.MAX_VALUE);
+      MathTools.checkIntervalContains(matrix.getNumCols(), 1, Integer.MAX_VALUE);
       matrix.set(rowStart, 0, qddDesired);
    }
 
@@ -209,7 +192,7 @@ public abstract class OneDoFJoint extends AbstractInverseDynamicsJoint
       if (Double.isNaN(q))
          throw new RuntimeException("q is NaN! this = " + this);
       this.q = q;
-      afterJointFrame.setAndUpdate(q);
+      getFrameAfterJoint().update();
    }
 
    public double getQd()
@@ -262,13 +245,22 @@ public abstract class OneDoFJoint extends AbstractInverseDynamicsJoint
       accelerationToPack.set(unitJointAcceleration);
    }
 
-   protected void setMotionSubspace(Twist unitTwist)
+   /**
+    * Setup the motion subspace for this one DoF joint assuming that the field
+    * {@code unitSuccessorTwist} has already been properly setup.
+    */
+   protected void setMotionSubspace()
    {
-      ArrayList<Twist> unitTwists = new ArrayList<Twist>();
-      unitTwists.add(unitTwist);
-
-      this.motionSubspace = new GeometricJacobian(this, unitTwists, unitTwist.getExpressedInFrame());
+      this.motionSubspace = new GeometricJacobian(this, unitSuccessorTwist.getExpressedInFrame());
       this.motionSubspace.compute();
+   }
+
+   @Override
+   public void getUnitTwist(int dofIndex, Twist unitTwistToPack)
+   {
+      if (dofIndex != 0)
+         throw new ArrayIndexOutOfBoundsException("Illegal index: " + dofIndex + ", was expecting dofIndex equal to 0.");
+      unitTwistToPack.set(unitSuccessorTwist);
    }
 
    @Override
@@ -334,7 +326,7 @@ public abstract class OneDoFJoint extends AbstractInverseDynamicsJoint
    {
       this.jointLimitLower = jointLimitLower;
    }
-
+   
    public double getJointLimitUpper()
    {
       return jointLimitUpper;
@@ -343,6 +335,22 @@ public abstract class OneDoFJoint extends AbstractInverseDynamicsJoint
    public void setJointLimitUpper(double jointLimitUpper)
    {
       this.jointLimitUpper = jointLimitUpper;
+   }
+   
+   public double getVelocityLimitUpper()
+   {
+      return velocityLimitUpper;
+   }
+   
+   public double getVelocityLimitLower()
+   {
+      return velocityLimitLower;
+   }
+   
+   public void setVelocityLimit(double velocityLimitLower, double velocityLimitUpper)
+   {
+      this.velocityLimitLower = velocityLimitLower;
+      this.velocityLimitUpper = velocityLimitUpper;
    }
 
    public void setEffortLimit(double effortLimit)
@@ -460,15 +468,9 @@ public abstract class OneDoFJoint extends AbstractInverseDynamicsJoint
       checksum.update(qddDesired);
    }
 
-   public FrameVector getJointAxis()
-   {
-      return jointAxis;
-   }
+   public abstract FrameVector getJointAxis();
 
-   public void getJointAxis(FrameVector axisToPack)
-   {
-      axisToPack.setIncludingFrame(jointAxis);
-   }
+   public abstract void getJointAxis(FrameVector axisToPack);
 
    // DRC Hack
 

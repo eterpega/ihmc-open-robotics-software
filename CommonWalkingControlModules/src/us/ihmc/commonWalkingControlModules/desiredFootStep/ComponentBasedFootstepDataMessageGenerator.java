@@ -1,40 +1,47 @@
 package us.ihmc.commonWalkingControlModules.desiredFootStep;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParameters;
 import us.ihmc.commonWalkingControlModules.controllers.Updatable;
-import us.ihmc.commonWalkingControlModules.desiredHeadingAndVelocity.*;
+import us.ihmc.commonWalkingControlModules.desiredHeadingAndVelocity.DesiredHeadingControlModule;
+import us.ihmc.commonWalkingControlModules.desiredHeadingAndVelocity.DesiredHeadingUpdater;
+import us.ihmc.commonWalkingControlModules.desiredHeadingAndVelocity.HeadingAndVelocityEvaluationScript;
+import us.ihmc.commonWalkingControlModules.desiredHeadingAndVelocity.HeadingAndVelocityEvaluationScriptParameters;
+import us.ihmc.commonWalkingControlModules.desiredHeadingAndVelocity.ManualDesiredVelocityControlModule;
+import us.ihmc.commonWalkingControlModules.desiredHeadingAndVelocity.RateBasedDesiredHeadingControlModule;
+import us.ihmc.commonWalkingControlModules.desiredHeadingAndVelocity.SimpleDesiredHeadingControlModule;
 import us.ihmc.communication.controllerAPI.CommandInputManager;
 import us.ihmc.communication.controllerAPI.StatusMessageOutputManager;
 import us.ihmc.communication.controllerAPI.StatusMessageOutputManager.StatusMessageListener;
-import us.ihmc.graphics3DDescription.HeightMap;
+import us.ihmc.graphicsDescription.HeightMap;
 import us.ihmc.humanoidRobotics.bipedSupportPolygons.ContactablePlaneBody;
 import us.ihmc.humanoidRobotics.communication.packets.ExecutionMode;
-import us.ihmc.humanoidRobotics.communication.packets.walking.*;
-import us.ihmc.robotics.dataStructures.listener.VariableChangedListener;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.EnumYoVariable;
-import us.ihmc.robotics.dataStructures.variable.YoVariable;
+import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataListMessage;
+import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage;
+import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepStatus;
+import us.ihmc.humanoidRobotics.communication.packets.walking.PauseWalkingMessage;
+import us.ihmc.humanoidRobotics.communication.packets.walking.WalkingStatusMessage;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoEnum;
 import us.ihmc.robotics.geometry.FrameVector2d;
-import us.ihmc.robotics.geometry.RotationTools;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.sensorProcessing.frames.CommonHumanoidReferenceFrames;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class ComponentBasedFootstepDataMessageGenerator implements Updatable
 {
    private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
-   private final EnumYoVariable<RobotSide> nextSwingLeg = EnumYoVariable.create("nextSwingLeg", RobotSide.class, registry);
-   private final BooleanYoVariable walk = new BooleanYoVariable("walk", registry);
-   private final BooleanYoVariable walkPrevious = new BooleanYoVariable("walkPrevious", registry);
+   private final YoEnum<RobotSide> nextSwingLeg = YoEnum.create("nextSwingLeg", RobotSide.class, registry);
+   private final YoBoolean walk = new YoBoolean("walk", registry);
+   private final YoBoolean walkPrevious = new YoBoolean("walkPrevious", registry);
 
-   private final DoubleYoVariable swingTime = new DoubleYoVariable("footstepGeneratorSwingTime", registry);
-   private final DoubleYoVariable transferTime = new DoubleYoVariable("footstepGeneratorTransferTime", registry);
+   private final YoDouble swingTime = new YoDouble("footstepGeneratorSwingTime", registry);
+   private final YoDouble transferTime = new YoDouble("footstepGeneratorTransferTime", registry);
 
    private final ComponentBasedDesiredFootstepCalculator componentBasedDesiredFootstepCalculator;
    private final CommandInputManager commandInputManager;
@@ -71,8 +78,8 @@ public class ComponentBasedFootstepDataMessageGenerator implements Updatable
       RobotSide supportLeg = nextSwingLeg.getEnumValue().getOppositeSide();
 
       FootstepDataListMessage footsteps = computeNextFootsteps(supportLeg);
-      footsteps.setSwingTime(swingTime.getDoubleValue());
-      footsteps.setTransferTime(transferTime.getDoubleValue());
+      footsteps.setDefaultSwingDuration(swingTime.getDoubleValue());
+      footsteps.setDefaultTransferDuration(transferTime.getDoubleValue());
       commandInputManager.submitMessage(footsteps);
 
       nextSwingLeg.set(supportLeg);

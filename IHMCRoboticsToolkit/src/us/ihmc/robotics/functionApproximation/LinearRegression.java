@@ -1,8 +1,8 @@
 package us.ihmc.robotics.functionApproximation;
 
-import Jama.Matrix;
-
 import java.util.ArrayList;
+
+import Jama.Matrix;
 
 /**
  * <p>Title:LinearRegression </p>
@@ -12,10 +12,6 @@ import java.util.ArrayList;
  * approximate y. The number of data points provided, p, must be greater than n, the number of dimensions in x. This algorithm
  * makes all the assumptions needed when using the least squares (Gauss-Markov) method. Like all good things, this was found on
  * wikipedia. Note that to have an offset the client should augment the input vectors with a constant term.</p>
- *
- * <p>Copyright: Copyright (c) 2007</p>
- *
- * <p>Company: IHMC</p>
  *
  * @author jrebula
  * @version 1.0

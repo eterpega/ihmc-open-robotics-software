@@ -1,13 +1,12 @@
 package us.ihmc.simulationconstructionset.util.ground;
 
-import javax.vecmath.Vector3d;
-
-import us.ihmc.robotics.geometry.BoundingBox3d;
+import us.ihmc.euclid.geometry.BoundingBox3D;
+import us.ihmc.euclid.tuple3D.Vector3D;
 
 public class FlatGroundProfile extends GroundProfileFromHeightMap
 {
    private final double zHeight;
-   private final BoundingBox3d boundingBox;
+   private final BoundingBox3D boundingBox;
 
    public FlatGroundProfile()
    {
@@ -28,10 +27,11 @@ public class FlatGroundProfile extends GroundProfileFromHeightMap
    {
       this.zHeight = zHeight;
 
-      this.boundingBox = new BoundingBox3d(xMin, yMin, zHeight - 1.0, xMax, yMax, zHeight + 0.01);
+      this.boundingBox = new BoundingBox3D(xMin, yMin, zHeight - 1.0, xMax, yMax, zHeight + 0.01);
    }
 
-   public double heightAndNormalAt(double x, double y, double z, Vector3d normalToPack)
+   @Override
+   public double heightAndNormalAt(double x, double y, double z, Vector3D normalToPack)
    {
       double height = heightAt(x, y, z);
       surfaceNormalAt(x, y, z, normalToPack);
@@ -39,19 +39,21 @@ public class FlatGroundProfile extends GroundProfileFromHeightMap
       return height;
    }
 
+   @Override
    public double heightAt(double x, double y, double z)
    {
       return zHeight;
    }
 
-   public void surfaceNormalAt(double x, double y, double z, Vector3d normal)
+   public void surfaceNormalAt(double x, double y, double z, Vector3D normal)
    {
       normal.setX(0.0);
       normal.setY(0.0);
       normal.setZ(1.0);
    }
 
-   public BoundingBox3d getBoundingBox()
+   @Override
+   public BoundingBox3D getBoundingBox()
    {
       return boundingBox;
    }

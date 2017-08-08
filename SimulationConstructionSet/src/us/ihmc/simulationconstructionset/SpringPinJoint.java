@@ -1,11 +1,10 @@
 package us.ihmc.simulationconstructionset;
 
-import javax.vecmath.Vector3d;
-
+import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.robotics.Axis;
-import us.ihmc.robotics.dataStructures.listener.VariableChangedListener;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.YoVariable;
+import us.ihmc.yoVariables.listener.VariableChangedListener;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoVariable;
 
 /**
  * creates a pin joint with a pd controller built in.
@@ -13,27 +12,28 @@ import us.ihmc.robotics.dataStructures.variable.YoVariable;
  * @author steel
  *
  */
+@SuppressWarnings("serial")
 public class SpringPinJoint extends PinJoint
 {
    
-   private final DoubleYoVariable kp;
-   private final DoubleYoVariable kd;
+   private final YoDouble kp;
+   private final YoDouble kd;
    
-   public SpringPinJoint(String jname, Vector3d offset, Robot rob, Vector3d u_hat)
+   public SpringPinJoint(String jname, Vector3D offset, Robot rob, Vector3D u_hat)
    {
       super(jname, offset, rob, u_hat);
-      kp = new DoubleYoVariable(jname + "_kp", registry);
-      kd = new DoubleYoVariable(jname + "_kd", registry);
+      kp = new YoDouble(jname + "_kp", registry);
+      kd = new YoDouble(jname + "_kd", registry);
       setKp(8000.0);
       setKd(200.0);
 //      setChangeListeners();
    }
 
-   public SpringPinJoint(String jname, Vector3d offset, Robot rob, Axis jaxis)
+   public SpringPinJoint(String jname, Vector3D offset, Robot rob, Axis jaxis)
    {
       super(jname, offset, rob, jaxis);
-      kp = new DoubleYoVariable(jname + "_kp", registry);
-      kd = new DoubleYoVariable(jname + "_kd", registry);
+      kp = new YoDouble(jname + "_kp", registry);
+      kd = new YoDouble(jname + "_kd", registry);
       setKp(10000.0);
       setKd(200.0);
 //      setChangeListeners();
@@ -59,12 +59,14 @@ public class SpringPinJoint extends PinJoint
       });
    }
    
+   @Override
    public void setKp(double kp)
    {
       super.setKp(kp);
       this.kp.set(kp, false);
    }
    
+   @Override
    public void setKd(double kd)
    {
       super.setKd(kd);
@@ -84,7 +86,7 @@ public class SpringPinJoint extends PinJoint
    }
 
    @Override
-   public DoubleYoVariable getTauYoVariable()
+   public YoDouble getTauYoVariable()
    {
       return tau;
    }

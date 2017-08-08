@@ -1,13 +1,11 @@
 package us.ihmc.sensorProcessing;
 
-import javax.vecmath.Matrix3d;
-import javax.vecmath.Quat4d;
-import javax.vecmath.Vector3d;
-
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.euclid.matrix.RotationMatrix;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.geometry.FrameVector;
-import us.ihmc.robotics.geometry.RotationTools;
 import us.ihmc.robotics.math.frames.YoFrameVector;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.sensors.ProcessedIMUSensorsWriteOnlyInterface;
@@ -16,26 +14,26 @@ import us.ihmc.sensorProcessing.sensors.ProcessedIMUSensorsReadOnlyInterface;
 public class ProcessedSensorsReadWrite implements ProcessedIMUSensorsReadOnlyInterface, ProcessedIMUSensorsWriteOnlyInterface
 {
    protected final YoVariableRegistry registry = new YoVariableRegistry("ProcessedSensors");
-   protected final DoubleYoVariable p_qs;
-   protected final DoubleYoVariable p_qx;
-   protected final DoubleYoVariable p_qy;
-   protected final DoubleYoVariable p_qz;
-   protected final DoubleYoVariable p_roll;
-   protected final DoubleYoVariable p_pitch;
-   protected final DoubleYoVariable p_yaw;
+   protected final YoDouble p_qs;
+   protected final YoDouble p_qx;
+   protected final YoDouble p_qy;
+   protected final YoDouble p_qz;
+   protected final YoDouble p_roll;
+   protected final YoDouble p_pitch;
+   protected final YoDouble p_yaw;
    protected final YoFrameVector pd_w;
    protected final YoFrameVector pdd_world;
 
    public ProcessedSensorsReadWrite(ReferenceFrame imuReferenceFrame, YoVariableRegistry yoVariableRegistry)
    {
-      p_qs = new DoubleYoVariable("p_q", registry);
-      p_qx = new DoubleYoVariable("p_qx", registry);
-      p_qy = new DoubleYoVariable("p_qy", registry);
-      p_qz = new DoubleYoVariable("p_qz", registry);
+      p_qs = new YoDouble("p_q", registry);
+      p_qx = new YoDouble("p_qx", registry);
+      p_qy = new YoDouble("p_qy", registry);
+      p_qz = new YoDouble("p_qz", registry);
 
-      p_pitch = new DoubleYoVariable("p_pitch", registry);
-      p_roll = new DoubleYoVariable("p_roll", registry);
-      p_yaw = new DoubleYoVariable("p_yaw", registry);
+      p_pitch = new YoDouble("p_pitch", registry);
+      p_roll = new YoDouble("p_roll", registry);
+      p_yaw = new YoDouble("p_yaw", registry);
 
       pd_w = new YoFrameVector("pd_w", "", imuReferenceFrame, registry);
       pdd_world = new YoFrameVector("pdd_", "_world", ReferenceFrame.getWorldFrame(), registry);
@@ -46,23 +44,22 @@ public class ProcessedSensorsReadWrite implements ProcessedIMUSensorsReadOnlyInt
       }
    }
 
-   public void setRotation(Matrix3d rotationMatrix, int imuIndex)
+   public void setRotation(RotationMatrix rotationMatrix, int imuIndex)
    {
-      Quat4d q = new Quat4d();
-      RotationTools.convertMatrixToQuaternion(rotationMatrix, q);
-      RotationTools.checkQuaternionNormalized(q);
+      Quaternion q = new Quaternion();
+      q.set(rotationMatrix);
 
       // DON'T USE THIS: the method in Quat4d is flawed and doesn't work for some rotation matrices!
 //      q.set(rotationMatrix);
 
-      p_qs.set(q.getW());
+      p_qs.set(q.getS());
       p_qx.set(q.getX());
       p_qy.set(q.getY());
       p_qz.set(q.getZ());
 
-      p_yaw.set(RotationTools.computeYaw(rotationMatrix));
-      p_pitch.set(RotationTools.computePitch(rotationMatrix));
-      p_roll.set(RotationTools.computeRoll(rotationMatrix));
+      p_yaw.set(rotationMatrix.getYaw());
+      p_pitch.set(rotationMatrix.getPitch());
+      p_roll.set(rotationMatrix.getRoll());
    }
 
    public void setAcceleration(FrameVector accelerationInWorld, int imuIndex)
@@ -70,19 +67,19 @@ public class ProcessedSensorsReadWrite implements ProcessedIMUSensorsReadOnlyInt
       pdd_world.set(accelerationInWorld);
    }
 
-   public void setAngularVelocityInBody(Vector3d angularVelocityInBody, int imuIndex)
+   public void setAngularVelocityInBody(Vector3D angularVelocityInBody, int imuIndex)
    {
       pd_w.set(angularVelocityInBody);
    }
 
-   public void setAngularAccelerationInBody(Vector3d angularAccelerationInBody, int imuIndex)
+   public void setAngularAccelerationInBody(Vector3D angularAccelerationInBody, int imuIndex)
    {
       throw new RuntimeException("Not supported");
    }
 
-   public Quat4d getQuaternion(int imuIndex)
+   public Quaternion getQuaternion(int imuIndex)
    {
-      return new Quat4d(p_qx.getDoubleValue(), p_qy.getDoubleValue(), p_qz.getDoubleValue(),
+      return new Quaternion(p_qx.getDoubleValue(), p_qy.getDoubleValue(), p_qz.getDoubleValue(),
                         p_qs.getDoubleValue());
    }
 

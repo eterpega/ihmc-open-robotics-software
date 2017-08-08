@@ -1,6 +1,6 @@
 package us.ihmc.ihmcPerception.camera;
 
-import us.ihmc.robotics.geometry.RigidBodyTransform;
+import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.sensorProcessing.parameters.DRCRobotCameraParameters;
@@ -25,7 +25,7 @@ public abstract class RosCameraReceiver
       else if(cameraParameters.useStaticTransformFromHeadFrameToSensor())
       {
          staticTransform.set(cameraParameters.getStaticTransformFromHeadFrameToCameraFrame());
-         ReferenceFrame headFrame = ReferenceFrame.constructBodyFrameWithUnchangingTransformToParent("headToCamera", cameraDataReceiver.getHeadFrame(), staticTransform);
+         ReferenceFrame headFrame = ReferenceFrame.constructFrameWithUnchangingTransformToParent("headToCamera", cameraDataReceiver.getHeadFrame(), staticTransform);
          cameraDataReceiver.setCameraFrame(headFrame);
       }
       else

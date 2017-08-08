@@ -18,19 +18,17 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
 
-import javax.vecmath.Vector3d;
-
 import org.apache.commons.lang3.tuple.ImmutablePair;
 
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.robotics.controllers.YoPDGains;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.robotics.partNames.ArmJointName;
 import us.ihmc.robotics.partNames.JointRole;
 import us.ihmc.robotics.partNames.LegJointName;
 import us.ihmc.robotics.partNames.LimbName;
 import us.ihmc.robotics.partNames.NeckJointName;
 import us.ihmc.robotics.partNames.SpineJointName;
-import us.ihmc.robotics.controllers.YoPDGains;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.wholeBodyController.DRCRobotJointMap;
@@ -61,8 +59,6 @@ public class WandererJointMap implements DRCRobotJointMap
    private final SideDependentList<EnumMap<LegJointName, String>> legJointStrings = SideDependentList.createListOfEnumMaps(LegJointName.class);
    private final SideDependentList<EnumMap<ArmJointName, String>> armJointStrings = SideDependentList.createListOfEnumMaps(ArmJointName.class);
    private final EnumMap<SpineJointName, String> spineJointStrings = new EnumMap<SpineJointName, String>(SpineJointName.class);
-
-   private final WandererContactPointParameters contactPointParameters;
 
    private final SideDependentList<String> nameOfJointsBeforeThighs = new SideDependentList<String>();
    private String[] jointNamesBeforeFeet = new String[2];
@@ -103,13 +99,11 @@ public class WandererJointMap implements DRCRobotJointMap
          jointRoles.put(spineJointString, JointRole.SPINE);
       }
 
-      contactPointParameters = new WandererContactPointParameters(this);
-
       for (RobotSide robtSide : RobotSide.values)
       {
          nameOfJointsBeforeThighs.put(robtSide, legJointStrings.get(robtSide).get(LegJointName.HIP_PITCH));
       }
-      
+
       jointNamesBeforeFeet[0] = getJointBeforeFootName(RobotSide.LEFT);
       jointNamesBeforeFeet[1] = getJointBeforeFootName(RobotSide.RIGHT);
    }
@@ -142,18 +136,6 @@ public class WandererJointMap implements DRCRobotJointMap
    public SpineJointName[] getSpineJointNames()
    {
       return spineJoints;
-   }
-
-   @Override
-   public WandererContactPointParameters getContactPointParameters()
-   {
-      return contactPointParameters;
-   }
-
-   @Override
-   public List<ImmutablePair<String, Vector3d>> getJointNameGroundContactPointMap()
-   {
-      return contactPointParameters.getJointNameGroundContactPointMap();
    }
 
    @Override public List<ImmutablePair<String, YoPDGains>> getPassiveJointNameWithGains(YoVariableRegistry registry)
@@ -279,7 +261,7 @@ public class WandererJointMap implements DRCRobotJointMap
    {
       return null;
    }
-   
+
    @Override
    public String getJointBeforeHandName(RobotSide robotSide)
    {
@@ -326,19 +308,19 @@ public class WandererJointMap implements DRCRobotJointMap
    {
       return pelvisName;
    }
-   
+
    @Override
    public String[] getJointNamesBeforeFeet()
    {
       return jointNamesBeforeFeet;
    }
-   
+
    @Override
    public Enum<?>[] getRobotSegments()
    {
       return RobotSide.values;
    }
-   
+
    @Override
    public Enum<?> getEndEffectorsRobotSegment(String joineNameBeforeEndEffector)
    {

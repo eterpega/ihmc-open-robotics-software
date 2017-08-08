@@ -1,31 +1,31 @@
 package us.ihmc.wholeBodyController;
- 
-import us.ihmc.commonWalkingControlModules.configurations.ArmControllerParameters;
-import us.ihmc.commonWalkingControlModules.configurations.CapturePointPlannerParameters;
+
+import us.ihmc.commonWalkingControlModules.configurations.ICPWithTimeFreezingPlannerParameters;
 import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParameters;
 import us.ihmc.commonWalkingControlModules.instantaneousCapturePoint.icpOptimization.ICPOptimizationParameters;
-import us.ihmc.robotModels.FullHumanoidRobotModelFactory;
-import us.ihmc.robotModels.FullRobotModel;
-import us.ihmc.robotics.robotController.OutputProcessor;
-import us.ihmc.wholeBodyController.parameters.DefaultArmConfigurations;
+import us.ihmc.humanoidRobotics.footstep.footstepGenerator.FootstepPlanningParameters;
+import us.ihmc.sensorProcessing.parameters.DRCRobotSensorInformation;
+import us.ihmc.sensorProcessing.stateEstimation.StateEstimatorParameters;
 
-public interface WholeBodyControllerParameters extends FullHumanoidRobotModelFactory
+public interface WholeBodyControllerParameters
 {
-	public CapturePointPlannerParameters getCapturePointPlannerParameters();
+   public double getControllerDT();
 
-	public ICPOptimizationParameters getICPOptimizationParameters();
+   /**
+    * Returns the parameters used to create Footstep Plans.
+    */
+   default public FootstepPlanningParameters getFootstepPlanningParameters()
+   {
+      return null;
+   }
 
-	public ArmControllerParameters getArmControllerParameters();
+   public StateEstimatorParameters getStateEstimatorParameters();
+
+   public ICPWithTimeFreezingPlannerParameters getCapturePointPlannerParameters();
 
 	public WalkingControllerParameters getWalkingControllerParameters();
-		
-	public RobotContactPointParameters getContactPointParameters();
-	
-	public double getControllerDT();
 
-	
-	
-	public OutputProcessor getOutputProcessor(FullRobotModel controllerFullRobotModel);
-	
-	public DefaultArmConfigurations getDefaultArmConfigurations();
+	public RobotContactPointParameters getContactPointParameters();
+
+   public DRCRobotSensorInformation getSensorInformation();
 }

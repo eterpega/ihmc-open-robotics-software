@@ -1,41 +1,41 @@
 package us.ihmc.robotics.controllers;
 
-import javax.vecmath.Matrix3d;
-
-import us.ihmc.robotics.dataStructures.listener.VariableChangedListener;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.YoVariable;
+import us.ihmc.euclid.matrix.Matrix3D;
+import us.ihmc.euclid.matrix.interfaces.Matrix3DReadOnly;
+import us.ihmc.yoVariables.listener.VariableChangedListener;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoSymmetricSE3PIDGains implements YoSE3PIDGainsInterface, YoPositionPIDGainsInterface, YoOrientationPIDGainsInterface
 {
-   private final DoubleYoVariable proportionalGain;
-   private final DoubleYoVariable derivativeGain;
-   private final DoubleYoVariable dampingRatio;
-   private final DoubleYoVariable integralGain;
+   private final YoDouble proportionalGain;
+   private final YoDouble derivativeGain;
+   private final YoDouble dampingRatio;
+   private final YoDouble integralGain;
 
-   private final DoubleYoVariable maxIntegralError;
-   private final DoubleYoVariable maxDerivativeError;
-   private final DoubleYoVariable maxProportionalError;
+   private final YoDouble maxIntegralError;
+   private final YoDouble maxDerivativeError;
+   private final YoDouble maxProportionalError;
 
-   private final DoubleYoVariable maximumFeedback;
-   private final DoubleYoVariable maximumFeedbackRate;
+   private final YoDouble maximumFeedback;
+   private final YoDouble maximumFeedbackRate;
 
    private final YoTangentialDampingGains tangentialDampingGains;
 
    public YoSymmetricSE3PIDGains(String suffix, YoVariableRegistry registry)
    {
-      proportionalGain = new DoubleYoVariable("kp" + suffix, registry);
-      derivativeGain = new DoubleYoVariable("kd" + suffix, registry);
-      dampingRatio = new DoubleYoVariable("zeta" + suffix, registry);
-      integralGain = new DoubleYoVariable("ki" + suffix, registry);
+      proportionalGain = new YoDouble("kp" + suffix, registry);
+      derivativeGain = new YoDouble("kd" + suffix, registry);
+      dampingRatio = new YoDouble("zeta" + suffix, registry);
+      integralGain = new YoDouble("ki" + suffix, registry);
 
-      maxIntegralError = new DoubleYoVariable("maxIntegralError" + suffix, registry);
-      maxDerivativeError = new DoubleYoVariable("maxDerivativeError" + suffix, registry);
-      maxProportionalError = new DoubleYoVariable("maxProportionalError" + suffix, registry);
+      maxIntegralError = new YoDouble("maxIntegralError" + suffix, registry);
+      maxDerivativeError = new YoDouble("maxDerivativeError" + suffix, registry);
+      maxProportionalError = new YoDouble("maxProportionalError" + suffix, registry);
 
-      maximumFeedback = new DoubleYoVariable("maximumFeedback" + suffix, registry);
-      maximumFeedbackRate = new DoubleYoVariable("maximumFeedbackRate" + suffix, registry);
+      maximumFeedback = new YoDouble("maximumFeedback" + suffix, registry);
+      maximumFeedbackRate = new YoDouble("maximumFeedbackRate" + suffix, registry);
 
       tangentialDampingGains = new YoTangentialDampingGains(suffix, registry);
 
@@ -157,9 +157,9 @@ public class YoSymmetricSE3PIDGains implements YoSE3PIDGainsInterface, YoPositio
    }
 
    @Override
-   public Matrix3d createProportionalGainMatrix()
+   public Matrix3DReadOnly createProportionalGainMatrix()
    {
-      Matrix3d proportionalGainMatrix = new Matrix3d();
+      Matrix3D proportionalGainMatrix = new Matrix3D();
 
       for (int i = 0; i < 3; i++)
       {
@@ -171,9 +171,9 @@ public class YoSymmetricSE3PIDGains implements YoSE3PIDGainsInterface, YoPositio
    }
 
    @Override
-   public Matrix3d createDerivativeGainMatrix()
+   public Matrix3DReadOnly createDerivativeGainMatrix()
    {
-      Matrix3d derivativeGainMatrix = new Matrix3d();
+      Matrix3D derivativeGainMatrix = new Matrix3D();
 
       for (int i = 0; i < 3; i++)
       {
@@ -185,9 +185,9 @@ public class YoSymmetricSE3PIDGains implements YoSE3PIDGainsInterface, YoPositio
    }
 
    @Override
-   public Matrix3d createIntegralGainMatrix()
+   public Matrix3DReadOnly createIntegralGainMatrix()
    {
-      Matrix3d integralGainMatrix = new Matrix3d();
+      Matrix3D integralGainMatrix = new Matrix3D();
 
       for (int i = 0; i < 3; i++)
       {
@@ -280,25 +280,25 @@ public class YoSymmetricSE3PIDGains implements YoSE3PIDGainsInterface, YoPositio
    }
 
    @Override
-   public DoubleYoVariable getYoMaximumFeedback()
+   public YoDouble getYoMaximumFeedback()
    {
       return maximumFeedback;
    }
 
    @Override
-   public DoubleYoVariable getYoMaximumFeedbackRate()
+   public YoDouble getYoMaximumFeedbackRate()
    {
       return maximumFeedbackRate;
    }
 
    @Override
-   public DoubleYoVariable getYoMaximumDerivativeError()
+   public YoDouble getYoMaximumDerivativeError()
    {
       return maxDerivativeError;
    }
 
    @Override
-   public DoubleYoVariable getYoMaximumProportionalError()
+   public YoDouble getYoMaximumProportionalError()
    {
       return maxProportionalError;
    }

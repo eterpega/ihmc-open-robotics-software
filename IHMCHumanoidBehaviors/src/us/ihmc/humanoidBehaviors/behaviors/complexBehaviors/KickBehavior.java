@@ -2,22 +2,20 @@ package us.ihmc.humanoidBehaviors.behaviors.complexBehaviors;
 
 import java.util.ArrayList;
 
-import javax.vecmath.Point3d;
-import javax.vecmath.Quat4d;
-
-import us.ihmc.robotModels.FullHumanoidRobotModel;
+import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.humanoidBehaviors.behaviors.AbstractBehavior;
-import us.ihmc.humanoidBehaviors.behaviors.primitives.EndEffectorLoadBearingBehavior;
+import us.ihmc.humanoidBehaviors.behaviors.primitives.FootLoadBearingBehavior;
 import us.ihmc.humanoidBehaviors.behaviors.primitives.FootTrajectoryBehavior;
 import us.ihmc.humanoidBehaviors.behaviors.simpleBehaviors.BehaviorAction;
 import us.ihmc.humanoidBehaviors.communication.CommunicationBridgeInterface;
 import us.ihmc.humanoidBehaviors.taskExecutor.FootTrajectoryTask;
-import us.ihmc.humanoidRobotics.communication.packets.walking.EndEffectorLoadBearingMessage;
-import us.ihmc.humanoidRobotics.communication.packets.walking.EndEffectorLoadBearingMessage.EndEffector;
-import us.ihmc.humanoidRobotics.communication.packets.walking.EndEffectorLoadBearingMessage.LoadBearingRequest;
+import us.ihmc.humanoidRobotics.communication.packets.walking.FootLoadBearingMessage;
+import us.ihmc.humanoidRobotics.communication.packets.walking.FootLoadBearingMessage.LoadBearingRequest;
 import us.ihmc.humanoidRobotics.frames.HumanoidReferenceFrames;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.robotModels.FullHumanoidRobotModel;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.geometry.FrameOrientation;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FramePoint2d;
@@ -25,14 +23,15 @@ import us.ihmc.robotics.geometry.FramePose;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
+import us.ihmc.robotics.screwTheory.MovingReferenceFrame;
 import us.ihmc.tools.taskExecutor.PipeLine;
 
 public class KickBehavior extends AbstractBehavior
 {
    private static final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
-   private final DoubleYoVariable yoTime;
+   private final YoDouble yoTime;
    private final ReferenceFrame midZupFrame;
-   private BooleanYoVariable hasInputBeenSet = new BooleanYoVariable("hasInputBeenSet", registry);
+   private YoBoolean hasInputBeenSet = new YoBoolean("hasInputBeenSet", registry);
    private final FootTrajectoryBehavior footTrajectoryBehavior;
 
    private FramePoint2d objectToKickPose;
@@ -40,16 +39,16 @@ public class KickBehavior extends AbstractBehavior
    private final ArrayList<AbstractBehavior> behaviors = new ArrayList<AbstractBehavior>();
 
    private final PipeLine<AbstractBehavior> pipeLine = new PipeLine<>();
-   private final DoubleYoVariable trajectoryTime;
-   private final SideDependentList<ReferenceFrame> ankleZUpFrames;
+   private final YoDouble trajectoryTime;
+   private final SideDependentList<MovingReferenceFrame> ankleZUpFrames;
 
-   public KickBehavior(CommunicationBridgeInterface outgoingCommunicationBridge, DoubleYoVariable yoTime, BooleanYoVariable yoDoubleSupport,
+   public KickBehavior(CommunicationBridgeInterface outgoingCommunicationBridge, YoDouble yoTime, YoBoolean yoDoubleSupport,
          FullHumanoidRobotModel fullRobotModel, HumanoidReferenceFrames referenceFrames)
    {
       super(outgoingCommunicationBridge);
       this.yoTime = yoTime;
       midZupFrame = referenceFrames.getMidFeetZUpFrame();
-      trajectoryTime = new DoubleYoVariable("kickTrajectoryTime", registry);
+      trajectoryTime = new YoDouble("kickTrajectoryTime", registry);
       trajectoryTime.set(0.5);
       ankleZUpFrames = referenceFrames.getAnkleZUpReferenceFrames();
 
@@ -118,14 +117,14 @@ public class KickBehavior extends AbstractBehavior
 
       submitFootPosition(kickFoot, new FramePoint(ankleZUpFrames.get(kickFoot.getOppositeSide()), 0.0, kickFoot.negateIfRightSide(0.25), 0));
 
-      final EndEffectorLoadBearingBehavior footStateBehavior = new EndEffectorLoadBearingBehavior(communicationBridge);
+      final FootLoadBearingBehavior footStateBehavior = new FootLoadBearingBehavior(communicationBridge);
       pipeLine.submitSingleTaskStage(new BehaviorAction(footStateBehavior)
       {
 
          @Override
          protected void setBehaviorInput()
          {
-            EndEffectorLoadBearingMessage message = new EndEffectorLoadBearingMessage(kickFoot, EndEffector.FOOT, LoadBearingRequest.LOAD);
+            FootLoadBearingMessage message = new FootLoadBearingMessage(kickFoot, LoadBearingRequest.LOAD);
             footStateBehavior.setInput(message);
 
          }
@@ -142,8 +141,8 @@ public class KickBehavior extends AbstractBehavior
    private void submitFootPose(RobotSide robotSide, FramePose desiredFootPose)
    {
       desiredFootPose.changeFrame(worldFrame);
-      Point3d desiredFootPosition = new Point3d();
-      Quat4d desiredFootOrientation = new Quat4d();
+      Point3D desiredFootPosition = new Point3D();
+      Quaternion desiredFootOrientation = new Quaternion();
       desiredFootPose.getPose(desiredFootPosition, desiredFootOrientation);
       FootTrajectoryTask task = new FootTrajectoryTask(robotSide, desiredFootPosition, desiredFootOrientation, footTrajectoryBehavior,
             trajectoryTime.getDoubleValue());
@@ -202,7 +201,7 @@ public class KickBehavior extends AbstractBehavior
       }
    }
 
-  
+
 
    public boolean hasInputBeenSet()
    {

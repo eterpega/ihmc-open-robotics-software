@@ -17,10 +17,10 @@ import us.ihmc.communication.packetCommunicator.ConcurrentPacketQueue;
 import us.ihmc.communication.packetCommunicator.PacketCommunicator;
 import us.ihmc.communication.packets.Packet;
 import us.ihmc.communication.util.NetworkPorts;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationPlan;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.continuousIntegration.IntegrationCategory;
 import us.ihmc.humanoidRobotics.kryo.IHMCCommunicationKryoNetClassList;
-import us.ihmc.tools.continuousIntegration.IntegrationCategory;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationPlan;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
 import us.ihmc.tools.thread.ThreadTools;
 
 @ContinuousIntegrationPlan(categories = {IntegrationCategory.FLAKY})
@@ -88,18 +88,18 @@ public class NetworkProcessorTest
    
    public void disconnectCommunicators() throws IOException
    {
-      packetCommunicatorAServer.close();
-      packetCommunicatorBServer.close();
-      packetCommunicatorCServer.close();
-      packetCommunicatorDServer.close();
-      packetCommunicatorEServer.close();
-      packetCommunicatorFServer.close();
-      packetCommunicatorAClient.close();
-      packetCommunicatorBClient.close();
-      packetCommunicatorCClient.close();
-      packetCommunicatorDClient.close();
-      packetCommunicatorEClient.close();
-      packetCommunicatorFClient.close();
+      packetCommunicatorAServer.disconnect();
+      packetCommunicatorBServer.disconnect();
+      packetCommunicatorCServer.disconnect();
+      packetCommunicatorDServer.disconnect();
+      packetCommunicatorEServer.disconnect();
+      packetCommunicatorFServer.disconnect();
+      packetCommunicatorAClient.disconnect();
+      packetCommunicatorBClient.disconnect();
+      packetCommunicatorCClient.disconnect();
+      packetCommunicatorDClient.disconnect();
+      packetCommunicatorEClient.disconnect();
+      packetCommunicatorFClient.disconnect();
       
       networkProcessor.detatchObjectCommunicator(TestPacketDestinations.A);
       networkProcessor.detatchObjectCommunicator(TestPacketDestinations.B);
@@ -274,8 +274,8 @@ public class NetworkProcessorTest
       assertTrue(checkIfPacketsGoThroughTheWire(packetsForB, consumersForB));
       assertTrue(checkIfPacketsGoThroughTheWire(packetsForE, consumersForE));
 
-      packetCommunicatorBClient.close();
-      packetCommunicatorEServer.close();
+      packetCommunicatorBClient.disconnect();
+      packetCommunicatorEServer.disconnect();
 
       sendPackets(packetCommunicatorAServer, packetsForB);
       sendPackets(packetCommunicatorBServer, packetsForA);

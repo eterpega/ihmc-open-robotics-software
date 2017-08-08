@@ -1,27 +1,33 @@
 package us.ihmc.wanderer.controlParameters;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 
-import us.ihmc.robotics.partNames.NeckJointName;
-import us.ihmc.robotics.partNames.SpineJointName;
+import gnu.trove.map.hash.TObjectDoubleHashMap;
+import us.ihmc.commonWalkingControlModules.configurations.ICPAngularMomentumModifierParameters;
+import us.ihmc.commonWalkingControlModules.configurations.SwingTrajectoryParameters;
+import us.ihmc.commonWalkingControlModules.configurations.ToeOffParameters;
 import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParameters;
 import us.ihmc.commonWalkingControlModules.controlModules.foot.YoFootSE3Gains;
 import us.ihmc.commonWalkingControlModules.instantaneousCapturePoint.ICPControlGains;
 import us.ihmc.commonWalkingControlModules.momentumBasedController.optimization.MomentumOptimizationSettings;
+import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.robotics.controllers.YoOrientationPIDGainsInterface;
 import us.ihmc.robotics.controllers.YoPDGains;
 import us.ihmc.robotics.controllers.YoPIDGains;
 import us.ihmc.robotics.controllers.YoSE3PIDGainsInterface;
 import us.ihmc.robotics.controllers.YoSymmetricSE3PIDGains;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
+import us.ihmc.robotics.partNames.NeckJointName;
+import us.ihmc.robotics.partNames.SpineJointName;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.sensorProcessing.stateEstimation.FootSwitchType;
 import us.ihmc.wanderer.parameters.WandererPhysicalProperties;
 import us.ihmc.wholeBodyController.DRCRobotJointMap;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 public class WandererWalkingControllerParameters extends WalkingControllerParameters
 {
@@ -30,11 +36,15 @@ public class WandererWalkingControllerParameters extends WalkingControllerParame
 
    private final boolean runningOnRealRobot;
    private final DRCRobotJointMap jointMap;
+   private final ToeOffParameters toeOffParameters;
+   private final SwingTrajectoryParameters swingTrajectoryParameters;
 
    public WandererWalkingControllerParameters(DRCRobotJointMap jointMap, boolean runningOnRealRobot)
    {
       this.jointMap = jointMap;
       this.runningOnRealRobot = runningOnRealRobot;
+      this.toeOffParameters = new WandererToeOffParameters();
+      this.swingTrajectoryParameters = new WandererSwingTrajectoryParameters(runningOnRealRobot);
 
       for (RobotSide robotSide : RobotSide.values())
       {
@@ -58,69 +68,6 @@ public class WandererWalkingControllerParameters extends WalkingControllerParame
    public double getTimeToGetPreparedForLocomotion()
    {
       return 0.0;
-   }
-
-   @Override
-   public boolean doToeOffIfPossible()
-   {
-      return true;
-   }
-
-   @Override
-   public boolean doToeOffIfPossibleInSingleSupport()
-   {
-      return false;
-   }
-
-   @Override
-   public boolean checkECMPLocationToTriggerToeOff()
-   {
-      return false;
-   }
-
-   @Override
-   public double getMinStepLengthForToeOff()
-   {
-      return 0.20;
-   }
-
-   /**
-    * To enable that feature, doToeOffIfPossible() return true is required.
-    */
-   @Override
-   public boolean doToeOffWhenHittingAnkleLimit()
-   {
-      return false;
-   }
-
-   @Override
-   public double getMaximumToeOffAngle()
-   {
-      return Math.toRadians(45.0);
-   }
-
-   @Override
-   public boolean doToeTouchdownIfPossible()
-   {
-      return false;
-   }
-
-   @Override
-   public double getToeTouchdownAngle()
-   {
-      return Math.toRadians(20.0);
-   }
-
-   @Override
-   public boolean doHeelTouchdownIfPossible()
-   {
-      return false;
-   }
-
-   @Override
-   public double getHeelTouchdownAngle()
-   {
-      return Math.toRadians(-20.0);
    }
 
    @Override
@@ -151,18 +98,6 @@ public class WandererWalkingControllerParameters extends WalkingControllerParame
    public double getMinimumSwingTimeForDisturbanceRecovery()
    {
       return getDefaultSwingTime();
-   }
-
-   @Override
-   public boolean isNeckPositionControlled()
-   {
-      return false;
-   }
-
-   @Override
-   public String[] getDefaultHeadOrientationControlJointNames()
-   {
-      return new String[0];
    }
 
    @Override
@@ -213,30 +148,6 @@ public class WandererWalkingControllerParameters extends WalkingControllerParame
    }
 
    @Override
-   public double getNeckPitchUpperLimit()
-   {
-      return 0.0;
-   }
-
-   @Override
-   public double getNeckPitchLowerLimit()
-   {
-      return 0.0;
-   }
-
-   @Override
-   public double getHeadYawLimit()
-   {
-      return 0.0;
-   }
-
-   @Override
-   public double getHeadRollLimit()
-   {
-      return 0.0;
-   }
-
-   @Override
    public double getFootForwardOffset()
    {
       return WandererPhysicalProperties.footForward;
@@ -258,19 +169,6 @@ public class WandererWalkingControllerParameters extends WalkingControllerParame
    public double getLegLength()
    {
       return WandererPhysicalProperties.legLength;
-   }
-
-   @Override
-   public double getMinLegLengthBeforeCollapsingSingleSupport()
-   {
-      //TODO: Useful values
-      return 0.1;
-   }
-
-   @Override
-   public double getMinMechanicalLegLength()
-   {
-      return 0.1;
    }
 
    @Override
@@ -435,30 +333,6 @@ public class WandererWalkingControllerParameters extends WalkingControllerParame
    }
 
    @Override
-   public YoOrientationPIDGainsInterface createHeadOrientationControlGains(YoVariableRegistry registry)
-   {
-      return null;
-   }
-
-   @Override
-   public YoPIDGains createHeadJointspaceControlGains(YoVariableRegistry registry)
-   {
-      return null;
-   }
-
-   @Override
-   public double getTrajectoryTimeHeadOrientation()
-   {
-      return 3.0;
-   }
-
-   @Override
-   public double[] getInitialHeadYawPitchRoll()
-   {
-      return new double[] { 0.0, 0.0, 0.0 };
-   }
-
-   @Override
    public YoPDGains createUnconstrainedJointsControlGains(YoVariableRegistry registry)
    {
       YoPDGains gains = new YoPDGains("UnconstrainedJoints", registry);
@@ -498,6 +372,79 @@ public class WandererWalkingControllerParameters extends WalkingControllerParame
       gains.createDerivativeGainUpdater(true);
 
       return gains;
+   }
+
+   private YoPIDGains createSpineControlGains(YoVariableRegistry registry)
+   {
+      double kp = 250.0;
+      double zeta = 0.6;
+      double ki = 0.0;
+      double maxIntegralError = 0.0;
+      double maxAccel = runningOnRealRobot ? 20.0 : Double.POSITIVE_INFINITY;
+      double maxJerk = runningOnRealRobot ? 100.0 : Double.POSITIVE_INFINITY;
+
+      YoPIDGains spineGains = new YoPIDGains("SpineJointspace", registry);
+      spineGains.setKp(kp);
+      spineGains.setZeta(zeta);
+      spineGains.setKi(ki);
+      spineGains.setMaximumIntegralError(maxIntegralError);
+      spineGains.setMaximumFeedback(maxAccel);
+      spineGains.setMaximumFeedbackRate(maxJerk);
+      spineGains.createDerivativeGainUpdater(true);
+
+      return spineGains;
+   }
+
+   private Map<String, YoPIDGains> jointspaceGains = null;
+   /** {@inheritDoc} */
+   @Override
+   public Map<String, YoPIDGains> getOrCreateJointSpaceControlGains(YoVariableRegistry registry)
+   {
+      if (jointspaceGains != null)
+         return jointspaceGains;
+
+      jointspaceGains = new HashMap<>();
+
+      YoPIDGains spineGains = createSpineControlGains(registry);
+      for (SpineJointName name : jointMap.getSpineJointNames())
+         jointspaceGains.put(jointMap.getSpineJointName(name), spineGains);
+
+      return jointspaceGains;
+   }
+
+   private Map<String, YoOrientationPIDGainsInterface> taskspaceAngularGains = null;
+   /** {@inheritDoc} */
+   @Override
+   public Map<String, YoOrientationPIDGainsInterface> getOrCreateTaskspaceOrientationControlGains(YoVariableRegistry registry)
+   {
+      if (taskspaceAngularGains != null)
+         return taskspaceAngularGains;
+
+      taskspaceAngularGains = new HashMap<>();
+
+      YoOrientationPIDGainsInterface chestAngularGains = createChestControlGains(registry);
+      taskspaceAngularGains.put(jointMap.getChestName(), chestAngularGains);
+
+      return taskspaceAngularGains;
+   }
+
+   private TObjectDoubleHashMap<String> jointHomeConfiguration = null;
+   /** {@inheritDoc} */
+   @Override
+   public TObjectDoubleHashMap<String> getOrCreateJointHomeConfiguration()
+   {
+      if (jointHomeConfiguration != null)
+         return jointHomeConfiguration;
+
+      jointHomeConfiguration = new TObjectDoubleHashMap<String>();
+
+      for (SpineJointName name : jointMap.getSpineJointNames())
+         jointHomeConfiguration.put(jointMap.getSpineJointName(name), 0.0);
+
+      for (NeckJointName name : jointMap.getNeckJointNames())
+         jointHomeConfiguration.put(jointMap.getNeckJointName(name), 0.0);
+
+      return jointHomeConfiguration;
    }
 
    @Override
@@ -634,7 +581,7 @@ public class WandererWalkingControllerParameters extends WalkingControllerParame
    @Override
    public double getSpineYawLimit()
    {
-      return Math.PI / 4.0;
+      return 0.0;
    }
 
    /** @inheritDoc */
@@ -720,24 +667,6 @@ public class WandererWalkingControllerParameters extends WalkingControllerParame
    }
 
    @Override
-   public double getDesiredTouchdownHeightOffset()
-   {
-      return -0.02;
-   }
-
-   @Override
-   public double getDesiredTouchdownVelocity()
-   {
-      return -0.1;
-   }
-
-   @Override
-   public double getDesiredTouchdownAcceleration()
-   {
-      return 0;
-   }
-
-   @Override
    public double getContactThresholdForce()
    {
       return 90.0;
@@ -770,8 +699,14 @@ public class WandererWalkingControllerParameters extends WalkingControllerParame
    @Override
    public MomentumOptimizationSettings getMomentumOptimizationSettings()
    {
-      MomentumOptimizationSettings momentumOptimizationSettings = new MomentumOptimizationSettings();
+      MomentumOptimizationSettings momentumOptimizationSettings = new WandererMomentumOptimizationSettings(jointMap);
       return momentumOptimizationSettings;
+   }
+
+   @Override
+   public ICPAngularMomentumModifierParameters getICPAngularMomentumModifierParameters()
+   {
+      return null;
    }
 
    @Override
@@ -864,5 +799,17 @@ public class WandererWalkingControllerParameters extends WalkingControllerParame
    public void useVirtualModelControlCore()
    {
       // once another mode is implemented, use this to change the default gains for virtual model control
+   }
+
+   @Override
+   public ToeOffParameters getToeOffParameters()
+   {
+      return toeOffParameters;
+   }
+
+   @Override
+   public SwingTrajectoryParameters getSwingTrajectoryParameters()
+   {
+      return swingTrajectoryParameters;
    }
 }

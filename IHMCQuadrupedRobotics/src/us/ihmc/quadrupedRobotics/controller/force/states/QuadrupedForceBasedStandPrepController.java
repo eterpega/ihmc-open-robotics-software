@@ -19,13 +19,13 @@ import us.ihmc.quadrupedRobotics.planning.ContactState;
 import us.ihmc.quadrupedRobotics.planning.QuadrupedSoleWaypointList;
 import us.ihmc.quadrupedRobotics.planning.SoleWaypoint;
 import us.ihmc.robotics.controllers.YoEuclideanPositionGains;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.robotSide.RobotQuadrant;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
 
-import javax.vecmath.Vector3d;
+import us.ihmc.euclid.tuple3D.Vector3D;
 
 public class QuadrupedForceBasedStandPrepController implements QuadrupedController
 {
@@ -53,7 +53,7 @@ public class QuadrupedForceBasedStandPrepController implements QuadrupedControll
    private final BooleanParameter useForceFeedbackControlParameter = parameterFactory.createBoolean("useForceFeedbackControl", false);
 
    // Yo variables
-   private final BooleanYoVariable yoUseForceFeedbackControl;
+   private final YoBoolean yoUseForceFeedbackControl;
 
    // Task space controller
    private final QuadrupedTaskSpaceController.Commands taskSpaceControllerCommands;
@@ -66,7 +66,7 @@ public class QuadrupedForceBasedStandPrepController implements QuadrupedControll
    private final QuadrupedTaskSpaceEstimator taskSpaceEstimator;
    private final QuadrupedReferenceFrames referenceFrames;
    private FramePoint solePositionSetpoint;
-   private final Vector3d zeroVelocity;
+   private final Vector3D zeroVelocity;
    private final double robotLength;
    private FullQuadrupedRobotModel fullRobotModel;
 
@@ -83,12 +83,12 @@ public class QuadrupedForceBasedStandPrepController implements QuadrupedControll
          quadrupedSoleWaypointList.get(quadrant).add(new SoleWaypoint());
          quadrupedSoleWaypointList.get(quadrant).add(new SoleWaypoint());
       }
-      zeroVelocity = new Vector3d(0, 0, 0);
+      zeroVelocity = new Vector3D(0, 0, 0);
       taskSpaceControllerCommands = new QuadrupedTaskSpaceController.Commands();
       taskSpaceControllerSettings = new QuadrupedTaskSpaceController.Settings();
       this.taskSpaceController = controllerToolbox.getTaskSpaceController();
       yoPositionControllerGains = new YoEuclideanPositionGains("positionControllerGains", registry);
-      yoUseForceFeedbackControl = new BooleanYoVariable("useForceFeedbackControl", registry);
+      yoUseForceFeedbackControl = new YoBoolean("useForceFeedbackControl", registry);
 
       // Calculate the robot length
       referenceFrames.updateFrames();

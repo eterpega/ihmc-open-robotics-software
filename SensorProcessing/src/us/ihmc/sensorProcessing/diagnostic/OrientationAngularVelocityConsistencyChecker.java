@@ -1,10 +1,10 @@
 package us.ihmc.sensorProcessing.diagnostic;
 
-import static us.ihmc.robotics.math.filters.SimpleMovingAverageFilteredYoFrameVector.createSimpleMovingAverageFilteredYoFrameVector;
+import static us.ihmc.robotics.math.filters.SimpleMovingAverageFilteredYoFrameVector.*;
 
 import java.util.EnumMap;
 
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.robotics.geometry.Direction;
 import us.ihmc.robotics.geometry.FrameVector;
 import us.ihmc.robotics.math.filters.FiniteDifferenceAngularVelocityYoFrameVector;

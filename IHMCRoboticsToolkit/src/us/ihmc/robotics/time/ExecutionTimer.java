@@ -1,9 +1,10 @@
 package us.ihmc.robotics.time;
 
+import us.ihmc.commons.Conversions;
 import us.ihmc.robotics.MathTools;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.LongYoVariable;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoLong;
 import us.ihmc.robotics.math.filters.SimpleMovingAverageFilteredYoVariable;
 
 public class ExecutionTimer
@@ -11,25 +12,30 @@ public class ExecutionTimer
    private final long measurementDelay;
    private long timeOfFirstMeasurement = Long.MAX_VALUE;
 
-   private final DoubleYoVariable current;
-   private final DoubleYoVariable average;
-   private final DoubleYoVariable standardDeviation;
-   private final DoubleYoVariable maximum;
+   private final YoDouble current;
+   private final YoDouble average;
+   private final YoDouble standardDeviation;
+   private final YoDouble maximum;
    private final SimpleMovingAverageFilteredYoVariable movingAverage;
-   private final LongYoVariable count;
+   private final YoLong count;
 
    private long startTime;
 
+   public ExecutionTimer(String name, YoVariableRegistry registry)
+   {
+      this(name, 0.0, registry);
+   }
+   
    public ExecutionTimer(String name, double measurementDelayInSeconds, YoVariableRegistry registry)
    {
-      this.measurementDelay = (long) (measurementDelayInSeconds * 1e9);
+      this.measurementDelay = Conversions.secondsToNanoseconds(measurementDelayInSeconds);
 
-      current = new DoubleYoVariable(name + "Current", registry);
-      average = new DoubleYoVariable(name + "Average", registry);
+      current = new YoDouble(name + "Current", registry);
+      average = new YoDouble(name + "Average", registry);
       movingAverage = new SimpleMovingAverageFilteredYoVariable(name + "MovingAverage", 100, current, registry);
-      standardDeviation = new DoubleYoVariable(name + "StandardDeviation", registry);
-      maximum = new DoubleYoVariable(name + "Maximum", registry);
-      count = new LongYoVariable(name + "Count", registry);
+      standardDeviation = new YoDouble(name + "StandardDeviation", registry);
+      maximum = new YoDouble(name + "Maximum", registry);
+      count = new YoLong(name + "Count", registry);
    }
 
    public void startMeasurement()
@@ -47,7 +53,7 @@ public class ExecutionTimer
       final long currentNanoTime = System.nanoTime();
       if ((currentNanoTime - timeOfFirstMeasurement) > measurementDelay)
       {
-         final double timeTaken = ((double) (currentNanoTime - startTime)) / 1e9;
+         final double timeTaken = Conversions.nanosecondsToSeconds(currentNanoTime - startTime);
          final double previousAverage = average.getDoubleValue();
          double previousSumOfSquares = MathTools.square(standardDeviation.getDoubleValue()) * ((double) count.getLongValue());
 
@@ -67,32 +73,30 @@ public class ExecutionTimer
             maximum.set(timeTaken);
          }
       }
-
    }
 
-   public DoubleYoVariable getCurrentTime()
+   public YoDouble getCurrentTime()
    {
       return current;
    }
 
-   public DoubleYoVariable getAverageTime()
+   public YoDouble getAverageTime()
    {
       return average;
    }
 
-   public DoubleYoVariable getMovingAverage()
+   public YoDouble getMovingAverage()
    {
       return movingAverage;
    }
 
-   public DoubleYoVariable getStandardDeviation()
+   public YoDouble getStandardDeviation()
    {
       return standardDeviation;
    }
 
-   public DoubleYoVariable getMaxTime()
+   public YoDouble getMaxTime()
    {
       return maximum;
    }
-
 }

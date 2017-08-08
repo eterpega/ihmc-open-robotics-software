@@ -7,28 +7,27 @@ import java.util.Map;
 
 import org.yaml.snakeyaml.Yaml;
 
-import us.ihmc.robotModels.FullHumanoidRobotModel;
-import us.ihmc.avatar.drcRobot.DRCRobotModel.RobotTarget;
+import us.ihmc.avatar.drcRobot.RobotTarget;
+import us.ihmc.commons.Conversions;
+import us.ihmc.commons.PrintTools;
 import us.ihmc.robotDataLogger.YoVariableServer;
+import us.ihmc.util.PeriodicNonRealtimeThreadSchedulerFactory;
+import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotics.MathTools;
-import us.ihmc.robotics.dataStructures.listener.VariableChangedListener;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.EnumYoVariable;
-import us.ihmc.robotics.dataStructures.variable.YoVariable;
 import us.ihmc.robotics.math.filters.AlphaFilteredYoVariable;
 import us.ihmc.robotics.math.functionGenerator.YoFunctionGenerator;
 import us.ihmc.robotics.math.functionGenerator.YoFunctionGeneratorMode;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
-import us.ihmc.robotics.time.TimeTools;
 import us.ihmc.rosControl.EffortJointHandle;
 import us.ihmc.rosControl.wholeRobot.IHMCWholeRobotControlJavaBridge;
 import us.ihmc.rosControl.wholeRobot.PositionJointHandle;
-import us.ihmc.tools.io.printing.PrintTools;
-import us.ihmc.util.PeriodicNonRealtimeThreadScheduler;
 import us.ihmc.valkyrie.ValkyrieRobotModel;
-import us.ihmc.valkyrie.configuration.ValkyrieConfigurationRoot;
 import us.ihmc.valkyrieRosControl.ValkyrieTorqueOffsetPrinter;
+import us.ihmc.yoVariables.listener.VariableChangedListener;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoEnum;
+import us.ihmc.yoVariables.variable.YoVariable;
 
 public class ValkyrieRosControlSliderBoard extends IHMCWholeRobotControlJavaBridge
 {
@@ -64,38 +63,38 @@ public class ValkyrieRosControlSliderBoard extends IHMCWholeRobotControlJavaBrid
    private final ArrayList<ValkyrieSliderBoardJointHolder> jointHolders = new ArrayList<>();
 
    private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
-   private final YoVariableServer yoVariableServer = new YoVariableServer(getClass(), new PeriodicNonRealtimeThreadScheduler(getClass().getSimpleName()),
-         robotModel.getLogModelProvider(), robotModel.getLogSettings(ValkyrieConfigurationRoot.USE_CAMERAS_FOR_LOGGING), 0.001);
+   private final YoVariableServer yoVariableServer = new YoVariableServer(getClass(), new PeriodicNonRealtimeThreadSchedulerFactory(),
+         robotModel.getLogModelProvider(), robotModel.getLogSettings(), 0.001);
 
-   /* package private */ final DoubleYoVariable masterScaleFactor = new DoubleYoVariable("masterScaleFactor", registry);
+   /* package private */ final YoDouble masterScaleFactor = new YoDouble("masterScaleFactor", registry);
 
-   /* package private */ final DoubleYoVariable jointVelocityAlphaFilter = new DoubleYoVariable("jointVelocityAlphaFilter", registry);
-   /* package private */ final DoubleYoVariable jointVelocitySlopTime = new DoubleYoVariable("jointBacklashSlopTime", registry);
+   /* package private */ final YoDouble jointVelocityAlphaFilter = new YoDouble("jointVelocityAlphaFilter", registry);
+   /* package private */ final YoDouble jointVelocitySlopTime = new YoDouble("jointBacklashSlopTime", registry);
 
-   private EnumYoVariable<?> selectedJoint;
-   private EnumYoVariable<?> previousSelectedJoint;
-   private final DoubleYoVariable qDesiredSelected = new DoubleYoVariable("qDesiredSelected", registry);
-   private final DoubleYoVariable qdDesiredSelected = new DoubleYoVariable("qdDesiredSelected", registry);
+   private YoEnum<?> selectedJoint;
+   private YoEnum<?> previousSelectedJoint;
+   private final YoDouble qDesiredSelected = new YoDouble("qDesiredSelected", registry);
+   private final YoDouble qdDesiredSelected = new YoDouble("qdDesiredSelected", registry);
 
-   private final DoubleYoVariable kpSelected = new DoubleYoVariable("kpSelected", registry);
-   private final DoubleYoVariable kdSelected = new DoubleYoVariable("kdSelected", registry);
+   private final YoDouble kpSelected = new YoDouble("kpSelected", registry);
+   private final YoDouble kdSelected = new YoDouble("kdSelected", registry);
 
-   private final DoubleYoVariable qSelected = new DoubleYoVariable("qSelected", registry);
-   private final DoubleYoVariable qdSelected = new DoubleYoVariable("qdSelected", registry);
+   private final YoDouble qSelected = new YoDouble("qSelected", registry);
+   private final YoDouble qdSelected = new YoDouble("qdSelected", registry);
 
-   private final DoubleYoVariable tauSelected = new DoubleYoVariable("tauSelected", registry);
-   private final DoubleYoVariable tauOffsetSelected = new DoubleYoVariable("tauOffsetSelected", registry);
-   private final DoubleYoVariable tauPDSelected = new DoubleYoVariable("tauPDSelected", registry);
-   private final DoubleYoVariable tauFunctionSelected = new DoubleYoVariable("tauFunctionSelected", registry);
-   private final DoubleYoVariable tauDesiredSelected = new DoubleYoVariable("tauDesiredSelected", registry);
+   private final YoDouble tauSelected = new YoDouble("tauSelected", registry);
+   private final YoDouble tauOffsetSelected = new YoDouble("tauOffsetSelected", registry);
+   private final YoDouble tauPDSelected = new YoDouble("tauPDSelected", registry);
+   private final YoDouble tauFunctionSelected = new YoDouble("tauFunctionSelected", registry);
+   private final YoDouble tauDesiredSelected = new YoDouble("tauDesiredSelected", registry);
 
    private long startTime = -1;
-   private final DoubleYoVariable yoTime = new DoubleYoVariable("time", registry);
+   private final YoDouble yoTime = new YoDouble("time", registry);
    private YoFunctionGenerator selectedFunctionGenerator;
 
    private YoFunctionGenerator secondaryFunctionGenerator;
-   private EnumYoVariable<?> secondaryJoint;
-   private final DoubleYoVariable tauFunctionSecondary = new DoubleYoVariable("tauFunctionSecondary", registry);
+   private YoEnum<?> secondaryJoint;
+   private final YoDouble tauFunctionSecondary = new YoDouble("tauFunctionSecondary", registry);
 
    @Override
    protected void init()
@@ -143,12 +142,12 @@ public class ValkyrieRosControlSliderBoard extends IHMCWholeRobotControlJavaBrid
       }
 
       String[] jointNameArray = jointNames.toArray(new String[jointNames.size()]);
-      selectedJoint = new EnumYoVariable<>("selectedJoint", "", registry, false, jointNameArray);
+      selectedJoint = new YoEnum<>("selectedJoint", "", registry, false, jointNameArray);
       System.out.println(Arrays.toString(selectedJoint.getEnumValuesAsString()));
-      previousSelectedJoint = new EnumYoVariable<>("previousSelectedJoint", "", registry, true, jointNameArray);
-      previousSelectedJoint.set(EnumYoVariable.NULL_VALUE);
-      secondaryJoint = new EnumYoVariable<>("secondaryJoint", "", registry, true, jointNameArray);
-      secondaryJoint.set(EnumYoVariable.NULL_VALUE);
+      previousSelectedJoint = new YoEnum<>("previousSelectedJoint", "", registry, true, jointNameArray);
+      previousSelectedJoint.set(YoEnum.NULL_VALUE);
+      secondaryJoint = new YoEnum<>("secondaryJoint", "", registry, true, jointNameArray);
+      secondaryJoint.set(YoEnum.NULL_VALUE);
 
       selectedJoint.addVariableChangedListener(new VariableChangedListener()
       {
@@ -164,10 +163,10 @@ public class ValkyrieRosControlSliderBoard extends IHMCWholeRobotControlJavaBrid
 
             tauOffsetSelected.set(selected.tau_offset.getDoubleValue());
 
-            if (previousSelectedJoint.getOrdinal() != EnumYoVariable.NULL_VALUE)
+            if (previousSelectedJoint.getOrdinal() != YoEnum.NULL_VALUE)
                jointHolders.get(previousSelectedJoint.getOrdinal()).jointCommand_function.set(0.0);
 
-            if (RESET_FUNCTIONS_ON_JOINT_CHANGE || selectedJoint.getOrdinal() != secondaryJoint.getOrdinal() || previousSelectedJoint.getOrdinal() != EnumYoVariable.NULL_VALUE)
+            if (RESET_FUNCTIONS_ON_JOINT_CHANGE || selectedJoint.getOrdinal() != secondaryJoint.getOrdinal() || previousSelectedJoint.getOrdinal() != YoEnum.NULL_VALUE)
             {
                selectedFunctionGenerator.setAmplitude(0.0);
                selectedFunctionGenerator.setFrequency(0.0);
@@ -203,7 +202,7 @@ public class ValkyrieRosControlSliderBoard extends IHMCWholeRobotControlJavaBrid
       loadStandPrepSetPoints();
       selectedJoint.notifyVariableChangedListeners();
       
-      yoVariableServer.setMainRegistry(registry, fullRobotModel, null);
+      yoVariableServer.setMainRegistry(registry, fullRobotModel.getElevator(), null);
       yoVariableServer.start();
    }
 
@@ -238,20 +237,20 @@ public class ValkyrieRosControlSliderBoard extends IHMCWholeRobotControlJavaBrid
    {
       if (startTime == -1)
          startTime = time;
-      yoTime.set(TimeTools.nanoSecondstoSeconds(time - startTime));
+      yoTime.set(Conversions.nanosecondsToSeconds(time - startTime));
 
       tauFunctionSelected.set(selectedFunctionGenerator.getValue());
 
-      masterScaleFactor.set(MathTools.clipToMinMax(masterScaleFactor.getDoubleValue(), 0.0, 1.0));
+      masterScaleFactor.set(MathTools.clamp(masterScaleFactor.getDoubleValue(), 0.0, 1.0));
       ValkyrieSliderBoardJointHolder selected = jointHolders.get(selectedJoint.getOrdinal());
-      selected.q_d.set(MathTools.clipToMinMax(qDesiredSelected.getDoubleValue(), selected.joint.getJointLimitLower(), selected.joint.getJointLimitUpper()));
+      selected.q_d.set(MathTools.clamp(qDesiredSelected.getDoubleValue(), selected.joint.getJointLimitLower(), selected.joint.getJointLimitUpper()));
       selected.qd_d.set(qdDesiredSelected.getDoubleValue());
       selected.pdController.setProportionalGain(kpSelected.getDoubleValue());
       selected.pdController.setDerivativeGain(kdSelected.getDoubleValue());
       selected.jointCommand_function.set(tauFunctionSelected.getDoubleValue());
       selected.tau_offset.set(tauOffsetSelected.getDoubleValue());
 
-      if (secondaryJoint.getOrdinal() != EnumYoVariable.NULL_VALUE)
+      if (secondaryJoint.getOrdinal() != YoEnum.NULL_VALUE)
       {
          ValkyrieSliderBoardJointHolder secondary = jointHolders.get(secondaryJoint.getOrdinal());
          if (secondaryJoint.getOrdinal() != selectedJoint.getOrdinal())

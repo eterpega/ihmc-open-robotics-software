@@ -5,21 +5,21 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
 import javax.swing.JButton;
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector3d;
 
 import us.ihmc.avatar.diagnostics.HumanoidDiagnosticsWhenHangingSimulation;
 import us.ihmc.avatar.initialSetup.DRCRobotInitialSetup;
 import us.ihmc.avatar.initialSetup.DRCSCSInitialSetup;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.DiagnosticsWhenHangingHelper;
-import us.ihmc.graphics3DAdapter.GroundProfile3D;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.jMonkeyEngineToolkit.GroundProfile3D;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
 import us.ihmc.simulationconstructionset.HumanoidFloatingRootJointRobot;
 import us.ihmc.simulationconstructionset.Joint;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
 import us.ihmc.simulationconstructionset.util.ground.FlatGroundProfile;
-import us.ihmc.simulationconstructionset.util.virtualHoist.VirtualHoist;
+import us.ihmc.simulationConstructionSetTools.util.virtualHoist.VirtualHoist;
 import us.ihmc.steppr.parameters.BonoRobotModel;
 import us.ihmc.wholeBodyController.diagnostics.DiagnosticsWhenHangingController;
 import us.ihmc.wholeBodyController.diagnostics.HumanoidJointPoseList;
@@ -139,30 +139,30 @@ public class StepprDiagnosticsWhenHangingSimulation
 
    private void setInitialCorruptorValues(SimulationConstructionSet simulationConstructionSet)
    {
-      ((DoubleYoVariable) simulationConstructionSet.getVariable("leftThighCoMOffsetX")).set(-0.02);
-      ((DoubleYoVariable) simulationConstructionSet.getVariable("leftThighCoMOffsetY")).set(0.0525);
-      ((DoubleYoVariable) simulationConstructionSet.getVariable("leftThighCoMOffsetZ")).set(-0.218); 
+      ((YoDouble) simulationConstructionSet.getVariable("leftThighCoMOffsetX")).set(-0.02);
+      ((YoDouble) simulationConstructionSet.getVariable("leftThighCoMOffsetY")).set(0.0525);
+      ((YoDouble) simulationConstructionSet.getVariable("leftThighCoMOffsetZ")).set(-0.218);
       
-      ((DoubleYoVariable) simulationConstructionSet.getVariable("leftShinCoMOffsetX")).set(0.013); 
-      ((DoubleYoVariable) simulationConstructionSet.getVariable("leftShinCoMOffsetY")).set(-0.02);
-      ((DoubleYoVariable) simulationConstructionSet.getVariable("leftShinCoMOffsetZ")).set(-0.06); 
+      ((YoDouble) simulationConstructionSet.getVariable("leftShinCoMOffsetX")).set(0.013);
+      ((YoDouble) simulationConstructionSet.getVariable("leftShinCoMOffsetY")).set(-0.02);
+      ((YoDouble) simulationConstructionSet.getVariable("leftShinCoMOffsetZ")).set(-0.06);
       
-      ((DoubleYoVariable) simulationConstructionSet.getVariable("leftFootCoMOffsetX")).set(0.121);
-      ((DoubleYoVariable) simulationConstructionSet.getVariable("leftFootCoMOffsetY")).set(0.0); 
-      ((DoubleYoVariable) simulationConstructionSet.getVariable("leftFootCoMOffsetZ")).set(0.0);
+      ((YoDouble) simulationConstructionSet.getVariable("leftFootCoMOffsetX")).set(0.121);
+      ((YoDouble) simulationConstructionSet.getVariable("leftFootCoMOffsetY")).set(0.0);
+      ((YoDouble) simulationConstructionSet.getVariable("leftFootCoMOffsetZ")).set(0.0);
       
       
-      ((DoubleYoVariable) simulationConstructionSet.getVariable("rightThighCoMOffsetX")).set(-0.02); 
-      ((DoubleYoVariable) simulationConstructionSet.getVariable("rightThighCoMOffsetY")).set(-0.0525);
-      ((DoubleYoVariable) simulationConstructionSet.getVariable("rightThighCoMOffsetZ")).set(-0.218);
+      ((YoDouble) simulationConstructionSet.getVariable("rightThighCoMOffsetX")).set(-0.02);
+      ((YoDouble) simulationConstructionSet.getVariable("rightThighCoMOffsetY")).set(-0.0525);
+      ((YoDouble) simulationConstructionSet.getVariable("rightThighCoMOffsetZ")).set(-0.218);
       
-      ((DoubleYoVariable) simulationConstructionSet.getVariable("rightShinCoMOffsetX")).set(0.013);
-      ((DoubleYoVariable) simulationConstructionSet.getVariable("rightShinCoMOffsetY")).set(0.02);
-      ((DoubleYoVariable) simulationConstructionSet.getVariable("rightShinCoMOffsetZ")).set(-0.06); 
+      ((YoDouble) simulationConstructionSet.getVariable("rightShinCoMOffsetX")).set(0.013);
+      ((YoDouble) simulationConstructionSet.getVariable("rightShinCoMOffsetY")).set(0.02);
+      ((YoDouble) simulationConstructionSet.getVariable("rightShinCoMOffsetZ")).set(-0.06);
       
-      ((DoubleYoVariable) simulationConstructionSet.getVariable("rightFootCoMOffsetX")).set(0.121); 
-      ((DoubleYoVariable) simulationConstructionSet.getVariable("rightFootCoMOffsetY")).set(0.0); 
-      ((DoubleYoVariable) simulationConstructionSet.getVariable("rightFootCoMOffsetZ")).set(0.0); 
+      ((YoDouble) simulationConstructionSet.getVariable("rightFootCoMOffsetX")).set(0.121);
+      ((YoDouble) simulationConstructionSet.getVariable("rightFootCoMOffsetY")).set(0.0);
+      ((YoDouble) simulationConstructionSet.getVariable("rightFootCoMOffsetZ")).set(0.0);
    }
    
 
@@ -189,17 +189,17 @@ public class StepprDiagnosticsWhenHangingSimulation
          Joint joint = robot.getJoint("back_ubz");
          if (joint == null) throw new RuntimeException();
          
-         ArrayList<Vector3d> attachmentLocations = new ArrayList<Vector3d>();
+         ArrayList<Vector3D> attachmentLocations = new ArrayList<Vector3D>();
              
-         attachmentLocations.add(new Vector3d(0.0, 0.15, 0.412));
-         attachmentLocations.add(new Vector3d(0.0, -0.15, 0.412));
+         attachmentLocations.add(new Vector3D(0.0, 0.15, 0.412));
+         attachmentLocations.add(new Vector3D(0.0, -0.15, 0.412));
          
          double updateDT = 0.0001;
          VirtualHoist virtualHoist = new VirtualHoist(joint, robot, attachmentLocations, updateDT);
          robot.setController(virtualHoist, 1);
           
          virtualHoist.turnHoistOn();
-         virtualHoist.setTeepeeLocation(new Point3d(0.0, 0.0, 2.5));
+         virtualHoist.setTeepeeLocation(new Point3D(0.0, 0.0, 2.5));
          virtualHoist.setHoistStiffness(20000.0);
          virtualHoist.setHoistDamping(5000.0);
          

@@ -1,6 +1,6 @@
 package us.ihmc.exampleSimulations.planarWalker;
 
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
 
 public class PeterPlanarWalkerSimulation
@@ -14,6 +14,7 @@ public class PeterPlanarWalkerSimulation
       YoVariableRegistry registry = robot.getRobotsYoVariableRegistry();
       
       PeterPlanarWalkerController walkerController = new PeterPlanarWalkerController(robot, simulationDT);
+//      FMSPeterPlanarWalkerController walkerController = new FMSPeterPlanarWalkerController(robot, simulationDT);
       robot.setController(walkerController);
     
       scs = new SimulationConstructionSet(robot);

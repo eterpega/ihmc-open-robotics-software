@@ -1,20 +1,19 @@
 package us.ihmc.simulationconstructionset.util.ground;
 
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector3d;
-
-import us.ihmc.graphics3DAdapter.GroundProfile3D;
-import us.ihmc.graphics3DAdapter.HeightMapWithNormals;
-import us.ihmc.robotics.geometry.BoundingBox3d;
+import us.ihmc.euclid.geometry.BoundingBox3D;
+import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.jMonkeyEngineToolkit.GroundProfile3D;
+import us.ihmc.jMonkeyEngineToolkit.HeightMapWithNormals;
 
 public class SlopedPlaneGroundProfile implements GroundProfile3D
 {
-   private final Vector3d surfaceNormal = new Vector3d();
-   private final Point3d intersectionPoint = new Point3d();
+   private final Vector3D surfaceNormal = new Vector3D();
+   private final Point3D intersectionPoint = new Point3D();
 
-   private final BoundingBox3d boundingBox;
+   private final BoundingBox3D boundingBox;
 
-   public SlopedPlaneGroundProfile(Vector3d surfaceNormal, Point3d intersectionPoint, double maxXY)
+   public SlopedPlaneGroundProfile(Vector3D surfaceNormal, Point3D intersectionPoint, double maxXY)
    {
       this.surfaceNormal.set(surfaceNormal);
       this.surfaceNormal.normalize();
@@ -28,22 +27,25 @@ public class SlopedPlaneGroundProfile implements GroundProfile3D
                       * (Math.abs(surfaceNormal.getX()) * (maxXY + Math.abs(intersectionPoint.getX()))
                          + Math.abs(surfaceNormal.getY()) * (maxXY + Math.abs(intersectionPoint.getY()))) + 0.01;
 
-      boundingBox = new BoundingBox3d(-maxXY, -maxXY, Double.NEGATIVE_INFINITY, maxXY, maxXY, maxZ);
+      boundingBox = new BoundingBox3D(-maxXY, -maxXY, Double.NEGATIVE_INFINITY, maxXY, maxXY, maxZ);
    }
 
-   public BoundingBox3d getBoundingBox()
+   @Override
+   public BoundingBox3D getBoundingBox()
    {
       return boundingBox;
    }
 
+   @Override
    public boolean isClose(double x, double y, double z)
    {
-      return boundingBox.isInside(x, y, z);
+      return boundingBox.isInsideInclusive(x, y, z);
    }
 
-   private final Vector3d intersectionToQueryVector = new Vector3d();
+   private final Vector3D intersectionToQueryVector = new Vector3D();
 
-   public boolean checkIfInside(double x, double y, double z, Point3d intersectionToPack, Vector3d normalToPack)
+   @Override
+   public boolean checkIfInside(double x, double y, double z, Point3D intersectionToPack, Vector3D normalToPack)
    {
       normalToPack.set(surfaceNormal);
 
@@ -58,6 +60,7 @@ public class SlopedPlaneGroundProfile implements GroundProfile3D
       return (dotProduct <= 0.0);
    }
 
+   @Override
    public HeightMapWithNormals getHeightMapIfAvailable()
    {
       // No height map if upside down or straight vertical.
@@ -66,6 +69,7 @@ public class SlopedPlaneGroundProfile implements GroundProfile3D
 
       return new HeightMapWithNormals()
       {
+         @Override
          public double heightAt(double x, double y, double z)
          {
             double pz = intersectionPoint.getZ()
@@ -75,12 +79,14 @@ public class SlopedPlaneGroundProfile implements GroundProfile3D
             return pz;
          }
 
-         public BoundingBox3d getBoundingBox()
+         @Override
+         public BoundingBox3D getBoundingBox()
          {
             return boundingBox;
          }
 
-         public double heightAndNormalAt(double x, double y, double z, Vector3d normalToPack)
+         @Override
+         public double heightAndNormalAt(double x, double y, double z, Vector3D normalToPack)
          {
             normalToPack.set(surfaceNormal);
 

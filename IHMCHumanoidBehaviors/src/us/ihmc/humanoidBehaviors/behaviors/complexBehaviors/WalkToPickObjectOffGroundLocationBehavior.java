@@ -1,8 +1,7 @@
 package us.ihmc.humanoidBehaviors.behaviors.complexBehaviors;
 
-import javax.vecmath.Point2d;
-import javax.vecmath.Point3d;
-
+import us.ihmc.euclid.tuple2D.Point2D;
+import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.humanoidBehaviors.behaviors.complexBehaviors.WalkToPickObjectOffGroundLocationBehavior.WalkState;
 import us.ihmc.humanoidBehaviors.behaviors.primitives.AtlasPrimitiveActions;
 import us.ihmc.humanoidBehaviors.behaviors.primitives.WalkToLocationBehavior;
@@ -13,7 +12,7 @@ import us.ihmc.humanoidBehaviors.taskExecutor.ArmTrajectoryTask;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.ArmTrajectoryMessage;
 import us.ihmc.humanoidRobotics.frames.HumanoidReferenceFrames;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.geometry.FramePoint2d;
 import us.ihmc.robotics.geometry.FramePose2d;
 import us.ihmc.robotics.geometry.FrameVector2d;
@@ -33,11 +32,11 @@ public class WalkToPickObjectOffGroundLocationBehavior extends StateMachineBehav
    private final ReferenceFrame midZupFrame;
 
    private final HumanoidReferenceFrames referenceFrames;
-   private Point3d pickUpLocation = null;
+   private Point3D pickUpLocation = null;
    private final double standingDistance = 0.4;
    private final AtlasPrimitiveActions atlasPrimitiveActions;
 
-   public WalkToPickObjectOffGroundLocationBehavior(DoubleYoVariable yoTime, HumanoidReferenceFrames referenceFrames,
+   public WalkToPickObjectOffGroundLocationBehavior(YoDouble yoTime, HumanoidReferenceFrames referenceFrames,
          CommunicationBridge outgoingCommunicationBridge, WholeBodyControllerParameters wholeBodyControllerParameters, FullHumanoidRobotModel fullRobotModel,
          AtlasPrimitiveActions atlasPrimitiveActions)
    {
@@ -100,11 +99,11 @@ public class WalkToPickObjectOffGroundLocationBehavior extends StateMachineBehav
       double newX = ballPosition2d.getX() + (x - ballPosition2d.getX()) * Math.cos(rotationAngle) - (y - ballPosition2d.getY()) * Math.sin(rotationAngle);
       double newY = ballPosition2d.getY() + (x - ballPosition2d.getX()) * Math.sin(rotationAngle) + (y - ballPosition2d.getY()) * Math.cos(rotationAngle);
 
-      FramePose2d poseToWalkTo = new FramePose2d(ReferenceFrame.getWorldFrame(), new Point2d(newX, newY), walkingYaw);
+      FramePose2d poseToWalkTo = new FramePose2d(ReferenceFrame.getWorldFrame(), new Point2D(newX, newY), walkingYaw);
       return poseToWalkTo;
    }
 
-   public void setPickUpLocation(Point3d grabLocation)
+   public void setPickUpLocation(Point3D grabLocation)
    {
       this.pickUpLocation = grabLocation;
    }

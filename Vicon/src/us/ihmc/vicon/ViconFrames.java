@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 
+import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.robotics.geometry.FramePose;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
 
 public class ViconFrames
 {
@@ -29,10 +29,10 @@ public class ViconFrames
    protected void initialize(ReferenceFrame parentReferenceFrame) throws Exception
    {
       if (parentReferenceFrame == null)
-         viconWorldFrame = ReferenceFrame.constructAWorldFrame(worldFrameName);
+         viconWorldFrame = ReferenceFrame.constructARootFrame(worldFrameName);
       else
       {
-         viconWorldFrame = new ReferenceFrame(worldFrameName, parentReferenceFrame, false, true, false)
+         viconWorldFrame = new ReferenceFrame(worldFrameName, parentReferenceFrame, true, false)
          {
             /**
              * 
@@ -41,7 +41,6 @@ public class ViconFrames
 
             protected void updateTransformToParent(RigidBodyTransform transformToParent)
             {
-               setTransformToParent(transformToParent);
             }
          };
       }

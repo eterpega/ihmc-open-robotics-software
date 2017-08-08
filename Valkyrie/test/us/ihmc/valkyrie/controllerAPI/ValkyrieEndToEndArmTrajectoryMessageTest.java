@@ -2,8 +2,8 @@ package us.ihmc.valkyrie.controllerAPI;
 
 import us.ihmc.avatar.controllerAPI.EndToEndArmTrajectoryMessageTest;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
-import us.ihmc.avatar.drcRobot.DRCRobotModel.RobotTarget;
-import us.ihmc.simulationconstructionset.bambooTools.BambooTools;
+import us.ihmc.avatar.drcRobot.RobotTarget;
+import us.ihmc.simulationConstructionSetTools.bambooTools.BambooTools;
 import us.ihmc.valkyrie.ValkyrieRobotModel;
 
 public class ValkyrieEndToEndArmTrajectoryMessageTest extends EndToEndArmTrajectoryMessageTest

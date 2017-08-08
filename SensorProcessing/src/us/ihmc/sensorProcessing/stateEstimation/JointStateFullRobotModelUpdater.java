@@ -7,13 +7,13 @@ import us.ihmc.controlFlow.AbstractControlFlowElement;
 import us.ihmc.controlFlow.ControlFlowGraph;
 import us.ihmc.controlFlow.ControlFlowInputPort;
 import us.ihmc.controlFlow.ControlFlowOutputPort;
-import us.ihmc.sensorProcessing.simulatedSensors.JointAndIMUSensorMap;
-import us.ihmc.sensorProcessing.stateEstimation.evaluation.FullInverseDynamicsStructure;
 import us.ihmc.robotics.screwTheory.InverseDynamicsJoint;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
 import us.ihmc.robotics.screwTheory.ScrewTools;
 import us.ihmc.robotics.screwTheory.SpatialAccelerationCalculator;
 import us.ihmc.robotics.screwTheory.TwistCalculator;
+import us.ihmc.sensorProcessing.simulatedSensors.JointAndIMUSensorMap;
+import us.ihmc.sensorProcessing.stateEstimation.evaluation.FullInverseDynamicsStructure;
 
 public class JointStateFullRobotModelUpdater extends AbstractControlFlowElement
 {
@@ -84,11 +84,9 @@ public class JointStateFullRobotModelUpdater extends AbstractControlFlowElement
       // TODO: Does it make sense to do this yet if the orientation of the pelvis isn't known yet?
       FullInverseDynamicsStructure inverseDynamicsStructure = inverseDynamicsStructureOutputPort.getData();
 
-      TwistCalculator twistCalculator = inverseDynamicsStructure.getTwistCalculator();
       SpatialAccelerationCalculator spatialAccelerationCalculator = inverseDynamicsStructure.getSpatialAccelerationCalculator();
 
-      twistCalculator.getRootBody().updateFramesRecursively();
-      twistCalculator.compute();
+      inverseDynamicsStructure.getElevator().updateFramesRecursively();
       spatialAccelerationCalculator.compute();
 
       inverseDynamicsStructureOutputPort.setData(inverseDynamicsStructure);

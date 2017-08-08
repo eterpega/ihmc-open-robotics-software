@@ -1,11 +1,11 @@
 package us.ihmc.simulationconstructionset.physics;
 
-import javax.vecmath.Matrix3d;
-import javax.vecmath.Vector3d;
-
+import us.ihmc.euclid.matrix.Matrix3D;
+import us.ihmc.euclid.matrix.RotationMatrix;
+import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.robotics.Axis;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FrameVector;
 import us.ihmc.robotics.math.frames.YoFramePoint;
@@ -24,8 +24,8 @@ public class EfpAxisDependentGainPDConstraintToIntegrate implements FunctionToIn
 
    private final YoVariableRegistry registry;
 
-   private final DoubleYoVariable stiffnessX, stiffnessY, stiffnessZ;
-   private final DoubleYoVariable dampingX, dampingY, dampingZ;
+   private final YoDouble stiffnessX, stiffnessY, stiffnessZ;
+   private final YoDouble dampingX, dampingY, dampingZ;
 
    private final ExternalForcePoint connectionPointA;
    private final ExternalForcePoint connectionPointB;
@@ -48,27 +48,27 @@ public class EfpAxisDependentGainPDConstraintToIntegrate implements FunctionToIn
    private final FrameVector connectionAVelocity = new FrameVector(worldFrame);
    private final FrameVector connectionBVelocity = new FrameVector(worldFrame);
    private final FrameVector connectionVelocityError;
-   private final Vector3d springForce = new Vector3d();
-   private final Vector3d damperForce = new Vector3d();
+   private final Vector3D springForce = new Vector3D();
+   private final Vector3D damperForce = new Vector3D();
    private final FrameVector totalForce = new FrameVector(worldFrame);
-   private final Matrix3d stiffnessFrameToWorldFrameRotation = new Matrix3d();
-   private final Matrix3d stiffnessGainMatrix = new Matrix3d();
-   private final Matrix3d dampingGainMatrix = new Matrix3d();
-   private final Matrix3d stiffnessMatrix = new Matrix3d();
-   private final Matrix3d dampingMatrix = new Matrix3d();
+   private final RotationMatrix stiffnessFrameToWorldFrameRotation = new RotationMatrix();
+   private final Matrix3D stiffnessGainMatrix = new Matrix3D();
+   private final Matrix3D dampingGainMatrix = new Matrix3D();
+   private final Matrix3D stiffnessMatrix = new Matrix3D();
+   private final Matrix3D dampingMatrix = new Matrix3D();
 
    public EfpAxisDependentGainPDConstraintToIntegrate(String name, ExternalForcePoint connectionPointA, ExternalForcePoint connectionPointB,
          ReferenceFrame stiffnessFrame, YoVariableRegistry parentRegistry)
    {
       registry = new YoVariableRegistry(name);
 
-      stiffnessX = new DoubleYoVariable(name + "_StiffnessX", registry);
-      stiffnessY = new DoubleYoVariable(name + "_StiffnessY", registry);
-      stiffnessZ = new DoubleYoVariable(name + "_StiffnessZ", registry);
+      stiffnessX = new YoDouble(name + "_StiffnessX", registry);
+      stiffnessY = new YoDouble(name + "_StiffnessY", registry);
+      stiffnessZ = new YoDouble(name + "_StiffnessZ", registry);
 
-      dampingX = new DoubleYoVariable(name + "_DampingX", registry);
-      dampingY = new DoubleYoVariable(name + "_DampingY", registry);
-      dampingZ = new DoubleYoVariable(name + "_DampingZ", registry);
+      dampingX = new YoDouble(name + "_DampingX", registry);
+      dampingY = new YoDouble(name + "_DampingY", registry);
+      dampingZ = new YoDouble(name + "_DampingZ", registry);
 
       this.connectionPointA = connectionPointA;
       this.connectionPointB = connectionPointB;
@@ -131,21 +131,24 @@ public class EfpAxisDependentGainPDConstraintToIntegrate implements FunctionToIn
       dampingGainMatrix.setM11(dampingY.getDoubleValue());
       dampingGainMatrix.setM22(dampingZ.getDoubleValue());
 
-      stiffnessMatrix.mul(stiffnessFrameToWorldFrameRotation, stiffnessGainMatrix);
+      stiffnessMatrix.set(stiffnessFrameToWorldFrameRotation);
+      stiffnessMatrix.multiply(stiffnessGainMatrix);
       stiffnessFrameToWorldFrameRotation.transpose();
-      stiffnessMatrix.mul(stiffnessFrameToWorldFrameRotation);
+      stiffnessMatrix.multiply(stiffnessFrameToWorldFrameRotation);
       stiffnessMatrix.transform(connectionPositionError.getVector(), springForce);
 
-      stiffnessMatrix.mul(stiffnessFrameToWorldFrameRotation, stiffnessGainMatrix);
+      stiffnessMatrix.set(stiffnessFrameToWorldFrameRotation);
+      stiffnessMatrix.multiply(stiffnessGainMatrix);
       stiffnessFrameToWorldFrameRotation.transpose();
-      stiffnessMatrix.mul(stiffnessFrameToWorldFrameRotation);
+      stiffnessMatrix.multiply(stiffnessFrameToWorldFrameRotation);
       stiffnessMatrix.transform(connectionPositionError.getVector(), springForce);
 
       stiffnessFrameToWorldFrameRotation.transpose();
 
-      dampingMatrix.mul(stiffnessFrameToWorldFrameRotation, dampingGainMatrix);
+      dampingMatrix.set(stiffnessFrameToWorldFrameRotation);
+      dampingMatrix.multiply(dampingGainMatrix);
       stiffnessFrameToWorldFrameRotation.transpose();
-      dampingMatrix.mul(stiffnessFrameToWorldFrameRotation);
+      dampingMatrix.multiply(stiffnessFrameToWorldFrameRotation);
       dampingMatrix.transform(connectionVelocityError.getVector(), damperForce);
 
       totalForce.setToZero(worldFrame);
@@ -194,7 +197,7 @@ public class EfpAxisDependentGainPDConstraintToIntegrate implements FunctionToIn
    }
 
    @Override
-   public DoubleYoVariable[] getOutputVariables()
+   public YoDouble[] getOutputVariables()
    {
       return null;
    }

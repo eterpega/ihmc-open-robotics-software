@@ -1,10 +1,9 @@
 package us.ihmc.exampleSimulations.flyballGovernor;
 
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector3d;
-
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.math.frames.YoFramePoint;
 import us.ihmc.robotics.math.frames.YoFrameVector;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
@@ -21,19 +20,19 @@ public class FlyballGovernorClosedLoopConstraintToIntegrate implements FunctionT
    private final YoFrameVector forceA, forceB;
 
    private final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
-   private final DoubleYoVariable positionErrorMagnitude;
+   private final YoDouble positionErrorMagnitude;
 
    private final double k = 10000.0;
    private final double b = 15.0;
 
-   private Point3d posA = new Point3d();
-   private Point3d posB = new Point3d();
-   private Vector3d velA = new Vector3d();
-   private Vector3d velB = new Vector3d();
-   private Vector3d springForceA = new Vector3d();
-   private Vector3d dampingForceA = new Vector3d();
-   private Vector3d newForceA = new Vector3d();
-   private Vector3d newForceB = new Vector3d();
+   private Point3D posA = new Point3D();
+   private Point3D posB = new Point3D();
+   private Vector3D velA = new Vector3D();
+   private Vector3D velB = new Vector3D();
+   private Vector3D springForceA = new Vector3D();
+   private Vector3D dampingForceA = new Vector3D();
+   private Vector3D newForceA = new Vector3D();
+   private Vector3D newForceB = new Vector3D();
 
    public FlyballGovernorClosedLoopConstraintToIntegrate(String name, ExternalForcePoint constraintA, ExternalForcePoint constraintB, Robot robot,
          YoVariableRegistry parentRegistry)
@@ -50,7 +49,7 @@ public class FlyballGovernorClosedLoopConstraintToIntegrate implements FunctionT
       robot.addFunctionToIntegrate(this);
 
       registry = new YoVariableRegistry(name);
-      positionErrorMagnitude = new DoubleYoVariable("positionErrorMagnitude", registry);
+      positionErrorMagnitude = new YoDouble("positionErrorMagnitude", registry);
       parentRegistry.addChild(registry);
    }
 
@@ -68,7 +67,7 @@ public class FlyballGovernorClosedLoopConstraintToIntegrate implements FunctionT
       dampingForceA.sub(velB, velA);
       dampingForceA.scale(b);
       newForceA.add(springForceA, dampingForceA);
-      newForceB.scale(-1.0, newForceA);
+      newForceB.setAndScale(-1.0, newForceA);
 
       forceA.set(newForceA);
       forceB.set(newForceB);
@@ -87,7 +86,7 @@ public class FlyballGovernorClosedLoopConstraintToIntegrate implements FunctionT
       return 0;
    }
 
-   public DoubleYoVariable[] getOutputVariables()
+   public YoDouble[] getOutputVariables()
    {
       return null;
    }

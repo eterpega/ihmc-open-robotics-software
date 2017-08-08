@@ -1,28 +1,30 @@
 package us.ihmc.commonWalkingControlModules.momentumBasedController.optimization.groundContactForce;
 
-import org.ejml.data.DenseMatrix64F;
-import org.ejml.ops.CommonOps;
-import us.ihmc.commonWalkingControlModules.controllerCore.WholeBodyControlCoreToolbox;
-import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.MomentumRateCommand;
-import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.PlaneContactStateCommand;
-import us.ihmc.commonWalkingControlModules.momentumBasedController.optimization.MomentumOptimizationSettings;
-import us.ihmc.commonWalkingControlModules.visualizer.BasisVectorVisualizer;
-import us.ihmc.commonWalkingControlModules.wrenchDistribution.WrenchMatrixCalculator;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
-import us.ihmc.humanoidRobotics.bipedSupportPolygons.ContactablePlaneBody;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.IntegerYoVariable;
-import us.ihmc.robotics.math.frames.YoFrameVector;
-import us.ihmc.robotics.math.frames.YoMatrix;
-import us.ihmc.robotics.screwTheory.*;
-import us.ihmc.tools.exceptions.NoConvergenceException;
-import us.ihmc.tools.io.printing.PrintTools;
-
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+
+import org.ejml.data.DenseMatrix64F;
+import org.ejml.ops.CommonOps;
+
+import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.MomentumRateCommand;
+import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.PlaneContactStateCommand;
+import us.ihmc.commonWalkingControlModules.momentumBasedController.optimization.ControllerCoreOptimizationSettings;
+import us.ihmc.commonWalkingControlModules.visualizer.BasisVectorVisualizer;
+import us.ihmc.commonWalkingControlModules.wrenchDistribution.WrenchMatrixCalculator;
+import us.ihmc.commons.PrintTools;
+import us.ihmc.convexOptimization.quadraticProgram.ActiveSetQPSolver;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.humanoidRobotics.bipedSupportPolygons.ContactablePlaneBody;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoInteger;
+import us.ihmc.robotics.math.frames.YoFrameVector;
+import us.ihmc.robotics.math.frames.YoMatrix;
+import us.ihmc.robotics.screwTheory.RigidBody;
+import us.ihmc.robotics.screwTheory.SpatialAccelerationVector;
+import us.ihmc.robotics.screwTheory.Wrench;
+import us.ihmc.tools.exceptions.NoConvergenceException;
 
 public class GroundContactForceOptimizationControlModule
 {
@@ -35,13 +37,13 @@ public class GroundContactForceOptimizationControlModule
    private final WrenchMatrixCalculator wrenchMatrixCalculator;
    private final List<? extends ContactablePlaneBody> contactablePlaneBodies;
 
-   private final DoubleYoVariable rhoMin = new DoubleYoVariable("rhoMinGCFOptimization", registry);
+   private final YoDouble rhoMin = new YoDouble("rhoMinGCFOptimization", registry);
 
    private final BasisVectorVisualizer basisVectorVisualizer;
 
    private final GroundContactForceQPSolver qpSolver;
-   private final BooleanYoVariable hasNotConvergedInPast = new BooleanYoVariable("hasNotConvergedInPast", registry);
-   private final IntegerYoVariable hasNotConvergedCounts = new IntegerYoVariable("hasNotConvergedCounts", registry);
+   private final YoBoolean hasNotConvergedInPast = new YoBoolean("hasNotConvergedInPast", registry);
+   private final YoInteger hasNotConvergedCounts = new YoInteger("hasNotConvergedCounts", registry);
 
    private final YoFrameVector desiredLinearMomentumRate;
    private final YoFrameVector desiredAngularMomentumRate;
@@ -57,11 +59,11 @@ public class GroundContactForceOptimizationControlModule
    private final DenseMatrix64F momentumWeight = new DenseMatrix64F(Wrench.SIZE, 1);
 
    public GroundContactForceOptimizationControlModule(WrenchMatrixCalculator wrenchMatrixCalculator, List<? extends ContactablePlaneBody> contactablePlaneBodies,
-         MomentumOptimizationSettings momentumOptimizationSettings, YoVariableRegistry parentRegistry, YoGraphicsListRegistry yoGraphicsListRegistry)
+         ControllerCoreOptimizationSettings optimizationSettings, YoVariableRegistry parentRegistry, YoGraphicsListRegistry yoGraphicsListRegistry)
    {
       this.wrenchMatrixCalculator = wrenchMatrixCalculator;
       this.contactablePlaneBodies = contactablePlaneBodies;
-      int rhoSize = momentumOptimizationSettings.getRhoSize();
+      int rhoSize = optimizationSettings.getRhoSize();
 
       if (VISUALIZE_RHO_BASIS_VECTORS)
          basisVectorVisualizer = new BasisVectorVisualizer("ContactBasisVectors", rhoSize, 1.0, yoGraphicsListRegistry, registry);
@@ -79,9 +81,10 @@ public class GroundContactForceOptimizationControlModule
          desiredAngularMomentumRate = null;
       }
 
-      rhoMin.set(momentumOptimizationSettings.getRhoMin());
-      qpSolver = new GroundContactForceQPSolver(rhoSize, registry);
-      qpSolver.setMinRho(momentumOptimizationSettings.getRhoMin());
+      rhoMin.set(optimizationSettings.getRhoMin());
+      ActiveSetQPSolver activeSetQPSolver = optimizationSettings.getActiveSetQPSolver();
+      qpSolver = new GroundContactForceQPSolver(activeSetQPSolver, rhoSize, registry);
+      qpSolver.setMinRho(optimizationSettings.getRhoMin());
 
       parentRegistry.addChild(registry);
    }

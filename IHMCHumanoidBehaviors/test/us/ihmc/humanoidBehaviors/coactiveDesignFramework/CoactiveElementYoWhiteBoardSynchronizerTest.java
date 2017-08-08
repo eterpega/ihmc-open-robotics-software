@@ -9,13 +9,13 @@ import java.util.Random;
 
 import org.junit.Test;
 
+import us.ihmc.commons.RandomNumbers;
 import us.ihmc.communication.util.NetworkPorts;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.IntegerYoVariable;
-import us.ihmc.robotics.random.RandomTools;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoInteger;
 
 public class CoactiveElementYoWhiteBoardSynchronizerTest
 {
@@ -106,12 +106,12 @@ public class CoactiveElementYoWhiteBoardSynchronizerTest
    private class SimpleCoactiveElement implements CoactiveElement
    {
       private final YoVariableRegistry userInterfaceWritableRegistry = new YoVariableRegistry("userInterfaceWritable");
-      private final IntegerYoVariable uiTickCount = new IntegerYoVariable("uiTickCount", userInterfaceWritableRegistry);
-      private final BooleanYoVariable buttonWasClicked = new BooleanYoVariable("buttonWasClicked", userInterfaceWritableRegistry);
-      private final DoubleYoVariable variableForUserInterfaceToWrite = new DoubleYoVariable("variableForUserInterfaceToWrite", userInterfaceWritableRegistry);
+      private final YoInteger uiTickCount = new YoInteger("uiTickCount", userInterfaceWritableRegistry);
+      private final YoBoolean buttonWasClicked = new YoBoolean("buttonWasClicked", userInterfaceWritableRegistry);
+      private final YoDouble variableForUserInterfaceToWrite = new YoDouble("variableForUserInterfaceToWrite", userInterfaceWritableRegistry);
 
       private final YoVariableRegistry machineWritableRegistry = new YoVariableRegistry("machineWritableRegistry");
-      private final DoubleYoVariable variableForMachineToWrite = new DoubleYoVariable("variableForMachineToWrite", machineWritableRegistry);
+      private final YoDouble variableForMachineToWrite = new YoDouble("variableForMachineToWrite", machineWritableRegistry);
 
       private final Random random = new Random();
 
@@ -156,7 +156,7 @@ public class CoactiveElementYoWhiteBoardSynchronizerTest
 
             if (buttonWasClicked.getBooleanValue())
             {
-               variableForUserInterfaceToWrite.set(RandomTools.generateRandomDouble(random, 20.0));
+               variableForUserInterfaceToWrite.set(RandomNumbers.nextDouble(random, 20.0));
             }
          }
       }
@@ -177,11 +177,11 @@ public class CoactiveElementYoWhiteBoardSynchronizerTest
       {
          if (buttonWasClicked.getBooleanValue())
          {
-            variableForMachineToWrite.set(RandomTools.generateRandomDouble(random, variableForUserInterfaceToWrite.getDoubleValue()));
+            variableForMachineToWrite.set(RandomNumbers.nextDouble(random, variableForUserInterfaceToWrite.getDoubleValue()));
          }
          else
          {
-            variableForMachineToWrite.set(RandomTools.generateRandomDouble(random, 1.0));
+            variableForMachineToWrite.set(RandomNumbers.nextDouble(random, 1.0));
          }
       }
 

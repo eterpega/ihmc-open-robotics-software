@@ -1,18 +1,22 @@
 package us.ihmc.robotics.geometry;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
-import javax.vecmath.Point2d;
-
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.euclid.geometry.ConvexPolygon2D;
+import us.ihmc.euclid.geometry.tools.EuclidGeometryRandomTools;
+import us.ihmc.euclid.tuple2D.Point2D;
+import us.ihmc.euclid.tuple2D.interfaces.Point2DReadOnly;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
 
 public class ConvexPolygonToolsTest
 {
@@ -20,13 +24,13 @@ public class ConvexPolygonToolsTest
    private static final boolean WAIT_FOR_BUTTON_PUSH = false;
    private static final double epsilon = 1e-7;
 
-	@ContinuousIntegrationTest(estimatedDuration = 0.1)
-	@Test(timeout = 30000)
+   @ContinuousIntegrationTest(estimatedDuration = 0.1)
+   @Test(timeout = 30000)
    public void testCombineDisjointPolygons()
    {
       Random random = new Random(1776L);
 
-      ReferenceFrame zUpFrame = ReferenceFrame.constructARootFrame("someFrame", true, false, true);
+      ReferenceFrame zUpFrame = ReferenceFrame.constructARootFrame("someFrame");
       double xMin1 = 0.0, xMax1 = 1.0, yMin1 = 0.0, yMax1 = 1.0;
       ArrayList<FramePoint2d> points1 = ConvexPolygon2dTestHelpers.generateRandomCircularFramePoints(random, zUpFrame, xMin1, xMax1, yMin1, yMax1, 100);
 
@@ -50,7 +54,7 @@ public class ConvexPolygonToolsTest
          FramePoint2d secondPoint = points2.get(randomIndex);
 
          double alpha = random.nextDouble();
-//         FramePoint2d morphedPoint = FramePoint2d.morph(firstPoint, secondPoint, alpha);
+         //         FramePoint2d morphedPoint = FramePoint2d.morph(firstPoint, secondPoint, alpha);
          FramePoint2d morphedPoint = new FramePoint2d();
          morphedPoint.interpolate(firstPoint, secondPoint, alpha);
 
@@ -98,14 +102,14 @@ public class ConvexPolygonToolsTest
 
       ArrayList<FramePoint2d> pointsThatShouldNotBeInOriginals = new ArrayList<FramePoint2d>();
 
-//      pointsThatShouldNotBeInOriginals.add(FramePoint2d.morph(connectingEdge1.getFirstEndPointCopy(), connectingEdge1.getSecondEndPointCopy(), -epsilon));
-//      pointsThatShouldNotBeInOriginals.add(FramePoint2d.morph(connectingEdge1.getFirstEndPointCopy(), connectingEdge1.getSecondEndPointCopy(), epsilon));
-//      pointsThatShouldNotBeInOriginals.add(FramePoint2d.morph(connectingEdge1.getFirstEndPointCopy(), connectingEdge1.getSecondEndPointCopy(), 1.0 - epsilon));
-//      pointsThatShouldNotBeInOriginals.add(FramePoint2d.morph(connectingEdge1.getFirstEndPointCopy(), connectingEdge1.getSecondEndPointCopy(), 1.0 + epsilon));
-//      pointsThatShouldNotBeInOriginals.add(FramePoint2d.morph(connectingEdge2.getFirstEndPointCopy(), connectingEdge2.getSecondEndPointCopy(), -epsilon));
-//      pointsThatShouldNotBeInOriginals.add(FramePoint2d.morph(connectingEdge2.getFirstEndPointCopy(), connectingEdge2.getSecondEndPointCopy(), epsilon));
-//      pointsThatShouldNotBeInOriginals.add(FramePoint2d.morph(connectingEdge2.getFirstEndPointCopy(), connectingEdge2.getSecondEndPointCopy(), 1.0 - epsilon));
-//      pointsThatShouldNotBeInOriginals.add(FramePoint2d.morph(connectingEdge2.getFirstEndPointCopy(), connectingEdge2.getSecondEndPointCopy(), 1.0 + epsilon));
+      //      pointsThatShouldNotBeInOriginals.add(FramePoint2d.morph(connectingEdge1.getFirstEndPointCopy(), connectingEdge1.getSecondEndPointCopy(), -epsilon));
+      //      pointsThatShouldNotBeInOriginals.add(FramePoint2d.morph(connectingEdge1.getFirstEndPointCopy(), connectingEdge1.getSecondEndPointCopy(), epsilon));
+      //      pointsThatShouldNotBeInOriginals.add(FramePoint2d.morph(connectingEdge1.getFirstEndPointCopy(), connectingEdge1.getSecondEndPointCopy(), 1.0 - epsilon));
+      //      pointsThatShouldNotBeInOriginals.add(FramePoint2d.morph(connectingEdge1.getFirstEndPointCopy(), connectingEdge1.getSecondEndPointCopy(), 1.0 + epsilon));
+      //      pointsThatShouldNotBeInOriginals.add(FramePoint2d.morph(connectingEdge2.getFirstEndPointCopy(), connectingEdge2.getSecondEndPointCopy(), -epsilon));
+      //      pointsThatShouldNotBeInOriginals.add(FramePoint2d.morph(connectingEdge2.getFirstEndPointCopy(), connectingEdge2.getSecondEndPointCopy(), epsilon));
+      //      pointsThatShouldNotBeInOriginals.add(FramePoint2d.morph(connectingEdge2.getFirstEndPointCopy(), connectingEdge2.getSecondEndPointCopy(), 1.0 - epsilon));
+      //      pointsThatShouldNotBeInOriginals.add(FramePoint2d.morph(connectingEdge2.getFirstEndPointCopy(), connectingEdge2.getSecondEndPointCopy(), 1.0 + epsilon));
 
       FramePoint2d point1 = new FramePoint2d();
       FramePoint2d point2 = new FramePoint2d();
@@ -140,7 +144,7 @@ public class ConvexPolygonToolsTest
       double xMin3 = -0.5, xMax3 = 3.5, yMin3 = -0.5, yMax3 = 2.5;
 
       ArrayList<FramePoint2d> pointsToCheck = ConvexPolygon2dTestHelpers.generateRandomRectangularFramePoints(random, zUpFrame, xMin3, xMax3, yMin3, yMax3,
-            numberOfPointsToCheck);
+                                                                                                              numberOfPointsToCheck);
 
       for (FramePoint2d pointToCheck : pointsToCheck)
       {
@@ -186,6 +190,47 @@ public class ConvexPolygonToolsTest
       ConvexPolygon2dTestHelpers.verifyPointsAreNotInside(polygon2, pointsThatShouldNotBeInOriginals, 0.0);
    }
 
+   @Test
+   public void testCombineDisjointPolygons2() throws Exception
+   {
+      Random random = new Random(234234L);
+
+      for (int i = 0; i < 100; i++)
+      {
+         List<Point2D> pointList = EuclidGeometryRandomTools.generateRandomPointCloud2D(random, 0.0, 1.0, 100);
+
+         Point2D offset1 = new Point2D(-1.0, 0.0);
+         Point2D offset2 = new Point2D(1.0, 0.0);
+
+         ConvexPolygon2D polygon1 = new ConvexPolygon2D();
+         ConvexPolygon2D polygon2 = new ConvexPolygon2D();
+         ConvexPolygon2D expectedPolygon = new ConvexPolygon2D();
+
+         for (int index = 0; index < pointList.size(); index++)
+         {
+            Point2D vertex1 = new Point2D();
+            vertex1.add(pointList.get(index), offset1);
+            polygon1.addVertex(vertex1);
+
+            Point2D vertex2 = new Point2D();
+            vertex2.add(pointList.get(index), offset2);
+            polygon2.addVertex(vertex2);
+
+            expectedPolygon.addVertex(vertex1);
+            expectedPolygon.addVertex(vertex2);
+         }
+
+         polygon1.update();
+         polygon2.update();
+
+         expectedPolygon.update();
+
+         ConvexPolygon2D actualPolygon = ConvexPolygonTools.combineDisjointPolygons(polygon1, polygon2).getConvexPolygon2d();
+
+         assertTrue("Iteration: " + i + ", expected\n" + expectedPolygon + "\nactual\n" + actualPolygon, expectedPolygon.epsilonEquals(actualPolygon, epsilon));
+      }
+   }
+
    private void waitForButtonOrPause(FrameGeometryTestFrame testFrame)
    {
       if (WAIT_FOR_BUTTON_PUSH)
@@ -206,32 +251,32 @@ public class ConvexPolygonToolsTest
    }
 
    @ContinuousIntegrationTest(estimatedDuration = 0.0)
-   @Test (timeout = 30000)
+   @Test(timeout = 30000)
    public void testLimitVerticesConservative()
    {
       Random random = new Random(123821L);
       int tests = 100;
 
-//      int increase = 0;
-//      int decrease = 0;
+      //      int increase = 0;
+      //      int decrease = 0;
 
       for (int test = 0; test < tests; test++)
       {
          FrameConvexPolygon2d polygon = new FrameConvexPolygon2d();
-         int n = random.nextInt(30)+1;
+         int n = random.nextInt(30) + 1;
          for (int i = 0; i < n; i++)
          {
             double x = random.nextDouble();
             double y = random.nextDouble();
-            polygon.addVertex(new Point2d(x, y));
+            polygon.addVertex(new Point2D(x, y));
          }
          polygon.update();
 
          int desiredNumberOfVertices = random.nextInt(10);
          FrameConvexPolygon2d originalPolygon = new FrameConvexPolygon2d(polygon);
 
-//         if (desiredNumberOfVertices > polygon.getNumberOfVertices()) increase++;
-//         if (desiredNumberOfVertices < polygon.getNumberOfVertices()) decrease++;
+         //         if (desiredNumberOfVertices > polygon.getNumberOfVertices()) increase++;
+         //         if (desiredNumberOfVertices < polygon.getNumberOfVertices()) decrease++;
 
          ConvexPolygonTools.limitVerticesConservative(polygon, desiredNumberOfVertices);
 
@@ -259,13 +304,167 @@ public class ConvexPolygonToolsTest
          }
 
          // check if the number of vertices is correct
-         Assert.assertEquals(desiredNumberOfVertices, polygon.getNumberOfVertices());
+         Assert.assertTrue(desiredNumberOfVertices >= polygon.getNumberOfVertices());
          // check if the new polygon is contained in the old one
          Assert.assertTrue(ConvexPolygon2dCalculator.isPolygonInside(polygon.getConvexPolygon2d(), 10E-10, originalPolygon.getConvexPolygon2d()));
       }
 
-//      System.out.println("Tested " + increase + " point increases");
-//      System.out.println("Tested " + decrease + " point decreases");
+      //      System.out.println("Tested " + increase + " point increases");
+      //      System.out.println("Tested " + decrease + " point decreases");
+   }
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test(timeout = 30000)
+   public void testDistanceBetweenPolygonsNegativeAngle()
+   {
+      assertPolygons(new double[] {0, 5, 2, -2, 2, 0}, new double[] {2.5, 1, 2.8, 1, 3, .9, 4, 0, 3, -1}, new double[] {2, 0, 46.0 / 17, 6.0 / 34}, .001);
    }
 
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test(timeout = 30000)
+   public void testDistanceBetweenPolygonsThirdQuadrant()
+   {
+      assertPolygons(new double[] {-2, -1, -1, -1, -1, -2}, new double[] {-2, -2, -2, -3, -4, -4, -4, -2}, new double[] {-1.5, -1.5, -2, -2}, .001);
+   }
+
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test(timeout = 30000)
+   public void testDistanceBetweenPolygonsNegativeAngleAndTwoVisibleVerticesOnPolygon1()
+   {
+      assertPolygons(new double[] {0, 0, 1, 2, 1, 0}, new double[] {2, 2, 0, 3, -1, 4}, new double[] {1, 2, 1.2, 2.4}, .001);
+   }
+
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test(timeout = 30000)
+   public void testDistanceBetweenPolygonsParalellEdges()
+   {
+      assertPolygons(new double[] {0, 0, 0, 1, 1, 0, 2, 1, 1, 2}, new double[] {0, 3, 2, 3, -1, 4, 3, 4}, new double[] {1, 2, 1, 3}, .001);
+   }
+
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test(timeout = 30000)
+   public void testDistanceBetweenPolygonsMultiplePossibleAnswers()
+   {
+      assertPolygons(new double[] {0, 0, 0, 1, 1, 0, 2, 1, 1, 2}, new double[] {3, 2, 2, 3, 2, 4, 4, 2}, new double[] {1, 2, 2, 3}, .001);
+   }
+
+   @Ignore
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test(timeout = 30000)
+   public void testDistanceBetweenPolygonsTwoVisiblePoints()
+   {
+      assertPolygons(new double[] {0, 0, 0, 1, 1, 0, 2, 1, 1, 2}, new double[] {4, 1, 1, 4, 2, 4, 4, 2}, new double[] {2, 1, 3, 2}, .001);
+   }
+
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test(timeout = 30000)
+   public void testDistanceBetweenPolygonsTwoVisiblePoints2()
+   {
+      assertPolygons(new double[] {0, 0, 0, 1, 1, 0, 2, 1, 1, 2}, new double[] {4, 1, 1.5, 4, 2, 4, 4, 2}, new double[] {2, 1, 194.0 / 61, 121.0 / 61}, .001);
+   }
+
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test(timeout = 30000)
+   public void testDistanceBetweenPolygonsOneOfTheAnglesIsZero()
+   {
+      assertPolygons(new double[] {0, 0, 0, 1, 1, 0, 2, 1, 1, 2}, new double[] {0, 2, 0, 3, 1, 3, .8, 2}, new double[] {.9, 1.9, .8, 2}, .001);
+   }
+
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test(timeout = 30000)
+   public void testDistanceBetweenPolygonsTriangles()
+   {
+      assertPolygons(new double[] {0, 1, 1, 0, 2, 0}, new double[] {0, 3, 4, 3, 1, 2}, new double[] {.4, .8, 1, 2}, .001);
+   }
+
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+    @Test(timeout=300000)
+   public void testDistanceBetweenPolygonsSharedPoint()
+   {
+      assertPolygons(new double[] {0, 0, 0, 1, 1, 0, 2, 1, 1, 2}, new double[] {0, 2, 0, 3, 1, 3, 1, 2}, new double[] {1, 2, 1, 2}, .001);
+   }
+
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test(timeout = 30000)
+   public void testDistanceBetweenPolygonsPointOnEdge()
+   {
+      assertPolygons(new double[] {0, 0, 0, 1, 1, 0, 2, 1, 1, 2}, new double[] {0, 2, 0, 3, 1, 3, .5, 1.5}, new double[] {.5, 1.5, .5, 1.5}, .001);
+   }
+
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test(timeout = 30000)
+   public void testDistanceBetweenPolygonsNegativeAngle2()
+   {
+      assertPolygons(new double[] {0, 0, 0, 1, 1, 0, 2, 1, 1, 2}, new double[] {0, 2, 0, 3, 1, 3, .4, 1.5}, new double[] {.45, 1.45, .4, 1.5}, .001);
+   }
+
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test(timeout = 30000)
+   public void testDistanceBetweenPolygonsSolutionIsTwoVertices()
+   {
+      assertPolygons(new double[] {0, 0, 2, 0, 2, 2}, new double[] {4, 3, 6, 3, 6, 7}, new double[] {2, 2, 4, 3}, 0);
+   }
+
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test(timeout = 30000)
+   public void testDistanceBetweenPolygonsIntersectingPolygons()
+   {
+      ConvexPolygon2D polygon1 = getPolygon(new double[] {0, 0, 0, 1, 1, 0, 2, 1, 1, 2});
+      ConvexPolygon2D polygon2 = getPolygon(new double[] {1, 1, 0, 3, 2, 2, 3, 0});
+
+      try
+      {
+         ConvexPolygonTools.computeMinimumDistancePoints(polygon1, polygon2);
+         fail();
+      }
+
+      catch (RuntimeException re)
+      {
+         assertEquals(re.getMessage(), "Cannot compute minimum distance between intersecting polygons.");
+      }
+
+      try
+      {
+         ConvexPolygonTools.computeMinimumDistancePoints(polygon2, polygon1);
+         fail();
+      }
+
+      catch (RuntimeException re)
+      {
+         assertEquals(re.getMessage(), "Cannot compute minimum distance between intersecting polygons.");
+      }
+   }
+
+   private void assertPolygons(double[] p1, double[] p2, double[] expectedSolution, double epsilon)
+   {
+      if (expectedSolution.length != 4)
+      {
+         throw new RuntimeException("Invalid input.");
+      }
+
+      ConvexPolygon2D polygon1 = getPolygon(p1);
+      ConvexPolygon2D polygon2 = getPolygon(p2);
+      Point2DReadOnly[] closestPoints = ConvexPolygonTools.computeMinimumDistancePoints(polygon1, polygon2);
+      Point2DReadOnly[] closestPointsReversed = ConvexPolygonTools.computeMinimumDistancePoints(polygon2, polygon1);
+      assertEquals(closestPoints[0].distance(closestPoints[1]), closestPointsReversed[0].distance(closestPointsReversed[1]), epsilon);
+      assertEquals(expectedSolution[0], closestPoints[0].getX(), epsilon);
+      assertEquals(expectedSolution[1], closestPoints[0].getY(), epsilon);
+      assertEquals(expectedSolution[2], closestPoints[1].getX(), epsilon);
+      assertEquals(expectedSolution[3], closestPoints[1].getY(), epsilon);
+   }
+
+   private ConvexPolygon2D getPolygon(double[] polygon)
+   {
+      if (polygon.length % 2 != 0)
+      {
+         throw new RuntimeException("Invalid input.");
+      }
+
+      List<Point2D> list = new ArrayList<Point2D>();
+      for (int i = 0; i < polygon.length; i += 2)
+      {
+         list.add(new Point2D(polygon[i], polygon[i + 1]));
+      }
+
+      return new ConvexPolygon2D(list);
+   }
 }

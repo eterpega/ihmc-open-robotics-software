@@ -1,21 +1,5 @@
 package us.ihmc.humanoidBehaviors.behaviors.behaviorServices;
 
-import us.ihmc.communication.packets.ObjectDetectorResultPacket;
-import us.ihmc.communication.producers.JPEGDecompressor;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
-import us.ihmc.humanoidBehaviors.behaviors.goalLocation.GoalDetectorBehaviorService;
-import us.ihmc.humanoidBehaviors.communication.CommunicationBridgeInterface;
-import us.ihmc.humanoidBehaviors.communication.ConcurrentListeningQueue;
-import us.ihmc.humanoidRobotics.communication.packets.sensing.VideoPacket;
-import us.ihmc.ihmcPerception.objectDetector.ObjectDetectorFromCameraImages;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.geometry.FramePose;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
-import us.ihmc.tools.io.printing.PrintTools;
-import us.ihmc.tools.thread.ThreadTools;
-import us.ihmc.tools.time.DateTools;
-
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -23,6 +7,23 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.ConcurrentLinkedQueue;
+
+import javax.imageio.ImageIO;
+
+import us.ihmc.commons.PrintTools;
+import us.ihmc.communication.packets.ObjectDetectorResultPacket;
+import us.ihmc.communication.producers.JPEGDecompressor;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.humanoidBehaviors.behaviors.goalLocation.GoalDetectorBehaviorService;
+import us.ihmc.humanoidBehaviors.communication.CommunicationBridgeInterface;
+import us.ihmc.humanoidBehaviors.communication.ConcurrentListeningQueue;
+import us.ihmc.humanoidRobotics.communication.packets.sensing.VideoPacket;
+import us.ihmc.ihmcPerception.objectDetector.ObjectDetectorFromCameraImages;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.robotics.geometry.FramePose;
+import us.ihmc.tools.FormattingTools;
+import us.ihmc.tools.thread.ThreadTools;
 
 public class ObjectDetectorBehaviorService extends GoalDetectorBehaviorService
 {
@@ -36,10 +37,10 @@ public class ObjectDetectorBehaviorService extends GoalDetectorBehaviorService
    private final ObjectDetectorFromCameraImages objectDetectorFromCameraImages;
    private RigidBodyTransform transformFromReportedToFiducialFrame;
 
-   private final BooleanYoVariable locationEnabled;
+   private final YoBoolean locationEnabled;
 
    private final Path videoFilesRecordingLocation = Paths.get(System.getProperty("user.home"), "diagnostic", "behaviors", "valveDetector");
-   private final BooleanYoVariable shouldRecordVideoPackets;
+   private final YoBoolean shouldRecordVideoPackets;
    private final VideoPacketToImageFilesRecorder imageFilesRecorder = new VideoPacketToImageFilesRecorder(videoFilesRecordingLocation);
 
    public ObjectDetectorBehaviorService(CommunicationBridgeInterface communicationBridge,
@@ -58,9 +59,9 @@ public class ObjectDetectorBehaviorService extends GoalDetectorBehaviorService
       getCommunicationBridge().attachListener(ObjectDetectorResultPacket.class, objectDetectorFromCameraImages);
       
       String prefix = "fiducial";
-      locationEnabled = new BooleanYoVariable(prefix + "LocationEnabled", getYoVariableRegistry());
+      locationEnabled = new YoBoolean(prefix + "LocationEnabled", getYoVariableRegistry());
 
-      shouldRecordVideoPackets = new BooleanYoVariable("ShouldRecordVideoPackets", getYoVariableRegistry());
+      shouldRecordVideoPackets = new YoBoolean("ShouldRecordVideoPackets", getYoVariableRegistry());
       shouldRecordVideoPackets.set(false);
       
       locationEnabled.set(false);
@@ -161,8 +162,8 @@ public class ObjectDetectorBehaviorService extends GoalDetectorBehaviorService
 
       public VideoPacketToImageFilesRecorder(Path workingDirectory) throws IOException
       {
-         String dateString = DateTools.getDateString();
-         String timeStringWithSeconds = DateTools.getTimeStringWithSeconds();
+         String dateString = FormattingTools.getDateString();
+         String timeStringWithSeconds = FormattingTools.getTimeStringWithSeconds();
 
          this.workingDirectory = workingDirectory;
          Files.createDirectories(this.workingDirectory);

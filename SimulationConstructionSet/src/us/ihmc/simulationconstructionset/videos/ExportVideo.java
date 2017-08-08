@@ -6,22 +6,24 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Vector;
 
+import us.ihmc.codecs.builder.H264Settings;
 import us.ihmc.codecs.builder.MP4H264MovieBuilder;
+import us.ihmc.codecs.generated.EProfileIdc;
 import us.ihmc.codecs.generated.EUsageType;
-import us.ihmc.graphics3DAdapter.Graphics3DAdapter;
-import us.ihmc.graphics3DAdapter.camera.CameraController;
-import us.ihmc.graphics3DAdapter.camera.CaptureDevice;
-import us.ihmc.graphics3DAdapter.camera.ViewportAdapter;
+import us.ihmc.commons.PrintTools;
+import us.ihmc.jMonkeyEngineToolkit.Graphics3DAdapter;
+import us.ihmc.jMonkeyEngineToolkit.camera.CameraController;
+import us.ihmc.jMonkeyEngineToolkit.camera.CaptureDevice;
+import us.ihmc.jMonkeyEngineToolkit.camera.ViewportAdapter;
 import us.ihmc.simulationconstructionset.TimeHolder;
-import us.ihmc.simulationconstructionset.commands.DataBufferCommandsExecutor;
 import us.ihmc.simulationconstructionset.commands.ExportVideoCommandExecutor;
 import us.ihmc.simulationconstructionset.commands.RunCommandsExecutor;
 import us.ihmc.simulationconstructionset.gui.ActiveCanvas3DHolder;
 import us.ihmc.simulationconstructionset.gui.StandardSimulationGUI;
 import us.ihmc.simulationconstructionset.gui.dialogConstructors.GUIEnablerAndDisabler;
 import us.ihmc.simulationconstructionset.synchronization.SimulationSynchronizer;
-import us.ihmc.tools.io.printing.PrintTools;
 import us.ihmc.tools.io.xml.XMLReaderUtility;
+import us.ihmc.yoVariables.dataBuffer.DataBufferCommandsExecutor;
 
 public class ExportVideo implements ExportVideoCommandExecutor
 {
@@ -50,6 +52,7 @@ public class ExportVideo implements ExportVideoCommandExecutor
       this.guiEnablerAndDisabler = guiEnablerAndDisabler;
    }
 
+   @Override
    public void createVideo(File selectedFile)
    {
       Dimension dimension = new Dimension(1280, 720); // Default to 720p
@@ -64,6 +67,7 @@ public class ExportVideo implements ExportVideoCommandExecutor
       this.createVideo(cameraController, selectedFile, dimension, isSequanceSelected, playBackRate, frameRate);
    }
 
+   @Override
    public void createVideo(CameraController cameraController, File selectedFile, Dimension dimension, Boolean isSequanceSelected, double playBackRate, double frameRate)
    {
       Graphics3DAdapter graphics3dAdapter = standardSimulationGUI.getGraphics3dAdapter();
@@ -80,6 +84,7 @@ public class ExportVideo implements ExportVideoCommandExecutor
       graphics3dAdapter.closeViewport(adapter);
    }
 
+   @Override
    public void createVideo(CaptureDevice captureDevice, File selected, Boolean isSequenceSelected, double playBackRate, double frameRate)
    {
       printIfDebug("Creating Video. File = " + selected);
@@ -194,13 +199,16 @@ public class ExportVideo implements ExportVideoCommandExecutor
 
       dataBufferCommandsExecutor.gotoInPoint();
       BufferedImage bufferedImage = captureDevice.exportSnapshotAsBufferedImage();
-      int bitrate = bufferedImage.getWidth() * bufferedImage.getHeight() / 100; // Heuristic bitrate in kbit/s
 
       MP4H264MovieBuilder movieBuilder = null;
       try
       {
-         movieBuilder = new MP4H264MovieBuilder(new File(file), bufferedImage.getWidth(), bufferedImage.getHeight(), (int) frameRate, bitrate,
-               EUsageType.CAMERA_VIDEO_REAL_TIME);
+         H264Settings settings = new H264Settings();
+         settings.setBitrate(bufferedImage.getWidth() * bufferedImage.getHeight() / 100);
+         settings.setUsageType(EUsageType.CAMERA_VIDEO_REAL_TIME);
+         settings.setProfileIdc(EProfileIdc.PRO_HIGH);
+         
+         movieBuilder = new MP4H264MovieBuilder(new File(file), bufferedImage.getWidth(), bufferedImage.getHeight(), (int) frameRate, settings);
 
          movieBuilder.encodeFrame(bufferedImage);
 

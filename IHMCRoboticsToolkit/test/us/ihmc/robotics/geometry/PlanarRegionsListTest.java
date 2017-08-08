@@ -7,13 +7,14 @@ import static org.junit.Assert.assertTrue;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.vecmath.Point2d;
-import javax.vecmath.Point3d;
-
 import org.junit.Test;
 
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
-import us.ihmc.tools.testing.MutationTestingTools;
+import us.ihmc.commons.MutationTestFacilitator;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.euclid.geometry.ConvexPolygon2D;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple2D.Point2D;
+import us.ihmc.euclid.tuple3D.Point3D;
 
 public class PlanarRegionsListTest
 {
@@ -22,28 +23,28 @@ public class PlanarRegionsListTest
    public void testTrivialCase() throws Exception
    {
       // polygons forming a "|"-shaped region.
-      List<ConvexPolygon2d> region1ConvexPolygons = new ArrayList<>();
-      ConvexPolygon2d polygon1 = new ConvexPolygon2d();
+      List<ConvexPolygon2D> region1ConvexPolygons = new ArrayList<>();
+      ConvexPolygon2D polygon1 = new ConvexPolygon2D();
       polygon1.addVertex(5.0, 1.0);
       polygon1.addVertex(5.0, -1.0);
       polygon1.addVertex(-5.0, -1.0);
       polygon1.addVertex(-5.0, 1.0);
 
       region1ConvexPolygons.add(polygon1);
-      for (ConvexPolygon2d convexPolygon : region1ConvexPolygons)
+      for (ConvexPolygon2D convexPolygon : region1ConvexPolygons)
          convexPolygon.update();
 
 
       // polygons forming a "--"-shaped region.
-      List<ConvexPolygon2d> region2ConvexPolygons = new ArrayList<>();
-      ConvexPolygon2d polygon2 = new ConvexPolygon2d();
+      List<ConvexPolygon2D> region2ConvexPolygons = new ArrayList<>();
+      ConvexPolygon2D polygon2 = new ConvexPolygon2D();
       polygon2.addVertex(1.0, 5.0);
       polygon2.addVertex(1.0, -5.0);
       polygon2.addVertex(-1.0, -5.0);
       polygon2.addVertex(-1.0, 5.0);
 
       region2ConvexPolygons.add(polygon2);
-      for (ConvexPolygon2d convexPolygon : region2ConvexPolygons)
+      for (ConvexPolygon2D convexPolygon : region2ConvexPolygons)
          convexPolygon.update();
 
       RigidBodyTransform region1Transform = new RigidBodyTransform();
@@ -63,7 +64,7 @@ public class PlanarRegionsListTest
       for (int i = 0; i < 2; i++)
          assertTrue(planarRegionsList.getPlanarRegion(i).epsilonEquals(planarRegions.get(i), 1.0e-10));
 
-      Point2d point2d = new Point2d();
+      Point2D point2d = new Point2D();
       List<PlanarRegion> result;
 
       // Do a bunch of trivial queries with findPlanarRegionsContainingPointByProjectionOntoXYPlane(double x, double y)
@@ -123,10 +124,10 @@ public class PlanarRegionsListTest
       result = planarRegionsList.findPlanarRegionsContainingPointByProjectionOntoXYPlane(point2d);
       assertNull(result);
 
-      Point3d point3d = new Point3d();
+      Point3D point3d = new Point3D();
       double epsilon = 1.0e-3;
 
-      // Do a bunch of trivial queries with findPlanarRegionsContainingPoint(Point3d point, double epsilon)
+      // Do a bunch of trivial queries with findPlanarRegionsContainingPoint(Point3D point, double epsilon)
       point3d.set(0.0, 0.0, 0.0);
       result = planarRegionsList.findPlanarRegionsContainingPoint(point3d, epsilon);
       assertEquals(1, result.size());
@@ -141,7 +142,7 @@ public class PlanarRegionsListTest
       result = planarRegionsList.findPlanarRegionsContainingPoint(point3d, 0.51);
       assertEquals(2, result.size());
 
-      ConvexPolygon2d convexPolygon = new ConvexPolygon2d();
+      ConvexPolygon2D convexPolygon = new ConvexPolygon2D();
       convexPolygon.addVertex(0.2, 0.2);
       convexPolygon.addVertex(0.2, -0.2);
       convexPolygon.addVertex(-0.2, -0.2);
@@ -175,8 +176,6 @@ public class PlanarRegionsListTest
 
    public static void main(String[] args)
    {
-      String targetTests = PlanarRegionsListTest.class.getName();
-      String targetClassesInSamePackage = PlanarRegionsList.class.getName();
-      MutationTestingTools.doPITMutationTestAndOpenResult(targetTests, targetClassesInSamePackage);
+      MutationTestFacilitator.facilitateMutationTestForClass(PlanarRegionsList.class, PlanarRegionsListTest.class);
    }
 }

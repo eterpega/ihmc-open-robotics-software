@@ -1,16 +1,15 @@
 package us.ihmc.robotics.controllers;
 
-import javax.vecmath.Matrix3d;
-
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.euclid.matrix.interfaces.Matrix3DReadOnly;
+import us.ihmc.yoVariables.variable.YoDouble;
 
 public interface YoOrientationPIDGainsInterface extends OrientationPIDGainsInterface
 {
-   public abstract Matrix3d createProportionalGainMatrix();
+   public abstract Matrix3DReadOnly createProportionalGainMatrix();
 
-   public abstract Matrix3d createDerivativeGainMatrix();
+   public abstract Matrix3DReadOnly createDerivativeGainMatrix();
 
-   public abstract Matrix3d createIntegralGainMatrix();
+   public abstract Matrix3DReadOnly createIntegralGainMatrix();
 
    public abstract void setProportionalGains(double proportionalGainX, double proportionalGainY, double proportionalGainZ);
 
@@ -30,11 +29,11 @@ public interface YoOrientationPIDGainsInterface extends OrientationPIDGainsInter
 
    public abstract void setMaxProportionalError(double maxProportionalError);
 
-   public abstract DoubleYoVariable getYoMaximumFeedback();
+   public abstract YoDouble getYoMaximumFeedback();
 
-   public abstract DoubleYoVariable getYoMaximumFeedbackRate();
+   public abstract YoDouble getYoMaximumFeedbackRate();
 
-   public abstract DoubleYoVariable getYoMaximumDerivativeError();
+   public abstract YoDouble getYoMaximumDerivativeError();
 
-   public abstract DoubleYoVariable getYoMaximumProportionalError();
+   public abstract YoDouble getYoMaximumProportionalError();
 }

@@ -1,10 +1,11 @@
 package us.ihmc.robotDataLogger;
 
-import java.nio.ByteBuffer;
+import us.ihmc.robotDataLogger.handshake.LogHandshake;
+import us.ihmc.robotDataLogger.handshake.YoVariableHandshakeParser;
+import us.ihmc.robotDataLogger.listeners.ClearLogListener;
+import us.ihmc.robotDataLogger.listeners.TimestampListener;
 
-import us.ihmc.multicastLogDataProtocol.control.LogHandshake;
-
-public interface YoVariablesUpdatedListener
+public interface YoVariablesUpdatedListener extends TimestampListener, ClearLogListener
 {
    /**
     * 
@@ -25,8 +26,6 @@ public interface YoVariablesUpdatedListener
 
    void setYoVariableClient(YoVariableClient client);
 
-   void receiveTimedOut();
-
    /**
     * On connect, the return value of this function is send to the server. The server will only send
     * one in n packets to this client
@@ -35,29 +34,15 @@ public interface YoVariablesUpdatedListener
     */
    int getDisplayOneInNPackets();
 
-   /**
-    * Called when an UDP packet with the timestamp is received. The timestamps are send
-    * over UDP for synchronization purposes. Timestamps are published directly from the realtime
-    * thread and should have minimum delay
-    * 
-    * @param timestamp
-    */
-   void receivedTimestampOnly(long timestamp);
+
 
    /**s
     * Data and timestamp is received over the TCP channel. Significant delay can occur depending on the
     * network conditions. Use receivedTimestampOnly for synchronization purposes.
     * 
     * @param timestamp timestamp
-    * @param buf data
     */
-   void receivedTimestampAndData(long timestamp, ByteBuffer buf);
-
-   /**
-    * Broadcast to all clients to clear the log and start recording anew.
-    * 
-    */
-   void clearLog();
+   void receivedTimestampAndData(long timestamp);
 
    boolean executeVariableChangedListeners();
 }

@@ -17,7 +17,12 @@ public class HumanoidFloatingRootJointRobot extends FloatingRootJointRobot
 
    public HumanoidFloatingRootJointRobot(RobotDescription robotDescription, HumanoidJointNameMap sdfJointNameMap)
    {
-      super(robotDescription);
+      this(robotDescription, sdfJointNameMap, true, true);
+   }
+
+   public HumanoidFloatingRootJointRobot(RobotDescription robotDescription, HumanoidJointNameMap sdfJointNameMap, boolean enableDamping, boolean enableJointTorqueAndVelocityLimits)
+   {
+      super(robotDescription, enableDamping, enableJointTorqueAndVelocityLimits && (sdfJointNameMap == null || sdfJointNameMap.isTorqueVelocityLimitsEnabled()));
 
       for (RobotSide robotSide : RobotSide.values)
       {
@@ -54,11 +59,6 @@ public class HumanoidFloatingRootJointRobot extends FloatingRootJointRobot
    public List<GroundContactPoint> getFootGroundContactPoints(RobotSide robotSide)
    {
       return footGroundContactPoints.get(robotSide);
-   }
-
-   public List<GroundContactPoint> getHandGroundContactPoints(RobotSide robotSide)
-   {
-      return handGroundContactPoints.get(robotSide);
    }
 
    public SideDependentList<String> getJointNamesBeforeFeet()

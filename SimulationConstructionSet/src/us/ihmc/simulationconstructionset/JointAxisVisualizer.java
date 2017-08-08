@@ -3,11 +3,11 @@ package us.ihmc.simulationconstructionset;
 import java.util.ArrayList;
 import java.util.List;
 
-import us.ihmc.graphics3DDescription.appearance.YoAppearance;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicReferenceFrame;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsList;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
+import us.ihmc.graphicsDescription.appearance.YoAppearance;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicReferenceFrame;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsList;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FrameVector;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
@@ -20,7 +20,7 @@ public class JointAxisVisualizer implements RobotController
 {
    private final  String name = getClass().getSimpleName();
    private final YoVariableRegistry registry = new YoVariableRegistry(name);
-   private final List<YoGraphicReferenceFrame> dynamicGraphicReferenceFrames = new ArrayList<YoGraphicReferenceFrame>();
+   private final List<YoGraphicReferenceFrame> yoGraphicReferenceFrames = new ArrayList<YoGraphicReferenceFrame>();
    
    public JointAxisVisualizer(RigidBody rootBody, YoGraphicsListRegistry yoGraphicsListRegistry, double length)
    {
@@ -33,9 +33,9 @@ public class JointAxisVisualizer implements RobotController
          {
             FrameVector jAxis=((OneDoFJoint)joint).getJointAxis();
             ReferenceFrame referenceFrame = ReferenceFrame.constructReferenceFrameFromPointAndZAxis(joint.getName()+"JointAxis", new FramePoint(jAxis.getReferenceFrame()), new FrameVector(jAxis.getReferenceFrame(),jAxis.getVector()));
-            YoGraphicReferenceFrame dynamicGraphicReferenceFrame = new YoGraphicReferenceFrame(referenceFrame , registry, length, YoAppearance.Gold());
-            yoGraphicsList.add(dynamicGraphicReferenceFrame);
-            dynamicGraphicReferenceFrames.add(dynamicGraphicReferenceFrame);
+            YoGraphicReferenceFrame yoGraphicReferenceFrame = new YoGraphicReferenceFrame(referenceFrame , registry, length, YoAppearance.Gold());
+            yoGraphicsList.add(yoGraphicReferenceFrame);
+            yoGraphicReferenceFrames.add(yoGraphicReferenceFrame);
          }
          List<InverseDynamicsJoint> childrenJoints = joint.getSuccessor().getChildrenJoints();
          jointStack.addAll(childrenJoints);
@@ -44,31 +44,36 @@ public class JointAxisVisualizer implements RobotController
       yoGraphicsListRegistry.registerYoGraphicsList(yoGraphicsList);
    }
    
+   @Override
    public void initialize()
    {
       doControl();
    }
 
+   @Override
    public YoVariableRegistry getYoVariableRegistry()
    {
       return registry;
    }
 
+   @Override
    public String getName()
    {
       return name;
    }
 
+   @Override
    public String getDescription()
    {
       return getName();
    }
 
+   @Override
    public void doControl()
    {
-      for (int i = 0; i < dynamicGraphicReferenceFrames.size(); i++)
+      for (int i = 0; i < yoGraphicReferenceFrames.size(); i++)
       {
-         dynamicGraphicReferenceFrames.get(i).update();
+         yoGraphicReferenceFrames.get(i).update();
       } 
    }
 

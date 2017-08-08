@@ -1,12 +1,13 @@
 package us.ihmc.robotics.screwTheory;
 
-import org.ejml.data.DenseMatrix64F;
-import org.ejml.ops.CommonOps;
-import us.ihmc.robotics.linearAlgebra.MatrixTools;
-import us.ihmc.robotics.referenceFrames.ReferenceFrame;
-
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+
+import org.ejml.data.DenseMatrix64F;
+import org.ejml.ops.CommonOps;
+
+import us.ihmc.robotics.linearAlgebra.MatrixTools;
+import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 
 /**
  * Very inefficient. Should only be used for verification of better methods in unit tests
@@ -16,7 +17,6 @@ public class DifferentialIDMassMatrixCalculator implements MassMatrixCalculator
    private final InverseDynamicsCalculator idCalculator;
    private final InverseDynamicsJoint[] jointsInOrder;
    private final DenseMatrix64F massMatrix;
-   private final TwistCalculator twistCalculator;
    private final DenseMatrix64F storedJointDesiredAccelerations;
    private final DenseMatrix64F tmpDesiredJointAccelerationsMatrix;
    private final DenseMatrix64F tmpTauMatrix;
@@ -27,12 +27,11 @@ public class DifferentialIDMassMatrixCalculator implements MassMatrixCalculator
 
    public DifferentialIDMassMatrixCalculator(ReferenceFrame inertialFrame, RigidBody rootBody)
    {
-      twistCalculator = new TwistCalculator(inertialFrame, rootBody);
       LinkedHashMap<RigidBody, Wrench> zeroExternalWrench = new LinkedHashMap<RigidBody, Wrench>();
       ArrayList<InverseDynamicsJoint> zeroJointToIgnore = new ArrayList<InverseDynamicsJoint>();
       SpatialAccelerationVector zeroRootAcceleration = ScrewTools.createGravitationalSpatialAcceleration(rootBody, 0.0);
       
-      idCalculator = new InverseDynamicsCalculator(inertialFrame, zeroRootAcceleration, zeroExternalWrench, zeroJointToIgnore, false, true, twistCalculator);
+      idCalculator = new InverseDynamicsCalculator(rootBody, zeroRootAcceleration, zeroExternalWrench, zeroJointToIgnore, false, true);
       jointsInOrder = ScrewTools.computeSubtreeJoints(rootBody);
       totalNumberOfDoFs = ScrewTools.computeDegreesOfFreedom(jointsInOrder);
       massMatrix = new DenseMatrix64F(totalNumberOfDoFs, totalNumberOfDoFs);
@@ -114,6 +113,12 @@ public class DifferentialIDMassMatrixCalculator implements MassMatrixCalculator
    public DenseMatrix64F getMassMatrix()
    {
       return massMatrix;
+   }
+
+   @Override
+   public void getMassMatrix(DenseMatrix64F massMatrixToPack)
+   {
+      massMatrixToPack.set(massMatrix);
    }
 
    @Override

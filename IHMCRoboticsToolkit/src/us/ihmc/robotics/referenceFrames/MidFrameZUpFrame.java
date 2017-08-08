@@ -1,11 +1,10 @@
 package us.ihmc.robotics.referenceFrames;
 
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple2D.Vector2D;
+import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FrameVector;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
-
-import javax.vecmath.Vector2d;
-import javax.vecmath.Vector3d;
 
 public class MidFrameZUpFrame extends ReferenceFrame
 {
@@ -15,13 +14,13 @@ public class MidFrameZUpFrame extends ReferenceFrame
    private final FramePoint originOneInParent;
    private final FramePoint originTwoInParent;
    private final FrameVector vectorBetweenFrames;
-   private final Vector2d vectorBetweenFrames2d = new Vector2d();
-   private final Vector3d parentToMidpointVector3d = new Vector3d();
+   private final Vector2D vectorBetweenFrames2d = new Vector2D();
+   private final Vector3D parentToMidpointVector3d = new Vector3D();
    private final RigidBodyTransform transform3D = new RigidBodyTransform();
 
    public MidFrameZUpFrame(String name, ReferenceFrame parentZUpFrame, ReferenceFrame frameOne, ReferenceFrame frameTwo)
    {
-      super(name, parentZUpFrame, false, false, true);
+      super(name, parentZUpFrame, false, true);
 
       if (!parentZUpFrame.isZupFrame())
       {

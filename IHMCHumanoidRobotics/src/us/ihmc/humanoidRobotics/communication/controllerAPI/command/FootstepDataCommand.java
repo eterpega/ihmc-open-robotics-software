@@ -2,27 +2,46 @@ package us.ihmc.humanoidRobotics.communication.controllerAPI.command;
 
 import java.util.ArrayList;
 
-import javax.vecmath.Point2d;
-import javax.vecmath.Point3d;
-import javax.vecmath.Quat4d;
-
 import us.ihmc.communication.controllerAPI.command.Command;
+import us.ihmc.euclid.tuple2D.Point2D;
+import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage;
-import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage.FootstepOrigin;
+import us.ihmc.humanoidRobotics.footstep.Footstep;
+import us.ihmc.robotics.geometry.FrameOrientation;
+import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.lists.RecyclingArrayList;
+import us.ihmc.robotics.math.trajectories.waypoints.FrameSE3TrajectoryPoint;
+import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.trajectories.TrajectoryType;
 
 public class FootstepDataCommand implements Command<FootstepDataCommand, FootstepDataMessage>
 {
+   private static final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
+
    private RobotSide robotSide;
-   private FootstepOrigin origin;
    private TrajectoryType trajectoryType = TrajectoryType.DEFAULT;
-   private final RecyclingArrayList<Point3d> trajectoryWaypoints = new RecyclingArrayList<>(2, Point3d.class);
    private double swingHeight = 0.0;
-   private final Point3d position = new Point3d();
-   private final Quat4d orientation = new Quat4d();
-   private final RecyclingArrayList<Point2d> predictedContactPoints = new RecyclingArrayList<>(4, Point2d.class);
+   private final FramePoint position = new FramePoint();
+   private final FrameOrientation orientation = new FrameOrientation();
+
+   private final RecyclingArrayList<Point2D> predictedContactPoints = new RecyclingArrayList<>(4, Point2D.class);
+
+   private final RecyclingArrayList<FramePoint> customPositionWaypoints = new RecyclingArrayList<>(2, FramePoint.class);
+   private final RecyclingArrayList<FrameSE3TrajectoryPoint> swingTrajectory = new RecyclingArrayList<>(Footstep.maxNumberOfSwingWaypoints, FrameSE3TrajectoryPoint.class);
+
+   private double swingTrajectoryBlendDuration = 0.0;
+   private double swingDuration = Double.NaN;
+   private double transferDuration = Double.NaN;
+
+   private ReferenceFrame trajectoryFrame;
+   
+   /** the time to delay this command on the controller side before being executed **/
+   private double executionDelayTime;
+   /** the execution time. This number is set if the execution delay is non zero**/
+   public double adjustedExecutionTime;
 
    public FootstepDataCommand()
    {
@@ -33,56 +52,96 @@ public class FootstepDataCommand implements Command<FootstepDataCommand, Footste
    public void clear()
    {
       robotSide = null;
-      origin = null;
       trajectoryType = TrajectoryType.DEFAULT;
       swingHeight = 0.0;
       position.set(0.0, 0.0, 0.0);
       orientation.set(0.0, 0.0, 0.0, 1.0);
       predictedContactPoints.clear();
+      customPositionWaypoints.clear();
+      swingTrajectory.clear();
+
+      swingDuration = Double.NaN;
+      transferDuration = Double.NaN;
    }
 
    @Override
    public void set(FootstepDataMessage message)
    {
       robotSide = message.getRobotSide();
-      origin = message.getOrigin();
       trajectoryType = message.getTrajectoryType();
-      Point3d[] originalWaypointList = message.getTrajectoryWaypoints();
-      trajectoryWaypoints.clear();
-      if (originalWaypointList != null)
-      {
-         for (int i = 0; i < originalWaypointList.length; i++)
-            trajectoryWaypoints.add().set(originalWaypointList[i]);
-      }
       swingHeight = message.getSwingHeight();
-      position.set(message.getLocation());
-      orientation.set(message.getOrientation());
-      ArrayList<Point2d> originalPredictedContactPoints = message.getPredictedContactPoints();
+      swingTrajectoryBlendDuration = message.getSwingTrajectoryBlendDuration();
+      position.setIncludingFrame(worldFrame, message.getLocation());
+      orientation.setIncludingFrame(worldFrame, message.getOrientation());
+
+      Point3D[] originalPositionWaypointList = message.getCustomPositionWaypoints();
+      customPositionWaypoints.clear();
+      if (originalPositionWaypointList != null)
+      {
+         for (int i = 0; i < originalPositionWaypointList.length; i++)
+            customPositionWaypoints.add().setIncludingFrame(trajectoryFrame, originalPositionWaypointList[i]);
+      }
+
+      SE3TrajectoryPointMessage[] messageSwingTrajectory = message.getSwingTrajectory();
+      swingTrajectory.clear();
+      if (messageSwingTrajectory != null)
+      {
+         for (int i = 0; i < messageSwingTrajectory.length; i++)
+         {
+            FrameSE3TrajectoryPoint point = swingTrajectory.add();
+            point.setToZero(trajectoryFrame);
+            messageSwingTrajectory[i].packData(point);
+         }
+      }
+
+      ArrayList<Point2D> originalPredictedContactPoints = message.getPredictedContactPoints();
       predictedContactPoints.clear();
       if (originalPredictedContactPoints != null)
       {
          for (int i = 0; i < originalPredictedContactPoints.size(); i++)
             predictedContactPoints.add().set(originalPredictedContactPoints.get(i));
       }
+
+      swingDuration = message.swingDuration;
+      transferDuration = message.transferDuration;
+      
+      this.executionDelayTime = message.executionDelayTime;
    }
 
    @Override
    public void set(FootstepDataCommand other)
    {
       robotSide = other.robotSide;
-      origin = other.origin;
       trajectoryType = other.trajectoryType;
-      RecyclingArrayList<Point3d> otherWaypointList = other.trajectoryWaypoints;
-      trajectoryWaypoints.clear();
-      for (int i = 0; i < otherWaypointList.size(); i++)
-         trajectoryWaypoints.add().set(otherWaypointList.get(i));
       swingHeight = other.swingHeight;
-      position.set(other.position);
-      orientation.set(other.orientation);
-      RecyclingArrayList<Point2d> otherPredictedContactPoints = other.predictedContactPoints;
+      swingTrajectoryBlendDuration = other.swingTrajectoryBlendDuration;
+      position.setIncludingFrame(other.position);
+      orientation.setIncludingFrame(other.orientation);
+
+      RecyclingArrayList<FramePoint> otherWaypointList = other.customPositionWaypoints;
+      customPositionWaypoints.clear();
+      for (int i = 0; i < otherWaypointList.size(); i++)
+         customPositionWaypoints.add().setIncludingFrame(otherWaypointList.get(i));
+
+      RecyclingArrayList<FrameSE3TrajectoryPoint> otherSwingTrajectory = other.swingTrajectory;
+      swingTrajectory.clear();
+      for (int i = 0; i < otherSwingTrajectory.size(); i++)
+         swingTrajectory.add().setIncludingFrame(otherSwingTrajectory.get(i));
+
+      RecyclingArrayList<Point2D> otherPredictedContactPoints = other.predictedContactPoints;
       predictedContactPoints.clear();
       for (int i = 0; i < otherPredictedContactPoints.size(); i++)
          predictedContactPoints.add().set(otherPredictedContactPoints.get(i));
+
+      swingDuration = other.swingDuration;
+      transferDuration = other.transferDuration;
+      this.executionDelayTime = other.executionDelayTime;
+   }
+
+   public void set(ReferenceFrame trajectoryFrame, FootstepDataMessage message)
+   {
+      this.trajectoryFrame = trajectoryFrame;
+      set(message);
    }
 
    public void setRobotSide(RobotSide robotSide)
@@ -90,10 +149,15 @@ public class FootstepDataCommand implements Command<FootstepDataCommand, Footste
       this.robotSide = robotSide;
    }
 
-   public void setPose(Point3d position, Quat4d orientation)
+   public void setPose(Point3D position, Quaternion orientation)
    {
       this.position.set(position);
       this.orientation.set(orientation);
+   }
+
+   public void setSwingTrajectoryBlendDuration(double swingTrajectoryBlendDuration)
+   {
+      this.swingTrajectoryBlendDuration = swingTrajectoryBlendDuration;
    }
 
    public void setSwingHeight(double swingHeight)
@@ -101,20 +165,15 @@ public class FootstepDataCommand implements Command<FootstepDataCommand, Footste
       this.swingHeight = swingHeight;
    }
 
-   public void setOrigin(FootstepOrigin origin)
-   {
-      this.origin = origin;
-   }
-
    public void setTrajectoryType(TrajectoryType trajectoryType)
    {
       this.trajectoryType = trajectoryType;
    }
 
-   public void setPredictedContactPoints(RecyclingArrayList<Point2d> predictedContactPoints)
+   public void setPredictedContactPoints(RecyclingArrayList<Point2D> predictedContactPoints)
    {
       this.predictedContactPoints.clear();
-      for(int i = 0; i < predictedContactPoints.size(); i++)
+      for (int i = 0; i < predictedContactPoints.size(); i++)
          this.predictedContactPoints.add().set(predictedContactPoints.get(i));
    }
 
@@ -123,19 +182,29 @@ public class FootstepDataCommand implements Command<FootstepDataCommand, Footste
       return robotSide;
    }
 
-   public FootstepOrigin getOrigin()
-   {
-      return origin;
-   }
-
    public TrajectoryType getTrajectoryType()
    {
       return trajectoryType;
    }
 
-   public RecyclingArrayList<Point3d> getTrajectoryWaypoints()
+   public ReferenceFrame getTrajectoryFrame()
    {
-      return trajectoryWaypoints;
+      return trajectoryFrame;
+   }
+
+   public RecyclingArrayList<FramePoint> getCustomPositionWaypoints()
+   {
+      return customPositionWaypoints;
+   }
+
+   public RecyclingArrayList<FrameSE3TrajectoryPoint> getSwingTrajectory()
+   {
+      return swingTrajectory;
+   }
+
+   public double getSwingTrajectoryBlendDuration()
+   {
+      return swingTrajectoryBlendDuration;
    }
 
    public double getSwingHeight()
@@ -143,19 +212,29 @@ public class FootstepDataCommand implements Command<FootstepDataCommand, Footste
       return swingHeight;
    }
 
-   public Point3d getPosition()
+   public FramePoint getPosition()
    {
       return position;
    }
 
-   public Quat4d getOrientation()
+   public FrameOrientation getOrientation()
    {
       return orientation;
    }
 
-   public RecyclingArrayList<Point2d> getPredictedContactPoints()
+   public RecyclingArrayList<Point2D> getPredictedContactPoints()
    {
       return predictedContactPoints;
+   }
+
+   public double getSwingDuration()
+   {
+      return swingDuration;
+   }
+
+   public double getTransferDuration()
+   {
+      return transferDuration;
    }
 
    @Override
@@ -167,6 +246,59 @@ public class FootstepDataCommand implements Command<FootstepDataCommand, Footste
    @Override
    public boolean isCommandValid()
    {
-      return origin != null && robotSide != null;
+      return robotSide != null;
    }
+   
+   /**
+    * returns the amount of time this command is delayed on the controller side before executing
+    * @return the time to delay this command in seconds
+    */
+   @Override
+   public double getExecutionDelayTime()
+   {
+      return executionDelayTime;
+   }
+   
+   /**
+    * sets the amount of time this command is delayed on the controller side before executing
+    * @param delayTime the time in seconds to delay after receiving the command before executing
+    */
+   @Override
+   public void setExecutionDelayTime(double delayTime)
+   {
+      this.executionDelayTime = delayTime;
+   }
+   
+   /**
+    * returns the expected execution time of this command. The execution time will be computed when the controller 
+    * receives the command using the controllers time plus the execution delay time.
+    * This is used when {@code getExecutionDelayTime} is non-zero
+    */
+   @Override
+   public double getExecutionTime()
+   {
+      return adjustedExecutionTime;
+   }
+
+   /**
+    * sets the execution time for this command. This is called by the controller when the command is received.
+    */
+   @Override
+   public void setExecutionTime(double adjustedExecutionTime)
+   {
+      this.adjustedExecutionTime = adjustedExecutionTime;
+   }
+   
+   /**
+    * tells the controller if this command supports delayed execution
+    * (Spoiler alert: It does)
+    * @return
+    */
+   @Override
+   public boolean isDelayedExecutionSupported()
+   {
+      return true;
+   }
+
+
 }

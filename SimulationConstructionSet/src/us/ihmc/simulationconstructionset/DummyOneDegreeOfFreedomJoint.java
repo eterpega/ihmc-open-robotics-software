@@ -1,13 +1,12 @@
 package us.ihmc.simulationconstructionset;
 
-import javax.vecmath.AxisAngle4d;
-import javax.vecmath.Vector3d;
-
-import us.ihmc.simulationconstructionset.physics.engine.jerry.DummyOneDegreeOfFreedomJointPhysics;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.YoVariableList;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
+import us.ihmc.euclid.axisAngle.AxisAngle;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoVariableList;
+import us.ihmc.simulationconstructionset.physics.engine.featherstone.DummyOneDegreeOfFreedomJointPhysics;
 
 public class DummyOneDegreeOfFreedomJoint extends OneDegreeOfFreedomJoint
 {
@@ -30,24 +29,24 @@ public class DummyOneDegreeOfFreedomJoint extends OneDegreeOfFreedomJoint
    @SuppressWarnings("unused")
    private double tau_max;
 
-   private final DoubleYoVariable q, qd, qdd, tau;
+   private final YoDouble q, qd, qdd, tau;
 
    private YoVariableList jointVars;
 
-   public DummyOneDegreeOfFreedomJoint(String jname, Vector3d offset, Robot rob, Vector3d u_hat)
+   public DummyOneDegreeOfFreedomJoint(String jname, Vector3D offset, Robot rob, Vector3D u_hat)
    {
       super(jname, offset, rob);
       physics = new DummyOneDegreeOfFreedomJointPhysics(this);
 
-      physics.u_i = new Vector3d();
+      physics.u_i = new Vector3D();
       physics.u_i.set(u_hat);
       physics.u_i.normalize();
 
       YoVariableRegistry registry = rob.getRobotsYoVariableRegistry();
-      q = new DoubleYoVariable("q_" + jname, "PinJoint angle", registry);
-      qd = new DoubleYoVariable("qd_" + jname, "PinJoint anglular velocity", registry);
-      qdd = new DoubleYoVariable("qdd_" + jname, "PinJoint angular acceleration", registry);
-      tau = new DoubleYoVariable("tau_" + jname, "PinJoint torque", registry);
+      q = new YoDouble("q_" + jname, "PinJoint angle", registry);
+      qd = new YoDouble("qd_" + jname, "PinJoint anglular velocity", registry);
+      qdd = new YoDouble("qdd_" + jname, "PinJoint angular acceleration", registry);
+      tau = new YoDouble("tau_" + jname, "PinJoint torque", registry);
 
       this.setPinTransform3D(this.jointTransform3D, physics.u_i); // jaxis);
    }
@@ -57,19 +56,20 @@ public class DummyOneDegreeOfFreedomJoint extends OneDegreeOfFreedomJoint
       return this.jointVars;
    }
 
+   @Override
    protected void update()
    {
       this.jointTransform3D.setIdentity();
    }
 
-   protected void setPinTransform3D(RigidBodyTransform t1, Vector3d u_i) // int rotAxis)
+   protected void setPinTransform3D(RigidBodyTransform t1, Vector3D u_i) // int rotAxis)
    {
       setPinTransform3D(t1, u_i, 0.0); // rotAxis, 0.0);
    }
 
-   private AxisAngle4d axisAngle = new AxisAngle4d();
+   private AxisAngle axisAngle = new AxisAngle();
 
-   protected void setPinTransform3D(RigidBodyTransform t1, Vector3d u_i, double rotAng)
+   protected void setPinTransform3D(RigidBodyTransform t1, Vector3D u_i, double rotAng)
    {
       t1.setIdentity();
 
@@ -80,19 +80,19 @@ public class DummyOneDegreeOfFreedomJoint extends OneDegreeOfFreedomJoint
    }
 
    @Override
-   public DoubleYoVariable getQDDYoVariable()
+   public YoDouble getQDDYoVariable()
    {
       return qdd;
    }
 
    @Override
-   public DoubleYoVariable getQDYoVariable()
+   public YoDouble getQDYoVariable()
    {
       return qd;
    }
 
    @Override
-   public DoubleYoVariable getQYoVariable()
+   public YoDouble getQYoVariable()
    {
       return q;
    }
@@ -120,7 +120,7 @@ public class DummyOneDegreeOfFreedomJoint extends OneDegreeOfFreedomJoint
    }
 
    @Override
-   public DoubleYoVariable getTauYoVariable()
+   public YoDouble getTauYoVariable()
    {
       return tau;
    }

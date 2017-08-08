@@ -2,19 +2,18 @@ package us.ihmc.simulationconstructionset.util.ground;
 
 import java.util.ArrayList;
 
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector3d;
-
-import us.ihmc.graphics3DAdapter.GroundProfile3D;
-import us.ihmc.graphics3DAdapter.HeightMapWithNormals;
-import us.ihmc.graphics3DDescription.appearance.YoAppearance;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicPolygon;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
-import us.ihmc.robotics.dataStructures.listener.VariableChangedListener;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.YoVariable;
-import us.ihmc.robotics.geometry.BoundingBox3d;
+import us.ihmc.euclid.geometry.BoundingBox3D;
+import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.graphicsDescription.appearance.YoAppearance;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPolygon;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.jMonkeyEngineToolkit.GroundProfile3D;
+import us.ihmc.jMonkeyEngineToolkit.HeightMapWithNormals;
+import us.ihmc.yoVariables.listener.VariableChangedListener;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoVariable;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FramePoint2d;
 import us.ihmc.robotics.geometry.FramePose;
@@ -42,11 +41,11 @@ public class RotatablePlaneTerrainProfile implements GroundProfile3D, RobotContr
    private final FramePlane3d previousPlane = new FramePlane3d(WORLD_FRAME);
    private final YoGraphicPolygon floorGraphic;
    
-   private final DoubleYoVariable ground_kp = new DoubleYoVariable("ground_kp", registry);
-   private final DoubleYoVariable ground_kd =  new DoubleYoVariable("ground_kd", registry);
-   private final DoubleYoVariable filteredDesiredGroundYawAlpha = new DoubleYoVariable("filteredDesiredGroundYawAlpha", registry);
-   private final DoubleYoVariable filteredDesiredGroundPitchAlpha = new DoubleYoVariable("filteredDesiredGroundOrientationAlpha", registry);
-   private final DoubleYoVariable filteredDesiredGroundRollAlpha = new DoubleYoVariable("filteredDesiredGroundRollAlpha", registry);
+   private final YoDouble ground_kp = new YoDouble("ground_kp", registry);
+   private final YoDouble ground_kd =  new YoDouble("ground_kd", registry);
+   private final YoDouble filteredDesiredGroundYawAlpha = new YoDouble("filteredDesiredGroundYawAlpha", registry);
+   private final YoDouble filteredDesiredGroundPitchAlpha = new YoDouble("filteredDesiredGroundOrientationAlpha", registry);
+   private final YoDouble filteredDesiredGroundRollAlpha = new YoDouble("filteredDesiredGroundRollAlpha", registry);
    
    private final YoFrameOrientation desiredGroundOrientation = new YoFrameOrientation("desiredGroundOrientation", ReferenceFrame.getWorldFrame(), registry);
    private final AlphaFilteredWrappingYoVariable filteredDesiredGroundYaw = new AlphaFilteredWrappingYoVariable("filteredDesiredGroundYaw", "", registry, desiredGroundOrientation.getYaw(), filteredDesiredGroundYawAlpha, -Math.PI, Math.PI);
@@ -58,7 +57,7 @@ public class RotatablePlaneTerrainProfile implements GroundProfile3D, RobotContr
    private final YoFramePose yoPlanePose = new YoFramePose(desiredGroundPosition, filteredDesiredGroundOrientation);
    private ArrayList<GroundContactPoint> groundContactPoints;
    
-   public RotatablePlaneTerrainProfile(Point3d center, Robot robot, YoGraphicsListRegistry graphicsRegistry, double dt)
+   public RotatablePlaneTerrainProfile(Point3D center, Robot robot, YoGraphicsListRegistry graphicsRegistry, double dt)
    {
       
       ground_kp.set(64000.0); 
@@ -98,7 +97,7 @@ public class RotatablePlaneTerrainProfile implements GroundProfile3D, RobotContr
    }
    
    @Override
-   public BoundingBox3d getBoundingBox()
+   public BoundingBox3D getBoundingBox()
    {
       return null;
    }
@@ -118,7 +117,7 @@ public class RotatablePlaneTerrainProfile implements GroundProfile3D, RobotContr
     * Returns true if inside the ground object. If inside, must pack the intersection and normal. If not inside, packing those is optional.
     */
    @Override
-   public boolean checkIfInside(double x, double y, double z, Point3d intersectionToPack, Vector3d normalToPack)
+   public boolean checkIfInside(double x, double y, double z, Point3D intersectionToPack, Vector3D normalToPack)
    {
       testPoint.setIncludingFrame(WORLD_FRAME, x, y, z);
       testPoint.changeFrame(plane.getReferenceFrame());
@@ -151,11 +150,11 @@ public class RotatablePlaneTerrainProfile implements GroundProfile3D, RobotContr
 
    FrameVector v1 = new FrameVector(planeFrame);
    FrameVector v2 = new FrameVector(WORLD_FRAME);
-   Vector3d v3 = new Vector3d();
+   Vector3D v3 = new Vector3D();
    FramePoint p1 = new FramePoint(WORLD_FRAME);
    FramePoint p2 = new FramePoint(WORLD_FRAME);
    
-   public void velocityAt(double x, double y, double z, Vector3d normal)
+   public void velocityAt(double x, double y, double z, Vector3D normal)
    {
       xyPoint.setIncludingFrame(WORLD_FRAME, x, y);
       double prevZ = previousPlane.getZOnPlane(xyPoint);
@@ -179,7 +178,7 @@ public class RotatablePlaneTerrainProfile implements GroundProfile3D, RobotContr
 //      normal.set(0.0,0.0,v3.z);
    }
    
-   public boolean hasMoved(Point3d position)
+   public boolean hasMoved(Point3D position)
    {
       xyPoint.setIncludingFrame(WORLD_FRAME, position.getX(), position.getY());
       double prevZ = previousPlane.getZOnPlane(xyPoint);
@@ -218,8 +217,8 @@ public class RotatablePlaneTerrainProfile implements GroundProfile3D, RobotContr
    }
 
    private final FramePoint pointOnPlane = new FramePoint(WORLD_FRAME);
-   private final Vector3d gcForce = new Vector3d();
-   private final Vector3d gcVelocity = new Vector3d();
+   private final Vector3D gcForce = new Vector3D();
+   private final Vector3D gcVelocity = new Vector3D();
    @Override
    public void doControl()
    {

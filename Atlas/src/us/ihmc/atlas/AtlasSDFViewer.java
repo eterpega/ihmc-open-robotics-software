@@ -4,18 +4,18 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 
-import javax.vecmath.Point3d;
-import javax.vecmath.Quat4d;
-
+import us.ihmc.avatar.drcRobot.DRCRobotModel;
+import us.ihmc.avatar.drcRobot.RobotTarget;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
+import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
+import us.ihmc.graphicsDescription.Graphics3DObject;
+import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
+import us.ihmc.graphicsDescription.appearance.YoAppearance;
+import us.ihmc.graphicsDescription.input.SelectedListener;
+import us.ihmc.graphicsDescription.structure.Graphics3DNode;
 import us.ihmc.simulationconstructionset.FloatingRootJointRobot;
 import us.ihmc.simulationconstructionset.HumanoidFloatingRootJointRobot;
-import us.ihmc.avatar.drcRobot.DRCRobotModel;
-import us.ihmc.graphics3DDescription.Graphics3DObject;
-import us.ihmc.graphics3DDescription.appearance.AppearanceDefinition;
-import us.ihmc.graphics3DDescription.appearance.YoAppearance;
-import us.ihmc.graphics3DDescription.input.SelectedListener;
-import us.ihmc.graphics3DDescription.structure.Graphics3DNode;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
 import us.ihmc.simulationconstructionset.IMUMount;
 import us.ihmc.simulationconstructionset.Joint;
 import us.ihmc.simulationconstructionset.Link;
@@ -26,12 +26,12 @@ import us.ihmc.tools.inputDevices.keyboard.ModifierKeyInterface;
 public class AtlasSDFViewer
 {
    private static final boolean SHOW_ELLIPSOIDS = false;
-   private static final boolean SHOW_COORDINATES_AT_JOINT_ORIGIN = false;
-   private static final boolean SHOW_IMU_FRAMES = true;
+   private static final boolean SHOW_COORDINATES_AT_JOINT_ORIGIN = true;
+   private static final boolean SHOW_IMU_FRAMES = false;
 
    public static void main(String[] args)
    {
-      DRCRobotModel robotModel = new AtlasRobotModel(AtlasRobotVersion.ATLAS_UNPLUGGED_V5_NO_HANDS, DRCRobotModel.RobotTarget.SCS, false);
+      DRCRobotModel robotModel = new AtlasRobotModel(AtlasRobotVersion.ATLAS_UNPLUGGED_V5_NO_HANDS, RobotTarget.SCS, false);
       HumanoidFloatingRootJointRobot sdfRobot = robotModel.createHumanoidFloatingRootJointRobot(false);
 
       if (SHOW_ELLIPSOIDS)
@@ -50,13 +50,13 @@ public class AtlasSDFViewer
       }
 
       SimulationConstructionSet scs = new SimulationConstructionSet(sdfRobot);
-      
-      
+
+
 
       SelectedListener selectedListener = new SelectedListener()
       {
          @Override
-         public void selected(Graphics3DNode graphics3dNode, ModifierKeyInterface modifierKeyInterface, Point3d location, Point3d cameraLocation, Quat4d cameraRotation)
+         public void selected(Graphics3DNode graphics3dNode, ModifierKeyInterface modifierKeyInterface, Point3DReadOnly location, Point3DReadOnly cameraLocation, QuaternionReadOnly cameraRotation)
          {
             System.out.println("Clicked location " +  location);
          }
@@ -65,7 +65,7 @@ public class AtlasSDFViewer
       scs.attachSelectedListener(selectedListener);
 
 
-      
+
       scs.setGroundVisible(false);
       scs.startOnAThread();
    }
@@ -134,8 +134,9 @@ public class AtlasSDFViewer
       for (OneDegreeOfFreedomJoint joint : joints)
       {
          Graphics3DObject linkGraphics = new Graphics3DObject();
-         linkGraphics.addCoordinateSystem(0.1);
-         linkGraphics.combine(joint.getLink().getLinkGraphics());
+         linkGraphics.addCoordinateSystem(0.3);
+         if (joint.getLink().getLinkGraphics() != null)
+            linkGraphics.combine(joint.getLink().getLinkGraphics());
          joint.getLink().setLinkGraphics(linkGraphics);
       }
    }

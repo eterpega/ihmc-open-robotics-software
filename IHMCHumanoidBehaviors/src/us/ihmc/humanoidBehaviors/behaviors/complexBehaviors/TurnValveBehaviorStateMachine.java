@@ -1,8 +1,8 @@
 package us.ihmc.humanoidBehaviors.behaviors.complexBehaviors;
 
-import javax.vecmath.Vector3f;
-
 import us.ihmc.communication.packets.TextToSpeechPacket;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple3D.Vector3D32;
 import us.ihmc.humanoidBehaviors.behaviors.complexBehaviors.TurnValveBehaviorStateMachine.TurnValveBehaviorState;
 import us.ihmc.humanoidBehaviors.behaviors.examples.GetUserValidationBehavior;
 import us.ihmc.humanoidBehaviors.behaviors.primitives.AtlasPrimitiveActions;
@@ -19,14 +19,13 @@ import us.ihmc.humanoidRobotics.communication.packets.walking.GoHomeMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.GoHomeMessage.BodyPart;
 import us.ihmc.humanoidRobotics.frames.HumanoidReferenceFrames;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.geometry.FramePoint;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
 import us.ihmc.robotics.referenceFrames.PoseReferenceFrame;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
-import us.ihmc.robotics.stateMachines.StateTransitionCondition;
+import us.ihmc.robotics.stateMachines.conditionBasedStateMachine.StateTransitionCondition;
 import us.ihmc.wholeBodyController.WholeBodyControllerParameters;
 
 public class TurnValveBehaviorStateMachine extends StateMachineBehavior<TurnValveBehaviorState> implements CoactiveDataListenerInterface
@@ -35,7 +34,7 @@ public class TurnValveBehaviorStateMachine extends StateMachineBehavior<TurnValv
    {
       STOPPED,
       SETUP_ROBOT,
-      SEARCHING_FOR_VAVLE,
+      SEARCHING_FOR_VALVE,
       WALKING_TO_VALVE,
       SEARCHING_FOR_VALVE_FINAL,
       TURNING_VALVE,
@@ -44,8 +43,8 @@ public class TurnValveBehaviorStateMachine extends StateMachineBehavior<TurnValv
       BACK_AWAY_FROM_VALVE
    }
 
-   private Vector3f valveWalkOffsetPoint1 = new Vector3f(-0.39f, 0.0f, 0.85f);
-   private Vector3f valveWalkOffsetPoint2 = new Vector3f(-0.38f, 0.0f, 0.75f);
+   private Vector3D32 valveWalkOffsetPoint1 = new Vector3D32(-0.39f, 0.0f, 0.85f);
+   private Vector3D32 valveWalkOffsetPoint2 = new Vector3D32(-0.38f, 0.0f, 0.75f);
 
    private final SearchForValveBehavior searchForValveBehavior;
    private final WalkToInteractableObjectBehavior walkToInteractableObjectBehavior;
@@ -61,7 +60,7 @@ public class TurnValveBehaviorStateMachine extends StateMachineBehavior<TurnValv
 
    RobotSide side = RobotSide.RIGHT;
 
-   public TurnValveBehaviorStateMachine(CommunicationBridge communicationBridge, DoubleYoVariable yoTime, BooleanYoVariable yoDoubleSupport,
+   public TurnValveBehaviorStateMachine(CommunicationBridge communicationBridge, YoDouble yoTime, YoBoolean yoDoubleSupport,
          FullHumanoidRobotModel fullRobotModel, HumanoidReferenceFrames referenceFrames, WholeBodyControllerParameters wholeBodyControllerParameters,
          AtlasPrimitiveActions atlasPrimitiveActions)
    {
@@ -74,7 +73,7 @@ public class TurnValveBehaviorStateMachine extends StateMachineBehavior<TurnValv
       searchForValveBehavior = new SearchForValveBehavior(communicationBridge);
       walkToInteractableObjectBehavior = new WalkToInteractableObjectBehavior(yoTime, communicationBridge, atlasPrimitiveActions);
       resetRobotBehavior = new ResetRobotBehavior(communicationBridge, yoTime);
-      graspAndTurnValveBehavior = new GraspAndTurnValveBehavior(yoTime, referenceFrames, communicationBridge, atlasPrimitiveActions);
+      graspAndTurnValveBehavior = new GraspAndTurnValveBehavior(yoTime, communicationBridge, atlasPrimitiveActions);
       userValidationExampleBehavior = new GetUserValidationBehavior(communicationBridge);
 
       setupStateMachine();
@@ -106,7 +105,7 @@ public class TurnValveBehaviorStateMachine extends StateMachineBehavior<TurnValv
       };
 
       //TODO setup search for ball behavior
-      BehaviorAction<TurnValveBehaviorState> searchForValveFar = new BehaviorAction<TurnValveBehaviorState>(TurnValveBehaviorState.SEARCHING_FOR_VAVLE,
+      BehaviorAction<TurnValveBehaviorState> searchForValveFar = new BehaviorAction<TurnValveBehaviorState>(TurnValveBehaviorState.SEARCHING_FOR_VALVE,
             searchForValveBehavior)
       {
          @Override
@@ -201,7 +200,7 @@ public class TurnValveBehaviorStateMachine extends StateMachineBehavior<TurnValv
          }
       };
 
-      statemachine.addStateWithDoneTransition(setup, TurnValveBehaviorState.SEARCHING_FOR_VAVLE);
+      statemachine.addStateWithDoneTransition(setup, TurnValveBehaviorState.SEARCHING_FOR_VALVE);
       statemachine.addStateWithDoneTransition(searchForValveFar, TurnValveBehaviorState.WALKING_TO_VALVE);
       statemachine.addStateWithDoneTransition(walkToValveAction, TurnValveBehaviorState.SEARCHING_FOR_VALVE_FINAL);
       statemachine.addStateWithDoneTransition(searchForValveNear, TurnValveBehaviorState.TURNING_VALVE);
@@ -216,12 +215,12 @@ public class TurnValveBehaviorStateMachine extends StateMachineBehavior<TurnValv
 
    }
 
-   private FramePoint offsetPointFromValve(Vector3f point)
+   private FramePoint offsetPointFromValve(Vector3D32 point)
    {
       PoseReferenceFrame valvePose = new PoseReferenceFrame("valveFrame", ReferenceFrame.getWorldFrame());
       valvePose.setPoseAndUpdate(new RigidBodyTransform(searchForValveBehavior.getLocation()));
 
-      FramePoint point1 = new FramePoint(valvePose, point.x, point.y, point.z);
+      FramePoint point1 = new FramePoint(valvePose, point);
       return point1;
    }
 

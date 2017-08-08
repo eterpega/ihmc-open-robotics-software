@@ -8,25 +8,25 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 
+import us.ihmc.commons.Conversions;
+import us.ihmc.commons.PrintTools;
+import us.ihmc.euclid.geometry.ConvexPolygon2D;
+import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.footstepPlanning.FootstepPlan;
 import us.ihmc.footstepPlanning.FootstepPlanner;
 import us.ihmc.footstepPlanning.FootstepPlannerGoal;
 import us.ihmc.footstepPlanning.FootstepPlanningResult;
 import us.ihmc.robotics.MathTools;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.IntegerYoVariable;
-import us.ihmc.robotics.dataStructures.variable.LongYoVariable;
-import us.ihmc.robotics.geometry.ConvexPolygon2d;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoInteger;
+import us.ihmc.yoVariables.variable.YoLong;
 import us.ihmc.robotics.geometry.FramePose;
 import us.ihmc.robotics.geometry.PlanarRegionsList;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
-import us.ihmc.robotics.time.TimeTools;
-import us.ihmc.tools.io.printing.PrintTools;
 
 public class PlanarRegionBipedalFootstepPlanner implements FootstepPlanner
 {
@@ -35,20 +35,20 @@ public class PlanarRegionBipedalFootstepPlanner implements FootstepPlanner
    protected final PlanarRegionPotentialNextStepCalculator planarRegionPotentialNextStepCalculator;
    protected final HashMap<Integer, List<BipedalFootstepPlannerNode>> mapToAllExploredNodes = new HashMap<>();
 
-   protected SideDependentList<ConvexPolygon2d> footPolygonsInSoleFrame;
+   protected SideDependentList<ConvexPolygon2D> footPolygonsInSoleFrame;
 
    protected RobotSide initialSide;
    protected RigidBodyTransform initialFootPose = new RigidBodyTransform();
 
    protected final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
 
-   protected final IntegerYoVariable maximumNumberOfNodesToExpand = new IntegerYoVariable("maximumNumberOfNodesToExpand", registry);
-   protected final IntegerYoVariable numberOfNodesExpanded = new IntegerYoVariable("numberOfNodesExpanded", registry);
-   protected final DoubleYoVariable timeout = new DoubleYoVariable("Timeout", registry);
-   protected final LongYoVariable planningStartTime = new LongYoVariable("planningStartTime", registry);
+   protected final YoInteger maximumNumberOfNodesToExpand = new YoInteger("maximumNumberOfNodesToExpand", registry);
+   protected final YoInteger numberOfNodesExpanded = new YoInteger("numberOfNodesExpanded", registry);
+   protected final YoDouble timeout = new YoDouble("Timeout", registry);
+   protected final YoLong planningStartTime = new YoLong("planningStartTime", registry);
 
    protected final ArrayList<BipedalFootstepPlannerNode> goalNodes = new ArrayList<>();
-   protected final BooleanYoVariable exitAfterInitialSolution = new BooleanYoVariable("exitAfterInitialSolution", registry);
+   protected final YoBoolean exitAfterInitialSolution = new YoBoolean("exitAfterInitialSolution", registry);
    protected BipedalFootstepPlannerNode startNode, bestGoalNode;
    protected FootstepPlan footstepPlan = null;
 
@@ -84,19 +84,19 @@ public class PlanarRegionBipedalFootstepPlanner implements FootstepPlanner
       this.exitAfterInitialSolution.set(exitAfterInitialSolution);
    }
 
-   public void setFeetPolygons(SideDependentList<ConvexPolygon2d> footPolygonsInSoleFrame)
+   public void setFeetPolygons(SideDependentList<ConvexPolygon2D> footPolygonsInSoleFrame)
    {
       this.footPolygonsInSoleFrame = footPolygonsInSoleFrame;
       planarRegionPotentialNextStepCalculator.setFeetPolygons(footPolygonsInSoleFrame, footPolygonsInSoleFrame);
    }
 
-   public void setFeetPolygons(SideDependentList<ConvexPolygon2d> footPolygonsInSoleFrame, SideDependentList<ConvexPolygon2d> controllerPolygonsInSoleFrame)
+   public void setFeetPolygons(SideDependentList<ConvexPolygon2D> footPolygonsInSoleFrame, SideDependentList<ConvexPolygon2D> controllerPolygonsInSoleFrame)
    {
       this.footPolygonsInSoleFrame = footPolygonsInSoleFrame;
       planarRegionPotentialNextStepCalculator.setFeetPolygons(footPolygonsInSoleFrame, controllerPolygonsInSoleFrame);
    }
 
-   public SideDependentList<ConvexPolygon2d> getFootPolygonsInSoleFrame()
+   public SideDependentList<ConvexPolygon2D> getFootPolygonsInSoleFrame()
    {
       return footPolygonsInSoleFrame;
    }
@@ -214,7 +214,7 @@ public class PlanarRegionBipedalFootstepPlanner implements FootstepPlanner
             break;
 
          long timeInNano = System.nanoTime();
-         if (TimeTools.nanoSecondstoSeconds(timeInNano - planningStartTime.getLongValue()) > timeout.getDoubleValue())
+         if (Conversions.nanosecondsToSeconds(timeInNano - planningStartTime.getLongValue()) > timeout.getDoubleValue())
             break;
       }
 
@@ -243,6 +243,7 @@ public class PlanarRegionBipedalFootstepPlanner implements FootstepPlanner
          {
             double cost1 = o1.getCostToHereFromStart();
             double cost2 = o2.getCostToHereFromStart();
+            if(cost1 == cost2) return 0;
             return cost1 < cost2 ? -1 : 1;
          }
       });

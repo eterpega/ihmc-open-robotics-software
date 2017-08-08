@@ -1,17 +1,25 @@
 package us.ihmc.sensorProcessing.stateEstimation;
 
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector3d;
-
 import us.ihmc.controlFlow.ControlFlowInputPort;
 import us.ihmc.controlFlow.ControlFlowOutputPort;
-import us.ihmc.robotics.screwTheory.*;
-import us.ihmc.sensorProcessing.stateEstimation.evaluation.FullInverseDynamicsStructure;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.robotics.geometry.FrameOrientation;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FrameVector;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
+import us.ihmc.robotics.screwTheory.CenterOfMassAccelerationCalculator;
+import us.ihmc.robotics.screwTheory.CenterOfMassCalculator;
+import us.ihmc.robotics.screwTheory.CenterOfMassJacobian;
+import us.ihmc.robotics.screwTheory.FloatingInverseDynamicsJoint;
+import us.ihmc.robotics.screwTheory.RigidBody;
+import us.ihmc.robotics.screwTheory.ScrewTools;
+import us.ihmc.robotics.screwTheory.SpatialAccelerationCalculator;
+import us.ihmc.robotics.screwTheory.SpatialAccelerationVector;
+import us.ihmc.robotics.screwTheory.Twist;
+import us.ihmc.robotics.screwTheory.TwistCalculator;
+import us.ihmc.sensorProcessing.stateEstimation.evaluation.FullInverseDynamicsStructure;
 
 //assumes that twist calculator and spatial acceleration calculator have already been updated with joint positions and velocities
 //TODO: update accelerations
@@ -73,11 +81,9 @@ public class OrientationAndPositionFullRobotModelUpdater implements Runnable
       updateRootJointConfiguration(rootJoint, estimationFrame);
       rootJoint.getFrameAfterJoint().update();
 
-      TwistCalculator twistCalculator = inverseDynamicsStructure.getTwistCalculator();
       SpatialAccelerationCalculator spatialAccelerationCalculator = inverseDynamicsStructure.getSpatialAccelerationCalculator();
 
-      updateRootJointTwistAndSpatialAcceleration(twistCalculator, spatialAccelerationCalculator);
-      twistCalculator.compute();
+      updateRootJointTwistAndSpatialAcceleration(spatialAccelerationCalculator);
       spatialAccelerationCalculator.compute();
    }
 
@@ -88,19 +94,19 @@ public class OrientationAndPositionFullRobotModelUpdater implements Runnable
    private final FrameVector tempRootJointLinearAcceleration = new FrameVector(ReferenceFrame.getWorldFrame());
    private final SpatialAccelerationVector tempRootJointAcceleration = new SpatialAccelerationVector();
 
-   private void updateRootJointTwistAndSpatialAcceleration(TwistCalculator twistCalculator, SpatialAccelerationCalculator spatialAccelerationCalculator)
+   private void updateRootJointTwistAndSpatialAcceleration(SpatialAccelerationCalculator spatialAccelerationCalculator)
    {
       FullInverseDynamicsStructure inverseDynamicsStructure = inverseDynamicsStructureInputPort.getData();
       FloatingInverseDynamicsJoint rootJoint = inverseDynamicsStructure.getRootJoint();
 
-      computeRootJointAngularVelocityAndAcceleration(twistCalculator, spatialAccelerationCalculator, tempRootJointAngularVelocity,
+      computeRootJointAngularVelocityAndAcceleration(spatialAccelerationCalculator, tempRootJointAngularVelocity,
               tempRootJointAngularAcceleration);
       computeRootJointLinearVelocityAndAcceleration(tempRootJointLinearVelocity, tempRootJointLinearAcceleration, tempRootJointAngularVelocity,
               tempRootJointAngularAcceleration);
 
       computeRootJointTwist(rootJoint, tempRootJointTwist, tempRootJointAngularVelocity, tempRootJointLinearVelocity);
       rootJoint.setJointTwist(tempRootJointTwist);
-
+      rootJoint.updateFramesRecursively();
       computeRootJointAcceleration(rootJoint, tempRootJointAcceleration, tempRootJointAngularAcceleration, tempRootJointLinearAcceleration);
       rootJoint.setAcceleration(tempRootJointAcceleration);
    }
@@ -112,7 +118,7 @@ public class OrientationAndPositionFullRobotModelUpdater implements Runnable
    private final FrameVector tempCrossTerm = new FrameVector(ReferenceFrame.getWorldFrame());
    private final FrameVector tempEstimationLinkAngularVelocity = new FrameVector(ReferenceFrame.getWorldFrame());
 
-   private void computeRootJointAngularVelocityAndAcceleration(TwistCalculator twistCalculator, SpatialAccelerationCalculator spatialAccelerationCalculator,
+   private void computeRootJointAngularVelocityAndAcceleration(SpatialAccelerationCalculator spatialAccelerationCalculator,
            FrameVector rootJointAngularVelocityToPack, FrameVector rootJointAngularAccelerationToPack)
    {
       FullInverseDynamicsStructure inverseDynamicsStructure = inverseDynamicsStructureInputPort.getData();
@@ -123,7 +129,7 @@ public class OrientationAndPositionFullRobotModelUpdater implements Runnable
       tempEstimationLinkAngularVelocity.setIncludingFrame(angularVelocityPort.getData());
 
       // T_{root}^{root, estimation}
-      twistCalculator.getRelativeTwist(tempRootToEstimationTwist, estimationLink, rootJoint.getSuccessor());
+      rootJoint.getSuccessor().getBodyFixedFrame().getTwistRelativeToOther(estimationLink.getBodyFixedFrame(), tempRootToEstimationTwist);
       tempRootToEstimationTwist.changeFrame(rootJoint.getFrameAfterJoint());
 
       // omega_{root}^{root, estimation}
@@ -145,7 +151,7 @@ public class OrientationAndPositionFullRobotModelUpdater implements Runnable
       tempCrossTerm.cross(tempRootToEstimationAngularVelocity, tempEstimationLinkAngularVelocity);
 
       // \omega_{root}^{root, estimation}
-      spatialAccelerationCalculator.getRelativeAcceleration(tempRootToEstimationAcceleration, estimationLink, rootJoint.getSuccessor());
+      spatialAccelerationCalculator.getRelativeAcceleration(estimationLink, rootJoint.getSuccessor(), tempRootToEstimationAcceleration);
       tempRootToEstimationAcceleration.changeFrameNoRelativeMotion(rootJoint.getFrameAfterJoint());
       tempRootToEstimationAcceleration.getAngularPart(tempRootToEstimationAngularAcceleration);
       tempRootToEstimationAngularAcceleration.changeFrame(estimationFrame);
@@ -255,9 +261,9 @@ public class OrientationAndPositionFullRobotModelUpdater implements Runnable
    }
 
    private final FramePoint tempCenterOfMassBody = new FramePoint(ReferenceFrame.getWorldFrame());
-   private final Vector3d tempCenterOfMassBodyVector3d = new Vector3d();
-   private final Point3d tempEstimationLinkPosition = new Point3d();
-   private final Vector3d tempEstimationLinkPositionVector3d = new Vector3d();
+   private final Vector3D tempCenterOfMassBodyVector3d = new Vector3D();
+   private final Point3D tempEstimationLinkPosition = new Point3D();
+   private final Vector3D tempEstimationLinkPositionVector3d = new Vector3D();
 
    private void computeEstimationLinkTransform(ReferenceFrame estimationFrame, RigidBodyTransform estimationLinkToWorldToPack, FramePoint centerOfMassWorld,
            FrameOrientation estimationLinkOrientation)

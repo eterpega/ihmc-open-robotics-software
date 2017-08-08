@@ -10,25 +10,28 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 
+import us.ihmc.graphicsDescription.plotting.PlotterColors;
 import us.ihmc.plotting.Plotter;
 import us.ihmc.plotting.PlotterLegendPanel;
 import us.ihmc.plotting.PlotterShowHideMenu;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.simulationconstructionset.PlaybackListener;
 
 public class SimulationOverheadPlotter implements PlaybackListener
 {
-   private final Plotter plotter = new Plotter();
-   private final PlotterLegendPanel legendPanel = plotter.createPlotterLegendPanel();
+   private final Plotter plotter;
+   private final PlotterLegendPanel legendPanel;
    private final PlotterShowHideMenu plotterShowHideMenu;
 
    private JMenuBar menuBar;
    private JCheckBoxMenuItem trackBodyCB;
 
-   private DoubleYoVariable xVariableToTrack, yVariableToTrack, yawVariableToTrack;
+   private YoDouble xVariableToTrack, yVariableToTrack, yawVariableToTrack;
 
    public SimulationOverheadPlotter()
    {
+      plotter = new Plotter(PlotterColors.javaFXStyle(), false);
+      legendPanel = plotter.createPlotterLegendPanel();
       plotter.setViewRange(1.0);
       buildMenuBar();
 
@@ -61,17 +64,17 @@ public class SimulationOverheadPlotter implements PlaybackListener
       return jFrame;
    }
 
-   public void setXVariableToTrack(DoubleYoVariable xVariableToTrack)
+   public void setXVariableToTrack(YoDouble xVariableToTrack)
    {
       this.xVariableToTrack = xVariableToTrack;
    }
 
-   public void setYVariableToTrack(DoubleYoVariable yVariableToTrack)
+   public void setYVariableToTrack(YoDouble yVariableToTrack)
    {
       this.yVariableToTrack = yVariableToTrack;
    }
    
-   public void setYawVariableToTrack(DoubleYoVariable yawVariableToTrack)
+   public void setYawVariableToTrack(YoDouble yawVariableToTrack)
    {
       this.yawVariableToTrack = yawVariableToTrack;
    }

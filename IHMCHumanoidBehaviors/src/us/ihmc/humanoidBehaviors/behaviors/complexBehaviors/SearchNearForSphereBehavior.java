@@ -1,33 +1,26 @@
 package us.ihmc.humanoidBehaviors.behaviors.complexBehaviors;
 
-import javax.vecmath.AxisAngle4d;
-import javax.vecmath.Point3d;
-import javax.vecmath.Quat4d;
-import javax.vecmath.Vector3d;
-
 import us.ihmc.communication.packets.TextToSpeechPacket;
-import us.ihmc.humanoidBehaviors.behaviors.coactiveElements.PickUpBallBehaviorCoactiveElementBehaviorSide;
+import us.ihmc.euclid.axisAngle.AxisAngle;
+import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.humanoidBehaviors.behaviors.coactiveElements.PickUpBallBehaviorCoactiveElement.PickUpBallBehaviorState;
-import us.ihmc.humanoidBehaviors.behaviors.complexBehaviors.SearchFarForSphereBehavior.SearchFarState;
+import us.ihmc.humanoidBehaviors.behaviors.coactiveElements.PickUpBallBehaviorCoactiveElementBehaviorSide;
 import us.ihmc.humanoidBehaviors.behaviors.complexBehaviors.SearchNearForSphereBehavior.SearchNearState;
 import us.ihmc.humanoidBehaviors.behaviors.primitives.AtlasPrimitiveActions;
-import us.ihmc.humanoidBehaviors.behaviors.primitives.ChestTrajectoryBehavior;
-import us.ihmc.humanoidBehaviors.behaviors.primitives.ClearLidarBehavior;
-import us.ihmc.humanoidBehaviors.behaviors.primitives.EnableLidarBehavior;
-import us.ihmc.humanoidBehaviors.behaviors.primitives.HeadTrajectoryBehavior;
-import us.ihmc.humanoidBehaviors.behaviors.primitives.SetLidarParametersBehavior;
 import us.ihmc.humanoidBehaviors.behaviors.simpleBehaviors.BehaviorAction;
 import us.ihmc.humanoidBehaviors.behaviors.simpleBehaviors.SphereDetectionBehavior;
 import us.ihmc.humanoidBehaviors.behaviors.simpleBehaviors.WaitForUserValidationBehavior;
 import us.ihmc.humanoidBehaviors.communication.CommunicationBridge;
 import us.ihmc.humanoidBehaviors.stateMachine.StateMachineBehavior;
-import us.ihmc.humanoidBehaviors.taskExecutor.ChestOrientationTask;
 import us.ihmc.humanoidRobotics.communication.packets.sensing.DepthDataFilterParameters;
 import us.ihmc.humanoidRobotics.communication.packets.sensing.DepthDataStateCommand.LidarState;
 import us.ihmc.humanoidRobotics.communication.packets.walking.ChestTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.HeadTrajectoryMessage;
 import us.ihmc.humanoidRobotics.frames.HumanoidReferenceFrames;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.robotModels.FullRobotModel;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.geometry.FrameOrientation;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 
@@ -44,9 +37,10 @@ public class SearchNearForSphereBehavior extends StateMachineBehavior<SearchNear
    private final boolean requireUserValidation;
    private final HumanoidReferenceFrames referenceFrames;
    private final AtlasPrimitiveActions atlasPrimitiveActions;
+   private final ReferenceFrame chestCoMFrame;
 
-   public SearchNearForSphereBehavior(DoubleYoVariable yoTime, PickUpBallBehaviorCoactiveElementBehaviorSide coactiveElement,
-         HumanoidReferenceFrames referenceFrames, CommunicationBridge outgoingCommunicationBridge, boolean requireUserValidation,
+   public SearchNearForSphereBehavior(YoDouble yoTime, PickUpBallBehaviorCoactiveElementBehaviorSide coactiveElement,
+         HumanoidReferenceFrames referenceFrames, FullRobotModel fullRobotModel, CommunicationBridge outgoingCommunicationBridge, boolean requireUserValidation,
          AtlasPrimitiveActions atlasPrimitiveActions)
    {
       super("SearchForSpehereNear", SearchNearState.class, yoTime, outgoingCommunicationBridge);
@@ -59,6 +53,8 @@ public class SearchNearForSphereBehavior extends StateMachineBehavior<SearchNear
       waitForUserValidationBehavior = new WaitForUserValidationBehavior(outgoingCommunicationBridge, coactiveElement.validClicked,
             coactiveElement.validAcknowledged);
       setupStateMachine();
+      chestCoMFrame = fullRobotModel.getChest().getBodyFixedFrame();;
+      
    }
 
    private void setupStateMachine()
@@ -73,22 +69,22 @@ public class SearchNearForSphereBehavior extends StateMachineBehavior<SearchNear
          protected void setBehaviorInput()
          {
             //MATH
-            Vector3d axis = new Vector3d(0, 1, 0);
+            Vector3D axis = new Vector3D(0, 1, 0);
             double rotationDownAngle = 1.4;
-            AxisAngle4d desiredAxisAngle = new AxisAngle4d();
+            AxisAngle desiredAxisAngle = new AxisAngle();
             desiredAxisAngle.set(axis, rotationDownAngle);
-            Quat4d desiredHeadQuat = new Quat4d();
+            Quaternion desiredHeadQuat = new Quaternion();
             desiredHeadQuat.set(desiredAxisAngle);
             //MESSAGE
-            HeadTrajectoryMessage message = new HeadTrajectoryMessage(1, desiredHeadQuat);
+            HeadTrajectoryMessage message = new HeadTrajectoryMessage(1, desiredHeadQuat, ReferenceFrame.getWorldFrame(), chestCoMFrame);
             atlasPrimitiveActions.headTrajectoryBehavior.setInput(message);
             //MATH
             FrameOrientation desiredChestOrientation = new FrameOrientation(referenceFrames.getPelvisZUpFrame(), Math.toRadians(30), Math.toRadians(20), 0);
             desiredChestOrientation.changeFrame(ReferenceFrame.getWorldFrame());
-            Quat4d chestOrientation = new Quat4d();
+            Quaternion chestOrientation = new Quaternion();
             desiredChestOrientation.getQuaternion(chestOrientation);
             //MESSAGE
-            ChestTrajectoryMessage chestOrientationPacket = new ChestTrajectoryMessage(4.0, chestOrientation);
+            ChestTrajectoryMessage chestOrientationPacket = new ChestTrajectoryMessage(4.0, chestOrientation, ReferenceFrame.getWorldFrame(), chestCoMFrame);
             atlasPrimitiveActions.chestTrajectoryBehavior.setInput(chestOrientationPacket);
 
          }
@@ -185,7 +181,7 @@ public class SearchNearForSphereBehavior extends StateMachineBehavior<SearchNear
       return initialSphereDetectionBehavior.foundBall();
    }
 
-   public Point3d getBallLocation()
+   public Point3D getBallLocation()
    {
       return initialSphereDetectionBehavior.getBallLocation();
    }

@@ -4,13 +4,12 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationPlan;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.continuousIntegration.IntegrationCategory;
 import us.ihmc.robotics.MathTools;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.math.filters.DeadzoneYoVariable;
-import us.ihmc.tools.continuousIntegration.IntegrationCategory;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationPlan;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 
 @ContinuousIntegrationPlan(categories = { IntegrationCategory.FAST })
 public class DeadzoneYoVariableTest
@@ -21,8 +20,8 @@ public class DeadzoneYoVariableTest
    public void testDeadzone()
    {
       YoVariableRegistry registry = new YoVariableRegistry("test");
-      DoubleYoVariable deadzoneSize = new DoubleYoVariable("deadzoneSize", registry);
-      DoubleYoVariable input = new DoubleYoVariable("input", registry);
+      YoDouble deadzoneSize = new YoDouble("deadzoneSize", registry);
+      YoDouble input = new YoDouble("input", registry);
       double deadzone = 2.0;
       deadzoneSize.set(deadzone);
       DeadzoneYoVariable testDeadzone = new DeadzoneYoVariable("testDeadZone", input , deadzoneSize, registry);

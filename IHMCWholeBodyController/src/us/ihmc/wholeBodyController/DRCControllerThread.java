@@ -2,44 +2,44 @@ package us.ihmc.wholeBodyController;
 
 import java.util.ArrayList;
 
-import us.ihmc.robotModels.FullHumanoidRobotModel;
-import us.ihmc.robotModels.FullRobotModel;
-import us.ihmc.robotModels.visualizer.RobotVisualizer;
 import us.ihmc.commonWalkingControlModules.corruptors.FullRobotModelCorruptor;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.MomentumBasedControllerFactory;
 import us.ihmc.commonWalkingControlModules.visualizer.CommonInertiaEllipsoidsVisualizer;
+import us.ihmc.commons.Conversions;
 import us.ihmc.communication.packets.ControllerCrashNotificationPacket.CrashLocation;
 import us.ihmc.communication.streamingData.GlobalDataProducer;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.humanoidRobotics.model.CenterOfPressureDataHolder;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.LongYoVariable;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
+import us.ihmc.robotDataLogger.RobotVisualizer;
+import us.ihmc.robotModels.FullHumanoidRobotModel;
+import us.ihmc.robotModels.FullRobotModel;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotController.ModularRobotController;
 import us.ihmc.robotics.robotController.OutputProcessor;
 import us.ihmc.robotics.robotController.RobotController;
+import us.ihmc.robotics.screwTheory.FloatingInverseDynamicsJoint;
 import us.ihmc.robotics.screwTheory.InverseDynamicsJoint;
 import us.ihmc.robotics.screwTheory.RigidBody;
-import us.ihmc.robotics.screwTheory.FloatingInverseDynamicsJoint;
 import us.ihmc.robotics.sensors.CenterOfMassDataHolderReadOnly;
 import us.ihmc.robotics.sensors.ContactSensorHolder;
 import us.ihmc.robotics.sensors.ForceSensorDataHolderReadOnly;
 import us.ihmc.robotics.time.ExecutionTimer;
-import us.ihmc.robotics.time.TimeTools;
 import us.ihmc.sensorProcessing.model.RobotMotionStatus;
 import us.ihmc.sensorProcessing.model.RobotMotionStatusChangedListener;
 import us.ihmc.sensorProcessing.model.RobotMotionStatusHolder;
 import us.ihmc.sensorProcessing.parameters.DRCRobotLidarParameters;
 import us.ihmc.sensorProcessing.parameters.DRCRobotSensorInformation;
 import us.ihmc.sensorProcessing.stateEstimation.evaluation.FullInverseDynamicsStructure;
+import us.ihmc.simulationConstructionSetTools.robotController.MultiThreadedRobotControlElement;
 import us.ihmc.simulationconstructionset.InverseDynamicsMechanismReferenceFrameVisualizer;
 import us.ihmc.simulationconstructionset.JointAxisVisualizer;
-import us.ihmc.simulationconstructionset.robotController.MultiThreadedRobotControlElement;
 import us.ihmc.tools.thread.CloseableAndDisposableRegistry;
 import us.ihmc.wholeBodyController.concurrent.ThreadDataSynchronizerInterface;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoLong;
 
 public class DRCControllerThread implements MultiThreadedRobotControlElement
 {
@@ -58,11 +58,11 @@ public class DRCControllerThread implements MultiThreadedRobotControlElement
    private final long estimatorDTInNS;
    private final long estimatorTicksPerControlTick;
 
-   private final DoubleYoVariable controllerTime = new DoubleYoVariable("controllerTime", registry);
-   private final BooleanYoVariable firstTick = new BooleanYoVariable("firstTick", registry);
+   private final YoDouble controllerTime = new YoDouble("controllerTime", registry);
+   private final YoLong controllerTimestamp = new YoLong("controllerTimestamp", registry);
+   private final YoBoolean firstTick = new YoBoolean("firstTick", registry);
 
    private final FullHumanoidRobotModel controllerFullRobotModel;
-   private final OutputProcessor outputProcessor;
    private final FullRobotModelCorruptor fullRobotModelCorruptor;
 
    private final YoGraphicsListRegistry yoGraphicsListRegistry = new YoGraphicsListRegistry();
@@ -76,25 +76,25 @@ public class DRCControllerThread implements MultiThreadedRobotControlElement
    private final ModularRobotController robotController;
 
    private final ExecutionTimer controllerTimer = new ExecutionTimer("controllerTimer", 10.0, registry);
-   private final LongYoVariable lastEstimatorStartTime = new LongYoVariable("nextExecutionTime", registry);
-   private final LongYoVariable totalDelay = new LongYoVariable("totalDelay", registry);
-   private final LongYoVariable expectedEstimatorTick = new LongYoVariable("expectedEstimatorTick", registry);
-   private final LongYoVariable controllerLeadsEstimatorTicks = new LongYoVariable("controllerLeadsEstimatorTicks", registry);
-   private final LongYoVariable controllerLagsEstimatorTicks = new LongYoVariable("controllerLagsEstimatorTicks", registry);
+   private final YoLong lastEstimatorStartTime = new YoLong("nextExecutionTime", registry);
+   private final YoLong totalDelay = new YoLong("totalDelay", registry);
+   private final YoLong expectedEstimatorTick = new YoLong("expectedEstimatorTick", registry);
+   private final YoLong controllerLeadsEstimatorTicks = new YoLong("controllerLeadsEstimatorTicks", registry);
+   private final YoLong controllerLagsEstimatorTicks = new YoLong("controllerLagsEstimatorTicks", registry);
 
    /*
     * Debug variables
     */
-   private final LongYoVariable lastExpectedEstimatorTick = new LongYoVariable("lastExpectedEstimatorTick", registry);
-   private final LongYoVariable lastEstimatorTick = new LongYoVariable("lastEstimatorTick", registry);
-   private final LongYoVariable lastEstimatorClockStartTime = new LongYoVariable("lastEstimatorClockStartTime", registry);
-   private final LongYoVariable lastControllerClockTime = new LongYoVariable("lastControllerClockTime", registry);
-   private final LongYoVariable controllerStartTime = new LongYoVariable("controllerStartTime", registry);
-   private final LongYoVariable actualControlDT = new LongYoVariable("actualControlDT", registry);
-   private final LongYoVariable timePassedSinceEstimator = new LongYoVariable("timePassedSinceEstimator", registry);
-   private final LongYoVariable timePassedBetweenEstimatorTicks = new LongYoVariable("timePassedBetweenEstimatorTicks", registry);
+   private final YoLong lastExpectedEstimatorTick = new YoLong("lastExpectedEstimatorTick", registry);
+   private final YoLong lastEstimatorTick = new YoLong("lastEstimatorTick", registry);
+   private final YoLong lastEstimatorClockStartTime = new YoLong("lastEstimatorClockStartTime", registry);
+   private final YoLong lastControllerClockTime = new YoLong("lastControllerClockTime", registry);
+   private final YoLong controllerStartTime = new YoLong("controllerStartTime", registry);
+   private final YoLong actualControlDT = new YoLong("actualControlDT", registry);
+   private final YoLong timePassedSinceEstimator = new YoLong("timePassedSinceEstimator", registry);
+   private final YoLong timePassedBetweenEstimatorTicks = new YoLong("timePassedBetweenEstimatorTicks", registry);
 
-   private final BooleanYoVariable runController = new BooleanYoVariable("runController", registry);
+   private final YoBoolean runController = new YoBoolean("runController", registry);
 
    private final GlobalDataProducer globalDataProducer;
 
@@ -109,12 +109,11 @@ public class DRCControllerThread implements MultiThreadedRobotControlElement
       this.threadDataSynchronizer = threadDataSynchronizer;
       this.outputWriter = outputWriter;
       this.robotVisualizer = robotVisualizer;
-      this.controlDTInNS = TimeTools.secondsToNanoSeconds(robotModel.getControllerDT());
-      this.estimatorDTInNS = TimeTools.secondsToNanoSeconds(estimatorDT);
+      this.controlDTInNS = Conversions.secondsToNanoseconds(robotModel.getControllerDT());
+      this.estimatorDTInNS = Conversions.secondsToNanoseconds(estimatorDT);
       this.estimatorTicksPerControlTick = this.controlDTInNS / this.estimatorDTInNS;
       this.controllerFullRobotModel = threadDataSynchronizer.getControllerFullRobotModel();
       this.rootFrame = this.controllerFullRobotModel.getRootJoint().getFrameAfterJoint();
-      this.outputProcessor = robotModel.getOutputProcessor(controllerFullRobotModel);
       this.globalDataProducer = dataProducer;
 
       closeableAndDisposableRegistry.registerCloseableAndDisposable(controllerFactory);
@@ -131,7 +130,7 @@ public class DRCControllerThread implements MultiThreadedRobotControlElement
       forceSensorDataHolderForController = threadDataSynchronizer.getControllerForceSensorDataHolder();
       if (robotModel.getWalkingControllerParameters().useCenterOfMassVelocityFromEstimator())
       {
-         centerOfMassDataHolderForController = threadDataSynchronizer.getControllerCenterOfMassDataHolder();         
+         centerOfMassDataHolderForController = threadDataSynchronizer.getControllerCenterOfMassDataHolder();
       }
       else
       {
@@ -143,25 +142,9 @@ public class DRCControllerThread implements MultiThreadedRobotControlElement
       outputWriter.setFullRobotModel(controllerFullRobotModel, threadDataSynchronizer.getControllerRawJointSensorDataHolderMap());
       outputWriter.setForceSensorDataHolderForController(forceSensorDataHolderForController);
 
-      ArrayList<InverseDynamicsJoint> listOfJointsToIgnore = new ArrayList<>();
+      InverseDynamicsJoint[] arrayOfJointsToIgnore = createListOfJointsToIgnore(controllerFullRobotModel, robotModel, sensorInformation);
 
-      DRCRobotLidarParameters lidarParameters = sensorInformation.getLidarParameters(0);
-      if (lidarParameters != null)
-      {
-         listOfJointsToIgnore.add(controllerFullRobotModel.getOneDoFJointByName(lidarParameters.getLidarSpindleJointName()));
-      }
-
-      String[] additionalJointsToIgnore = robotModel.getWalkingControllerParameters().getJointsToIgnoreInController();
-      if (additionalJointsToIgnore != null)
-      {
-         for (String jointToIgnore : additionalJointsToIgnore)
-         {
-            listOfJointsToIgnore.add(controllerFullRobotModel.getOneDoFJointByName(jointToIgnore));
-         }
-      }
-      InverseDynamicsJoint[] arrayOfJointsToIgnore = listOfJointsToIgnore.toArray(new InverseDynamicsJoint[] {});
-
-      robotController = createMomentumBasedController(controllerFullRobotModel, outputProcessor,
+      robotController = createMomentumBasedController(controllerFullRobotModel,
             controllerFactory, controllerTime, robotModel.getControllerDT(), gravity, forceSensorDataHolderForController, centerOfMassDataHolderForController,
             threadDataSynchronizer.getControllerContactSensorHolder(),
             centerOfPressureDataHolderForEstimator, yoGraphicsListRegistry, registry, arrayOfJointsToIgnore);
@@ -179,6 +162,28 @@ public class DRCControllerThread implements MultiThreadedRobotControlElement
       {
          robotVisualizer.addRegistry(registry, yoGraphicsListRegistry);
       }
+   }
+
+   public static InverseDynamicsJoint[] createListOfJointsToIgnore(FullHumanoidRobotModel controllerFullRobotModel, WholeBodyControllerParameters robotModel, DRCRobotSensorInformation sensorInformation)
+   {
+      ArrayList<InverseDynamicsJoint> listOfJointsToIgnore = new ArrayList<>();
+
+      DRCRobotLidarParameters lidarParameters = sensorInformation.getLidarParameters(0);
+      if (lidarParameters != null)
+      {
+         listOfJointsToIgnore.add(controllerFullRobotModel.getOneDoFJointByName(lidarParameters.getLidarSpindleJointName()));
+      }
+
+      String[] additionalJointsToIgnore = robotModel.getWalkingControllerParameters().getJointsToIgnoreInController();
+      if (additionalJointsToIgnore != null)
+      {
+         for (String jointToIgnore : additionalJointsToIgnore)
+         {
+            listOfJointsToIgnore.add(controllerFullRobotModel.getOneDoFJointByName(jointToIgnore));
+         }
+      }
+      InverseDynamicsJoint[] arrayOfJointsToIgnore = listOfJointsToIgnore.toArray(new InverseDynamicsJoint[] {});
+      return arrayOfJointsToIgnore;
    }
 
    private void createControllerRobotMotionStatusUpdater(MomentumBasedControllerFactory controllerFactory,
@@ -201,8 +206,8 @@ public class DRCControllerThread implements MultiThreadedRobotControlElement
       return fullRobotModelCorruptor;
    }
 
-   private ModularRobotController createMomentumBasedController(FullHumanoidRobotModel controllerModel, OutputProcessor outputProcessor,
-         MomentumBasedControllerFactory controllerFactory, DoubleYoVariable yoTime, double controlDT, double gravity,
+   private ModularRobotController createMomentumBasedController(FullHumanoidRobotModel controllerModel,
+         MomentumBasedControllerFactory controllerFactory, YoDouble yoTime, double controlDT, double gravity,
          ForceSensorDataHolderReadOnly forceSensorDataHolderForController, CenterOfMassDataHolderReadOnly centerOfMassDataHolder,
          ContactSensorHolder contactSensorHolder,
          CenterOfPressureDataHolder centerOfPressureDataHolderForEstimator, YoGraphicsListRegistry yoGraphicsListRegistry, YoVariableRegistry registry,
@@ -227,8 +232,6 @@ public class DRCControllerThread implements MultiThreadedRobotControlElement
 
       ModularRobotController modularRobotController = new ModularRobotController("DRCMomentumBasedController");
       modularRobotController.addRobotController(robotController);
-      if (outputProcessor != null)
-         modularRobotController.setOutputProcessor(outputProcessor);
 
       if (yoGraphicsListRegistry != null)
       {
@@ -260,6 +263,11 @@ public class DRCControllerThread implements MultiThreadedRobotControlElement
       }
 
       return modularRobotController;
+   }
+
+   public void addOutputProcessorToController(OutputProcessor outputProcessor)
+   {
+      robotController.setOutputProcessor(outputProcessor);
    }
 
    public static FullInverseDynamicsStructure createInverseDynamicsStructure(FullRobotModel fullRobotModel)
@@ -295,8 +303,8 @@ public class DRCControllerThread implements MultiThreadedRobotControlElement
             else
             {
                long estimatorStartTime = threadDataSynchronizer.getEstimatorClockStartTime();
-               long timestamp = threadDataSynchronizer.getTimestamp();
-               controllerTime.set(TimeTools.nanoSecondstoSeconds(timestamp));
+               controllerTimestamp.set(threadDataSynchronizer.getTimestamp());
+               controllerTime.set(Conversions.nanosecondsToSeconds(controllerTimestamp.getLongValue()));
                actualControlDT.set(currentClockTime - controllerStartTime.getLongValue());
 
                if (expectedEstimatorTick.getLongValue() != threadDataSynchronizer.getEstimatorTick())
@@ -368,13 +376,13 @@ public class DRCControllerThread implements MultiThreadedRobotControlElement
       {
          if (runController.getBooleanValue())
          {
-            outputWriter.writeAfterController(TimeTools.secondsToNanoSeconds(controllerTime.getDoubleValue()));
+            outputWriter.writeAfterController(controllerTimestamp.getLongValue());
             totalDelay.set(timestamp - lastEstimatorStartTime.getLongValue());
 
             threadDataSynchronizer.publishControllerData();
             if (robotVisualizer != null)
             {
-               robotVisualizer.update(TimeTools.secondsToNanoSeconds(controllerTime.getDoubleValue()), registry);
+               robotVisualizer.update(controllerTimestamp.getLongValue(), registry);
             }
 
             rootFrame.getTransformToDesiredFrame(rootToWorldTransform, ReferenceFrame.getWorldFrame());
@@ -403,7 +411,7 @@ public class DRCControllerThread implements MultiThreadedRobotControlElement
    }
 
    @Override
-   public YoGraphicsListRegistry getDynamicGraphicObjectsListRegistry()
+   public YoGraphicsListRegistry getYoGraphicsListRegistry()
    {
       return yoGraphicsListRegistry;
    }
@@ -419,11 +427,6 @@ public class DRCControllerThread implements MultiThreadedRobotControlElement
       {
          return lastEstimatorStartTime.getLongValue() + controlDTInNS + estimatorDTInNS;
       }
-   }
-
-   public RobotController getRobotController()
-   {
-      return robotController;
    }
 
    /**

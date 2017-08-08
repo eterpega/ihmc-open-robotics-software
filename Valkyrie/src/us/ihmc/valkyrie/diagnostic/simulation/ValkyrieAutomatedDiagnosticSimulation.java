@@ -3,17 +3,15 @@ package us.ihmc.valkyrie.diagnostic.simulation;
 import java.io.InputStream;
 import java.util.ArrayList;
 
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector3d;
-
 import us.ihmc.avatar.diagnostics.AutomatedDiagnosticConfiguration;
 import us.ihmc.avatar.diagnostics.AutomatedDiagnosticSimulationFactory;
-import us.ihmc.avatar.drcRobot.DRCRobotModel;
-import us.ihmc.avatar.drcRobot.DRCRobotModel.RobotTarget;
+import us.ihmc.avatar.drcRobot.RobotTarget;
+import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.sensorProcessing.diagnostic.DiagnosticParameters.DiagnosticEnvironment;
 import us.ihmc.simulationconstructionset.HumanoidFloatingRootJointRobot;
 import us.ihmc.simulationconstructionset.Joint;
-import us.ihmc.simulationconstructionset.util.virtualHoist.VirtualHoist;
+import us.ihmc.simulationConstructionSetTools.util.virtualHoist.VirtualHoist;
 import us.ihmc.valkyrie.ValkyrieRobotModel;
 import us.ihmc.valkyrie.diagnostic.ValkyrieDiagnosticParameters;
 
@@ -44,7 +42,7 @@ public class ValkyrieAutomatedDiagnosticSimulation
    private class ValkyrieRobotModelWithHoist extends ValkyrieRobotModel
    {
 
-      public ValkyrieRobotModelWithHoist(DRCRobotModel.RobotTarget target, boolean headless)
+      public ValkyrieRobotModelWithHoist(RobotTarget target, boolean headless)
       {
          super(target, headless);
       }
@@ -56,17 +54,17 @@ public class ValkyrieAutomatedDiagnosticSimulation
 
          Joint joint = robot.getJoint("torsoRoll");
 
-         ArrayList<Vector3d> attachmentLocations = new ArrayList<Vector3d>();
+         ArrayList<Vector3D> attachmentLocations = new ArrayList<Vector3D>();
 
-         attachmentLocations.add(new Vector3d(0.0, 0.15, 0.412));
-         attachmentLocations.add(new Vector3d(0.0, -0.15, 0.412));
+         attachmentLocations.add(new Vector3D(0.0, 0.15, 0.412));
+         attachmentLocations.add(new Vector3D(0.0, -0.15, 0.412));
 
          double updateDT = 0.0001;
          VirtualHoist virtualHoist = new VirtualHoist(joint, robot, attachmentLocations, updateDT);
          robot.setController(virtualHoist, 1);
 
          virtualHoist.turnHoistOn();
-         virtualHoist.setTeepeeLocation(new Point3d(0.0, 0.0, 2.5));
+         virtualHoist.setTeepeeLocation(new Point3D(0.0, 0.0, 2.5));
          virtualHoist.setHoistStiffness(20000.0);
          virtualHoist.setHoistDamping(15000.0);
 

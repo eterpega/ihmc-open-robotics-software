@@ -1,23 +1,21 @@
 package us.ihmc.exampleSimulations.skippy;
 
-import javax.vecmath.Matrix3d;
-import javax.vecmath.Point3d;
-
-import us.ihmc.graphics3DDescription.appearance.YoAppearance;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicPosition;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicPosition.GraphicType;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicVector;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.euclid.matrix.RotationMatrix;
+import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.graphicsDescription.appearance.YoAppearance;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition.GraphicType;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicVector;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.robotics.controllers.PIDController;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.IntegerYoVariable;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoInteger;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FrameVector;
-import us.ihmc.robotics.geometry.RotationTools;
 import us.ihmc.robotics.math.frames.YoFramePoint;
 import us.ihmc.robotics.math.frames.YoFrameVector;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
-import us.ihmc.simulationconstructionset.robotController.SimpleRobotController;
+import us.ihmc.simulationConstructionSetTools.robotController.SimpleRobotController;
 
 public class SkippyICPBasedController extends SimpleRobotController
 {
@@ -26,14 +24,14 @@ public class SkippyICPBasedController extends SimpleRobotController
 
    private final double dt;
 
-   private final DoubleYoVariable kCapture = new DoubleYoVariable("kCapture", registry);
-   private final DoubleYoVariable kMomentum = new DoubleYoVariable("kMomentum", registry);
-   private final DoubleYoVariable kAngle = new DoubleYoVariable("kAngle", registry);
-   private final DoubleYoVariable hipSetpoint = new DoubleYoVariable("hipSetpoint", registry);
-   private final DoubleYoVariable shoulderSetpoint = new DoubleYoVariable("shoulderSetpoint", registry);
+   private final YoDouble kCapture = new YoDouble("kCapture", registry);
+   private final YoDouble kMomentum = new YoDouble("kMomentum", registry);
+   private final YoDouble kAngle = new YoDouble("kAngle", registry);
+   private final YoDouble hipSetpoint = new YoDouble("hipSetpoint", registry);
+   private final YoDouble shoulderSetpoint = new YoDouble("shoulderSetpoint", registry);
 
-   private final IntegerYoVariable tickCounter = new IntegerYoVariable("tickCounter", registry);
-   private final IntegerYoVariable ticksForDesiredForce = new IntegerYoVariable("ticksForDesiredForce", registry);
+   private final YoInteger tickCounter = new YoInteger("tickCounter", registry);
+   private final YoInteger ticksForDesiredForce = new YoInteger("ticksForDesiredForce", registry);
    private final PIDController hipAngleController = new PIDController("hipAngleController", registry);
    private final PIDController shoulderAngleController = new PIDController("shoulderAngleController", registry);
    private final FrameVector angularMomentum = new FrameVector(worldFrame);
@@ -141,16 +139,16 @@ public class SkippyICPBasedController extends SimpleRobotController
          double hipSetpointFeedback = kAngle.getDoubleValue() * (qHip - q_dHip);
          double shoulderSetpointFeedback = kAngle.getDoubleValue() * (skippy.getShoulderJoint().getQ() - shoulderSetpoint.getDoubleValue());
 
-         Matrix3d rotationMatrix = new Matrix3d();
+         RotationMatrix rotationMatrix = new RotationMatrix();
          skippy.getRootJoints().get(0).getRotationToWorld(rotationMatrix);
-         double yaw = RotationTools.computeYaw(rotationMatrix);
-         RotationTools.convertYawPitchRollToMatrix(yaw, 0.0, 0.0, rotationMatrix);
-         Point3d angleFeedback = new Point3d(hipSetpointFeedback, shoulderSetpointFeedback, 0.0);
+         double yaw = rotationMatrix.getYaw();
+         rotationMatrix.setYawPitchRoll(yaw, 0.0, 0.0);
+         Point3D angleFeedback = new Point3D(hipSetpointFeedback, shoulderSetpointFeedback, 0.0);
          rotationMatrix.invert();
          rotationMatrix.transform(angleFeedback);
 
-         desiredCMP.setY(desiredCMP.getY() - kMomentum.getDoubleValue() * angularMomentum.getX() + angleFeedback.x);
-         desiredCMP.setX(desiredCMP.getX() + kMomentum.getDoubleValue() * angularMomentum.getY() + angleFeedback.y);
+         desiredCMP.setY(desiredCMP.getY() - kMomentum.getDoubleValue() * angularMomentum.getX() + angleFeedback.getX());
+         desiredCMP.setX(desiredCMP.getX() + kMomentum.getDoubleValue() * angularMomentum.getY() + angleFeedback.getY());
 
          desiredGroundReaction.sub(com, desiredCMP);
          desiredGroundReaction.normalize();

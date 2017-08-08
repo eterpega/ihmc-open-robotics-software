@@ -1,15 +1,14 @@
 package us.ihmc.exampleSimulations.fallingSphere;
 
-import javax.vecmath.Vector3d;
-
-import us.ihmc.graphics3DAdapter.GroundProfile3D;
-import us.ihmc.graphics3DDescription.Graphics3DObject;
-import us.ihmc.graphics3DDescription.appearance.YoAppearance;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicPosition;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicVector;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.graphicsDescription.Graphics3DObject;
+import us.ihmc.graphicsDescription.appearance.YoAppearance;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicVector;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.jMonkeyEngineToolkit.GroundProfile3D;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.simulationconstructionset.FloatingJoint;
 import us.ihmc.simulationconstructionset.GroundContactModel;
 import us.ihmc.simulationconstructionset.GroundContactPoint;
@@ -30,16 +29,16 @@ public class FallingSphereRobot extends Robot
       Ixx1 = 0.1, Iyy1 = 0.1, Izz1 = 0.1;
    private static final double G = 9.81;
 
-   DoubleYoVariable q_x, q_y, q_z, qd_x, qd_y, qd_z, qdd_x, qdd_y, qdd_z;
-   DoubleYoVariable q_qs, q_qx, q_qy, q_qz, qd_wx, qd_wy, qd_wz, qdd_wx, qdd_wy, qdd_wz;
+   YoDouble q_x, q_y, q_z, qd_x, qd_y, qd_z, qdd_x, qdd_y, qdd_z;
+   YoDouble q_qs, q_qx, q_qy, q_qz, qd_wx, qd_wy, qd_wz, qdd_wx, qdd_wy, qdd_wz;
 
    private final YoVariableRegistry registry = new YoVariableRegistry("FallingSphereEnergy");
    
-   private final DoubleYoVariable qdd2_wx = new DoubleYoVariable("qdd2_wx", registry);
-   private final DoubleYoVariable qdd2_wy = new DoubleYoVariable("qdd2_wy", registry);
-   private final DoubleYoVariable qdd2_wz = new DoubleYoVariable("qdd2_wz", registry);
+   private final YoDouble qdd2_wx = new YoDouble("qdd2_wx", registry);
+   private final YoDouble qdd2_wy = new YoDouble("qdd2_wy", registry);
+   private final YoDouble qdd2_wz = new YoDouble("qdd2_wz", registry);
 
-   private final DoubleYoVariable energy = new DoubleYoVariable("energy", registry);
+   private final YoDouble energy = new YoDouble("energy", registry);
    
    FloatingJoint floatingJoint;
 
@@ -51,7 +50,7 @@ public class FallingSphereRobot extends Robot
 
       // Base:
 
-      floatingJoint = new FloatingJoint("base", new Vector3d(0.0, 0.0, 0.0), this);
+      floatingJoint = new FloatingJoint("base", new Vector3D(0.0, 0.0, 0.0), this);
 
       Link link1 = ball();
       floatingJoint.setLink(link1);
@@ -78,21 +77,21 @@ public class FallingSphereRobot extends Robot
 
             // System.out.println("x,y,z: " + x + ", " + y + ", " + z);
             String gcName = "gc" + i + "_" + j;
-            GroundContactPoint gc = new GroundContactPoint(gcName, new Vector3d(x, y, z), this);
+            GroundContactPoint gc = new GroundContactPoint(gcName, new Vector3D(x, y, z), this);
             floatingJoint.addGroundContactPoint(gc);
             
-            YoGraphicPosition dynamicGraphicPosition = new YoGraphicPosition(gcName + "Position", gc.getYoPosition(), 0.01, YoAppearance.Red());
-            yoGraphicsListRegistry.registerYoGraphic("FallingSphereGCPoints", dynamicGraphicPosition);
+            YoGraphicPosition yoGraphicPosition = new YoGraphicPosition(gcName + "Position", gc.getYoPosition(), 0.01, YoAppearance.Red());
+            yoGraphicsListRegistry.registerYoGraphic("FallingSphereGCPoints", yoGraphicPosition);
 
             if (useImpulseGroundModel)
             {
-               YoGraphicVector dynamicGraphicVector = new YoGraphicVector(gcName + "Force", gc.getYoPosition(), gc.getYoImpulse(), 10.0, YoAppearance.Pink());
-               yoGraphicsListRegistry.registerYoGraphic("FallingSphereForces", dynamicGraphicVector);
+               YoGraphicVector yoGraphicVector = new YoGraphicVector(gcName + "Force", gc.getYoPosition(), gc.getYoImpulse(), 10.0, YoAppearance.Pink());
+               yoGraphicsListRegistry.registerYoGraphic("FallingSphereForces", yoGraphicVector);
             }
             else
             {
-               YoGraphicVector dynamicGraphicVector = new YoGraphicVector(gcName + "Force", gc.getYoPosition(), gc.getYoForce(), 1.0/50.0);
-               yoGraphicsListRegistry.registerYoGraphic("FallingSphereForces", dynamicGraphicVector);
+               YoGraphicVector yoGraphicVector = new YoGraphicVector(gcName + "Force", gc.getYoPosition(), gc.getYoForce(), 1.0/50.0);
+               yoGraphicsListRegistry.registerYoGraphic("FallingSphereForces", yoGraphicVector);
             }
          }
       }
@@ -122,7 +121,7 @@ public class FallingSphereRobot extends Robot
       initRobot();
       
       this.getRobotsYoVariableRegistry().addChild(registry);
-      this.addDynamicGraphicObjectsListRegistry(yoGraphicsListRegistry);
+      this.addYoGraphicsListRegistry(yoGraphicsListRegistry);
    }
 
    private Link ball()
@@ -146,26 +145,26 @@ public class FallingSphereRobot extends Robot
    {
       t.set(0.0);
 
-      q_x = (DoubleYoVariable) this.getVariable("q_x");
-      q_y = (DoubleYoVariable) this.getVariable("q_y");
-      q_z = (DoubleYoVariable) this.getVariable("q_z");
-      qd_x = (DoubleYoVariable) this.getVariable("qd_x");
-      qd_y = (DoubleYoVariable) this.getVariable("qd_y");
-      qd_z = (DoubleYoVariable) this.getVariable("qd_z");
-      qdd_x = (DoubleYoVariable) this.getVariable("qdd_x");
-      qdd_y = (DoubleYoVariable) this.getVariable("qdd_y");
-      qdd_z = (DoubleYoVariable) this.getVariable("qdd_z");
+      q_x = (YoDouble) this.getVariable("q_x");
+      q_y = (YoDouble) this.getVariable("q_y");
+      q_z = (YoDouble) this.getVariable("q_z");
+      qd_x = (YoDouble) this.getVariable("qd_x");
+      qd_y = (YoDouble) this.getVariable("qd_y");
+      qd_z = (YoDouble) this.getVariable("qd_z");
+      qdd_x = (YoDouble) this.getVariable("qdd_x");
+      qdd_y = (YoDouble) this.getVariable("qdd_y");
+      qdd_z = (YoDouble) this.getVariable("qdd_z");
 
-      q_qs = (DoubleYoVariable) this.getVariable("q_qs");
-      q_qx = (DoubleYoVariable) this.getVariable("q_qx");
-      q_qy = (DoubleYoVariable) this.getVariable("q_qy");
-      q_qz = (DoubleYoVariable) this.getVariable("q_qz");
-      qd_wx = (DoubleYoVariable) this.getVariable("qd_wx");
-      qd_wy = (DoubleYoVariable) this.getVariable("qd_wy");
-      qd_wz = (DoubleYoVariable) this.getVariable("qd_wz");
-      qdd_wx = (DoubleYoVariable) this.getVariable("qdd_wx");
-      qdd_wy = (DoubleYoVariable) this.getVariable("qdd_wy");
-      qdd_wz = (DoubleYoVariable) this.getVariable("qdd_wz");
+      q_qs = (YoDouble) this.getVariable("q_qs");
+      q_qx = (YoDouble) this.getVariable("q_qx");
+      q_qy = (YoDouble) this.getVariable("q_qy");
+      q_qz = (YoDouble) this.getVariable("q_qz");
+      qd_wx = (YoDouble) this.getVariable("qd_wx");
+      qd_wy = (YoDouble) this.getVariable("qd_wy");
+      qd_wz = (YoDouble) this.getVariable("qd_wz");
+      qdd_wx = (YoDouble) this.getVariable("qdd_wx");
+      qdd_wy = (YoDouble) this.getVariable("qdd_wy");
+      qdd_wz = (YoDouble) this.getVariable("qdd_wz");
 
       q_x.set(0.0);
       q_y.set(0.0);

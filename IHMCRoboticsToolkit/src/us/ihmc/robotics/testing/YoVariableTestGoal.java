@@ -1,11 +1,12 @@
 package us.ihmc.robotics.testing;
 
 import us.ihmc.robotics.MathTools;
-import us.ihmc.robotics.dataStructures.listener.VariableChangedListener;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.EnumYoVariable;
-import us.ihmc.robotics.dataStructures.variable.YoVariable;
+import us.ihmc.yoVariables.listener.VariableChangedListener;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoEnum;
+import us.ihmc.yoVariables.variable.YoVariable;
+import us.ihmc.tools.FormattingTools;
 
 public abstract class YoVariableTestGoal implements VariableChangedListener
 {
@@ -13,7 +14,7 @@ public abstract class YoVariableTestGoal implements VariableChangedListener
 
    private boolean hasMetGoal = false;
 
-   private YoVariableTestGoal(YoVariable<?>... yoVariables)
+   protected YoVariableTestGoal(YoVariable<?>... yoVariables)
    {
       for (YoVariable<?> yoVariable : yoVariables)
       {
@@ -45,7 +46,7 @@ public abstract class YoVariableTestGoal implements VariableChangedListener
    @Override
    public abstract String toString();
 
-   public static YoVariableTestGoal variablesEqual(final DoubleYoVariable variableOne, final DoubleYoVariable variableTwo, final double epsilon)
+   public static YoVariableTestGoal variablesEqual(final YoDouble variableOne, final YoDouble variableTwo, final double epsilon)
    {
       return new YoVariableTestGoal(variableOne)
       {
@@ -60,54 +61,54 @@ public abstract class YoVariableTestGoal implements VariableChangedListener
          {
             String numberStringOne = getFormattedDoubleYoVariable(variableOne);
             String numberStringTwo = getFormattedDoubleYoVariable(variableTwo);
-            String epsilonString = getFormattedToSignificantFigures(epsilon, SIGNIFICANT_FIGURES_FOR_PRINT_OUT);
+            String epsilonString = FormattingTools.getFormattedToSignificantFigures(epsilon, SIGNIFICANT_FIGURES_FOR_PRINT_OUT);
             return numberStringOne + " (+/- " + epsilonString + ") == " + numberStringTwo;
          }
       };
    }
 
-   public static YoVariableTestGoal doubleWithinEpsilon(final DoubleYoVariable doubleYoVariable, final double goalValue, final double epsilon)
+   public static YoVariableTestGoal doubleWithinEpsilon(final YoDouble yoDouble, final double goalValue, final double epsilon)
    {
-      return new YoVariableTestGoal(doubleYoVariable)
+      return new YoVariableTestGoal(yoDouble)
       {
          @Override
          public boolean currentlyMeetsGoal()
          {
-            return MathTools.epsilonEquals(doubleYoVariable.getDoubleValue(), goalValue, epsilon);
+            return MathTools.epsilonEquals(yoDouble.getDoubleValue(), goalValue, epsilon);
          }
 
          @Override
          public String toString()
          {
-            String numberString = getFormattedDoubleYoVariable(doubleYoVariable);
-            String epsilonString = getFormattedToSignificantFigures(epsilon, SIGNIFICANT_FIGURES_FOR_PRINT_OUT);
-            String goalString = getFormattedToSignificantFigures(goalValue, SIGNIFICANT_FIGURES_FOR_PRINT_OUT);
+            String numberString = getFormattedDoubleYoVariable(yoDouble);
+            String epsilonString = FormattingTools.getFormattedToSignificantFigures(epsilon, SIGNIFICANT_FIGURES_FOR_PRINT_OUT);
+            String goalString = FormattingTools.getFormattedToSignificantFigures(goalValue, SIGNIFICANT_FIGURES_FOR_PRINT_OUT);
             return numberString + " (+/- " + epsilonString + ") == " + goalString;
          }
       };
    }
 
-   public static YoVariableTestGoal doubleGreaterThan(final DoubleYoVariable doubleYoVariable, final double greaterThan)
+   public static YoVariableTestGoal doubleGreaterThan(final YoDouble yoDouble, final double greaterThan)
    {
-      return new YoVariableTestGoal(doubleYoVariable)
+      return new YoVariableTestGoal(yoDouble)
       {
          @Override
          public boolean currentlyMeetsGoal()
          {
-            return doubleYoVariable.getDoubleValue() > greaterThan;
+            return yoDouble.getDoubleValue() > greaterThan;
          }
 
          @Override
          public String toString()
          {
-            String numberString = getFormattedDoubleYoVariable(doubleYoVariable);
-            String greaterThanString = getFormattedToSignificantFigures(greaterThan, SIGNIFICANT_FIGURES_FOR_PRINT_OUT);
+            String numberString = getFormattedDoubleYoVariable(yoDouble);
+            String greaterThanString = FormattingTools.getFormattedToSignificantFigures(greaterThan, SIGNIFICANT_FIGURES_FOR_PRINT_OUT);
             return numberString + " > " + greaterThanString;
          }
       };
    }
 
-   public static YoVariableTestGoal deltaGreaterThan(final DoubleYoVariable minuend, final DoubleYoVariable subtrahend, final double difference)
+   public static YoVariableTestGoal deltaGreaterThan(final YoDouble minuend, final YoDouble subtrahend, final double difference)
    {
       return new YoVariableTestGoal(minuend, subtrahend)
       {
@@ -122,69 +123,69 @@ public abstract class YoVariableTestGoal implements VariableChangedListener
          {
             String minuendString = getFormattedDoubleYoVariable(minuend);
             String subtrahendString = getFormattedDoubleYoVariable(subtrahend);
-            String differenceString = getFormattedToSignificantFigures(difference, SIGNIFICANT_FIGURES_FOR_PRINT_OUT);
+            String differenceString = FormattingTools.getFormattedToSignificantFigures(difference, SIGNIFICANT_FIGURES_FOR_PRINT_OUT);
             return minuendString + " - " + subtrahendString + " > " + differenceString;
          }
       };
    }
 
-   public static YoVariableTestGoal doubleLessThan(final DoubleYoVariable doubleYoVariable, final double lessThan)
+   public static YoVariableTestGoal doubleLessThan(final YoDouble yoDouble, final double lessThan)
    {
-      return new YoVariableTestGoal(doubleYoVariable)
+      return new YoVariableTestGoal(yoDouble)
       {
          @Override
          public boolean currentlyMeetsGoal()
          {
-            return doubleYoVariable.getDoubleValue() < lessThan;
+            return yoDouble.getDoubleValue() < lessThan;
          }
 
          @Override
          public String toString()
          {
-            String numberString = getFormattedDoubleYoVariable(doubleYoVariable);
-            String lessThanString = getFormattedToSignificantFigures(lessThan, SIGNIFICANT_FIGURES_FOR_PRINT_OUT);
+            String numberString = getFormattedDoubleYoVariable(yoDouble);
+            String lessThanString = FormattingTools.getFormattedToSignificantFigures(lessThan, SIGNIFICANT_FIGURES_FOR_PRINT_OUT);
             return numberString + " < " + lessThanString;
          }
       };
    }
 
-   public static <T extends Enum<T>> YoVariableTestGoal enumEquals(final EnumYoVariable<T> enumYoVariable, final Enum<T> enumValue)
+   public static <T extends Enum<T>> YoVariableTestGoal enumEquals(final YoEnum<T> yoEnum, final Enum<T> enumValue)
    {
-      return new YoVariableTestGoal(enumYoVariable)
+      return new YoVariableTestGoal(yoEnum)
       {
          @Override
          public boolean currentlyMeetsGoal()
          {
-            return enumYoVariable.getEnumValue().equals(enumValue);
+            return yoEnum.getEnumValue().equals(enumValue);
          }
 
          @Override
          public String toString()
          {
-            return getFormattedEnumYoVariable(enumYoVariable) + " == " + enumValue.name();
+            return getFormattedEnumYoVariable(yoEnum) + " == " + enumValue.name();
          }
       };
    }
 
-   public static YoVariableTestGoal booleanEquals(final BooleanYoVariable booleanYoVariable, final boolean booleanValue)
+   public static YoVariableTestGoal booleanEquals(final YoBoolean yoBoolean, final boolean booleanValue)
    {
-      return new YoVariableTestGoal(booleanYoVariable)
+      return new YoVariableTestGoal(yoBoolean)
       {
          @Override
          public boolean currentlyMeetsGoal()
          {
-            return booleanYoVariable.getBooleanValue() == booleanValue;
+            return yoBoolean.getBooleanValue() == booleanValue;
          }
 
          @Override
          public String toString()
          {
-            return getFormattedBooleanYoVariable(booleanYoVariable) + " == " + booleanValue;
+            return getFormattedBooleanYoVariable(yoBoolean) + " == " + booleanValue;
          }
 
       };
    }
-   
+
    public static YoVariableTestGoal or(YoVariableTestGoal goalOne, YoVariableTestGoal goalTwo)
    {
       return new YoVariableTestGoal()
@@ -203,7 +204,7 @@ public abstract class YoVariableTestGoal implements VariableChangedListener
 
       };
    }
-   
+
    public static YoVariableTestGoal and(YoVariableTestGoal goalOne, YoVariableTestGoal goalTwo)
    {
       return new YoVariableTestGoal()
@@ -240,38 +241,25 @@ public abstract class YoVariableTestGoal implements VariableChangedListener
          }
       };
    }
-
-   private static String getFormattedBooleanYoVariable(final BooleanYoVariable booleanYoVariable)
+   
+   public static YoVariableTestGoal timeInFuture(YoDouble timeYoVariable, double durationFromNow)
    {
-      return booleanYoVariable.getName() + ":" + booleanYoVariable.getBooleanValue();
+      return doubleGreaterThan(timeYoVariable, timeYoVariable.getDoubleValue() + durationFromNow);
    }
 
-   private static <T extends Enum<T>> String getFormattedEnumYoVariable(final EnumYoVariable<T> enumYoVariable)
+   private static String getFormattedBooleanYoVariable(final YoBoolean yoBoolean)
    {
-      return enumYoVariable.getName() + ":" + enumYoVariable.getEnumValue().name();
+      return yoBoolean.getName() + ":" + yoBoolean.getBooleanValue();
    }
 
-   public static String getFormattedDoubleYoVariable(DoubleYoVariable doubleYoVariable)
+   private static <T extends Enum<T>> String getFormattedEnumYoVariable(final YoEnum<T> yoEnum)
    {
-      return doubleYoVariable.getName() + ":" + getFormattedToSignificantFigures(doubleYoVariable.getDoubleValue(), SIGNIFICANT_FIGURES_FOR_PRINT_OUT);
+      return yoEnum.getName() + ":" + yoEnum.getEnumValue().name();
    }
 
-   public static String getFormattedToSignificantFigures(double number, int significantFigures)
+   public static String getFormattedDoubleYoVariable(YoDouble yoDouble)
    {
-      if (number == 0.0) return "0.0";
-
-      final double d = Math.ceil(Math.log10(number < 0 ? -number : number));
-      final int power = significantFigures - (int) d;
-
-      final double magnitude = Math.pow(10, power);
-      final long shifted = Math.round(number * magnitude);
-      double roundToSignificantFigures = shifted / magnitude;
-
-      if (roundToSignificantFigures >= Math.pow(10, significantFigures - 1))
-         return String.valueOf((int) roundToSignificantFigures);
-      else
-         return String.valueOf(roundToSignificantFigures);
+      return yoDouble.getName() + ":"
+            + FormattingTools.getFormattedToSignificantFigures(yoDouble.getDoubleValue(), SIGNIFICANT_FIGURES_FOR_PRINT_OUT);
    }
-
-
 }

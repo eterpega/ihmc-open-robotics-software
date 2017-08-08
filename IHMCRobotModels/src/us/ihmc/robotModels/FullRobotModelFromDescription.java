@@ -1,26 +1,51 @@
 package us.ihmc.robotModels;
 
-import us.ihmc.robotics.geometry.RigidBodyTransform;
-import us.ihmc.robotics.partNames.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
+
+import us.ihmc.euclid.matrix.Matrix3D;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.robotics.partNames.JointNameMap;
+import us.ihmc.robotics.partNames.JointRole;
+import us.ihmc.robotics.partNames.NeckJointName;
+import us.ihmc.robotics.partNames.RobotSpecificJointNames;
+import us.ihmc.robotics.partNames.SpineJointName;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
-import us.ihmc.robotics.robotDescription.*;
-import us.ihmc.robotics.screwTheory.*;
+import us.ihmc.robotics.robotDescription.CameraSensorDescription;
+import us.ihmc.robotics.robotDescription.FloatingJointDescription;
+import us.ihmc.robotics.robotDescription.ForceSensorDescription;
+import us.ihmc.robotics.robotDescription.IMUSensorDescription;
+import us.ihmc.robotics.robotDescription.JointDescription;
+import us.ihmc.robotics.robotDescription.LidarSensorDescription;
+import us.ihmc.robotics.robotDescription.LinkDescription;
+import us.ihmc.robotics.robotDescription.OneDoFJointDescription;
+import us.ihmc.robotics.robotDescription.PinJointDescription;
+import us.ihmc.robotics.robotDescription.RobotDescription;
+import us.ihmc.robotics.robotDescription.SliderJointDescription;
+import us.ihmc.robotics.screwTheory.InverseDynamicsJoint;
+import us.ihmc.robotics.screwTheory.MovingReferenceFrame;
+import us.ihmc.robotics.screwTheory.OneDoFJoint;
+import us.ihmc.robotics.screwTheory.RigidBody;
+import us.ihmc.robotics.screwTheory.ScrewTools;
+import us.ihmc.robotics.screwTheory.SixDoFJoint;
 import us.ihmc.robotics.sensors.ContactSensorDefinition;
 import us.ihmc.robotics.sensors.ForceSensorDefinition;
 import us.ihmc.robotics.sensors.IMUDefinition;
-import us.ihmc.tools.containers.ContainerTools;
-
-import javax.vecmath.Matrix3d;
-import javax.vecmath.Vector3d;
-import java.util.*;
 
 public class FullRobotModelFromDescription implements FullRobotModel
 {
    protected final RobotDescription description;
 
    protected final JointNameMap sdfJointNameMap;
-   protected final EnumMap<NeckJointName, OneDoFJoint> neckJoints = ContainerTools.createEnumMap(NeckJointName.class);
-   protected final EnumMap<SpineJointName, OneDoFJoint> spineJoints = ContainerTools.createEnumMap(SpineJointName.class);
+   protected final EnumMap<NeckJointName, OneDoFJoint> neckJoints = new EnumMap<>(NeckJointName.class);
+   protected final EnumMap<SpineJointName, OneDoFJoint> spineJoints = new EnumMap<>(SpineJointName.class);
    protected final String[] sensorLinksToTrack;
 //   protected final SDFLinkHolder rootLink;
    protected RigidBody chest;
@@ -73,9 +98,8 @@ public class FullRobotModelFromDescription implements FullRobotModel
       /*
        * Create root object
        */
-      ReferenceFrame elevatorFrame = ReferenceFrame.constructFrameWithUnchangingTransformToParent("elevator", worldFrame, new RigidBodyTransform());
-      elevator = new RigidBody("elevator", elevatorFrame);
-      rootJoint = new SixDoFJoint(rootJointDescription.getName(), elevator, elevatorFrame);
+      elevator = new RigidBody("elevator", worldFrame);
+      rootJoint = new SixDoFJoint(rootJointDescription.getName(), elevator);
       if (!rootJointDescription.getName().equals(sdfJointNameMap.getPelvisName()))
       {
          throw new RuntimeException("Pelvis joint is assumed to be the root joint");
@@ -160,14 +184,7 @@ public class FullRobotModelFromDescription implements FullRobotModel
 
    /** {@inheritDoc} */
    @Override
-   public ReferenceFrame getWorldFrame()
-   {
-      return worldFrame;
-   }
-
-   /** {@inheritDoc} */
-   @Override
-   public ReferenceFrame getElevatorFrame()
+   public MovingReferenceFrame getElevatorFrame()
    {
       return elevator.getBodyFixedFrame();
    }
@@ -319,7 +336,12 @@ public class FullRobotModelFromDescription implements FullRobotModel
    @Override
    public ReferenceFrame getHeadBaseFrame()
    {
-      return head.getParentJoint().getFrameAfterJoint();
+      if(head != null)
+      {
+         InverseDynamicsJoint headJoint = head.getParentJoint();
+         return headJoint.getFrameAfterJoint();
+      }
+      return null;
    }
 
    protected void checkLinkIsNeededForSensor(InverseDynamicsJoint joint, JointDescription jointDescription)
@@ -353,10 +375,10 @@ public class FullRobotModelFromDescription implements FullRobotModel
 
    protected void addJointsRecursively(OneDoFJointDescription joint, RigidBody parentBody)
    {
-      Vector3d jointAxis = new Vector3d();
+      Vector3D jointAxis = new Vector3D();
       joint.getJointAxis(jointAxis);
 
-      Vector3d offset = new Vector3d();
+      Vector3D offset = new Vector3D();
       joint.getOffsetFromParentJoint(offset);
 
       OneDoFJoint inverseDynamicsJoint;
@@ -375,6 +397,7 @@ public class FullRobotModelFromDescription implements FullRobotModel
       }
 
       inverseDynamicsJoint.setEffortLimits(-joint.getEffortLimit(), joint.getEffortLimit());
+      inverseDynamicsJoint.setVelocityLimit(-joint.getVelocityLimit(), joint.getVelocityLimit());
 
       if (joint.containsLimitStops())
       {
@@ -391,8 +414,8 @@ public class FullRobotModelFromDescription implements FullRobotModel
 
       double mass = childLink.getMass();
       totalMass += mass;
-      Vector3d comOffset = new Vector3d(childLink.getCenterOfMassOffset());
-      Matrix3d inertia = childLink.getMomentOfInertiaCopy();
+      Vector3D comOffset = new Vector3D(childLink.getCenterOfMassOffset());
+      Matrix3D inertia = childLink.getMomentOfInertiaCopy();
 
       RigidBody rigidBody = ScrewTools.addRigidBody(childLink.getName(), inverseDynamicsJoint, inertia, mass,
             comOffset);

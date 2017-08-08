@@ -2,30 +2,28 @@ package us.ihmc.sensorProcessing.signalCorruption;
 
 import java.util.Random;
 
-import javax.vecmath.Tuple3d;
-import javax.vecmath.Vector3d;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple3D.interfaces.Tuple3DBasics;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-
-
-public class GaussianVectorCorruptor implements SignalCorruptor<Tuple3d>
+public class GaussianVectorCorruptor implements SignalCorruptor<Tuple3DBasics>
 {
    private final YoVariableRegistry registry;
    private final Random random;
-   private final Vector3d noise = new Vector3d();
-   private final DoubleYoVariable standardDeviation;
+   private final Vector3D noise = new Vector3D();
+   private final YoDouble standardDeviation;
 
    public GaussianVectorCorruptor(long seed, String namePrefix, YoVariableRegistry parentRegistry)
    {
       this.random = new Random(seed);
       this.registry = new YoVariableRegistry(namePrefix + getClass().getSimpleName());
-      this.standardDeviation = new DoubleYoVariable(namePrefix + "StdDev", parentRegistry);
+      this.standardDeviation = new YoDouble(namePrefix + "StdDev", parentRegistry);
 
       parentRegistry.addChild(registry);
    }
 
-   public void corrupt(Tuple3d signal)
+   public void corrupt(Tuple3DBasics signal)
    {
       double std = standardDeviation.getDoubleValue();
       double noiseX = std * random.nextGaussian();

@@ -1,6 +1,6 @@
 package us.ihmc.robotics.math.frames;
 
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.screwTheory.Twist;
 import us.ihmc.robotics.screwTheory.Wrench;
@@ -26,9 +26,9 @@ public class YoTwist extends YoSpatialVector
       this(namePrefix, "", bodyFrame, baseFrame, expressedInFrame, registry);
    }
    
-   public YoTwist(YoFrameVector yoLinearVelocity, YoFrameVector yoAngularVelocity, ReferenceFrame bodyFrame, ReferenceFrame baseFrame, ReferenceFrame expressedInFrame)
+   public YoTwist(YoFrameVector yoLinearVelocity, YoFrameVector yoAngularVelocity, ReferenceFrame bodyFrame, ReferenceFrame baseFrame)
    {
-      super(yoLinearVelocity, yoAngularVelocity, expressedInFrame);
+      super(yoLinearVelocity, yoAngularVelocity);
       this.bodyFrame = bodyFrame;
       this.baseFrame = baseFrame;
       this.twist = createEmptyTwist();

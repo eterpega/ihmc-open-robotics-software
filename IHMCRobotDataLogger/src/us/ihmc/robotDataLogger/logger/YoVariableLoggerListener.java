@@ -4,27 +4,35 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.LongBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
-import us.ihmc.multicastLogDataProtocol.LogUtils;
-import us.ihmc.multicastLogDataProtocol.broadcast.AnnounceRequest;
-import us.ihmc.multicastLogDataProtocol.control.LogHandshake;
+import us.ihmc.commons.PrintTools;
+import us.ihmc.idl.serializers.extra.YAMLSerializer;
+import us.ihmc.robotDataLogger.Announcement;
+import us.ihmc.robotDataLogger.CameraAnnouncement;
+import us.ihmc.robotDataLogger.Handshake;
+import us.ihmc.robotDataLogger.HandshakeFileType;
+import us.ihmc.robotDataLogger.HandshakePubSubType;
 import us.ihmc.robotDataLogger.YoVariableClient;
-import us.ihmc.robotDataLogger.YoVariableHandshakeParser;
 import us.ihmc.robotDataLogger.YoVariablesUpdatedListener;
+import us.ihmc.robotDataLogger.handshake.LogHandshake;
+import us.ihmc.robotDataLogger.handshake.YoVariableHandshakeParser;
+import us.ihmc.robotDataLogger.jointState.JointState;
+import us.ihmc.robotDataLogger.rtps.LogParticipantSettings;
 import us.ihmc.tools.compression.SnappyUtils;
-import us.ihmc.tools.io.printing.PrintTools;
+import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoVariableLoggerListener implements YoVariablesUpdatedListener
 {
    private static final int FLUSH_EVERY_N_PACKETS = 250;
    
    public static final String propertyFile = "robotData.log";
-   private static final String handshakeFilename = "handshake.proto";
+   private static final String handshakeFilename = "handshake.yaml";
    private static final String dataFilename = "robotData.bsz";
    private static final String modelFilename = "model.sdf";
    private static final String modelResourceBundle = "resources.zip";
@@ -42,19 +50,15 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
    private FileChannel dataChannel;
    private FileChannel indexChannel;
 
-   private final AnnounceRequest request;
-
    private final ByteBuffer indexBuffer = ByteBuffer.allocate(16);
    private ByteBuffer compressedBuffer;
 
-   private YoVariableClient yoVariableClient;
    private volatile boolean connected = false;
 
    private final LogPropertiesWriter logProperties;
    private ArrayList<VideoDataLoggerInterface> videoDataLoggers = new ArrayList<>();
 
-   private final ArrayList<Integer> cameras = new ArrayList<>();
-   private final InetSocketAddress videoStreamAddress;
+   private final ArrayList<CameraAnnouncement> cameras = new ArrayList<>();
 
    private boolean clearingLog = false;
    
@@ -64,48 +68,40 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
    
    private YoVariableSummarizer yoVariableSummarizer = null;
    
-   public YoVariableLoggerListener(File tempDirectory, File finalDirectory, String timestamp, AnnounceRequest request, YoVariableLoggerOptions options)
+   // Reconstruction variables for disk data format
+   private List<YoVariable<?>> variables;
+   private List<JointState> jointStates;
+   private ByteBuffer dataBuffer;
+   private LongBuffer dataBufferAsLong;
+   
+   public YoVariableLoggerListener(File tempDirectory, File finalDirectory, String timestamp, Announcement request, YoVariableLoggerOptions options)
    {
       System.out.println(request);
       this.flushAggressivelyToDisk = options.isFlushAggressivelyToDisk();
       this.tempDirectory = tempDirectory;
       this.finalDirectory = finalDirectory;
       this.options = options;
-      this.request = request;
       logProperties = new LogPropertiesWriter(new File(tempDirectory, propertyFile));
-      logProperties.setHandshakeFile(handshakeFilename);
-      logProperties.setVariableDataFile(dataFilename);
-      logProperties.setCompressed(true);
-      logProperties.setTimestampedIndex(true);
-      logProperties.setVariablesIndexFile(indexFilename);
+      logProperties.getVariables().setHandshake(handshakeFilename);
+      logProperties.getVariables().setData(dataFilename);
+      logProperties.getVariables().setCompressed(true);
+      logProperties.getVariables().setTimestamped(true);
+      logProperties.getVariables().setIndex(indexFilename);
+      logProperties.getVariables().setHandshakeFileType(HandshakeFileType.IDL_YAML);
 
-      logProperties.setLogName(request.getName());
+      logProperties.setName(request.getNameAsString());
       logProperties.setTimestamp(timestamp);
       
       if(!options.getDisableVideo())
       {
          
-         System.out.println("Cameras: " + Arrays.toString(request.getCameras()));
-         for (int camera : request.getCameras())
-         {
-            cameras.add(camera);
-         }
-         
-         if (request.hasVideoStream())
-         {
-            videoStreamAddress = new InetSocketAddress(LogUtils.getByAddress(request.getVideoStream()), request.getVideoPort());
-            System.out.println("Video stream: " + videoStreamAddress);
-         }
-         else
-         {
-            videoStreamAddress = null;
-         }
+         System.out.println("Cameras: " + request.getCameras());
+         cameras.addAll(Arrays.asList(request.getCameras().toArray()));
          
       }
       else
       {
          PrintTools.warn(this, "cameras.yaml not found, disabling video");
-         videoStreamAddress = null;
       }
 
    }
@@ -120,34 +116,35 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
       File handshakeFile = new File(tempDirectory, handshakeFilename);
       try
       {
-         FileOutputStream handshakeStream = new FileOutputStream(handshakeFile, false);
-         handshakeStream.write(handshake.protoShake);
-         handshakeStream.getFD().sync();
-         handshakeStream.close();
+         YAMLSerializer<Handshake> serializer = new YAMLSerializer<>(new HandshakePubSubType());
+         serializer.serialize(handshakeFile, handshake.getHandshake());
       }
       catch (IOException e)
       {
          throw new RuntimeException(e);
       }
 
-      if (handshake.modelLoaderClass != null)
+      if (handshake.getModelLoaderClass() != null)
       {
-         logProperties.setModelLoaderClass(handshake.modelLoaderClass);
-         logProperties.setModelName(handshake.modelName);
-         logProperties.setModelResourceDirectories(handshake.resourceDirectories);
-         logProperties.setModelPath(modelFilename);
-         logProperties.setModelResourceBundlePath(modelResourceBundle);
+         logProperties.getModel().setLoader(handshake.getModelLoaderClass());
+         logProperties.getModel().setName(handshake.getModelName());
+         for(String resourceDirectory : handshake.getResourceDirectories())
+         {
+            logProperties.getModel().getResourceDirectoriesList().add(resourceDirectory);
+         }
+         logProperties.getModel().setPath(modelFilename);
+         logProperties.getModel().setResourceBundle(modelResourceBundle);
 
          File modelFile = new File(tempDirectory, modelFilename);
          File resourceFile = new File(tempDirectory, modelResourceBundle);
          try
          {
             FileOutputStream modelStream = new FileOutputStream(modelFile, false);
-            modelStream.write(handshake.model);
+            modelStream.write(handshake.getModel());
             modelStream.getFD().sync();
             modelStream.close();
             FileOutputStream resourceStream = new FileOutputStream(resourceFile, false);
-            resourceStream.write(handshake.resourceZip);
+            resourceStream.write(handshake.getResourceZip());
             resourceStream.getFD().sync();
             resourceStream.close();
 
@@ -158,16 +155,18 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
          }
       }
       
-      if(handshake.createSummary)
+      if(handshake.getHandshake().getSummary().getCreateSummary())
       {
-         yoVariableSummarizer = new YoVariableSummarizer(handshakeParser.getYoVariablesList(), handshake.summaryTriggerVariable, handshake.summarizedVariables);
-         logProperties.setSummaryFile(summaryFilename);
+         yoVariableSummarizer = new YoVariableSummarizer(handshakeParser.getYoVariablesList(), handshake.getHandshake().getSummary().getSummaryTriggerVariableAsString(), handshake.getHandshake().getSummary().getSummarizedVariables().toStringArray());
+         logProperties.getVariables().setSummary(summaryFilename);
       }
    }
 
-   public void receivedTimestampAndData(long timestamp, ByteBuffer buffer)
+   public void receivedTimestampAndData(long timestamp)
    {
       receivedTimestampOnly(timestamp); // Call from here as backup for the UDP channel.
+      
+      ByteBuffer buffer = reconstructBuffer(timestamp);
       
       connected = true;
 
@@ -214,6 +213,28 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
             }
          }
       }
+   }
+
+   private ByteBuffer reconstructBuffer(long timestamp)
+   {
+      dataBuffer.clear();
+      dataBufferAsLong.clear();
+      
+      dataBufferAsLong.put(timestamp);
+      for(int i = 0; i < variables.size();i++)
+      {
+         dataBufferAsLong.put(variables.get(i).getValueAsLongBits());
+      }
+      
+      for(int i = 0; i < jointStates.size(); i++)
+      {
+         jointStates.get(i).get(dataBufferAsLong);
+      }
+      
+      
+      dataBufferAsLong.flip();
+      dataBuffer.clear();
+      return dataBuffer;
    }
 
    public void disconnected()
@@ -304,22 +325,8 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
 
    public void setYoVariableClient(YoVariableClient client)
    {
-      this.yoVariableClient = client;
    }
 
-   public void receiveTimedOut()
-   {
-      if (connected)
-      {
-         System.out.println("Connection lost, closing client.");
-         yoVariableClient.disconnected();
-      }
-      else
-      {
-         System.out.println("Cannot connect to client, closing");
-         yoVariableClient.disconnected();
-      }
-   }
 
    public boolean updateYoVariables()
    {
@@ -337,13 +344,22 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
    {
    }
 
+   @SuppressWarnings("resource")
    @Override
    public void start(LogHandshake handshake, YoVariableHandshakeParser handshakeParser)
    {
       logHandshake(handshake, handshakeParser);
+      
 
       int bufferSize = handshakeParser.getBufferSize();
       this.compressedBuffer = ByteBuffer.allocate(SnappyUtils.maxCompressedLength(bufferSize));
+      
+      // Initialize disk format variables
+      this.dataBuffer = ByteBuffer.allocate(bufferSize);
+      this.dataBufferAsLong = dataBuffer.asLongBuffer();
+      this.variables = handshakeParser.getYoVariablesList();
+      this.jointStates = handshakeParser.getJointStates();
+
 
       File dataFile = new File(tempDirectory, dataFilename);
       File indexFile = new File(tempDirectory, indexFilename);
@@ -364,28 +380,23 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
 
       if (!options.getDisableVideo())
       {
-         for (int camera : cameras)
+         for (CameraAnnouncement camera : cameras)
          {
             try
             {
-               videoDataLoggers.add(new BlackmagicVideoDataLogger(tempDirectory, logProperties, camera, options));
+               switch(camera.getType())
+               {
+               case CAPTURE_CARD:
+                  videoDataLoggers.add(new BlackmagicVideoDataLogger(camera.getNameAsString(), tempDirectory, logProperties, Byte.parseByte(camera.getIdentifierAsString()), options));
+                  break;
+               case NETWORK_STREAM:
+                  videoDataLoggers.add(new NetworkStreamVideoDataLogger(tempDirectory, logProperties, LogParticipantSettings.domain, camera.getIdentifierAsString()));
+                  break;
+               }
             }
             catch (IOException e)
             {
                System.err.println("Cannot start video data logger");
-               e.printStackTrace();
-            }
-         }
-
-         if (videoStreamAddress != null)
-         {
-            try
-            {
-               videoDataLoggers.add(new NetworkStreamVideoDataLogger(request.getControlIP(), tempDirectory, logProperties, videoStreamAddress));
-            }
-            catch (IOException e)
-            {
-               System.err.println("Cannot start video stream logger");
                e.printStackTrace();
             }
          }
@@ -416,12 +427,13 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
             {
                videoDataLoggers.get(i).timestampChanged(timestamp);
             }
+            lastReceivedTimestamp = timestamp;
          }
       }
    }
 
    @Override
-   public void clearLog()
+   public void clearLog(String guid)
    {
       synchronized (synchronizer)
       {

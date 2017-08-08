@@ -9,11 +9,10 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import net.java.games.input.Event;
-import us.ihmc.robotModels.FullQuadrupedRobotModel;
 import us.ihmc.communication.net.NetClassList;
 import us.ihmc.communication.packetCommunicator.PacketCommunicator;
 import us.ihmc.communication.util.NetworkPorts;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedTaskSpaceEstimator;
 import us.ihmc.quadrupedRobotics.estimator.referenceFrames.QuadrupedReferenceFrames;
 import us.ihmc.quadrupedRobotics.input.mode.QuadrupedStepTeleopMode;
@@ -22,14 +21,15 @@ import us.ihmc.quadrupedRobotics.input.mode.QuadrupedXGaitTeleopMode;
 import us.ihmc.quadrupedRobotics.model.QuadrupedPhysicalProperties;
 import us.ihmc.robotDataLogger.YoVariableServer;
 import us.ihmc.robotDataLogger.logger.LogSettings;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
+import us.ihmc.util.PeriodicNonRealtimeThreadSchedulerFactory;
+import us.ihmc.robotModels.FullQuadrupedRobotModel;
 import us.ihmc.sensorProcessing.communication.packets.dataobjects.RobotConfigurationData;
 import us.ihmc.sensorProcessing.communication.subscribers.RobotDataReceiver;
 import us.ihmc.tools.inputDevices.joystick.Joystick;
-import us.ihmc.tools.inputDevices.joystick.JoystickComponentFilter;
+import us.ihmc.tools.inputDevices.joystick.JoystickCustomizationFilter;
 import us.ihmc.tools.inputDevices.joystick.JoystickEventListener;
 import us.ihmc.tools.inputDevices.joystick.mapping.XBoxOneMapping;
-import us.ihmc.util.PeriodicNonRealtimeThreadScheduler;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 public class QuadrupedBodyTeleopNode implements JoystickEventListener
 {
@@ -60,8 +60,8 @@ public class QuadrupedBodyTeleopNode implements JoystickEventListener
    {
       this.device = device;
 
-      this.server = new YoVariableServer(getClass(), new PeriodicNonRealtimeThreadScheduler(getClass().getSimpleName()), null, LogSettings.BEHAVIOR, DT);
-      this.server.setMainRegistry(registry, fullRobotModel, new YoGraphicsListRegistry());
+      this.server = new YoVariableServer(getClass(), new PeriodicNonRealtimeThreadSchedulerFactory(), null, LogSettings.BEHAVIOR, DT);
+      this.server.setMainRegistry(registry, fullRobotModel.getElevator(), new YoGraphicsListRegistry());
       this.packetCommunicator = PacketCommunicator.createTCPPacketCommunicatorClient(host, port, netClassList);
       this.robotDataReceiver = new RobotDataReceiver(fullRobotModel, null);
       this.packetCommunicator.attachListener(RobotConfigurationData.class, robotDataReceiver);
@@ -121,12 +121,12 @@ public class QuadrupedBodyTeleopNode implements JoystickEventListener
 
    private void configureJoystickFilters(Joystick device)
    {
-      device.setComponentFilter(new JoystickComponentFilter(XBoxOneMapping.LEFT_TRIGGER, false, 0.05, 1, 1.0));
-      device.setComponentFilter(new JoystickComponentFilter(XBoxOneMapping.RIGHT_TRIGGER, false, 0.05, 1, 1.0));
-      device.setComponentFilter(new JoystickComponentFilter(XBoxOneMapping.LEFT_STICK_X, true, 0.1, 1));
-      device.setComponentFilter(new JoystickComponentFilter(XBoxOneMapping.LEFT_STICK_Y, true, 0.1, 1));
-      device.setComponentFilter(new JoystickComponentFilter(XBoxOneMapping.RIGHT_STICK_X, true, 0.1, 1));
-      device.setComponentFilter(new JoystickComponentFilter(XBoxOneMapping.RIGHT_STICK_Y, true, 0.1, 1));
+      device.setCustomizationFilter(new JoystickCustomizationFilter(XBoxOneMapping.LEFT_TRIGGER, false, 0.05, 1, 1.0));
+      device.setCustomizationFilter(new JoystickCustomizationFilter(XBoxOneMapping.RIGHT_TRIGGER, false, 0.05, 1, 1.0));
+      device.setCustomizationFilter(new JoystickCustomizationFilter(XBoxOneMapping.LEFT_STICK_X, true, 0.1, 1));
+      device.setCustomizationFilter(new JoystickCustomizationFilter(XBoxOneMapping.LEFT_STICK_Y, true, 0.1, 1));
+      device.setCustomizationFilter(new JoystickCustomizationFilter(XBoxOneMapping.RIGHT_STICK_X, true, 0.1, 1));
+      device.setCustomizationFilter(new JoystickCustomizationFilter(XBoxOneMapping.RIGHT_STICK_Y, true, 0.1, 1));
    }
 
    public void update()

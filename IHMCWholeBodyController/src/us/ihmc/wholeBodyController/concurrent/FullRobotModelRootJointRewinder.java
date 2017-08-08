@@ -1,17 +1,15 @@
 package us.ihmc.wholeBodyController.concurrent;
 
 
-import javax.vecmath.Quat4d;
-import javax.vecmath.Vector3d;
-
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.robotModels.FullRobotModel;
-import us.ihmc.robotics.dataStructures.listener.RewoundListener;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.listener.RewoundListener;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.robotics.math.frames.YoFrameQuaternion;
 import us.ihmc.robotics.math.frames.YoFrameVector;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.screwTheory.FloatingInverseDynamicsJoint;
-import us.ihmc.robotics.screwTheory.FloatingInverseDynamicsJointReferenceFrame;
 
 public class FullRobotModelRootJointRewinder implements RewoundListener
 {
@@ -19,9 +17,9 @@ public class FullRobotModelRootJointRewinder implements RewoundListener
    private final FullRobotModel fullRobotModel;
    
    private final YoFrameVector yoRootJointTranslation = new YoFrameVector("yoRootJointTranslation", ReferenceFrame.getWorldFrame(), registry);
-   private final Vector3d rootJointTranslation = new Vector3d();
+   private final Vector3D rootJointTranslation = new Vector3D();
    private final YoFrameQuaternion yoRootJointRotation = new YoFrameQuaternion("rootJointRotation", ReferenceFrame.getWorldFrame(), registry);
-   private final Quat4d rootJointRotation = new Quat4d();
+   private final Quaternion rootJointRotation = new Quaternion();
 
    public FullRobotModelRootJointRewinder(FullRobotModel fullRobotModel, YoVariableRegistry parentRegistry)
    {
@@ -32,10 +30,9 @@ public class FullRobotModelRootJointRewinder implements RewoundListener
    public void recordCurrentState()
    {
       FloatingInverseDynamicsJoint rootJoint = fullRobotModel.getRootJoint();
-      FloatingInverseDynamicsJointReferenceFrame rootJointFrame = rootJoint.getFrameAfterJoint();
       
-      rootJointFrame.getTraslation(rootJointTranslation);
-      rootJointFrame.getRotation(rootJointRotation);
+      rootJoint.getTranslation(rootJointTranslation);
+      rootJoint.getRotation(rootJointRotation);
 
       yoRootJointTranslation.set(rootJointTranslation);
       yoRootJointRotation.set(rootJointRotation);

@@ -1,16 +1,15 @@
 package us.ihmc.commonWalkingControlModules.instantaneousCapturePoint;
 
-import static us.ihmc.graphics3DDescription.appearance.YoAppearance.Blue;
-import static us.ihmc.graphics3DDescription.appearance.YoAppearance.DarkRed;
+import static us.ihmc.graphicsDescription.appearance.YoAppearance.*;
 
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicPosition.GraphicType;
-import us.ihmc.graphics3DDescription.yoGraphics.plotting.YoArtifactPolygon;
-import us.ihmc.graphics3DDescription.yoGraphics.plotting.YoArtifactPosition;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.EnumYoVariable;
-import us.ihmc.robotics.geometry.BoundingBox2d;
+import us.ihmc.euclid.geometry.BoundingBox2D;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition.GraphicType;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.graphicsDescription.yoGraphics.plotting.YoArtifactPolygon;
+import us.ihmc.graphicsDescription.yoGraphics.plotting.YoArtifactPosition;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoEnum;
 import us.ihmc.robotics.geometry.FrameConvexPolygon2d;
 import us.ihmc.robotics.geometry.FrameLine2d;
 import us.ihmc.robotics.geometry.FramePoint2d;
@@ -37,10 +36,10 @@ public class SmartCMPProjector extends CMPProjector
    private final YoFrameConvexPolygon2d yoProjectionArea = new YoFrameConvexPolygon2d("CMPProjectionArea", worldFrame, 10, registry);
 
    // debugging and state of the projector
-   private final BooleanYoVariable cmpWasProjected = new BooleanYoVariable("CmpWasProjected", registry);
+   private final YoBoolean cmpWasProjected = new YoBoolean("CmpWasProjected", registry);
 
    // temporary variables to avoid garbage generation
-   private final BoundingBox2d tempBoundingBox = new BoundingBox2d();
+   private final BoundingBox2D tempBoundingBox = new BoundingBox2D();
    private final FrameLine2d icpToCMPLine = new FrameLine2d();
    private final FramePoint2d intersection1 = new FramePoint2d();
    private final FramePoint2d intersection2 = new FramePoint2d();
@@ -60,7 +59,7 @@ public class SmartCMPProjector extends CMPProjector
       TOWARDS_FINAL_MIN_ANGLE,
       ORTHOGONAL_PROJECTION
    }
-   private final EnumYoVariable<ProjectionMethod> activeProjection = new EnumYoVariable<>("ActiveCMPProjection", registry, ProjectionMethod.class);
+   private final YoEnum<ProjectionMethod> activeProjection = new YoEnum<>("ActiveCMPProjection", registry, ProjectionMethod.class);
 
    public SmartCMPProjector(YoGraphicsListRegistry graphicsListRegistry, YoVariableRegistry parentRegistry)
    {
@@ -170,7 +169,7 @@ public class SmartCMPProjector extends CMPProjector
          boolean projectionClose = distanceAfterProjecting < maxICPSpeedIncreaseFactor * desiredDistance;
 
          // make sure the ICP is pushed in the right direction
-         double angle = icpToCMPVector.angle(icpToCandidateVector);
+         double angle = Math.abs(icpToCMPVector.angle(icpToCandidateVector));
          if (angle < 1.0e-7 && projectionClose)
          {
             projectedCMP.setIncludingFrame(candidate);
@@ -192,7 +191,7 @@ public class SmartCMPProjector extends CMPProjector
             icpToCandidateVector.sub(candidate, capturePoint);
 
             // make sure the ICP is pushed in the right direction
-            double angle = finalICPToICPVector.angle(icpToCandidateVector);
+            double angle = Math.abs(finalICPToICPVector.angle(icpToCandidateVector));
             if (angle < 1.0e-7)
             {
                projectedCMP.setIncludingFrame(candidate);
@@ -215,7 +214,7 @@ public class SmartCMPProjector extends CMPProjector
             icpToCandidateVector.setToZero(projectionArea.getReferenceFrame());
             icpToCandidateVector.sub(vertex, capturePoint);
 
-            double newAngle = icpToCandidateVector.angle(finalICPToICPVector);
+            double newAngle = Math.abs(icpToCandidateVector.angle(finalICPToICPVector));
             if (newAngle < angle)
             {
                angle = newAngle;

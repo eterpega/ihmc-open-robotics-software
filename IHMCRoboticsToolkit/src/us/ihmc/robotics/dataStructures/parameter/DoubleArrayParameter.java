@@ -1,9 +1,10 @@
 package us.ihmc.robotics.dataStructures.parameter;
 
-import com.google.common.primitives.Doubles;
 import org.apache.commons.lang3.StringUtils;
 
-public class DoubleArrayParameter extends ArrayParameter
+import com.google.common.primitives.Doubles;
+
+public class DoubleArrayParameter extends Parameter
 {
    private double[] value;
 

@@ -1,8 +1,8 @@
 package us.ihmc.atlas;
 
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
-import us.ihmc.simulationconstructionset.util.inputdevices.SliderBoardConfigurationManager;
+import us.ihmc.simulationConstructionSetTools.util.inputdevices.SliderBoardConfigurationManager;
 
 public class JointAngleOffsetSliderBoard
 {

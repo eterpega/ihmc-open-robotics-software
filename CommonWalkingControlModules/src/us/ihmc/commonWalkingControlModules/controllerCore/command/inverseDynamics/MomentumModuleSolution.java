@@ -12,19 +12,39 @@ import us.ihmc.robotics.screwTheory.Wrench;
 
 public class MomentumModuleSolution
 {
-   private final InverseDynamicsJoint[] jointsToOptimizeFor;
-   private final DenseMatrix64F jointAccelerations;
-   private final SpatialForceVector centroidalMomentumRateSolution;
-   private final Map<RigidBody, Wrench> externalWrenchSolution;
-   private final List<RigidBody> rigidBodiesWithExternalWrench;
+   private InverseDynamicsJoint[] jointsToOptimizeFor;
+   private DenseMatrix64F jointAccelerations;
+   private DenseMatrix64F rhoSolution;
+   private SpatialForceVector centroidalMomentumRateSolution;
+   private Map<RigidBody, Wrench> externalWrenchSolution;
+   private List<RigidBody> rigidBodiesWithExternalWrench;
 
-   public MomentumModuleSolution(InverseDynamicsJoint[] jointsToOptimizeFor, DenseMatrix64F jointAccelerations,
-         SpatialForceVector centroidalMomentumRateSolution, Map<RigidBody, Wrench> externalWrenchSolution, List<RigidBody> rigidBodiesWithExternalWrench)
+   public void setJointsToOptimizeFor(InverseDynamicsJoint[] jointsToOptimizeFor)
    {
       this.jointsToOptimizeFor = jointsToOptimizeFor;
+   }
+
+   public void setJointAccelerations(DenseMatrix64F jointAccelerations)
+   {
       this.jointAccelerations = jointAccelerations;
+   }
+   public void setRhoSolution(DenseMatrix64F rhoSolution)
+   {
+      this.rhoSolution = rhoSolution;
+   }
+
+   public void setCentroidalMomentumRateSolution(SpatialForceVector centroidalMomentumRateSolution)
+   {
       this.centroidalMomentumRateSolution = centroidalMomentumRateSolution;
+   }
+
+   public void setExternalWrenchSolution(Map<RigidBody, Wrench> externalWrenchSolution)
+   {
       this.externalWrenchSolution = externalWrenchSolution;
+   }
+
+   public void setRigidBodiesWithExternalWrench(List<RigidBody> rigidBodiesWithExternalWrench)
+   {
       this.rigidBodiesWithExternalWrench = rigidBodiesWithExternalWrench;
    }
 
@@ -51,5 +71,10 @@ public class MomentumModuleSolution
    public DenseMatrix64F getJointAccelerations()
    {
       return jointAccelerations;
+   }
+
+   public DenseMatrix64F getRhoSolution()
+   {
+      return rhoSolution;
    }
 }

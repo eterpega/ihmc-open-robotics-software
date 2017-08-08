@@ -1,14 +1,14 @@
 package us.ihmc.kalman.imu.testCases;
 
-import us.ihmc.graphics3DDescription.Graphics3DObject;
+import us.ihmc.graphicsDescription.Graphics3DObject;
 import us.ihmc.kalman.imu.QuaternionBasedArrayFullIMUKalmanFilter;
 import us.ihmc.kalman.imu.QuaternionBasedFullIMUKalmanFilter;
 import us.ihmc.kalman.imu.QuaternionBasedJamaFullIMUKalmanFilter;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.simulationconstructionset.Link;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
 import us.ihmc.simulationconstructionset.SimulationConstructionSetParameters;
-import us.ihmc.simulationconstructionset.util.inputdevices.MidiSliderBoard;
+import us.ihmc.simulationConstructionSetTools.util.inputdevices.MidiSliderBoard;
 
 public class TestIMUKalmanFilterSimulationJerryOne
 {
@@ -138,7 +138,7 @@ public class TestIMUKalmanFilterSimulationJerryOne
       @SuppressWarnings("unused") TestIMUKalmanFilterSimulationJerryOne testKalmanFilterSimulation = new TestIMUKalmanFilterSimulationJerryOne();
    }
 
-   public DoubleYoVariable[] getControlVars()
+   public YoDouble[] getControlVars()
    {
       return null;
    }

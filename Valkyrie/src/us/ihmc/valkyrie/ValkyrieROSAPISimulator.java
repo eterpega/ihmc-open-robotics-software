@@ -4,17 +4,18 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import com.martiansoftware.jsap.JSAPException;
-
 import org.ros.internal.message.Message;
+
+import com.martiansoftware.jsap.JSAPException;
 
 import us.ihmc.avatar.DRCObstacleCourseStartingLocation;
 import us.ihmc.avatar.DRCStartingLocation;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
+import us.ihmc.avatar.drcRobot.RobotTarget;
 import us.ihmc.avatar.ros.ROSAPISimulator;
 import us.ihmc.communication.packetCommunicator.PacketCommunicator;
-import us.ihmc.simulationconstructionset.util.environments.CommonAvatarEnvironmentInterface;
-import us.ihmc.simulationconstructionset.util.environments.DefaultCommonAvatarEnvironment;
+import us.ihmc.simulationConstructionSetTools.util.environments.CommonAvatarEnvironmentInterface;
+import us.ihmc.simulationConstructionSetTools.util.environments.DefaultCommonAvatarEnvironment;
 import us.ihmc.utilities.ros.publisher.RosTopicPublisher;
 import us.ihmc.utilities.ros.subscriber.RosTopicSubscriberInterface;
 
@@ -48,7 +49,7 @@ public class ValkyrieROSAPISimulator extends ROSAPISimulator
    {
       Options opt = parseArguments(args);
       
-      DRCRobotModel robotModel = new ValkyrieRobotModel(DRCRobotModel.RobotTarget.SCS, false);
+      DRCRobotModel robotModel = new ValkyrieRobotModel(RobotTarget.SCS, false);
       
       DRCStartingLocation startingLocation;
       try

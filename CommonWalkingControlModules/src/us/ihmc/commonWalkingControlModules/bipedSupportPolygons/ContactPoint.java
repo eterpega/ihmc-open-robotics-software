@@ -1,7 +1,6 @@
 package us.ihmc.commonWalkingControlModules.bipedSupportPolygons;
 
-import javax.vecmath.Point2d;
-
+import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FramePoint2d;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
@@ -43,6 +42,12 @@ public class ContactPoint implements ContactPointInterface
    }
 
    @Override
+   public FramePoint getPosition()
+   {
+      return position;
+   }
+
+   @Override
    public void getPosition(FramePoint framePointToPack)
    {
       framePointToPack.setIncludingFrame(position);
@@ -55,7 +60,7 @@ public class ContactPoint implements ContactPointInterface
    }
 
    @Override
-   public void getPosition2d(Point2d position2d)
+   public void getPosition2d(Point2D position2d)
    {
       position.setXY(position2d);
    }

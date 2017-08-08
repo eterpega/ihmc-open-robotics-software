@@ -10,8 +10,7 @@
 # Specifies the side of the robot that will execute the trajectory.
 uint8 robot_side
 
-# List of trajectory points per joint. The expected joint ordering is from the closest joint to the
-# chest to the closest joint to the hand.
+# List of points in the trajectory.
 ihmc_msgs/OneDoFJointTrajectoryRosMessage[] joint_trajectory_messages
 
 # When OVERRIDE is chosen:  - The time of the first trajectory point can be zero, in which case the

@@ -10,40 +10,41 @@ import java.util.Random;
 
 import org.junit.Test;
 
+import us.ihmc.commons.RandomNumbers;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.continuousIntegration.ContinuousIntegrationTools;
+import us.ihmc.euclid.geometry.ConvexPolygon2D;
+import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.footstepPlanning.testTools.PlanningTestTools;
-import us.ihmc.graphics3DDescription.appearance.AppearanceDefinition;
-import us.ihmc.graphics3DDescription.appearance.YoAppearance;
-import us.ihmc.graphics3DDescription.appearance.YoAppearanceRGBColor;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicPolygon;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
+import us.ihmc.graphicsDescription.appearance.YoAppearance;
+import us.ihmc.graphicsDescription.appearance.YoAppearanceRGBColor;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPolygon;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.robotics.MathTools;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.IntegerYoVariable;
-import us.ihmc.robotics.geometry.ConvexPolygon2d;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoInteger;
 import us.ihmc.robotics.geometry.FramePose;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
 import us.ihmc.robotics.math.frames.YoFramePose;
-import us.ihmc.robotics.random.RandomTools;
+import us.ihmc.robotics.random.RandomGeometry;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotController.RobotControllerAdapter;
 import us.ihmc.simulationconstructionset.Robot;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
-import us.ihmc.simulationconstructionset.bambooTools.SimulationTestingParameters;
+import us.ihmc.simulationconstructionset.util.simulationTesting.SimulationTestingParameters;
 import us.ihmc.tools.color.Gradient;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationTools;
 import us.ihmc.tools.thread.ThreadTools;
 
 public class BipedalStepAdjustmentCostCalculatorTest
 {
    private Color[] costColorGradient;
-   private ConvexPolygon2d defaultFootPolygon;
+   private ConvexPolygon2D defaultFootPolygon;
    private Map<Integer, YoGraphicPolygon> candidateFootstepPolygons;
-   private DoubleYoVariable colorIndexYoVariable;
-   private DoubleYoVariable stanceFootPitch;
-   private DoubleYoVariable yoTime;
-   private IntegerYoVariable candidateIndex;
+   private YoDouble colorIndexYoVariable;
+   private YoDouble stanceFootPitch;
+   private YoDouble yoTime;
+   private YoInteger candidateIndex;
 
    private double incrementX = 0.1;
    private double incrementY = 0.05;
@@ -70,22 +71,22 @@ public class BipedalStepAdjustmentCostCalculatorTest
       for (int i = 0; i < numberOfIdealStepsToTest; i++)
       {
          FramePose stanceFoot = new FramePose(worldFrame);
-         stanceFoot.setPosition(RandomTools.generateRandomPoint(random, 1.0, 1.0, 0.3));
-         stanceFoot.setOrientation(RandomTools.generateRandomQuaternion(random));
+         stanceFoot.setPosition(RandomGeometry.nextPoint3D(random, 1.0, 1.0, 0.3));
+         stanceFoot.setOrientation(RandomGeometry.nextQuaternion(random));
 
          FramePose swingStartFoot = new FramePose(worldFrame);
-         swingStartFoot.setPosition(RandomTools.generateRandomPoint(random, 1.0, 1.0, 0.3));
-         swingStartFoot.setOrientation(RandomTools.generateRandomQuaternion(random));
+         swingStartFoot.setPosition(RandomGeometry.nextPoint3D(random, 1.0, 1.0, 0.3));
+         swingStartFoot.setOrientation(RandomGeometry.nextQuaternion(random));
 
          FramePose idealFootstep = new FramePose(worldFrame);
-         idealFootstep.setPosition(RandomTools.generateRandomPoint(random, 1.0, 1.0, 0.3));
-         idealFootstep.setOrientation(RandomTools.generateRandomQuaternion(random));
+         idealFootstep.setPosition(RandomGeometry.nextPoint3D(random, 1.0, 1.0, 0.3));
+         idealFootstep.setOrientation(RandomGeometry.nextQuaternion(random));
 
          FramePose candidateFootstep = new FramePose(worldFrame);
          candidateFootstep.setPose(idealFootstep);
 
          double idealFootstepCost = stepAdjustmentCostCalculator.calculateCost(stanceFoot, swingStartFoot, idealFootstep, candidateFootstep, 1.0);
-         assertEquals(0.0, idealFootstepCost, 1e-7);
+         assertEquals(stepAdjustmentCostCalculator.getStepBaseCost(), idealFootstepCost, 1e-7);
       }
 
       int numberOfRandomXYTranslations = 1000;
@@ -93,22 +94,22 @@ public class BipedalStepAdjustmentCostCalculatorTest
       for (int i = 0; i<numberOfRandomXYTranslations; i++)
       {
          FramePose stanceFoot = new FramePose(worldFrame);
-         stanceFoot.setPosition(RandomTools.generateRandomPoint(random, 1.0, 1.0, 0.3));
-         stanceFoot.setOrientation(RandomTools.generateRandomQuaternion(random));
+         stanceFoot.setPosition(RandomGeometry.nextPoint3D(random, 1.0, 1.0, 0.3));
+         stanceFoot.setOrientation(RandomGeometry.nextQuaternion(random));
 
          FramePose swingStartFoot = new FramePose(worldFrame);
-         swingStartFoot.setPosition(RandomTools.generateRandomPoint(random, 1.0, 1.0, 0.3));
-         swingStartFoot.setOrientation(RandomTools.generateRandomQuaternion(random));
+         swingStartFoot.setPosition(RandomGeometry.nextPoint3D(random, 1.0, 1.0, 0.3));
+         swingStartFoot.setOrientation(RandomGeometry.nextQuaternion(random));
 
          FramePose idealFootstep = new FramePose(worldFrame);
-         idealFootstep.setPosition(RandomTools.generateRandomPoint(random, 1.0, 1.0, 0.3));
-         idealFootstep.setOrientation(RandomTools.generateRandomQuaternion(random));
+         idealFootstep.setPosition(RandomGeometry.nextPoint3D(random, 1.0, 1.0, 0.3));
+         idealFootstep.setOrientation(RandomGeometry.nextQuaternion(random));
 
-         FramePose candidateFootstep = new FramePose(worldFrame);         
+         FramePose candidateFootstep = new FramePose(worldFrame);
          candidateFootstep.set(idealFootstep);
 
          RigidBodyTransform transform = new RigidBodyTransform();
-         transform.setTranslation(RandomTools.generateRandomDouble(random, 0.1), RandomTools.generateRandomDouble(random, 0.1), 0.0);
+         transform.setTranslation(RandomNumbers.nextDouble(random, 0.1), RandomNumbers.nextDouble(random, 0.1), 0.0);
          candidateFootstep.applyTransform(transform);
          double footstepCost = stepAdjustmentCostCalculator.calculateCost(stanceFoot, swingStartFoot, idealFootstep, candidateFootstep, 1.0);
 
@@ -118,23 +119,23 @@ public class BipedalStepAdjustmentCostCalculatorTest
    }
 
    @ContinuousIntegrationTest(estimatedDuration = 0.1)
-   @Test(timeout = 3000000)
+   @Test(timeout = 300000)
    public void testScoringFootsteps()
    {
       SimulationTestingParameters simulationTestingParameters = new SimulationTestingParameters();
-      simulationTestingParameters.setCreateGUI(!ContinuousIntegrationTools.isRunningOnContinuousIntegrationServer());
+      simulationTestingParameters.setCreateGUI(false);//!ContinuousIntegrationTools.isRunningOnContinuousIntegrationServer());
       Robot robot = new Robot("Test");
       SimulationConstructionSet scs = new SimulationConstructionSet(robot, simulationTestingParameters);
       YoGraphicsListRegistry yoGraphicsListRegistry = new YoGraphicsListRegistry();
       YoVariableRegistry registry = scs.getRootRegistry();
-      yoTime = (DoubleYoVariable) registry.getVariable("t");
+      yoTime = (YoDouble) registry.getVariable("t");
 
-      DoubleYoVariable costYoVariable = new DoubleYoVariable("cost", registry);
-      DoubleYoVariable xYoVariable = new DoubleYoVariable("x", registry);
-      DoubleYoVariable yYoVariable = new DoubleYoVariable("y", registry);
-      colorIndexYoVariable = new DoubleYoVariable("colorIndex", registry);
-      stanceFootPitch = new DoubleYoVariable("stanceFootPitch", registry);
-      candidateIndex = new IntegerYoVariable("candidateIndex", registry);
+      YoDouble costYoVariable = new YoDouble("cost", registry);
+      YoDouble xYoVariable = new YoDouble("x", registry);
+      YoDouble yYoVariable = new YoDouble("y", registry);
+      colorIndexYoVariable = new YoDouble("colorIndex", registry);
+      stanceFootPitch = new YoDouble("stanceFootPitch", registry);
+      candidateIndex = new YoInteger("candidateIndex", registry);
 
       BipedalStepAdjustmentCostCalculator stepAdjustmentCostCalculator = new BipedalStepAdjustmentCostCalculator(registry, yoGraphicsListRegistry);
 
@@ -204,7 +205,7 @@ public class BipedalStepAdjustmentCostCalculatorTest
       }
    }
 
-   private void applySlopeCandidateSet(FramePose candidateFramePose, DoubleYoVariable xYoVariable, DoubleYoVariable yYoVariable)
+   private void applySlopeCandidateSet(FramePose candidateFramePose, YoDouble xYoVariable, YoDouble yYoVariable)
    {
       candidateIndex.set((int) yoTime.getDoubleValue() % (numInX * numInY));
 
@@ -216,7 +217,7 @@ public class BipedalStepAdjustmentCostCalculatorTest
       candidateFramePose.setPosition(x, y, 0.3 + (y - 0.2) * 0.2);
    }
 
-   private void applyVerticalCandidateSet(FramePose candidateFramePose, DoubleYoVariable xYoVariable, DoubleYoVariable yYoVariable)
+   private void applyVerticalCandidateSet(FramePose candidateFramePose, YoDouble xYoVariable, YoDouble yYoVariable)
    {
       double height = 1.0;
       double verticalIncrement = 0.005;
@@ -263,7 +264,7 @@ public class BipedalStepAdjustmentCostCalculatorTest
       cost = -cost;
 
       double index = cost * 1000.0 / (greenCost - redCost);
-      index = MathTools.clipToMinMax(index, 0, 999);
+      index = MathTools.clamp(index, 0, 999);
 
       colorIndexYoVariable.set(index);
 

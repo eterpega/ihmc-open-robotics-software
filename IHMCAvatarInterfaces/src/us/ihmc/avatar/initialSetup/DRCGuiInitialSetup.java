@@ -4,19 +4,19 @@ import javax.swing.JButton;
 
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
 import us.ihmc.avatar.visualization.WalkControllerSliderBoard;
-import us.ihmc.graphics3DAdapter.Graphics3DAdapter;
-import us.ihmc.graphics3DAdapter.NullGraphics3DAdapter;
-import us.ihmc.graphics3DAdapter.camera.CameraConfiguration;
-import us.ihmc.graphics3DAdapter.jme.JMEGraphics3DAdapter;
-import us.ihmc.graphics3DDescription.Graphics3DObject;
-import us.ihmc.graphics3DDescription.HeightMap;
+import us.ihmc.graphicsDescription.Graphics3DObject;
+import us.ihmc.graphicsDescription.HeightMap;
+import us.ihmc.jMonkeyEngineToolkit.Graphics3DAdapter;
+import us.ihmc.jMonkeyEngineToolkit.NullGraphics3DAdapter;
+import us.ihmc.jMonkeyEngineToolkit.camera.CameraConfiguration;
+import us.ihmc.jMonkeyEngineToolkit.jme.JMEGraphics3DAdapter;
 import us.ihmc.sensorProcessing.parameters.DRCRobotCameraParameters;
 import us.ihmc.sensorProcessing.parameters.DRCRobotSensorInformation;
 import us.ihmc.simulationconstructionset.Robot;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
 import us.ihmc.simulationconstructionset.SimulationConstructionSetParameters;
-import us.ihmc.simulationconstructionset.dataExporter.TorqueSpeedDataExporter;
 import us.ihmc.simulationconstructionset.util.ground.FlatGroundProfile;
+import us.ihmc.simulationConstructionSetTools.dataExporter.TorqueSpeedDataExporter;
 
 public class DRCGuiInitialSetup implements GuiInitialSetup
 {
@@ -102,8 +102,8 @@ public class DRCGuiInitialSetup implements GuiInitialSetup
 
       if (SHOW_ONLY_WRENCH_VISUALIZER)
       {
-         scs.hideAllDynamicGraphicObjects();
-         scs.setDynamicGraphicObjectsListVisible("wrenchVisualizer", true);
+         scs.hideAllYoGraphics();
+         scs.setYoGraphicsListVisible("wrenchVisualizer", true);
       }
 
       if (SHOW_EXPORT_TORQUE_AND_SPEED)

@@ -1,10 +1,9 @@
 package us.ihmc.robotics.referenceFrames;
 
-import javax.vecmath.Tuple3d;
-
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple3D.interfaces.Tuple3DBasics;
 import us.ihmc.robotics.geometry.FrameTuple;
 import us.ihmc.robotics.geometry.FrameVector;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
 
 public class TranslationReferenceFrame extends ReferenceFrame
 {
@@ -13,7 +12,7 @@ public class TranslationReferenceFrame extends ReferenceFrame
 
    public TranslationReferenceFrame(String frameName, ReferenceFrame parentFrame)
    {
-      super(frameName, parentFrame, false, false, parentFrame.isZupFrame());
+      super(frameName, parentFrame, false, parentFrame.isZupFrame());
 
       originVector = new FrameVector(parentFrame);
    }
@@ -31,7 +30,7 @@ public class TranslationReferenceFrame extends ReferenceFrame
       this.update();
    }
    
-   public void updateTranslation(Tuple3d translation)
+   public void updateTranslation(Tuple3DBasics translation)
    {      
       originVector.set(translation);
       this.update();

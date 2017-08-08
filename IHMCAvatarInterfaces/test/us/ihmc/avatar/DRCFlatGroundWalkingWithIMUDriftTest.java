@@ -1,7 +1,6 @@
 package us.ihmc.avatar;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 
@@ -13,20 +12,20 @@ import us.ihmc.avatar.factory.AvatarSimulation;
 import us.ihmc.avatar.initialSetup.DRCGuiInitialSetup;
 import us.ihmc.avatar.initialSetup.DRCRobotInitialSetup;
 import us.ihmc.avatar.initialSetup.DRCSCSInitialSetup;
-import us.ihmc.graphics3DAdapter.GroundProfile3D;
-import us.ihmc.graphics3DAdapter.camera.CameraConfiguration;
-import us.ihmc.robotModels.visualizer.RobotVisualizer;
+import us.ihmc.jMonkeyEngineToolkit.GroundProfile3D;
+import us.ihmc.jMonkeyEngineToolkit.camera.CameraConfiguration;
+import us.ihmc.robotDataLogger.RobotVisualizer;
 import us.ihmc.robotics.controllers.ControllerFailureException;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.simulationconstructionset.HumanoidFloatingRootJointRobot;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
-import us.ihmc.simulationconstructionset.bambooTools.BambooTools;
-import us.ihmc.simulationconstructionset.bambooTools.SimulationTestingParameters;
+import us.ihmc.simulationConstructionSetTools.bambooTools.BambooTools;
+import us.ihmc.simulationconstructionset.util.simulationTesting.SimulationTestingParameters;
 import us.ihmc.simulationconstructionset.util.ground.FlatGroundProfile;
 import us.ihmc.simulationconstructionset.util.simulationRunner.BlockingSimulationRunner;
 import us.ihmc.simulationconstructionset.util.simulationRunner.BlockingSimulationRunner.SimulationExceededMaximumTimeException;
-import us.ihmc.simulationconstructionset.util.simulationTesting.NothingChangedVerifier;
+import us.ihmc.simulationConstructionSetTools.simulationTesting.NothingChangedVerifier;
 import us.ihmc.stateEstimation.humanoid.DRCSimulatedSensorNoiseParameters;
 import us.ihmc.tools.MemoryTools;
 import us.ihmc.tools.thread.ThreadTools;
@@ -111,7 +110,7 @@ public abstract class DRCFlatGroundWalkingWithIMUDriftTest implements MultiRobot
 
       blockingSimulationRunner = new BlockingSimulationRunner(scs, 1000.0);
 
-      DoubleYoVariable comError = (DoubleYoVariable) scs.getVariable("positionError_comHeight");
+      YoDouble comError = (YoDouble) scs.getVariable("positionError_comHeight");
 
       initiateMotion(scs, standingTimeDuration, blockingSimulationRunner);
 
@@ -145,7 +144,7 @@ public abstract class DRCFlatGroundWalkingWithIMUDriftTest implements MultiRobot
    private void initiateMotion(SimulationConstructionSet scs, double standingTimeDuration, BlockingSimulationRunner runner)
            throws SimulationExceededMaximumTimeException, ControllerFailureException
    {
-      BooleanYoVariable walk = (BooleanYoVariable) scs.getVariable("walk");
+      YoBoolean walk = (YoBoolean) scs.getVariable("walk");
       walk.set(false);
       runner.simulateAndBlock(standingTimeDuration);
 //      walk.set(true);
@@ -155,7 +154,7 @@ public abstract class DRCFlatGroundWalkingWithIMUDriftTest implements MultiRobot
    {
       if (simulationTestingParameters.getCreateSCSVideos())
       {
-         BambooTools.createVideoAndDataWithDateTimeClassMethodAndShareOnSharedDriveIfAvailable(getSimpleRobotName(), scs, 1);
+         BambooTools.createVideoWithDateTimeClassMethodAndShareOnSharedDriveIfAvailable(getSimpleRobotName(), scs, 1);
       }
    }
 
@@ -166,7 +165,6 @@ public abstract class DRCFlatGroundWalkingWithIMUDriftTest implements MultiRobot
       
       DRCSCSInitialSetup scsInitialSetup = new DRCSCSInitialSetup(groundProfile, robotModel.getSimulateDT());
       scsInitialSetup.setDrawGroundProfile(drawGroundProfile);
-      scsInitialSetup.setSimulatedSensorNoiseParameters(DRCSimulatedSensorNoiseParameters.createSensorNoiseParametersZeroNoise());
       
       if (cheatWithGroundHeightAtForFootstep)
          scsInitialSetup.setInitializeEstimatorToActual(true);

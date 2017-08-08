@@ -2,22 +2,21 @@ package us.ihmc.simulationToolkit.controllers;
 
 import java.awt.Color;
 
-import javax.vecmath.Point2d;
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector2d;
-import javax.vecmath.Vector3d;
-
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicPosition.GraphicType;
-import us.ihmc.graphics3DDescription.yoGraphics.plotting.YoArtifactPosition;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.euclid.tuple2D.Point2D;
+import us.ihmc.euclid.tuple2D.Vector2D;
+import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition.GraphicType;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.graphicsDescription.yoGraphics.plotting.YoArtifactPosition;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.math.filters.FilteredVelocityYoFrameVector;
 import us.ihmc.robotics.math.frames.YoFrameVector;
 import us.ihmc.robotics.math.frames.YoFrameVector2d;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
+import us.ihmc.simulationConstructionSetTools.robotController.SimpleRobotController;
 import us.ihmc.simulationconstructionset.HumanoidFloatingRootJointRobot;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
-import us.ihmc.simulationconstructionset.robotController.SimpleRobotController;
 
 public class ActualCMPComputer extends SimpleRobotController
 {
@@ -30,14 +29,14 @@ public class ActualCMPComputer extends SimpleRobotController
    private final double simulateDT;
    private final double gravity;
 
-   private final Vector3d linearMomentum = new Vector3d();
-   private final Vector3d linearMomentumRate = new Vector3d();
-   private final Point3d comPosition = new Point3d();
-   private final Point2d comPosition2d = new Point2d();
-   private final Vector2d comAcceleration = new Vector2d();
-   private final Point2d cmp = new Point2d();
+   private final Vector3D linearMomentum = new Vector3D();
+   private final Vector3D linearMomentumRate = new Vector3D();
+   private final Point3D comPosition = new Point3D();
+   private final Point2D comPosition2d = new Point2D();
+   private final Vector2D comAcceleration = new Vector2D();
+   private final Point2D cmp = new Point2D();
 
-   private final DoubleYoVariable alpha = new DoubleYoVariable("momentumRateAlpha", registry);
+   private final YoDouble alpha = new YoDouble("momentumRateAlpha", registry);
    private final YoFrameVector yoLinearMomentum = new YoFrameVector("linearMomentum", worldFrame, registry);
    private final FilteredVelocityYoFrameVector momentumChange;
 

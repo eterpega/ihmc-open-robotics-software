@@ -2,23 +2,29 @@ package us.ihmc.humanoidRobotics.communication.controllerAPI.command;
 
 import java.util.List;
 
-import javax.vecmath.Point2d;
-import javax.vecmath.Point3d;
-import javax.vecmath.Quat4d;
-
 import us.ihmc.communication.controllerAPI.command.Command;
+import us.ihmc.euclid.tuple2D.Point2D;
+import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.humanoidRobotics.communication.packets.walking.AdjustFootstepMessage;
-import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage.FootstepOrigin;
+import us.ihmc.robotics.geometry.FrameOrientation;
+import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.lists.RecyclingArrayList;
+import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
 
 public class AdjustFootstepCommand implements Command<AdjustFootstepCommand, AdjustFootstepMessage>
 {
    private RobotSide robotSide;
-   private FootstepOrigin origin;
-   private final Point3d adjustedPosition = new Point3d();
-   private final Quat4d adjustedOrientation = new Quat4d();
-   private final RecyclingArrayList<Point2d> predictedContactPoints = new RecyclingArrayList<>(4, Point2d.class);
+   private final FramePoint adjustedPosition = new FramePoint();
+   private final FrameOrientation adjustedOrientation = new FrameOrientation();
+   private final RecyclingArrayList<Point2D> predictedContactPoints = new RecyclingArrayList<>(4, Point2D.class);
+  
+   /** the time to delay this command on the controller side before being executed **/
+   public double executionDelayTime;
+   
+   /** the execution time. This number is set if the execution delay is non zero**/
+   public double adjustedExecutionTime;
 
    public AdjustFootstepCommand()
    {
@@ -29,7 +35,6 @@ public class AdjustFootstepCommand implements Command<AdjustFootstepCommand, Adj
    public void clear()
    {
       robotSide = null;
-      origin = null;
       adjustedPosition.set(0.0, 0.0, 0.0);
       adjustedOrientation.set(0.0, 0.0, 0.0, 1.0);
       predictedContactPoints.clear();
@@ -39,11 +44,11 @@ public class AdjustFootstepCommand implements Command<AdjustFootstepCommand, Adj
    public void set(AdjustFootstepMessage message)
    {
       robotSide = message.getRobotSide();
-      origin = message.getOrigin();
-      adjustedPosition.set(message.getLocation());
-      adjustedOrientation.set(message.getOrientation());
-      List<Point2d> originalPredictedContactPoints = message.getPredictedContactPoints();
+      adjustedPosition.setIncludingFrame(ReferenceFrame.getWorldFrame(), message.getLocation());
+      adjustedOrientation.setIncludingFrame(ReferenceFrame.getWorldFrame(), message.getOrientation());
+      List<Point2D> originalPredictedContactPoints = message.getPredictedContactPoints();
       predictedContactPoints.clear();
+      executionDelayTime = message.getExecutionDelayTime();
       if (originalPredictedContactPoints != null)
       {
          for (int i = 0; i < originalPredictedContactPoints.size(); i++)
@@ -55,10 +60,10 @@ public class AdjustFootstepCommand implements Command<AdjustFootstepCommand, Adj
    public void set(AdjustFootstepCommand other)
    {
       robotSide = other.robotSide;
-      origin = other.origin;
       adjustedPosition.set(other.adjustedPosition);
       adjustedOrientation.set(other.adjustedOrientation);
-      RecyclingArrayList<Point2d> otherPredictedContactPoints = other.predictedContactPoints;
+      executionDelayTime = other.executionDelayTime;
+      RecyclingArrayList<Point2D> otherPredictedContactPoints = other.predictedContactPoints;
       predictedContactPoints.clear();
       for (int i = 0; i < otherPredictedContactPoints.size(); i++)
          predictedContactPoints.add().set(otherPredictedContactPoints.get(i));
@@ -69,21 +74,16 @@ public class AdjustFootstepCommand implements Command<AdjustFootstepCommand, Adj
       this.robotSide = robotSide;
    }
 
-   public void setPose(Point3d position, Quat4d orientation)
+   public void setPose(Point3D position, Quaternion orientation)
    {
-      this.adjustedPosition.set(position);
-      this.adjustedOrientation.set(orientation);
+      adjustedPosition.set(position);
+      adjustedOrientation.set(orientation);
    }
 
-   public void setOrigin(FootstepOrigin origin)
-   {
-      this.origin = origin;
-   }
-
-   public void setPredictedContactPoints(RecyclingArrayList<Point2d> predictedContactPoints)
+   public void setPredictedContactPoints(RecyclingArrayList<Point2D> predictedContactPoints)
    {
       this.predictedContactPoints.clear();
-      for(int i = 0; i < predictedContactPoints.size(); i++)
+      for (int i = 0; i < predictedContactPoints.size(); i++)
          this.predictedContactPoints.add().set(predictedContactPoints.get(i));
    }
 
@@ -92,22 +92,17 @@ public class AdjustFootstepCommand implements Command<AdjustFootstepCommand, Adj
       return robotSide;
    }
 
-   public FootstepOrigin getOrigin()
-   {
-      return origin;
-   }
-
-   public Point3d getPosition()
+   public FramePoint getPosition()
    {
       return adjustedPosition;
    }
 
-   public Quat4d getOrientation()
+   public FrameOrientation getOrientation()
    {
       return adjustedOrientation;
    }
 
-   public RecyclingArrayList<Point2d> getPredictedContactPoints()
+   public RecyclingArrayList<Point2D> getPredictedContactPoints()
    {
       return predictedContactPoints;
    }
@@ -121,6 +116,58 @@ public class AdjustFootstepCommand implements Command<AdjustFootstepCommand, Adj
    @Override
    public boolean isCommandValid()
    {
-      return origin != null && robotSide != null;
+      return robotSide != null;
    }
+
+   /**
+    * returns the amount of time this command is delayed on the controller side before executing
+    * @return the time to delay this command in seconds
+    */
+   @Override
+   public double getExecutionDelayTime()
+   {
+      return executionDelayTime;
+   }
+   
+   /**
+    * sets the amount of time this command is delayed on the controller side before executing
+    * @param delayTime the time in seconds to delay after receiving the command before executing
+    */
+   @Override
+   public void setExecutionDelayTime(double delayTime)
+   {
+      this.executionDelayTime = delayTime;
+   }
+
+   /**
+    * returns the expected execution time of this command. The execution time will be computed when the controller 
+    * receives the command using the controllers time plus the execution delay time.
+    * This is used when {@code getExecutionDelayTime} is non-zero
+    */
+   @Override
+   public double getExecutionTime()
+   {
+      return adjustedExecutionTime;
+   }
+
+   /**
+    * sets the execution time for this command. This is called by the controller when the command is received.
+    */
+   @Override
+   public void setExecutionTime(double adjustedExecutionTime)
+   {
+      this.adjustedExecutionTime = adjustedExecutionTime;
+   }
+
+   /**
+    * tells the controller if this command supports delayed execution
+    * (Spoiler alert: It does)
+    * @return
+    */
+   @Override
+   public boolean isDelayedExecutionSupported()
+   {
+      return true;
+   }
+
 }

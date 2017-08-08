@@ -1,10 +1,9 @@
 package us.ihmc.robotics.controllers;
 
-import javax.vecmath.AxisAngle4d;
-import javax.vecmath.Matrix3d;
-import javax.vecmath.Quat4d;
-
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
+import us.ihmc.euclid.axisAngle.AxisAngle;
+import us.ihmc.euclid.matrix.interfaces.Matrix3DReadOnly;
+import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.robotics.geometry.AngleTools;
 import us.ihmc.robotics.geometry.FrameOrientation;
 import us.ihmc.robotics.geometry.FramePose;
@@ -22,9 +21,9 @@ public class AxisAngleOrientationController
    private final YoFrameVector rotationErrorCumulated;
    private final YoFrameVector velocityError;
 
-   private final Matrix3d proportionalGainMatrix;
-   private final Matrix3d derivativeGainMatrix;
-   private final Matrix3d integralGainMatrix;
+   private final Matrix3DReadOnly proportionalGainMatrix;
+   private final Matrix3DReadOnly derivativeGainMatrix;
+   private final Matrix3DReadOnly integralGainMatrix;
 
    private final ReferenceFrame bodyFrame;
    private final FrameVector proportionalTerm;
@@ -36,8 +35,8 @@ public class AxisAngleOrientationController
    private final FrameVector feedForwardAngularAction = new FrameVector();
    private final FrameVector angularActionFromOrientationController = new FrameVector();
 
-   private final AxisAngle4d errorAngleAxis = new AxisAngle4d();
-   private final Quat4d errorQuaternion = new Quat4d();
+   private final AxisAngle errorAngleAxis = new AxisAngle();
+   private final Quaternion errorQuaternion = new Quaternion();
 
    private final YoFrameVector feedbackAngularAction;
    private final RateLimitedYoFrameVector rateLimitedFeedbackAngularAction;
@@ -75,8 +74,8 @@ public class AxisAngleOrientationController
       integralTerm = new FrameVector(bodyFrame);
 
       feedbackAngularAction = new YoFrameVector(prefix + "FeedbackAngularAction", bodyFrame, registry);
-      rateLimitedFeedbackAngularAction = RateLimitedYoFrameVector.createRateLimitedYoFrameVector(prefix + "RateLimitedFeedbackAngularAction", "",
-            registry, gains.getYoMaximumFeedbackRate(), dt, feedbackAngularAction);
+      rateLimitedFeedbackAngularAction = new RateLimitedYoFrameVector(prefix + "RateLimitedFeedbackAngularAction", "", registry,
+                                                                      gains.getYoMaximumFeedbackRate(), dt, feedbackAngularAction);
 
       parentRegistry.addChild(registry);
    }
@@ -165,7 +164,7 @@ public class AxisAngleOrientationController
 
       // Limit the maximum position error considered for control action
       double maximumError = gains.getMaximumProportionalError();
-      if (errorAngleAxis.getAngle() > maximumError)
+      if (Math.abs(errorAngleAxis.getAngle()) > maximumError)
       {
          errorAngleAxis.setAngle(Math.signum(errorAngleAxis.getAngle()) * maximumError);
       }

@@ -9,25 +9,26 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.vecmath.AxisAngle4d;
-import javax.vecmath.Point3d;
-import javax.vecmath.Quat4d;
-import javax.vecmath.Vector3d;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.avatar.DRCObstacleCourseStartingLocation;
 import us.ihmc.avatar.MultiRobotTestInterface;
 import us.ihmc.avatar.testTools.DRCSimulationTestHelper;
 import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParameters;
+import us.ihmc.commons.PrintTools;
 import us.ihmc.communication.PacketRouter;
 import us.ihmc.communication.packetCommunicator.PacketCommunicator;
 import us.ihmc.communication.packets.PacketDestination;
 import us.ihmc.communication.util.NetworkPorts;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.euclid.axisAngle.AxisAngle;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.humanoidBehaviors.IHMCHumanoidBehaviorManager;
 import us.ihmc.humanoidBehaviors.behaviors.diagnostic.DiagnosticBehavior;
 import us.ihmc.humanoidBehaviors.behaviors.diagnostic.DiagnosticBehavior.DiagnosticTask;
@@ -51,30 +52,27 @@ import us.ihmc.humanoidRobotics.footstep.Footstep;
 import us.ihmc.humanoidRobotics.frames.HumanoidReferenceFrames;
 import us.ihmc.humanoidRobotics.kryo.IHMCCommunicationKryoNetClassList;
 import us.ihmc.robotDataLogger.YoVariableServer;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.EnumYoVariable;
+import us.ihmc.robotModels.FullHumanoidRobotModel;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoEnum;
 import us.ihmc.robotics.geometry.FramePose;
 import us.ihmc.robotics.geometry.FramePose2d;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
 import us.ihmc.robotics.math.frames.YoFrameConvexPolygon2d;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.sensors.ForceSensorDataHolder;
-import us.ihmc.robotics.time.GlobalTimer;
 import us.ihmc.sensorProcessing.communication.packets.dataobjects.RobotConfigurationData;
 import us.ihmc.sensorProcessing.parameters.DRCRobotSensorInformation;
+import us.ihmc.simulationConstructionSetTools.bambooTools.BambooTools;
+import us.ihmc.simulationConstructionSetTools.util.environments.DefaultCommonAvatarEnvironment;
 import us.ihmc.simulationconstructionset.GroundContactPoint;
 import us.ihmc.simulationconstructionset.HumanoidFloatingRootJointRobot;
 import us.ihmc.simulationconstructionset.Joint;
-import us.ihmc.simulationconstructionset.bambooTools.BambooTools;
-import us.ihmc.simulationconstructionset.bambooTools.SimulationTestingParameters;
-import us.ihmc.simulationconstructionset.util.environments.DefaultCommonAvatarEnvironment;
 import us.ihmc.simulationconstructionset.util.simulationRunner.BlockingSimulationRunner.SimulationExceededMaximumTimeException;
+import us.ihmc.simulationconstructionset.util.simulationTesting.SimulationTestingParameters;
 import us.ihmc.tools.MemoryTools;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
-import us.ihmc.tools.io.printing.PrintTools;
 import us.ihmc.tools.thread.ThreadTools;
 import us.ihmc.wholeBodyController.WholeBodyControllerParameters;
 
@@ -98,8 +96,8 @@ public abstract class HumanoidBehaviorDispatcherTest implements MultiRobotTestIn
          ThreadTools.sleepForever();
       }
 
-      behaviorCommunicatorClient.close();
-      behaviorCommunicatorServer.close();
+      behaviorCommunicatorClient.disconnect();
+      behaviorCommunicatorServer.disconnect();
 
       // Do this here in case a test fails. That way the memory will be recycled.
       if (drcSimulationTestHelper != null)
@@ -117,8 +115,6 @@ public abstract class HumanoidBehaviorDispatcherTest implements MultiRobotTestIn
          behaviorDispatcher = null;
       }
 
-      GlobalTimer.clearTimers();
-
       MemoryTools.printCurrentMemoryUsageAndReturnUsedMemoryInMB(getClass().getSimpleName() + " after test.");
    }
 
@@ -129,7 +125,7 @@ public abstract class HumanoidBehaviorDispatcherTest implements MultiRobotTestIn
 
    private ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
    private CommunicationBridge communicationBridge;
-   private DoubleYoVariable yoTime;
+   private YoDouble yoTime;
 
    private HumanoidFloatingRootJointRobot robot;
    private FullHumanoidRobotModel fullRobotModel;
@@ -151,7 +147,7 @@ public abstract class HumanoidBehaviorDispatcherTest implements MultiRobotTestIn
    {
       PacketRouter<PacketDestination> networkProcessor = new PacketRouter<>(PacketDestination.class);
       registry = new YoVariableRegistry(getClass().getSimpleName());
-      this.yoTime = new DoubleYoVariable("yoTime", registry);
+      this.yoTime = new YoDouble("yoTime", registry);
 
       behaviorCommunicatorClient = PacketCommunicator.createIntraprocessPacketCommunicator(
             NetworkPorts.BEHAVIOUR_MODULE_PORT, new IHMCCommunicationKryoNetClassList());
@@ -253,7 +249,7 @@ public abstract class HumanoidBehaviorDispatcherTest implements MultiRobotTestIn
       success = drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(1.0);
       assertTrue(success);
 
-      PelvisOrientationTrajectoryMessage pelvisPosePacket = createPelvisOrientationTrajectoryMessage(new Vector3d(0.0, 1.0, 0.0), Math.toRadians(5.0));
+      PelvisOrientationTrajectoryMessage pelvisPosePacket = createPelvisOrientationTrajectoryMessage(new Vector3D(0.0, 1.0, 0.0), Math.toRadians(5.0));
       FramePose desiredPelvisPose = new FramePose();
       desiredPelvisPose.setOrientation(pelvisPosePacket.getLastTrajectoryPoint().orientation);
 
@@ -308,11 +304,13 @@ public abstract class HumanoidBehaviorDispatcherTest implements MultiRobotTestIn
       if (DEBUG)
       {
          ArrayList<Footstep> footsteps = walkToLocationBehavior.getFootSteps();
-         Point3d footstepPositionInWorld = new Point3d();
+         Point3D footstepPositionInWorld = new Point3D();
          for (Footstep footStep : footsteps)
          {
-            footStep.getPositionInWorldFrame(footstepPositionInWorld);
-            PrintTools.debug(this, "" + footstepPositionInWorld);
+            FramePose footstepPose = new FramePose();
+            footStep.getPose(footstepPose);
+            footstepPose.changeFrame(ReferenceFrame.getWorldFrame());
+            PrintTools.debug(this, footstepPose.getPosition().toString());
          }
       }
 
@@ -339,14 +337,14 @@ public abstract class HumanoidBehaviorDispatcherTest implements MultiRobotTestIn
       boolean success = drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(1.0);
       assertTrue(success);
 
-      EnumYoVariable<RobotSide> supportLeg = new EnumYoVariable<>("supportLeg", registry, RobotSide.class);
+      YoEnum<RobotSide> supportLeg = new YoEnum<>("supportLeg", registry, RobotSide.class);
       supportLeg.set(RobotSide.LEFT);
 
       YoFrameConvexPolygon2d yoSupportPolygon = new YoFrameConvexPolygon2d("supportPolygon", "", ReferenceFrame.getWorldFrame(), 10, registry);
 
       WholeBodyControllerParameters wholeBodyControllerParameters = this.getRobotModel();
 
-      BooleanYoVariable yoDoubleSupport = new BooleanYoVariable("doubleSupport", registry);
+      YoBoolean yoDoubleSupport = new YoBoolean("doubleSupport", registry);
 
       DiagnosticBehavior diagnosticBehavior = new DiagnosticBehavior(fullRobotModel, supportLeg, referenceFrames, yoTime, yoDoubleSupport, communicationBridge,
             wholeBodyControllerParameters, yoSupportPolygon, yoGraphicsListRegistry);
@@ -508,7 +506,7 @@ public abstract class HumanoidBehaviorDispatcherTest implements MultiRobotTestIn
       FramePose midFeetPose = getRobotMidFeetPose(robot);
 
       FramePose2d ret = new FramePose2d();
-      ret.setPoseIncludingFrame(ReferenceFrame.getWorldFrame(), midFeetPose.getX(), midFeetPose.getY(), midFeetPose.getYaw());
+      ret.setIncludingFrame(ReferenceFrame.getWorldFrame(), midFeetPose.getX(), midFeetPose.getY(), midFeetPose.getYaw());
 
       return ret;
    }
@@ -537,10 +535,10 @@ public abstract class HumanoidBehaviorDispatcherTest implements MultiRobotTestIn
       return ret;
    }
 
-   private PelvisOrientationTrajectoryMessage createPelvisOrientationTrajectoryMessage(Vector3d rotationAxis, double rotationAngle)
+   private PelvisOrientationTrajectoryMessage createPelvisOrientationTrajectoryMessage(Vector3D rotationAxis, double rotationAngle)
    {
-      AxisAngle4d desiredPelvisAxisAngle = new AxisAngle4d(rotationAxis, rotationAngle);
-      Quat4d desiredPelvisQuat = new Quat4d();
+      AxisAngle desiredPelvisAxisAngle = new AxisAngle(rotationAxis, rotationAngle);
+      Quaternion desiredPelvisQuat = new Quaternion();
       desiredPelvisQuat.set(desiredPelvisAxisAngle);
 
       PelvisOrientationTrajectoryMessage pelvisOrientationTrajectoryMessage = new PelvisOrientationTrajectoryMessage(3.0, desiredPelvisQuat);

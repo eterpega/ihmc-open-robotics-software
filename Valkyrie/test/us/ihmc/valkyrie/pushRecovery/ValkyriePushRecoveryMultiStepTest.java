@@ -2,10 +2,11 @@ package us.ihmc.valkyrie.pushRecovery;
 
 import us.ihmc.avatar.DRCPushRecoveryMultiStepTest;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
-import us.ihmc.simulationconstructionset.bambooTools.BambooTools;
+import us.ihmc.avatar.drcRobot.RobotTarget;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationPlan;
+import us.ihmc.continuousIntegration.IntegrationCategory;
+import us.ihmc.simulationConstructionSetTools.bambooTools.BambooTools;
 import us.ihmc.valkyrie.ValkyrieRobotModel;
-import us.ihmc.tools.continuousIntegration.IntegrationCategory;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationPlan;
 
 @ContinuousIntegrationPlan(categories = IntegrationCategory.IN_DEVELOPMENT)
 public class ValkyriePushRecoveryMultiStepTest extends DRCPushRecoveryMultiStepTest
@@ -13,7 +14,7 @@ public class ValkyriePushRecoveryMultiStepTest extends DRCPushRecoveryMultiStepT
    @Override
    public DRCRobotModel getRobotModel()
    {
-      return new ValkyrieRobotModel(DRCRobotModel.RobotTarget.SCS, false);
+      return new ValkyrieRobotModel(RobotTarget.SCS, false);
    }
 
    @Override

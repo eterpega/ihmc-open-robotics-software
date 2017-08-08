@@ -7,9 +7,8 @@ import java.util.Random;
 import org.junit.Before;
 import org.junit.Test;
 
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.math.YoRMSCalculator;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 public class YoRMSCalculatorTest
 {

@@ -1,17 +1,23 @@
 package us.ihmc.atlas;
 
-import com.martiansoftware.jsap.*;
+import com.martiansoftware.jsap.FlaggedOption;
+import com.martiansoftware.jsap.JSAP;
+import com.martiansoftware.jsap.JSAPException;
+import com.martiansoftware.jsap.JSAPResult;
+import com.martiansoftware.jsap.Switch;
+
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
+import us.ihmc.avatar.drcRobot.RobotTarget;
 import us.ihmc.avatar.visualization.GainControllerSliderBoard;
 import us.ihmc.avatar.visualization.WalkControllerSliderBoard;
-import us.ihmc.multicastLogDataProtocol.broadcast.AnnounceRequest;
-import us.ihmc.multicastLogDataProtocol.broadcast.LogSessionDisplay;
+import us.ihmc.robotDataLogger.Announcement;
 import us.ihmc.robotDataLogger.YoVariableClient;
+import us.ihmc.robotDataLogger.rtps.LogProducerDisplay;
 import us.ihmc.robotDataVisualizer.visualizer.SCSVisualizer;
 import us.ihmc.robotDataVisualizer.visualizer.SCSVisualizerStateListener;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 import us.ihmc.simulationconstructionset.Robot;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 public class RemoteAtlasVisualizer implements SCSVisualizerStateListener
 {
@@ -33,7 +39,7 @@ public class RemoteAtlasVisualizer implements SCSVisualizerStateListener
       scsVisualizer.addButton("calibrateWristForceSensors", 1.0);
       scsVisualizer.setShowOverheadView(true);
 
-      YoVariableClient client = new YoVariableClient(scsVisualizer, "remote", null, new RemoteAtlasVisualizerLogFilter());
+      YoVariableClient client = new YoVariableClient(scsVisualizer, new RemoteAtlasVisualizerLogFilter());
       client.start();
    }
 
@@ -82,7 +88,7 @@ public class RemoteAtlasVisualizer implements SCSVisualizerStateListener
 
       try
       {
-        DRCRobotModel.RobotTarget target = config.getBoolean(runningOnRealRobot.getID()) ? DRCRobotModel.RobotTarget.REAL_ROBOT : DRCRobotModel.RobotTarget.SCS;
+        RobotTarget target = config.getBoolean(runningOnRealRobot.getID()) ? RobotTarget.REAL_ROBOT : RobotTarget.SCS;
         DRCRobotModel model = AtlasRobotModelFactory.createDRCRobotModel(config.getString("robotModel"), target, false);
 
         int oneInNPacketsValue = DEFAULT_ONE_IN_N_PACKETS_FOR_VIZ;
@@ -104,18 +110,12 @@ public class RemoteAtlasVisualizer implements SCSVisualizerStateListener
       }
    }
 
-   private class RemoteAtlasVisualizerLogFilter implements LogSessionDisplay.LogSessionFilter
+   private class RemoteAtlasVisualizerLogFilter implements LogProducerDisplay.LogSessionFilter
    {
       @Override
-      public boolean shouldAddToDisplay(AnnounceRequest description)
+      public boolean shouldAddToDisplay(Announcement description)
       {
-         String ipAsString = ipToString(description.controlIP);
-         return ipAsString.startsWith("10.7.4.") || ipAsString.startsWith("10.7.1.");
-      }
-
-      private String ipToString(byte[] address)
-      {
-         return (address[0] & 0xFF) + "." + (address[1] & 0xFF) + "." + (address[2] & 0xFF) + "." + (address[3] & 0xFF);
+         return description.getHostNameAsString().startsWith("cpu") || description.getHostNameAsString().equals("kiwi-test-server");
       }
    }
 }

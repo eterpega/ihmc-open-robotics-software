@@ -1,17 +1,16 @@
 package us.ihmc.ihmcPerception.camera;
 
-import javax.vecmath.Point3d;
-import javax.vecmath.Quat4d;
-
 import boofcv.struct.calib.IntrinsicParameters;
-import us.ihmc.communication.net.NetStateListener;
+import us.ihmc.commons.PrintTools;
+import us.ihmc.commons.time.Stopwatch;
+import us.ihmc.communication.net.ConnectionStateListener;
 import us.ihmc.communication.packetCommunicator.PacketCommunicator;
 import us.ihmc.communication.packets.PacketDestination;
 import us.ihmc.communication.producers.CompressedVideoHandler;
 import us.ihmc.communication.producers.VideoSource;
+import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
+import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
 import us.ihmc.humanoidRobotics.communication.packets.sensing.VideoPacket;
-import us.ihmc.tools.io.printing.PrintTools;
-import us.ihmc.tools.time.Timer;
 
 public class VideoPacketHandler implements CompressedVideoHandler
 {
@@ -30,14 +29,14 @@ public class VideoPacketHandler implements CompressedVideoHandler
       this.packetDestination = packetDestination;
    }
 
-   private Timer timer;
+   private Stopwatch timer;
    {
       if (DEBUG)
-         timer = new Timer().start();
+         timer = new Stopwatch().start();
    }
    
    @Override
-   public void newVideoPacketAvailable(VideoSource videoSource, long timeStamp, byte[] data, Point3d position, Quat4d orientation, IntrinsicParameters intrinsicParameters)
+   public void onFrame(VideoSource videoSource, byte[] data, long timeStamp, Point3DReadOnly position, QuaternionReadOnly orientation, IntrinsicParameters intrinsicParameters)
    {
       if (DEBUG)
       {
@@ -49,7 +48,7 @@ public class VideoPacketHandler implements CompressedVideoHandler
    }
 
    @Override
-   public void addNetStateListener(NetStateListener compressedVideoDataServer)
+   public void addNetStateListener(ConnectionStateListener compressedVideoDataServer)
    {
       packetCommunicator.attachStateListener(compressedVideoDataServer);
    }

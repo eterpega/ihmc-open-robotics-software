@@ -1,19 +1,19 @@
 package us.ihmc.robotics.math.frames;
 
-import javax.vecmath.Quat4d;
-import javax.vecmath.Tuple3d;
-
-import us.ihmc.robotics.dataStructures.listener.VariableChangedListener;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.euclid.interfaces.Clearable;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
+import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
+import us.ihmc.yoVariables.listener.VariableChangedListener;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.geometry.AbstractReferenceFrameHolder;
 import us.ihmc.robotics.geometry.FrameOrientation;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FramePose;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 
-public class YoFramePose extends AbstractReferenceFrameHolder
+public class YoFramePose extends AbstractReferenceFrameHolder implements Clearable
 {
    private final YoFramePoint position;
    private final YoFrameOrientation orientation;
@@ -101,7 +101,7 @@ public class YoFramePose extends AbstractReferenceFrameHolder
       position.set(tempFramePoint, notifyListeners);
       orientation.set(tempFrameOrientation, notifyListeners);
    }
-   
+
    /**
     * Sets this frame pose to the origin of the passed in reference frame.
     * 
@@ -118,30 +118,30 @@ public class YoFramePose extends AbstractReferenceFrameHolder
       boolean notifyListeners = true;
       position.set(framePoint, notifyListeners);
    }
-   
-   public void setPosition(Tuple3d position)
+
+   public void setPosition(Tuple3DReadOnly position)
    {
-      this.position.set(position);      
+      this.position.set(position);
    }
-   
+
    public void setOrientation(FrameOrientation frameOrientation)
    {
       boolean notifyListeners = true;
       orientation.set(frameOrientation, notifyListeners);
    }
-   
-   public void setOrientation(Quat4d quaternion)
+
+   public void setOrientation(QuaternionReadOnly quaternion)
    {
       orientation.set(quaternion);
    }
-   
+
    public void set(FramePoint framePoint, FrameOrientation frameOrientation)
    {
       boolean notifyListeners = true;
       position.set(framePoint, notifyListeners);
       orientation.set(frameOrientation, notifyListeners);
    }
-   
+
    public void set(YoFramePose yoFramePose)
    {
       set(yoFramePose.getPosition().getFrameTuple(), yoFramePose.getOrientation().getFrameOrientation());
@@ -153,7 +153,7 @@ public class YoFramePose extends AbstractReferenceFrameHolder
       position.setAndMatchFrame(framePoint, notifyListeners);
       orientation.setAndMatchFrame(frameOrientation, notifyListeners);
    }
-   
+
    public void setPosition(double x, double y, double z)
    {
       position.set(x, y, z);
@@ -173,22 +173,21 @@ public class YoFramePose extends AbstractReferenceFrameHolder
    {
       orientation.setYawPitchRoll(yaw, pitch, roll);
    }
-   
+
    public void setYaw(double yaw)
    {
       orientation.setYaw(yaw);
    }
-   
+
    public void setPitch(double pitch)
    {
       orientation.setPitch(pitch);
    }
-   
+
    public void setRoll(double roll)
    {
       orientation.setRoll(roll);
    }
-
 
    public void setYawPitchRoll(double[] yawPitchRoll)
    {
@@ -201,18 +200,27 @@ public class YoFramePose extends AbstractReferenceFrameHolder
       setYawPitchRoll(pose[3], pose[4], pose[5]);
    }
 
+   @Override
    public void setToNaN()
    {
       position.setToNaN();
       orientation.setToNaN();
    }
 
+   @Override
    public void setToZero()
    {
       position.setToZero();
       orientation.setToZero();
    }
-   
+
+   @Override
+   public boolean containsNaN()
+   {
+      return position.containsNaN() || orientation.containsNaN();
+   }
+
+   @Override
    public ReferenceFrame getReferenceFrame()
    {
       return position.getReferenceFrame();
@@ -233,42 +241,42 @@ public class YoFramePose extends AbstractReferenceFrameHolder
    {
       position.setX(x);
    }
-   
+
    public void setY(double y)
    {
       position.setY(y);
    }
-   
+
    public void setZ(double z)
    {
       position.setZ(z);
    }
-   
+
    public double getX()
    {
       return getPosition().getX();
    }
-   
+
    public double getY()
    {
       return getPosition().getY();
    }
-   
+
    public double getZ()
    {
       return getPosition().getZ();
    }
-   
+
    public double getRoll()
    {
       return getOrientation().getRoll().getDoubleValue();
    }
-   
+
    public double getPitch()
    {
       return getOrientation().getPitch().getDoubleValue();
    }
-   
+
    public double getYaw()
    {
       return getOrientation().getYaw().getDoubleValue();
@@ -280,32 +288,32 @@ public class YoFramePose extends AbstractReferenceFrameHolder
       getOrientation().add(yoFramePose.getOrientation());
    }
 
-   public DoubleYoVariable getYoX()
+   public YoDouble getYoX()
    {
       return getPosition().getYoX();
    }
-   
-   public DoubleYoVariable getYoY()
+
+   public YoDouble getYoY()
    {
       return getPosition().getYoY();
    }
-   
-   public DoubleYoVariable getYoZ()
+
+   public YoDouble getYoZ()
    {
       return getPosition().getYoZ();
    }
-   
-   public DoubleYoVariable getYoPitch()
+
+   public YoDouble getYoPitch()
    {
       return getOrientation().getPitch();
    }
-   
-   public DoubleYoVariable getYoRoll()
+
+   public YoDouble getYoRoll()
    {
       return getOrientation().getRoll();
    }
-   
-   public DoubleYoVariable getYoYaw()
+
+   public YoDouble getYoYaw()
    {
       return getOrientation().getYaw();
    }

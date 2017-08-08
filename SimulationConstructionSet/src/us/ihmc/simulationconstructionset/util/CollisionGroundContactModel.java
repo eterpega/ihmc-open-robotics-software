@@ -1,13 +1,15 @@
 package us.ihmc.simulationconstructionset.util;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector3d;
-
-import us.ihmc.graphics3DAdapter.GroundProfile3D;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.jMonkeyEngineToolkit.GroundProfile3D;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.simulationconstructionset.GroundContactModel;
 import us.ihmc.simulationconstructionset.GroundContactPoint;
 import us.ihmc.simulationconstructionset.MovingGroundContactModel;
@@ -21,21 +23,23 @@ public class CollisionGroundContactModel implements GroundContactModel, MovingGr
    private static final double defaultCoefficientOfRestitution = 0.5;
    private static final double defaultCoefficientOfFriction = 0.7;
    
-   private final Robot robot; 
-
    private final YoVariableRegistry registry = new YoVariableRegistry("CollisionGroundContactModel");
-   private DoubleYoVariable groundRestitution, groundFriction;
+   private YoDouble groundRestitution, groundFriction;
    
    private ArrayList<GroundContactPoint> gcPoints;
    private GroundProfile3D profile3D;
    private MovingGroundProfile movingProfile;
 
-   private final Vector3d tempForceOne = new Vector3d();
-   private final Vector3d tempForceTwo = new Vector3d();
+   private final Vector3D tempForceOne = new Vector3D();
+   private final Vector3D tempForceTwo = new Vector3D();
    // private boolean movingGround = false;
    private boolean microCollision;
 
-   
+   private Map<GroundContactPoint, YoBoolean> isInsideSpies = new HashMap<>();
+   private Map<GroundContactPoint, YoBoolean> microCollisionSpies = new HashMap<>();
+   private Map<GroundContactPoint, YoDouble> closestIntersectionSpies = new HashMap<>();
+   private Map<GroundContactPoint, YoBoolean> contactIsCloseToGround = new HashMap<>();
+
    public CollisionGroundContactModel(Robot rob, YoVariableRegistry parentRegistry)
    {
       this(rob, defaultCoefficientOfRestitution, defaultCoefficientOfFriction, parentRegistry);
@@ -49,31 +53,51 @@ public class CollisionGroundContactModel implements GroundContactModel, MovingGr
    
    public CollisionGroundContactModel(Robot robot, int groundContactGroupIdentifier, double epsilon, double mu, YoVariableRegistry parentRegistry)
    {
-      this.robot = robot;
-      this.gcPoints = robot.getGroundContactPoints(groundContactGroupIdentifier);
+      this(robot.getGroundContactPoints(groundContactGroupIdentifier), epsilon, mu, parentRegistry);
+   }
 
-      groundRestitution = new DoubleYoVariable("groundRestitution", "CollisionGroundContactModel coefficient Of Restitution", registry);
-      groundFriction = new DoubleYoVariable("groundFriction", "CollisionGroundContactModel coefficient Of Friction", registry);
-     
+   public CollisionGroundContactModel(ArrayList<GroundContactPoint> gcPoints, YoVariableRegistry parentRegistry)
+   {
+      this(gcPoints, defaultCoefficientOfRestitution, defaultCoefficientOfFriction, parentRegistry);
+   }
+
+   public CollisionGroundContactModel(ArrayList<GroundContactPoint> gcPoints, double epsilon, double mu, YoVariableRegistry parentRegistry)
+   {
+      this.gcPoints = gcPoints;
+
+      for(GroundContactPoint groundContactPoint : gcPoints)
+      {
+         isInsideSpies.put(groundContactPoint, new YoBoolean(groundContactPoint.getName() + "_isInsideSpy", registry));
+         microCollisionSpies.put(groundContactPoint, new YoBoolean(groundContactPoint.getName() + "_microCollisionSpy", registry));
+         closestIntersectionSpies.put(groundContactPoint, new YoDouble(groundContactPoint.getName() + "_closestIntersectionZ", registry));
+         contactIsCloseToGround.put(groundContactPoint, new YoBoolean(groundContactPoint.getName() + "_isCloseToGround", registry));
+      }
+
+      groundRestitution = new YoDouble("groundRestitution", "CollisionGroundContactModel coefficient Of Restitution", registry);
+      groundFriction = new YoDouble("groundFriction", "CollisionGroundContactModel coefficient Of Friction", registry);
+
       addRegistryToParent(parentRegistry);
 
       groundRestitution.set(epsilon);
       groundFriction.set(mu);
-      
+
       this.initGroundContact();
    }
    
+   @Override
    public void setGroundProfile3D(GroundProfile3D profile3D)
    {
       this.profile3D = profile3D;
       this.movingProfile = null;
    }
    
+   @Override
    public GroundProfile3D getGroundProfile3D()
    {
       return profile3D;
    }
 
+   @Override
    public void setGroundProfile(MovingGroundProfile profile)
    {
       this.profile3D = profile;
@@ -84,9 +108,9 @@ public class CollisionGroundContactModel implements GroundContactModel, MovingGr
    {
    }
 
-   private Vector3d normalVector = new Vector3d(0.0, 0.0, 1.0);
-   private Vector3d velocityVector = new Vector3d(0.0, 0.0, 0.0);
-   private Vector3d p_world = new Vector3d();
+   private Vector3D normalVector = new Vector3D(0.0, 0.0, 1.0);
+   private Vector3D velocityVector = new Vector3D(0.0, 0.0, 0.0);
+   private Vector3D p_world = new Vector3D();
 
    boolean iterateForward = true;
 
@@ -107,6 +131,7 @@ public class CollisionGroundContactModel implements GroundContactModel, MovingGr
 */
 
 
+   @Override
    public void doGroundContact()
    {
       iterateForward = !iterateForward;
@@ -132,7 +157,7 @@ public class CollisionGroundContactModel implements GroundContactModel, MovingGr
 
    }
 
-   private final Point3d closestIntersection = new Point3d();
+   private final Point3D closestIntersection = new Point3D();
 
    private void doGroundContact(GroundContactPoint gc)
    {
@@ -149,15 +174,13 @@ public class CollisionGroundContactModel implements GroundContactModel, MovingGr
       }
 
       // See if point hit the ground or not:
-
-      if ((profile3D != null) && (!profile3D.isClose(gc.getX(), gc.getY(), gc.getZ())))
-         return;
-
       boolean isInside = false;
       if (profile3D != null)
       {
          isInside = profile3D.checkIfInside(gc.getX(), gc.getY(), gc.getZ(), closestIntersection, normalVector);
+         closestIntersectionSpies.get(gc).set(closestIntersection.getZ());
       }
+      isInsideSpies.get(gc).set(isInside);
 
       if (isInside)
       {
@@ -174,10 +197,15 @@ public class CollisionGroundContactModel implements GroundContactModel, MovingGr
          {
             microCollision = true;
          }
+         microCollisionSpies.get(gc).set(microCollision);
       }
 
       else
          gc.setNotInContact();
+
+      contactIsCloseToGround.get(gc).set((profile3D != null) && (profile3D.isClose(gc.getX(), gc.getY(), gc.getZ())));
+      if (!contactIsCloseToGround.get(gc).getBooleanValue())
+         return;
 
       // If the foot hit, then y an impulse:
 
@@ -225,7 +253,8 @@ public class CollisionGroundContactModel implements GroundContactModel, MovingGr
          }
          else
          {
-            gc.resolveCollision(velocityVector, normalVector, groundRestitution.getDoubleValue(), groundFriction.getDoubleValue(), p_world);
+            if(gc.getParentJoint() != null)
+               gc.resolveCollision(velocityVector, normalVector, groundRestitution.getDoubleValue(), groundFriction.getDoubleValue(), p_world);
          }
 
 

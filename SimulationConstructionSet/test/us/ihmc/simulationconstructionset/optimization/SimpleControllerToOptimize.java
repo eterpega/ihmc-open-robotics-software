@@ -1,7 +1,7 @@
 package us.ihmc.simulationconstructionset.optimization;
 
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.robotController.RobotController;
 import us.ihmc.utilities.parameterOptimization.DoubleYoVariableParameterToOptimize;
 import us.ihmc.utilities.parameterOptimization.ListOfParametersToOptimize;
@@ -10,8 +10,8 @@ public class SimpleControllerToOptimize implements RobotController
 {
    private final YoVariableRegistry registry = new YoVariableRegistry("SimpleControllerToOptimize");
    
-   private final DoubleYoVariable parameterOne = new DoubleYoVariable("parameterOne", registry);
-   private final DoubleYoVariable costFunction = new DoubleYoVariable("costFunction", registry);
+   private final YoDouble parameterOne = new YoDouble("parameterOne", registry);
+   private final YoDouble costFunction = new YoDouble("costFunction", registry);
    
    private final ListOfParametersToOptimize listOfParametersToOptimize;
    
@@ -28,25 +28,30 @@ public class SimpleControllerToOptimize implements RobotController
       return listOfParametersToOptimize;
    }
    
+   @Override
    public void initialize()
    {      
    }
 
+   @Override
    public YoVariableRegistry getYoVariableRegistry()
    {
       return registry;
    }
 
+   @Override
    public String getName()
    {
       return "SimpleControllerToOptimize";
    }
 
+   @Override
    public String getDescription()
    {
       return getName();
    }
 
+   @Override
    public void doControl()
    {
       costFunction.set((2.0 - parameterOne.getDoubleValue()) * (2.0 - parameterOne.getDoubleValue()));

@@ -1,22 +1,11 @@
 package us.ihmc.simulationconstructionset;
 
-import javax.vecmath.Matrix3d;
-import javax.vecmath.Vector3d;
-
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.YoVariableList;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
-
-/**
- * Title:        Yobotics! Simulation Construction Set<p>
- * Description:  Package for Simulating Dynamic Robots and Mechanisms<p>
- * Copyright:    Copyright (c) Jerry Pratt<p>
- * Company:      Yobotics, Inc. <p>
- * @author Jerry Pratt
- * @version Beta 1.0
- */
-
+import us.ihmc.euclid.matrix.RotationMatrix;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoVariableList;
 
 public class FreeJoint extends Joint
 {
@@ -26,16 +15,16 @@ public class FreeJoint extends Joint
    private static final long serialVersionUID = 5257393793242028735L;
    @SuppressWarnings("unused")
    private String xName, yName, zName, yawName, rollName, pitchName;
-   private DoubleYoVariable xVar, yVar, zVar, yawVar, rollVar, pitchVar;
+   private YoDouble xVar, yVar, zVar, yawVar, rollVar, pitchVar;
 
-   private Vector3d vTranslate = new Vector3d();
+   private Vector3D vTranslate = new Vector3D();
    private RigidBodyTransform tYaw = new RigidBodyTransform();
    private RigidBodyTransform tRoll = new RigidBodyTransform();
    private RigidBodyTransform tPitch = new RigidBodyTransform();
 
    YoVariableList freeJointVars;
 
-   public FreeJoint(String jname, Vector3d offset, Robot rob, String xName, String yName, String zName, String yawName, String rollName, String pitchName)
+   public FreeJoint(String jname, Vector3D offset, Robot rob, String xName, String yName, String zName, String yawName, String rollName, String pitchName)
    {
       super(jname, offset, rob, 6);
 
@@ -50,12 +39,12 @@ public class FreeJoint extends Joint
       this.rollName = rollName;
       this.pitchName = pitchName;
 
-      xVar = new DoubleYoVariable(xName, "FreeJoint x position", registry);
-      yVar = new DoubleYoVariable(yName, "FreeJoint y position", registry);
-      zVar = new DoubleYoVariable(zName, "FreeJoint z position", registry);
-      yawVar = new DoubleYoVariable(yawName, "FreeJoint yaw rotation", registry);
-      rollVar = new DoubleYoVariable(rollName, "FreeJoint roll rotation", registry);
-      pitchVar = new DoubleYoVariable(pitchName, "FreeJoint pitch rotation", registry);
+      xVar = new YoDouble(xName, "FreeJoint x position", registry);
+      yVar = new YoDouble(yName, "FreeJoint y position", registry);
+      zVar = new YoDouble(zName, "FreeJoint z position", registry);
+      yawVar = new YoDouble(yawName, "FreeJoint yaw rotation", registry);
+      rollVar = new YoDouble(rollName, "FreeJoint roll rotation", registry);
+      pitchVar = new YoDouble(pitchName, "FreeJoint pitch rotation", registry);
 
 //    rob.getVars().addVariables(freeJointVars);
 
@@ -68,6 +57,7 @@ public class FreeJoint extends Joint
       return this.freeJointVars;
    }
 
+   @Override
    public void update()
    {
        setFreeTransform3D(this.jointTransform3D, xVar.getDoubleValue(), yVar.getDoubleValue(), zVar.getDoubleValue(), yawVar.getDoubleValue(), rollVar.getDoubleValue(), pitchVar.getDoubleValue());
@@ -101,7 +91,7 @@ public class FreeJoint extends Joint
 
    }
 
-   public void jointDependentSetAndGetRotation(Matrix3d Rh_i)
+   public void jointDependentSetAndGetRotation(RotationMatrix Rh_i)
    {
       Rh_i.setIdentity();
    }
@@ -121,7 +111,7 @@ public class FreeJoint extends Joint
       System.err.println("Error!!!! FreeJoint.jointDependentSet_d_i should never be called!!!");
    }
 
-   public void jointDependentFeatherstonePassTwo(Vector3d w_h)
+   public void jointDependentFeatherstonePassTwo(Vector3D w_h)
    {
    }
 

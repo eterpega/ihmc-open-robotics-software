@@ -2,13 +2,11 @@ package us.ihmc.humanoidBehaviors.behaviors.complexBehaviors;
 
 import java.util.ArrayList;
 
-import javax.vecmath.AxisAngle4d;
-import javax.vecmath.Point2d;
-import javax.vecmath.Quat4d;
-import javax.vecmath.Vector3d;
-
-import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.communication.packets.TextToSpeechPacket;
+import us.ihmc.euclid.axisAngle.AxisAngle;
+import us.ihmc.euclid.tuple2D.Point2D;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.humanoidBehaviors.behaviors.AbstractBehavior;
 import us.ihmc.humanoidBehaviors.behaviors.coactiveElements.PickUpBallBehaviorCoactiveElementBehaviorSideOLD;
 import us.ihmc.humanoidBehaviors.behaviors.coactiveElements.PickUpBallBehaviorCoactiveElementOLD.PickUpBallBehaviorState;
@@ -41,8 +39,8 @@ import us.ihmc.humanoidRobotics.communication.packets.walking.GoHomeMessage.Body
 import us.ihmc.humanoidRobotics.communication.packets.walking.HeadTrajectoryMessage;
 import us.ihmc.humanoidRobotics.frames.HumanoidReferenceFrames;
 import us.ihmc.ihmcPerception.vision.shapes.HSVRange;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.robotModels.FullHumanoidRobotModel;
+import us.ihmc.robotModels.FullHumanoidRobotModelFactory;
 import us.ihmc.robotics.geometry.FrameOrientation;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FramePoint2d;
@@ -52,6 +50,8 @@ import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.tools.taskExecutor.PipeLine;
 import us.ihmc.wholeBodyController.WholeBodyControllerParameters;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
 
 public class PickUpBallBehavior extends AbstractBehavior
 {
@@ -79,17 +79,23 @@ public class PickUpBallBehavior extends AbstractBehavior
    private final PipeLine<AbstractBehavior> pipeLine = new PipeLine<>();
 
    private static final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
-   private final DoubleYoVariable yoTime;
+   private final YoDouble yoTime;
    private final ReferenceFrame midZupFrame;
    private final double standingDistance = 0.4; // 0.5;
 
    private HumanoidReferenceFrames referenceFrames;
+   private final ReferenceFrame chestCoMFrame;
+   private final ReferenceFrame pelvisZUpFrame;
 
-   public PickUpBallBehavior(CommunicationBridge outgoingCommunicationBridge, DoubleYoVariable yoTime, BooleanYoVariable yoDoubleSupport,
-         FullHumanoidRobotModel fullRobotModel, HumanoidReferenceFrames referenceFrames, WholeBodyControllerParameters wholeBodyControllerParameters)
+   public PickUpBallBehavior(CommunicationBridge outgoingCommunicationBridge, YoDouble yoTime, YoBoolean yoDoubleSupport,
+         FullHumanoidRobotModel fullRobotModel, HumanoidReferenceFrames referenceFrames, WholeBodyControllerParameters wholeBodyControllerParameters,
+         FullHumanoidRobotModelFactory robotModelFactory)
    {
       super(outgoingCommunicationBridge);
       this.yoTime = yoTime;
+      chestCoMFrame = fullRobotModel.getChest().getBodyFixedFrame();
+      pelvisZUpFrame = referenceFrames.getPelvisZUpFrame();
+
       midZupFrame = referenceFrames.getMidFeetZUpFrame();
       this.referenceFrames = referenceFrames;
 
@@ -115,7 +121,7 @@ public class PickUpBallBehavior extends AbstractBehavior
       walkToLocationBehavior = new WalkToLocationBehavior(outgoingCommunicationBridge, fullRobotModel, referenceFrames,
             wholeBodyControllerParameters.getWalkingControllerParameters());
       behaviors.add(walkToLocationBehavior);
-      wholeBodyBehavior = new WholeBodyInverseKinematicsBehavior(wholeBodyControllerParameters, yoTime, outgoingCommunicationBridge, fullRobotModel);
+      wholeBodyBehavior = new WholeBodyInverseKinematicsBehavior(robotModelFactory, yoTime, outgoingCommunicationBridge, fullRobotModel);
 
       behaviors.add(wholeBodyBehavior);
 
@@ -270,15 +276,15 @@ public class PickUpBallBehavior extends AbstractBehavior
 
       //LOOK DOWN *******************************************
 
-      Vector3d axis = new Vector3d(0, 1, 0);
+      Vector3D axis = new Vector3D(0, 1, 0);
       double rotationDownAngle = 1.4;
 
-      AxisAngle4d desiredAxisAngle = new AxisAngle4d();
+      AxisAngle desiredAxisAngle = new AxisAngle();
       desiredAxisAngle.set(axis, rotationDownAngle);
-      Quat4d desiredHeadQuat = new Quat4d();
+      Quaternion desiredHeadQuat = new Quaternion();
       desiredHeadQuat.set(desiredAxisAngle);
 
-      HeadTrajectoryMessage message = new HeadTrajectoryMessage(1, desiredHeadQuat);
+      HeadTrajectoryMessage message = new HeadTrajectoryMessage(1, desiredHeadQuat, worldFrame, chestCoMFrame);
 
       HeadTrajectoryBehavior headTrajectoryBehavior = new HeadTrajectoryBehavior(communicationBridge, yoTime);
 
@@ -296,12 +302,12 @@ public class PickUpBallBehavior extends AbstractBehavior
 
       double rotationUpAngle = 0;
 
-      AxisAngle4d desiredAxisUpAngle = new AxisAngle4d();
+      AxisAngle desiredAxisUpAngle = new AxisAngle();
       desiredAxisUpAngle.set(axis, rotationUpAngle);
-      Quat4d desiredHeadUpQuat = new Quat4d();
+      Quaternion desiredHeadUpQuat = new Quaternion();
       desiredHeadUpQuat.set(desiredAxisUpAngle);
 
-      HeadTrajectoryMessage messageHeadUp = new HeadTrajectoryMessage(1, desiredHeadUpQuat);
+      HeadTrajectoryMessage messageHeadUp = new HeadTrajectoryMessage(1, desiredHeadUpQuat, worldFrame, chestCoMFrame);
 
       HeadTrajectoryBehavior headTrajectoryUpBehavior = new HeadTrajectoryBehavior(communicationBridge, yoTime);
 
@@ -320,7 +326,7 @@ public class PickUpBallBehavior extends AbstractBehavior
       // BEND OVER *******************************************
       FrameOrientation desiredChestOrientation = new FrameOrientation(referenceFrames.getPelvisZUpFrame(), Math.toRadians(30), Math.toRadians(20), 0);
       desiredChestOrientation.changeFrame(worldFrame);
-      ChestOrientationTask chestOrientationTask = new ChestOrientationTask(desiredChestOrientation, chestTrajectoryBehavior, 4);
+      ChestOrientationTask chestOrientationTask = new ChestOrientationTask(desiredChestOrientation, chestTrajectoryBehavior, 4, pelvisZUpFrame);
 
       //REDUCE LIDAR RANGE *******************************************
 
@@ -518,7 +524,7 @@ public class PickUpBallBehavior extends AbstractBehavior
 
       ArmTrajectoryTask leftHandBeforeGrab = new ArmTrajectoryTask(leftHandAfterGrabMessage, armTrajectoryBehavior);
 
-      
+
       ArmTrajectoryTask leftHandAfterGrab = new ArmTrajectoryTask(leftHandAfterGrabMessage, armTrajectoryBehavior);
 
 
@@ -540,7 +546,7 @@ public class PickUpBallBehavior extends AbstractBehavior
 
 //      pipeLine.submitSingleTaskStage(validateBallTask);
       pipeLine.submitSingleTaskStage(rightArmHomeTask);
-      //RECENTER BODY      
+      //RECENTER BODY
       pipeLine.submitSingleTaskStage(walkToBallTask);
 
       pipeLine.requestNewStage();
@@ -599,11 +605,11 @@ public class PickUpBallBehavior extends AbstractBehavior
       pipeLine.submitSingleTaskStage(rightArmHomeTask);
       //
       pipeLine.submitSingleTaskStage(goHomeLeftArmTask);
-      //      
+      //
       pipeLine.submitSingleTaskStage(goHomeChestTask);
       pipeLine.submitSingleTaskStage(goHomePelvisTask);
-      //      
-      //      
+      //
+      //
       //      pipeLine.submitSingleTaskStage(rightArmHomeTask);
       //      pipeLine.submitSingleTaskStage(lookUp);
    }
@@ -630,7 +636,7 @@ public class PickUpBallBehavior extends AbstractBehavior
       double newX = ballPosition2d.getX() + (x - ballPosition2d.getX()) * Math.cos(rotationAngle) - (y - ballPosition2d.getY()) * Math.sin(rotationAngle);
       double newY = ballPosition2d.getY() + (x - ballPosition2d.getX()) * Math.sin(rotationAngle) + (y - ballPosition2d.getY()) * Math.cos(rotationAngle);
 
-      FramePose2d poseToWalkTo = new FramePose2d(worldFrame, new Point2d(newX, newY), walkingYaw);
+      FramePose2d poseToWalkTo = new FramePose2d(worldFrame, new Point2D(newX, newY), walkingYaw);
       return poseToWalkTo;
    }
 
@@ -693,7 +699,7 @@ public class PickUpBallBehavior extends AbstractBehavior
    {
    }
 
-  
+
 
 
 }

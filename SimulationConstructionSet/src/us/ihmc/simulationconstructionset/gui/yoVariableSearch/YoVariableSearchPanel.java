@@ -27,19 +27,19 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.YoVariable;
-import us.ihmc.simulationconstructionset.DataBuffer;
-import us.ihmc.simulationconstructionset.DataBufferEntry;
+import us.ihmc.graphicsDescription.graphInterfaces.SelectedVariableHolder;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoVariable;
+import us.ihmc.yoVariables.dataBuffer.DataBuffer;
+import us.ihmc.yoVariables.dataBuffer.DataBufferEntry;
 import us.ihmc.simulationconstructionset.gui.BookmarkedVariablesHolder;
 import us.ihmc.simulationconstructionset.gui.BookmarkedVariablesPanel;
-import us.ihmc.simulationconstructionset.gui.YoVariableExplorerTabbedPane;
 import us.ihmc.simulationconstructionset.gui.DoubleClickListener;
 import us.ihmc.simulationconstructionset.gui.EntryBoxArrayTabbedPanel;
 import us.ihmc.simulationconstructionset.gui.GraphArrayPanel;
 import us.ihmc.simulationconstructionset.gui.RegularExpression;
-import us.ihmc.simulationconstructionset.gui.SelectedVariableHolder;
 import us.ihmc.simulationconstructionset.gui.YoEntryBox;
+import us.ihmc.simulationconstructionset.gui.YoVariableExplorerTabbedPane;
 
 public class YoVariableSearchPanel extends JPanel implements ChangeListener
 {
@@ -208,7 +208,7 @@ public class YoVariableSearchPanel extends JPanel implements ChangeListener
             }
             else
             {
-               entryBox.addVariable(new DoubleYoVariable("null", null));
+               entryBox.addVariable(new YoDouble("null", null));
                entryBoxDescriptionArea.setText("");
             }
          }

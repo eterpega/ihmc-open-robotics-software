@@ -4,7 +4,7 @@ import java.io.InputStream;
 
 import javax.sound.sampled.AudioFormat;
 
-import us.ihmc.robotics.linearDynamicSystems.BodeUnitsConverter;
+import us.ihmc.commons.Conversions;
 import us.ihmc.simulationconstructionset.gui.BodePlotConstructor;
 
 public abstract class DrillDetectionAlgorithm
@@ -29,8 +29,16 @@ public abstract class DrillDetectionAlgorithm
       double[][] freqMagPhase = BodePlotConstructor.computeFreqMagPhase(time, data);
 
       double[] frequency = freqMagPhase[0];
-      double[] magnitude = BodeUnitsConverter.convertMagnitudeToDecibels(freqMagPhase[1]);
-      double[] phase = BodeUnitsConverter.convertRadianToDegrees(freqMagPhase[2]);
+      double[] magnitude = new double[freqMagPhase[1].length];
+      for (int i = 0; i < freqMagPhase[1].length; i++)
+      {
+         magnitude[i] = Conversions.amplitudeToDecibels(freqMagPhase[1][i]);
+      }
+      double[] phase = new double[freqMagPhase[2].length];
+      for (int i = 0; i < freqMagPhase[2].length; i++)
+      {
+         phase[i] = Math.toDegrees(freqMagPhase[2][i]);
+      }
 
       double[][] bodeData = new double[][] { frequency, magnitude, phase };
       return bodeData;

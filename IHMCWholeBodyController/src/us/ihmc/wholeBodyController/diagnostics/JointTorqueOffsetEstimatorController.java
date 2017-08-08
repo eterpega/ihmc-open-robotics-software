@@ -5,11 +5,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import us.ihmc.robotModels.FullHumanoidRobotModel;
-import us.ihmc.robotics.partNames.ArmJointName;
-import us.ihmc.robotics.partNames.LegJointName;
-import us.ihmc.robotics.partNames.SpineJointName;
-import us.ihmc.robotics.robotController.RobotController;
 import us.ihmc.commonWalkingControlModules.bipedSupportPolygons.BipedSupportPolygons;
 import us.ihmc.commonWalkingControlModules.bipedSupportPolygons.YoPlaneContactState;
 import us.ihmc.commonWalkingControlModules.controllerCore.WholeBodyControllerCoreMode;
@@ -20,17 +15,21 @@ import us.ihmc.commonWalkingControlModules.controllerCore.command.lowLevel.LowLe
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.DiagnosticsWhenHangingHelper;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.highLevelStates.HighLevelBehavior;
 import us.ihmc.commonWalkingControlModules.momentumBasedController.HighLevelHumanoidControllerToolbox;
-import us.ihmc.humanoidRobotics.bipedSupportPolygons.ContactablePlaneBody;
+import us.ihmc.commons.PrintTools;
 import us.ihmc.humanoidRobotics.communication.packets.dataobjects.HighLevelState;
+import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotics.controllers.PDController;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.robotics.partNames.ArmJointName;
+import us.ihmc.robotics.partNames.LegJointName;
+import us.ihmc.robotics.partNames.SpineJointName;
+import us.ihmc.robotics.robotController.RobotController;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.robotics.screwTheory.InverseDynamicsJoint;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
-import us.ihmc.tools.io.printing.PrintTools;
 import us.ihmc.wholeBodyController.JointTorqueOffsetProcessor;
 
 public class JointTorqueOffsetEstimatorController extends HighLevelBehavior implements RobotController, JointTorqueOffsetEstimator
@@ -43,42 +42,38 @@ public class JointTorqueOffsetEstimatorController extends HighLevelBehavior impl
    private final ArrayList<OneDoFJoint> oneDoFJoints = new ArrayList<OneDoFJoint>();
 
    private final LinkedHashMap<OneDoFJoint, PDController> pdControllers = new LinkedHashMap<OneDoFJoint, PDController>();
-   private final LinkedHashMap<OneDoFJoint, DoubleYoVariable> desiredPositions = new LinkedHashMap<OneDoFJoint, DoubleYoVariable>();
+   private final LinkedHashMap<OneDoFJoint, YoDouble> desiredPositions = new LinkedHashMap<OneDoFJoint, YoDouble>();
    private final LinkedHashMap<OneDoFJoint, DiagnosticsWhenHangingHelper> helpers = new LinkedHashMap<OneDoFJoint, DiagnosticsWhenHangingHelper>();
 
-   private final DoubleYoVariable ditherAmplitude = new DoubleYoVariable("ditherAmplitude", registry);
-   private final DoubleYoVariable ditherFrequency = new DoubleYoVariable("ditherFrequency", registry);
+   private final YoDouble ditherAmplitude = new YoDouble("ditherAmplitude", registry);
+   private final YoDouble ditherFrequency = new YoDouble("ditherFrequency", registry);
 
-   private final DoubleYoVariable maximumTorqueOffset = new DoubleYoVariable("maximumTorqueOffset", registry);
+   private final YoDouble maximumTorqueOffset = new YoDouble("maximumTorqueOffset", registry);
 
-   private final BooleanYoVariable estimateTorqueOffset = new BooleanYoVariable("estimateTorqueOffset", registry);
-   private final BooleanYoVariable transferTorqueOffsets = new BooleanYoVariable("transferTorqueOffsets", registry);
-   private final BooleanYoVariable exportJointTorqueOffsetsToFile = new BooleanYoVariable("recordTorqueOffsets", registry);
+   private final YoBoolean estimateTorqueOffset = new YoBoolean("estimateTorqueOffset", registry);
+   private final YoBoolean transferTorqueOffsets = new YoBoolean("transferTorqueOffsets", registry);
+   private final YoBoolean exportJointTorqueOffsetsToFile = new YoBoolean("recordTorqueOffsets", registry);
 
    private final boolean useArms = true;
 
    private final TorqueOffsetPrinter torqueOffsetPrinter;
 
-   private final HighLevelHumanoidControllerToolbox momentumBasedController;
+   private final HighLevelHumanoidControllerToolbox controllerToolbox;
    private final BipedSupportPolygons bipedSupportPolygons;
-   private final SideDependentList<YoPlaneContactState> footContactStates = new SideDependentList<>();
+   private final SideDependentList<YoPlaneContactState> footContactStates;
 
    private final ControllerCoreCommand controllerCoreCommand = new ControllerCoreCommand(WholeBodyControllerCoreMode.OFF);
    private final LowLevelOneDoFJointDesiredDataHolder lowLevelOneDoFJointDesiredDataHolder = new LowLevelOneDoFJointDesiredDataHolder();
 
-   private final BooleanYoVariable hasReachedMaximumTorqueOffset = new BooleanYoVariable("hasReachedMaximumTorqueOffset", registry);
+   private final YoBoolean hasReachedMaximumTorqueOffset = new YoBoolean("hasReachedMaximumTorqueOffset", registry);
 
    public JointTorqueOffsetEstimatorController(HighLevelHumanoidControllerToolbox highLevelControllerToolbox, TorqueOffsetPrinter torqueOffsetPrinter)
    {
       super(HighLevelState.CALIBRATION);
 
       this.bipedSupportPolygons = highLevelControllerToolbox.getBipedSupportPolygons();
-      for (RobotSide robotSide : RobotSide.values)
-      {
-         ContactablePlaneBody contactableFoot = highLevelControllerToolbox.getContactableFeet().get(robotSide);
-         footContactStates.put(robotSide, highLevelControllerToolbox.getContactState(contactableFoot));
-      }
-      this.momentumBasedController = highLevelControllerToolbox;
+      this.footContactStates = highLevelControllerToolbox.getFootContactStates();
+      this.controllerToolbox = highLevelControllerToolbox;
       this.torqueOffsetPrinter = torqueOffsetPrinter;
       this.fullRobotModel = highLevelControllerToolbox.getFullRobotModel();
 
@@ -108,7 +103,7 @@ public class JointTorqueOffsetEstimatorController extends HighLevelBehavior impl
          PDController controller = new PDController(jointName + "Calibration", registry);
          pdControllers.put(joint, controller);
 
-         DoubleYoVariable desiredPosition = new DoubleYoVariable("q_d_calib_" + jointName, registry);
+         YoDouble desiredPosition = new YoDouble("q_d_calib_" + jointName, registry);
          desiredPositions.put(joint, desiredPosition);
       }
 
@@ -192,7 +187,7 @@ public class JointTorqueOffsetEstimatorController extends HighLevelBehavior impl
          estimateTorqueOffset.set(false);
 
       bipedSupportPolygons.updateUsingContactStates(footContactStates);
-      momentumBasedController.update();
+      controllerToolbox.update();
 
       updateDiagnosticsWhenHangingHelpers();
       updatePDControllers();

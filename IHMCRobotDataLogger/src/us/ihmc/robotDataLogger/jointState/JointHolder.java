@@ -1,11 +1,10 @@
 package us.ihmc.robotDataLogger.jointState;
 
-import us.ihmc.robotDataLogger.generated.YoProtoHandshakeProto.YoProtoHandshake.JointDefinition.JointType;
-
-
+import us.ihmc.robotDataLogger.JointType;
 
 public interface JointHolder
 {
+   public String getName();
    public JointType getJointType();
    public int getNumberOfStateVariables();
    

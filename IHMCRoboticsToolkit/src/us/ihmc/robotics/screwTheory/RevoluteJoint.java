@@ -1,20 +1,34 @@
 package us.ihmc.robotics.screwTheory;
 
+import us.ihmc.euclid.axisAngle.AxisAngle;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.robotics.geometry.FrameVector;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
-
-import javax.vecmath.Vector3d;
 
 public class RevoluteJoint extends OneDoFJoint
 {
    private final FrameVector jointAxis;
+   private final AxisAngle axisAngle = new AxisAngle();
 
-   public RevoluteJoint(String name, RigidBody predecessor, ReferenceFrame beforeJointFrame, FrameVector jointAxis)
+   public RevoluteJoint(String name, RigidBody predecessor, Vector3DReadOnly jointAxis)
    {
-      super(name, predecessor, beforeJointFrame, new RevoluteJointReferenceFrame(name, beforeJointFrame, jointAxis));
-      jointAxis.checkReferenceFrameMatch(beforeJointFrame);
-      this.jointAxis = new FrameVector(jointAxis);
-      unitJointTwist = new Twist(afterJointFrame, beforeJointFrame, afterJointFrame, new Vector3d(), jointAxis.getVector());
+      this(name, predecessor, null, jointAxis);
+   }
+
+   public RevoluteJoint(String name, RigidBody predecessor, RigidBodyTransform transformToParent, Vector3DReadOnly jointAxis)
+   {
+      super(name, predecessor, transformToParent);
+      this.jointAxis = new FrameVector(beforeJointFrame, jointAxis);
+      this.unitJointTwist = new Twist(afterJointFrame, beforeJointFrame, afterJointFrame, new Vector3D(), jointAxis);
+   }
+
+   @Override
+   protected void updateJointTransform(RigidBodyTransform jointTransform)
+   {
+      axisAngle.set(jointAxis.getVector(), getQ());
+      jointTransform.setRotationAndZeroTranslation(axisAngle);
    }
 
    @Override
@@ -25,7 +39,7 @@ public class RevoluteJoint extends OneDoFJoint
       ReferenceFrame predecessorFrame = getPredecessor().getBodyFixedFrame();
       ReferenceFrame successorFrame = getSuccessor().getBodyFixedFrame();
 
-      unitJointTwist = new Twist(afterJointFrame, beforeJointFrame, afterJointFrame, new Vector3d(), jointAxis.getVector());
+      unitJointTwist = new Twist(afterJointFrame, beforeJointFrame, afterJointFrame, new Vector3D(), jointAxis.getVector());
 
       unitSuccessorTwist = new Twist(unitJointTwist);
       unitSuccessorTwist.changeBaseFrameNoRelativeTwist(predecessorFrame);
@@ -36,7 +50,7 @@ public class RevoluteJoint extends OneDoFJoint
       unitPredecessorTwist.invert();
       unitPredecessorTwist.changeFrame(predecessorFrame);
 
-      unitJointAcceleration = new SpatialAccelerationVector(afterJointFrame, beforeJointFrame, afterJointFrame, new Vector3d(), jointAxis.getVector());
+      unitJointAcceleration = new SpatialAccelerationVector(afterJointFrame, beforeJointFrame, afterJointFrame, new Vector3D(), jointAxis.getVector());
 
       unitSuccessorAcceleration = new SpatialAccelerationVector(unitJointAcceleration);
       unitSuccessorAcceleration.changeBaseFrameNoRelativeAcceleration(predecessorFrame);
@@ -47,9 +61,9 @@ public class RevoluteJoint extends OneDoFJoint
       unitPredecessorAcceleration.invert();
       unitPredecessorAcceleration.changeFrameNoRelativeMotion(predecessorFrame); // actually, there is relative motion, but not in the directions that matter
 
-      setMotionSubspace(unitSuccessorTwist);
+      setMotionSubspace();
    }
-   
+
    @Override
    public FrameVector getJointAxis()
    {
@@ -61,7 +75,7 @@ public class RevoluteJoint extends OneDoFJoint
    {
       axisToPack.setIncludingFrame(jointAxis);
    }
-   
+
    @Override
    public boolean isPassiveJoint()
    {

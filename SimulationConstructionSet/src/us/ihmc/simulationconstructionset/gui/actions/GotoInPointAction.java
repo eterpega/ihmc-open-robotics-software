@@ -5,8 +5,8 @@ import java.awt.event.KeyEvent;
 
 import javax.swing.AbstractAction;
 
-import us.ihmc.simulationconstructionset.commands.GotoInPointCommandExecutor;
 import us.ihmc.simulationconstructionset.gui.actions.dialogActions.AbstractActionTools;
+import us.ihmc.yoVariables.dataBuffer.GotoInPointCommandExecutor;
 
 public class GotoInPointAction extends AbstractAction
 {
@@ -27,6 +27,7 @@ public class GotoInPointAction extends AbstractAction
       AbstractActionTools.setupIconButton(this, iconFilename, shortKey, longDescription, shortDescription);
    }
 
+   @Override
    public void actionPerformed(ActionEvent e)
    {
       executor.gotoInPoint();

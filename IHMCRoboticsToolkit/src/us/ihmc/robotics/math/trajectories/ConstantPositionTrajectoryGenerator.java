@@ -1,33 +1,32 @@
 package us.ihmc.robotics.math.trajectories;
 
 import us.ihmc.robotics.MathTools;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FrameVector;
 import us.ihmc.robotics.math.frames.YoFramePoint;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.trajectories.providers.PositionProvider;
 
-
 public class ConstantPositionTrajectoryGenerator implements PositionTrajectoryGenerator
 {
    private final YoVariableRegistry registry;
    private final YoFramePoint position;
-   private final DoubleYoVariable finalTime;
-   private final DoubleYoVariable time;
+   private final YoDouble finalTime;
+   private final YoDouble time;
    private final PositionProvider positionProvider;
 
    public ConstantPositionTrajectoryGenerator(String namePrefix, ReferenceFrame referenceFrame, PositionProvider positionProvider, double finalTime,
            YoVariableRegistry parentRegistry)
    {
-      MathTools.checkIfInRange(finalTime, 0.0, Double.POSITIVE_INFINITY);
+      MathTools.checkIntervalContains(finalTime, 0.0, Double.POSITIVE_INFINITY);
 
       this.positionProvider = positionProvider;
       this.registry = new YoVariableRegistry(namePrefix + getClass().getSimpleName());
       this.position = new YoFramePoint("position", referenceFrame, registry);
-      this.finalTime = new DoubleYoVariable("finalTime", registry);
-      this.time = new DoubleYoVariable("time", registry);
+      this.finalTime = new YoDouble("finalTime", registry);
+      this.time = new YoDouble("time", registry);
       this.finalTime.set(finalTime);
 
       parentRegistry.addChild(registry);

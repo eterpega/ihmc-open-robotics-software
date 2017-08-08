@@ -2,28 +2,40 @@ package us.ihmc.atlas.ObstacleCourseTests;
 
 import static org.junit.Assert.assertTrue;
 
-import us.ihmc.simulationconstructionset.FloatingRootJointRobot;
-import us.ihmc.simulationconstructionset.HumanoidFloatingRootJointRobot;
-import us.ihmc.robotModels.FullHumanoidRobotModel;
-import us.ihmc.robotModels.FullRobotModel;
 import us.ihmc.atlas.AtlasRobotModel;
 import us.ihmc.atlas.AtlasRobotVersion;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
+import us.ihmc.avatar.drcRobot.RobotTarget;
 import us.ihmc.avatar.obstacleCourseTests.DRCInverseDynamicsCalculatorTestHelper;
 import us.ihmc.avatar.obstacleCourseTests.DRCPelvisLowGainsTest;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.commonWalkingControlModules.controllerCore.FeedbackControllerToolbox;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationPlan;
+import us.ihmc.continuousIntegration.IntegrationCategory;
+import us.ihmc.robotModels.FullHumanoidRobotModel;
+import us.ihmc.robotModels.FullRobotModel;
 import us.ihmc.robotics.screwTheory.InverseDynamicsCalculator;
 import us.ihmc.robotics.screwTheory.InverseDynamicsCalculatorListener;
+import us.ihmc.simulationConstructionSetTools.bambooTools.BambooTools;
+import us.ihmc.simulationconstructionset.FloatingRootJointRobot;
+import us.ihmc.simulationconstructionset.HumanoidFloatingRootJointRobot;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
 import us.ihmc.simulationconstructionset.UnreasonableAccelerationException;
-import us.ihmc.simulationconstructionset.bambooTools.BambooTools;
-import us.ihmc.tools.continuousIntegration.IntegrationCategory;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationPlan;
+import us.ihmc.yoVariables.variable.YoDouble;
 
 @ContinuousIntegrationPlan(categories = {IntegrationCategory.FAST, IntegrationCategory.VIDEO})
 public class AtlasPelvisLowGainsTest extends DRCPelvisLowGainsTest
 {
-   private final DRCRobotModel robotModel = new AtlasRobotModel(AtlasRobotVersion.ATLAS_UNPLUGGED_V5_NO_HANDS, DRCRobotModel.RobotTarget.SCS, false);
+   private final DRCRobotModel robotModel = new AtlasRobotModel(AtlasRobotVersion.ATLAS_UNPLUGGED_V5_NO_HANDS, RobotTarget.SCS, false)
+   {
+      // Disable joint damping to make sure that damping isn't causing the problem.
+      private static final boolean enableJointDamping = false;
+
+      @Override
+      public HumanoidFloatingRootJointRobot createHumanoidFloatingRootJointRobot(boolean createCollisionMeshes)
+      {
+         return createHumanoidFloatingRootJointRobot(createCollisionMeshes, enableJointDamping);
+      }
+   };
 
    @Override
    public DRCRobotModel getRobotModel()
@@ -38,11 +50,10 @@ public class AtlasPelvisLowGainsTest extends DRCPelvisLowGainsTest
    }
 
    @Override
-   protected DoubleYoVariable getPelvisOrientationErrorVariableName(SimulationConstructionSet scs)
+   protected YoDouble getPelvisOrientationErrorVariableName(SimulationConstructionSet scs)
    {
 
-      return (DoubleYoVariable) scs.getVariable("root.atlas.DRCSimulation.DRCControllerThread.DRCMomentumBasedController.HighLevelHumanoidControllerManager.MomentumBasedControllerFactory.WholeBodyControllerCore.WholeBodyFeedbackController.pelvisOrientationFBController.pelvisAxisAngleOrientationController",
-                                                "pelvisRotationErrorInBodyZ");
+      return (YoDouble) scs.getVariable(FeedbackControllerToolbox.class.getSimpleName(), "pelvisErrorRotationVectorZ");
    }
 
    @Override
@@ -82,12 +93,11 @@ public class AtlasPelvisLowGainsTest extends DRCPelvisLowGainsTest
          this.simulatedRobot = simulatedRobot;
 
          boolean headless = false;
-         AtlasRobotModel atlasRobotModel = new AtlasRobotModel(AtlasRobotVersion.ATLAS_UNPLUGGED_V5_NO_HANDS, DRCRobotModel.RobotTarget.SCS, headless);
+         AtlasRobotModel atlasRobotModel = new AtlasRobotModel(AtlasRobotVersion.ATLAS_UNPLUGGED_V5_NO_HANDS, RobotTarget.SCS, headless);
 //         FullRobotModel fullRobotModel = atlasRobotModel.createFullRobotModel();
 
          boolean createCollisionMeshes = false;
-         atlasRobotModel.setEnableJointDamping(false);
-         robot = atlasRobotModel.createHumanoidFloatingRootJointRobot(createCollisionMeshes);
+         robot = atlasRobotModel.createHumanoidFloatingRootJointRobot(createCollisionMeshes, false);
          robot.setGravity(gravityZ);
 
          atlasInverseDynamicsCalculatorTestHelper = new DRCInverseDynamicsCalculatorTestHelper(controllersFullRobotModel, robot, visualize, gravityZ);

@@ -1,19 +1,16 @@
 package us.ihmc.communication.subscribers;
 
+import us.ihmc.communication.net.PacketConsumer;
 import us.ihmc.communication.packets.ParameterListPacket;
 import us.ihmc.communication.packets.RequestParameterListPacket;
 import us.ihmc.communication.packets.SetBooleanParameterPacket;
 import us.ihmc.communication.packets.SetDoubleArrayParameterPacket;
 import us.ihmc.communication.packets.SetDoubleParameterPacket;
-import us.ihmc.communication.packets.SetIntegerArrayParameterPacket;
-import us.ihmc.communication.packets.SetIntegerParameterPacket;
 import us.ihmc.communication.packets.SetStringParameterPacket;
 import us.ihmc.communication.streamingData.GlobalDataProducer;
 import us.ihmc.robotics.dataStructures.parameter.BooleanParameter;
 import us.ihmc.robotics.dataStructures.parameter.DoubleArrayParameter;
 import us.ihmc.robotics.dataStructures.parameter.DoubleParameter;
-import us.ihmc.robotics.dataStructures.parameter.IntegerArrayParameter;
-import us.ihmc.robotics.dataStructures.parameter.IntegerParameter;
 import us.ihmc.robotics.dataStructures.parameter.Parameter;
 import us.ihmc.robotics.dataStructures.parameter.ParameterRegistry;
 import us.ihmc.robotics.dataStructures.parameter.StringParameter;
@@ -23,18 +20,48 @@ public class ParameterPacketListener
    // TODO: Make this a packet communicator, not a global data producer?
    public ParameterPacketListener(final GlobalDataProducer communicator)
    {
-      communicator.attachListener(RequestParameterListPacket.class, packet ->
+      communicator.attachListener(RequestParameterListPacket.class, new PacketConsumer<RequestParameterListPacket>()
       {
-         ParameterListPacket response = new ParameterListPacket(ParameterRegistry.getInstance().getParameters());
-         communicator.queueDataToSend(response);
+         @Override
+         public void receivedPacket(RequestParameterListPacket packet)
+         {
+            ParameterListPacket response = new ParameterListPacket(ParameterRegistry.getInstance().getParameters());
+            communicator.queueDataToSend(response);
+         }
       });
 
-      communicator.attachListener(SetBooleanParameterPacket.class, this::onSetBooleanPacket);
-      communicator.attachListener(SetDoubleArrayParameterPacket.class, this::onSetDoubleArrayPacket);
-      communicator.attachListener(SetDoubleParameterPacket.class, this::onSetDoublePacket);
-      communicator.attachListener(SetIntegerArrayParameterPacket.class, this::onSetIntegerArrayPacket);
-      communicator.attachListener(SetIntegerParameterPacket.class, this::onSetIntegerPacket);
-      communicator.attachListener(SetStringParameterPacket.class, this::onStringPacket);
+      communicator.attachListener(SetBooleanParameterPacket.class, new PacketConsumer<SetBooleanParameterPacket>()
+      {
+         @Override
+         public void receivedPacket(SetBooleanParameterPacket packet)
+         {
+            onSetBooleanPacket(packet);
+         }
+      });
+      communicator.attachListener(SetDoubleArrayParameterPacket.class, new PacketConsumer<SetDoubleArrayParameterPacket>()
+      {
+         @Override
+         public void receivedPacket(SetDoubleArrayParameterPacket packet)
+         {
+            onSetDoubleArrayPacket(packet);
+         }
+      });
+      communicator.attachListener(SetDoubleParameterPacket.class, new PacketConsumer<SetDoubleParameterPacket>()
+      {
+         @Override
+         public void receivedPacket(SetDoubleParameterPacket packet)
+         {
+            onSetDoublePacket(packet);
+         }
+      });
+      communicator.attachListener(SetStringParameterPacket.class, new PacketConsumer<SetStringParameterPacket>()
+      {
+         @Override
+         public void receivedPacket(SetStringParameterPacket packet)
+         {
+            onStringPacket(packet);
+         }
+      });
    }
 
    public void onSetBooleanPacket(SetBooleanParameterPacket packet)

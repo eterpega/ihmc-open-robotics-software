@@ -1,8 +1,7 @@
 package us.ihmc.exampleSimulations.simpleDynamicWalkingExample;
 
-import javax.vecmath.Point3d;
-
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
+import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.robotics.math.frames.YoFramePoint;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
@@ -48,7 +47,7 @@ public class Step2Simulation
      
      //CoM (Silvain)
      YoFramePoint yoCenterOfMass = new YoFramePoint("CenterOfMass", ReferenceFrame.getWorldFrame(), new YoVariableRegistry("main"));
-     Point3d centerOfMass = new Point3d();
+     Point3D centerOfMass = new Point3D();
      double totalMass = v2Robot.computeCenterOfMass(centerOfMass);
      yoCenterOfMass.set(centerOfMass);
      

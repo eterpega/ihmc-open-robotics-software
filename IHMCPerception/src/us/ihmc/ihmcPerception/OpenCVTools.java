@@ -1,6 +1,5 @@
 package us.ihmc.ihmcPerception;
 
-import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.io.ByteArrayInputStream;
@@ -16,11 +15,9 @@ import org.opencv.core.Size;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
-import us.ihmc.ihmcPerception.vision.HSVValue;
-
 public class OpenCVTools
 {
-   public static final String OPEN_CV_LIBRARY_NAME = "opencv_java310";
+   public static final String OPEN_CV_LIBRARY_NAME = "opencv_java320";
    
    public static Mat convertBufferedImageToMat(BufferedImage image)
    {
@@ -48,25 +45,6 @@ public class OpenCVTools
       return imageMat;
    }
    
-   public static HSVValue convertColorToHSVValue(Color color)
-   {
-      float[] hsvArray = new float[3];
-      Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), hsvArray);
-      float hue = hsvArray[0] * 180.0f;
-      float saturation = hsvArray[1] * 255.0f;
-      float brightnessValue = hsvArray[2] * 255.0f;
-      return new HSVValue(hue, saturation, brightnessValue);
-   }
-   
-   public static Color convertHSVValueToColor(HSVValue hsvValue)
-   {
-      int rgb = Color.HSBtoRGB((float) hsvValue.getHue() / 180.0f, (float) hsvValue.getSaturation() / 255.0f, (float) hsvValue.getBrightnessValue() / 255.0f);
-      int red = (rgb >> 16) & 0xFF;
-      int green = (rgb >> 8) & 0xFF;
-      int blue = (rgb) & 0xFF;
-      return new Color(red, green, blue);
-   }
-
    public static BufferedImage convertToCompressableBufferedImage(BufferedImage openCVEncodedImage)
    {
       BufferedImage convertedBufferedImage = new BufferedImage(openCVEncodedImage.getWidth(),

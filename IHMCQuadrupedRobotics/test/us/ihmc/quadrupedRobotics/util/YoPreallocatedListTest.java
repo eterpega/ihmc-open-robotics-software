@@ -1,29 +1,32 @@
 package us.ihmc.quadrupedRobotics.util;
 
-import org.junit.Test;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 
-import static org.junit.Assert.*;
+import org.junit.Test;
+
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 
 public class YoPreallocatedListTest
 {
    YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
 
-   @ContinuousIntegrationAnnotations.ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
    @Test(timeout = 30000)
    public void testCapacity()
    {
-      YoPreallocatedList<DoubleYoVariable> doubleList = new YoPreallocatedList<>("doubles", registry, 10,
-            new YoPreallocatedList.DefaultElementFactory<DoubleYoVariable>()
+      YoPreallocatedList<YoDouble> doubleList = new YoPreallocatedList<>("doubles", registry, 10,
+            new YoPreallocatedList.DefaultElementFactory<YoDouble>()
             {
                @Override
-               public DoubleYoVariable createDefaultElement(String prefix, YoVariableRegistry registry)
+               public YoDouble createDefaultElement(String prefix, YoVariableRegistry registry)
                {
-                  return new DoubleYoVariable(prefix, registry);
+                  return new YoDouble(prefix, registry);
                }
             });
 
@@ -36,19 +39,19 @@ public class YoPreallocatedListTest
       assertEquals(doubleList.capacity(), 10);
    }
 
-   @ContinuousIntegrationAnnotations.ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
    @Test(timeout = 30000)
    public void testDefaultElementFactory()
    {
       double epsilon = 0.001;
 
-      YoPreallocatedList<DoubleYoVariable> doubleList = new YoPreallocatedList<>("doubles", registry, 10,
-            new YoPreallocatedList.DefaultElementFactory<DoubleYoVariable>()
+      YoPreallocatedList<YoDouble> doubleList = new YoPreallocatedList<>("doubles", registry, 10,
+            new YoPreallocatedList.DefaultElementFactory<YoDouble>()
             {
                @Override
-               public DoubleYoVariable createDefaultElement(String prefix, YoVariableRegistry registry)
+               public YoDouble createDefaultElement(String prefix, YoVariableRegistry registry)
                {
-                  return new DoubleYoVariable(prefix, registry);
+                  return new YoDouble(prefix, registry);
                }
             });
 
@@ -107,19 +110,19 @@ public class YoPreallocatedListTest
       assertEquals(doubleList.get(9).getDoubleValue(), 9.0, epsilon);
    }
 
-   @ContinuousIntegrationAnnotations.ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
    @Test(timeout = 30000)
    public void testPreallocatedListConstructor()
    {
       double epsilon = 0.001;
 
-      ArrayList<DoubleYoVariable> elements = new ArrayList<>();
+      ArrayList<YoDouble> elements = new ArrayList<>();
       for (int i = 0; i < 10; i++)
       {
-         elements.add(new DoubleYoVariable("" + i, registry));
+         elements.add(new YoDouble("" + i, registry));
          elements.get(i).set(i);
       }
-      YoPreallocatedList<DoubleYoVariable> doubleList = new YoPreallocatedList<>("doubles", registry, elements);
+      YoPreallocatedList<YoDouble> doubleList = new YoPreallocatedList<>("doubles", registry, elements);
 
       // front of list
       doubleList.remove(0);

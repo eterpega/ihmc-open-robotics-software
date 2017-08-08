@@ -5,11 +5,12 @@ import us.ihmc.humanoidBehaviors.behaviors.AbstractBehavior;
 import us.ihmc.humanoidBehaviors.communication.CommunicationBridge;
 import us.ihmc.humanoidRobotics.frames.HumanoidReferenceFrames;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.robotModels.FullHumanoidRobotModelFactory;
 import us.ihmc.wholeBodyController.WholeBodyControllerParameters;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 
-public class AtlasPrimitiveActions 
+public class AtlasPrimitiveActions
 {
    //ALL Primitive Behaviors Go In Here. Talk To John Carff before changing this.
    public final ArmTrajectoryBehavior leftArmTrajectoryBehavior;
@@ -17,10 +18,8 @@ public class AtlasPrimitiveActions
    public final ChestTrajectoryBehavior chestTrajectoryBehavior;
    public final ClearLidarBehavior clearLidarBehavior;
    public final EnableLidarBehavior enableLidarBehavior;
-   public final EndEffectorLoadBearingBehavior leftFootEndEffectorLoadBearingBehavior;
-   public final EndEffectorLoadBearingBehavior rightFootEndEffectorLoadBearingBehavior;
-   public final EndEffectorLoadBearingBehavior leftHandEndEffectorLoadBearingBehavior;
-   public final EndEffectorLoadBearingBehavior rightHandEndEffectorLoadBearingBehavior;
+   public final FootLoadBearingBehavior leftFootEndEffectorLoadBearingBehavior;
+   public final FootLoadBearingBehavior rightFootEndEffectorLoadBearingBehavior;
    public final FootstepListBehavior footstepListBehavior;
    public final GoHomeBehavior leftArmGoHomeBehavior;
    public final GoHomeBehavior rightArmGoHomeBehavior;
@@ -39,19 +38,21 @@ public class AtlasPrimitiveActions
    public final WholeBodyInverseKinematicsBehavior wholeBodyBehavior;
    public final WalkToLocationPlannedBehavior walkToLocationPlannedBehavior;
    private final YoVariableRegistry behaviorRegistry;
-   
+
    public HumanoidReferenceFrames referenceFrames;
 
    public AtlasPrimitiveActions(CommunicationBridge outgoingCommunicationBridge, FullHumanoidRobotModel fullRobotModel,
-         HumanoidReferenceFrames referenceFrames, WalkingControllerParameters walkingControllerParameters, DoubleYoVariable yoTime,
-         WholeBodyControllerParameters wholeBodyControllerParameters, YoVariableRegistry behaviorRegistry)
+                                FullHumanoidRobotModelFactory fullRobotModelFactory, HumanoidReferenceFrames referenceFrames, YoDouble yoTime,
+                                WholeBodyControllerParameters wholeBodyControllerParameters, YoVariableRegistry behaviorRegistry)
    {
       this.referenceFrames = referenceFrames;
       this.behaviorRegistry = behaviorRegistry;
-      
+
+      WalkingControllerParameters walkingControllerParameters = wholeBodyControllerParameters.getWalkingControllerParameters();
+
       walkToLocationPlannedBehavior = new WalkToLocationPlannedBehavior(outgoingCommunicationBridge, fullRobotModel, referenceFrames, walkingControllerParameters, yoTime);
       addPrimitive(walkToLocationPlannedBehavior);
-      
+
       leftArmTrajectoryBehavior = new ArmTrajectoryBehavior("left", outgoingCommunicationBridge, yoTime);
       addPrimitive(leftArmTrajectoryBehavior);
 
@@ -63,14 +64,10 @@ public class AtlasPrimitiveActions
       addPrimitive(clearLidarBehavior);
       enableLidarBehavior = new EnableLidarBehavior(outgoingCommunicationBridge);
       addPrimitive(enableLidarBehavior);
-      leftFootEndEffectorLoadBearingBehavior = new EndEffectorLoadBearingBehavior("leftFoot", outgoingCommunicationBridge);
+      leftFootEndEffectorLoadBearingBehavior = new FootLoadBearingBehavior("leftFoot", outgoingCommunicationBridge);
       addPrimitive(leftFootEndEffectorLoadBearingBehavior);
-      rightFootEndEffectorLoadBearingBehavior = new EndEffectorLoadBearingBehavior("rightFoot", outgoingCommunicationBridge);
+      rightFootEndEffectorLoadBearingBehavior = new FootLoadBearingBehavior("rightFoot", outgoingCommunicationBridge);
       addPrimitive(rightFootEndEffectorLoadBearingBehavior);
-      leftHandEndEffectorLoadBearingBehavior = new EndEffectorLoadBearingBehavior("leftHand", outgoingCommunicationBridge);
-      addPrimitive(leftHandEndEffectorLoadBearingBehavior);
-      rightHandEndEffectorLoadBearingBehavior = new EndEffectorLoadBearingBehavior("rightHand", outgoingCommunicationBridge);
-      addPrimitive(rightHandEndEffectorLoadBearingBehavior);
       footstepListBehavior = new FootstepListBehavior(outgoingCommunicationBridge, walkingControllerParameters);
       addPrimitive(footstepListBehavior);
       leftArmGoHomeBehavior = new GoHomeBehavior("leftArm", outgoingCommunicationBridge, yoTime);
@@ -101,15 +98,16 @@ public class AtlasPrimitiveActions
       addPrimitive(setLidarParametersBehavior);
       walkToLocationBehavior = new WalkToLocationBehavior(outgoingCommunicationBridge, fullRobotModel, referenceFrames, walkingControllerParameters);
       addPrimitive(walkToLocationBehavior);
-      wholeBodyBehavior = new WholeBodyInverseKinematicsBehavior("atlas", wholeBodyControllerParameters, yoTime, outgoingCommunicationBridge, fullRobotModel);
+      wholeBodyBehavior = new WholeBodyInverseKinematicsBehavior("atlas", fullRobotModelFactory, yoTime, outgoingCommunicationBridge, fullRobotModel);
       addPrimitive(wholeBodyBehavior);
+
 
    }
    private void addPrimitive(AbstractBehavior behavior)
    {
       behaviorRegistry.addChild(behavior.getYoVariableRegistry());
    }
-   
+
 
 
 }

@@ -6,8 +6,6 @@ import java.awt.GraphicsEnvironment;
 import java.awt.GridLayout;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.NetworkInterface;
 import java.nio.ByteBuffer;
 
 import javax.imageio.ImageIO;
@@ -20,17 +18,14 @@ import us.ihmc.codecs.generated.FilterModeEnum;
 import us.ihmc.codecs.generated.YUVPicture;
 import us.ihmc.codecs.yuv.JPEGDecoder;
 import us.ihmc.codecs.yuv.YUVPictureConverter;
-import us.ihmc.communication.configuration.NetworkParameterKeys;
-import us.ihmc.communication.configuration.NetworkParameters;
-import us.ihmc.multicastLogDataProtocol.LogPacketHandler;
-import us.ihmc.multicastLogDataProtocol.LogUtils;
-import us.ihmc.robotDataLogger.LogDataHeader;
-import us.ihmc.robotDataLogger.gui.GUICaptureReceiver;
+import us.ihmc.robotDataLogger.guiRecorder.GUICaptureHandler;
+import us.ihmc.robotDataLogger.guiRecorder.GUICaptureReceiver;
 import us.ihmc.robotDataLogger.logger.LogSettings;
+import us.ihmc.robotDataLogger.rtps.LogParticipantSettings;
 
 public class GUICaptureViewer
 {
-   public static void main(String[] args)
+   public static void main(String[] args) throws IOException
    {
       new GUICaptureViewer();
    }
@@ -45,7 +40,7 @@ public class GUICaptureViewer
    
    private final BufferedImage logo;
 
-   public GUICaptureViewer()
+   public GUICaptureViewer() throws  IOException
    {
       main = new JFrame();
       main.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -69,8 +64,7 @@ public class GUICaptureViewer
       {
          if (setting.getVideoStream() != null)
          {
-            NetworkInterface iface = LogUtils.getMyInterface(NetworkParameters.getHost(NetworkParameterKeys.logger));
-            new GUICaptureReceiver(iface, setting.getVideoStream(), new Handler()).start();
+            new GUICaptureReceiver(LogParticipantSettings.domain, setting.getVideoStream(), new Handler()).start();
          }
 
       }
@@ -115,17 +109,12 @@ public class GUICaptureViewer
 //      
 //   }
 
-   private class Handler implements LogPacketHandler
+   private class Handler implements GUICaptureHandler
    {
       private final JPEGDecoder decoder = new JPEGDecoder();
 
       @Override
-      public void timestampReceived(long timestamp)
-      {
-      }
-
-      @Override
-      public void newDataAvailable(LogDataHeader header, ByteBuffer buffer)
+      public void receivedFrame(ByteBuffer buffer)
       {
 
          final ByteBuffer imageBuffer = buffer;
@@ -168,41 +157,6 @@ public class GUICaptureViewer
 
          });
 
-      }
-
-      @Override
-      public void timeout()
-      {
-         SwingUtilities.invokeLater(new Runnable()
-         {
-
-            @Override
-            public void run()
-            {
-               label.setIcon(new ImageIcon(logo));
-//               synchronized (streams)
-//               {
-//                  if (streams.contains(label))
-//                  {
-//                     streams.remove(label);
-//                     main.remove(label);
-//                     reLayout();
-//                  }
-//
-//               }
-            }
-         });
-      }
-
-      @Override
-      public void connected(InetSocketAddress localAddress)
-      {
-      }
-
-      @Override
-      public void keepAlive()
-      {
-         
       }
    }
 }

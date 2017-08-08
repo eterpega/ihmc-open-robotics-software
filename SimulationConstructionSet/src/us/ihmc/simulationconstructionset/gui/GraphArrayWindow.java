@@ -12,7 +12,8 @@ import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 
-import us.ihmc.simulationconstructionset.DataBuffer;
+import us.ihmc.graphicsDescription.graphInterfaces.SelectedVariableHolder;
+import us.ihmc.yoVariables.dataBuffer.DataBuffer;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
 import us.ihmc.simulationconstructionset.commands.AllCommandsExecutor;
 import us.ihmc.simulationconstructionset.commands.SelectGraphConfigurationCommandExecutor;
@@ -79,7 +80,7 @@ public class GraphArrayWindow implements SelectGraphConfigurationCommandExecutor
       
       frame = new JFrame(windowName, configurationToUse);
       frame.setName(windowName);
-      myGraphArrayPanel = new GraphArrayPanel(selectedVariableHolder, dataBuffer, frame);
+      myGraphArrayPanel = new GraphArrayPanel(selectedVariableHolder, dataBuffer, frame, sim.getGUI());
 
       windowGUIActions = new StandardGUIActions();
 
@@ -218,6 +219,7 @@ public class GraphArrayWindow implements SelectGraphConfigurationCommandExecutor
    @SuppressWarnings("unused")
    private String selectedConfigurationName, selectedGraphGroupName;
 
+   @Override
    public void selectGraphConfiguration(String name)
    {
       // if (rob == null) return;
@@ -234,6 +236,7 @@ public class GraphArrayWindow implements SelectGraphConfigurationCommandExecutor
       // selectEntryBoxGroup(config.getEntryBoxGroupName());
    }
 
+   @Override
    public void selectGraphGroup(String name)
    {
       selectedGraphGroupName = name;

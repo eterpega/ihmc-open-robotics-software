@@ -2,32 +2,30 @@ package us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.manipulatio
 
 import static us.ihmc.communication.packets.Packet.INVALID_MESSAGE_ID;
 
-import java.util.Map;
+import java.util.Collection;
 
-import javax.vecmath.Vector3d;
-
-import us.ihmc.commonWalkingControlModules.controllerCore.command.SolverWeightLevels;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.feedbackController.SpatialFeedbackControlCommand;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.InverseDynamicsCommand;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics.PrivilegedConfigurationCommand;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.manipulation.individual.HandControlMode;
-import us.ihmc.communication.controllerAPI.command.CommandArrayDeque;
+import us.ihmc.commons.PrintTools;
 import us.ihmc.communication.packets.Packet;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicCoordinateSystem;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsList;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicCoordinateSystem;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsList;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.HandTrajectoryCommand;
 import us.ihmc.humanoidRobotics.communication.packets.ExecutionMode;
-import us.ihmc.humanoidRobotics.communication.packets.manipulation.HandTrajectoryMessage.BaseForControl;
 import us.ihmc.robotics.controllers.YoSE3PIDGainsInterface;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.LongYoVariable;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoLong;
 import us.ihmc.robotics.geometry.FrameOrientation;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FramePose;
 import us.ihmc.robotics.geometry.FrameVector;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
+import us.ihmc.robotics.lists.RecyclingArrayDeque;
 import us.ihmc.robotics.math.frames.YoFramePose;
 import us.ihmc.robotics.math.frames.YoFrameVector;
 import us.ihmc.robotics.math.trajectories.waypoints.FrameSE3TrajectoryPoint;
@@ -36,8 +34,8 @@ import us.ihmc.robotics.math.trajectories.waypoints.MultipleWaypointsPositionTra
 import us.ihmc.robotics.referenceFrames.PoseReferenceFrame;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.screwTheory.RigidBody;
+import us.ihmc.robotics.weightMatrices.SolverWeightLevels;
 import us.ihmc.tools.FormattingTools;
-import us.ihmc.tools.io.printing.PrintTools;
 
 /**
  * @author twan
@@ -78,26 +76,22 @@ public class TaskspaceHandControlState extends HandControlState
    private final YoSE3PIDGainsInterface gains;
    private final YoFrameVector yoAngularWeight;
    private final YoFrameVector yoLinearWeight;
-   private final Vector3d angularWeight = new Vector3d();
-   private final Vector3d linearWeight = new Vector3d();
+   private final Vector3D angularWeight = new Vector3D();
+   private final Vector3D linearWeight = new Vector3D();
 
-   private final Map<BaseForControl, ReferenceFrame> baseForControlToReferenceFrameMap;
+   private final YoBoolean abortTaskspaceControlState;
+   private final YoLong lastCommandId;
 
-   private final BooleanYoVariable abortTaskspaceControlState;
-   private final LongYoVariable lastCommandId;
-
-   private final BooleanYoVariable isReadyToHandleQueuedCommands;
-   private final LongYoVariable numberOfQueuedCommands;
-   private final CommandArrayDeque<HandTrajectoryCommand> commandQueue = new CommandArrayDeque<>(HandTrajectoryCommand.class);
+   private final YoBoolean isReadyToHandleQueuedCommands;
+   private final YoLong numberOfQueuedCommands;
+   private final RecyclingArrayDeque<HandTrajectoryCommand> commandQueue = new RecyclingArrayDeque<>(HandTrajectoryCommand.class);
 
    public TaskspaceHandControlState(String namePrefix, RigidBody base, RigidBody endEffector, RigidBody chest, YoSE3PIDGainsInterface gains,
-         Map<BaseForControl, ReferenceFrame> baseForControlToReferenceFrameMap, YoGraphicsListRegistry yoGraphicsListRegistry,
+         Collection<ReferenceFrame> trajectoryFrames, YoGraphicsListRegistry yoGraphicsListRegistry,
          YoVariableRegistry parentRegistry)
    {
       super(HandControlMode.TASKSPACE);
       this.gains = gains;
-      this.baseForControlToReferenceFrameMap = baseForControlToReferenceFrameMap;
-
       name = namePrefix + FormattingTools.underscoredToCamelCase(getStateEnum().toString(), true) + "State";
       registry = new YoVariableRegistry(name);
 
@@ -120,7 +114,7 @@ public class TaskspaceHandControlState extends HandControlState
       positionTrajectoryGenerator = new MultipleWaypointsPositionTrajectoryGenerator(namePrefix, true, worldFrame, registry);
       orientationTrajectoryGenerator = new MultipleWaypointsOrientationTrajectoryGenerator(namePrefix, true, worldFrame, registry);
 
-      for (ReferenceFrame frameToRegister : baseForControlToReferenceFrameMap.values())
+      for (ReferenceFrame frameToRegister : trajectoryFrames)
       {
          positionTrajectoryGenerator.registerNewTrajectoryFrame(frameToRegister);
          orientationTrajectoryGenerator.registerNewTrajectoryFrame(frameToRegister);
@@ -128,14 +122,12 @@ public class TaskspaceHandControlState extends HandControlState
 
       setupVisualization(namePrefix, yoGraphicsListRegistry);
 
-      privilegedConfigurationCommand.applyPrivilegedConfigurationToSubChain(chest, endEffector);
-
-      abortTaskspaceControlState = new BooleanYoVariable(namePrefix + "AbortTaskspaceControlState", registry);
-      lastCommandId = new LongYoVariable(namePrefix + "LastCommandId", registry);
+      abortTaskspaceControlState = new YoBoolean(namePrefix + "AbortTaskspaceControlState", registry);
+      lastCommandId = new YoLong(namePrefix + "LastCommandId", registry);
       lastCommandId.set(Packet.INVALID_MESSAGE_ID);
 
-      isReadyToHandleQueuedCommands = new BooleanYoVariable(namePrefix + "IsReadyToHandleQueuedHandTrajectoryCommands", registry);
-      numberOfQueuedCommands = new LongYoVariable(namePrefix + "NumberOfQueuedCommands", registry);
+      isReadyToHandleQueuedCommands = new YoBoolean(namePrefix + "IsReadyToHandleQueuedHandTrajectoryCommands", registry);
+      numberOfQueuedCommands = new YoLong(namePrefix + "NumberOfQueuedCommands", registry);
 
       parentRegistry.addChild(registry);
    }
@@ -157,7 +149,7 @@ public class TaskspaceHandControlState extends HandControlState
       yoLinearWeight.set(weight, weight, weight);
    }
 
-   public void setWeights(Vector3d angularWeight, Vector3d linearWeight)
+   public void setWeights(Vector3D angularWeight, Vector3D linearWeight)
    {
       yoAngularWeight.set(angularWeight);
       yoLinearWeight.set(linearWeight);
@@ -273,11 +265,11 @@ public class TaskspaceHandControlState extends HandControlState
       updateControlFrameAndDesireds(newControlFrame, initializeToCurrent, initialTrajectoryPoint);
       command.addTimeOffset(firstTrajectoryPointTime);
 
-      ReferenceFrame trajectoryFrame = baseForControlToReferenceFrameMap.get(command.getBase());
+      ReferenceFrame trajectoryFrame = command.getTrajectoryFrame();
 
       if (trajectoryFrame == null)
       {
-         PrintTools.error(this, "The base: " + command.getBase() + " is not handled.");
+         PrintTools.error(this, "The base: " + command.getTrajectoryFrame() + " is not handled.");
          abortTaskspaceControlState.set(true);
          return;
       }
@@ -370,7 +362,8 @@ public class TaskspaceHandControlState extends HandControlState
 
       framePoseToModify.getPose(oldTrackingFrameDesiredTransform);
       newControlFrame.getTransformToDesiredFrame(transformFromNewTrackingFrameToOldTrackingFrame, oldControlFrame);
-      newTrackingFrameDesiredTransform.multiply(oldTrackingFrameDesiredTransform, transformFromNewTrackingFrameToOldTrackingFrame);
+      newTrackingFrameDesiredTransform.set(oldTrackingFrameDesiredTransform);
+      newTrackingFrameDesiredTransform.multiply(transformFromNewTrackingFrameToOldTrackingFrame);
       framePoseToModify.setPose(newTrackingFrameDesiredTransform);
    }
 

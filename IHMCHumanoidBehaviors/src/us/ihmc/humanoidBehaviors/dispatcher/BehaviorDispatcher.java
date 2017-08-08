@@ -7,7 +7,9 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import us.ihmc.commonWalkingControlModules.controllers.Updatable;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.commons.Conversions;
+import us.ihmc.commons.PrintTools;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.humanoidBehaviors.IHMCHumanoidBehaviorManager;
 import us.ihmc.humanoidBehaviors.behaviors.AbstractBehavior;
 import us.ihmc.humanoidBehaviors.behaviors.behaviorServices.BehaviorService;
@@ -17,14 +19,15 @@ import us.ihmc.humanoidBehaviors.communication.CommunicationBridge;
 import us.ihmc.humanoidBehaviors.stateMachine.BehaviorStateMachine;
 import us.ihmc.humanoidRobotics.communication.packets.behaviors.BehaviorControlModePacket.BehaviorControlModeEnum;
 import us.ihmc.humanoidRobotics.communication.packets.behaviors.BehaviorControlModeResponsePacket;
+import us.ihmc.humanoidRobotics.communication.packets.behaviors.BehaviorStatusPacket;
+import us.ihmc.humanoidRobotics.communication.packets.behaviors.BehaviorStatusPacket.CurrentBehaviorStatus;
 import us.ihmc.robotDataLogger.YoVariableServer;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.EnumYoVariable;
-import us.ihmc.robotics.stateMachines.StateMachineTools;
-import us.ihmc.robotics.stateMachines.StateTransitionAction;
-import us.ihmc.robotics.time.TimeTools;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoEnum;
+import us.ihmc.robotics.stateMachines.conditionBasedStateMachine.StateMachineTools;
+import us.ihmc.robotics.stateMachines.conditionBasedStateMachine.StateTransitionAction;
 import us.ihmc.sensorProcessing.communication.subscribers.RobotDataReceiver;
 import us.ihmc.tools.thread.ThreadTools;
 
@@ -43,11 +46,11 @@ public class BehaviorDispatcher<E extends Enum<E>> implements Runnable
 
    private final YoVariableRegistry registry = new YoVariableRegistry(name);
 
-   private final DoubleYoVariable yoTime;
+   private final YoDouble yoTime;
    private final YoVariableServer yoVaribleServer;
    private final BehaviorStateMachine<E> stateMachine;
 
-   private final EnumYoVariable<E> requestedBehavior;
+   private final YoEnum<E> requestedBehavior;
 
    private final BehaviorTypeSubscriber<E> desiredBehaviorSubscriber;
    private final BehaviorControlModeSubscriber desiredBehaviorControlSubscriber;
@@ -59,18 +62,22 @@ public class BehaviorDispatcher<E extends Enum<E>> implements Runnable
 
    private final ArrayList<Updatable> updatables = new ArrayList<>();
 
-   private final BooleanYoVariable hasBeenInitialized = new BooleanYoVariable("hasBeenInitialized", registry);
+   private final YoBoolean hasBeenInitialized = new YoBoolean("hasBeenInitialized", registry);
 
-   public BehaviorDispatcher(DoubleYoVariable yoTime, RobotDataReceiver robotDataReceiver, BehaviorControlModeSubscriber desiredBehaviorControlSubscriber,
+   private E stopBehavior;
+   private E currentBehavior;
+
+   public BehaviorDispatcher(YoDouble yoTime, RobotDataReceiver robotDataReceiver, BehaviorControlModeSubscriber desiredBehaviorControlSubscriber,
          BehaviorTypeSubscriber<E> desiredBehaviorSubscriber, CommunicationBridge communicationBridge, YoVariableServer yoVaribleServer, Class<E> behaviourEnum,
          E stopBehavior, YoVariableRegistry parentRegistry, YoGraphicsListRegistry yoGraphicsListRegistry)
    {
       this.behaviorEnum = behaviourEnum;
+      this.stopBehavior = stopBehavior;
       this.yoTime = yoTime;
       this.yoVaribleServer = yoVaribleServer;
       this.communicationBridge = communicationBridge;
       this.yoGraphicsListRegistry = yoGraphicsListRegistry;
-      this.requestedBehavior = new EnumYoVariable<E>("requestedBehavior", registry, behaviourEnum, true);
+      this.requestedBehavior = new YoEnum<E>("requestedBehavior", registry, behaviourEnum, true);
 
       this.robotDataReceiver = robotDataReceiver;
       this.desiredBehaviorSubscriber = desiredBehaviorSubscriber;
@@ -108,7 +115,14 @@ public class BehaviorDispatcher<E extends Enum<E>> implements Runnable
       BehaviorAction<E> behaviorStateToAdd = new BehaviorAction<E>(E, behaviorToAdd);
 
       this.stateMachine.addState(behaviorStateToAdd);
-      this.registry.addChild(behaviorToAdd.getYoVariableRegistry());
+      try
+      {
+         this.registry.addChild(behaviorToAdd.getYoVariableRegistry());
+      }
+      catch (Exception e)
+      {
+         PrintTools.info(e.getMessage());
+      }
 
       ArrayList<BehaviorAction<E>> allOtherBehaviorStates = new ArrayList<BehaviorAction<E>>();
 
@@ -154,8 +168,18 @@ public class BehaviorDispatcher<E extends Enum<E>> implements Runnable
       updateRequestedBehavior();
       callUpdatables();
 
+
       stateMachine.checkTransitionConditions();
       stateMachine.doAction();
+
+      //a behavior has finished or has aborted and has transitioned to STOP
+
+
+      if (stateMachine.getCurrentStateEnum().equals(stopBehavior) && currentBehavior!=null && !currentBehavior.equals(stopBehavior))
+      {
+         communicationBridge.sendPacketToUI(new BehaviorStatusPacket(CurrentBehaviorStatus.NO_BEHAVIOR_RUNNING));
+      }
+      currentBehavior = stateMachine.getCurrentStateEnum();
 
       yoGraphicsListRegistry.update();
    }
@@ -181,7 +205,7 @@ public class BehaviorDispatcher<E extends Enum<E>> implements Runnable
       if (simTimestamp < 0)
          return;
 
-      double currentTimeInSeconds = TimeTools.nanoSecondstoSeconds(simTimestamp);
+      double currentTimeInSeconds = Conversions.nanosecondsToSeconds(simTimestamp);
       yoTime.set(currentTimeInSeconds);
    }
 
@@ -201,14 +225,19 @@ public class BehaviorDispatcher<E extends Enum<E>> implements Runnable
          {
          case STOP:
             stateMachine.stop();
+            communicationBridge.sendPacketToUI(new BehaviorStatusPacket(CurrentBehaviorStatus.NO_BEHAVIOR_RUNNING));
             communicationBridge.sendPacket(new BehaviorControlModeResponsePacket(BehaviorControlModeEnum.STOP));
             break;
          case PAUSE:
             stateMachine.pause();
+            communicationBridge.sendPacketToUI(new BehaviorStatusPacket(CurrentBehaviorStatus.BEHAVIOR_PAUSED));
+
             communicationBridge.sendPacket(new BehaviorControlModeResponsePacket(BehaviorControlModeEnum.PAUSE));
             break;
          case RESUME:
             stateMachine.resume();
+            communicationBridge.sendPacketToUI(new BehaviorStatusPacket(CurrentBehaviorStatus.BEHAVIOS_RUNNING));
+
             communicationBridge.sendPacket(new BehaviorControlModeResponsePacket(BehaviorControlModeEnum.RESUME));
             break;
          default:
@@ -233,7 +262,7 @@ public class BehaviorDispatcher<E extends Enum<E>> implements Runnable
 
          if (yoVaribleServer != null)
          {
-            yoVaribleServer.update(TimeTools.secondsToNanoSeconds(yoTime.getDoubleValue()));
+            yoVaribleServer.update(Conversions.secondsToNanoseconds(yoTime.getDoubleValue()));
          }
       }
       catch (Exception e)

@@ -6,22 +6,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import javax.vecmath.Point2d;
-import javax.vecmath.Point3d;
-
 import org.junit.Test;
 
-import us.ihmc.graphics3DDescription.appearance.YoAppearance;
-import us.ihmc.robotics.geometry.ConvexPolygon2d;
+import us.ihmc.commons.MutationTestFacilitator;
+import us.ihmc.commons.RandomNumbers;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.continuousIntegration.IntegrationCategory;
+import us.ihmc.euclid.geometry.ConvexPolygon2D;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple2D.interfaces.Point2DReadOnly;
+import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.graphicsDescription.appearance.YoAppearance;
 import us.ihmc.robotics.geometry.PlanarRegion;
 import us.ihmc.robotics.geometry.PlanarRegionsList;
 import us.ihmc.robotics.geometry.PlanarRegionsListGenerator;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
-import us.ihmc.robotics.random.RandomTools;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
-import us.ihmc.tools.continuousIntegration.IntegrationCategory;
-import us.ihmc.tools.testing.MutationTestingTools;
 import us.ihmc.tools.thread.ThreadTools;
 
 @ContinuousIntegrationAnnotations.ContinuousIntegrationPlan(categories = IntegrationCategory.FAST)
@@ -32,7 +31,7 @@ public class PlanarRegionsListPolygonSnapperTest
    public void testSimpleVerticalSnap()
    {
       boolean visualize = false;
-      ConvexPolygon2d polygonToSnap = PlanarRegionsListExamples.createRectanglePolygon(0.5, 0.25);
+      ConvexPolygon2D polygonToSnap = PlanarRegionsListExamples.createRectanglePolygon(0.5, 0.25);
       RigidBodyTransform nonSnappedTransform = new RigidBodyTransform();
 
       PolygonSnapperVisualizer polygonSnapperVisualizer = null;
@@ -70,7 +69,7 @@ public class PlanarRegionsListPolygonSnapperTest
    public void testSimpleVerticalAndRotatedSnap()
    {
       boolean visualize = false;
-      ConvexPolygon2d polygonToSnap = PlanarRegionsListExamples.createRectanglePolygon(0.5, 0.25);
+      ConvexPolygon2D polygonToSnap = PlanarRegionsListExamples.createRectanglePolygon(0.5, 0.25);
       RigidBodyTransform nonSnappedTransform = new RigidBodyTransform();
 
       PolygonSnapperVisualizer polygonSnapperVisualizer = null;
@@ -139,7 +138,7 @@ public class PlanarRegionsListPolygonSnapperTest
       {
          for (double y = -maxY; y<maxY; y = y + 0.1)
          {
-            double yaw = RandomTools.generateRandomDouble(random, Math.PI);
+            double yaw = RandomNumbers.nextDouble(random, Math.PI);
 
             xyYawToTest.add(new double[] { x, y, yaw });
          }
@@ -166,7 +165,7 @@ public class PlanarRegionsListPolygonSnapperTest
       {
          for (double y = -maxY; y<maxY; y = y + 0.1)
          {
-            double yaw = RandomTools.generateRandomDouble(random, Math.PI);
+            double yaw = RandomNumbers.nextDouble(random, Math.PI);
 
             xyYawToTest.add(new double[] { x, y, yaw });
          }
@@ -177,7 +176,7 @@ public class PlanarRegionsListPolygonSnapperTest
 
    private static void doATest(PlanarRegionsList planarRegionsList, ArrayList<double[]> xyYawToTest, boolean visualize)
    {
-      ConvexPolygon2d originalPolygon = PlanarRegionsListExamples.createRectanglePolygon(0.3, 0.15);
+      ConvexPolygon2D originalPolygon = PlanarRegionsListExamples.createRectanglePolygon(0.3, 0.15);
       RigidBodyTransform nonSnappedTransform = new RigidBodyTransform();
 
       PolygonSnapperVisualizer polygonSnapperVisualizer = null;
@@ -193,7 +192,7 @@ public class PlanarRegionsListPolygonSnapperTest
 
       for (double[] xyYaw : xyYawToTest)
       {
-         ConvexPolygon2d polygonToSnap = new ConvexPolygon2d(originalPolygon);
+         ConvexPolygon2D polygonToSnap = new ConvexPolygon2D(originalPolygon);
          nonSnappedTransform = new RigidBodyTransform();
          nonSnappedTransform.setRotationEulerAndZeroTranslation(0.0, 0.0, xyYaw[2]);
          nonSnappedTransform.setTranslation(xyYaw[0], xyYaw[1], 0.0);
@@ -210,8 +209,8 @@ public class PlanarRegionsListPolygonSnapperTest
             int numberOfVertices = polygonToSnap.getNumberOfVertices();
             for (int vertexIndex = 0; vertexIndex < numberOfVertices; vertexIndex++)
             {
-               Point2d vertex = polygonToSnap.getVertex(vertexIndex);
-               Point3d snappedVertex = new Point3d(vertex.getX(), vertex.getY(), 0.0);
+               Point2DReadOnly vertex = polygonToSnap.getVertex(vertexIndex);
+               Point3D snappedVertex = new Point3D(vertex.getX(), vertex.getY(), 0.0);
 
                snapTransform.transform(snappedVertex);
 
@@ -243,8 +242,6 @@ public class PlanarRegionsListPolygonSnapperTest
 
    public static void main(String[] args)
    {
-      String targetTests = PlanarRegionsListPolygonSnapperTest.class.getName();
-      String targetClassesInSamePackage = PlanarRegionsListPolygonSnapper.class.getName();
-      MutationTestingTools.doPITMutationTestAndOpenResult(targetTests, targetClassesInSamePackage);
+      MutationTestFacilitator.facilitateMutationTestForClass(PlanarRegionsListPolygonSnapper.class, PlanarRegionsListPolygonSnapperTest.class);
    }
 }

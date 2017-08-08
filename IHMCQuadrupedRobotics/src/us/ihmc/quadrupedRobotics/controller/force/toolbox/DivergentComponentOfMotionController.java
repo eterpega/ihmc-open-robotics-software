@@ -1,14 +1,14 @@
 package us.ihmc.quadrupedRobotics.controller.force.toolbox;
 
-import us.ihmc.graphics3DDescription.appearance.YoAppearance;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicPosition;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsList;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
-import us.ihmc.graphics3DDescription.yoGraphics.plotting.ArtifactList;
+import us.ihmc.graphicsDescription.appearance.YoAppearance;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsList;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.graphicsDescription.yoGraphics.plotting.ArtifactList;
 import us.ihmc.robotics.controllers.PIDController;
 import us.ihmc.robotics.controllers.YoEuclideanPositionGains;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FrameVector;
 import us.ihmc.robotics.math.filters.RateLimitedYoVariable;
@@ -59,7 +59,7 @@ public class DivergentComponentOfMotionController
    YoFramePoint yoDcmPositionSetpoint = new YoFramePoint("dcmPositionSetpoint", ReferenceFrame.getWorldFrame(), registry);
    YoFrameVector yoDcmVelocitySetpoint = new YoFrameVector("dcmVelocitySetpoint", ReferenceFrame.getWorldFrame(), registry);
 
-   DoubleYoVariable yoVrpPositionRateLimit;
+   YoDouble yoVrpPositionRateLimit;
    RateLimitedYoVariable yoVrpPositionSetpointX;
    RateLimitedYoVariable yoVrpPositionSetpointY;
    RateLimitedYoVariable yoVrpPositionSetpointZ;
@@ -79,7 +79,7 @@ public class DivergentComponentOfMotionController
       pidController[2] = new PIDController("dcmPositionZ", registry);
       pidControllerGains = new YoEuclideanPositionGains("dcmPosition", registry);
 
-      yoVrpPositionRateLimit = new DoubleYoVariable("vrpPositionRateLimit", registry);
+      yoVrpPositionRateLimit = new YoDouble("vrpPositionRateLimit", registry);
       yoVrpPositionRateLimit.set(Double.MAX_VALUE);
       yoVrpPositionSetpointX = new RateLimitedYoVariable("vrpPositionSetpointXInComZUpFrame", registry, yoVrpPositionRateLimit, controlDT);
       yoVrpPositionSetpointY = new RateLimitedYoVariable("vrpPositionSetpointYInComZUpFrame", registry, yoVrpPositionRateLimit, controlDT);

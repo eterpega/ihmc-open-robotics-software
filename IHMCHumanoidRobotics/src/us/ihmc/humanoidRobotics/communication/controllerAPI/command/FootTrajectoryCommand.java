@@ -1,7 +1,10 @@
 package us.ihmc.humanoidRobotics.communication.controllerAPI.command;
 
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootTrajectoryMessage;
+import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
+
+import java.util.Random;
 
 public class FootTrajectoryCommand extends SE3TrajectoryControllerCommand<FootTrajectoryCommand, FootTrajectoryMessage>
 {
@@ -9,6 +12,13 @@ public class FootTrajectoryCommand extends SE3TrajectoryControllerCommand<FootTr
 
    public FootTrajectoryCommand()
    {
+      super(ReferenceFrame.getWorldFrame(), ReferenceFrame.getWorldFrame());
+   }
+
+   public FootTrajectoryCommand(Random random)
+   {
+      super(ReferenceFrame.generateRandomReferenceFrame("dataFrame", random, ReferenceFrame.getWorldFrame()),
+            ReferenceFrame.generateRandomReferenceFrame("trajectoryFrame", random, ReferenceFrame.getWorldFrame()));
    }
 
    @Override
@@ -22,7 +32,7 @@ public class FootTrajectoryCommand extends SE3TrajectoryControllerCommand<FootTr
    public void set(FootTrajectoryMessage message)
    {
       super.set(message);
-      this.robotSide = message.getRobotSide();
+      robotSide = message.getRobotSide();
    }
 
    @Override
@@ -34,8 +44,10 @@ public class FootTrajectoryCommand extends SE3TrajectoryControllerCommand<FootTr
 
    /**
     * Same as {@link #set(FootTrajectoryCommand)} but does not change the trajectory points.
+    *
     * @param other
     */
+   @Override
    public void setPropertiesOnly(FootTrajectoryCommand other)
    {
       super.setPropertiesOnly(other);

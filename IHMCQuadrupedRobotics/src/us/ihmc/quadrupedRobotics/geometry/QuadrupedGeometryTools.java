@@ -1,8 +1,8 @@
 package us.ihmc.quadrupedRobotics.geometry;
 
+import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.quadrupedRobotics.estimator.referenceFrames.CommonQuadrupedReferenceFrames;
 import us.ihmc.robotics.geometry.FramePoint;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
 import us.ihmc.robotics.geometry.shapes.FrameEllipsoid3d;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotQuadrant;
@@ -62,8 +62,8 @@ public class QuadrupedGeometryTools
       RigidBodyTransform ellipsoidTransform = new RigidBodyTransform();
       ellipsoidTransform.setTranslation(0.0, 0.0, -hipPitchHeight);
       ellipsoidToPack.applyTransform(ellipsoidTransform);
-      ellipsoidToPack.getEllipsoid3d().setXRadius(maxStepDistance);
-      ellipsoidToPack.getEllipsoid3d().setYRadius(maxStepDistance);
-      ellipsoidToPack.getEllipsoid3d().setZRadius(0.0);
+      ellipsoidToPack.getEllipsoid3d().setRadiusX(maxStepDistance);
+      ellipsoidToPack.getEllipsoid3d().setRadiusY(maxStepDistance);
+      ellipsoidToPack.getEllipsoid3d().setRadiusZ(0.0);
    }
 }

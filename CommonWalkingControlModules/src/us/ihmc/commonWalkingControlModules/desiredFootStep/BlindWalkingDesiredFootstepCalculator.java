@@ -1,14 +1,21 @@
 package us.ihmc.commonWalkingControlModules.desiredFootStep;
 
+import us.ihmc.euclid.matrix.RotationMatrix;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple2D.Vector2D;
 import us.ihmc.humanoidRobotics.bipedSupportPolygons.ContactablePlaneBody;
 import us.ihmc.humanoidRobotics.communication.packets.dataobjects.BlindWalkingDirection;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage;
 import us.ihmc.robotics.MathTools;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.EnumYoVariable;
-import us.ihmc.robotics.dataStructures.variable.IntegerYoVariable;
-import us.ihmc.robotics.geometry.*;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoEnum;
+import us.ihmc.yoVariables.variable.YoInteger;
+import us.ihmc.robotics.geometry.AngleTools;
+import us.ihmc.robotics.geometry.FrameOrientation;
+import us.ihmc.robotics.geometry.FramePoint;
+import us.ihmc.robotics.geometry.FramePoint2d;
+import us.ihmc.robotics.geometry.FrameVector2d;
 import us.ihmc.robotics.math.frames.YoFramePoint2d;
 import us.ihmc.robotics.referenceFrames.PoseReferenceFrame;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
@@ -16,31 +23,28 @@ import us.ihmc.robotics.referenceFrames.ZUpFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
 
-import javax.vecmath.Matrix3d;
-import javax.vecmath.Vector2d;
-
 public class BlindWalkingDesiredFootstepCalculator extends AbstractDesiredFootstepCalculator
 {
    private static final double DISTANCE_TO_DESTINATION_FOR_STEP_IN_PLACE = 0.2;
 
    private final YoFramePoint2d desiredDestination = new YoFramePoint2d("desiredDestination", "", worldFrame, registry);
 
-   private final EnumYoVariable<BlindWalkingDirection> blindWalkingDirection = new EnumYoVariable<BlindWalkingDirection>("blindWalkingDirection", "", registry,
+   private final YoEnum<BlindWalkingDirection> blindWalkingDirection = new YoEnum<BlindWalkingDirection>("blindWalkingDirection", "", registry,
          BlindWalkingDirection.class, false);
 
-   private final DoubleYoVariable distanceToDestination = new DoubleYoVariable("distanceToDestination", registry);
-   private final DoubleYoVariable angleToDestination = new DoubleYoVariable("angleToDestination", registry);
+   private final YoDouble distanceToDestination = new YoDouble("distanceToDestination", registry);
+   private final YoDouble angleToDestination = new YoDouble("angleToDestination", registry);
 
-   private final DoubleYoVariable desiredStepWidth = new DoubleYoVariable("desiredStepWidth", registry);
-   private final DoubleYoVariable desiredStepForward = new DoubleYoVariable("desiredStepForward", registry);
-   private final DoubleYoVariable desiredStepSideward = new DoubleYoVariable("desiredStepSideward", registry);
-   private final DoubleYoVariable maxStepLength = new DoubleYoVariable("maxStepLength", registry);
+   private final YoDouble desiredStepWidth = new YoDouble("desiredStepWidth", registry);
+   private final YoDouble desiredStepForward = new YoDouble("desiredStepForward", registry);
+   private final YoDouble desiredStepSideward = new YoDouble("desiredStepSideward", registry);
+   private final YoDouble maxStepLength = new YoDouble("maxStepLength", registry);
 
-   private final DoubleYoVariable minStepWidth = new DoubleYoVariable("minStepWidth", registry);
-   private final DoubleYoVariable maxStepWidth = new DoubleYoVariable("maxStepWidth", registry);
+   private final YoDouble minStepWidth = new YoDouble("minStepWidth", registry);
+   private final YoDouble maxStepWidth = new YoDouble("maxStepWidth", registry);
 
-   private final DoubleYoVariable stepPitch = new DoubleYoVariable("stepPitch", registry);
-   private final IntegerYoVariable numberBlindStepsInPlace = new IntegerYoVariable("numberBlindStepsInPlace", registry);
+   private final YoDouble stepPitch = new YoDouble("stepPitch", registry);
+   private final YoInteger numberBlindStepsInPlace = new YoInteger("numberBlindStepsInPlace", registry);
 
    private final SideDependentList<ReferenceFrame> soleFrames = new SideDependentList<>();
    private final SideDependentList<ZUpFrame> soleZUpFrames = new SideDependentList<>();
@@ -137,7 +141,7 @@ public class BlindWalkingDesiredFootstepCalculator extends AbstractDesiredFootst
 
    }
 
-   private final Vector2d desiredOffsetFromSquaredUp = new Vector2d();
+   private final Vector2D desiredOffsetFromSquaredUp = new Vector2D();
 
    private FrameVector2d computeDesiredOffsetFromSupportAnkle(ReferenceFrame supportAnkleZUpFrame, RobotSide swingLegSide, double angleToDestination,
          double distanceToDestination)
@@ -237,11 +241,11 @@ public class BlindWalkingDesiredFootstepCalculator extends AbstractDesiredFootst
 
       if (swingLegSide == RobotSide.LEFT)
       {
-         desiredOffsetFromAnkle.setY(MathTools.clipToMinMax(desiredOffsetFromAnkle.getY(), minStepWidth.getDoubleValue(), maxStepWidth.getDoubleValue()));
+         desiredOffsetFromAnkle.setY(MathTools.clamp(desiredOffsetFromAnkle.getY(), minStepWidth.getDoubleValue(), maxStepWidth.getDoubleValue()));
       }
       else
       {
-         desiredOffsetFromAnkle.setY(MathTools.clipToMinMax(desiredOffsetFromAnkle.getY(), -maxStepWidth.getDoubleValue(), -minStepWidth.getDoubleValue()));
+         desiredOffsetFromAnkle.setY(MathTools.clamp(desiredOffsetFromAnkle.getY(), -maxStepWidth.getDoubleValue(), -minStepWidth.getDoubleValue()));
       }
 
       return desiredOffsetFromAnkle;
@@ -250,7 +254,7 @@ public class BlindWalkingDesiredFootstepCalculator extends AbstractDesiredFootst
    private FrameOrientation computeDesiredFootRotation(double angleToDestination, RobotSide swingLegSide, ReferenceFrame supportFootFrame)
    {
       RigidBodyTransform supportFootToWorldTransform = supportFootFrame.getTransformToDesiredFrame(worldFrame);
-      Matrix3d supportFootToWorldRotation = new Matrix3d();
+      RotationMatrix supportFootToWorldRotation = new RotationMatrix();
       supportFootToWorldTransform.getRotation(supportFootToWorldRotation);
 
       double maxTurnInAngle = 0.25;
@@ -287,19 +291,20 @@ public class BlindWalkingDesiredFootstepCalculator extends AbstractDesiredFootst
 
       if (swingLegSide == RobotSide.LEFT)
       {
-         amountToYaw = MathTools.clipToMinMax(amountToYaw, -maxTurnInAngle, maxTurnOutAngle);
+         amountToYaw = MathTools.clamp(amountToYaw, -maxTurnInAngle, maxTurnOutAngle);
 
       }
       else
       {
-         amountToYaw = MathTools.clipToMinMax(amountToYaw, -maxTurnOutAngle, maxTurnInAngle);
+         amountToYaw = MathTools.clamp(amountToYaw, -maxTurnOutAngle, maxTurnInAngle);
       }
 
-      Matrix3d yawRotation = new Matrix3d();
-      yawRotation.rotZ(amountToYaw);
+      RotationMatrix yawRotation = new RotationMatrix();
+      yawRotation.setToYawMatrix(amountToYaw);
 
-      Matrix3d ret = new Matrix3d();
-      ret.mul(yawRotation, supportFootToWorldRotation);
+      RotationMatrix ret = new RotationMatrix();
+      ret.set(yawRotation);
+      ret.multiply(supportFootToWorldRotation);
 
       return new FrameOrientation(worldFrame, ret);
    }

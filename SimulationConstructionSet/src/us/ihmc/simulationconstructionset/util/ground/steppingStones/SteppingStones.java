@@ -3,26 +3,13 @@ package us.ihmc.simulationconstructionset.util.ground.steppingStones;
 import java.util.ArrayList;
 import java.util.Random;
 
-import javax.vecmath.Point2d;
-
+import us.ihmc.euclid.geometry.ConvexPolygon2D;
+import us.ihmc.euclid.tuple2D.Point2D;
+import us.ihmc.euclid.tuple2D.interfaces.Point2DReadOnly;
+import us.ihmc.graphicsDescription.Graphics3DObject;
+import us.ihmc.graphicsDescription.appearance.YoAppearance;
 import us.ihmc.simulationconstructionset.Robot;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
-import us.ihmc.graphics3DDescription.Graphics3DObject;
-import us.ihmc.graphics3DDescription.appearance.YoAppearance;
-import us.ihmc.robotics.geometry.ConvexPolygon2d;
-
-/**
- * <p>Title: </p>
- *
- * <p>Description: </p>
- *
- * <p>Copyright: Copyright (c) 2007</p>
- *
- * <p>Company: </p>
- *
- * @author not attributable
- * @version 1.0
- */
 
 public class SteppingStones
 {
@@ -56,9 +43,9 @@ public class SteppingStones
 
 
 
-   public ArrayList<ConvexPolygon2d> getConvexPolygons()
+   public ArrayList<ConvexPolygon2D> getConvexPolygons()
    {
-      ArrayList<ConvexPolygon2d> ret = new ArrayList<ConvexPolygon2d>();
+      ArrayList<ConvexPolygon2D> ret = new ArrayList<ConvexPolygon2D>();
 
       for (SteppingStone steppingStone : steppingStones)
       {
@@ -68,9 +55,9 @@ public class SteppingStones
       return ret;
    }
 
-   public ArrayList<ConvexPolygon2d> getShrunkenConvexPolygons()
+   public ArrayList<ConvexPolygon2D> getShrunkenConvexPolygons()
    {
-      ArrayList<ConvexPolygon2d> ret = new ArrayList<ConvexPolygon2d>();
+      ArrayList<ConvexPolygon2D> ret = new ArrayList<ConvexPolygon2D>();
 
       for (SteppingStone steppingStone : steppingStones)
       {
@@ -89,13 +76,13 @@ public class SteppingStones
       {
          SteppingStone steppingStone = steppingStones.get(i);
 
-         ConvexPolygon2d convexPolygon2d = steppingStone.getConvexPolygon2d();
+         ConvexPolygon2D convexPolygon2d = steppingStone.getConvexPolygon2d();
 
          ret[i] = new double[convexPolygon2d.getNumberOfVertices()][];
 
          for (int j = 0; j < convexPolygon2d.getNumberOfVertices(); j++)
          {
-            Point2d point2d = convexPolygon2d.getVertex(j);
+            Point2DReadOnly point2d = convexPolygon2d.getVertex(j);
 
             ret[i][j] = new double[] {point2d.getX(), point2d.getY()};
          }
@@ -112,13 +99,13 @@ public class SteppingStones
       {
          SteppingStone steppingStone = steppingStones.get(i);
 
-         ConvexPolygon2d shrunkenConvexPolygon2d = steppingStone.getShrunkenConvexPolygon2d();
+         ConvexPolygon2D shrunkenConvexPolygon2d = steppingStone.getShrunkenConvexPolygon2d();
 
          ret[i] = new double[shrunkenConvexPolygon2d.getNumberOfVertices()][];
 
          for (int j = 0; j < shrunkenConvexPolygon2d.getNumberOfVertices(); j++)
          {
-            Point2d point2d = shrunkenConvexPolygon2d.getVertex(j);
+            Point2DReadOnly point2d = shrunkenConvexPolygon2d.getVertex(j);
 
             ret[i][j] = new double[] {point2d.getX(), point2d.getY()};
          }
@@ -145,7 +132,7 @@ public class SteppingStones
       return linkGraphicsArray;
    }
 
-   public static SteppingStones generateRandomSteppingStones(Random random, int numStones, ConvexPolygon2d polygonToShrink)
+   public static SteppingStones generateRandomSteppingStones(Random random, int numStones, ConvexPolygon2D polygonToShrink)
    {
       double xMin = -2.0;
       double xMax = 2.0;
@@ -162,7 +149,7 @@ public class SteppingStones
    }
 
    public static SteppingStones generateRandomSteppingStones(Random random, double xMin, double xMax, double yMin, double yMax, double baseZ, double minHeight,
-           double maxHeight, double minRadius, double maxRadius, int numStones, ConvexPolygon2d polygonToShrink)
+           double maxHeight, double minRadius, double maxRadius, int numStones, ConvexPolygon2D polygonToShrink)
    {
       SteppingStones ret = new SteppingStones();
 
@@ -182,7 +169,7 @@ public class SteppingStones
    }
 
    public static SteppingStones generateRectangularCheckeredStripSteppingStones(double startXPosition, double startYPosition, double stoneXDimension,
-           double stoneYDimension, double spacingInX, double spacingInY, double baseZ, double height, int numStones, ConvexPolygon2d polygonToShrink,
+           double stoneYDimension, double spacingInX, double spacingInY, double baseZ, double height, int numStones, ConvexPolygon2D polygonToShrink,
            boolean variableHeight)
    {
       double minX, maxX, minY, maxY;
@@ -242,7 +229,7 @@ public class SteppingStones
 
    public static SteppingStones generateRectangularChessBoardSteppingStones(double startXPosition, double startYPosition, double stoneXDimension,
            double stoneYDimension, double spacingInX, double spacingInY, double baseZ, double height, int numRows, int numColumns,
-           ConvexPolygon2d polygonToShrink, boolean variableHeight)
+           ConvexPolygon2D polygonToShrink, boolean variableHeight)
    {
       double minX, maxX, minY, maxY;
       int columns = numColumns;
@@ -294,7 +281,7 @@ public class SteppingStones
 
    public static SteppingStones generateRectangularUniformSteppingStones(double startXPosition, double startYPosition, double stoneXDimension,
            double stoneYDimension, double spacingInX, double spacingInY, double baseZ, double height, int numRows, int numColumns,
-           ConvexPolygon2d polygonToShrink, boolean variableHeight)
+           ConvexPolygon2D polygonToShrink, boolean variableHeight)
    {
       double minX, maxX, minY, maxY;
       int rows = 2 * numRows;
@@ -337,7 +324,7 @@ public class SteppingStones
 
    public static SteppingStones generateRectangularBeamBalance(double startXPosition, double startYPosition, double stoneXDimension, double stoneYDimension,
            double spacingInX, double spacingInYSmall, double spacingInYLarge, double baseZ, double height, int numRows, int numColumns,
-           ConvexPolygon2d polygonToShrink)
+           ConvexPolygon2D polygonToShrink)
    {
       double minX, maxX, minY, maxY;
       int rows = 2 * numRows;
@@ -382,116 +369,116 @@ public class SteppingStones
 
    public static SteppingStones generateRectangularCrissCrossBeams(double startXPosition, double startYPosition, double stoneXDimension,
            double stoneYDimension, double spacingInX, double spacingInY, double baseZ, double height, int numRows, int numColumns,
-           ConvexPolygon2d polygonToShrink, boolean variableHeight)
+           ConvexPolygon2D polygonToShrink, boolean variableHeight)
    {
       SteppingStones ret = new SteppingStones();
       ret = SteppingStones.generateRectangularUniformSteppingStones(startXPosition, startYPosition, stoneXDimension, stoneYDimension, spacingInX, spacingInY,
               baseZ, height, numRows, numColumns, polygonToShrink, false);
 
-      ArrayList<Point2d> points0 = new ArrayList<Point2d>();
-      points0.add(new Point2d(0.0, -0.3));
-      points0.add(new Point2d(0.0, -0.1));
-      points0.add(new Point2d(12.0, -0.1));
-      points0.add(new Point2d(12.0, -0.3));
+      ArrayList<Point2D> points0 = new ArrayList<Point2D>();
+      points0.add(new Point2D(0.0, -0.3));
+      points0.add(new Point2D(0.0, -0.1));
+      points0.add(new Point2D(12.0, -0.1));
+      points0.add(new Point2D(12.0, -0.3));
 
       SteppingStone steppingStone = new SteppingStone("stone0", -0.1, 0.0, points0, polygonToShrink);
       ret.addSteppingStone(steppingStone);
 
-      ArrayList<Point2d> points1 = new ArrayList<Point2d>();
-      points1.add(new Point2d(1.1, -3.1));
-      points1.add(new Point2d(0.9, -2.9));
-      points1.add(new Point2d(4.9, 3.1));
-      points1.add(new Point2d(5.1, 2.9));
+      ArrayList<Point2D> points1 = new ArrayList<Point2D>();
+      points1.add(new Point2D(1.1, -3.1));
+      points1.add(new Point2D(0.9, -2.9));
+      points1.add(new Point2D(4.9, 3.1));
+      points1.add(new Point2D(5.1, 2.9));
 
       steppingStone = new SteppingStone("stone1", -0.1, 0.0, points1, polygonToShrink);
       ret.addSteppingStone(steppingStone);
 
-      ArrayList<Point2d> points2 = new ArrayList<Point2d>();
-      points2.add(new Point2d(0.0, 1.9));
-      points2.add(new Point2d(0.0, 2.1));
-      points2.add(new Point2d(10.0, 2.1));
-      points2.add(new Point2d(10.0, 1.9));
+      ArrayList<Point2D> points2 = new ArrayList<Point2D>();
+      points2.add(new Point2D(0.0, 1.9));
+      points2.add(new Point2D(0.0, 2.1));
+      points2.add(new Point2D(10.0, 2.1));
+      points2.add(new Point2D(10.0, 1.9));
 
       steppingStone = new SteppingStone("stone2", -0.1, 0.0, points2, polygonToShrink);
       ret.addSteppingStone(steppingStone);
 
-      ArrayList<Point2d> points3 = new ArrayList<Point2d>();
-      points3.add(new Point2d(0.9, 0.9));
-      points3.add(new Point2d(1.1, 1.1));
-      points3.add(new Point2d(12.1, -2.4));
-      points3.add(new Point2d(11.9, -2.6));
+      ArrayList<Point2D> points3 = new ArrayList<Point2D>();
+      points3.add(new Point2D(0.9, 0.9));
+      points3.add(new Point2D(1.1, 1.1));
+      points3.add(new Point2D(12.1, -2.4));
+      points3.add(new Point2D(11.9, -2.6));
 
       steppingStone = new SteppingStone("stone3", -0.1, 0.0, points3, polygonToShrink);
       ret.addSteppingStone(steppingStone);
 
-      ArrayList<Point2d> points4 = new ArrayList<Point2d>();
-      points4.add(new Point2d(5.9, 2.4));
-      points4.add(new Point2d(6.1, 2.6));
-      points4.add(new Point2d(12.0, -3.9));
-      points4.add(new Point2d(11.8, -4.1));
+      ArrayList<Point2D> points4 = new ArrayList<Point2D>();
+      points4.add(new Point2D(5.9, 2.4));
+      points4.add(new Point2D(6.1, 2.6));
+      points4.add(new Point2D(12.0, -3.9));
+      points4.add(new Point2D(11.8, -4.1));
 
       steppingStone = new SteppingStone("stone4", -0.1, 0.0, points4, polygonToShrink);
       ret.addSteppingStone(steppingStone);
 
-      ArrayList<Point2d> points5 = new ArrayList<Point2d>();
-      points5.add(new Point2d(0.0, -2.5));
-      points5.add(new Point2d(0.0, -2.3));
-      points5.add(new Point2d(10.3, -2.3));
-      points5.add(new Point2d(10.3, -2.5));
+      ArrayList<Point2D> points5 = new ArrayList<Point2D>();
+      points5.add(new Point2D(0.0, -2.5));
+      points5.add(new Point2D(0.0, -2.3));
+      points5.add(new Point2D(10.3, -2.3));
+      points5.add(new Point2D(10.3, -2.5));
 
       steppingStone = new SteppingStone("stone5", -0.1, 0.0, points5, polygonToShrink);
       ret.addSteppingStone(steppingStone);
 
-      ArrayList<Point2d> points6 = new ArrayList<Point2d>();
-      points6.add(new Point2d(0.9, -1.6));
-      points6.add(new Point2d(1.1, -1.4));
-      points6.add(new Point2d(12.1, -3.4));
-      points6.add(new Point2d(11.9, -3.6));
+      ArrayList<Point2D> points6 = new ArrayList<Point2D>();
+      points6.add(new Point2D(0.9, -1.6));
+      points6.add(new Point2D(1.1, -1.4));
+      points6.add(new Point2D(12.1, -3.4));
+      points6.add(new Point2D(11.9, -3.6));
 
       steppingStone = new SteppingStone("stone6", -0.1, 0.0, points6, polygonToShrink);
       ret.addSteppingStone(steppingStone);
 
-      ArrayList<Point2d> points7 = new ArrayList<Point2d>();
-      points7.add(new Point2d(3.1, -3.1));
-      points7.add(new Point2d(2.9, -2.9));
-      points7.add(new Point2d(6.4, 1.1));
-      points7.add(new Point2d(6.6, 0.9));
+      ArrayList<Point2D> points7 = new ArrayList<Point2D>();
+      points7.add(new Point2D(3.1, -3.1));
+      points7.add(new Point2D(2.9, -2.9));
+      points7.add(new Point2D(6.4, 1.1));
+      points7.add(new Point2D(6.6, 0.9));
 
       steppingStone = new SteppingStone("stone7", -0.1, 0.0, points7, polygonToShrink);
       ret.addSteppingStone(steppingStone);
 
-      ArrayList<Point2d> points8 = new ArrayList<Point2d>();
-      points8.add(new Point2d(11.0, -1.95));
-      points8.add(new Point2d(11.0, -1.75));
-      points8.add(new Point2d(12.5, -1.8));
-      points8.add(new Point2d(12.5, -2.0));
+      ArrayList<Point2D> points8 = new ArrayList<Point2D>();
+      points8.add(new Point2D(11.0, -1.95));
+      points8.add(new Point2D(11.0, -1.75));
+      points8.add(new Point2D(12.5, -1.8));
+      points8.add(new Point2D(12.5, -2.0));
 
       steppingStone = new SteppingStone("stone8", -0.1, 0.0, points8, polygonToShrink);
       ret.addSteppingStone(steppingStone);
 
-      ArrayList<Point2d> points9 = new ArrayList<Point2d>();
-      points9.add(new Point2d(11.0, -1.55));
-      points9.add(new Point2d(11.0, -1.35));
-      points9.add(new Point2d(13.0, -1.35));
-      points9.add(new Point2d(13.0, -1.55));
+      ArrayList<Point2D> points9 = new ArrayList<Point2D>();
+      points9.add(new Point2D(11.0, -1.55));
+      points9.add(new Point2D(11.0, -1.35));
+      points9.add(new Point2D(13.0, -1.35));
+      points9.add(new Point2D(13.0, -1.55));
 
       steppingStone = new SteppingStone("stone9", -0.1, 0.0, points9, polygonToShrink);
       ret.addSteppingStone(steppingStone);
 
-      ArrayList<Point2d> points10 = new ArrayList<Point2d>();
-      points10.add(new Point2d(10.5, -1.15));
-      points10.add(new Point2d(10.5, -0.95));
-      points10.add(new Point2d(12.5, -0.9));
-      points10.add(new Point2d(12.5, -1.1));
+      ArrayList<Point2D> points10 = new ArrayList<Point2D>();
+      points10.add(new Point2D(10.5, -1.15));
+      points10.add(new Point2D(10.5, -0.95));
+      points10.add(new Point2D(12.5, -0.9));
+      points10.add(new Point2D(12.5, -1.1));
 
       steppingStone = new SteppingStone("stone10", -0.1, 0.0, points10, polygonToShrink);
       ret.addSteppingStone(steppingStone);
 
-      ArrayList<Point2d> points11 = new ArrayList<Point2d>();
-      points11.add(new Point2d(9.75, -0.25));
-      points11.add(new Point2d(9.75, -0.05));
-      points11.add(new Point2d(13.25, -0.7));
-      points11.add(new Point2d(13.25, -0.9));
+      ArrayList<Point2D> points11 = new ArrayList<Point2D>();
+      points11.add(new Point2D(9.75, -0.25));
+      points11.add(new Point2D(9.75, -0.05));
+      points11.add(new Point2D(13.25, -0.7));
+      points11.add(new Point2D(13.25, -0.9));
 
       steppingStone = new SteppingStone("stone11", -0.1, 0.0, points11, polygonToShrink);
       ret.addSteppingStone(steppingStone);
@@ -501,7 +488,7 @@ public class SteppingStones
 
 
    public static SteppingStones generateRegularPolygonalCheckeredStripSteppingStones(double startXPosition, double startYPosition, double radius, int numSides,
-           double spacingInX, double spacingInY, double baseZ, double height, int numStones, ConvexPolygon2d polygonToShrink, boolean variableHeight)
+           double spacingInX, double spacingInY, double baseZ, double height, int numStones, ConvexPolygon2D polygonToShrink, boolean variableHeight)
    {
       Random random = new Random(1972L);
       double alpha = (2.0 * Math.PI) / (numSides);
@@ -527,7 +514,7 @@ public class SteppingStones
       else
       {
          xDistance = radius + radius * Math.cos(alpha / 2.0);
-         ConvexPolygon2d convexPolygon2d = steppingStoneInitial.getConvexPolygon2d();
+         ConvexPolygon2D convexPolygon2d = steppingStoneInitial.getConvexPolygon2d();
 
          for (int k = ((numSides + 1) / 2) - 1, j = (numSides + 1) / 2; k > 0; k--, j++)
          {
@@ -588,7 +575,7 @@ public class SteppingStones
    }
 
    public static SteppingStones generateRegularPolygonalChessBoardSteppingStones(double startXPosition, double startYPosition, double radius, int numSides,
-           double spacingInX, double spacingInY, double baseZ, double height, int numRows, int numColumns, ConvexPolygon2d polygonToShrink,
+           double spacingInX, double spacingInY, double baseZ, double height, int numRows, int numColumns, ConvexPolygon2D polygonToShrink,
            boolean variableHeight)
    {
       Random random = new Random(1972L);
@@ -614,7 +601,7 @@ public class SteppingStones
       else
       {
          xDistance = radius + radius * Math.cos(alpha / 2.0);
-         ConvexPolygon2d convexPolygon2d = steppingStoneInitial.getConvexPolygon2d();
+         ConvexPolygon2D convexPolygon2d = steppingStoneInitial.getConvexPolygon2d();
 
          for (int k = ((numSides + 1) / 2) - 1, j = (numSides + 1) / 2; k > 0; k--, j++)
          {
@@ -662,7 +649,7 @@ public class SteppingStones
    }
 
    public static SteppingStones generateRegularPolygonalUniformSteppingStones(double startXPosition, double startYPosition, double radius, int numSides,
-           double spacingInX, double spacingInY, double baseZ, double height, int numRows, int numColumns, ConvexPolygon2d polygonToShrink,
+           double spacingInX, double spacingInY, double baseZ, double height, int numRows, int numColumns, ConvexPolygon2D polygonToShrink,
            boolean variableHeight)
    {
       Random random = new Random(1972L);
@@ -689,7 +676,7 @@ public class SteppingStones
       else
       {
          xDistance = radius + radius * Math.cos(alpha / 2.0);
-         ConvexPolygon2d convexPolygon2d = steppingStoneInitial.getConvexPolygon2d();
+         ConvexPolygon2D convexPolygon2d = steppingStoneInitial.getConvexPolygon2d();
 
          for (int k = ((numSides + 1) / 2) - 1, j = (numSides + 1) / 2; k > 0; k--, j++)
          {
@@ -728,7 +715,7 @@ public class SteppingStones
    }
 
    public static SteppingStones generateRandomPolygonalCheckeredStripSteppingStones(double startXPosition, double startYPosition, double radius, int numSides,
-           double spacingInX, double spacingInY, double baseZ, double height, int numStones, ConvexPolygon2d polygonToShrink, boolean variableHeight)
+           double spacingInX, double spacingInY, double baseZ, double height, int numStones, ConvexPolygon2D polygonToShrink, boolean variableHeight)
    {
       double xCenter, yCenter, xbuffer = 0.0, ybuffer = 0.0;
       int count = 0;
@@ -785,7 +772,7 @@ public class SteppingStones
    }
 
    public static SteppingStones generateRandomPolygonalChessBoardSteppingStones(double startXPosition, double startYPosition, double radius, int numSides,
-           double spacingInX, double spacingInY, double baseZ, double height, int numRows, int numColumns, ConvexPolygon2d polygonToShrink,
+           double spacingInX, double spacingInY, double baseZ, double height, int numRows, int numColumns, ConvexPolygon2D polygonToShrink,
            boolean variableHeight)
    {
       Random random = new Random(1972L);
@@ -832,7 +819,7 @@ public class SteppingStones
    }
 
    public static SteppingStones generateRandomPolygonalUniformSteppingStones(double startXPosition, double startYPosition, double radius, int numSides,
-           double spacingInX, double spacingInY, double baseZ, double height, int numRows, int numColumns, ConvexPolygon2d polygonToShrink,
+           double spacingInX, double spacingInY, double baseZ, double height, int numRows, int numColumns, ConvexPolygon2D polygonToShrink,
            boolean variableHeight)
    {
       Random random = new Random(1972L);
@@ -869,7 +856,7 @@ public class SteppingStones
    }
 
    public static SteppingStones generateRandomPolygonalRandomPatternOneSteppingStones(double startXPosition, double startYPosition, double radius,
-           int numSides, double spacingInX, double baseZ, double height, int numStones, ConvexPolygon2d polygonToShrink, boolean variableHeight)
+           int numSides, double spacingInX, double baseZ, double height, int numStones, ConvexPolygon2D polygonToShrink, boolean variableHeight)
    {
       Random random = new Random(1972L);
       @SuppressWarnings("unused")
@@ -960,7 +947,7 @@ public class SteppingStones
    public static void main(String[] args)
    {
       SimulationConstructionSet scs = new SimulationConstructionSet(new Robot("Null"));
-      ConvexPolygon2d footPolygon = new ConvexPolygon2d(new double[][]
+      ConvexPolygon2D footPolygon = new ConvexPolygon2D(new double[][]
       {
          {-0.2, -0.2}, {-0.2, 0.2}, {0.2, 0.2}, {0.2, -0.2}
       });

@@ -1,6 +1,7 @@
 package us.ihmc.sensorProcessing.stateEstimation;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
+
 import us.ihmc.robotics.robotSide.SideDependentList;
 
 public abstract class StateEstimatorParameters implements SensorProcessingConfiguration
@@ -25,6 +26,13 @@ public abstract class StateEstimatorParameters implements SensorProcessingConfig
    /** @deprecated Need to switch to frequency */
    @Deprecated
    public double getAlphaIMUsForSpineJointVelocityEstimation()
+   {
+      return Double.NaN;
+   }
+
+   /** @deprecated Need to switch to frequency */
+   @Deprecated
+   public double getAlphaIMUsForSpineJointPositionEstimation()
    {
       return Double.NaN;
    }

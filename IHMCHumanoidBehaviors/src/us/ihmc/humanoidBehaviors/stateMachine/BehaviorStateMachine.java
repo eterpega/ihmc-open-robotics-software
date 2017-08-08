@@ -1,16 +1,16 @@
 package us.ihmc.humanoidBehaviors.stateMachine;
 
 import us.ihmc.humanoidBehaviors.behaviors.simpleBehaviors.BehaviorAction;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.stateMachines.GenericStateMachine;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.robotics.stateMachines.conditionBasedStateMachine.GenericStateMachine;
 
 public class BehaviorStateMachine<E extends Enum<E>> extends GenericStateMachine<E, BehaviorAction<E>>
 {
 
    protected E startState;
 
-   public BehaviorStateMachine(String name, String switchTimeName, Class<E> enumType, DoubleYoVariable t, YoVariableRegistry registry)
+   public BehaviorStateMachine(String name, String switchTimeName, Class<E> enumType, YoDouble t, YoVariableRegistry registry)
    {
       super(name, switchTimeName, enumType, t, registry);
    }

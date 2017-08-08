@@ -6,19 +6,18 @@ import org.ejml.interfaces.linsol.LinearSolver;
 import org.ejml.ops.CommonOps;
 
 import us.ihmc.commonWalkingControlModules.momentumBasedController.HighLevelHumanoidControllerToolbox;
-import us.ihmc.graphics3DDescription.appearance.YoAppearance;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicPosition;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.graphicsDescription.appearance.YoAppearance;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.geometry.FrameOrientation;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FramePose;
 import us.ihmc.robotics.geometry.FrameVector;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
 import us.ihmc.robotics.kinematics.NumericalInverseKinematicsCalculator;
-import us.ihmc.robotics.linearAlgebra.MatrixTools;
 import us.ihmc.robotics.math.frames.YoFramePose;
 import us.ihmc.robotics.math.frames.YoFrameVector;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
@@ -46,7 +45,7 @@ public class LegJointLimitAvoidanceControlModule
    private static final double minRandomSearchScalar = 1.0;
    private static final double maxRandomSearchScalar = 1.0;
 
-   private final DoubleYoVariable percentJointRangeForThreshold;
+   private final YoDouble percentJointRangeForThreshold;
    private FullHumanoidRobotModel robotModel;
    private RigidBody base;
    private OneDoFJoint[] robotJoints;
@@ -55,12 +54,12 @@ public class LegJointLimitAvoidanceControlModule
    private GeometricJacobian jacobian;
    private int numJoints;
 
-   private DoubleYoVariable[] originalDesiredPositions;
-   private DoubleYoVariable[] alphas;
-   private DoubleYoVariable[] comparisonValues;
-   private DoubleYoVariable[] adjustedDesiredPositions;
-   private DoubleYoVariable[] lowerLimits;
-   private DoubleYoVariable[] upperLimits;
+   private YoDouble[] originalDesiredPositions;
+   private YoDouble[] alphas;
+   private YoDouble[] comparisonValues;
+   private YoDouble[] adjustedDesiredPositions;
+   private YoDouble[] lowerLimits;
+   private YoDouble[] upperLimits;
    private YoFramePose originalDesiredYoPose;
    private FramePose originalDesiredPose;
    private FramePoint adjustedDesiredPosition;
@@ -85,9 +84,9 @@ public class LegJointLimitAvoidanceControlModule
 
    private final YoGraphicPosition yoDesiredFootPositionGraphic, yoCorrectedDesiredFootPositionGraphic;
 
-   public LegJointLimitAvoidanceControlModule(String prefix, YoVariableRegistry registry, HighLevelHumanoidControllerToolbox momentumBasedController, RobotSide robotSide)
+   public LegJointLimitAvoidanceControlModule(String prefix, YoVariableRegistry registry, HighLevelHumanoidControllerToolbox controllerToolbox, RobotSide robotSide)
    {
-      robotModel = momentumBasedController.getFullRobotModel();
+      robotModel = controllerToolbox.getFullRobotModel();
       base = robotModel.getPelvis();
       RigidBody foot = robotModel.getFoot(robotSide);
       robotJoints = ScrewTools.filterJoints(ScrewTools.createJointPath(base, foot), OneDoFJoint.class);
@@ -100,21 +99,21 @@ public class LegJointLimitAvoidanceControlModule
 
       numJoints = ikJoints.length;
       {
-         originalDesiredPositions = new DoubleYoVariable[numJoints];
-         alphas = new DoubleYoVariable[numJoints];
-         comparisonValues = new DoubleYoVariable[numJoints];
-         adjustedDesiredPositions = new DoubleYoVariable[numJoints];
-         lowerLimits = new DoubleYoVariable[numJoints];
-         upperLimits = new DoubleYoVariable[numJoints];
+         originalDesiredPositions = new YoDouble[numJoints];
+         alphas = new YoDouble[numJoints];
+         comparisonValues = new YoDouble[numJoints];
+         adjustedDesiredPositions = new YoDouble[numJoints];
+         lowerLimits = new YoDouble[numJoints];
+         upperLimits = new YoDouble[numJoints];
 
          for (int i = 0; i < numJoints; i++)
          {
-            originalDesiredPositions[i] = new DoubleYoVariable(prefix + "originalDesiredPositions" + i, registry);
-            alphas[i] = new DoubleYoVariable(prefix + "alpha" + i, registry);
-            comparisonValues[i] = new DoubleYoVariable(prefix + "comparisonValues" + i, registry);
-            adjustedDesiredPositions[i] = new DoubleYoVariable(prefix + "adjustedDesiredPositions" + i, registry);
-            lowerLimits[i] = new DoubleYoVariable(prefix + "lowerLimits" + i, registry);
-            upperLimits[i] = new DoubleYoVariable(prefix + "upperLimits" + i, registry);
+            originalDesiredPositions[i] = new YoDouble(prefix + "originalDesiredPositions" + i, registry);
+            alphas[i] = new YoDouble(prefix + "alpha" + i, registry);
+            comparisonValues[i] = new YoDouble(prefix + "comparisonValues" + i, registry);
+            adjustedDesiredPositions[i] = new YoDouble(prefix + "adjustedDesiredPositions" + i, registry);
+            lowerLimits[i] = new YoDouble(prefix + "lowerLimits" + i, registry);
+            upperLimits[i] = new YoDouble(prefix + "upperLimits" + i, registry);
          }
 
          originalDesiredPose = new FramePose();
@@ -125,7 +124,7 @@ public class LegJointLimitAvoidanceControlModule
          adjustedDesiredOrientation = new FrameOrientation(ReferenceFrame.getWorldFrame());
       }
 
-      percentJointRangeForThreshold = new DoubleYoVariable(prefix + "percentJointRangeForThreshold", registry);
+      percentJointRangeForThreshold = new YoDouble(prefix + "percentJointRangeForThreshold", registry);
       percentJointRangeForThreshold.set(0.5);
 
       jacobianMatrix = new DenseMatrix64F(SpatialMotionVector.SIZE, numJoints);
@@ -153,7 +152,7 @@ public class LegJointLimitAvoidanceControlModule
       originalDesiredLinearVelocity = new YoFrameVector(prefix + "originalDesiredLinearVelocity", ReferenceFrame.getWorldFrame(), registry);
       adjustedDesiredLinearVelocity = new YoFrameVector(prefix + "adjustedDesiredLinearVelocity", ReferenceFrame.getWorldFrame(), registry);
 
-      YoGraphicsListRegistry yoGraphicsListRegistry = momentumBasedController.getDynamicGraphicObjectsListRegistry();
+      YoGraphicsListRegistry yoGraphicsListRegistry = controllerToolbox.getYoGraphicsListRegistry();
       if (visualize)
       {
          yoDesiredFootPositionGraphic = new YoGraphicPosition(prefix + "DesiredFootPosition", originalDesiredYoPose.getPosition(), 0.025, YoAppearance.Yellow(),
@@ -230,8 +229,8 @@ public class LegJointLimitAvoidanceControlModule
       }
 
       // calculate the adjusted joint velocities using the alphas, then calculate the adjusted velocities
-      MatrixTools.setDenseMatrixFromTuple3d(originalDesiredVelocity, desiredAngularVelocity.getVector(), 0, 0);
-      MatrixTools.setDenseMatrixFromTuple3d(originalDesiredVelocity, desiredLinearVelocityOfOrigin.getVector(), 3, 0);
+      desiredAngularVelocity.getVector().get(0, originalDesiredVelocity);
+      desiredLinearVelocityOfOrigin.getVector().get(3, originalDesiredVelocity);
       calculateAdjustedVelocities();
       double[] adjustedVelocities = adjustedDesiredVelocity.getData();
 

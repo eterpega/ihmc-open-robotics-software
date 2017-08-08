@@ -1,11 +1,12 @@
 package us.ihmc.robotics.alphaToAlpha;
 
-import org.junit.Test;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations;
+import static org.junit.Assert.assertEquals;
 
-import static org.junit.Assert.*;
+import org.junit.Test;
+
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 
 /**
  * Created by Peter on 9/9/2016.
@@ -13,15 +14,15 @@ import static org.junit.Assert.*;
 public class YoVariableRampUpAndDownAlphaToAlphaTest
 {
    private double EPSILON = 1e-6;
-   @ContinuousIntegrationAnnotations.ContinuousIntegrationTest(estimatedDuration = 0.1)
+   @ContinuousIntegrationTest(estimatedDuration = 0.1)
    @Test(timeout = 30000)
    public void testInvalidYoVariables()
    {
       YoVariableRegistry registry = new YoVariableRegistry("dummy");
-      DoubleYoVariable startOfRampUp = new DoubleYoVariable("startOfRampUp", registry);
-      DoubleYoVariable endOfRamp = new DoubleYoVariable("endOfRamp", registry);
-      DoubleYoVariable startOfRampDown = new DoubleYoVariable("startOfRampDown", registry);
-      DoubleYoVariable endOfRampDown = new DoubleYoVariable("endOfRampDown", registry);
+      YoDouble startOfRampUp = new YoDouble("startOfRampUp", registry);
+      YoDouble endOfRamp = new YoDouble("endOfRamp", registry);
+      YoDouble startOfRampDown = new YoDouble("startOfRampDown", registry);
+      YoDouble endOfRampDown = new YoDouble("endOfRampDown", registry);
 
       YoVariableRampUpAndDownAlphaToAlpha yoVariableRampUpAndDownAlphaToAlpha = new YoVariableRampUpAndDownAlphaToAlpha(startOfRampUp, endOfRamp, startOfRampDown, endOfRampDown);
 
@@ -46,15 +47,15 @@ public class YoVariableRampUpAndDownAlphaToAlphaTest
 
 
 
-   @ContinuousIntegrationAnnotations.ContinuousIntegrationTest(estimatedDuration = 0.1)
+   @ContinuousIntegrationTest(estimatedDuration = 0.1)
    @Test(timeout = 30000)
    public void testValidYoVariables()
    {
       YoVariableRegistry registry = new YoVariableRegistry("dummy");
-      DoubleYoVariable startOfRampUp = new DoubleYoVariable("startOfRampUp", registry);
-      DoubleYoVariable endOfRamp = new DoubleYoVariable("endOfRamp", registry);
-      DoubleYoVariable startOfRampDown = new DoubleYoVariable("startOfRampDown", registry);
-      DoubleYoVariable endOfRampDown = new DoubleYoVariable("endOfRampDown", registry);
+      YoDouble startOfRampUp = new YoDouble("startOfRampUp", registry);
+      YoDouble endOfRamp = new YoDouble("endOfRamp", registry);
+      YoDouble startOfRampDown = new YoDouble("startOfRampDown", registry);
+      YoDouble endOfRampDown = new YoDouble("endOfRampDown", registry);
 
       YoVariableRampUpAndDownAlphaToAlpha yoVariableRampUpAndDownAlphaToAlpha = new YoVariableRampUpAndDownAlphaToAlpha(startOfRampUp, endOfRamp, startOfRampDown, endOfRampDown);
 
@@ -115,15 +116,15 @@ public class YoVariableRampUpAndDownAlphaToAlphaTest
       assertEquals(value, 0.0, EPSILON);
    }
 
-   @ContinuousIntegrationAnnotations.ContinuousIntegrationTest(estimatedDuration = 0.1)
+   @ContinuousIntegrationTest(estimatedDuration = 0.1)
    @Test(timeout = 30000)
    public void testOneQuaterOfTheWay()
    {
       YoVariableRegistry registry = new YoVariableRegistry("dummy");
-      DoubleYoVariable startOfRampUp = new DoubleYoVariable("startOfRampUp", registry);
-      DoubleYoVariable endOfRamp = new DoubleYoVariable("endOfRamp", registry);
-      DoubleYoVariable startOfRampDown = new DoubleYoVariable("startOfRampDown", registry);
-      DoubleYoVariable endOfRampDown = new DoubleYoVariable("endOfRampDown", registry);
+      YoDouble startOfRampUp = new YoDouble("startOfRampUp", registry);
+      YoDouble endOfRamp = new YoDouble("endOfRamp", registry);
+      YoDouble startOfRampDown = new YoDouble("startOfRampDown", registry);
+      YoDouble endOfRampDown = new YoDouble("endOfRampDown", registry);
 
       YoVariableRampUpAndDownAlphaToAlpha yoVariableRampUpAndDownAlphaToAlpha = new YoVariableRampUpAndDownAlphaToAlpha(startOfRampUp, endOfRamp, startOfRampDown, endOfRampDown);
 
@@ -165,15 +166,15 @@ public class YoVariableRampUpAndDownAlphaToAlphaTest
    }
 
 
-   @ContinuousIntegrationAnnotations.ContinuousIntegrationTest(estimatedDuration = 0.1)
+   @ContinuousIntegrationTest(estimatedDuration = 0.1)
    @Test(timeout = 30000)
    public void testSmallDifferences()
    {
       YoVariableRegistry registry = new YoVariableRegistry("dummy");
-      DoubleYoVariable startOfRampUp = new DoubleYoVariable("startOfRampUp", registry);
-      DoubleYoVariable endOfRamp = new DoubleYoVariable("endOfRamp", registry);
-      DoubleYoVariable startOfRampDown = new DoubleYoVariable("startOfRampDown", registry);
-      DoubleYoVariable endOfRampDown = new DoubleYoVariable("endOfRampDown", registry);
+      YoDouble startOfRampUp = new YoDouble("startOfRampUp", registry);
+      YoDouble endOfRamp = new YoDouble("endOfRamp", registry);
+      YoDouble startOfRampDown = new YoDouble("startOfRampDown", registry);
+      YoDouble endOfRampDown = new YoDouble("endOfRampDown", registry);
 
       YoVariableRampUpAndDownAlphaToAlpha yoVariableRampUpAndDownAlphaToAlpha = new YoVariableRampUpAndDownAlphaToAlpha(startOfRampUp, endOfRamp, startOfRampDown, endOfRampDown);
 

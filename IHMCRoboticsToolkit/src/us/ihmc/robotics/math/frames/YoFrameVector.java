@@ -1,9 +1,10 @@
 package us.ihmc.robotics.math.frames;
 
-import javax.vecmath.Vector3d;
-
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.robotics.geometry.FrameOrientation;
 import us.ihmc.robotics.geometry.FrameVector;
 import us.ihmc.robotics.geometry.interfaces.VectorInterface;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
@@ -23,7 +24,7 @@ public class YoFrameVector extends YoFrameTuple<YoFrameVector, FrameVector> impl
       super(namePrefix, nameSuffix, frame, registry);
    }
 
-   public YoFrameVector(DoubleYoVariable xVariable, DoubleYoVariable yVariable, DoubleYoVariable zVariable, ReferenceFrame frame)
+   public YoFrameVector(YoDouble xVariable, YoDouble yVariable, YoDouble zVariable, ReferenceFrame frame)
    {
       super(xVariable, yVariable, zVariable, frame);
    }
@@ -72,12 +73,12 @@ public class YoFrameVector extends YoFrameTuple<YoFrameVector, FrameVector> impl
    }
 
    @Override
-   public void getVector(Vector3d VectorToPack)
+   public void getVector(Vector3D VectorToPack)
    {
       this.get(VectorToPack);
    }
 
-   private final Vector3d tempVector = new Vector3d();
+   private final Vector3D tempVector = new Vector3D();
 
    @Override
    public void setVector(VectorInterface vectorInterface)
@@ -87,9 +88,26 @@ public class YoFrameVector extends YoFrameTuple<YoFrameVector, FrameVector> impl
    }
 
    @Override
-   public void setVector(Vector3d vector)
+   public void setVector(Vector3D vector)
    {
       this.set(vector);
    }
 
+   public void setAsRotationVector(QuaternionReadOnly quaternion)
+   {
+      quaternion.get(tempVector);
+      set(tempVector);
+   }
+
+   public void setAsRotationVector(FrameOrientation frameOrientation)
+   {
+      frameOrientation.getRotationVector(getFrameTuple());
+      getYoValuesFromFrameTuple();
+   }
+
+   public void setAsRotationVector(YoFrameQuaternion yoFrameQuaternion)
+   {
+      yoFrameQuaternion.getRotationVector(getFrameTuple());
+      getYoValuesFromFrameTuple();
+   }
 }

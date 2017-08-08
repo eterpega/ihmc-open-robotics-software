@@ -7,8 +7,8 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
 
-import us.ihmc.simulationconstructionset.commands.ToggleKeyPointModeCommandExecutor;
-import us.ihmc.simulationconstructionset.commands.ToggleKeyPointModeCommandListener;
+import us.ihmc.yoVariables.dataBuffer.ToggleKeyPointModeCommandExecutor;
+import us.ihmc.yoVariables.dataBuffer.ToggleKeyPointModeCommandListener;
 
 public class ToggleKeyPointModeAction extends AbstractAction implements ToggleKeyPointModeCommandListener
 {
@@ -33,6 +33,7 @@ public class ToggleKeyPointModeAction extends AbstractAction implements ToggleKe
       executor.registerToggleKeyPointModeCommandListener(this);
    }
 
+   @Override
    public void updateKeyPointModeStatus()
    {
       if (executor.isKeyPointModeToggled())
@@ -49,6 +50,7 @@ public class ToggleKeyPointModeAction extends AbstractAction implements ToggleKe
       }
    }
 
+   @Override
    public void actionPerformed(ActionEvent actionEvent)
    {
       executor.toggleKeyPointMode();

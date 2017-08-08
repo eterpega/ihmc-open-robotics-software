@@ -1,12 +1,12 @@
 package us.ihmc.robotics.math.trajectories;
 
-import javax.vecmath.Quat4d;
-import javax.vecmath.Vector3d;
-
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.euclid.tuple4D.Vector4D;
 import us.ihmc.robotics.MathTools;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.geometry.FrameOrientation;
 import us.ihmc.robotics.geometry.FramePose;
 import us.ihmc.robotics.geometry.FrameVector;
@@ -47,8 +47,8 @@ public class VelocityConstrainedOrientationTrajectoryGenerator extends Orientati
 {
    private static final double PI = 1.0 * Math.PI;
    private final YoVariableRegistry registry;
-   private final DoubleYoVariable currentTime;
-   private final DoubleYoVariable trajectoryTime;
+   private final YoDouble currentTime;
+   private final YoDouble trajectoryTime;
    private final YoPolynomial parameterPolynomial;
 
    private final YoFrameQuaternion initialOrientation;
@@ -63,13 +63,13 @@ public class VelocityConstrainedOrientationTrajectoryGenerator extends Orientati
    private final YoFrameVector currentAngularAcceleration;
 
    private final YoPolynomial saturationPolynomial;
-   private final DoubleYoVariable maxAngularVelocityMagnitudeAtLimits;
-   private final DoubleYoVariable initialAngularVelocityMagnitude;
-   private final DoubleYoVariable finalAngularVelocityMagnitude;
-   private final BooleanYoVariable initialDriftSaturated;
-   private final BooleanYoVariable finalDriftSaturated;
-   private final DoubleYoVariable initialAlphaSaturation;
-   private final DoubleYoVariable finalAlphaSaturation;
+   private final YoDouble maxAngularVelocityMagnitudeAtLimits;
+   private final YoDouble initialAngularVelocityMagnitude;
+   private final YoDouble finalAngularVelocityMagnitude;
+   private final YoBoolean initialDriftSaturated;
+   private final YoBoolean finalDriftSaturated;
+   private final YoDouble initialAlphaSaturation;
+   private final YoDouble finalAlphaSaturation;
 
    private final ReferenceFrame trajectoryFrame;
 
@@ -90,8 +90,8 @@ public class VelocityConstrainedOrientationTrajectoryGenerator extends Orientati
       super(allowMultipleFrames, referenceFrame);
 
       registry = new YoVariableRegistry(namePrefix + getClass().getSimpleName());
-      trajectoryTime = new DoubleYoVariable(namePrefix + "TrajectoryTime", registry);
-      currentTime = new DoubleYoVariable(namePrefix + "Time", registry);
+      trajectoryTime = new YoDouble(namePrefix + "TrajectoryTime", registry);
+      currentTime = new YoDouble(namePrefix + "Time", registry);
       parameterPolynomial = new YoPolynomial(namePrefix + "ParameterPolynomial", 6, registry);
       trajectoryFrame = referenceFrame;
 
@@ -148,21 +148,21 @@ public class VelocityConstrainedOrientationTrajectoryGenerator extends Orientati
 
       saturationPolynomial = new YoPolynomial(namePrefix + "SaturationPolynomial", 6, registry);
       saturationPolynomial.setQuintic(0, PI, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0);
-      maxAngularVelocityMagnitudeAtLimits = new DoubleYoVariable(namePrefix + "MaxAngularVelocityMagnitudeAtLimits", registry);
-      initialAngularVelocityMagnitude = new DoubleYoVariable(namePrefix + "InitialAngularVelocityMagnitude", registry);
-      finalAngularVelocityMagnitude = new DoubleYoVariable(namePrefix + "FinalAngularVelocityMagnitude", registry);
+      maxAngularVelocityMagnitudeAtLimits = new YoDouble(namePrefix + "MaxAngularVelocityMagnitudeAtLimits", registry);
+      initialAngularVelocityMagnitude = new YoDouble(namePrefix + "InitialAngularVelocityMagnitude", registry);
+      finalAngularVelocityMagnitude = new YoDouble(namePrefix + "FinalAngularVelocityMagnitude", registry);
 
-      initialDriftSaturated = new BooleanYoVariable(namePrefix + "InitialDriftSaturated", registry);
-      finalDriftSaturated = new BooleanYoVariable(namePrefix + "FinalDriftSaturated", registry);
-      initialAlphaSaturation = new DoubleYoVariable(namePrefix + "InitialAlphaSaturation", registry);
-      finalAlphaSaturation = new DoubleYoVariable(namePrefix + "FinalAlphaSaturation", registry);
+      initialDriftSaturated = new YoBoolean(namePrefix + "InitialDriftSaturated", registry);
+      finalDriftSaturated = new YoBoolean(namePrefix + "FinalDriftSaturated", registry);
+      initialAlphaSaturation = new YoDouble(namePrefix + "InitialAlphaSaturation", registry);
+      finalAlphaSaturation = new YoDouble(namePrefix + "FinalAlphaSaturation", registry);
 
       parentRegistry.addChild(registry);
    }
 
    public void setTrajectoryTime(double duration)
    {
-      MathTools.checkIfInRange(duration, 0.0, Double.POSITIVE_INFINITY);
+      MathTools.checkIntervalContains(duration, 0.0, Double.POSITIVE_INFINITY);
       trajectoryTime.set(duration);
    }
 
@@ -279,18 +279,18 @@ public class VelocityConstrainedOrientationTrajectoryGenerator extends Orientati
       currentAngularAcceleration.setToZero();
    }
 
-   private final Quat4d initialQuaternionDrifted = new Quat4d();
-   private final Quat4d finalQuaternionDrifted = new Quat4d();
+   private final Quaternion initialQuaternionDrifted = new Quaternion();
+   private final Quaternion finalQuaternionDrifted = new Quaternion();
 
-   private final Vector3d tempAngularVelocity = new Vector3d();
-   private final Vector3d tempAngularAcceleration = new Vector3d();
+   private final Vector3D tempAngularVelocity = new Vector3D();
+   private final Vector3D tempAngularAcceleration = new Vector3D();
 
-   private final Quat4d qInterpolatedPrevious = new Quat4d();
-   private final Quat4d qInterpolated = new Quat4d();
-   private final Quat4d qInterpolatedNext = new Quat4d();
+   private final Quaternion qInterpolatedPrevious = new Quaternion();
+   private final Quaternion qInterpolated = new Quaternion();
+   private final Quaternion qInterpolatedNext = new Quaternion();
 
-   private final Quat4d qDot = new Quat4d();
-   private final Quat4d qDDot = new Quat4d();
+   private final Vector4D qDot = new Vector4D();
+   private final Vector4D qDDot = new Vector4D();
 
    @Override
    public void compute(double time)
@@ -312,7 +312,7 @@ public class VelocityConstrainedOrientationTrajectoryGenerator extends Orientati
          return;
       }
 
-      time = MathTools.clipToMinMax(time, 0.0, trajectoryTime.getDoubleValue());
+      time = MathTools.clamp(time, 0.0, trajectoryTime.getDoubleValue());
 
       interpolateOrientation(time - dtForFiniteDifference, initialQuaternionDrifted, finalQuaternionDrifted, qInterpolatedPrevious);
       interpolateOrientation(time + dtForFiniteDifference, initialQuaternionDrifted, finalQuaternionDrifted, qInterpolatedNext);
@@ -332,11 +332,11 @@ public class VelocityConstrainedOrientationTrajectoryGenerator extends Orientati
       currentAngularAcceleration.set(tempAngularAcceleration);
    }
 
-   private final Quat4d initialDrift = new Quat4d();
-   private final Quat4d finalDrift = new Quat4d();
-   private final Quat4d interpolatedDrift = new Quat4d();
+   private final Quaternion initialDrift = new Quaternion();
+   private final Quaternion finalDrift = new Quaternion();
+   private final Quaternion interpolatedDrift = new Quaternion();
 
-   private void interpolateOrientation(double time, Quat4d initialQuaternionDriftedToPack, Quat4d finalQuaternionDriftedToPack, Quat4d qInterpolated)
+   private void interpolateOrientation(double time, Quaternion initialQuaternionDriftedToPack, Quaternion finalQuaternionDriftedToPack, Quaternion qInterpolated)
    {
       parameterPolynomial.compute(time);
       double alpha = parameterPolynomial.getPosition();
@@ -344,14 +344,14 @@ public class VelocityConstrainedOrientationTrajectoryGenerator extends Orientati
       if (initialDriftSaturated.getBooleanValue())
       {
          double integratedAngle = initialAngularVelocityMagnitude.getDoubleValue() * time;
-         saturationPolynomial.compute(MathTools.clipToMinMax(Math.abs(integratedAngle), 0.0, PI));
+         saturationPolynomial.compute(MathTools.clamp(Math.abs(integratedAngle), 0.0, PI));
          double alphaSaturation = saturationPolynomial.getPosition();
          initialAlphaSaturation.set(alphaSaturation);
          computeDriftSaturated(time, alphaSaturation, initialAngularVelocity, initialAngularVelocityMagnitude, initialDrift);
       }
       else
       {
-         double alphaDecay = MathTools.clipToMinMax(2.0 * time / trajectoryTime.getDoubleValue(), 0.0, 1.0);
+         double alphaDecay = MathTools.clamp(2.0 * time / trajectoryTime.getDoubleValue(), 0.0, 1.0);
          computeDrift(time, alphaDecay, initialAngularVelocity, initialDrift);
       }
 
@@ -359,14 +359,14 @@ public class VelocityConstrainedOrientationTrajectoryGenerator extends Orientati
       if (finalDriftSaturated.getBooleanValue())
       {
          double integratedAngle = finalAngularVelocityMagnitude.getDoubleValue() * finalDriftIntegrationTime;
-         saturationPolynomial.compute(MathTools.clipToMinMax(Math.abs(integratedAngle), 0.0, PI));
+         saturationPolynomial.compute(MathTools.clamp(Math.abs(integratedAngle), 0.0, PI));
          double alphaSaturation = saturationPolynomial.getPosition();
          finalAlphaSaturation.set(alphaSaturation);
          computeDriftSaturated(finalDriftIntegrationTime, alphaSaturation, finalAngularVelocity, finalAngularVelocityMagnitude, finalDrift);
       }
       else
       {
-         double alphaDecay = MathTools.clipToMinMax(1.0 - 2.0 * time / trajectoryTime.getDoubleValue(), 0.0, 1.0);
+         double alphaDecay = MathTools.clamp(1.0 - 2.0 * time / trajectoryTime.getDoubleValue(), 0.0, 1.0);
          computeDrift(finalDriftIntegrationTime, alphaDecay, finalAngularVelocity, finalDrift);
       }
 
@@ -374,22 +374,22 @@ public class VelocityConstrainedOrientationTrajectoryGenerator extends Orientati
       finalOrientation.get(finalQuaternionDriftedToPack);
       quaternionCalculus.interpolate(alpha, initialQuaternionDriftedToPack, finalQuaternionDriftedToPack, qInterpolated, true);
       quaternionCalculus.interpolate(alpha, initialDrift, finalDrift, interpolatedDrift, false);
-      qInterpolated.mul(interpolatedDrift, qInterpolated);
+      qInterpolated.multiply(interpolatedDrift, qInterpolated);
 
-      initialQuaternionDriftedToPack.mul(initialDrift, initialQuaternionDriftedToPack);
-      finalQuaternionDriftedToPack.mul(finalDrift, finalQuaternionDriftedToPack);
+      initialQuaternionDriftedToPack.multiply(initialDrift, initialQuaternionDriftedToPack);
+      finalQuaternionDriftedToPack.multiply(finalDrift, finalQuaternionDriftedToPack);
    }
 
-   private final Vector3d tempAngularVelocityForDrift = new Vector3d();
+   private final Vector3D tempAngularVelocityForDrift = new Vector3D();
 
-   private void computeDrift(double time, double alphaDecay, YoFrameVector angularVelocity, Quat4d driftToPack)
+   private void computeDrift(double time, double alphaDecay, YoFrameVector angularVelocity, Quaternion driftToPack)
    {
       angularVelocity.get(tempAngularVelocityForDrift);
       tempAngularVelocity.scale(alphaDecay);
       RotationTools.integrateAngularVelocity(tempAngularVelocityForDrift, time, driftToPack);
    }
 
-   private void computeDriftSaturated(double time, double alphaSaturation, YoFrameVector angularVelocity, DoubleYoVariable angularVelocityMagnitude, Quat4d driftToPack)
+   private void computeDriftSaturated(double time, double alphaSaturation, YoFrameVector angularVelocity, YoDouble angularVelocityMagnitude, Quaternion driftToPack)
    {
       angularVelocity.get(tempAngularVelocityForDrift);
 

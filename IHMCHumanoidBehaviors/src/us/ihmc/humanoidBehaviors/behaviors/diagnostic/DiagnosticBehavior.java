@@ -3,18 +3,18 @@ package us.ihmc.humanoidBehaviors.behaviors.diagnostic;
 import java.util.ArrayList;
 import java.util.Random;
 
-import javax.vecmath.AxisAngle4d;
-import javax.vecmath.Point3d;
-import javax.vecmath.Quat4d;
-import javax.vecmath.Vector3d;
-
 import org.apache.commons.lang3.StringUtils;
 import org.ejml.data.DenseMatrix64F;
 
-import us.ihmc.robotModels.FullHumanoidRobotModel;
-import us.ihmc.robotics.partNames.LimbName;
 import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParameters;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.commons.Conversions;
+import us.ihmc.euclid.axisAngle.AxisAngle;
+import us.ihmc.euclid.geometry.tools.EuclidGeometryTools;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.humanoidBehaviors.behaviors.AbstractBehavior;
 import us.ihmc.humanoidBehaviors.behaviors.primitives.ArmTrajectoryBehavior;
 import us.ihmc.humanoidBehaviors.behaviors.primitives.ChestTrajectoryBehavior;
@@ -29,8 +29,8 @@ import us.ihmc.humanoidBehaviors.behaviors.primitives.WalkToLocationBehavior;
 import us.ihmc.humanoidBehaviors.behaviors.simpleBehaviors.BehaviorAction;
 import us.ihmc.humanoidBehaviors.behaviors.simpleBehaviors.SleepBehavior;
 import us.ihmc.humanoidBehaviors.behaviors.simpleBehaviors.TurnInPlaceBehavior;
-import us.ihmc.humanoidBehaviors.communication.ConcurrentListeningQueue;
 import us.ihmc.humanoidBehaviors.communication.CommunicationBridgeInterface;
+import us.ihmc.humanoidBehaviors.communication.ConcurrentListeningQueue;
 import us.ihmc.humanoidBehaviors.taskExecutor.ArmTrajectoryTask;
 import us.ihmc.humanoidBehaviors.taskExecutor.ChestOrientationTask;
 import us.ihmc.humanoidBehaviors.taskExecutor.FootTrajectoryTask;
@@ -55,13 +55,12 @@ import us.ihmc.humanoidRobotics.communication.packets.walking.PelvisOrientationT
 import us.ihmc.humanoidRobotics.communication.packets.walking.PelvisTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.subscribers.TimeStampedTransformBuffer;
 import us.ihmc.humanoidRobotics.frames.HumanoidReferenceFrames;
+import us.ihmc.robotModels.FullHumanoidRobotModel;
+import us.ihmc.robotics.EuclidCoreMissingTools;
 import us.ihmc.robotics.MathTools;
-import us.ihmc.robotics.dataStructures.listener.VariableChangedListener;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.EnumYoVariable;
-import us.ihmc.robotics.dataStructures.variable.IntegerYoVariable;
-import us.ihmc.robotics.dataStructures.variable.YoVariable;
+import us.ihmc.yoVariables.listener.VariableChangedListener;
+import us.ihmc.yoVariables.variable.*;
+import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.robotics.geometry.FrameConvexPolygon2d;
 import us.ihmc.robotics.geometry.FrameOrientation;
 import us.ihmc.robotics.geometry.FramePoint;
@@ -70,26 +69,24 @@ import us.ihmc.robotics.geometry.FramePose;
 import us.ihmc.robotics.geometry.FramePose2d;
 import us.ihmc.robotics.geometry.FrameVector;
 import us.ihmc.robotics.geometry.FrameVector2d;
-import us.ihmc.robotics.geometry.GeometryTools;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
 import us.ihmc.robotics.kinematics.NumericalInverseKinematicsCalculator;
 import us.ihmc.robotics.kinematics.TimeStampedTransform3D;
 import us.ihmc.robotics.math.frames.YoFrameConvexPolygon2d;
 import us.ihmc.robotics.math.frames.YoFrameOrientation;
 import us.ihmc.robotics.math.frames.YoFrameVector2d;
 import us.ihmc.robotics.math.trajectories.waypoints.TrajectoryPoint1DCalculator;
-import us.ihmc.robotics.random.RandomTools;
+import us.ihmc.robotics.partNames.LimbName;
+import us.ihmc.robotics.random.RandomGeometry;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
-import us.ihmc.robotics.screwTheory.FloatingInverseDynamicsJointReferenceFrame;
 import us.ihmc.robotics.screwTheory.GeometricJacobian;
+import us.ihmc.robotics.screwTheory.MovingReferenceFrame;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
 import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.robotics.screwTheory.ScrewTestTools;
 import us.ihmc.robotics.screwTheory.ScrewTools;
 import us.ihmc.robotics.screwTheory.SpatialMotionVector;
-import us.ihmc.robotics.time.TimeTools;
 import us.ihmc.tools.taskExecutor.NullTask;
 import us.ihmc.tools.taskExecutor.PipeLine;
 import us.ihmc.wholeBodyController.WholeBodyControllerParameters;
@@ -106,13 +103,13 @@ public class DiagnosticBehavior extends AbstractBehavior
 
    /** FIXME Should have a packet from the controller to let know when it is ready to execute commands. */
    private final ConcurrentListeningQueue<CapturabilityBasedStatus> inputListeningQueue = new ConcurrentListeningQueue<CapturabilityBasedStatus>(40);
-   private final BooleanYoVariable diagnosticBehaviorEnabled;
-   private final BooleanYoVariable hasControllerWakenUp;
-   private final BooleanYoVariable automaticDiagnosticRoutineRequested;
-   private final BooleanYoVariable automaticDiagnosticRoutineHasStarted;
-   private final DoubleYoVariable timeWhenControllerWokeUp;
-   private final DoubleYoVariable timeToWaitBeforeEnable;
-   private final BooleanYoVariable enableHandOrientation;
+   private final YoBoolean diagnosticBehaviorEnabled;
+   private final YoBoolean hasControllerWakenUp;
+   private final YoBoolean automaticDiagnosticRoutineRequested;
+   private final YoBoolean automaticDiagnosticRoutineHasStarted;
+   private final YoDouble timeWhenControllerWokeUp;
+   private final YoDouble timeToWaitBeforeEnable;
+   private final YoBoolean enableHandOrientation;
 
    private final SideDependentList<ArmTrajectoryBehavior> armTrajectoryBehaviors = new SideDependentList<>();
    private final SideDependentList<HandTrajectoryBehavior> handTrajectoryBehaviors = new SideDependentList<>();
@@ -130,28 +127,29 @@ public class DiagnosticBehavior extends AbstractBehavior
 
    private final SleepBehavior sleepBehavior;
 
-   private final DoubleYoVariable yoTime;
-   private final DoubleYoVariable trajectoryTime, flyingTrajectoryTime;
-   private final DoubleYoVariable sleepTimeBetweenPoses;
-   private final BooleanYoVariable doPelvisAndChestYaw;
-   private final IntegerYoVariable numberOfCyclesToRun;
-   private final DoubleYoVariable minCoMHeightOffset, maxCoMHeightOffset;
+   private final YoDouble yoTime;
+   private final YoDouble trajectoryTime, flyingTrajectoryTime;
+   private final YoDouble sleepTimeBetweenPoses;
+   private final YoBoolean doPelvisAndChestYaw;
+   private final YoInteger numberOfCyclesToRun;
+   private final YoDouble minCoMHeightOffset, maxCoMHeightOffset;
    private final int numberOfArmJoints;
    private final FullHumanoidRobotModel fullRobotModel;
 
    //Icp Offset generator variables
-   private final BooleanYoVariable isIcpOffsetSenderEnabled;
-   private final DoubleYoVariable minMaxIcpAngularOffset;
-   private final DoubleYoVariable minMaxIcpTranslationOffset;
-   private final DoubleYoVariable previousIcpPacketSentTime;
+   private final YoBoolean isIcpOffsetSenderEnabled;
+   private final YoDouble minMaxIcpAngularOffset;
+   private final YoDouble minMaxIcpTranslationOffset;
+   private final YoDouble previousIcpPacketSentTime;
    private final TimeStampedTransformBuffer stateEstimatorPelvisPoseBuffer;
-   private final DoubleYoVariable icpTimeDelay;
+   private final YoDouble icpTimeDelay;
 
    private final YoFrameConvexPolygon2d yoSupportPolygon;
 
    private final ReferenceFrame pelvisZUpFrame;
    private final ReferenceFrame midFeetZUpFrame;
-   private final SideDependentList<ReferenceFrame> ankleZUpFrames;
+   private final SideDependentList<MovingReferenceFrame> ankleZUpFrames;
+   private final SideDependentList<MovingReferenceFrame> soleZUpFrames;
 
    private final YoFrameVector2d pelvisShiftScaleFactor;
 
@@ -205,28 +203,28 @@ public class DiagnosticBehavior extends AbstractBehavior
       REDO_LAST_TASK // Keep that one at the end.
    };
 
-   private final EnumYoVariable<DiagnosticTask> lastDiagnosticTask;
+   private final YoEnum<DiagnosticTask> lastDiagnosticTask;
 
-   private final EnumYoVariable<DiagnosticTask> requestedDiagnostic;
-   private final EnumYoVariable<HumanoidArmPose> requestedSymmetricArmPose;
-   private final EnumYoVariable<HumanoidArmPose> requestedSingleArmPose;
-   private final EnumYoVariable<RobotSide> activeSideForHandControl;
-   private final EnumYoVariable<RobotSide> activeSideForFootControl;
-   private final EnumYoVariable<RobotSide> supportLeg;
+   private final YoEnum<DiagnosticTask> requestedDiagnostic;
+   private final YoEnum<HumanoidArmPose> requestedSymmetricArmPose;
+   private final YoEnum<HumanoidArmPose> requestedSingleArmPose;
+   private final YoEnum<RobotSide> activeSideForHandControl;
+   private final YoEnum<RobotSide> activeSideForFootControl;
+   private final YoEnum<RobotSide> supportLeg;
 
    private final double maxPitchBackward = Math.toRadians(-5.0);
    private final double maxPitchForward = Math.toRadians(40.0);
    private final double minMaxRoll = Math.toRadians(15.0);
    private final double minMaxYaw = Math.toRadians(30.0);
 
-   private final DoubleYoVariable footstepLength;
-   private final DoubleYoVariable swingTime;
-   private final DoubleYoVariable transferTime;
+   private final YoDouble footstepLength;
+   private final YoDouble swingTime;
+   private final YoDouble transferTime;
 
-   private final DoubleYoVariable maxFootPoseHeight;
-   private final DoubleYoVariable maxFootPoseDisplacement;
+   private final YoDouble maxFootPoseHeight;
+   private final YoDouble maxFootPoseDisplacement;
 
-   private final DoubleYoVariable angleToTurnInDegrees;
+   private final YoDouble angleToTurnInDegrees;
 
    private final SideDependentList<ReferenceFrame> upperArmsFrames = new SideDependentList<>();
    private final SideDependentList<ReferenceFrame> lowerArmsFrames = new SideDependentList<>();
@@ -238,11 +236,11 @@ public class DiagnosticBehavior extends AbstractBehavior
 
    private final SideDependentList<RigidBodyTransform> armZeroJointAngleConfigurationOffsets = new SideDependentList<>();
 
-   private final DoubleYoVariable pelvisOrientationScaleFactor = new DoubleYoVariable("diagnosticBehaviorPelvisOrientationScaleFactor", registry);
-   private final DoubleYoVariable bootyShakeTime = new DoubleYoVariable("diagnosticBehaviorButtyShakeTime", registry);
+   private final YoDouble pelvisOrientationScaleFactor = new YoDouble("diagnosticBehaviorPelvisOrientationScaleFactor", registry);
+   private final YoDouble bootyShakeTime = new YoDouble("diagnosticBehaviorButtyShakeTime", registry);
 
-   public DiagnosticBehavior(FullHumanoidRobotModel fullRobotModel, EnumYoVariable<RobotSide> supportLeg, HumanoidReferenceFrames referenceFrames,
-         DoubleYoVariable yoTime, BooleanYoVariable yoDoubleSupport, CommunicationBridgeInterface outgoingCommunicationBridge,
+   public DiagnosticBehavior(FullHumanoidRobotModel fullRobotModel, YoEnum<RobotSide> supportLeg, HumanoidReferenceFrames referenceFrames,
+         YoDouble yoTime, YoBoolean yoDoubleSupport, CommunicationBridgeInterface outgoingCommunicationBridge,
          WholeBodyControllerParameters wholeBodyControllerParameters, YoFrameConvexPolygon2d yoSupportPolygon, YoGraphicsListRegistry yoGraphicsListRegistry)
    {
       super(outgoingCommunicationBridge);
@@ -252,22 +250,23 @@ public class DiagnosticBehavior extends AbstractBehavior
       this.yoSupportPolygon = yoSupportPolygon;
       this.walkingControllerParameters = wholeBodyControllerParameters.getWalkingControllerParameters();
 
-      diagnosticBehaviorEnabled = new BooleanYoVariable("diagnosticBehaviorEnabled", registry);
-      hasControllerWakenUp = new BooleanYoVariable("diagnostBehaviorHasControllerWakenUp", registry);
-      automaticDiagnosticRoutineRequested = new BooleanYoVariable("diagnosticBehaviorAutomaticDiagnosticRoutineRequested", registry);
-      automaticDiagnosticRoutineHasStarted = new BooleanYoVariable("diagnosticBehaviorAutomaticDiagnosticRoutineHasStarted", registry);
-      timeWhenControllerWokeUp = new DoubleYoVariable("diagnosticBehaviorTimeWhenControllerWokeUp", registry);
-      timeToWaitBeforeEnable = new DoubleYoVariable("diagnosticBehaviorTimeToWaitBeforeEnable", registry);
-      enableHandOrientation = new BooleanYoVariable("diagnosticEnableHandOrientation", registry);
+      diagnosticBehaviorEnabled = new YoBoolean("diagnosticBehaviorEnabled", registry);
+      hasControllerWakenUp = new YoBoolean("diagnostBehaviorHasControllerWakenUp", registry);
+      automaticDiagnosticRoutineRequested = new YoBoolean("diagnosticBehaviorAutomaticDiagnosticRoutineRequested", registry);
+      automaticDiagnosticRoutineHasStarted = new YoBoolean("diagnosticBehaviorAutomaticDiagnosticRoutineHasStarted", registry);
+      timeWhenControllerWokeUp = new YoDouble("diagnosticBehaviorTimeWhenControllerWokeUp", registry);
+      timeToWaitBeforeEnable = new YoDouble("diagnosticBehaviorTimeToWaitBeforeEnable", registry);
+      enableHandOrientation = new YoBoolean("diagnosticEnableHandOrientation", registry);
 
       numberOfArmJoints = fullRobotModel.getRobotSpecificJointNames().getArmJointNames().length;
       this.yoTime = yoTime;
       pelvisZUpFrame = referenceFrames.getPelvisZUpFrame();
       midFeetZUpFrame = referenceFrames.getMidFeetZUpFrame();
       ankleZUpFrames = referenceFrames.getAnkleZUpReferenceFrames();
+      soleZUpFrames = referenceFrames.getSoleZUpFrames();
 
       //icp variables
-      isIcpOffsetSenderEnabled = new BooleanYoVariable("DiagnosticBehaviorIcpOffsetSenderEnabled", registry);
+      isIcpOffsetSenderEnabled = new YoBoolean("DiagnosticBehaviorIcpOffsetSenderEnabled", registry);
       isIcpOffsetSenderEnabled.set(false);
       isIcpOffsetSenderEnabled.addVariableChangedListener(new VariableChangedListener()
       {
@@ -278,43 +277,43 @@ public class DiagnosticBehavior extends AbstractBehavior
 
          }
       });
-      minMaxIcpAngularOffset = new DoubleYoVariable(getName() + "MinMaxIcpAngularOffset", registry);
+      minMaxIcpAngularOffset = new YoDouble(getName() + "MinMaxIcpAngularOffset", registry);
       minMaxIcpAngularOffset.set(0.0);
-      minMaxIcpTranslationOffset = new DoubleYoVariable(getName() + "MinMaxIcpTranslationOffset", registry);
+      minMaxIcpTranslationOffset = new YoDouble(getName() + "MinMaxIcpTranslationOffset", registry);
       minMaxIcpTranslationOffset.set(0.06);
-      previousIcpPacketSentTime = new DoubleYoVariable("DiagnosticBehaviorPreviousIcpPacketSentTime", registry);
+      previousIcpPacketSentTime = new YoDouble("DiagnosticBehaviorPreviousIcpPacketSentTime", registry);
       stateEstimatorPelvisPoseBuffer = new TimeStampedTransformBuffer(10000);
-      icpTimeDelay = new DoubleYoVariable(getName() + "IcpTimeDelay", registry);
+      icpTimeDelay = new YoDouble(getName() + "IcpTimeDelay", registry);
       icpTimeDelay.set(0.99);
       ///////////////////
 
       String behaviorNameFirstLowerCase = StringUtils.uncapitalize(getName());
-      trajectoryTime = new DoubleYoVariable(behaviorNameFirstLowerCase + "TrajectoryTime", registry);
-      flyingTrajectoryTime = new DoubleYoVariable(behaviorNameFirstLowerCase + "flyingTrajectoryTime", registry);
+      trajectoryTime = new YoDouble(behaviorNameFirstLowerCase + "TrajectoryTime", registry);
+      flyingTrajectoryTime = new YoDouble(behaviorNameFirstLowerCase + "flyingTrajectoryTime", registry);
 
-      swingTime = new DoubleYoVariable(behaviorNameFirstLowerCase + "SwingTime", registry);
+      swingTime = new YoDouble(behaviorNameFirstLowerCase + "SwingTime", registry);
       swingTime.set(walkingControllerParameters.getDefaultSwingTime());
-      transferTime = new DoubleYoVariable(behaviorNameFirstLowerCase + "TransferTime", registry);
+      transferTime = new YoDouble(behaviorNameFirstLowerCase + "TransferTime", registry);
       transferTime.set(walkingControllerParameters.getDefaultTransferTime());
 
-      maxFootPoseHeight = new DoubleYoVariable(behaviorNameFirstLowerCase + "MaxFootPoseHeight", registry);
+      maxFootPoseHeight = new YoDouble(behaviorNameFirstLowerCase + "MaxFootPoseHeight", registry);
       maxFootPoseHeight.set(0.1);
-      maxFootPoseDisplacement = new DoubleYoVariable(behaviorNameFirstLowerCase + "maxFootPoseDisplacement", registry);
+      maxFootPoseDisplacement = new YoDouble(behaviorNameFirstLowerCase + "maxFootPoseDisplacement", registry);
       maxFootPoseDisplacement.set(0.2);
-      angleToTurnInDegrees = new DoubleYoVariable(behaviorNameFirstLowerCase + "AngleToTurnInDegrees", registry);
+      angleToTurnInDegrees = new YoDouble(behaviorNameFirstLowerCase + "AngleToTurnInDegrees", registry);
       angleToTurnInDegrees.set(0.0);
 
       trajectoryTime.set(FAST_MOTION ? 0.5 : 3.0);
       flyingTrajectoryTime.set(FAST_MOTION ? 0.5 : 10.0);
-      sleepTimeBetweenPoses = new DoubleYoVariable(behaviorNameFirstLowerCase + "SleepTimeBetweenPoses", registry);
+      sleepTimeBetweenPoses = new YoDouble(behaviorNameFirstLowerCase + "SleepTimeBetweenPoses", registry);
       sleepTimeBetweenPoses.set(FAST_MOTION ? 0.0 : 0.5);
 
-      minCoMHeightOffset = new DoubleYoVariable(behaviorNameFirstLowerCase + "MinCoMHeightOffset", registry);
+      minCoMHeightOffset = new YoDouble(behaviorNameFirstLowerCase + "MinCoMHeightOffset", registry);
       minCoMHeightOffset.set(-0.15);
-      maxCoMHeightOffset = new DoubleYoVariable(behaviorNameFirstLowerCase + "MaxCoMHeightOffset", registry);
+      maxCoMHeightOffset = new YoDouble(behaviorNameFirstLowerCase + "MaxCoMHeightOffset", registry);
       maxCoMHeightOffset.set(0.05);
 
-      footstepLength = new DoubleYoVariable(behaviorNameFirstLowerCase + "FootstepLength", registry);
+      footstepLength = new YoDouble(behaviorNameFirstLowerCase + "FootstepLength", registry);
       footstepLength.set(0.3);
 
       bootyShakeTime.set(1.0);
@@ -365,28 +364,28 @@ public class DiagnosticBehavior extends AbstractBehavior
          armGoHomeBehaviors.put(robotSide, armGoHomeBehavior);
       }
 
-      requestedDiagnostic = new EnumYoVariable<>("requestedDiagnostic", registry, DiagnosticTask.class, true);
+      requestedDiagnostic = new YoEnum<>("requestedDiagnostic", registry, DiagnosticTask.class, true);
       requestedDiagnostic.set(null);
 
-      lastDiagnosticTask = new EnumYoVariable<>("lastDiagnosticTask", registry, DiagnosticTask.class, true);
+      lastDiagnosticTask = new YoEnum<>("lastDiagnosticTask", registry, DiagnosticTask.class, true);
       lastDiagnosticTask.set(null);
 
-      requestedSymmetricArmPose = new EnumYoVariable<>("requestedSymmetricArmPose", registry, HumanoidArmPose.class, true);
+      requestedSymmetricArmPose = new YoEnum<>("requestedSymmetricArmPose", registry, HumanoidArmPose.class, true);
       requestedSymmetricArmPose.set(null);
 
-      requestedSingleArmPose = new EnumYoVariable<>("requestedSingleArmPose", registry, HumanoidArmPose.class, true);
+      requestedSingleArmPose = new YoEnum<>("requestedSingleArmPose", registry, HumanoidArmPose.class, true);
       requestedSingleArmPose.set(null);
 
-      activeSideForFootControl = new EnumYoVariable<>("activeSideForFootControl", registry, RobotSide.class, true);
+      activeSideForFootControl = new YoEnum<>("activeSideForFootControl", registry, RobotSide.class, true);
       activeSideForFootControl.set(RobotSide.LEFT);
 
-      activeSideForHandControl = new EnumYoVariable<>("activeSideForHandControl", registry, RobotSide.class, true);
+      activeSideForHandControl = new YoEnum<>("activeSideForHandControl", registry, RobotSide.class, true);
       activeSideForHandControl.set(RobotSide.LEFT);
 
-      numberOfCyclesToRun = new IntegerYoVariable("numberOfDiagnosticCyclesToRun", registry);
+      numberOfCyclesToRun = new YoInteger("numberOfDiagnosticCyclesToRun", registry);
       numberOfCyclesToRun.set(1);
 
-      doPelvisAndChestYaw = new BooleanYoVariable("diagnosticDoPelvisAndChestYaw", registry);
+      doPelvisAndChestYaw = new YoBoolean("diagnosticDoPelvisAndChestYaw", registry);
       doPelvisAndChestYaw.set(true);
 
       pelvisShiftScaleFactor = new YoFrameVector2d("DiagnosticPelvisShiftScaleFactor", null, registry);
@@ -450,10 +449,10 @@ public class DiagnosticBehavior extends AbstractBehavior
          FramePoint tempPoint = new FramePoint(hand.getParentJoint().getFrameAfterJoint());
          tempPoint.changeFrame(armJoints[1].getFrameAfterJoint());
          FrameVector tempVector = new FrameVector(tempPoint);
-         MathTools.floorToGivenPrecision(tempVector.getVector(), 1.0e-2);
+         EuclidCoreMissingTools.floorToGivenPrecision(tempVector.getVector(), 1.0e-2);
          tempVector.normalize();
 
-         Vector3d expectedArmZeroConfiguration = new Vector3d(0.0, robotSide.negateIfRightSide(1.0), 0.0);
+         Vector3D expectedArmZeroConfiguration = new Vector3D(0.0, robotSide.negateIfRightSide(1.0), 0.0);
          RigidBodyTransform armZeroJointAngleConfigurationOffset = new RigidBodyTransform();
          if (tempVector.dot(expectedArmZeroConfiguration) > 1.0 - 1e-5)
          {
@@ -461,12 +460,12 @@ public class DiagnosticBehavior extends AbstractBehavior
          }
          else
          {
-            AxisAngle4d rotation = new AxisAngle4d();
-            GeometryTools.getRotationBasedOnNormal(rotation, tempVector.getVector(), expectedArmZeroConfiguration);
+            AxisAngle rotation = new AxisAngle();
+            EuclidGeometryTools.axisAngleFromFirstToSecondVector3D(expectedArmZeroConfiguration, tempVector.getVector(), rotation);
             armZeroJointAngleConfigurationOffset.setRotation(rotation);
          }
 
-         Vector3d expectedElbowAxis = new Vector3d(0.0, 0.0, 1.0);
+         Vector3D expectedElbowAxis = new Vector3D(0.0, 0.0, 1.0);
          RigidBodyTransform zRotationDueToAccountForElbowAxis = new RigidBodyTransform();
          FrameVector elbowJointAxis = elbowJoint.getJointAxis();
          zRotationDueToAccountForElbowAxis.setRotationPitchAndZeroTranslation(-elbowJointAxis.angle(expectedElbowAxis));
@@ -1372,12 +1371,12 @@ public class DiagnosticBehavior extends AbstractBehavior
    private void sequenceFlexUpFlexDown()
    {
       RobotSide robotSide = RobotSide.LEFT;
-      ReferenceFrame ankleZUpFrame = ankleZUpFrames.get(robotSide);
+      ReferenceFrame soleZUpFrame = soleZUpFrames.get(robotSide);
 
       //put the left foot forward
-      FramePose desiredFootstepPosition = new FramePose(ankleZUpFrame);
-      Point3d position = new Point3d(0.2, robotSide.negateIfRightSide(0.12), 0.0);
-      Quat4d orientation = new Quat4d(0.0, 0.0, 0.0, 1.0);
+      FramePose desiredFootstepPosition = new FramePose(soleZUpFrame);
+      Point3D position = new Point3D(0.2, robotSide.negateIfRightSide(0.12), 0.0);
+      Quaternion orientation = new Quaternion(0.0, 0.0, 0.0, 1.0);
       desiredFootstepPosition.setPose(position, orientation);
       desiredFootstepPosition.changeFrame(worldFrame);
       submitFootstepPose(true, robotSide, desiredFootstepPosition);
@@ -1408,12 +1407,12 @@ public class DiagnosticBehavior extends AbstractBehavior
    private void sequenceFlexDown()
    {
       RobotSide robotSide = RobotSide.LEFT;
-      ReferenceFrame ankleZUpFrame = ankleZUpFrames.get(robotSide);
+      ReferenceFrame soleZUpFrame = soleZUpFrames.get(robotSide);
 
       //put the left foot forward
-      FramePose desiredFootstepPosition = new FramePose(ankleZUpFrame);
-      Point3d position = new Point3d(0.2, robotSide.negateIfRightSide(0.12), 0.0);
-      Quat4d orientation = new Quat4d(0.0, 0.0, 0.0, 1.0);
+      FramePose desiredFootstepPosition = new FramePose(soleZUpFrame);
+      Point3D position = new Point3D(0.2, robotSide.negateIfRightSide(0.12), 0.0);
+      Quaternion orientation = new Quaternion(0.0, 0.0, 0.0, 1.0);
       desiredFootstepPosition.setPose(position, orientation);
       desiredFootstepPosition.changeFrame(worldFrame);
       submitFootstepPose(true, robotSide, desiredFootstepPosition);
@@ -1494,14 +1493,14 @@ public class DiagnosticBehavior extends AbstractBehavior
 
    private void bow(RobotSide robotSide)
    {
-      ReferenceFrame ankleZUpFrame = ankleZUpFrames.get(robotSide.getOppositeSide());
+      ReferenceFrame soleZUpFrame = soleZUpFrames.get(robotSide.getOppositeSide());
       FrameOrientation desiredUpperArmOrientation = new FrameOrientation(fullRobotModel.getChest().getBodyFixedFrame());
       boolean mirrorOrientationForRightSide = true;
 
       //put the foot forward and prepare the arms
-      FramePose desiredFootstepPosition = new FramePose(ankleZUpFrame);
-      Point3d position = new Point3d(0.2, robotSide.negateIfRightSide(0.25), 0.0);
-      Quat4d orientation = new Quat4d(0.0, 0.0, 0.0, 1.0);
+      FramePose desiredFootstepPosition = new FramePose(soleZUpFrame);
+      Point3D position = new Point3D(0.2, robotSide.negateIfRightSide(0.25), 0.0);
+      Quaternion orientation = new Quaternion(0.0, 0.0, 0.0, 1.0);
       desiredFootstepPosition.setPose(position, orientation);
       desiredFootstepPosition.changeFrame(worldFrame);
       submitFootstepPose(true, robotSide, desiredFootstepPosition);
@@ -1562,9 +1561,9 @@ public class DiagnosticBehavior extends AbstractBehavior
       pipeLine.requestNewStage();
 
       //square up the feet
-      desiredFootstepPosition = new FramePose(ankleZUpFrame);
-      position = new Point3d(0., robotSide.negateIfRightSide(0.25), 0.0);
-      orientation = new Quat4d(0.0, 0.0, 0.0, 1.0);
+      desiredFootstepPosition = new FramePose(soleZUpFrame);
+      position = new Point3D(0., robotSide.negateIfRightSide(0.25), 0.0);
+      orientation = new Quaternion(0.0, 0.0, 0.0, 1.0);
       desiredFootstepPosition.setPose(position, orientation);
       desiredFootstepPosition.changeFrame(worldFrame);
       submitFootstepPose(false, robotSide, desiredFootstepPosition);
@@ -1652,7 +1651,7 @@ public class DiagnosticBehavior extends AbstractBehavior
    private void submitWalkToLocation(boolean parallelize, double x, double y, double robotYaw, double angleRelativeToPath, double percentOfMaxFootstepLength)
    {
       FramePose2d targetPoseInWorld = new FramePose2d();
-      targetPoseInWorld.setPoseIncludingFrame(midFeetZUpFrame, x, y, robotYaw);
+      targetPoseInWorld.setIncludingFrame(midFeetZUpFrame, x, y, robotYaw);
       targetPoseInWorld.changeFrame(worldFrame);
 
       WalkToLocationTask walkToLocationTask = new WalkToLocationTask(targetPoseInWorld, walkToLocationBehavior, angleRelativeToPath,
@@ -1684,8 +1683,8 @@ public class DiagnosticBehavior extends AbstractBehavior
             footstepPose.setToZero(fullRobotModel.getEndEffectorFrame(robotSide, LimbName.LEG));
             footstepPose.changeFrame(worldFrame);
 
-            Point3d footLocation = new Point3d();
-            Quat4d footOrientation = new Quat4d();
+            Point3D footLocation = new Point3D();
+            Quaternion footOrientation = new Quaternion();
 
             footstepPose.getPosition(footLocation);
             footstepPose.getOrientation(footOrientation);
@@ -1713,8 +1712,8 @@ public class DiagnosticBehavior extends AbstractBehavior
          footstepPose.setY(robotSide.getOppositeSide().negateIfLeftSide(walkingControllerParameters.getInPlaceWidth()));
          footstepPose.changeFrame(worldFrame);
 
-         Point3d footLocation = new Point3d();
-         Quat4d footOrientation = new Quat4d();
+         Point3D footLocation = new Point3D();
+         Quaternion footOrientation = new Quaternion();
 
          footstepPose.getPosition(footLocation);
          footstepPose.getOrientation(footOrientation);
@@ -1966,7 +1965,7 @@ public class DiagnosticBehavior extends AbstractBehavior
       FrameOrientation desiredChestOrientation = new FrameOrientation(pelvisZUpFrame, yaw, pitch, roll);
       desiredChestOrientation.changeFrame(worldFrame);
       ChestOrientationTask chestOrientationTask = new ChestOrientationTask(desiredChestOrientation, chestTrajectoryBehavior,
-            trajectoryTime.getDoubleValue());
+            trajectoryTime.getDoubleValue(), pelvisZUpFrame);
       if (parallelize)
       {
         pipeLine.submitTaskForPallelPipesStage(chestTrajectoryBehavior, chestOrientationTask);
@@ -1983,7 +1982,7 @@ public class DiagnosticBehavior extends AbstractBehavior
 
    private void submitDesiredPelvisHeight(boolean parallelize, double offsetHeight)
    {
-      FloatingInverseDynamicsJointReferenceFrame frameAfterRootJoint = fullRobotModel.getRootJoint().getFrameAfterJoint();
+      ReferenceFrame frameAfterRootJoint = fullRobotModel.getRootJoint().getFrameAfterJoint();
       FramePoint desiredPelvisPosition = new FramePoint(frameAfterRootJoint);
       desiredPelvisPosition.setZ(offsetHeight);
       desiredPelvisPosition.changeFrame(worldFrame);
@@ -2030,7 +2029,7 @@ public class DiagnosticBehavior extends AbstractBehavior
    {
       FrameOrientation desiredPelvisOrientation = new FrameOrientation(findFixedFrameForPelvisOrientation(), yaw, pitch, roll);
       desiredPelvisOrientation.changeFrame(worldFrame);
-      Quat4d desiredQuaternion = new Quat4d(desiredPelvisOrientation.getQuaternion());
+      Quaternion desiredQuaternion = new Quaternion(desiredPelvisOrientation.getQuaternion());
       PelvisOrientationTrajectoryMessage message = new PelvisOrientationTrajectoryMessage(trajectoryTime, desiredQuaternion);
       PelvisOrientationTrajectoryTask task = new PelvisOrientationTrajectoryTask(message, pelvisOrientationTrajectoryBehavior);
 
@@ -2055,13 +2054,13 @@ public class DiagnosticBehavior extends AbstractBehavior
 
    private void submitDesiredPelvisPositionOffsetAndOrientation(boolean parallelize, double dx, double dy, double dz, double yaw, double pitch, double roll)
    {
-      FloatingInverseDynamicsJointReferenceFrame frameAfterRootJoint = fullRobotModel.getRootJoint().getFrameAfterJoint();
+      ReferenceFrame frameAfterRootJoint = fullRobotModel.getRootJoint().getFrameAfterJoint();
       FramePose desiredPelvisPose = new FramePose(frameAfterRootJoint);
       desiredPelvisPose.setPosition(dx, dy, dz);
       desiredPelvisPose.setYawPitchRoll(yaw, pitch, roll);
       desiredPelvisPose.changeFrame(worldFrame);
-      Point3d position = new Point3d();
-      Quat4d orientation = new Quat4d();
+      Point3D position = new Point3D();
+      Quaternion orientation = new Quaternion();
       desiredPelvisPose.getPose(position, orientation);
       PelvisTrajectoryMessage message = new PelvisTrajectoryMessage(trajectoryTime.getDoubleValue(), position, orientation);
       PelvisTrajectoryTask task = new PelvisTrajectoryTask(message, pelvisTrajectoryBehavior);
@@ -2226,7 +2225,8 @@ public class DiagnosticBehavior extends AbstractBehavior
 
       RigidBodyTransform desiredTransformForUpperArm = new RigidBodyTransform();
       temporaryDesiredUpperArmOrientation.getTransform3D(desiredTransformForUpperArm);
-      desiredTransformForUpperArm.multiply(desiredTransformForUpperArm, armZeroJointAngleConfigurationOffsets.get(robotSide));
+      desiredTransformForUpperArm.set(desiredTransformForUpperArm);
+      desiredTransformForUpperArm.multiply(armZeroJointAngleConfigurationOffsets.get(robotSide));
       boolean success = inverseKinematicsForUpperArms.get(robotSide).solve(desiredTransformForUpperArm);
 
       if (!success)
@@ -2244,7 +2244,7 @@ public class DiagnosticBehavior extends AbstractBehavior
          double qLow = joint.getJointLimitLower();
          double qUp = joint.getJointLimitUpper();
          double qRange = qUp - qLow;
-         desiredUpperArmJointAngles[i] = MathTools.clipToMinMax(qDesired, qLow + 0.01 * qRange, qUp - 0.01 * qRange);
+         desiredUpperArmJointAngles[i] = MathTools.clamp(qDesired, qLow + 0.01 * qRange, qUp - 0.01 * qRange);
       }
 
       return desiredUpperArmJointAngles;
@@ -2321,8 +2321,8 @@ public class DiagnosticBehavior extends AbstractBehavior
    private void submitFootPose(boolean parallelize, RobotSide robotSide, FramePose desiredFootPose)
    {
       desiredFootPose.changeFrame(worldFrame);
-      Point3d desiredFootPosition = new Point3d();
-      Quat4d desiredFootOrientation = new Quat4d();
+      Point3D desiredFootPosition = new Point3D();
+      Quaternion desiredFootOrientation = new Quaternion();
       desiredFootPose.getPose(desiredFootPosition, desiredFootOrientation);
       FootTrajectoryTask footPoseTask = new FootTrajectoryTask(robotSide, desiredFootPosition, desiredFootOrientation, footPoseBehavior,
             trajectoryTime.getDoubleValue());
@@ -2677,27 +2677,27 @@ public class DiagnosticBehavior extends AbstractBehavior
    {
       RigidBodyTransform lastPelvisPoseInWorldFrame = new RigidBodyTransform();
       lastPelvisPoseInWorldFrame.set(fullRobotModel.getPelvis().getBodyFixedFrame().getTransformToWorldFrame());
-      stateEstimatorPelvisPoseBuffer.put(lastPelvisPoseInWorldFrame, TimeTools.secondsToNanoSeconds(yoTime.getDoubleValue()));
+      stateEstimatorPelvisPoseBuffer.put(lastPelvisPoseInWorldFrame, Conversions.secondsToNanoseconds(yoTime.getDoubleValue()));
 
       if (isIcpOffsetSenderEnabled.getBooleanValue())
       {
          if (yoTime.getDoubleValue() > previousIcpPacketSentTime.getDoubleValue() + 1.0)
          {
-            long timestamp = TimeTools.secondsToNanoSeconds(yoTime.getDoubleValue() - icpTimeDelay.getDoubleValue());
+            long timestamp = Conversions.secondsToNanoseconds(yoTime.getDoubleValue() - icpTimeDelay.getDoubleValue());
 
             TimeStampedTransform3D pelvisTimeStampedTransformInThePast = new TimeStampedTransform3D();
             stateEstimatorPelvisPoseBuffer.findTransform(timestamp, pelvisTimeStampedTransformInThePast);
 
             RigidBodyTransform pelvisTransformInPast_Translation = new RigidBodyTransform(pelvisTimeStampedTransformInThePast.getTransform3D());
             RigidBodyTransform pelvisTransformInPast_Rotation = new RigidBodyTransform(pelvisTransformInPast_Translation);
-            pelvisTransformInPast_Translation.setRotationToIdentity();
-            pelvisTransformInPast_Rotation.zeroTranslation();
+            pelvisTransformInPast_Translation.setRotationToZero();
+            pelvisTransformInPast_Rotation.setTranslationToZero();
 
-            Quat4d orientationOffset = RandomTools.generateRandomQuaternion(random, minMaxIcpAngularOffset.getDoubleValue());
-            Vector3d translationOffset = RandomTools.generateRandomVector(random, minMaxIcpTranslationOffset.getDoubleValue());
+            Quaternion orientationOffset = RandomGeometry.nextQuaternion(random, minMaxIcpAngularOffset.getDoubleValue());
+            Vector3D translationOffset = RandomGeometry.nextVector3D(random, minMaxIcpTranslationOffset.getDoubleValue());
 
-            RigidBodyTransform offsetRotationTransform = new RigidBodyTransform(orientationOffset, new Vector3d());
-            RigidBodyTransform offsetTranslationTransform = new RigidBodyTransform(new Quat4d(), translationOffset);
+            RigidBodyTransform offsetRotationTransform = new RigidBodyTransform(orientationOffset, new Vector3D());
+            RigidBodyTransform offsetTranslationTransform = new RigidBodyTransform(new Quaternion(), translationOffset);
             RigidBodyTransform pelvisTransformWithOffset = new RigidBodyTransform();
 
             pelvisTransformWithOffset.setIdentity();

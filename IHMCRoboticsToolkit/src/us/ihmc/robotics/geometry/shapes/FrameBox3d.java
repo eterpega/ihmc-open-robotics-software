@@ -1,24 +1,56 @@
 package us.ihmc.robotics.geometry.shapes;
 
-import us.ihmc.robotics.geometry.Direction;
+import us.ihmc.euclid.geometry.Box3D;
+import us.ihmc.euclid.geometry.Pose3D;
+import us.ihmc.euclid.matrix.RotationMatrix;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
+import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FramePose;
-import us.ihmc.robotics.geometry.FrameVector;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
-import us.ihmc.robotics.geometry.shapes.Box3d.FaceName;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 
-import javax.vecmath.Matrix3d;
-import javax.vecmath.Point3d;
-
-public class FrameBox3d extends FrameShape3d
+public class FrameBox3d extends FrameShape3d<FrameBox3d, Box3D>
 {
-   private ReferenceFrame referenceFrame;
-   private Box3d box3d;
+   private Box3D box3d;
 
-   private final RigidBodyTransform temporaryTransformToDesiredFrame = new RigidBodyTransform();
+   public FrameBox3d(FrameBox3d other)
+   {
+      this(other.referenceFrame, other.box3d);
+   }
 
-   public Box3d getBox3d()
+   public FrameBox3d(ReferenceFrame referenceFrame)
+   {
+      super(referenceFrame, new Box3D());
+      box3d = getGeometryObject();
+   }
+
+   public FrameBox3d(ReferenceFrame referenceFrame, Box3D box3d)
+   {
+      super(referenceFrame, new Box3D(box3d));
+      this.box3d = getGeometryObject();
+   }
+
+   public FrameBox3d(ReferenceFrame referenceFrame, double lengthX, double widthY, double heightZ)
+   {
+      super(referenceFrame, new Box3D(lengthX, widthY, heightZ));
+      box3d = getGeometryObject();
+   }
+
+   public FrameBox3d(ReferenceFrame referenceFrame, RigidBodyTransform configuration, double lengthX, double widthY, double heightZ)
+   {
+      super(referenceFrame, new Box3D(configuration, lengthX, widthY, heightZ));
+      box3d = getGeometryObject();
+   }
+
+   public FrameBox3d(ReferenceFrame referenceFrame, Pose3D pose, double lengthX, double widthY, double heightZ)
+   {
+      super(referenceFrame, new Box3D(pose.getPosition(), pose.getOrientation(), lengthX, widthY, heightZ));
+      box3d = getGeometryObject();
+   }
+
+   public Box3D getBox3d()
    {
       return box3d;
    }
@@ -44,14 +76,9 @@ public class FrameBox3d extends FrameShape3d
       return ret;
    }
 
-   public double getDimension(Direction direction)
-   {
-      return box3d.getDimension(direction);
-   }
-
    public void getTransform(RigidBodyTransform transformToPack)
    {
-      this.box3d.getTransform(transformToPack);
+      this.box3d.getPose(transformToPack);
    }
 
    public RigidBodyTransform getTransformCopy()
@@ -62,126 +89,32 @@ public class FrameBox3d extends FrameShape3d
       return ret;
    }
 
-   public void getRotation(Matrix3d rotationMatrixToPack)
+   public void getRotation(RotationMatrix rotationMatrixToPack)
    {
-      this.box3d.getRotation(rotationMatrixToPack);
+      this.box3d.getOrientation(rotationMatrixToPack);
    }
 
-   public Matrix3d getRotationCopy()
+   public RotationMatrix getRotationCopy()
    {
-      Matrix3d ret = new Matrix3d();
+      RotationMatrix ret = new RotationMatrix();
       getRotation(ret);
 
       return ret;
    }
 
-   public FramePlane3d getFace(FaceName faceName)
+   public void setPose(Point3DReadOnly position, QuaternionReadOnly orientation)
    {
-      return new FramePlane3d(referenceFrame, box3d.getFace(faceName));
+      box3d.setPose(position, orientation);
    }
-
+   
+   public void setPose(Pose3D pose)
+   {
+      box3d.setPose(pose.getPosition(), pose.getOrientation());
+   }
+   
    public void setTransform(RigidBodyTransform transform3D)
    {
-      box3d.setTransform(transform3D);
-   }
-
-   public FrameBox3d(FrameBox3d other)
-   {
-      this(other.referenceFrame, other.box3d);
-   }
-
-   public FrameBox3d(ReferenceFrame referenceFrame)
-   {
-      this.referenceFrame = referenceFrame;
-      this.box3d = new Box3d();
-   }
-
-   public FrameBox3d(ReferenceFrame referenceFrame, Box3d box3d)
-   {
-      this.referenceFrame = referenceFrame;
-      this.box3d = new Box3d(box3d);
-   }
-
-   public FrameBox3d(ReferenceFrame referenceFrame, RigidBodyTransform configuration, double lengthX, double widthY, double heightZ)
-   {
-      this.referenceFrame = referenceFrame;
-      this.box3d = new Box3d(configuration, lengthX, widthY, heightZ);
-   }
-
-   public FrameBox3d(ReferenceFrame referenceFrame, double lengthX, double widthY, double heightZ)
-   {
-      this.referenceFrame = referenceFrame;
-      this.box3d = new Box3d(lengthX, widthY, heightZ);
-   }
-
-   @Override
-   public ReferenceFrame getReferenceFrame()
-   {
-      return referenceFrame;
-   }
-
-   public void changeFrame(ReferenceFrame desiredFrame)
-   {
-      if (desiredFrame != referenceFrame)
-      {
-         referenceFrame.getTransformToDesiredFrame(temporaryTransformToDesiredFrame, desiredFrame);
-         box3d.applyTransform(temporaryTransformToDesiredFrame);
-         referenceFrame = desiredFrame;
-      }
-
-      // otherwise: in the right frame already, so do nothing
-   }
-
-   @Override
-   public double distance(FramePoint point)
-   {
-      checkReferenceFrameMatch(point);
-
-      return box3d.distance(point.getPoint());
-   }
-
-   @Override
-   public void orthogonalProjection(FramePoint point)
-   {
-      checkReferenceFrameMatch(point);
-      box3d.orthogonalProjection(point.getPoint());
-   }
-
-   @Override
-   public void applyTransform(RigidBodyTransform transformation)
-   {
-      box3d.applyTransform(transformation);
-   }
-
-   @Override
-   public boolean isInsideOrOnSurface(FramePoint pointToTest)
-   {
-      checkReferenceFrameMatch(pointToTest);
-
-      return box3d.isInsideOrOnSurface(pointToTest.getPoint());
-   }
-
-   @Override
-   public boolean isInsideOrOnSurface(FramePoint pointToTest, double epsilon)
-   {
-      checkReferenceFrameMatch(pointToTest);
-
-      return box3d.isInsideOrOnSurface(pointToTest.getPoint(), epsilon);
-   }
-
-   @Override
-   public void getClosestPointAndNormalAt(FramePoint intersectionToPack, FrameVector normalToPack, FramePoint pointToCheck)
-   { // Assumes the point is inside. Otherwise, it doesn't really matter.
-      checkReferenceFrameMatch(pointToCheck);
-      normalToPack.changeFrame(referenceFrame);
-      intersectionToPack.changeFrame(referenceFrame);
-      box3d.checkIfInside(pointToCheck.getPoint(), intersectionToPack.getPoint(), normalToPack.getVector());
-   }
-
-   public void setAndChangeFrame(FrameBox3d other)
-   {
-      this.referenceFrame = other.referenceFrame;
-      this.box3d.set(other.box3d);
+      box3d.setPose(transform3D);
    }
 
    @Override
@@ -197,7 +130,8 @@ public class FrameBox3d extends FrameShape3d
 
    public void getFramePose(FramePose framePoseToPack)
    {
-      framePoseToPack.setPoseIncludingFrame(referenceFrame, box3d.transform);
+      framePoseToPack.setToZero(referenceFrame);
+      box3d.getPose(framePoseToPack.getGeometryObject());
    }
 
    public void scale(double scale)
@@ -205,8 +139,8 @@ public class FrameBox3d extends FrameShape3d
       box3d.scale(scale);
    }
 
-   public void computeVertices(Point3d[] vertices)
+   public void computeVertices(Point3D[] vertices)
    {
-      box3d.computeVertices(vertices);
+      box3d.getVertices(vertices);
    }
 }

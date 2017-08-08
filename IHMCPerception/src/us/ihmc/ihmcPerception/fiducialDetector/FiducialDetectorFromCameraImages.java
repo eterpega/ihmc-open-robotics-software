@@ -2,11 +2,6 @@ package us.ihmc.ihmcPerception.fiducialDetector;
 
 import java.awt.image.BufferedImage;
 
-import javax.vecmath.Matrix3d;
-import javax.vecmath.Point3d;
-import javax.vecmath.Quat4d;
-import javax.vecmath.Vector3d;
-
 import boofcv.abst.fiducial.FiducialDetector;
 import boofcv.factory.fiducial.ConfigFiducialBinary;
 import boofcv.factory.fiducial.FactoryFiducial;
@@ -20,19 +15,23 @@ import georegression.geometry.ConvertRotation3D_F64;
 import georegression.struct.EulerType;
 import georegression.struct.se.Se3_F64;
 import us.ihmc.communication.producers.JPEGDecompressor;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicReferenceFrame;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.euclid.matrix.RotationMatrix;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
+import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicReferenceFrame;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.humanoidRobotics.communication.packets.sensing.VideoPacket;
-import us.ihmc.robotics.dataStructures.listener.VariableChangedListener;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.LongYoVariable;
-import us.ihmc.robotics.dataStructures.variable.YoVariable;
+import us.ihmc.robotics.math.filters.GlitchFilteredYoBoolean;
+import us.ihmc.yoVariables.listener.VariableChangedListener;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoLong;
+import us.ihmc.yoVariables.variable.YoVariable;
 import us.ihmc.robotics.geometry.FramePose;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
-import us.ihmc.robotics.geometry.RotationTools;
-import us.ihmc.robotics.math.filters.GlitchFilteredBooleanYoVariable;
 import us.ihmc.robotics.math.frames.YoFramePoseUsingQuaternions;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.referenceFrames.TransformReferenceFrame;
@@ -42,10 +41,10 @@ public class FiducialDetectorFromCameraImages
    private boolean visualize = true;
 
    private final Se3_F64 fiducialToCamera = new Se3_F64();
-   private final Matrix3d fiducialRotationMatrix = new Matrix3d();
-   private final Quat4d tempFiducialRotationQuat = new Quat4d();
+   private final RotationMatrix fiducialRotationMatrix = new RotationMatrix();
+   private final Quaternion tempFiducialRotationQuat = new Quaternion();
    private final FramePose tempFiducialDetectorFrame = new FramePose();
-   private final Vector3d cameraRigidPosition = new Vector3d();
+   private final Vector3D cameraRigidPosition = new Vector3D();
    private final double[] eulerAngles = new double[3];
    private final RigidBodyTransform cameraRigidTransform = new RigidBodyTransform();
 
@@ -61,20 +60,20 @@ public class FiducialDetectorFromCameraImages
 
    private final String prefix = "fiducial";
 
-   private final DoubleYoVariable expectedFiducialSize = new DoubleYoVariable("expectedFiducialSize", registry);
-   private final DoubleYoVariable fieldOfViewXinRadians = new DoubleYoVariable("fovXRadians", registry);
-   private final DoubleYoVariable fieldOfViewYinRadians = new DoubleYoVariable("fovYRadians", registry);
+   private final YoDouble expectedFiducialSize = new YoDouble("expectedFiducialSize", registry);
+   private final YoDouble fieldOfViewXinRadians = new YoDouble("fovXRadians", registry);
+   private final YoDouble fieldOfViewYinRadians = new YoDouble("fovYRadians", registry);
 
-   private final DoubleYoVariable detectorPositionX = new DoubleYoVariable(prefix + "DetectorPositionX", registry);
-   private final DoubleYoVariable detectorPositionY = new DoubleYoVariable(prefix + "DetectorPositionY", registry);
-   private final DoubleYoVariable detectorPositionZ = new DoubleYoVariable(prefix + "DetectorPositionZ", registry);
-   private final DoubleYoVariable detectorEulerRotX = new DoubleYoVariable(prefix + "DetectorEulerRotX", registry);
-   private final DoubleYoVariable detectorEulerRotY = new DoubleYoVariable(prefix + "DetectorEulerRotY", registry);
-   private final DoubleYoVariable detectorEulerRotZ = new DoubleYoVariable(prefix + "DetectorEulerRotZ", registry);
+   private final YoDouble detectorPositionX = new YoDouble(prefix + "DetectorPositionX", registry);
+   private final YoDouble detectorPositionY = new YoDouble(prefix + "DetectorPositionY", registry);
+   private final YoDouble detectorPositionZ = new YoDouble(prefix + "DetectorPositionZ", registry);
+   private final YoDouble detectorEulerRotX = new YoDouble(prefix + "DetectorEulerRotX", registry);
+   private final YoDouble detectorEulerRotY = new YoDouble(prefix + "DetectorEulerRotY", registry);
+   private final YoDouble detectorEulerRotZ = new YoDouble(prefix + "DetectorEulerRotZ", registry);
 
-   private final BooleanYoVariable targetIDHasBeenLocated = new BooleanYoVariable(prefix + "TargetIDHasBeenLocated", registry);
-   private final GlitchFilteredBooleanYoVariable targetIDHasBeenLocatedFiltered = new GlitchFilteredBooleanYoVariable(prefix + "TargetIDHasBeenLocatedFiltered", registry, targetIDHasBeenLocated, 4);
-   private final LongYoVariable targetIDToLocate = new LongYoVariable(prefix + "TargetIDToLocate", registry);
+   private final YoBoolean targetIDHasBeenLocated = new YoBoolean(prefix + "TargetIDHasBeenLocated", registry);
+   private final GlitchFilteredYoBoolean targetIDHasBeenLocatedFiltered = new GlitchFilteredYoBoolean(prefix + "TargetIDHasBeenLocatedFiltered", registry, targetIDHasBeenLocated, 4);
+   private final YoLong targetIDToLocate = new YoLong(prefix + "TargetIDToLocate", registry);
 
    private final YoFramePoseUsingQuaternions cameraPose = new YoFramePoseUsingQuaternions(prefix + "CameraPoseWorld", ReferenceFrame.getWorldFrame(), registry);
    private final YoFramePoseUsingQuaternions locatedFiducialPoseInWorldFrame = new YoFramePoseUsingQuaternions(prefix + "LocatedPoseWorldFrame", ReferenceFrame.getWorldFrame(), registry);
@@ -120,18 +119,7 @@ public class FiducialDetectorFromCameraImages
          @Override
          protected void updateTransformToParent(RigidBodyTransform transformToParent)
          {
-            transformToParent.setM00(0.0);
-            transformToParent.setM01(0.0);
-            transformToParent.setM02(1.0);
-            transformToParent.setM03(0.0);
-            transformToParent.setM10(-1.0);
-            transformToParent.setM11(0.0);
-            transformToParent.setM12(0.0);
-            transformToParent.setM13(0.0);
-            transformToParent.setM20(0.0);
-            transformToParent.setM21(-1.0);
-            transformToParent.setM22(0.0);
-            transformToParent.setM23(0.0);
+            transformToParent.set(0.0, 0.0, 1.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0);
          }
       };
 
@@ -189,7 +177,7 @@ public class FiducialDetectorFromCameraImages
       detect(latestUnmodifiedCameraImage, videoPacket.getPosition(), videoPacket.getOrientation());
    }
 
-   public void detect(BufferedImage bufferedImage, Point3d cameraPositionInWorld, Quat4d cameraOrientationInWorldXForward)
+   public void detect(BufferedImage bufferedImage, Point3DReadOnly cameraPositionInWorld, QuaternionReadOnly cameraOrientationInWorldXForward)
    {
       synchronized (expectedFiducialSizeChangedConch)
       {
@@ -234,7 +222,7 @@ public class FiducialDetectorFromCameraImages
             detectorEulerRotZ.set(eulerAngles[2]);
 
             fiducialRotationMatrix.set(fiducialToCamera.getR().data);
-            RotationTools.convertMatrixToQuaternion(fiducialRotationMatrix, tempFiducialRotationQuat);
+            tempFiducialRotationQuat.set(fiducialRotationMatrix);
 
             tempFiducialDetectorFrame.setToZero(detectorReferenceFrame);
             tempFiducialDetectorFrame.setOrientation(tempFiducialRotationQuat);

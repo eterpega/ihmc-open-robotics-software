@@ -4,39 +4,36 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
 
-import javax.vecmath.Matrix3d;
-import javax.vecmath.Quat4d;
-import javax.vecmath.Vector3d;
-
-import us.ihmc.simulationconstructionset.FloatingRootJointRobot;
+import us.ihmc.euclid.matrix.Matrix3D;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
+import us.ihmc.graphicsDescription.appearance.YoAppearance;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphic;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicCoordinateSystem;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicLineSegment;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsList;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.humanoidRobotics.frames.HumanoidReferenceFrames;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
+import us.ihmc.yoVariables.listener.VariableChangedListener;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoEnum;
+import us.ihmc.yoVariables.variable.YoVariable;
+import us.ihmc.robotics.geometry.FrameOrientation;
+import us.ihmc.robotics.geometry.FramePoint;
+import us.ihmc.robotics.geometry.FramePose;
+import us.ihmc.robotics.kinematics.NumericalInverseKinematicsCalculator;
+import us.ihmc.robotics.math.frames.YoFramePoint;
+import us.ihmc.robotics.math.frames.YoFramePose;
 import us.ihmc.robotics.partNames.ArmJointName;
 import us.ihmc.robotics.partNames.LegJointName;
 import us.ihmc.robotics.partNames.NeckJointName;
 import us.ihmc.robotics.partNames.SpineJointName;
-import us.ihmc.graphics3DDescription.appearance.AppearanceDefinition;
-import us.ihmc.graphics3DDescription.appearance.YoAppearance;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphic;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicCoordinateSystem;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicLineSegment;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicPosition;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsList;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
-import us.ihmc.humanoidRobotics.frames.HumanoidReferenceFrames;
-import us.ihmc.robotics.dataStructures.listener.VariableChangedListener;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.EnumYoVariable;
-import us.ihmc.robotics.dataStructures.variable.YoVariable;
-import us.ihmc.robotics.geometry.FrameOrientation;
-import us.ihmc.robotics.geometry.FramePoint;
-import us.ihmc.robotics.geometry.FramePose;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
-import us.ihmc.robotics.geometry.RotationTools;
-import us.ihmc.robotics.kinematics.NumericalInverseKinematicsCalculator;
-import us.ihmc.robotics.math.frames.YoFramePoint;
-import us.ihmc.robotics.math.frames.YoFramePose;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
@@ -46,9 +43,10 @@ import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.sensorProcessing.simulatedSensors.SDFPerfectSimulatedSensorReader;
 import us.ihmc.simulationToolkit.outputWriters.PerfectSimulatedOutputWriter;
 import us.ihmc.simulationconstructionset.FloatingJoint;
+import us.ihmc.simulationconstructionset.FloatingRootJointRobot;
 import us.ihmc.simulationconstructionset.OneDegreeOfFreedomJoint;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
-import us.ihmc.simulationconstructionset.util.inputdevices.MidiSliderBoard;
+import us.ihmc.simulationConstructionSetTools.util.inputdevices.MidiSliderBoard;
 
 public class DRCRobotMidiSliderBoardPositionManipulation
 {
@@ -70,54 +68,54 @@ public class DRCRobotMidiSliderBoardPositionManipulation
    private final YoVariableRegistry registry = new YoVariableRegistry("SliderBoardRegistry");
    private final YoVariableRegistry dontRecordRegistry = new YoVariableRegistry("dontRecordRegistry");
 
-   private final EnumYoVariable<SliderSpace> sliderSpace = new EnumYoVariable<SliderSpace>("sliderSpace", "", registry, SliderSpace.class, false);
-   private final EnumYoVariable<SliderBodyPart> sliderBodyPart = new EnumYoVariable<SliderBodyPart>("sliderBodyPart", "", registry, SliderBodyPart.class, false);
+   private final YoEnum<SliderSpace> sliderSpace = new YoEnum<SliderSpace>("sliderSpace", "", registry, SliderSpace.class, false);
+   private final YoEnum<SliderBodyPart> sliderBodyPart = new YoEnum<SliderBodyPart>("sliderBodyPart", "", registry, SliderBodyPart.class, false);
 
-   private final BooleanYoVariable isCaptureSnapshotRequested = new BooleanYoVariable("isCaptureSnapshotRequested", dontRecordRegistry);
-   private final BooleanYoVariable isSaveSequenceRequested = new BooleanYoVariable("isSaveSequenceRequested", dontRecordRegistry);
-   private final BooleanYoVariable isLoadSequenceRequested = new BooleanYoVariable("isLoadSequenceRequested", dontRecordRegistry);
-   private final BooleanYoVariable isClearSequenceRequested = new BooleanYoVariable("isClearSequenceRequested", dontRecordRegistry);
-   private final BooleanYoVariable isLoadFrameByFrameSequenceRequested = new BooleanYoVariable("isLoadFrameByFrameSequenceRequested", dontRecordRegistry);
-   private final BooleanYoVariable isPlayPoseFromFrameByFrameSequenceRequested = new BooleanYoVariable("isPlayPoseFromFrameByFrameSequenceRequested", dontRecordRegistry);
-   private final BooleanYoVariable isSymmetricModeRequested = new BooleanYoVariable("isSymmetricModeRequested", dontRecordRegistry);
-   private final BooleanYoVariable isResetToBasePoseRequested = new BooleanYoVariable("isResetToBasePoseRequested", dontRecordRegistry);
-   private final BooleanYoVariable isLoadLastSequenceRequested = new BooleanYoVariable("isLoadLastSequenceRequested", dontRecordRegistry);
+   private final YoBoolean isCaptureSnapshotRequested = new YoBoolean("isCaptureSnapshotRequested", dontRecordRegistry);
+   private final YoBoolean isSaveSequenceRequested = new YoBoolean("isSaveSequenceRequested", dontRecordRegistry);
+   private final YoBoolean isLoadSequenceRequested = new YoBoolean("isLoadSequenceRequested", dontRecordRegistry);
+   private final YoBoolean isClearSequenceRequested = new YoBoolean("isClearSequenceRequested", dontRecordRegistry);
+   private final YoBoolean isLoadFrameByFrameSequenceRequested = new YoBoolean("isLoadFrameByFrameSequenceRequested", dontRecordRegistry);
+   private final YoBoolean isPlayPoseFromFrameByFrameSequenceRequested = new YoBoolean("isPlayPoseFromFrameByFrameSequenceRequested", dontRecordRegistry);
+   private final YoBoolean isSymmetricModeRequested = new YoBoolean("isSymmetricModeRequested", dontRecordRegistry);
+   private final YoBoolean isResetToBasePoseRequested = new YoBoolean("isResetToBasePoseRequested", dontRecordRegistry);
+   private final YoBoolean isLoadLastSequenceRequested = new YoBoolean("isLoadLastSequenceRequested", dontRecordRegistry);
 
-   private final BooleanYoVariable isPelvisControlRequested = new BooleanYoVariable("isPelvisControlRequested", dontRecordRegistry);
-   private final BooleanYoVariable isChestControlRequested = new BooleanYoVariable("isChestControlRequested", dontRecordRegistry);
+   private final YoBoolean isPelvisControlRequested = new YoBoolean("isPelvisControlRequested", dontRecordRegistry);
+   private final YoBoolean isChestControlRequested = new YoBoolean("isChestControlRequested", dontRecordRegistry);
 
-   private final BooleanYoVariable isLeftLegControlRequested = new BooleanYoVariable("isLeftLegControlRequested", dontRecordRegistry);
-   private final BooleanYoVariable isRightLegControlRequested = new BooleanYoVariable("isRightLegControlRequested", dontRecordRegistry);
-   private final BooleanYoVariable isLeftArmControlRequested = new BooleanYoVariable("isLeftArmControlRequested", dontRecordRegistry);
-   private final BooleanYoVariable isRightArmControlRequested = new BooleanYoVariable("isRightArmControlRequested", dontRecordRegistry);
+   private final YoBoolean isLeftLegControlRequested = new YoBoolean("isLeftLegControlRequested", dontRecordRegistry);
+   private final YoBoolean isRightLegControlRequested = new YoBoolean("isRightLegControlRequested", dontRecordRegistry);
+   private final YoBoolean isLeftArmControlRequested = new YoBoolean("isLeftArmControlRequested", dontRecordRegistry);
+   private final YoBoolean isRightArmControlRequested = new YoBoolean("isRightArmControlRequested", dontRecordRegistry);
 
-   private final BooleanYoVariable isSupportBaseControlRequested = new BooleanYoVariable("isSupportBaseControlRequested", dontRecordRegistry);
-   private final BooleanYoVariable isSupportBaseToggleRequested = new BooleanYoVariable("isSupportBaseToggleRequested", dontRecordRegistry);
+   private final YoBoolean isSupportBaseControlRequested = new YoBoolean("isSupportBaseControlRequested", dontRecordRegistry);
+   private final YoBoolean isSupportBaseToggleRequested = new YoBoolean("isSupportBaseToggleRequested", dontRecordRegistry);
 
-   private final BooleanYoVariable isSupportBaseControlTargetRequested = new BooleanYoVariable("isSupportBaseControlTargetRequested", dontRecordRegistry);
-   private final BooleanYoVariable isSupportBaseTargetToggleRequested = new BooleanYoVariable("isSupportBaseTargetToggleRequested", dontRecordRegistry);
+   private final YoBoolean isSupportBaseControlTargetRequested = new YoBoolean("isSupportBaseControlTargetRequested", dontRecordRegistry);
+   private final YoBoolean isSupportBaseTargetToggleRequested = new YoBoolean("isSupportBaseTargetToggleRequested", dontRecordRegistry);
 
-   private final SideDependentList<BooleanYoVariable> isLegControlRequested = new SideDependentList<BooleanYoVariable>(isLeftLegControlRequested, isRightLegControlRequested);
-   private final SideDependentList<BooleanYoVariable> isArmControlRequested = new SideDependentList<BooleanYoVariable>(isLeftArmControlRequested, isRightArmControlRequested);
+   private final SideDependentList<YoBoolean> isLegControlRequested = new SideDependentList<YoBoolean>(isLeftLegControlRequested, isRightLegControlRequested);
+   private final SideDependentList<YoBoolean> isArmControlRequested = new SideDependentList<YoBoolean>(isLeftArmControlRequested, isRightArmControlRequested);
 
    private final SimulationConstructionSet scs;
    private final MidiSliderBoard sliderBoard;
 
-   private final DoubleYoVariable q_yaw = new DoubleYoVariable("q_yaw", registry);
-   private final DoubleYoVariable q_pitch = new DoubleYoVariable("q_pitch", registry);
-   private final DoubleYoVariable q_roll = new DoubleYoVariable("q_roll", registry);
+   private final YoDouble q_yaw = new YoDouble("q_yaw", registry);
+   private final YoDouble q_pitch = new YoDouble("q_pitch", registry);
+   private final YoDouble q_roll = new YoDouble("q_roll", registry);
 
-   private final DoubleYoVariable q_left = new DoubleYoVariable("q_left", registry);
-   private final DoubleYoVariable q_right = new DoubleYoVariable("q_right", registry);
-   private final SideDependentList<DoubleYoVariable> q_hands = new SideDependentList<DoubleYoVariable>(q_left, q_right);
+   private final YoDouble q_left = new YoDouble("q_left", registry);
+   private final YoDouble q_right = new YoDouble("q_right", registry);
+   private final SideDependentList<YoDouble> q_hands = new SideDependentList<YoDouble>(q_left, q_right);
    private final SideDependentList<String> handSideString = new SideDependentList<String>("q_left_f", "q_right_f");
 
    private boolean symmetricMode = false;
    private RobotSide symmetricControlSide;
-   private final DoubleYoVariable q_qs, q_qx, q_qy, q_qz, q_x, q_y, q_z;
-   private Quat4d qprev;
+   private final YoDouble q_qs, q_qx, q_qy, q_qz, q_x, q_y, q_z;
+   private Quaternion qprev;
 
-   //   private final DoubleYoVariable BaseControlPoint = new DoubleYoVariable("BaseControlPoint", registry);
+   //   private final YoDouble BaseControlPoint = new YoDouble("BaseControlPoint", registry);
    private final YoFramePoint[] baseControlPoints = new YoFramePoint[4];
    private final ArrayList<YoGraphic> baseControlPointsList = new ArrayList<YoGraphic>();
    private final ArrayList<YoGraphic> baseControlLinesList = new ArrayList<YoGraphic>();
@@ -150,7 +148,7 @@ public class DRCRobotMidiSliderBoardPositionManipulation
       JOINT, CARTESIAN
    }
    
-   private final BooleanYoVariable controlFingers = new BooleanYoVariable("controlFingers", registry);
+   private final YoBoolean controlFingers = new YoBoolean("controlFingers", registry);
 
    public DRCRobotMidiSliderBoardPositionManipulation(SimulationConstructionSet scs, FloatingRootJointRobot sdfRobot, FullHumanoidRobotModel fullRobotModel, YoGraphicsListRegistry yoGraphicsListRegistry)
    {
@@ -433,13 +431,13 @@ public class DRCRobotMidiSliderBoardPositionManipulation
 
    private void setupSymmetricModeListeners()
    {
-      final Matrix3d oppositeSignForYawAndRollOnly = new Matrix3d();
+      final Matrix3D oppositeSignForYawAndRollOnly = new Matrix3D();
       oppositeSignForYawAndRollOnly.setIdentity();
       oppositeSignForYawAndRollOnly.setM00(-1.0);
       oppositeSignForYawAndRollOnly.setM22(-1.0);
       
-      final Vector3d unitVectorThisSide = new Vector3d();
-      final Vector3d unitVectorOtherSide = new Vector3d();
+      final Vector3D unitVectorThisSide = new Vector3D();
+      final Vector3D unitVectorOtherSide = new Vector3D();
       
       //main joints
       for (RobotSide robotSide : RobotSide.values)
@@ -488,9 +486,9 @@ public class DRCRobotMidiSliderBoardPositionManipulation
                for (int j = 0; j <= 2; j++)
                {
                   @SuppressWarnings("deprecation")
-                  DoubleYoVariable thisVariable = (DoubleYoVariable) scs.getVariable(thisSidePrefix + f + "_j" + j);
+                  YoDouble thisVariable = (YoDouble) scs.getVariable(thisSidePrefix + f + "_j" + j);
                   @SuppressWarnings("deprecation")
-                  DoubleYoVariable oppositeSideVariable = (DoubleYoVariable) scs.getVariable(oppositeSidePrefix + f + "_j" + j);
+                  YoDouble oppositeSideVariable = (YoDouble) scs.getVariable(oppositeSidePrefix + f + "_j" + j);
                   SymmetricModeListener symmetricModeListener = new SymmetricModeListener(oppositeSideVariable, robotSide, 1.0);
                   thisVariable.addVariableChangedListener(symmetricModeListener);
                }
@@ -615,7 +613,7 @@ public class DRCRobotMidiSliderBoardPositionManipulation
       sliderBoard.setSlider(sliderChannel++, "q_z", scs, pelvisPosition.getZ() - zRange / 2.0, pelvisPosition.getZ() + zRange / 2.0);
 
       //reset yaw pitch and roll so that it can be based off current 'global' yaw pitch and roll.
-      qprev = new Quat4d(q_qx.getDoubleValue(), q_qy.getDoubleValue(), q_qz.getDoubleValue(), q_qs.getDoubleValue());
+      qprev = new Quaternion(q_qx.getDoubleValue(), q_qy.getDoubleValue(), q_qz.getDoubleValue(), q_qs.getDoubleValue());
       q_yaw.set(0.0);
       q_pitch.set(0.0);
       q_roll.set(0.0);
@@ -696,7 +694,7 @@ public class DRCRobotMidiSliderBoardPositionManipulation
    {
       public void variableChanged(YoVariable<?> v)
       {
-         if (!(v instanceof BooleanYoVariable))
+         if (!(v instanceof YoBoolean))
             return;
 
          for (RobotSide robotSide : RobotSide.values)
@@ -928,11 +926,11 @@ public class DRCRobotMidiSliderBoardPositionManipulation
 
    private class SymmetricModeListener implements VariableChangedListener
    {
-      private final DoubleYoVariable variableToSet;
+      private final YoDouble variableToSet;
       private final RobotSide robotSide;
       private final double respectiveSign;
 
-      public SymmetricModeListener(DoubleYoVariable variableToSet, RobotSide robotSide, double sign)
+      public SymmetricModeListener(YoDouble variableToSet, RobotSide robotSide, double sign)
       {
          this.variableToSet = variableToSet;
          this.robotSide = robotSide;
@@ -943,7 +941,7 @@ public class DRCRobotMidiSliderBoardPositionManipulation
       {
          if (symmetricMode && (robotSide == symmetricControlSide))
          {
-            variableToSet.set(respectiveSign * ((DoubleYoVariable) yoVariable).getDoubleValue());
+            variableToSet.set(respectiveSign * ((YoDouble) yoVariable).getDoubleValue());
          }
       }
    }
@@ -952,7 +950,7 @@ public class DRCRobotMidiSliderBoardPositionManipulation
    {
       public void variableChanged(YoVariable<?> v)
       {
-         if (!(v instanceof DoubleYoVariable))
+         if (!(v instanceof YoDouble))
             return;
 
          if (v.equals(q_yaw) || v.equals(q_pitch) || v.equals(q_roll))
@@ -980,7 +978,7 @@ public class DRCRobotMidiSliderBoardPositionManipulation
          {
             for (int j = 1; j <= 2; j++)
             {
-               ((DoubleYoVariable) scs.getVariable(handSideString.get(robotSide) + f + "_j" + j)).set(q_val);
+               ((YoDouble) scs.getVariable(handSideString.get(robotSide) + f + "_j" + j)).set(q_val);
             }
          }
       }
@@ -988,16 +986,16 @@ public class DRCRobotMidiSliderBoardPositionManipulation
 
    private void setYawPitchRoll()
    {
-      Quat4d q = new Quat4d();
+      Quaternion q = new Quaternion();
 
       //This code has a singularity when yaw and roll line up (e.g. pitch is 90, can't rotate in one direction any more).
-      RotationTools.convertYawPitchRollToQuaternion(q_yaw.getDoubleValue(), q_pitch.getDoubleValue(), q_roll.getDoubleValue(), q);
+      q.setYawPitchRoll(q_yaw.getDoubleValue(), q_pitch.getDoubleValue(), q_roll.getDoubleValue());
 
       //This code compounds the rotations so that on subsequent frames the ability to rotate in lost rotation directions is regained
       //This affectively uses global yaw pitch and roll each time.
-      q.mul(qprev);
+      q.multiply(qprev);
 
-      q_qs.set(q.getW());
+      q_qs.set(q.getS());
       q_qx.set(q.getX());
       q_qy.set(q.getY());
       q_qz.set(q.getZ());
@@ -1031,10 +1029,10 @@ public class DRCRobotMidiSliderBoardPositionManipulation
          
          for (int j = i + 1; j < basePoints.length; j++)
          {
-            YoGraphicLineSegment dynamicGraphicLineSegment = new YoGraphicLineSegment(namePrefix + "SupportLine", basePoints[i], basePoints[j],
+            YoGraphicLineSegment yoGraphicLineSegment = new YoGraphicLineSegment(namePrefix + "SupportLine", basePoints[i], basePoints[j],
                   1.0, appearance, false);
-            yoGraphicsList.add(dynamicGraphicLineSegment);
-            linesList.add(dynamicGraphicLineSegment);
+            yoGraphicsList.add(yoGraphicLineSegment);
+            linesList.add(yoGraphicLineSegment);
          }
       }
 

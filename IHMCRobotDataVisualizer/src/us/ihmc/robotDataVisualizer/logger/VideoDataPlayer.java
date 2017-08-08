@@ -19,9 +19,9 @@ import gnu.trove.list.array.TLongArrayList;
 import us.ihmc.codecs.demuxer.MP4VideoDemuxer;
 import us.ihmc.codecs.generated.YUVPicture;
 import us.ihmc.codecs.yuv.YUVPictureConverter;
-import us.ihmc.robotDataLogger.logger.LogProperties;
-import us.ihmc.robotDataLogger.logger.converters.VideoConverter;
-import us.ihmc.robotDataLogger.logger.util.ProgressMonitorInterface;
+import us.ihmc.robotDataLogger.Camera;
+import us.ihmc.robotDataVisualizer.logger.converters.VideoConverter;
+import us.ihmc.robotDataVisualizer.logger.util.ProgressMonitorInterface;
 
 public class VideoDataPlayer
 {
@@ -46,29 +46,29 @@ public class VideoDataPlayer
 
    private final File videoFile;
 
-   public VideoDataPlayer(String name, File dataDirectory, LogProperties logProperties) throws IOException
+   public VideoDataPlayer(Camera camera, File dataDirectory, boolean hasTimeBase) throws IOException
    {
-      this.name = name;
-      this.interlaced = logProperties.getInterlaced(name);
-      this.hasTimebase = logProperties.hasTimebase();
+      this.name = camera.getNameAsString();
+      this.interlaced = camera.getInterlaced();
+      this.hasTimebase = hasTimeBase;
 
       if (!hasTimebase)
       {
          System.err.println("Video data is using timestamps instead of frame numbers. Falling back to seeking based on timestamp.");
       }
-      videoFile = new File(dataDirectory, logProperties.getVideoFile(name));
+      videoFile = new File(dataDirectory, camera.getVideoFileAsString());
       if (!videoFile.exists())
       {
          throw new IOException("Cannot find video: " + videoFile);
       }
 
-      File timestampFile = new File(dataDirectory, logProperties.getTimestampFile(name));
+      File timestampFile = new File(dataDirectory, camera.getTimestampFileAsString());
 
       parseTimestampData(timestampFile);
 
       demuxer = new MP4VideoDemuxer(videoFile);
 
-      viewer = new HideableMediaFrame(name, demuxer.getWidth(), demuxer.getHeight());
+      viewer = new HideableMediaFrame(camera.getNameAsString(), demuxer.getWidth(), demuxer.getHeight());
    }
 
    public synchronized void showVideoFrame(long timestamp)
@@ -78,7 +78,21 @@ public class VideoDataPlayer
          return;
       }
 
-      long videoTimestamp = getVideoTimestamp(timestamp);
+      long previousTimestamp = videoTimestamps[currentlyShowingIndex];
+
+      long videoTimestamp;
+      if (robotTimestamps.length > currentlyShowingIndex + 1 && robotTimestamps[currentlyShowingIndex + 1] == timestamp)
+      {
+         currentlyShowingIndex++;
+         videoTimestamp = videoTimestamps[currentlyShowingIndex];
+         currentlyShowingRobottimestamp = robotTimestamps[currentlyShowingIndex];
+
+      }
+      else
+      {
+         videoTimestamp = getVideoTimestamp(timestamp);
+
+      }
 
       if (currentlyShowingIndex + 1 < robotTimestamps.length)
       {
@@ -87,6 +101,11 @@ public class VideoDataPlayer
       else
       {
          upcomingRobottimestamp = currentlyShowingRobottimestamp;
+      }
+
+      if (previousTimestamp == videoTimestamp)
+      {
+         return;
       }
 
       try
@@ -195,8 +214,7 @@ public class VideoDataPlayer
       catch (FileNotFoundException e)
       {
          throw new RuntimeException(e);
-      }
-      finally
+      } finally
       {
          try
          {
@@ -216,30 +234,26 @@ public class VideoDataPlayer
 
       long startVideoTimestamp = getVideoTimestamp(startTimestamp);
       long endVideoTimestamp = getVideoTimestamp(endTimestamp);
-      
-      
+
       try
       {
-         VideoConverter.convert(videoFile, selectedFile, startVideoTimestamp, endVideoTimestamp, 8000, monitor);
+         VideoConverter.convert(videoFile, selectedFile, startVideoTimestamp, endVideoTimestamp, monitor);
       }
       catch (IOException e)
       {
          e.printStackTrace();
       }
-      
+
    }
 
    public void cropVideo(File outputFile, File timestampFile, long startTimestamp, long endTimestamp, ProgressMonitorInterface monitor) throws IOException
    {
 
-
-
       long startVideoTimestamp = getVideoTimestamp(startTimestamp);
       long endVideoTimestamp = getVideoTimestamp(endTimestamp);
-      
+
       int framerate = VideoConverter.crop(videoFile, outputFile, startVideoTimestamp, endVideoTimestamp, monitor);
 
-      
       PrintWriter timestampWriter = new PrintWriter(timestampFile);
       timestampWriter.println(1);
       timestampWriter.println(framerate);
@@ -313,5 +327,43 @@ public class VideoDataPlayer
    public String getName()
    {
       return name;
+   }
+
+   public static void main(String[] args) throws IOException
+   {
+      Camera camera = new Camera();
+      camera.setName("test");
+      camera.setInterlaced(false);
+      camera.setTimestampFile("Camera-1_Timestamps.dat");
+      camera.setVideoFile("Camera-1_Video.mov");
+
+      File dataDirectory = new File("/home/jesper/robotLogs/20170724_135638_AtlasControllerFactory/");
+
+      VideoDataPlayer player = new VideoDataPlayer(camera, dataDirectory, true);
+
+      for (int i = 1; i < player.robotTimestamps.length; i++)
+      {
+         if (player.robotTimestamps[i - 1] > player.robotTimestamps[i])
+         {
+            System.out.println("Non-monotonic robot timestamps");
+            System.out.println(player.robotTimestamps[i - 1]);
+         }
+         if (player.videoTimestamps[i - 1] >= player.videoTimestamps[i])
+         {
+            System.out.println("Non-monotonic video timestamps");
+            System.out.println(player.videoTimestamps[i - 1]);
+         }
+
+      }
+
+      player.viewer.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+      player.setVisible(true);
+
+      for (int i = 1; i < player.robotTimestamps.length; i++)
+      {
+
+         player.showVideoFrame(player.robotTimestamps[i]);
+      }
+
    }
 }

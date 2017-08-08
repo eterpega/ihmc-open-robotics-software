@@ -1,9 +1,8 @@
 package us.ihmc.sensorProcessing.simulatedSensors;
 
-import javax.vecmath.Vector3d;
-
 import us.ihmc.controlFlow.ControlFlowOutputPort;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FrameVector;
 import us.ihmc.robotics.math.frames.YoFrameVector;
@@ -12,7 +11,7 @@ import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.robotics.screwTheory.SpatialAccelerationCalculator;
 
 
-public class SimulatedLinearAccelerationSensor extends SimulatedSensor<Vector3d>
+public class SimulatedLinearAccelerationSensor extends SimulatedSensor<Vector3D>
 {
    private final RigidBody rigidBody;
    private static final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
@@ -20,17 +19,17 @@ public class SimulatedLinearAccelerationSensor extends SimulatedSensor<Vector3d>
    private final FramePoint imuFramePoint = new FramePoint(worldFrame);
 
    private final FrameVector linearAccelerationFrameVector = new FrameVector(worldFrame);
-   private final Vector3d linearAcceleration = new Vector3d();
+   private final Vector3D linearAcceleration = new Vector3D();
    private final YoFrameVector yoFrameVectorPerfect, yoFrameVectorNoisy;
 
    private final ReferenceFrame measurementFrame;
    private final SpatialAccelerationCalculator spatialAccelerationCalculator;
 
-   private final ControlFlowOutputPort<Vector3d> linearAccelerationOutputPort = createOutputPort("linearAccelerationOutputPort");
+   private final ControlFlowOutputPort<Vector3D> linearAccelerationOutputPort = createOutputPort("linearAccelerationOutputPort");
    private final FrameVector gravitationalAcceleration;
 
    public SimulatedLinearAccelerationSensor(String name, RigidBody rigidBody, ReferenceFrame measurementFrame,
-           SpatialAccelerationCalculator spatialAccelerationCalculator, Vector3d gravitationalAcceleration, YoVariableRegistry registry)
+           SpatialAccelerationCalculator spatialAccelerationCalculator, Vector3D gravitationalAcceleration, YoVariableRegistry registry)
    {
       this.rigidBody = rigidBody;
       this.measurementFrame = measurementFrame;
@@ -44,7 +43,8 @@ public class SimulatedLinearAccelerationSensor extends SimulatedSensor<Vector3d>
    public void startComputation()
    {
       imuFramePoint.setToZero(measurementFrame);
-      spatialAccelerationCalculator.getLinearAccelerationOfBodyFixedPoint(linearAccelerationFrameVector, rigidBody, imuFramePoint);
+      RigidBody rootBody = spatialAccelerationCalculator.getRootBody();
+      spatialAccelerationCalculator.getLinearAccelerationOfBodyFixedPoint(rootBody, rigidBody, imuFramePoint, linearAccelerationFrameVector);
       linearAccelerationFrameVector.changeFrame(gravitationalAcceleration.getReferenceFrame());
       linearAccelerationFrameVector.add(gravitationalAcceleration);
       linearAccelerationFrameVector.changeFrame(measurementFrame);
@@ -62,7 +62,7 @@ public class SimulatedLinearAccelerationSensor extends SimulatedSensor<Vector3d>
       // empty
    }
 
-   public ControlFlowOutputPort<Vector3d> getLinearAccelerationOutputPort()
+   public ControlFlowOutputPort<Vector3D> getLinearAccelerationOutputPort()
    {
       return linearAccelerationOutputPort;
    }

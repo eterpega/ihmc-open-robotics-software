@@ -1,32 +1,32 @@
 package us.ihmc.robotics.partNames;
 
-import java.util.List;
 import java.util.Set;
-
-import javax.vecmath.Vector3d;
-
-import org.apache.commons.lang3.tuple.ImmutablePair;
-
-import us.ihmc.robotics.partNames.JointRole;
-import us.ihmc.robotics.partNames.NeckJointName;
-import us.ihmc.robotics.partNames.RobotSpecificJointNames;
-import us.ihmc.robotics.partNames.SpineJointName;
 
 public interface JointNameMap extends RobotSpecificJointNames
 {
 
    String getModelName();
-   
+
    default double getModelScale()
    {
       return 1.0;
    }
-   
+
    default double getMassScalePower()
    {
       return 3.0;
    }
-   
+
+   default double getDefaultKLimit()
+   {
+      return 100.0;
+   }
+
+   default double getDefaultBLimit()
+   {
+      return 20.0;
+   }
+
    /**
     * @return list of joints that will not be inertia scaled for simulation stability
     */
@@ -48,8 +48,6 @@ public interface JointNameMap extends RobotSpecificJointNames
    String getChestName();
 
    String getHeadName();
-
-   List<ImmutablePair<String, Vector3d>> getJointNameGroundContactPointMap();
 
    boolean isTorqueVelocityLimitsEnabled();
 

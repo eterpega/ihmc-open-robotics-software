@@ -1,6 +1,6 @@
 package us.ihmc.robotics.math.frames;
 
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.screwTheory.Twist;
 import us.ihmc.robotics.screwTheory.Wrench;
@@ -12,9 +12,9 @@ public class YoWrench extends YoSpatialVector
    /** Redundant but allows to make sure the frame isn't changed. */
    protected final ReferenceFrame bodyFrame;
    
-   public YoWrench(YoFrameVector yoForce, YoFrameVector yoTorque, ReferenceFrame bodyFrame, ReferenceFrame expressedInFrame)
+   public YoWrench(YoFrameVector yoForce, YoFrameVector yoTorque, ReferenceFrame bodyFrame)
    {
-      super(yoForce, yoTorque, expressedInFrame);
+      super(yoForce, yoTorque);
       this.bodyFrame = bodyFrame;
       this.wrench = createEmptyWrench();
    }

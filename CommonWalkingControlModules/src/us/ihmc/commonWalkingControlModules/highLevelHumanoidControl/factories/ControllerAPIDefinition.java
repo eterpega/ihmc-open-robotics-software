@@ -12,27 +12,37 @@ import us.ihmc.humanoidRobotics.communication.controllerAPI.command.AdjustFootst
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.ArmDesiredAccelerationsCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.ArmTrajectoryCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.AutomaticManipulationAbortCommand;
+import us.ihmc.humanoidRobotics.communication.controllerAPI.command.CenterOfMassTrajectoryCommand;
+import us.ihmc.humanoidRobotics.communication.controllerAPI.command.ChestHybridJointspaceTaskspaceTrajectoryCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.ChestTrajectoryCommand;
-import us.ihmc.humanoidRobotics.communication.controllerAPI.command.EndEffectorLoadBearingCommand;
+import us.ihmc.humanoidRobotics.communication.controllerAPI.command.ClearDelayQueueCommand;
+import us.ihmc.humanoidRobotics.communication.controllerAPI.command.FootLoadBearingCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.FootTrajectoryCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.FootstepDataListCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.GoHomeCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.HandComplianceControlParametersCommand;
+import us.ihmc.humanoidRobotics.communication.controllerAPI.command.HandHybridJointspaceTaskspaceTrajectoryCommand;
+import us.ihmc.humanoidRobotics.communication.controllerAPI.command.HandLoadBearingCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.HandTrajectoryCommand;
+import us.ihmc.humanoidRobotics.communication.controllerAPI.command.HeadHybridJointspaceTaskspaceTrajectoryCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.HeadTrajectoryCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.HighLevelStateCommand;
+import us.ihmc.humanoidRobotics.communication.controllerAPI.command.MomentumTrajectoryCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.NeckDesiredAccelerationsCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.NeckTrajectoryCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.PauseWalkingCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.PelvisHeightTrajectoryCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.PelvisOrientationTrajectoryCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.PelvisTrajectoryCommand;
+import us.ihmc.humanoidRobotics.communication.controllerAPI.command.SpineDesiredAccelerationCommand;
+import us.ihmc.humanoidRobotics.communication.controllerAPI.command.SpineTrajectoryCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.StopAllTrajectoryCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.WholeBodyTrajectoryCommand;
 import us.ihmc.humanoidRobotics.communication.packets.HighLevelStateChangeStatusMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.CapturabilityBasedStatus;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepStatus;
 import us.ihmc.humanoidRobotics.communication.packets.walking.ManipulationAbortedStatus;
+import us.ihmc.humanoidRobotics.communication.packets.walking.PlanOffsetStatus;
 import us.ihmc.humanoidRobotics.communication.packets.walking.WalkingControllerFailureStatusMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.WalkingStatusMessage;
 
@@ -52,6 +62,7 @@ public abstract class ControllerAPIDefinition
       commands.add(NeckTrajectoryCommand.class);
       commands.add(NeckDesiredAccelerationsCommand.class);
       commands.add(ChestTrajectoryCommand.class);
+      commands.add(SpineTrajectoryCommand.class);
       commands.add(PelvisTrajectoryCommand.class);
       commands.add(PelvisOrientationTrajectoryCommand.class);
       commands.add(PelvisHeightTrajectoryCommand.class);
@@ -59,7 +70,7 @@ public abstract class ControllerAPIDefinition
       commands.add(FootstepDataListCommand.class);
       commands.add(AdjustFootstepCommand.class);
       commands.add(GoHomeCommand.class);
-      commands.add(EndEffectorLoadBearingCommand.class);
+      commands.add(FootLoadBearingCommand.class);
       commands.add(ArmDesiredAccelerationsCommand.class);
       commands.add(AutomaticManipulationAbortCommand.class);
       commands.add(HandComplianceControlParametersCommand.class);
@@ -67,12 +78,21 @@ public abstract class ControllerAPIDefinition
       commands.add(AbortWalkingCommand.class);
       commands.add(PauseWalkingCommand.class);
       commands.add(WholeBodyTrajectoryCommand.class);
+      commands.add(SpineDesiredAccelerationCommand.class);
+      commands.add(HandLoadBearingCommand.class);
+      commands.add(HandHybridJointspaceTaskspaceTrajectoryCommand.class);
+      commands.add(HeadHybridJointspaceTaskspaceTrajectoryCommand.class);
+      commands.add(ChestHybridJointspaceTaskspaceTrajectoryCommand.class);
+      commands.add(ClearDelayQueueCommand.class);
+      commands.add(MomentumTrajectoryCommand.class);
+      commands.add(CenterOfMassTrajectoryCommand.class);
 
       supportedCommands = Collections.unmodifiableList(commands);
 
       List<Class<? extends StatusPacket<?>>> statusMessages = new ArrayList<>();
       statusMessages.add(CapturabilityBasedStatus.class);
       statusMessages.add(FootstepStatus.class);
+      statusMessages.add(PlanOffsetStatus.class);
       statusMessages.add(WalkingStatusMessage.class);
       statusMessages.add(WalkingControllerFailureStatusMessage.class);
       statusMessages.add(ManipulationAbortedStatus.class);

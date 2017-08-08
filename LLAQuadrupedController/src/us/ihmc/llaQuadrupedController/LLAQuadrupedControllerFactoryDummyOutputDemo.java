@@ -2,9 +2,10 @@ package us.ihmc.llaQuadrupedController;
 
 import java.io.IOException;
 
+import us.ihmc.commons.Conversions;
 import us.ihmc.communication.packetCommunicator.PacketCommunicator;
 import us.ihmc.communication.util.NetworkPorts;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.humanoidRobotics.bipedSupportPolygons.ContactablePlaneBody;
 import us.ihmc.llaQuadrupedController.model.LLAQuadrupedModelFactory;
 import us.ihmc.llaQuadrupedController.model.LLAQuadrupedPhysicalProperties;
@@ -24,16 +25,15 @@ import us.ihmc.quadrupedRobotics.model.QuadrupedPhysicalProperties;
 import us.ihmc.quadrupedRobotics.model.QuadrupedRuntimeEnvironment;
 import us.ihmc.robotics.dataStructures.parameter.ParameterRegistry;
 import us.ihmc.quadrupedRobotics.simulation.QuadrupedParameterSet;
-import us.ihmc.quadrupedRobotics.state.FiniteStateMachineState;
+import us.ihmc.robotics.stateMachines.eventBasedStateMachine.FiniteStateMachineState;
 import us.ihmc.robotModels.FullQuadrupedRobotModel;
 import us.ihmc.robotModels.FullRobotModel;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.robotSide.QuadrantDependentList;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
 import us.ihmc.robotics.sensors.FootSwitchInterface;
 import us.ihmc.robotics.sensors.IMUDefinition;
-import us.ihmc.robotics.time.TimeTools;
 import us.ihmc.sensorProcessing.sensorProcessors.SensorOutputMapReadOnly;
 import us.ihmc.sensorProcessing.sensorProcessors.SensorProcessing;
 import us.ihmc.sensorProcessing.simulatedSensors.StateEstimatorSensorDefinitions;
@@ -72,7 +72,7 @@ public class LLAQuadrupedControllerFactoryDummyOutputDemo
        */
       YoVariableRegistry registry = new YoVariableRegistry("LLAQuadruped");
       YoGraphicsListRegistry yoGraphicsListRegistry = new YoGraphicsListRegistry();
-      DoubleYoVariable controllerTime = new DoubleYoVariable("controllerTime", registry);
+      YoDouble controllerTime = new YoDouble("controllerTime", registry);
 
       /*
        * Create packet communicators
@@ -173,7 +173,7 @@ public class LLAQuadrupedControllerFactoryDummyOutputDemo
       
       
 
-      DoubleYoVariable robotTimestamp = runtimeEnvironment.getRobotTimestamp();
+      YoDouble robotTimestamp = runtimeEnvironment.getRobotTimestamp();
       double robotTimeBeforeWarmUp = robotTimestamp.getDoubleValue();
       for (QuadrupedForceControllerState state : QuadrupedForceControllerState.values)
       {
@@ -190,7 +190,7 @@ public class LLAQuadrupedControllerFactoryDummyOutputDemo
          {
             long itStart = System.nanoTime();
             simulationStateEstimator.doControl();
-            robotTimestamp.add(TimeTools.milliSecondsToSeconds(1));
+            robotTimestamp.add(Conversions.millisecondsToSeconds(1));
             stateImpl.process();
             
             long itTime = System.nanoTime() - itStart;
@@ -209,7 +209,7 @@ public class LLAQuadrupedControllerFactoryDummyOutputDemo
          stateImpl.onExit();
          
          
-         System.out.println(state + ": " + TimeTools.nanoSecondstoSeconds(endTime/TEST_ITERATIONS) + "s/it. Min: " + TimeTools.nanoSecondstoSeconds(min) + "s ; max: " + TimeTools.nanoSecondstoSeconds(max) + "s") ;
+         System.out.println(state + ": " + Conversions.nanosecondsToSeconds(endTime/TEST_ITERATIONS) + "s/it. Min: " + Conversions.nanosecondsToSeconds(min) + "s ; max: " + Conversions.nanosecondsToSeconds(max) + "s") ;
          
       }
       robotTimestamp.set(robotTimeBeforeWarmUp);

@@ -1,10 +1,18 @@
 package us.ihmc.humanoidBehaviors.behaviors.planFootstepsToLocation;
 
-import com.github.quickhull3d.Point3d;
-import com.github.quickhull3d.Vector3d;
-import org.opencv.core.Mat;
-import us.ihmc.communication.packets.*;
-import us.ihmc.footstepPlanning.*;
+import us.ihmc.commons.time.Stopwatch;
+import us.ihmc.communication.packets.PacketDestination;
+import us.ihmc.communication.packets.PlanarRegionMessageConverter;
+import us.ihmc.communication.packets.PlanarRegionsListMessage;
+import us.ihmc.communication.packets.RequestPlanarRegionsListMessage;
+import us.ihmc.communication.packets.TextToSpeechPacket;
+import us.ihmc.euclid.axisAngle.AxisAngle;
+import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.footstepPlanning.FootstepPlan;
+import us.ihmc.footstepPlanning.FootstepPlanner;
+import us.ihmc.footstepPlanning.FootstepPlannerGoal;
+import us.ihmc.footstepPlanning.FootstepPlanningResult;
+import us.ihmc.footstepPlanning.SimpleFootstep;
 import us.ihmc.footstepPlanning.simplePlanners.TurnWalkTurnPlanner;
 import us.ihmc.humanoidBehaviors.behaviors.AbstractBehavior;
 import us.ihmc.humanoidBehaviors.behaviors.behaviorServices.FiducialDetectorBehaviorService;
@@ -16,10 +24,9 @@ import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessag
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepStatus;
 import us.ihmc.humanoidRobotics.communication.packets.walking.WalkingStatusMessage;
 import us.ihmc.humanoidRobotics.frames.HumanoidReferenceFrames;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.EnumYoVariable;
-import us.ihmc.robotics.dataStructures.variable.IntegerYoVariable;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoEnum;
+import us.ihmc.yoVariables.variable.YoInteger;
 import us.ihmc.robotics.geometry.FramePose;
 import us.ihmc.robotics.geometry.PlanarRegionsList;
 import us.ihmc.robotics.math.frames.YoFramePose;
@@ -27,12 +34,6 @@ import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.sensorProcessing.communication.packets.dataobjects.RobotConfigurationData;
-import us.ihmc.simulationconstructionset.Robot;
-import us.ihmc.tools.time.Timer;
-
-import javax.vecmath.AxisAngle4d;
-import javax.vecmath.Quat4d;
-import javax.vecmath.Tuple3d;
 
 public class FootStepPlannerToLocationBehavior extends AbstractBehavior
 {
@@ -52,23 +53,23 @@ public class FootStepPlannerToLocationBehavior extends AbstractBehavior
    private final ConcurrentListeningQueue<PlanarRegionsListMessage> planarRegionsListQueue = new ConcurrentListeningQueue<>(10);
 
    private final SideDependentList<FootstepStatus> latestFootstepStatus;
-   private final SideDependentList<EnumYoVariable<FootstepStatus.Status>> latestFootstepStatusEnum;
+   private final SideDependentList<YoEnum<FootstepStatus.Status>> latestFootstepStatusEnum;
    private final SideDependentList<YoFramePose> actualFootStatusPoses;
    private final SideDependentList<YoFramePose> desiredFootStatusPoses;
 
-   private final EnumYoVariable <RobotSide> nextSideToSwing;
-   private final EnumYoVariable<RobotSide> currentlySwingingFoot;
+   private final YoEnum<RobotSide> nextSideToSwing;
+   private final YoEnum<RobotSide> currentlySwingingFoot;
 
-   private final IntegerYoVariable planarRegionsListCount = new IntegerYoVariable(prefix + "PlanarRegionsListCount", registry);
-   private final DoubleYoVariable headPitchToFindFucdicial = new DoubleYoVariable(prefix + "HeadPitchToFindFucdicial", registry);
+   private final YoInteger planarRegionsListCount = new YoInteger(prefix + "PlanarRegionsListCount", registry);
+   private final YoDouble headPitchToFindFucdicial = new YoDouble(prefix + "HeadPitchToFindFucdicial", registry);
 
    private final YoFramePose footstepPlannerInitialStancePose;
 
-   private final Timer footstepSentTimer;
+   private final Stopwatch footstepSentTimer;
 
    private final FramePose tempFirstFootstepPose = new FramePose();
-   private final javax.vecmath.Point3d tempFootstepPosePosition = new javax.vecmath.Point3d();
-   private final Quat4d tempFirstFootstepPoseOrientation = new Quat4d();
+   private final us.ihmc.euclid.tuple3D.Point3D tempFootstepPosePosition = new us.ihmc.euclid.tuple3D.Point3D();
+   private final Quaternion tempFirstFootstepPoseOrientation = new Quaternion();
 
    private FootstepPlanner planner;
    private final FramePose tempFootstepPlannerGoalPose = new FramePose();
@@ -78,8 +79,8 @@ public class FootStepPlannerToLocationBehavior extends AbstractBehavior
 
    private final FiducialDetectorBehaviorService fiducialDetectorBehaviorService;
 
-   private final DoubleYoVariable swingTime = new DoubleYoVariable(prefix + "SwingTime", registry);
-   private final DoubleYoVariable transferTime = new DoubleYoVariable(prefix + "TransferTime", registry);
+   private final YoDouble swingTime = new YoDouble(prefix + "SwingTime", registry);
+   private final YoDouble transferTime = new YoDouble(prefix + "TransferTime", registry);
 
    public FootStepPlannerToLocationBehavior(CommunicationBridgeInterface communicationBridge, HumanoidReferenceFrames referenceFrames, FiducialDetectorBehaviorService fiducialDetectorBehaviorService, long fiducialToTrack)
    {
@@ -95,16 +96,16 @@ public class FootStepPlannerToLocationBehavior extends AbstractBehavior
 
       headPitchToFindFucdicial.set(1.0);
 
-      nextSideToSwing = new EnumYoVariable<RobotSide>(prefix + "nextSideToSwing", registry, RobotSide.class, true);
-      currentlySwingingFoot = new EnumYoVariable<RobotSide>(prefix + "currentlySwingingFoot", registry, RobotSide.class, true);
+      nextSideToSwing = new YoEnum<RobotSide>(prefix + "nextSideToSwing", registry, RobotSide.class, true);
+      currentlySwingingFoot = new YoEnum<RobotSide>(prefix + "currentlySwingingFoot", registry, RobotSide.class, true);
       footstepPlannerInitialStancePose = new YoFramePose(prefix + "footstepPlannerInitialStancePose", ReferenceFrame.getWorldFrame(), registry);
 
-      footstepSentTimer = new Timer();
+      footstepSentTimer = new Stopwatch();
       footstepSentTimer.start();
 
       latestFootstepStatus = new SideDependentList<>();
-      EnumYoVariable<FootstepStatus.Status> leftFootstepStatus = new EnumYoVariable<FootstepStatus.Status>(prefix + "leftFootstepStatus", registry, FootstepStatus.Status.class);
-      EnumYoVariable<FootstepStatus.Status> rightFootstepStatus = new EnumYoVariable<FootstepStatus.Status>(prefix + "rightFootstepStatus", registry, FootstepStatus.Status.class);
+      YoEnum<FootstepStatus.Status> leftFootstepStatus = new YoEnum<FootstepStatus.Status>(prefix + "leftFootstepStatus", registry, FootstepStatus.Status.class);
+      YoEnum<FootstepStatus.Status> rightFootstepStatus = new YoEnum<FootstepStatus.Status>(prefix + "rightFootstepStatus", registry, FootstepStatus.Status.class);
       latestFootstepStatusEnum = new SideDependentList<>(leftFootstepStatus, rightFootstepStatus);
 
       YoFramePose desiredLeftFootstepStatusPose = new YoFramePose(prefix + "DesiredLeftFootstepStatusPose", ReferenceFrame.getWorldFrame(), registry);
@@ -144,9 +145,9 @@ public class FootStepPlannerToLocationBehavior extends AbstractBehavior
       tempLeftFootPose.changeFrame(ReferenceFrame.getWorldFrame());
       tempRightFootPose.changeFrame(ReferenceFrame.getWorldFrame());
 
-      javax.vecmath.Point3d temp = new javax.vecmath.Point3d();
-      javax.vecmath.Point3d pointBetweenFeet = new javax.vecmath.Point3d();
-      javax.vecmath.Vector3d vectorFromFeetToGoal = new javax.vecmath.Vector3d();
+      us.ihmc.euclid.tuple3D.Point3D temp = new us.ihmc.euclid.tuple3D.Point3D();
+      us.ihmc.euclid.tuple3D.Point3D pointBetweenFeet = new us.ihmc.euclid.tuple3D.Point3D();
+      us.ihmc.euclid.tuple3D.Vector3D vectorFromFeetToGoal = new us.ihmc.euclid.tuple3D.Vector3D();
 
       tempLeftFootPose.getPosition(temp);
       pointBetweenFeet.set(temp);
@@ -158,7 +159,7 @@ public class FootStepPlannerToLocationBehavior extends AbstractBehavior
       vectorFromFeetToGoal.sub(pointBetweenFeet);
 
       double headingFromFeetToGoal = Math.atan2(vectorFromFeetToGoal.getY(), vectorFromFeetToGoal.getX());
-      AxisAngle4d goalOrientation = new AxisAngle4d(0.0, 0.0, 1.0, headingFromFeetToGoal);
+      AxisAngle goalOrientation = new AxisAngle(0.0, 0.0, 1.0, headingFromFeetToGoal);
       goalPose.setOrientation(goalOrientation);
 
       RobotSide stanceSide = nextSideToSwing.getEnumValue().getOppositeSide();
@@ -212,14 +213,14 @@ public class FootStepPlannerToLocationBehavior extends AbstractBehavior
          FootstepStatus status = latestFootstepStatus.get(side);
          if (status != null)
          {
-            javax.vecmath.Point3d desiredFootPositionInWorld = status.getDesiredFootPositionInWorld();
-            Quat4d desiredFootOrientationInWorld = status.getDesiredFootOrientationInWorld();
+            us.ihmc.euclid.tuple3D.Point3D desiredFootPositionInWorld = status.getDesiredFootPositionInWorld();
+            Quaternion desiredFootOrientationInWorld = status.getDesiredFootOrientationInWorld();
 
             desiredFootStatusPoses.get(side).setPosition(desiredFootPositionInWorld);
             desiredFootStatusPoses.get(side).setOrientation(desiredFootOrientationInWorld);
 
-            javax.vecmath.Point3d actualFootPositionInWorld = status.getActualFootPositionInWorld();
-            Quat4d actualFootOrientationInWorld = status.getActualFootOrientationInWorld();
+            us.ihmc.euclid.tuple3D.Point3D actualFootPositionInWorld = status.getActualFootPositionInWorld();
+            Quaternion actualFootOrientationInWorld = status.getActualFootOrientationInWorld();
 
             actualFootStatusPoses.get(side).setPosition(actualFootPositionInWorld);
             actualFootStatusPoses.get(side).setOrientation(actualFootOrientationInWorld);
@@ -274,8 +275,8 @@ public class FootStepPlannerToLocationBehavior extends AbstractBehavior
    private FootstepDataListMessage createFootstepDataListFromPlan(FootstepPlan plan, int maxNumberOfStepsToTake)
    {
       FootstepDataListMessage footstepDataListMessage = new FootstepDataListMessage();
-      footstepDataListMessage.setSwingTime(swingTime.getDoubleValue());
-      footstepDataListMessage.setTransferTime(transferTime.getDoubleValue());
+      footstepDataListMessage.setDefaultSwingDuration(swingTime.getDoubleValue());
+      footstepDataListMessage.setDefaultTransferDuration(transferTime.getDoubleValue());
       int lastStepIndex = Math.min(maxNumberOfStepsToTake + 1, plan.getNumberOfSteps());
       for (int i = 1; i < lastStepIndex; i++)
       {
@@ -286,7 +287,7 @@ public class FootStepPlannerToLocationBehavior extends AbstractBehavior
 
          //         sendTextToSpeechPacket("Sending footstep " + footstep.getRobotSide() + " " + tempFootstepPosePosition + " " + tempFirstFootstepPoseOrientation);
 
-         FootstepDataMessage firstFootstepMessage = new FootstepDataMessage(footstep.getRobotSide(), new javax.vecmath.Point3d(tempFootstepPosePosition), new Quat4d(tempFirstFootstepPoseOrientation));
+         FootstepDataMessage firstFootstepMessage = new FootstepDataMessage(footstep.getRobotSide(), new us.ihmc.euclid.tuple3D.Point3D(tempFootstepPosePosition), new Quaternion(tempFirstFootstepPoseOrientation));
          footstepDataListMessage.add(firstFootstepMessage);
       }
 

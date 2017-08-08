@@ -27,16 +27,23 @@ import org.opencv.videoio.VideoCapture;
 
 import boofcv.gui.image.ImagePanel;
 import boofcv.gui.image.ShowImages;
+import us.ihmc.commons.PrintTools;
+import us.ihmc.commons.time.Stopwatch;
 import us.ihmc.ihmcPerception.OpenCVTools;
-import us.ihmc.tools.io.printing.PrintTools;
 import us.ihmc.tools.nativelibraries.NativeLibraryLoader;
-import us.ihmc.tools.time.Timer;
 
 public class OpenCVFaceDetector
 {
    static
    {
-      NativeLibraryLoader.loadLibrary("org.opencv", OpenCVTools.OPEN_CV_LIBRARY_NAME);
+      try
+      {
+         NativeLibraryLoader.loadLibrary("org.opencv", OpenCVTools.OPEN_CV_LIBRARY_NAME);
+      }
+      catch (UnsatisfiedLinkError e)
+      {
+         PrintTools.error("Failed to load the OpenCV library.");
+      }
    }
    
    private static final boolean DEBUG = false;
@@ -58,7 +65,6 @@ public class OpenCVFaceDetector
          URI uri = ClassLoader.getSystemResource(HAARCASCADE_FRONTALFACE_ALT_XML).toURI();
          Map<String, String> env = new HashMap<>();
          env.put("create", "true");
-         FileSystem zipfs = FileSystems.newFileSystem(uri, env);
          Path xmlPath = Paths.get(uri);
          cascadeClassifierForFaces = new CascadeClassifier(xmlPath.toString());
 
@@ -67,7 +73,7 @@ public class OpenCVFaceDetector
             throw new RuntimeException("cascadeClassifier is empty");
          }
       }
-      catch (URISyntaxException | IOException e)
+      catch (URISyntaxException e)
       {
          cascadeClassifierForFaces = null;
          e.printStackTrace();
@@ -75,7 +81,7 @@ public class OpenCVFaceDetector
    }
    
    int count = 0;
-   Timer timer = null;
+   Stopwatch timer = null;
    double conversion = 0.0;
    double resize = 0.0;
    double detection = 0.0;
@@ -83,7 +89,7 @@ public class OpenCVFaceDetector
    {
       if (DEBUG)
       {
-         timer = new Timer().start();
+         timer = new Stopwatch().start();
       }
    }
 

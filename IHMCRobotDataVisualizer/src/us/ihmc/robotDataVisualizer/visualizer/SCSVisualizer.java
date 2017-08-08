@@ -2,7 +2,6 @@ package us.ihmc.robotDataVisualizer.visualizer;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.nio.ByteBuffer;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,27 +12,35 @@ import javax.swing.JLabel;
 import javax.swing.JToggleButton;
 
 import gnu.trove.map.hash.TObjectDoubleHashMap;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphic;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsList;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
-import us.ihmc.multicastLogDataProtocol.control.LogHandshake;
+import us.ihmc.commons.Conversions;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphic;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsList;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.multicastLogDataProtocol.modelLoaders.SDFModelLoader;
 import us.ihmc.robotDataLogger.YoVariableClient;
-import us.ihmc.robotDataLogger.YoVariableHandshakeParser;
 import us.ihmc.robotDataLogger.YoVariablesUpdatedListener;
+import us.ihmc.robotDataLogger.handshake.LogHandshake;
+import us.ihmc.robotDataLogger.handshake.YoVariableHandshakeParser;
 import us.ihmc.robotDataLogger.jointState.JointState;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.YoVariable;
-import us.ihmc.robotics.time.TimeTools;
-import us.ihmc.simulationconstructionset.DataBuffer;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoVariable;
+import us.ihmc.yoVariables.dataBuffer.DataBuffer;
 import us.ihmc.simulationconstructionset.ExitActionListener;
 import us.ihmc.simulationconstructionset.FloatingRootJointRobot;
 import us.ihmc.simulationconstructionset.PlaybackListener;
 import us.ihmc.simulationconstructionset.Robot;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
 import us.ihmc.simulationconstructionset.SimulationConstructionSetParameters;
-import us.ihmc.simulationconstructionset.gui.tools.VisualizerUtils;
+import us.ihmc.simulationconstructionset.gui.tools.SimulationOverheadPlotterFactory;
 
+/**
+ * Main entry point for the visualizer. 
+ * 
+ * To make a custom visualizer for your robot, do NOT copy, instead extend. 
+ *  
+ * @author jesper
+ *
+ */
 public class SCSVisualizer implements YoVariablesUpdatedListener, ExitActionListener, SCSVisualizerStateListener
 {
    protected YoVariableRegistry registry;
@@ -46,6 +53,7 @@ public class SCSVisualizer implements YoVariablesUpdatedListener, ExitActionList
    private ArrayList<SCSVisualizerStateListener> stateListeners = new ArrayList<>();
 
    private int displayOneInNPackets = 1;
+   private long counter = 0;
 
    private final TObjectDoubleHashMap<String> buttons = new TObjectDoubleHashMap<>();
 
@@ -84,19 +92,23 @@ public class SCSVisualizer implements YoVariablesUpdatedListener, ExitActionList
    }
 
    @Override
-   public void receivedTimestampAndData(long timestamp, ByteBuffer buffer)
+   public void receivedTimestampAndData(long timestamp)
    {
-      long delay = TimeTools.nanoSecondsToMillis(lastTimestamp - timestamp);
-      delayValue.setText(delayFormat.format(delay));
-
-      if (recording)
+      if(++counter % displayOneInNPackets == 0)
       {
-         for (int i = 0; i < jointUpdaters.size(); i++)
+         long delay = Conversions.nanosecondsToMilliseconds(lastTimestamp - timestamp);
+         delayValue.setText(delayFormat.format(delay));
+   
+         if (recording)
          {
-            jointUpdaters.get(i).update();
+            for (int i = 0; i < jointUpdaters.size(); i++)
+            {
+               jointUpdaters.get(i).update();
+            }
+            scs.setTime(Conversions.nanosecondsToSeconds(timestamp));
+            updateLocalVariables();
+            scs.tickAndUpdate();
          }
-         scs.setTime(TimeTools.nanoSecondstoSeconds(timestamp));
-         scs.tickAndUpdate();
       }
    }
 
@@ -131,12 +143,6 @@ public class SCSVisualizer implements YoVariablesUpdatedListener, ExitActionList
       return true;
    }
 
-   @Override
-   public void receiveTimedOut()
-   {
-      System.out.println("Connection lost, closing client.");
-      yoVariableClient.disconnected();
-   }
 
    @Override
    public boolean updateYoVariables()
@@ -205,10 +211,10 @@ public class SCSVisualizer implements YoVariablesUpdatedListener, ExitActionList
    public final void start(LogHandshake handshake, YoVariableHandshakeParser handshakeParser)
    {
       Robot robot = new Robot("DummyRobot");
-      if (handshake.modelLoaderClass != null)
+      if (handshake.getModelLoaderClass() != null)
       {
          SDFModelLoader modelLoader = new SDFModelLoader();
-         modelLoader.load(handshake.modelName, handshake.model, handshake.resourceDirectories, handshake.resourceZip, null);
+         modelLoader.load(handshake.getModelName(), handshake.getModel(), handshake.getResourceDirectories(), handshake.getResourceZip(), null);
          robot = new FloatingRootJointRobot(modelLoader.createRobot());
       }
 
@@ -256,13 +262,17 @@ public class SCSVisualizer implements YoVariablesUpdatedListener, ExitActionList
 
       YoVariableRegistry yoVariableRegistry = handshakeParser.getRootRegistry();
       this.registry.addChild(yoVariableRegistry);
+      this.registry.addChild(yoVariableClient.getDebugRegistry());
 
       List<JointState> jointStates = handshakeParser.getJointStates();
       JointUpdater.getJointUpdaterList(robot.getRootJoints(), jointStates, jointUpdaters);
 
-      yoGraphicsListRegistry = handshakeParser.getDynamicGraphicObjectsListRegistry();
+      yoGraphicsListRegistry = handshakeParser.getYoGraphicsListRegistry();
       scs.addYoGraphicsListRegistry(yoGraphicsListRegistry, false);
-      VisualizerUtils.createOverheadPlotter(scs, showOverheadView, yoGraphicsListRegistry);
+      SimulationOverheadPlotterFactory simulationOverheadPlotterFactory = scs.createSimulationOverheadPlotterFactory();
+      simulationOverheadPlotterFactory.setShowOnStart(showOverheadView);
+      simulationOverheadPlotterFactory.addYoGraphicsListRegistries(yoGraphicsListRegistry);
+      simulationOverheadPlotterFactory.createOverheadPlotter();
 
       for (int i = 0; i < stateListeners.size(); i++)
       {
@@ -324,13 +334,23 @@ public class SCSVisualizer implements YoVariablesUpdatedListener, ExitActionList
    public void starting(SimulationConstructionSet scs, Robot robot, YoVariableRegistry registry)
    {
    }
+   
+   /**
+    * Overridable method to update local variables.
+    * 
+    * Needs to return in less than your visualization dt.
+    */
+   public void updateLocalVariables()
+   {
+      
+   }
 
    public static void main(String[] args)
    {
       SCSVisualizer visualizer = new SCSVisualizer(32169, true);
       visualizer.setShowOverheadView(false);
 
-      YoVariableClient client = new YoVariableClient(visualizer, "remote");
+      YoVariableClient client = new YoVariableClient(visualizer);
       client.start();
    }
 
@@ -341,7 +361,7 @@ public class SCSVisualizer implements YoVariablesUpdatedListener, ExitActionList
    }
 
    @Override
-   public void clearLog()
+   public void clearLog(String guid)
    {
    }
 

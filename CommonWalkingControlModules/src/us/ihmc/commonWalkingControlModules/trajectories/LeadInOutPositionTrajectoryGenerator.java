@@ -1,26 +1,25 @@
 package us.ihmc.commonWalkingControlModules.trajectories;
 
-import javax.vecmath.AxisAngle4d;
-import javax.vecmath.Vector3d;
-
-import us.ihmc.graphics3DDescription.appearance.YoAppearance;
-import us.ihmc.graphics3DDescription.yoGraphics.BagOfBalls;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicCoordinateSystem;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicPosition;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicVector;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsList;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.euclid.axisAngle.AxisAngle;
+import us.ihmc.euclid.geometry.tools.EuclidGeometryTools;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.graphicsDescription.appearance.YoAppearance;
+import us.ihmc.graphicsDescription.yoGraphics.BagOfBalls;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicCoordinateSystem;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicVector;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsList;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.robotics.MathTools;
-import us.ihmc.robotics.dataStructures.listener.VariableChangedListener;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.YoVariable;
+import us.ihmc.yoVariables.listener.VariableChangedListener;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoVariable;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FramePose;
 import us.ihmc.robotics.geometry.FrameVector;
-import us.ihmc.robotics.geometry.GeometryTools;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
 import us.ihmc.robotics.math.frames.YoFramePointInMultipleFrames;
 import us.ihmc.robotics.math.frames.YoFramePose;
 import us.ihmc.robotics.math.frames.YoFrameVectorInMultipleFrames;
@@ -34,10 +33,10 @@ public class LeadInOutPositionTrajectoryGenerator extends PositionTrajectoryGene
 
    private final YoVariableRegistry registry;
 
-   private final DoubleYoVariable currentTime;
-   private final DoubleYoVariable trajectoryTime;
-   private final DoubleYoVariable leaveTime;
-   private final DoubleYoVariable approachTime;
+   private final YoDouble currentTime;
+   private final YoDouble trajectoryTime;
+   private final YoDouble leaveTime;
+   private final YoDouble approachTime;
    private final YoPolynomial xyPolynomial, zPolynomial;
 
    private final YoFramePointInMultipleFrames initialPosition;
@@ -49,8 +48,8 @@ public class LeadInOutPositionTrajectoryGenerator extends PositionTrajectoryGene
    private final YoFrameVectorInMultipleFrames currentVelocity;
    private final YoFrameVectorInMultipleFrames currentAcceleration;
 
-   private final DoubleYoVariable leaveDistance;
-   private final DoubleYoVariable approachDistance;
+   private final YoDouble leaveDistance;
+   private final YoDouble approachDistance;
 
    /** The current trajectory frame chosen by the user. */
    private ReferenceFrame currentTrajectoryFrame;
@@ -71,8 +70,8 @@ public class LeadInOutPositionTrajectoryGenerator extends PositionTrajectoryGene
 
    private final YoFramePose distortedPlanePose;
 
-   /** Use a BooleanYoVariable to hide and show visualization with a VariableChangedListener, so it is still working in playback mode. */
-   private final BooleanYoVariable showViz;
+   /** Use a YoBoolean to hide and show visualization with a VariableChangedListener, so it is still working in playback mode. */
+   private final YoBoolean showViz;
 
    public LeadInOutPositionTrajectoryGenerator(String namePrefix, ReferenceFrame referenceFrame, YoVariableRegistry parentRegistry)
    {
@@ -95,10 +94,10 @@ public class LeadInOutPositionTrajectoryGenerator extends PositionTrajectoryGene
    {
       super(allowMultipleFrames, referenceFrame);
       registry = new YoVariableRegistry(namePrefix + getClass().getSimpleName());
-      leaveTime = new DoubleYoVariable(namePrefix + "LeaveTime", registry);
-      approachTime = new DoubleYoVariable(namePrefix + "ApproachTime", registry);
-      trajectoryTime = new DoubleYoVariable(namePrefix + "TrajectoryTime", registry);
-      currentTime = new DoubleYoVariable(namePrefix + "Time", registry);
+      leaveTime = new YoDouble(namePrefix + "LeaveTime", registry);
+      approachTime = new YoDouble(namePrefix + "ApproachTime", registry);
+      trajectoryTime = new YoDouble(namePrefix + "TrajectoryTime", registry);
+      currentTime = new YoDouble(namePrefix + "Time", registry);
       xyPolynomial = new YoPolynomial(namePrefix + "PositionPolynomial", 6, registry);
       zPolynomial = new YoPolynomial(namePrefix + "VelocityPolynomial", 8, registry);
 
@@ -122,8 +121,8 @@ public class LeadInOutPositionTrajectoryGenerator extends PositionTrajectoryGene
       currentVelocity = new YoFrameVectorInMultipleFrames(namePrefix + "CurrentVelocity", registry, referenceFrame, distortedPlane);
       currentAcceleration = new YoFrameVectorInMultipleFrames(namePrefix + "CurrentAcceleration", registry, referenceFrame, distortedPlane);
 
-      leaveDistance = new DoubleYoVariable(namePrefix + "LeaveDistance", registry);
-      approachDistance = new DoubleYoVariable(namePrefix + "ApproachDistance", registry);
+      leaveDistance = new YoDouble(namePrefix + "LeaveDistance", registry);
+      approachDistance = new YoDouble(namePrefix + "ApproachDistance", registry);
 
       registerMultipleFramesHolders(initialPosition, finalPosition, currentPosition, currentVelocity, currentAcceleration);
 
@@ -155,7 +154,7 @@ public class LeadInOutPositionTrajectoryGenerator extends PositionTrajectoryGene
 
          bagOfBalls = new BagOfBalls(numberOfBalls, 0.01, yoGraphicsList.getLabel(), registry, yoGraphicsListRegistry);
 
-         showViz = new BooleanYoVariable(namePrefix + "ShowViz", registry);
+         showViz = new YoBoolean(namePrefix + "ShowViz", registry);
          showViz.addVariableChangedListener(new VariableChangedListener()
          {
             @Override
@@ -183,8 +182,8 @@ public class LeadInOutPositionTrajectoryGenerator extends PositionTrajectoryGene
       }
    }
 
-   private final Vector3d tempVector = new Vector3d();
-   private final AxisAngle4d tempAxisAngle = new AxisAngle4d();
+   private final Vector3D tempVector = new Vector3D();
+   private final AxisAngle tempAxisAngle = new AxisAngle();
 
    public void setInitialLeadOut(FramePoint initialPosition, FrameVector initialDirection, double leaveDistance)
    {
@@ -192,7 +191,7 @@ public class LeadInOutPositionTrajectoryGenerator extends PositionTrajectoryGene
       this.initialDirection.set(initialDirection);
       this.initialDirection.normalize();
       this.initialDirection.get(tempVector);
-      GeometryTools.getRotationBasedOnNormal(tempAxisAngle, tempVector);
+      EuclidGeometryTools.axisAngleFromZUpToVector3D(tempVector, tempAxisAngle);
 
       initialDistortionPose.setToZero(this.initialPosition.getReferenceFrame());
       initialDistortionPose.setPosition(initialPosition);
@@ -208,7 +207,7 @@ public class LeadInOutPositionTrajectoryGenerator extends PositionTrajectoryGene
       this.finalDirection.normalize();
       this.finalDirection.get(tempVector);
       tempVector.negate();
-      GeometryTools.getRotationBasedOnNormal(tempAxisAngle, tempVector);
+      EuclidGeometryTools.axisAngleFromZUpToVector3D(tempVector, tempAxisAngle);
 
       finalDistortionPose.setToZero(this.finalPosition.getReferenceFrame());
       finalDistortionPose.setPosition(finalPosition);
@@ -227,12 +226,12 @@ public class LeadInOutPositionTrajectoryGenerator extends PositionTrajectoryGene
    public void setTrajectoryTime(double newTrajectoryTime, double leaveTime, double approachTime)
    {
       trajectoryTime.set(newTrajectoryTime);
-      MathTools.checkIfInRange(approachTime, 0.0, newTrajectoryTime - leaveTime);
+      MathTools.checkIntervalContains(approachTime, 0.0, newTrajectoryTime - leaveTime);
       this.approachTime.set(approachTime);
       this.leaveTime.set(leaveTime);
    }
 
-   protected DoubleYoVariable getYoLeaveTime()
+   protected YoDouble getYoLeaveTime()
    {
       return leaveTime;
    }
@@ -242,7 +241,7 @@ public class LeadInOutPositionTrajectoryGenerator extends PositionTrajectoryGene
    {
       currentTrajectoryFrame = initialPosition.getReferenceFrame();
 
-      MathTools.checkIfInRange(trajectoryTime.getDoubleValue(), 0.0, Double.POSITIVE_INFINITY);
+      MathTools.checkIntervalContains(trajectoryTime.getDoubleValue(), 0.0, Double.POSITIVE_INFINITY);
       double t1 = leaveTime.getDoubleValue();
       double t2 = trajectoryTime.getDoubleValue() - approachTime.getDoubleValue();
       double tf = trajectoryTime.getDoubleValue();
@@ -287,7 +286,7 @@ public class LeadInOutPositionTrajectoryGenerator extends PositionTrajectoryGene
       double t2 = trajectoryTime.getDoubleValue() - approachTime.getDoubleValue();
       double tf = trajectoryTime.getDoubleValue();
 
-      xyPolynomial.compute(MathTools.clipToMinMax(time, t1, t2));
+      xyPolynomial.compute(MathTools.clamp(time, t1, t2));
 
       currentDistortionPose.interpolate(initialDistortionPose, finalDistortionPose, xyPolynomial.getPosition());
       distortedPlanePose.setAndMatchFrame(currentDistortionPose);
@@ -302,7 +301,7 @@ public class LeadInOutPositionTrajectoryGenerator extends PositionTrajectoryGene
       currentVelocity.subAndScale(alphaDot, finalPosition, initialPosition);
       currentAcceleration.subAndScale(alphaDDot, finalPosition, initialPosition);
 
-      zPolynomial.compute(MathTools.clipToMinMax(time, 0.0, tf));
+      zPolynomial.compute(MathTools.clamp(time, 0.0, tf));
 
       currentPosition.setZ(zPolynomial.getPosition());
       currentVelocity.setZ(zPolynomial.getVelocity());

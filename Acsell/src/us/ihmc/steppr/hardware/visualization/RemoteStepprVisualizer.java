@@ -2,7 +2,7 @@ package us.ihmc.steppr.hardware.visualization;
 
 import us.ihmc.robotDataLogger.YoVariableClient;
 import us.ihmc.robotDataVisualizer.visualizer.SCSVisualizer;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.simulationconstructionset.Robot;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
 import us.ihmc.steppr.hardware.StepprDashboard;
@@ -25,7 +25,7 @@ public class RemoteStepprVisualizer extends SCSVisualizer
       SCSVisualizer scsYoVariablesUpdatedListener = new RemoteStepprVisualizer(16384);
       scsYoVariablesUpdatedListener.setShowOverheadView(false);
       
-      YoVariableClient client = new YoVariableClient(scsYoVariablesUpdatedListener, "remote");
+      YoVariableClient client = new YoVariableClient(scsYoVariablesUpdatedListener);
       client.start();
    }
 }

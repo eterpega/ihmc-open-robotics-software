@@ -4,10 +4,9 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.math.filters.FilteredVelocityYoVariable;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 
 public class FilteredVelocityYoVariableTest
 {
@@ -20,7 +19,7 @@ public class FilteredVelocityYoVariableTest
    {
       YoVariableRegistry registry = new YoVariableRegistry("testRegistry");
       double alpha = 0.3;
-      DoubleYoVariable positionVariable = new DoubleYoVariable("positionVariable", registry);
+      YoDouble positionVariable = new YoDouble("positionVariable", registry);
 
       FilteredVelocityYoVariable filteredVelocityYoVariable = new FilteredVelocityYoVariable("filteredVelocityYoVariable", "test description", alpha,
             positionVariable, DT, registry);
@@ -44,7 +43,7 @@ public class FilteredVelocityYoVariableTest
    {
       YoVariableRegistry registry = new YoVariableRegistry("testRegistry");
       double alpha = 0.005;
-      DoubleYoVariable positionVariable = new DoubleYoVariable("positionVariable", registry);
+      YoDouble positionVariable = new YoDouble("positionVariable", registry);
 
       FilteredVelocityYoVariable filteredVelocityYoVariable = new FilteredVelocityYoVariable("filteredVelocityYoVariable", "test description", alpha,
             positionVariable, DT, registry);

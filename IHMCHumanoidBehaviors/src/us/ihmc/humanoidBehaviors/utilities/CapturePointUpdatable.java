@@ -2,22 +2,22 @@ package us.ihmc.humanoidBehaviors.utilities;
 
 import java.awt.Color;
 
-import javax.vecmath.Point2d;
-import javax.vecmath.Vector2d;
-
 import us.ihmc.commonWalkingControlModules.controllers.Updatable;
 import us.ihmc.commonWalkingControlModules.desiredFootStep.FootstepListVisualizer;
-import us.ihmc.graphics3DDescription.appearance.YoAppearance;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicPosition;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicPosition.GraphicType;
-import us.ihmc.graphics3DDescription.yoGraphics.plotting.YoArtifactPolygon;
+import us.ihmc.euclid.geometry.ConvexPolygon2D;
+import us.ihmc.euclid.tuple2D.Point2D;
+import us.ihmc.euclid.tuple2D.Vector2D;
+import us.ihmc.euclid.tuple2D.interfaces.Point2DReadOnly;
+import us.ihmc.graphicsDescription.appearance.YoAppearance;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition.GraphicType;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.graphicsDescription.yoGraphics.plotting.YoArtifactPolygon;
 import us.ihmc.humanoidRobotics.communication.subscribers.CapturabilityBasedStatusSubscriber;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.EnumYoVariable;
-import us.ihmc.robotics.geometry.ConvexPolygon2d;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoEnum;
 import us.ihmc.robotics.geometry.FrameConvexPolygon2d;
 import us.ihmc.robotics.geometry.FramePoint2d;
 import us.ihmc.robotics.math.frames.YoFrameConvexPolygon2d;
@@ -36,13 +36,13 @@ public class CapturePointUpdatable implements Updatable
    private final YoFramePoint2d yoCapturePoint = new YoFramePoint2d("capturePoint", worldFrame, registry);
    private final YoFrameConvexPolygon2d yoSupportPolygon = new YoFrameConvexPolygon2d("supportPolygon", "", worldFrame, 30, registry);
    private final SideDependentList<YoFrameConvexPolygon2d> yoFootSupportPolygons = new SideDependentList<>();
-   private final EnumYoVariable<RobotSide> yoSupportLeg = new EnumYoVariable<>("supportLeg", registry, RobotSide.class, true);
-   private final BooleanYoVariable yoDoubleSupport = new BooleanYoVariable("doubleSupport", registry);
+   private final YoEnum<RobotSide> yoSupportLeg = new YoEnum<>("supportLeg", registry, RobotSide.class, true);
+   private final YoBoolean yoDoubleSupport = new YoBoolean("doubleSupport", registry);
 
    // Computed Stuff
-   private final DoubleYoVariable icpError = new DoubleYoVariable("icpError", registry);
-   private final DoubleYoVariable minIcpDistanceToSupportPolygon = new DoubleYoVariable("minIcpDistanceToSupportPolygon", registry);
-   private final BooleanYoVariable tippingDetected = new BooleanYoVariable("tippingDetected", registry);
+   private final YoDouble icpError = new YoDouble("icpError", registry);
+   private final YoDouble minIcpDistanceToSupportPolygon = new YoDouble("minIcpDistanceToSupportPolygon", registry);
+   private final YoBoolean tippingDetected = new YoBoolean("tippingDetected", registry);
    private final double MAX_CAPTURE_POINT_ERROR_M = 0.5 * 0.075; // Reasonable value < 0.01   Max < 0.02
 
    private final FrameConvexPolygon2d supportPolygon = new FrameConvexPolygon2d();
@@ -150,7 +150,7 @@ public class CapturePointUpdatable implements Updatable
       }
    }
 
-   public BooleanYoVariable getTippingDetectedBoolean()
+   public YoBoolean getTippingDetectedBoolean()
    {
       return tippingDetected;
    }
@@ -175,40 +175,40 @@ public class CapturePointUpdatable implements Updatable
       return yoFootSupportPolygons.get(robotSide);
    }
 
-   public EnumYoVariable<RobotSide> getYoSupportLeg()
+   public YoEnum<RobotSide> getYoSupportLeg()
    {
       return yoSupportLeg;
    }
 
-   public BooleanYoVariable getYoDoubleSupport()
+   public YoBoolean getYoDoubleSupport()
    {
       return yoDoubleSupport;
    }
 
-   public DoubleYoVariable getMinIcpDistanceToSupportPolygon()
+   public YoDouble getMinIcpDistanceToSupportPolygon()
    {
       return minIcpDistanceToSupportPolygon;
    }
 
-   public DoubleYoVariable getIcpError()
+   public YoDouble getIcpError()
    {
       return icpError;
    }
 
-   private Point2d icp = new Point2d();
+   private Point2D icp = new Point2D();
 
    private void updateCapturePointDistanceToSupportPolygon()
    {
       yoCapturePoint.get(icp);
 
-      ConvexPolygon2d supportPolygon = yoSupportPolygon.getConvexPolygon2d();
+      ConvexPolygon2D supportPolygon = yoSupportPolygon.getConvexPolygon2d();
 
       double distanceToClosestEdgeOfSupportPolygon = computeDistanceToClosestEdge(icp, supportPolygon);
 
       minIcpDistanceToSupportPolygon.set(distanceToClosestEdgeOfSupportPolygon);
    }
 
-   private double computeDistanceToClosestEdge(Point2d pointInsideConvexPolygon, ConvexPolygon2d convexPolygon)
+   private double computeDistanceToClosestEdge(Point2D pointInsideConvexPolygon, ConvexPolygon2D convexPolygon)
    {
       double minDistanceToEdge = Double.POSITIVE_INFINITY;
 
@@ -217,10 +217,10 @@ public class CapturePointUpdatable implements Updatable
 
       for (int i = 0; i < numberOfVertices - 1; i++)
       {
-         Point2d vertex = convexPolygon.getVertex(i);
-         Point2d vertex2 = convexPolygon.getVertex(i + 1);
+         Point2DReadOnly vertex = convexPolygon.getVertex(i);
+         Point2DReadOnly vertex2 = convexPolygon.getVertex(i + 1);
 
-         Point2d projectedPoint = projectPointOntoEdge(vertex, vertex2, pointInsideConvexPolygon);
+         Point2D projectedPoint = projectPointOntoEdge(vertex, vertex2, pointInsideConvexPolygon);
 
          distanceToEdge = pointInsideConvexPolygon.distance(projectedPoint);
 
@@ -232,9 +232,9 @@ public class CapturePointUpdatable implements Updatable
       return minDistanceToEdge;
    }
 
-   private Vector2d edgeVector = new Vector2d();
+   private Vector2D edgeVector = new Vector2D();
 
-   private Vector2d constuctEdgeFromTwoVertices(Point2d firstVertex, Point2d secondVertex)
+   private Vector2D constuctEdgeFromTwoVertices(Point2DReadOnly firstVertex, Point2DReadOnly secondVertex)
    {
       edgeVector.set(secondVertex);
       edgeVector.sub(firstVertex);
@@ -242,12 +242,12 @@ public class CapturePointUpdatable implements Updatable
       return edgeVector;
    }
 
-   private Vector2d firstVertexToPoint = new Vector2d();
-   private Point2d projectedPoint = new Point2d();
+   private Vector2D firstVertexToPoint = new Vector2D();
+   private Point2D projectedPoint = new Point2D();
 
-   private Point2d projectPointOntoEdge(Point2d firstVertex, Point2d secondVertex, Point2d point)
+   private Point2D projectPointOntoEdge(Point2DReadOnly firstVertex, Point2DReadOnly secondVertex, Point2D point)
    {
-      Vector2d edgeVector = constuctEdgeFromTwoVertices(firstVertex, secondVertex);
+      Vector2D edgeVector = constuctEdgeFromTwoVertices(firstVertex, secondVertex);
 
       projectedPoint.set(firstVertex);
 

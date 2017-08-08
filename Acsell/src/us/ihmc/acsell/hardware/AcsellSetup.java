@@ -10,17 +10,17 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.DatagramChannel;
 
-import us.ihmc.robotModels.visualizer.RobotVisualizer;
 import us.ihmc.acsell.hardware.configuration.AcsellNetworkParameters;
 import us.ihmc.communication.configuration.NetworkParameterKeys;
 import us.ihmc.communication.configuration.NetworkParameters;
-import us.ihmc.multicastLogDataProtocol.LogUtils;
 import us.ihmc.realtime.MonotonicTime;
 import us.ihmc.realtime.PeriodicParameters;
 import us.ihmc.realtime.PriorityParameters;
 import us.ihmc.realtime.RealtimeThread;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.IntegerYoVariable;
+import us.ihmc.robotDataLogger.RobotVisualizer;
+import us.ihmc.robotDataLogger.util.LogUtils;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoInteger;
 import us.ihmc.tools.thread.ThreadTools;
 
 public class AcsellSetup extends RealtimeThread
@@ -39,8 +39,8 @@ public class AcsellSetup extends RealtimeThread
 
    private final YoVariableRegistry registry = new YoVariableRegistry("StepprSetup");
 
-   private final IntegerYoVariable logicPowerStateRequest = new IntegerYoVariable("logicPowerStateRequest", registry);
-   private final IntegerYoVariable motorPowerStateRequest = new IntegerYoVariable("motorPowerStateRequest", registry);
+   private final YoInteger logicPowerStateRequest = new YoInteger("logicPowerStateRequest", registry);
+   private final YoInteger motorPowerStateRequest = new YoInteger("motorPowerStateRequest", registry);
 
    private long logicSwitchTime = -1;
    private long motorSwitchTime = -1;

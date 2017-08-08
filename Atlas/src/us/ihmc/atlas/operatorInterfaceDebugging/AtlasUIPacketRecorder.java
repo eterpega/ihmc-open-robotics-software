@@ -7,25 +7,27 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Scanner;
 
+import us.ihmc.commons.Conversions;
+import us.ihmc.commons.PrintTools;
+import us.ihmc.commons.exception.DefaultExceptionHandler;
+import us.ihmc.commons.nio.FileTools;
+import us.ihmc.commons.nio.WriteOption;
+import us.ihmc.commons.time.Stopwatch;
 import us.ihmc.communication.configuration.NetworkParameterKeys;
 import us.ihmc.communication.configuration.NetworkParameters;
 import us.ihmc.communication.net.KryoStreamSerializer;
-import us.ihmc.communication.net.NetStateListener;
+import us.ihmc.communication.net.ConnectionStateListener;
 import us.ihmc.communication.packetCommunicator.PacketCommunicator;
 import us.ihmc.communication.packetCommunicator.interfaces.GlobalPacketConsumer;
 import us.ihmc.communication.packets.Packet;
 import us.ihmc.communication.util.NetworkPorts;
 import us.ihmc.humanoidRobotics.kryo.IHMCCommunicationKryoNetClassList;
-import us.ihmc.tools.UnitConversions;
-import us.ihmc.tools.io.files.FileTools;
-import us.ihmc.tools.io.printing.PrintTools;
-import us.ihmc.tools.time.DateTools;
-import us.ihmc.tools.time.Timer;
+import us.ihmc.tools.FormattingTools;
 
 public class AtlasUIPacketRecorder
 {
    private static final Path PACKET_RECORDINGS_PATH = Paths.get("./packetRecordings");
-   private static final String PACKET_RECORDING_FILENAME = "PacketRecording_" + DateTools.getDateString() + "_real3";
+   private static final String PACKET_RECORDING_FILENAME = "PacketRecording_" + FormattingTools.getDateString() + "_real3";
    private Object streamConch = new Object();
 
    public AtlasUIPacketRecorder() throws IOException
@@ -34,16 +36,16 @@ public class AtlasUIPacketRecorder
       PrintTools.info("Press Enter to record...");
       scanner.nextLine();
       
-      final DataOutputStream fileDataOutputStream = FileTools.getFileDataOutputStream(getPacketRecordingFilePath());
-      final PrintWriter timeWriter = FileTools.newPrintWriter(getPacketTimingPath());
+      final DataOutputStream fileDataOutputStream = FileTools.newFileDataOutputStream(getPacketRecordingFilePath(), DefaultExceptionHandler.PRINT_STACKTRACE);
+      final PrintWriter timeWriter = FileTools.newPrintWriter(getPacketTimingPath(), WriteOption.TRUNCATE, DefaultExceptionHandler.PRINT_STACKTRACE);
       
       IHMCCommunicationKryoNetClassList netClassList = new IHMCCommunicationKryoNetClassList();
       
-      final KryoStreamSerializer kryoStreamSerializer = new KryoStreamSerializer(UnitConversions.megabytesToBytes(10));
+      final KryoStreamSerializer kryoStreamSerializer = new KryoStreamSerializer(Conversions.megabytesToBytes(10));
       kryoStreamSerializer.registerClasses(netClassList);
       
       PacketCommunicator packetClient = PacketCommunicator.createTCPPacketCommunicatorClient(NetworkParameters.getHost(NetworkParameterKeys.networkManager), NetworkPorts.NETWORK_PROCESSOR_TO_UI_TCP_PORT, netClassList);
-      packetClient.attachStateListener(new NetStateListener()
+      packetClient.attachStateListener(new ConnectionStateListener()
       {
          @Override
          public void disconnected()
@@ -75,7 +77,7 @@ public class AtlasUIPacketRecorder
       packetClient.connect();
       packetClient.attachGlobalListener(new GlobalPacketConsumer()
       {
-         Timer timer = new Timer();
+         Stopwatch timer = new Stopwatch();
          boolean firstPacketReceived = false;
          
          @Override
@@ -109,12 +111,12 @@ public class AtlasUIPacketRecorder
       scanner.nextLine();
       scanner.close();
       
-      packetClient.close();
+      packetClient.disconnect();
    }
    
    public static Path getPacketRecordingFilePath()
    {
-      FileTools.ensureDirectoryExists(PACKET_RECORDINGS_PATH);
+      FileTools.ensureDirectoryExists(PACKET_RECORDINGS_PATH, DefaultExceptionHandler.PRINT_STACKTRACE);
       return PACKET_RECORDINGS_PATH.resolve(getPrefixFileName() + ".ibag");
    }
    
@@ -125,7 +127,7 @@ public class AtlasUIPacketRecorder
    
    public static String getPrefixFileName()
    {
-      return "PacketRecording_" + DateTools.getDateString() + "_real5";
+      return "PacketRecording_" + FormattingTools.getDateString() + "_real5";
    }
    
    public static void main(String[] args) throws IOException

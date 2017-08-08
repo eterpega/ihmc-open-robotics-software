@@ -1,10 +1,9 @@
 package us.ihmc.exampleSimulations.trebuchet;
 
-import javax.vecmath.Vector3d;
-
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.math.frames.YoFramePoint;
 import us.ihmc.robotics.math.frames.YoFrameVector;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
@@ -15,14 +14,14 @@ public class TrebuchetController implements RobotController
 {
    private final YoVariableRegistry registry = new YoVariableRegistry(getName());
 
-   private final BooleanYoVariable isBallAttachedToRope = new BooleanYoVariable("isBallAttachedToRope", registry);
+   private final YoBoolean isBallAttachedToRope = new YoBoolean("isBallAttachedToRope", registry);
 
    private final YoFrameVector poleToBallPosition = new YoFrameVector("poleToBallPosition", ReferenceFrame.getWorldFrame(), registry);
    private final YoFrameVector poleToBallVelocity = new YoFrameVector("poleToBallVelocity", ReferenceFrame.getWorldFrame(), registry);
 
-   private final DoubleYoVariable poleTipToBallCenterDistance = new DoubleYoVariable("poleTipToBallCenterDistance", registry);
-   private final DoubleYoVariable poleTipToBallCenterVelocity = new DoubleYoVariable("poleTipToBallCenterVelocity", registry);
-   private final DoubleYoVariable ropeForce = new DoubleYoVariable("ropeForce", registry);
+   private final YoDouble poleTipToBallCenterDistance = new YoDouble("poleTipToBallCenterDistance", registry);
+   private final YoDouble poleTipToBallCenterVelocity = new YoDouble("poleTipToBallCenterVelocity", registry);
+   private final YoDouble ropeForce = new YoDouble("ropeForce", registry);
 
    private final TrebuchetRobot trebuchetRobot;
    private final ExternalForcePoint ballCenterExternalForcePoint, poleTipExternalForcePoint;
@@ -37,8 +36,8 @@ public class TrebuchetController implements RobotController
    }
 
    public static final double BALL_MIN_HEIGHT = TrebuchetRobot.WHEEL_RADIUS + TrebuchetRobot.BASE_HEIGHT / 2.0 + TrebuchetRobot.BALL_RADIUS;
-   private final Vector3d forceOnPole = new Vector3d();
-   private final Vector3d forceOnBall = new Vector3d();
+   private final Vector3D forceOnPole = new Vector3D();
+   private final Vector3D forceOnBall = new Vector3D();
 
    public void doControl()
    {

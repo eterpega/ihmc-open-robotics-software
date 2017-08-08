@@ -6,24 +6,24 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.Random;
 
-import javax.vecmath.AxisAngle4d;
-
 import org.junit.Test;
 
-import us.ihmc.robotModels.FullHumanoidRobotModel;
-import us.ihmc.simulationconstructionset.FloatingRootJointRobot;
-import us.ihmc.robotics.partNames.ArmJointName;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
 import us.ihmc.avatar.jointAnglesWriter.JointAnglesWriter;
-import us.ihmc.graphics3DDescription.appearance.YoAppearance;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicPosition;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.commons.PrintTools;
+import us.ihmc.commons.RandomNumbers;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.euclid.axisAngle.AxisAngle;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.graphicsDescription.appearance.YoAppearance;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.robotModels.FullHumanoidRobotModel;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.geometry.FrameOrientation;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FramePose;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
 import us.ihmc.robotics.kinematics.DdoglegInverseKinematicsCalculator;
 import us.ihmc.robotics.kinematics.InverseKinematicsCalculator;
 import us.ihmc.robotics.kinematics.InverseKinematicsStepListener;
@@ -32,14 +32,13 @@ import us.ihmc.robotics.kinematics.NumericalInverseKinematicsCalculator;
 import us.ihmc.robotics.kinematics.RandomRestartInverseKinematicsCalculator;
 import us.ihmc.robotics.math.frames.YoFrameOrientation;
 import us.ihmc.robotics.math.frames.YoFramePoint;
-import us.ihmc.robotics.random.RandomTools;
+import us.ihmc.robotics.partNames.ArmJointName;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.screwTheory.GeometricJacobian;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
+import us.ihmc.simulationconstructionset.FloatingRootJointRobot;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
-import us.ihmc.tools.io.printing.PrintTools;
 
 public abstract class NumericalInverseKinematicsCalculatorWithRobotTest implements MultiRobotTestInterface
 {
@@ -75,11 +74,11 @@ public abstract class NumericalInverseKinematicsCalculatorWithRobotTest implemen
    private final YoFramePoint testPositionForwardKinematics = new YoFramePoint("testPositionForwardKinematics", ReferenceFrame.getWorldFrame(), registry);
    private final YoFrameOrientation testOrientationForwardKinematics = new YoFrameOrientation("testOrientationForwardKinematics",
                                                                           ReferenceFrame.getWorldFrame(), registry);
-   private final DoubleYoVariable yoErrorScalar = new DoubleYoVariable("errorScalar", registry);
-   private final DoubleYoVariable positionError = new DoubleYoVariable("positionError", registry);
-   private final DoubleYoVariable orientationError = new DoubleYoVariable("orientationError", registry);
+   private final YoDouble yoErrorScalar = new YoDouble("errorScalar", registry);
+   private final YoDouble positionError = new YoDouble("positionError", registry);
+   private final YoDouble orientationError = new YoDouble("orientationError", registry);
 
-   private final DoubleYoVariable numberOfIterations = new DoubleYoVariable("numberOfIterations", registry);
+   private final YoDouble numberOfIterations = new YoDouble("numberOfIterations", registry);
 
    private final YoFramePoint testPositionInverseKinematics = new YoFramePoint("testPositionInverseKinematics", ReferenceFrame.getWorldFrame(), registry);
    private final YoFrameOrientation testOrientationInverseKinematics = new YoFrameOrientation("testOrientationInverseKinematics",
@@ -209,7 +208,7 @@ public abstract class NumericalInverseKinematicsCalculatorWithRobotTest implemen
 
       InitialGuessForTests initialGuessForTests = InitialGuessForTests.MIDRANGE;
       boolean updateListenersEachStep = false;
-      double errorThreshold = 0.01; 
+      double errorThreshold = 0.01;
       boolean success = testAPose(random, handEndEffectorPositionFK, handEndEffectorOrientationFK, initialGuessForTests, errorThreshold, updateListenersEachStep);
       assertTrue(success);
    }
@@ -261,12 +260,12 @@ public abstract class NumericalInverseKinematicsCalculatorWithRobotTest implemen
          System.out.println("Average Solving Time: " + averageTimeMillis + " ms");
          System.out.println("Maximal Solving Time: " + maximumTimeMillis + " ms");
       }
-      
+
       final double maximumTimeMillisMax = 600.0;
-      final double averageTimeMillisMax = 4.0;
+      final double averageTimeMillisMax = 8.0;
       assertTrue("Average Solving Time > " + averageTimeMillisMax + " ms", averageTimeMillis < averageTimeMillisMax);
       assertTrue("Maximal Solving Time > " + maximumTimeMillisMax + " ms", maximumTimeMillis < maximumTimeMillisMax);
-      
+
       //NumericalInverseKinematicCalculator is much faster than the DDogLegOne, so use the following when running it...
 //      assertTrue(averageTimeMillis < 0.04);
 //      assertTrue(maximumTimeMillis < 16.0);
@@ -293,7 +292,7 @@ public abstract class NumericalInverseKinematicsCalculatorWithRobotTest implemen
       FrameOrientation errorOrientation = new FrameOrientation();
       errorOrientation.setOrientationFromOneToTwo(handEndEffectorOrientationFK, handEndEffectorOrientationIK);
 
-      AxisAngle4d axisAngle = new AxisAngle4d();
+      AxisAngle axisAngle = new AxisAngle();
       errorOrientation.getAxisAngle(axisAngle);
       orientationError.set(axisAngle.getAngle());
 
@@ -307,14 +306,14 @@ public abstract class NumericalInverseKinematicsCalculatorWithRobotTest implemen
          scs.tickAndUpdate();
 
       boolean positionErrorAcceptable = (positionError.getDoubleValue() < errorThreshold);
-      
+
       if (!positionErrorAcceptable)
       {
          PrintTools.error("Position error not acceptable: positionError: " + positionError.getDoubleValue() + "  maxAllowed: " + errorThreshold);
       }
-      
+
       boolean orientationErrorAcceptable = (orientationError.getDoubleValue() < errorThreshold);
-      
+
       if (!orientationErrorAcceptable)
       {
          PrintTools.error("Orientation error not acceptable: orientationError: " + orientationError.getDoubleValue() + "  maxAllowed: " + errorThreshold);
@@ -349,7 +348,7 @@ public abstract class NumericalInverseKinematicsCalculatorWithRobotTest implemen
 
       long end = System.nanoTime();
 
-      solvingTime.add((long) (((double) (end - start)) * 1e-6));
+      solvingTime.add((long) ((end - start) * 1e-6));
    }
 
    private void createInitialGuess(Random random, InitialGuessForTests initialGuessForTests)
@@ -419,7 +418,7 @@ public abstract class NumericalInverseKinematicsCalculatorWithRobotTest implemen
          double minRange = jointLimits.get(name).get(0) - bufferAwayFromJointLimits;
          double maxRange = jointLimits.get(name).get(1) + bufferAwayFromJointLimits;
 
-         double randomJointAngle = RandomTools.generateRandomDouble(random, minRange, maxRange);
+         double randomJointAngle = RandomNumbers.nextDouble(random, minRange, maxRange);
          jointAngles.put(name, randomJointAngle);
          oneDoFJoints.get(name).setQ(jointAngles.get(name));
       }
@@ -436,7 +435,7 @@ public abstract class NumericalInverseKinematicsCalculatorWithRobotTest implemen
 
          double middleRangeJointAngle = (minRange + maxRange) / 2.0;
 
-         double deviation = RandomTools.generateRandomDouble(random, maxAngleDeviationFromMidRange);
+         double deviation = RandomNumbers.nextDouble(random, maxAngleDeviationFromMidRange);
 
          jointAngles.put(name, middleRangeJointAngle + deviation);
          oneDoFJoints.get(name).setQ(jointAngles.get(name));

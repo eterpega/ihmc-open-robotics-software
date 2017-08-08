@@ -4,15 +4,15 @@ package us.ihmc.exampleSimulations.exampleContact;
 import java.util.ArrayList;
 import java.util.Random;
 
-import us.ihmc.graphics3DDescription.Graphics3DObject;
+import us.ihmc.graphicsDescription.Graphics3DObject;
 import us.ihmc.simulationconstructionset.ExternalForcePoint;
 import us.ihmc.simulationconstructionset.GroundContactModel;
 import us.ihmc.simulationconstructionset.Robot;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
 import us.ihmc.simulationconstructionset.SimulationConstructionSetParameters;
 import us.ihmc.simulationconstructionset.util.LinearStickSlipGroundContactModel;
-import us.ihmc.simulationconstructionset.util.environments.ContactableSelectableBoxRobot;
-import us.ihmc.simulationconstructionset.util.environments.PointMassRobot;
+import us.ihmc.simulationConstructionSetTools.util.environments.environmentRobots.ContactableSelectableBoxRobot;
+import us.ihmc.exampleSimulations.pointMassRobot.PointMassRobot;
 import us.ihmc.simulationconstructionset.util.ground.Contactable;
 
 public class ExampleContactSimulationWithBoxesOnATable

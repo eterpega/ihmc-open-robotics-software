@@ -1,29 +1,28 @@
 package us.ihmc.quadrupedRobotics.planning;
 
+import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.quadrupedRobotics.util.TimeInterval;
 import us.ihmc.quadrupedRobotics.util.YoTimeInterval;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.EnumYoVariable;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoEnum;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.math.frames.YoFramePoint;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotQuadrant;
 
-import javax.vecmath.Point3d;
-
 public class YoQuadrupedTimedStep extends QuadrupedTimedStep
 {
-   private final EnumYoVariable<RobotQuadrant> robotQuadrant;
+   private final YoEnum<RobotQuadrant> robotQuadrant;
    private final YoTimeInterval timeInterval;
-   private final DoubleYoVariable groundClearance;
+   private final YoDouble groundClearance;
    private final YoFramePoint goalPosition;
 
    public YoQuadrupedTimedStep(String prefix, YoVariableRegistry registry)
    {
       super();
-      this.robotQuadrant = new EnumYoVariable<>(prefix + "RobotQuadrant", registry, RobotQuadrant.class);
-      this.groundClearance = new DoubleYoVariable(prefix + "GroundClearance", registry);
+      this.robotQuadrant = new YoEnum<>(prefix + "RobotQuadrant", registry, RobotQuadrant.class);
+      this.groundClearance = new YoDouble(prefix + "GroundClearance", registry);
       this.goalPosition = new YoFramePoint(prefix + "GoalPosition", ReferenceFrame.getWorldFrame(), registry);
       this.timeInterval = new YoTimeInterval(prefix + "TimeInterval", registry);
    }
@@ -62,13 +61,13 @@ public class YoQuadrupedTimedStep extends QuadrupedTimedStep
     * Unsafe for external use.
     */
    @Override
-   protected Point3d getGoalPosition()
+   protected Point3D getGoalPosition()
    {
       return this.goalPosition.getFrameTuple().getPoint();
    }
 
    @Override
-   public void getGoalPosition(Point3d goalPosition)
+   public void getGoalPosition(Point3D goalPosition)
    {
       goalPosition.set(this.goalPosition.getFrameTuple().getPoint());
    }
@@ -82,7 +81,7 @@ public class YoQuadrupedTimedStep extends QuadrupedTimedStep
    }
 
    @Override
-   public void setGoalPosition(Point3d goalPosition)
+   public void setGoalPosition(Point3D goalPosition)
    {
       this.goalPosition.set(goalPosition);
    }

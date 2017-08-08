@@ -1,42 +1,55 @@
 package us.ihmc.robotics.geometry;
 
-import javax.vecmath.Point2d;
-import javax.vecmath.Vector2d;
 import java.util.ArrayList;
 import java.util.List;
 
+import us.ihmc.euclid.geometry.Line2D;
+import us.ihmc.euclid.tuple2D.Point2D;
+import us.ihmc.euclid.tuple2D.Vector2D;
+import us.ihmc.robotics.lists.RecyclingArrayList;
+
 public class StringStretcher2d
 {
-   private final Point2d startPoint = new Point2d();
-   private final Point2d endPoint = new Point2d();
+   private final Point2D startPoint = new Point2D();
+   private final Point2D endPoint = new Point2D();
 
-   private final Line2d tempLine = new Line2d(new Point2d(), new Vector2d(1.0, 0.0));
-   private final Vector2d tempVectorA = new Vector2d();
-   private final Vector2d tempVectorB = new Vector2d();
+   private final Line2D tempLine = new Line2D(new Point2D(), new Vector2D(1.0, 0.0));
 
-   private final ArrayList<Point2d[]> minMaxPoints = new ArrayList<Point2d[]>();
-
-   public void setStartPoint(Point2d startPoint)
+   private final ArrayList<MinMaxPointHolder> minMaxPoints = new ArrayList<MinMaxPointHolder>();
+   private final RecyclingArrayList<MinMaxPointHolder> recycleablePointHolders = new RecyclingArrayList<>(20, MinMaxPointHolder.class);
+   private final RecyclingArrayList<Point2D> recycleableWayPoints = new RecyclingArrayList<>(20, Point2D.class);
+   private final ArrayList<Point2D> waypoints = new ArrayList<Point2D>();
+   private final ArrayList<MinMaxPointHolder> pointsToInterpolate = new ArrayList<MinMaxPointHolder>();
+   
+   public void setStartPoint(Point2D startPoint)
    {
       this.startPoint.set(startPoint);
    }
 
-   public void setEndPoint(Point2d endPoint)
+   public void setEndPoint(Point2D endPoint)
    {
       this.endPoint.set(endPoint);
    }
 
-   public List<Point2d> stretchString()
+   /**
+    * finds a path between two endpoints that adheres to the min max point constraints.
+    * This method returns a list of waypoints which include the start and end points and a waypoint between
+    * each pair of min max points. 
+    * THE WAYPOINTS packed in the waypointListToPack ARE RECYCLED! the points used in the waypoint list live in a pool
+    * of Point2D's and will be reused. you must copy the contents of the points inside the waypoint list if you need them to persist,
+    * otherwise this method will change the contents of the points
+    * @param waypointListToPack
+    */
+   public void stretchString(List<Point2D> waypointListToPack)
    {
-      ArrayList<Point2d> ret = new ArrayList<Point2d>();
-
-      ArrayList<Point2d> waypoints = new ArrayList<Point2d>();
+      waypointListToPack.clear();
+      pointsToInterpolate.clear();
+      recycleableWayPoints.clear();
+      
       findWaypoints(waypoints);
 
-      Point2d leftPoint = startPoint;
-      ArrayList<Point2d[]> pointsToInterpolate = new ArrayList<Point2d[]>();
-
-      ret.add(startPoint);
+      Point2D leftPoint = startPoint;
+      waypointListToPack.add(startPoint);
 
       int minMaxPointsIndex = 0;
       int waypointsIndex = 0;
@@ -45,8 +58,8 @@ public class StringStretcher2d
 
       while (!done)
       {
-         Point2d[] minMaxPoint = getMinMaxPoint(minMaxPointsIndex);
-         Point2d waypoint = getWaypoint(waypoints, waypointsIndex);
+         MinMaxPointHolder minMaxPoint = getMinMaxPoint(minMaxPointsIndex);
+         Point2D waypoint = getWaypoint(waypoints, waypointsIndex);
 
          if ((minMaxPoint == null) && (waypoint == null))
          {
@@ -56,16 +69,20 @@ public class StringStretcher2d
          {
             throw new RuntimeException("Shouldn't get here!");
          }
-         else if ((waypoint == minMaxPoint[0]) || (waypoint == minMaxPoint[1]))
+         else if ((waypoint == minMaxPoint.getMinPoint()) || (waypoint == minMaxPoint.getMaxPoint()))
          {
-            for (Point2d[] pointToInterpolate : pointsToInterpolate)
+            
+            for(int i = 0; i < pointsToInterpolate.size(); i++)
             {
-               ret.add(interpolate(leftPoint, waypoint, pointToInterpolate[0].getX()));
+               MinMaxPointHolder pointToInterpolate = pointsToInterpolate.get(i);
+               Point2D wayPoint = recycleableWayPoints.add();
+               interpolate(leftPoint, waypoint, pointToInterpolate.getMinPoint().getX(), wayPoint);
+               waypointListToPack.add(wayPoint);
             }
 
             pointsToInterpolate.clear();
 
-            ret.add(waypoint);
+            waypointListToPack.add(waypoint);
             leftPoint = waypoint;
             minMaxPointsIndex++;
             waypointsIndex++;
@@ -77,42 +94,43 @@ public class StringStretcher2d
          }
       }
 
-      for (Point2d[] pointToInterpolate : pointsToInterpolate)
+      for(int i = 0; i < pointsToInterpolate.size(); i++)
       {
-         ret.add(interpolate(leftPoint, endPoint, pointToInterpolate[0].getX()));
+         MinMaxPointHolder pointToInterpolate = pointsToInterpolate.get(i);
+         Point2D wayPoint = recycleableWayPoints.add();
+         interpolate(leftPoint, endPoint, pointToInterpolate.getMinPoint().getX(), wayPoint);
+         waypointListToPack.add(wayPoint);
       }
       
-      ret.add(endPoint);
-
-      return ret;
+      waypointListToPack.add(endPoint);
    }
 
-   private Point2d getWaypoint(ArrayList<Point2d> waypoints, int waypointsIndex)
+   private Point2D getWaypoint(ArrayList<Point2D> waypoints, int waypointsIndex)
    {
       if (waypointsIndex < 0) return null;
       if (waypointsIndex >= waypoints.size()) return null;
       
-      Point2d waypoint = waypoints.get(waypointsIndex);
+      Point2D waypoint = waypoints.get(waypointsIndex);
       return waypoint;
    }
 
-   private Point2d[] getMinMaxPoint(int minMaxPointsIndex)
+   private MinMaxPointHolder getMinMaxPoint(int minMaxPointsIndex)
    {
       if (minMaxPointsIndex < 0) return null;
       if (minMaxPointsIndex >= minMaxPoints.size()) return null;
       
-      Point2d[] minMaxPoint = minMaxPoints.get(minMaxPointsIndex);
+      MinMaxPointHolder minMaxPoint = minMaxPoints.get(minMaxPointsIndex);
       return minMaxPoint;
    }
 
-   public void findWaypoints(ArrayList<Point2d> waypointsToPack)
+   public void findWaypoints(ArrayList<Point2D> waypointsToPack)
    {
       waypointsToPack.clear();
 
       findWaypoints(waypointsToPack, startPoint, endPoint, 0, minMaxPoints.size()-1);
    }
 
-   public void findWaypoints(ArrayList<Point2d> waypointsToPack, Point2d startPoint, Point2d endPoint, int startIndex, int endIndex)
+   public void findWaypoints(ArrayList<Point2D> waypointsToPack, Point2D startPoint, Point2D endPoint, int startIndex, int endIndex)
    {
       if (startIndex > endIndex) return;
       if (startIndex < 0)
@@ -125,7 +143,7 @@ public class StringStretcher2d
 
       if (worstMinViolatorIndex != -1)
       {
-         Point2d waypoint = minMaxPoints.get(worstMinViolatorIndex)[0];
+         Point2D waypoint = minMaxPoints.get(worstMinViolatorIndex).getMinPoint();
          insertWaypointBeforeEndPoint(waypointsToPack, endPoint, waypoint);
          
          findWaypoints(waypointsToPack, startPoint, waypoint, startIndex, worstMinViolatorIndex-1);
@@ -138,7 +156,7 @@ public class StringStretcher2d
 
          if (worstMaxViolatorIndex != -1)
          {
-            Point2d waypoint = minMaxPoints.get(worstMaxViolatorIndex)[1];
+            Point2D waypoint = minMaxPoints.get(worstMaxViolatorIndex).getMaxPoint();
             insertWaypointBeforeEndPoint(waypointsToPack, endPoint, waypoint);
             
             findWaypoints(waypointsToPack, startPoint, waypoint, startIndex, worstMaxViolatorIndex-1);
@@ -148,7 +166,7 @@ public class StringStretcher2d
 
    }
 
-   private void insertWaypointBeforeEndPoint(ArrayList<Point2d> waypointsToPack, Point2d endPoint, Point2d waypoint)
+   private void insertWaypointBeforeEndPoint(ArrayList<Point2D> waypointsToPack, Point2D endPoint, Point2D waypoint)
    {
       if (endPoint == this.endPoint)
       {
@@ -161,7 +179,7 @@ public class StringStretcher2d
    }
 
 
-   private Point2d interpolate(Point2d startPoint, Point2d endPoint, double x)
+   private void interpolate(Point2D startPoint, Point2D endPoint, double x, Point2D midPointToPack)
    {
       double startX = startPoint.getX();
       double endX = endPoint.getX();
@@ -171,11 +189,11 @@ public class StringStretcher2d
 
       double percentX = (x - startX) / (endX - startX);
       double y = startY + percentX * (endY - startY);
-
-      return new Point2d(x, y);
+      
+      midPointToPack.set(x, y);
    }
 
-   public void addMinMaxPoints(Point2d minPoint, Point2d maxPoint)
+   public void addMinMaxPoints(Point2D minPoint, Point2D maxPoint)
    {
       double x = minPoint.getX();
       if (Math.abs(x - maxPoint.getX()) > 1e-7)
@@ -188,27 +206,30 @@ public class StringStretcher2d
          throw new RuntimeException();
 
       int i = 0;
-      while ((minMaxPoints.size() > i) && (x > minMaxPoints.get(i)[0].getX()))
+      while ((minMaxPoints.size() > i) && (x > minMaxPoints.get(i).getMinPoint().getX()))
       {
          i++;
       }
-
-      this.minMaxPoints.add(i, new Point2d[] {minPoint, maxPoint});
+      
+      MinMaxPointHolder pointHolder = recycleablePointHolders.add();
+      pointHolder.setMaxPoint(maxPoint);
+      pointHolder.setMinPoint(minPoint);
+      this.minMaxPoints.add(i, pointHolder);
    }
 
 
-   public Point2d findWorstMinViolator(Point2d startPoint, Point2d endPoint)
+   public Point2D findWorstMinViolator(Point2D startPoint, Point2D endPoint)
    {
       int worstViolatorIndex = findWorstMinViolatorIndex(startPoint, endPoint, 0, minMaxPoints.size()-1);
       if (worstViolatorIndex == -1)
          return null;
 
-      Point2d[] minMaxPoint = getMinMaxPoint(worstViolatorIndex);
+      MinMaxPointHolder minMaxPoint = getMinMaxPoint(worstViolatorIndex);
 
-      return minMaxPoint[0];
+      return minMaxPoint.getMinPoint();
    }
 
-   private int findWorstMinViolatorIndex(Point2d startPoint, Point2d endPoint, int startIndex, int endIndex)
+   private int findWorstMinViolatorIndex(Point2D startPoint, Point2D endPoint, int startIndex, int endIndex)
    {
       tempLine.set(startPoint, endPoint);
 
@@ -217,8 +238,8 @@ public class StringStretcher2d
 
       for (int i = startIndex; i <= endIndex; i++)
       {
-         Point2d[] minMaxPoint = getMinMaxPoint(i);
-         Point2d minPoint = minMaxPoint[0];
+         MinMaxPointHolder minMaxPoint = getMinMaxPoint(i);
+         Point2D minPoint = minMaxPoint.getMinPoint();
          if (tempLine.isPointOnLeftSideOfLine(minPoint))
          {
             double distance = tempLine.distance(minPoint);
@@ -233,18 +254,18 @@ public class StringStretcher2d
       return returnIndex;
    }
 
-   public Point2d findWorstMaxViolator(Point2d startPoint, Point2d endPoint)
+   public Point2D findWorstMaxViolator(Point2D startPoint, Point2D endPoint)
    {
       int worstViolatorIndex = findWorstMaxViolatorIndex(startPoint, endPoint, 0, minMaxPoints.size()-1);
       if (worstViolatorIndex == -1)
          return null;
 
-      Point2d[] minMaxPoint = getMinMaxPoint(worstViolatorIndex);
+      MinMaxPointHolder minMaxPoint = getMinMaxPoint(worstViolatorIndex);
 
-      return minMaxPoint[1];
+      return minMaxPoint.getMaxPoint();
    }
 
-   private int findWorstMaxViolatorIndex(Point2d startPoint, Point2d endPoint, int startIndex, int endIndex)
+   private int findWorstMaxViolatorIndex(Point2D startPoint, Point2D endPoint, int startIndex, int endIndex)
    {
       tempLine.set(startPoint, endPoint);
 
@@ -253,9 +274,9 @@ public class StringStretcher2d
 
       for (int i = startIndex; i <= endIndex; i++)
       {
-         Point2d[] minMaxPoint = getMinMaxPoint(i);
+         MinMaxPointHolder minMaxPoint = getMinMaxPoint(i);
 
-         Point2d maxPoint = minMaxPoint[1];
+         Point2D maxPoint = minMaxPoint.getMaxPoint();
          if (tempLine.isPointOnRightSideOfLine(maxPoint))
          {
             double distance = tempLine.distance(maxPoint);
@@ -270,11 +291,12 @@ public class StringStretcher2d
       return returnIndex;
    }
 
-   public Point2d[] findMinMaxPoints(double x)
+   public MinMaxPointHolder findMinMaxPoints(double x)
    {
-      for (Point2d[] minMaxPoint : minMaxPoints)
+      for (int i = 0; i < minMaxPoints.size(); i++)
       {
-         if (Math.abs(x - minMaxPoint[0].getX()) < 1e-7) return minMaxPoint;
+         MinMaxPointHolder minMaxPoint = minMaxPoints.get(i);
+         if (Math.abs(x - minMaxPoint.getMinPoint().getX()) < 1e-7) return minMaxPoint;
       }
       
       return null;
@@ -283,5 +305,6 @@ public class StringStretcher2d
    public void reset()
    {
       minMaxPoints.clear();
+      recycleablePointHolders.clear();
    }
 }

@@ -1,6 +1,6 @@
 package us.ihmc.robotDataLogger.jointState;
 
-import us.ihmc.robotDataLogger.generated.YoProtoHandshakeProto.YoProtoHandshake.JointDefinition.JointType;
+import us.ihmc.robotDataLogger.JointType;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
 
 public class OneDoFJointHolder implements JointHolder
@@ -26,6 +26,12 @@ public class OneDoFJointHolder implements JointHolder
    {
       buffer[offset + 0] = joint.getQ();
       buffer[offset + 1] = joint.getQd();
+   }
+
+   @Override
+   public String getName()
+   {
+      return joint.getName();
    }
 
 }

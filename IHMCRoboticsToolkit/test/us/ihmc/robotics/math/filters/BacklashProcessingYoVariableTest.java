@@ -6,10 +6,10 @@ import java.util.Random;
 
 import org.junit.Test;
 
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.random.RandomTools;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.commons.RandomNumbers;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 
 public class BacklashProcessingYoVariableTest
 {
@@ -18,11 +18,11 @@ public class BacklashProcessingYoVariableTest
    public void testAgainstRevisedBacklash()
    {
       YoVariableRegistry registry = new YoVariableRegistry("dummy");
-      DoubleYoVariable slopTime = new DoubleYoVariable("slopTime", registry);
+      YoDouble slopTime = new YoDouble("slopTime", registry);
       double dt = 0.002;
-      DoubleYoVariable alpha = new DoubleYoVariable("alpha", registry);
+      YoDouble alpha = new YoDouble("alpha", registry);
       alpha.set(AlphaFilteredYoVariable.computeAlphaGivenBreakFrequencyProperly(16.0, dt));
-      DoubleYoVariable positionVariable = new DoubleYoVariable("rawPosition", registry);
+      YoDouble positionVariable = new YoDouble("rawPosition", registry);
       FilteredVelocityYoVariable velocityVariable = new FilteredVelocityYoVariable("fd", "", alpha, positionVariable, dt, registry);
 
       BacklashProcessingYoVariable blToTest = new BacklashProcessingYoVariable("blTest", "", velocityVariable, dt, slopTime, registry);
@@ -33,7 +33,7 @@ public class BacklashProcessingYoVariableTest
 
       for (double t = 0.0; t < 100.0; t += dt)
       {
-         positionVariable.set(2.0 * Math.sin(2.0 * Math.PI * 10.0) + RandomTools.generateRandomDouble(random, 1.0) * Math.sin(2.0 * Math.PI * 30.0 + 2.0 / 3.0 * Math.PI));
+         positionVariable.set(2.0 * Math.sin(2.0 * Math.PI * 10.0) + RandomNumbers.nextDouble(random, 1.0) * Math.sin(2.0 * Math.PI * 30.0 + 2.0 / 3.0 * Math.PI));
          
          velocityVariable.update();
          

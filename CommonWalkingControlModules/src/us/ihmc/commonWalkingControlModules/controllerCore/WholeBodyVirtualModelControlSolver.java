@@ -1,8 +1,22 @@
 package us.ihmc.commonWalkingControlModules.controllerCore;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
-import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.*;
+
+import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.ExternalWrenchCommand;
+import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.InverseDynamicsCommand;
+import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.InverseDynamicsCommandList;
+import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.JointAccelerationIntegrationCommand;
+import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.JointspaceAccelerationCommand;
+import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.MomentumRateCommand;
+import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.PlaneContactStateCommand;
+import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.SpatialAccelerationCommand;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.lowLevel.LowLevelJointControlMode;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.lowLevel.LowLevelOneDoFJointDesiredDataHolder;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.lowLevel.RootJointDesiredConfigurationData;
@@ -17,19 +31,25 @@ import us.ihmc.commonWalkingControlModules.momentumBasedController.optimization.
 import us.ihmc.commonWalkingControlModules.virtualModelControl.VirtualModelControlSolution;
 import us.ihmc.commonWalkingControlModules.virtualModelControl.VirtualModelController;
 import us.ihmc.commonWalkingControlModules.visualizer.WrenchVisualizer;
-import us.ihmc.graphics3DDescription.appearance.YoAppearance;
+import us.ihmc.commons.PrintTools;
+import us.ihmc.graphicsDescription.appearance.YoAppearance;
 import us.ihmc.humanoidRobotics.model.CenterOfPressureDataHolder;
-import us.ihmc.robotModels.FullRobotModel;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.robotics.geometry.FrameVector;
 import us.ihmc.robotics.linearAlgebra.MatrixTools;
 import us.ihmc.robotics.math.filters.RateLimitedYoVariable;
 import us.ihmc.robotics.math.frames.YoFrameVector;
+import us.ihmc.robotics.referenceFrames.PoseReferenceFrame;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
-import us.ihmc.robotics.screwTheory.*;
-import us.ihmc.tools.io.printing.PrintTools;
-
-import java.util.*;
+import us.ihmc.robotics.screwTheory.FloatingInverseDynamicsJoint;
+import us.ihmc.robotics.screwTheory.InverseDynamicsJoint;
+import us.ihmc.robotics.screwTheory.OneDoFJoint;
+import us.ihmc.robotics.screwTheory.RigidBody;
+import us.ihmc.robotics.screwTheory.RigidBodyInertia;
+import us.ihmc.robotics.screwTheory.SpatialAccelerationVector;
+import us.ihmc.robotics.screwTheory.SpatialForceVector;
+import us.ihmc.robotics.screwTheory.Twist;
+import us.ihmc.robotics.screwTheory.Wrench;
 
 public class WholeBodyVirtualModelControlSolver
 {
@@ -49,12 +69,13 @@ public class WholeBodyVirtualModelControlSolver
    private final LowLevelOneDoFJointDesiredDataHolder lowLevelOneDoFJointDesiredDataHolder = new LowLevelOneDoFJointDesiredDataHolder();
 
    private final VirtualWrenchCommandList virtualWrenchCommandList = new VirtualWrenchCommandList();
-   private final VirtualWrenchCommand virtualWrenchCommand = new VirtualWrenchCommand();
-   private final TwistCalculator twistCalculator;
    private final Wrench tmpWrench = new Wrench();
    private final Twist tmpTwist = new Twist();
+   private final SpatialAccelerationVector tmpAcceleration = new SpatialAccelerationVector();
+   private final PoseReferenceFrame controlFrame = new PoseReferenceFrame("controlFrame", ReferenceFrame.getWorldFrame());
 
-   private final FullRobotModel controllerModel;
+   private final DenseMatrix64F tempSelectionMatrix = new DenseMatrix64F(6, 6);
+
    private final OneDoFJoint[] controlledOneDoFJoints;
    private final InverseDynamicsJoint[] jointsToOptimizeFor;
    private final List<OneDoFJoint> jointsToComputeDesiredPositionFor = new ArrayList<>();
@@ -81,11 +102,8 @@ public class WholeBodyVirtualModelControlSolver
 
    public WholeBodyVirtualModelControlSolver(WholeBodyControlCoreToolbox toolbox, YoVariableRegistry parentRegistry)
    {
-      twistCalculator = toolbox.getTwistCalculator();
-
-      controllerModel = toolbox.getFullRobotModel();
-      rootJoint = toolbox.getRobotRootJoint();
-      optimizationControlModule = new VirtualModelControlOptimizationControlModule(toolbox, rootJoint, USE_CONTACT_FORCE_QP, registry);
+      rootJoint = toolbox.getRootJoint();
+      optimizationControlModule = new VirtualModelControlOptimizationControlModule(toolbox, USE_CONTACT_FORCE_QP, registry);
 
       JointIndexHandler jointIndexHandler = toolbox.getJointIndexHandler();
       jointsToOptimizeFor = jointIndexHandler.getIndexedJoints();
@@ -93,12 +111,11 @@ public class WholeBodyVirtualModelControlSolver
       lowLevelOneDoFJointDesiredDataHolder.registerJointsWithEmptyData(controlledOneDoFJoints);
       lowLevelOneDoFJointDesiredDataHolder.setJointsControlMode(controlledOneDoFJoints, LowLevelJointControlMode.FORCE_CONTROL);
 
-      controlRootBody = controllerModel.getPelvis();
-      virtualModelController = new VirtualModelController(toolbox.getGeometricJacobianHolder(), controlRootBody, controlledOneDoFJoints, registry,
-            toolbox.getYoGraphicsListRegistry());
+      controlRootBody = toolbox.getVirtualModelControlMainBody();
+      virtualModelController = new VirtualModelController(controlRootBody, controlledOneDoFJoints, registry, toolbox.getYoGraphicsListRegistry());
 
-      yoDesiredMomentumRateAngular = new YoFrameVector("desiredMomentumRateAngular", toolbox.getCenterOfMassFrame(), registry);
-      yoAchievedMomentumRateAngular = new YoFrameVector("achievedMomentumRateAngular", toolbox.getCenterOfMassFrame(), registry);
+      yoDesiredMomentumRateAngular = toolbox.getYoDesiredMomentumRateAngular();
+      yoAchievedMomentumRateAngular = toolbox.getYoAchievedMomentumRateAngular();
 
       if (toolbox.getControlledBodies() != null)
       {
@@ -110,8 +127,8 @@ public class WholeBodyVirtualModelControlSolver
             conversionInertias.put(controlledBody, conversionInertia);
          }
 
-         wrenchVisualizer = new WrenchVisualizer("VMCDesiredExternalWrench", controlledBodies, 1.0, toolbox.getYoGraphicsListRegistry(),
-               registry, YoAppearance.Red(), YoAppearance.Blue());
+         wrenchVisualizer = new WrenchVisualizer("VMCDesiredExternalWrench", controlledBodies, 1.0, toolbox.getYoGraphicsListRegistry(), registry,
+                                                 YoAppearance.Red(), YoAppearance.Blue());
       }
       else
       {
@@ -192,7 +209,8 @@ public class WholeBodyVirtualModelControlSolver
       for (RigidBody rigidBody : bodiesInContact)
       {
          externalWrenchSolution.get(rigidBody).negate();
-         virtualModelController.submitControlledBodyVirtualWrench(rigidBody, externalWrenchSolution.get(rigidBody), virtualModelControlSolution.getCentroidalMomentumSelectionMatrix());
+         virtualModelController.submitControlledBodyVirtualWrench(rigidBody, externalWrenchSolution.get(rigidBody),
+                                                                  virtualModelControlSolution.getCentroidalMomentumSelectionMatrix());
       }
       planeContactWrenchProcessor.compute(externalWrenchSolution);
 
@@ -207,7 +225,8 @@ public class WholeBodyVirtualModelControlSolver
                virtualModelController.submitControlledBodyVirtualWrench(virtualWrenchCommand);
             }
             else
-               PrintTools.warn(this, "Received a command for " + virtualWrenchCommand.getControlledBody().getName() + ", which is not registered. Skipping this body.");
+               PrintTools.warn(this, "Received a command for " + virtualWrenchCommand.getControlledBody().getName()
+                     + ", which is not registered. Skipping this body.");
          }
       }
 
@@ -299,21 +318,22 @@ public class WholeBodyVirtualModelControlSolver
 
    private FrameVector tempFrameVector = new FrameVector();
    private DenseMatrix64F selectionMatrix = CommonOps.identity(Wrench.SIZE);
+
    private void handleJointSpaceCommand(JointspaceAccelerationCommand command)
    {
-      if(command.getHasWeight())
+      if (!command.isHardConstraint())
       {
-         for(int i = 0; i < command.getNumberOfJoints(); i++)
+         for (int i = 0; i < command.getNumberOfJoints(); i++)
          {
             DenseMatrix64F desiredAcceleration = command.getDesiredAcceleration(i);
             double acceleration = desiredAcceleration.get(0, 0);
             OneDoFJoint joint = (OneDoFJoint) command.getJoint(i);
             RigidBody controlledBody = joint.getSuccessor();
-            
+
             double torque = acceleration * controlledBody.getInertia().getMass();
             joint.getJointAxis(tempFrameVector);
             tempFrameVector.scale(torque);
-            
+
             tmpWrench.setToZero(tempFrameVector.getReferenceFrame(), tempFrameVector.getReferenceFrame());
             tmpWrench.setAngularPart(tempFrameVector);
             tmpWrench.changeBodyFrameAttachedToSameBody(controlledBody.getBodyFixedFrame());
@@ -344,23 +364,26 @@ public class WholeBodyVirtualModelControlSolver
    }
 
    private final Wrench tmpExternalWrench = new Wrench();
+
    private void handleSpatialAccelerationCommand(SpatialAccelerationCommand command)
    {
       RigidBody controlledBody = command.getEndEffector();
-      SpatialAccelerationVector accelerationVector = command.getSpatialAcceleration();
-      accelerationVector.changeBaseFrameNoRelativeAcceleration(ReferenceFrame.getWorldFrame());
+      command.getDesiredSpatialAcceleration(controlFrame, tmpAcceleration);
+      tmpAcceleration.changeBaseFrameNoRelativeAcceleration(ReferenceFrame.getWorldFrame());
+   // Watch for this one, it is correct except when the orientation is only partially controlled. It should be expressed at the command's controlFrame. (Sylvain)
+      tmpAcceleration.changeFrameNoRelativeMotion(controlledBody.getBodyFixedFrame());
 
-      twistCalculator.getTwistOfBody(tmpTwist, controlledBody);
+      controlledBody.getBodyFixedFrame().getTwistOfFrame(tmpTwist);
+      tmpWrench.setToZero(tmpAcceleration.getBodyFrame(), tmpAcceleration.getExpressedInFrame());
 
-      tmpWrench.setToZero(accelerationVector.getBodyFrame(), accelerationVector.getExpressedInFrame());
-
-      conversionInertias.get(controlledBody).computeDynamicWrenchInBodyCoordinates(tmpWrench, accelerationVector, tmpTwist);
+      conversionInertias.get(controlledBody).computeDynamicWrenchInBodyCoordinates(tmpAcceleration, tmpTwist, tmpWrench);
 
       tmpWrench.changeBodyFrameAttachedToSameBody(controlledBody.getBodyFixedFrame());
       tmpWrench.changeFrame(ReferenceFrame.getWorldFrame());
 
       VirtualWrenchCommand virtualWrenchCommand = new VirtualWrenchCommand();
-      virtualWrenchCommand.set(controlledBody, tmpWrench, command.getSelectionMatrix());
+      command.getSelectionMatrix(controlFrame, tempSelectionMatrix);
+      virtualWrenchCommand.set(controlledBody, tmpWrench, tempSelectionMatrix);
       virtualWrenchCommandList.addCommand(virtualWrenchCommand);
 
       if (controlledBody == controlRootBody)
@@ -371,7 +394,7 @@ public class WholeBodyVirtualModelControlSolver
          optimizationControlModule.submitExternalWrench(controlledBody, tmpExternalWrench);
       }
 
-      optimizationControlModule.addSelection(command.getSelectionMatrix());
+      optimizationControlModule.addSelection(tempSelectionMatrix);
    }
 
    private void handleVirtualWrenchCommand(VirtualWrenchCommand command)

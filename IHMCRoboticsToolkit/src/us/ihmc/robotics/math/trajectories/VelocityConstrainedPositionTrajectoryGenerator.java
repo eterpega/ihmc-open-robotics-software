@@ -1,11 +1,10 @@
 package us.ihmc.robotics.math.trajectories;
 
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector3d;
+import org.apache.commons.math3.util.Precision;
 
+import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.robotics.MathTools;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FrameVector;
 import us.ihmc.robotics.math.frames.YoFramePoint;
@@ -16,14 +15,16 @@ import us.ihmc.robotics.math.frames.YoFrameVectorInMultipleFrames;
 import us.ihmc.robotics.math.trajectories.waypoints.FrameEuclideanTrajectoryPoint;
 import us.ihmc.robotics.math.trajectories.waypoints.YoFrameEuclideanTrajectoryPoint;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 
 public class VelocityConstrainedPositionTrajectoryGenerator extends PositionTrajectoryGeneratorInMultipleFrames
 {
    private final YoVariableRegistry registry;
    private final YoPolynomial xPolynomial, yPolynomial, zPolynomial;
 
-   private final DoubleYoVariable currentTime;
-   private final DoubleYoVariable trajectoryTime;
+   private final YoDouble currentTime;
+   private final YoDouble trajectoryTime;
 
    private final YoFramePoint initialPosition;
    private final YoFrameVector initialVelocity;
@@ -41,16 +42,6 @@ public class VelocityConstrainedPositionTrajectoryGenerator extends PositionTraj
    }
 
    public VelocityConstrainedPositionTrajectoryGenerator(String name, boolean allowMultipleFrames, ReferenceFrame referenceFrame, YoVariableRegistry parentRegistry)
-   {
-      this(name, allowMultipleFrames, 4, referenceFrame, parentRegistry);
-   }
-
-   public VelocityConstrainedPositionTrajectoryGenerator(String name, int numberOfCoefficients, ReferenceFrame referenceFrame, YoVariableRegistry parentRegistry)
-   {
-      this(name, false, numberOfCoefficients, referenceFrame, parentRegistry);
-   }
-
-   public VelocityConstrainedPositionTrajectoryGenerator(String name, boolean allowMultipleFrames, int numberOfCoefficients, ReferenceFrame referenceFrame, YoVariableRegistry parentRegistry)
    {
       super(allowMultipleFrames, referenceFrame);
       registry = new YoVariableRegistry(name);
@@ -98,12 +89,12 @@ public class VelocityConstrainedPositionTrajectoryGenerator extends PositionTraj
          currentAcceleration = new YoFrameVector(currentAccelerationName, referenceFrame, registry);
       }
 
-      currentTime = new DoubleYoVariable(name + "CurrentTime", registry);
-      trajectoryTime = new DoubleYoVariable(name + "TrajectoryTime", registry);
+      currentTime = new YoDouble(name + "CurrentTime", registry);
+      trajectoryTime = new YoDouble(name + "TrajectoryTime", registry);
 
-      xPolynomial = new YoPolynomial(name + "PolynomialX", numberOfCoefficients, registry);
-      yPolynomial = new YoPolynomial(name + "PolynomialY", numberOfCoefficients, registry);
-      zPolynomial = new YoPolynomial(name + "PolynomialZ", numberOfCoefficients, registry);
+      xPolynomial = new YoPolynomial(name + "PolynomialX", 4, registry);
+      yPolynomial = new YoPolynomial(name + "PolynomialY", 4, registry);
+      zPolynomial = new YoPolynomial(name + "PolynomialZ", 4, registry);
 
       parentRegistry.addChild(registry);
    }
@@ -160,7 +151,7 @@ public class VelocityConstrainedPositionTrajectoryGenerator extends PositionTraj
       this.finalVelocity.set(finalVelocity);
    }
 
-   public void setTrajectoryParameters(double duration, Point3d initialPosition, Vector3d initialVelocity, Point3d finalPosition, Vector3d finalVelocity)
+   public void setTrajectoryParameters(double duration, Point3D initialPosition, Vector3D initialVelocity, Point3D finalPosition, Vector3D finalVelocity)
    {
       trajectoryTime.set(duration);
 
@@ -173,7 +164,7 @@ public class VelocityConstrainedPositionTrajectoryGenerator extends PositionTraj
 
    private final FramePoint tempPosition = new FramePoint();
    private final FrameVector tempLinearVelocity = new FrameVector();
-   
+
    public void setTrajectoryParameters(FrameEuclideanTrajectoryPoint initialFrameEuclideanWaypoint, FrameEuclideanTrajectoryPoint finalFrameEuclideanWaypoint)
    {
       setTrajectoryTime(finalFrameEuclideanWaypoint.getTime() - initialFrameEuclideanWaypoint.getTime());
@@ -203,12 +194,8 @@ public class VelocityConstrainedPositionTrajectoryGenerator extends PositionTraj
    @Override
    public void initialize()
    {
-      currentTime.set(0.0);
       initializePolynomials();
-
-      currentPosition.set(initialPosition);
-      currentVelocity.set(initialVelocity);
-      currentAcceleration.setToZero();
+      compute(0.0);
    }
 
    private void initializePolynomials()
@@ -228,24 +215,44 @@ public class VelocityConstrainedPositionTrajectoryGenerator extends PositionTraj
    @Override
    public void compute(double time)
    {
+      if (Double.isNaN(time))
+      {
+         throw new RuntimeException("Can not call compute on trajectory generator with time NaN.");
+      }
+
       this.currentTime.set(time);
-      time = MathTools.clipToMinMax(time, 0.0, trajectoryTime.getDoubleValue());
+
+      if (time < 0.0)
+      {
+         currentPosition.set(initialPosition);
+         currentVelocity.setToZero();
+         currentAcceleration.setToZero();
+         return;
+      }
+      if (time > trajectoryTime.getDoubleValue())
+      {
+         currentPosition.set(finalPosition);
+         currentVelocity.setToZero();
+         currentAcceleration.setToZero();
+         return;
+      }
+
+      if (Precision.equals(0.0, trajectoryTime.getDoubleValue()))
+      {
+         currentPosition.set(initialPosition);
+         currentVelocity.set(initialVelocity);
+         currentAcceleration.setToZero();
+         return;
+      }
+
+      time = MathTools.clamp(time, 0.0, trajectoryTime.getDoubleValue());
       xPolynomial.compute(time);
       yPolynomial.compute(time);
       zPolynomial.compute(time);
 
-      if (time < trajectoryTime.getDoubleValue())
-      {
-         currentPosition.set(xPolynomial.getPosition(), yPolynomial.getPosition(), zPolynomial.getPosition());
-         currentVelocity.set(xPolynomial.getVelocity(), yPolynomial.getVelocity(), zPolynomial.getVelocity());
-         currentAcceleration.set(xPolynomial.getAcceleration(), yPolynomial.getAcceleration(), zPolynomial.getAcceleration());
-      }
-      else
-      {
-         currentPosition.set(finalPosition);
-         currentVelocity.set(finalVelocity);
-         currentAcceleration.set(0.0, 0.0, 0.0);
-      }
+      currentPosition.set(xPolynomial.getPosition(), yPolynomial.getPosition(), zPolynomial.getPosition());
+      currentVelocity.set(xPolynomial.getVelocity(), yPolynomial.getVelocity(), zPolynomial.getVelocity());
+      currentAcceleration.set(xPolynomial.getAcceleration(), yPolynomial.getAcceleration(), zPolynomial.getAcceleration());
    }
 
    @Override
@@ -264,6 +271,11 @@ public class VelocityConstrainedPositionTrajectoryGenerator extends PositionTraj
       currentTime.set(trajectoryTime.getDoubleValue() + 0.01);
    }
 
+   public double getTrajectoryTime()
+   {
+      return trajectoryTime.getDoubleValue();
+   }
+
    @Override
    public void getPosition(FramePoint positionToPack)
    {
@@ -274,13 +286,13 @@ public class VelocityConstrainedPositionTrajectoryGenerator extends PositionTraj
    {
       positionToPack.set(currentPosition);
    }
-   
+
    public void getProjectedOntoXYPlane(YoFramePoint2d positionToPack)
    {
       positionToPack.set(currentPosition.getX(), currentPosition.getY());
    }
 
-   public void get(Point3d positionToPack)
+   public void get(Point3D positionToPack)
    {
       currentPosition.get(positionToPack);
    }
@@ -296,7 +308,7 @@ public class VelocityConstrainedPositionTrajectoryGenerator extends PositionTraj
       velocityToPack.set(currentVelocity);
    }
 
-   public void getVelocity(Vector3d velocityToPack)
+   public void getVelocity(Vector3D velocityToPack)
    {
       currentVelocity.get(velocityToPack);
    }
@@ -312,7 +324,7 @@ public class VelocityConstrainedPositionTrajectoryGenerator extends PositionTraj
       accelerationToPack.set(currentAcceleration);
    }
 
-   public void getAcceleration(Vector3d accelerationToPack)
+   public void getAcceleration(Vector3D accelerationToPack)
    {
       currentAcceleration.get(accelerationToPack);
    }
@@ -336,25 +348,40 @@ public class VelocityConstrainedPositionTrajectoryGenerator extends PositionTraj
    {
       this.finalPosition.getFrameTuple(finalPosition);
    }
-   
+
    public YoFramePoint getFinalPosition()
    {
       return finalPosition;
    }
-   
+
    public YoFramePoint getInitialPosition()
    {
       return initialPosition;
    }
-   
+
    public YoFrameVector getInitialVelocity()
    {
       return initialVelocity;
    }
-   
+
    public YoFrameVector getFinalVelocity()
    {
       return finalVelocity;
+   }
+
+   public YoPolynomial getXPolynomial()
+   {
+      return xPolynomial;
+   }
+
+   public YoPolynomial getYPolynomial()
+   {
+      return yPolynomial;
+   }
+
+   public YoPolynomial getZPolynomial()
+   {
+      return zPolynomial;
    }
 
    @Override

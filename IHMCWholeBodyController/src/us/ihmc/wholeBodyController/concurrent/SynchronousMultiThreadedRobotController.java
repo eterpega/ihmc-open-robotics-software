@@ -1,13 +1,12 @@
 package us.ihmc.wholeBodyController.concurrent;
 
-import us.ihmc.simulationconstructionset.robotController.MultiThreadedRobotControlElement;
-import us.ihmc.tools.TimestampProvider;
-import us.ihmc.tools.thread.ThreadTools;
-
 import java.util.ArrayList;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
+
+import us.ihmc.simulationConstructionSetTools.robotController.MultiThreadedRobotControlElement;
+import us.ihmc.tools.TimestampProvider;
+import us.ihmc.tools.thread.ThreadTools;
 
 /**
  * @author Doug Stephen <a href="mailto:dstephen@ihmc.us">(dstephen@ihmc.us)</a>
@@ -17,13 +16,11 @@ public class SynchronousMultiThreadedRobotController implements MultiThreadedRob
    private final MultiThreadedRobotControlElement sensorReader;
    private final TimestampProvider timestampProvider;
    private final ArrayList<ReentrantLockedControlElementRunner> robotControllerRunners = new ArrayList<>();
-   private final ThreadFactory namedThreadFactory;
 
    public SynchronousMultiThreadedRobotController(MultiThreadedRobotControlElement sensorReader, TimestampProvider timestampProvider)
    {
       this.sensorReader = sensorReader;
       this.timestampProvider = timestampProvider;
-      namedThreadFactory = ThreadTools.getNamedThreadFactory(this.getClass().getSimpleName());
    }
 
    public void addController(MultiThreadedRobotControlElement robotController, int sensorReaderTicksPerControlTick)
@@ -51,8 +48,8 @@ public class SynchronousMultiThreadedRobotController implements MultiThreadedRob
          ReentrantLockedControlElementRunner runner = robotControllerRunners.get(i);
 
          runner.getController().initialize();
-
-         namedThreadFactory.newThread(runner).start();
+         
+         ThreadTools.getNamedThreadFactory(runner.getController().getName()).newThread(runner).start();
       }
    }
 

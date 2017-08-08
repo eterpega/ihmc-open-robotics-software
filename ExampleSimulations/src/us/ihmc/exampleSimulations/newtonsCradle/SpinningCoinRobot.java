@@ -2,14 +2,13 @@ package us.ihmc.exampleSimulations.newtonsCradle;
 
 import java.util.ArrayList;
 
-import javax.vecmath.Matrix3d;
-import javax.vecmath.Vector3d;
-
-import us.ihmc.graphics3DDescription.Graphics3DObject;
-import us.ihmc.graphics3DDescription.appearance.AppearanceDefinition;
-import us.ihmc.graphics3DDescription.appearance.YoAppearance;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.euclid.matrix.Matrix3D;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.graphicsDescription.Graphics3DObject;
+import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
+import us.ihmc.graphicsDescription.appearance.YoAppearance;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.math.frames.YoFrameVector;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotDescription.CollisionMeshDescription;
@@ -30,16 +29,16 @@ public class SpinningCoinRobot
    private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
    private final YoFrameVector linearMomentum = new YoFrameVector("linearMomentum", ReferenceFrame.getWorldFrame(), registry);
    private final YoFrameVector angularMomentum = new YoFrameVector("angularMomentum", ReferenceFrame.getWorldFrame(), registry);
-   private final DoubleYoVariable translationalKineticEnergy = new DoubleYoVariable("translationalKineticEnergy", registry);
-   private final DoubleYoVariable rotationalKineticEnergy = new DoubleYoVariable("rotationalKineticEnergy", registry);
-   private final DoubleYoVariable potentialEnergy = new DoubleYoVariable("potentialEnergy", registry);
-   private final DoubleYoVariable totalEnergy = new DoubleYoVariable("totalEnergy", registry);
+   private final YoDouble translationalKineticEnergy = new YoDouble("translationalKineticEnergy", registry);
+   private final YoDouble rotationalKineticEnergy = new YoDouble("rotationalKineticEnergy", registry);
+   private final YoDouble potentialEnergy = new YoDouble("potentialEnergy", registry);
+   private final YoDouble totalEnergy = new YoDouble("totalEnergy", registry);
 
    public SpinningCoinRobot()
    {
       final Robot coinRobot = new Robot("SpinningCoin");
 
-      Vector3d offset = new Vector3d(0.0, 0.0, 0.0);
+      Vector3D offset = new Vector3D(0.0, 0.0, 0.0);
       FloatingJoint floatingJoint = new FloatingJoint("root", offset, coinRobot);
 
       Link link = createCylinderCoin(coinRobot);
@@ -59,13 +58,13 @@ public class SpinningCoinRobot
       floatingJoint.setYawPitchRoll(yaw, pitch, roll);
 
       //      floatingJoint.setVelocity(new Vector3d(1.0, 0.0, 0.0));
-      floatingJoint.setAngularVelocityInBody(new Vector3d(0.0, spinningAngularVelocity, 0.0));
+      floatingJoint.setAngularVelocityInBody(new Vector3D(0.0, spinningAngularVelocity, 0.0));
 
       robots.add(coinRobot);
 
       coinRobot.addFunctionToIntegrate(new FunctionToIntegrate()
       {
-         private Vector3d tempVector = new Vector3d();
+         private Vector3D tempVector = new Vector3D();
 
          @Override
          public int getVectorSize()
@@ -74,7 +73,7 @@ public class SpinningCoinRobot
          }
 
          @Override
-         public DoubleYoVariable[] getOutputVariables()
+         public YoDouble[] getOutputVariables()
          {
             return null;
          }
@@ -107,7 +106,7 @@ public class SpinningCoinRobot
       Link link = new Link("coin");
       link.setMassAndRadiiOfGyration(coinMass, coinRadius / 2.0, coinRadius / 2.0, coinWidth / 2.0);
 
-      Matrix3d momentOfInertiaMatrix = new Matrix3d();
+      Matrix3D momentOfInertiaMatrix = new Matrix3D();
       link.getMomentOfInertia(momentOfInertiaMatrix);
       System.out.println("momentOfInertia = " + momentOfInertiaMatrix);
 
@@ -128,7 +127,9 @@ public class SpinningCoinRobot
 
       CollisionMeshDescription collisionMeshDescription = new CollisionMeshDescription();
       collisionMeshDescription.addCylinderReferencedAtCenter(coinRadius, coinWidth);
-      link.setCollisionMesh(collisionMeshDescription);
+      collisionMeshDescription.setCollisionGroup(0xff);
+      collisionMeshDescription.setCollisionMask(0xff);
+      link.addCollisionMesh(collisionMeshDescription);
 
       return link;
    }

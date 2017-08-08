@@ -44,37 +44,43 @@ import javax.swing.JSplitPane;
 import javax.swing.JTextField;
 import javax.swing.JWindow;
 import javax.swing.SwingUtilities;
-import javax.vecmath.Color3f;
-import javax.vecmath.Tuple3d;
 
-import us.ihmc.graphics3DAdapter.Graphics3DAdapter;
-import us.ihmc.graphics3DAdapter.Graphics3DBackgroundScaleMode;
-import us.ihmc.graphics3DAdapter.camera.CameraConfiguration;
-import us.ihmc.graphics3DAdapter.camera.CameraConfigurationList;
-import us.ihmc.graphics3DAdapter.camera.CameraMountList;
-import us.ihmc.graphics3DAdapter.camera.CameraTrackingAndDollyPositionHolder;
-import us.ihmc.graphics3DAdapter.camera.CaptureDevice;
-import us.ihmc.graphics3DAdapter.camera.ClassicCameraController;
-import us.ihmc.graphics3DAdapter.camera.OffscreenBufferVideoServer;
-import us.ihmc.graphics3DAdapter.camera.RenderedSceneHandler;
-import us.ihmc.graphics3DAdapter.camera.TrackingDollyCameraController;
-import us.ihmc.graphics3DAdapter.camera.ViewportAdapter;
-import us.ihmc.graphics3DDescription.Graphics3DObject;
-import us.ihmc.graphics3DDescription.HeightMap;
-import us.ihmc.graphics3DDescription.appearance.AppearanceDefinition;
-import us.ihmc.graphics3DDescription.input.SelectedListener;
-import us.ihmc.graphics3DDescription.structure.Graphics3DNode;
-import us.ihmc.graphics3DDescription.structure.Graphics3DNodeType;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphic;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsList;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
-import us.ihmc.robotics.dataStructures.YoVariableHolder;
-import us.ihmc.robotics.dataStructures.registry.NameSpace;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.YoVariable;
-import us.ihmc.robotics.dataStructures.variable.YoVariableList;
-import us.ihmc.simulationconstructionset.DataBuffer;
+import javafx.animation.AnimationTimer;
+import us.ihmc.communication.producers.VideoDataServer;
+import us.ihmc.euclid.tuple3D.interfaces.Tuple3DBasics;
+import us.ihmc.graphicsDescription.Graphics3DObject;
+import us.ihmc.graphicsDescription.GraphicsUpdatable;
+import us.ihmc.graphicsDescription.HeightMap;
+import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
+import us.ihmc.graphicsDescription.graphInterfaces.SelectedVariableHolder;
+import us.ihmc.graphicsDescription.input.SelectedListener;
+import us.ihmc.graphicsDescription.structure.Graphics3DNode;
+import us.ihmc.graphicsDescription.structure.Graphics3DNodeType;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphic;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsList;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.jMonkeyEngineToolkit.Graphics3DAdapter;
+import us.ihmc.jMonkeyEngineToolkit.Graphics3DBackgroundScaleMode;
+import us.ihmc.jMonkeyEngineToolkit.camera.CameraConfiguration;
+import us.ihmc.jMonkeyEngineToolkit.camera.CameraConfigurationList;
+import us.ihmc.jMonkeyEngineToolkit.camera.CameraMountList;
+import us.ihmc.jMonkeyEngineToolkit.camera.CameraTrackingAndDollyPositionHolder;
+import us.ihmc.jMonkeyEngineToolkit.camera.CaptureDevice;
+import us.ihmc.jMonkeyEngineToolkit.camera.ClassicCameraController;
+import us.ihmc.jMonkeyEngineToolkit.camera.OffscreenBufferVideoServer;
+import us.ihmc.jMonkeyEngineToolkit.camera.TrackingDollyCameraController;
+import us.ihmc.jMonkeyEngineToolkit.camera.ViewportAdapter;
+import us.ihmc.javaFXToolkit.graphing.JavaFX3DGraph;
+import us.ihmc.javaFXToolkit.graphing.JavaFXHeatmapGraph;
+import us.ihmc.robotics.dataStructures.MutableColor;
+import us.ihmc.yoVariables.dataBuffer.YoVariableHolder;
+import us.ihmc.yoVariables.dataBuffer.DataBuffer;
+import us.ihmc.yoVariables.registry.NameSpace;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoVariable;
+import us.ihmc.yoVariables.variable.YoVariableList;
+import us.ihmc.robotics.trajectories.providers.SettableDoubleProvider;
 import us.ihmc.simulationconstructionset.ExitActionListener;
 import us.ihmc.simulationconstructionset.ExtraPanelConfiguration;
 import us.ihmc.simulationconstructionset.GraphConfiguration;
@@ -110,6 +116,7 @@ import us.ihmc.simulationconstructionset.gui.config.ViewportConfigurationList;
 import us.ihmc.simulationconstructionset.gui.dialogConstructors.AllDialogConstructorsHolder;
 import us.ihmc.simulationconstructionset.gui.dialogConstructors.GUIEnablerAndDisabler;
 import us.ihmc.simulationconstructionset.gui.dialogConstructors.StandardAllDialogConstructorsGenerator;
+import us.ihmc.simulationconstructionset.gui.heatmap.HeatmapWindow;
 import us.ihmc.simulationconstructionset.gui.hierarchyTree.NameSpaceHierarchyTree;
 import us.ihmc.simulationconstructionset.gui.yoVariableSearch.YoVariableListPanel;
 import us.ihmc.simulationconstructionset.gui.yoVariableSearch.YoVariablePanelJPopupMenu;
@@ -119,7 +126,6 @@ import us.ihmc.simulationconstructionset.util.SimpleFileReader;
 import us.ihmc.simulationconstructionset.util.SimpleFileWriter;
 import us.ihmc.simulationconstructionset.util.ground.FlatGroundProfile;
 import us.ihmc.tools.TimestampProvider;
-import us.ihmc.tools.gui.GraphicsUpdatable;
 import us.ihmc.tools.io.xml.XMLReaderUtility;
 import us.ihmc.tools.thread.CloseableAndDisposableRegistry;
 
@@ -212,6 +218,11 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
    
    private CloseableAndDisposableRegistry closeableAndDisposableRegistry = new CloseableAndDisposableRegistry();
    
+   private List<String> panelsSelectedEarly = new ArrayList<>();
+   private boolean scsWindowOpened = false;
+
+   private final SettableDoubleProvider yoGraphicsGlobalScaleProvider = new SettableDoubleProvider(1.0);
+
    public StandardSimulationGUI(Graphics3DAdapter graphics3dAdapter, SimulationSynchronizer simulationSynchronizer, AllCommandsExecutor allCommandsExecutor,
          AllDialogConstructorsHolder allDialogConstructorsHolder, SimulationConstructionSet sim, YoVariableHolder yoVariableHolder, Robot[] robots,
          DataBuffer buffer, VarGroupList varGroupList, JApplet jApplet, YoVariableRegistry rootRegistry)
@@ -289,9 +300,33 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
       return viewportPanel;
    }
 
+   public void addRobot(Robot robot)
+   {
+      boolean wereAlreadySet = (this.robots != null);
+
+      if (!wereAlreadySet)
+      {
+         setRobots(new Robot[]{robot});
+         return;
+      }
+      
+      Robot[] newRobots = new Robot[robots.length + 1];
+      for (int i=0; i<robots.length; i++)
+      {
+         newRobots[i] = robots[i];
+      }
+      newRobots[newRobots.length-1] = robot;
+      this.robots = newRobots;
+      
+      robot.getCameraMountList(cameraMountList);
+      createGraphicsRobot(robot);
+   }
+
    public void setRobots(Robot[] robots)
    {
-      if (this.robots != null)
+      boolean wereAlreadySet = (this.robots != null);
+      
+      if (wereAlreadySet)
       {
          throw new RuntimeException("robots != null. Can only setRobots once!");
       }
@@ -437,7 +472,12 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
       // windowGUIActions.setupGraphGroupsMenu(graphGroupList, viewportWindow);
       return viewportWindow;
    }
-
+   
+   public HeatmapWindow createNewHeatmapWindow(String name)
+   {
+      return new HeatmapWindow(name, rootRegistry, myGraphArrayPanel, selectedVariableHolder, myDataBuffer, myDataBuffer);
+   }
+   
    public void setupMultiViews(String viewportName, ViewportPanel viewport_Panel)
    {
       if (robots == null)
@@ -478,7 +518,6 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
             initGUI(heightMap);
             showGUI();
          }
-
       });
    }
 
@@ -547,7 +586,7 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
                bookmarkedVariablesHolder, yoVariableExplorerTabbedPane);
          yoVariableExplorerTabbedPane.addVariableSearchPanel(variableSearchPanel);
 
-         myGraphArrayPanel = new GraphArrayPanel(selectedVariableHolder, myDataBuffer, jFrame);
+         myGraphArrayPanel = new GraphArrayPanel(selectedVariableHolder, myDataBuffer, jFrame, this);
       }
 
       if (jFrame != null)
@@ -596,6 +635,16 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
                // The search interface needs to be revamped, making sure it uses InvokeLater when necessary
                // All other deadlocks in the SCS code need to be removed.
 
+            }
+            
+            @Override
+            public void windowOpened(WindowEvent e)
+            {
+               scsWindowOpened = true;
+               for (String earlySelection : panelsSelectedEarly)
+               {
+                  selectPanel(earlySelection);
+               }
             }
          });
          jFrame.addComponentListener(new ComponentAdapter()
@@ -824,12 +873,17 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
       {
          for (Robot robot : robots)
          {
-            GraphicsRobot graphicsRobot = new GraphicsRobot(robot);
-            graphicsUpdatables.add(graphicsRobot);
-            graphicsRobots.put(robot, graphicsRobot);
-            graphics3dAdapter.addRootNode(graphicsRobot.getRootNode());
+            createGraphicsRobot(robot);
          }
       }
+   }
+
+   private void createGraphicsRobot(Robot robot)
+   {
+      GraphicsRobot graphicsRobot = new GraphicsRobot(robot);
+      graphicsUpdatables.add(graphicsRobot);
+      graphicsRobots.put(robot, graphicsRobot);
+      graphics3dAdapter.addRootNode(graphicsRobot.getRootNode());
    }
 
    public ViewportPanel createViewportPanel()
@@ -1051,7 +1105,7 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
       viewportPanel.setFieldOfView(fieldOfView);
    }
 
-   public void setBackgroundColor(Color3f color)
+   public void setBackgroundColor(MutableColor color)
    {
       graphics3dAdapter.setBackgroundColor(color);
    }
@@ -1400,21 +1454,51 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
 
    public void setCameraTrackingVars(String xName, String yName, String zName)
    {
-      DoubleYoVariable xVar, yVar, zVar;
+      setCameraTrackingVars(null, xName, yName, zName);
+   }
 
-      xVar = (DoubleYoVariable) rootRegistry.getVariable(xName);
-      yVar = (DoubleYoVariable) rootRegistry.getVariable(yName);
-      zVar = (DoubleYoVariable) rootRegistry.getVariable(zName);
+   public void setCameraTrackingVars(String nameSpace, String xName, String yName, String zName)
+   {
+      YoDouble xVar, yVar, zVar;
+
+      if (nameSpace != null)
+      {
+         xVar = (YoDouble) rootRegistry.getVariable(nameSpace, xName);
+         yVar = (YoDouble) rootRegistry.getVariable(nameSpace, yName);
+         zVar = (YoDouble) rootRegistry.getVariable(nameSpace, zName);
+      }
+      else
+      {
+         xVar = (YoDouble) rootRegistry.getVariable(xName);
+         yVar = (YoDouble) rootRegistry.getVariable(yName);
+         zVar = (YoDouble) rootRegistry.getVariable(zName);
+      }
+
       viewportPanel.setCameraTrackingVars(xVar, yVar, zVar);
    }
 
    public void setCameraDollyVars(String xName, String yName, String zName)
    {
-      DoubleYoVariable xVar, yVar, zVar;
+      setCameraDollyVars(null, xName, yName, zName);
+   }
 
-      xVar = (DoubleYoVariable) rootRegistry.getVariable(xName);
-      yVar = (DoubleYoVariable) rootRegistry.getVariable(yName);
-      zVar = (DoubleYoVariable) rootRegistry.getVariable(zName);
+   public void setCameraDollyVars(String nameSpace, String xName, String yName, String zName)
+   {
+      YoDouble xVar, yVar, zVar;
+
+      if (nameSpace != null)
+      {
+         xVar = (YoDouble) rootRegistry.getVariable(nameSpace, xName);
+         yVar = (YoDouble) rootRegistry.getVariable(nameSpace, yName);
+         zVar = (YoDouble) rootRegistry.getVariable(nameSpace, zName);
+      }
+      else
+      {
+         xVar = (YoDouble) rootRegistry.getVariable(xName);
+         yVar = (YoDouble) rootRegistry.getVariable(yName);
+         zVar = (YoDouble) rootRegistry.getVariable(zName);
+      }
+
       viewportPanel.setCameraDollyVars(xVar, yVar, zVar);
    }
 
@@ -1433,7 +1517,7 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
       viewportPanel.setCameraFix(fixX, fixY, fixZ);
    }
 
-   public void setCameraFix(Tuple3d cameraFix)
+   public void setCameraFix(Tuple3DBasics cameraFix)
    {
       viewportPanel.setCameraFix(cameraFix);
    }
@@ -1443,7 +1527,7 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
       viewportPanel.setCameraPosition(posX, posY, posZ);
    }
 
-   public void setCameraPosition(Tuple3d cameraPosition)
+   public void setCameraPosition(Tuple3DBasics cameraPosition)
    {
       viewportPanel.setCameraPosition(cameraPosition);      
    }
@@ -1929,6 +2013,32 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
          }
       });
    }
+   
+   public JavaFX3DGraph addJavaFX3DGraph(String name)
+   {
+      JavaFX3DGraph javaFX3DGraph = new JavaFX3DGraph(myGraphArrayPanel, selectedVariableHolder, myDataBuffer, myDataBuffer);
+      setupExtraPanels(new ExtraPanelConfiguration(name, javaFX3DGraph.getPanel(), true));
+      selectPanel(name);
+      return javaFX3DGraph;
+   }
+   
+   public JavaFXHeatmapGraph addHeatmapGraph(String name)
+   {
+      JavaFXHeatmapGraph heatmapGraph = new JavaFXHeatmapGraph(rootRegistry, myGraphArrayPanel, selectedVariableHolder, myDataBuffer, myDataBuffer);
+      
+      new AnimationTimer()
+      {
+         @Override
+         public void handle(long currentNanoTime)
+         {
+            heatmapGraph.update();
+         }
+      }.start();
+      
+      setupExtraPanels(new ExtraPanelConfiguration(name, heatmapGraph.getPanel(), true));
+      selectPanel(name);
+      return heatmapGraph;
+   }
 
    @Override
    public void selectCamera(String cameraName)
@@ -1998,6 +2108,12 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
    @Override
    public void selectPanel(String panelName)
    {
+      if (!scsWindowOpened)
+      {
+         panelsSelectedEarly.add(panelName);
+         return;
+      }
+      
       for (int i = 0; i < standardGUIActions.extraPanelsMenu.getItemCount(); i++)
       {
          if (standardGUIActions.extraPanelsMenu.getItem(i).getText().equals(panelName))
@@ -2781,6 +2897,21 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
       }
    }
 
+   public void setYoGraphicsGlobalScale(double globalScale)
+   {
+      this.yoGraphicsGlobalScaleProvider.setValue(globalScale);
+   }
+
+   public double getYoGraphicsGlobalScale()
+   {
+      return yoGraphicsGlobalScaleProvider.getValue();
+   }
+
+   public SettableDoubleProvider getYoGraphicsGlobalScaleProvider()
+   {
+      return yoGraphicsGlobalScaleProvider;
+   }
+
    public void addYoGraphicsListRegistry(YoGraphicsListRegistry yoGraphicsListRegistry, boolean updateFromSimulationThread)
    {
       if (!updateFromSimulationThread && graphics3dAdapter != null)
@@ -2798,6 +2929,8 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
 
       yoGraphicsListRegistry.setYoGraphicsUpdatedRemotely(updateFromSimulationThread);
       yoGraphicsListRegistry.setYoGraphicsRegistered();
+      
+      yoGraphicsListRegistry.setGlobalScaleProvider(yoGraphicsGlobalScaleProvider);
    }
 
    public GraphGroupList getGraphGroupList()
@@ -3146,7 +3279,6 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
                graphicsUpdatable.update();
             }
          }
-
       }
    }
    
@@ -3170,7 +3302,7 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
       return graphicsRobots.get(robot);
    }
 
-   public void startStreamingVideoData(CameraConfiguration cameraConfiguration, int width, int height, RenderedSceneHandler videoDataServer,
+   public void startStreamingVideoData(CameraConfiguration cameraConfiguration, int width, int height, VideoDataServer videoDataServer,
          TimestampProvider timestampProvider, int framesPerSecond)
    {
       CameraTrackingAndDollyPositionHolder cameraTrackingAndDollyPositionHolder = new CameraTrackAndDollyYoVariablesHolder(yoVariableHolder);

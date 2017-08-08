@@ -44,7 +44,7 @@ import us.ihmc.tools.thread.ThreadTools;
 public abstract class DRCSimulationTools
 {
    private static final String STARTING_LOCATION_PROPERTY_NAME = "startingLocation";
-   
+
    @SuppressWarnings({ "hiding", "unchecked" })
    public static <T extends DRCStartingLocation, Enum> void startSimulationWithGraphicSelector(SimulationStarterInterface simulationStarter, Class<?> operatorInterfaceClass, String[] operatorInterfaceArgs, T... possibleStartingLocations)
    {
@@ -72,9 +72,10 @@ public abstract class DRCSimulationTools
          networkProcessorParameters.enablePerceptionModule(true);
          networkProcessorParameters.enableRosModule(modulesToStart.contains(Modules.ROS_MODULE));
          networkProcessorParameters.enableLocalControllerCommunicator(true);
-         networkProcessorParameters.enableKinematicsToolbox(true);
-         networkProcessorParameters.enableFootstepPlanningToolbox(true);
+         networkProcessorParameters.enableKinematicsToolbox(modulesToStart.contains(Modules.KINEMATICS_TOOLBOX));
+         networkProcessorParameters.enableFootstepPlanningToolbox(modulesToStart.contains(Modules.FOOTSTEP_PLANNING_TOOLBOX));
          networkProcessorParameters.enableRobotEnvironmentAwerenessModule(modulesToStart.contains(Modules.REA_MODULE));
+         networkProcessorParameters.enableMocapModule(modulesToStart.contains(Modules.MOCAP_MODULE));
       }
       else
       {
@@ -199,9 +200,9 @@ public abstract class DRCSimulationTools
          {
             possibleStartingLocationMap.put(possibleStartingLocation.toString(), possibleStartingLocation);
          }
-         
+
          T selectedStartingLocation = possibleStartingLocationMap.get(properties.getProperty(STARTING_LOCATION_PROPERTY_NAME, possibleStartingLocations[0].toString()));
-         
+
          obstacleCourseStartingLocationComboBox.setSelectedItem(selectedStartingLocation == null ? possibleStartingLocations[0] : selectedStartingLocation);
          comboBoxPanelsMap.put(obstacleCourseLocationPanel, obstacleCourseStartingLocationComboBox);
 
@@ -292,7 +293,7 @@ public abstract class DRCSimulationTools
          properties.setProperty(module.getPropertyNameForEnable(), String.valueOf(enabled));
          properties.setProperty(module.getPropertyNameForSelected(), String.valueOf(selected));
       }
-      
+
       if (obstacleCourseStartingLocationComboBox != null && obstacleCourseStartingLocationComboBox.getSelectedItem() != null)
       {
          properties.setProperty(STARTING_LOCATION_PROPERTY_NAME, obstacleCourseStartingLocationComboBox.getSelectedItem().toString());
@@ -353,7 +354,7 @@ public abstract class DRCSimulationTools
 
    public enum Modules
    {
-      SIMULATION, OPERATOR_INTERFACE, BEHAVIOR_VISUALIZER, NETWORK_PROCESSOR, SENSOR_MODULE, ROS_MODULE, BEHAVIOR_MODULE, ZERO_POSE_PRODUCER, REA_MODULE, REA_UI;
+      SIMULATION, OPERATOR_INTERFACE, BEHAVIOR_VISUALIZER, NETWORK_PROCESSOR, SENSOR_MODULE, ROS_MODULE, BEHAVIOR_MODULE, ZERO_POSE_PRODUCER, REA_MODULE, REA_UI, MOCAP_MODULE, KINEMATICS_TOOLBOX, FOOTSTEP_PLANNING_TOOLBOX;
 
       public String getPropertyNameForEnable()
       {

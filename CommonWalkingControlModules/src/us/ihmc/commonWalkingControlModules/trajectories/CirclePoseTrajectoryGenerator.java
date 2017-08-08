@@ -1,30 +1,28 @@
 package us.ihmc.commonWalkingControlModules.trajectories;
 
-import static us.ihmc.robotics.geometry.AngleTools.computeAngleDifferenceMinusPiToPi;
-import static us.ihmc.robotics.geometry.AngleTools.trimAngleMinusPiToPi;
+import static us.ihmc.robotics.geometry.AngleTools.*;
 
-import javax.vecmath.AxisAngle4d;
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector3d;
-
-import us.ihmc.graphics3DDescription.appearance.YoAppearance;
-import us.ihmc.graphics3DDescription.yoGraphics.BagOfBalls;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicCoordinateSystem;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicPosition;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsList;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.euclid.axisAngle.AxisAngle;
+import us.ihmc.euclid.geometry.tools.EuclidGeometryTools;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.graphicsDescription.appearance.YoAppearance;
+import us.ihmc.graphicsDescription.yoGraphics.BagOfBalls;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicCoordinateSystem;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsList;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.robotics.MathTools;
-import us.ihmc.robotics.dataStructures.listener.VariableChangedListener;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.YoVariable;
+import us.ihmc.yoVariables.listener.VariableChangedListener;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoVariable;
 import us.ihmc.robotics.geometry.FrameOrientation;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FramePose;
 import us.ihmc.robotics.geometry.FrameVector;
-import us.ihmc.robotics.geometry.GeometryTools;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
 import us.ihmc.robotics.math.frames.YoFramePoint;
 import us.ihmc.robotics.math.frames.YoFramePose;
 import us.ihmc.robotics.math.frames.YoFrameQuaternion;
@@ -45,25 +43,25 @@ public class CirclePoseTrajectoryGenerator implements PoseTrajectoryGenerator
 
    private final YoVariableRegistry registry;
 
-   private final DoubleYoVariable currentTime;
+   private final YoDouble currentTime;
    private final YoPolynomial anglePolynomial;
 
    private final DoubleProvider desiredTrajectoryTimeProvider;
 
-   private final DoubleYoVariable desiredTrajectoryTime;
-   private final DoubleYoVariable initialRadius;
-   private final DoubleYoVariable initialZ;
-   private final DoubleYoVariable initialAngle;
-   private final DoubleYoVariable currentRelativeAngle;
+   private final YoDouble desiredTrajectoryTime;
+   private final YoDouble initialRadius;
+   private final YoDouble initialZ;
+   private final YoDouble initialAngle;
+   private final YoDouble currentRelativeAngle;
 
-   private final BooleanYoVariable isCurrentAngleBeingAdjusted;
-   private final DoubleYoVariable maximumAngleTrackingErrorTolerated;
-   private final DoubleYoVariable currentControlledFrameRelativeAngle;
-   private final DoubleYoVariable currentAngleTrackingError;
-   private final DoubleYoVariable currentAdjustedRelativeAngle;
+   private final YoBoolean isCurrentAngleBeingAdjusted;
+   private final YoDouble maximumAngleTrackingErrorTolerated;
+   private final YoDouble currentControlledFrameRelativeAngle;
+   private final YoDouble currentAngleTrackingError;
+   private final YoDouble currentAdjustedRelativeAngle;
 
-   private final DoubleYoVariable desiredRotationAngle;
-   private final DoubleYoVariable finalAngle;
+   private final YoDouble desiredRotationAngle;
+   private final YoDouble finalAngle;
 
    private final FramePoint initialPosition = new FramePoint();
    private final FramePoint currentPosition = new FramePoint();
@@ -114,15 +112,15 @@ public class CirclePoseTrajectoryGenerator implements PoseTrajectoryGenerator
    private final FramePose tangentialCircleFramePose = new FramePose();
    private final YoFramePose yoTangentialCircleFramePose;
 
-   /** Use a BooleanYoVariable to hide and show visualization with a VariableChangedListener, so it is still working in playback mode. */
-   private final BooleanYoVariable showViz;
+   /** Use a YoBoolean to hide and show visualization with a VariableChangedListener, so it is still working in playback mode. */
+   private final YoBoolean showViz;
 
    public CirclePoseTrajectoryGenerator(String namePrefix, ReferenceFrame trajectoryFrame, DoubleProvider trajectoryTimeProvider,
          YoVariableRegistry parentRegistry, YoGraphicsListRegistry yoGraphicsListRegistry)
    {
       this.registry = new YoVariableRegistry(namePrefix + getClass().getSimpleName());
-      this.desiredTrajectoryTime = new DoubleYoVariable(namePrefix + "TrajectoryTime", registry);
-      this.currentTime = new DoubleYoVariable(namePrefix + "Time", registry);
+      this.desiredTrajectoryTime = new YoDouble(namePrefix + "TrajectoryTime", registry);
+      this.currentTime = new YoDouble(namePrefix + "Time", registry);
 
       //      this.anglePolynomial = new YoPolynomial(namePrefix + "ParameterPolynomial", 2, registry);
       this.anglePolynomial = new YoPolynomial(namePrefix + "ParameterPolynomial", 4, registry);
@@ -132,20 +130,20 @@ public class CirclePoseTrajectoryGenerator implements PoseTrajectoryGenerator
 
       this.trajectoryFrame = trajectoryFrame;
 
-      initialRadius = new DoubleYoVariable(namePrefix + "Radius", registry);
-      initialZ = new DoubleYoVariable(namePrefix + "ZPosition", registry);
-      initialAngle = new DoubleYoVariable(namePrefix + "InitialAngle", registry);
-      finalAngle = new DoubleYoVariable(namePrefix + "FinalAngle", registry);
+      initialRadius = new YoDouble(namePrefix + "Radius", registry);
+      initialZ = new YoDouble(namePrefix + "ZPosition", registry);
+      initialAngle = new YoDouble(namePrefix + "InitialAngle", registry);
+      finalAngle = new YoDouble(namePrefix + "FinalAngle", registry);
 
-      isCurrentAngleBeingAdjusted = new BooleanYoVariable(namePrefix + "IsCurrentAngleBeingAdjusted", registry);
-      maximumAngleTrackingErrorTolerated = new DoubleYoVariable(namePrefix + "MaxAngleTrackingErrorTolerated", registry);
+      isCurrentAngleBeingAdjusted = new YoBoolean(namePrefix + "IsCurrentAngleBeingAdjusted", registry);
+      maximumAngleTrackingErrorTolerated = new YoDouble(namePrefix + "MaxAngleTrackingErrorTolerated", registry);
       maximumAngleTrackingErrorTolerated.set(Math.toRadians(30.0));
-      currentControlledFrameRelativeAngle = new DoubleYoVariable(namePrefix + "CurrentControlledFrameAngle", registry);
-      currentAngleTrackingError = new DoubleYoVariable(namePrefix + "CurrentAngleTrackingError", registry);
-      currentAdjustedRelativeAngle = new DoubleYoVariable(namePrefix + "CurrentAdjustedRelativeAngle", registry);
+      currentControlledFrameRelativeAngle = new YoDouble(namePrefix + "CurrentControlledFrameAngle", registry);
+      currentAngleTrackingError = new YoDouble(namePrefix + "CurrentAngleTrackingError", registry);
+      currentAdjustedRelativeAngle = new YoDouble(namePrefix + "CurrentAdjustedRelativeAngle", registry);
 
-      desiredRotationAngle = new DoubleYoVariable(namePrefix + "DesiredRotationAngle", registry);
-      currentRelativeAngle = new DoubleYoVariable(namePrefix + "CurrentRelativeAngle", registry);
+      desiredRotationAngle = new YoDouble(namePrefix + "DesiredRotationAngle", registry);
+      currentRelativeAngle = new YoDouble(namePrefix + "CurrentRelativeAngle", registry);
 
       yoInitialPosition = new YoFramePoint(namePrefix + "InitialPosition", trajectoryFrame, registry);
       yoFinalPosition = new YoFramePoint(namePrefix + "FinalPosition", trajectoryFrame, registry);
@@ -174,16 +172,16 @@ public class CirclePoseTrajectoryGenerator implements PoseTrajectoryGenerator
       {
          private static final long serialVersionUID = 9102217353690768074L;
 
-         private final Vector3d localTranslation = new Vector3d();
-         private final Vector3d localRotationAxis = new Vector3d();
-         private final AxisAngle4d localAxisAngle = new AxisAngle4d();
+         private final Vector3D localTranslation = new Vector3D();
+         private final Vector3D localRotationAxis = new Vector3D();
+         private final AxisAngle localAxisAngle = new AxisAngle();
 
          @Override
          protected void updateTransformToParent(RigidBodyTransform transformToParent)
          {
             circleOrigin.get(localTranslation);
             rotationAxis.get(localRotationAxis);
-            GeometryTools.getRotationBasedOnNormal(localAxisAngle, localRotationAxis);
+            EuclidGeometryTools.axisAngleFromZUpToVector3D(localRotationAxis, localAxisAngle);
             transformToParent.set(localAxisAngle, localTranslation);
          }
       };
@@ -212,7 +210,7 @@ public class CirclePoseTrajectoryGenerator implements PoseTrajectoryGenerator
 
          bagOfBalls = new BagOfBalls(numberOfBalls, 0.01, yoGraphicsList.getLabel(), registry, yoGraphicsListRegistry);
 
-         showViz = new BooleanYoVariable(namePrefix + "ShowViz", registry);
+         showViz = new YoBoolean(namePrefix + "ShowViz", registry);
          showViz.addVariableChangedListener(new VariableChangedListener()
          {
             public void variableChanged(YoVariable<?> v)
@@ -244,7 +242,7 @@ public class CirclePoseTrajectoryGenerator implements PoseTrajectoryGenerator
     * @param circleCenterInTrajectoryFrame
     * @param circleNormalInTrajectoryFrame
     */
-   public void updateCircleFrame(Point3d circleCenterInTrajectoryFrame, Vector3d circleNormalInTrajectoryFrame)
+   public void updateCircleFrame(Point3D circleCenterInTrajectoryFrame, Vector3D circleNormalInTrajectoryFrame)
    {
       circleOrigin.set(circleCenterInTrajectoryFrame);
       rotationAxis.set(circleNormalInTrajectoryFrame);
@@ -350,7 +348,7 @@ public class CirclePoseTrajectoryGenerator implements PoseTrajectoryGenerator
    public void compute(double time, boolean adjustAngle)
    {
       this.currentTime.set(time);
-      time = MathTools.clipToMinMax(time, 0.0, desiredTrajectoryTime.getDoubleValue());
+      time = MathTools.clamp(time, 0.0, desiredTrajectoryTime.getDoubleValue());
       anglePolynomial.compute(time);
 
       double angle = anglePolynomial.getPosition();

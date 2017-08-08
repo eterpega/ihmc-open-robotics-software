@@ -1,27 +1,27 @@
 package us.ihmc.sensorProcessing.simulatedSensors;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 import java.util.Random;
-
-import javax.vecmath.Matrix3d;
-import javax.vecmath.Vector3d;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import us.ihmc.graphics3DDescription.Graphics3DObject;
-import us.ihmc.graphics3DDescription.appearance.YoAppearance;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.euclid.matrix.RotationMatrix;
+import us.ihmc.euclid.tools.EuclidCoreTestTools;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.graphicsDescription.Graphics3DObject;
+import us.ihmc.graphicsDescription.appearance.YoAppearance;
 import us.ihmc.robotics.Axis;
 import us.ihmc.robotics.controllers.ControllerFailureException;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.geometry.FrameOrientation;
 import us.ihmc.robotics.geometry.FramePoint;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
 import us.ihmc.robotics.math.frames.YoFrameQuaternion;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotController.RobotController;
@@ -31,9 +31,7 @@ import us.ihmc.robotics.screwTheory.InverseDynamicsJoint;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
 import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.robotics.screwTheory.Twist;
-import us.ihmc.robotics.screwTheory.TwistCalculator;
 import us.ihmc.robotics.screwTheory.Wrench;
-import us.ihmc.robotics.time.GlobalTimer;
 import us.ihmc.simulationconstructionset.FloatingJoint;
 import us.ihmc.simulationconstructionset.Joint;
 import us.ihmc.simulationconstructionset.Link;
@@ -43,12 +41,10 @@ import us.ihmc.simulationconstructionset.RandomRobotGenerator;
 import us.ihmc.simulationconstructionset.Robot;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
 import us.ihmc.simulationconstructionset.UnreasonableAccelerationException;
-import us.ihmc.simulationconstructionset.bambooTools.SimulationTestingParameters;
 import us.ihmc.simulationconstructionset.util.simulationRunner.BlockingSimulationRunner;
 import us.ihmc.simulationconstructionset.util.simulationRunner.BlockingSimulationRunner.SimulationExceededMaximumTimeException;
+import us.ihmc.simulationconstructionset.util.simulationTesting.SimulationTestingParameters;
 import us.ihmc.tools.MemoryTools;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
-import us.ihmc.tools.testing.JUnitTools;
 import us.ihmc.tools.thread.ThreadTools;
 
 public class InverseDynamicsJointsFromSCSRobotGeneratorTest
@@ -79,10 +75,6 @@ public class InverseDynamicsJointsFromSCSRobotGeneratorTest
          blockingSimulationRunner = null;
       }
       
-      GlobalTimer.clearTimers();
-      
-      
-
       MemoryTools.printCurrentMemoryUsageAndReturnUsedMemoryInMB(getClass().getSimpleName() + " after test.");
    }
    
@@ -95,10 +87,10 @@ public class InverseDynamicsJointsFromSCSRobotGeneratorTest
    {
       Robot robot = new Robot("TestSinglePinJoint");
 
-      final PinJoint joint1 = new PinJoint("joint1", new Vector3d(), robot, Axis.Z);
+      final PinJoint joint1 = new PinJoint("joint1", new Vector3D(), robot, Axis.Z);
       Link link1 = new Link("link1");
       link1.setMassAndRadiiOfGyration(1.0, 0.1, 0.1, 0.1);
-      link1.setComOffset(new Vector3d(0.0, 0.2, 0.11));
+      link1.setComOffset(new Vector3D(0.0, 0.2, 0.11));
       Graphics3DObject linkGraphics = new Graphics3DObject();
       linkGraphics.addCylinder(0.1, 1.0, YoAppearance.Red());
       linkGraphics.translate(0.5, 0.0, 0.1);
@@ -131,10 +123,10 @@ public class InverseDynamicsJointsFromSCSRobotGeneratorTest
    {
       Robot robot = new Robot("TestTwoPinJoints");
 
-      PinJoint joint1 = new PinJoint("joint1", new Vector3d(), robot, Axis.Z);
+      PinJoint joint1 = new PinJoint("joint1", new Vector3D(), robot, Axis.Z);
       Link link1 = new Link("link1");
       link1.setMassAndRadiiOfGyration(1.0, 0.1, 0.1, 0.1);
-      link1.setComOffset(new Vector3d(0.25, 0.0, 0.0));
+      link1.setComOffset(new Vector3D(0.25, 0.0, 0.0));
      
       Graphics3DObject linkGraphics = new Graphics3DObject();
       linkGraphics.rotate(Math.PI/2.0, Axis.Y);
@@ -147,10 +139,10 @@ public class InverseDynamicsJointsFromSCSRobotGeneratorTest
 
       robot.addRootJoint(joint1);
 
-      PinJoint joint2 = new PinJoint("joint2", new Vector3d(0.5, 0.0, 0.0), robot, Axis.Z);
+      PinJoint joint2 = new PinJoint("joint2", new Vector3D(0.5, 0.0, 0.0), robot, Axis.Z);
       Link link2 = new Link("link2");
       link2.setMassAndRadiiOfGyration(1.0, 0.1, 0.1, 0.1);
-      link2.setComOffset(new Vector3d(0.25, 0.0, 0.0));
+      link2.setComOffset(new Vector3D(0.25, 0.0, 0.0));
       
       Graphics3DObject linkGraphics2 = new Graphics3DObject();
       linkGraphics2.rotate(Math.PI/2.0, Axis.Y);
@@ -186,11 +178,11 @@ public class InverseDynamicsJointsFromSCSRobotGeneratorTest
    {
       Robot robot = new Robot("TestSingleFloatingJoint");
 
-      final FloatingJoint joint1 = new FloatingJoint("joint1", new Vector3d(), robot);
+      final FloatingJoint joint1 = new FloatingJoint("joint1", new Vector3D(), robot);
       Link link1 = new Link("link1");
       link1.setMassAndRadiiOfGyration(1.0, 0.1, 0.1, 0.1);
-      link1.setComOffset(new Vector3d());
-      link1.setComOffset(new Vector3d(0.0, 0.2, 0.11));
+      link1.setComOffset(new Vector3D());
+      link1.setComOffset(new Vector3D(0.0, 0.2, 0.11));
       Graphics3DObject linkGraphics = new Graphics3DObject();
       linkGraphics.addSphere(1.0, YoAppearance.Red());
       linkGraphics.translate(0.0, 0.0, 1.0);
@@ -198,8 +190,8 @@ public class InverseDynamicsJointsFromSCSRobotGeneratorTest
       link1.setLinkGraphics(linkGraphics);
       joint1.setLink(link1);
 
-      joint1.setAngularVelocityInBody(new Vector3d(0.7, 2.0, 1.0));
-      joint1.setVelocity(new Vector3d(0.0, 0.0, 1.0));
+      joint1.setAngularVelocityInBody(new Vector3D(0.7, 2.0, 1.0));
+      joint1.setVelocity(new Vector3D(0.0, 0.0, 1.0));
       
       robot.addRootJoint(joint1);
       robot.setGravity(0.05);
@@ -270,13 +262,12 @@ public class InverseDynamicsJointsFromSCSRobotGeneratorTest
       private final YoFrameQuaternion lastFrameOrientationID = new YoFrameQuaternion("lastFrameID", ReferenceFrame.getWorldFrame(), registry);
       private final YoFrameQuaternion lastFrameOrientation = new YoFrameQuaternion("lastFrame", ReferenceFrame.getWorldFrame(), registry);
 
-      private final ArrayList<DoubleYoVariable> tauErrors = new ArrayList<DoubleYoVariable>();
-      private final ArrayList<DoubleYoVariable> inverseDynamicsTaus = new ArrayList<DoubleYoVariable>();
+      private final ArrayList<YoDouble> tauErrors = new ArrayList<YoDouble>();
+      private final ArrayList<YoDouble> inverseDynamicsTaus = new ArrayList<YoDouble>();
 
-      private final ArrayList<DoubleYoVariable> wrenchLinearPartErrors = new ArrayList<DoubleYoVariable>();
-      private final ArrayList<DoubleYoVariable> wrenchAngularPartErrors = new ArrayList<DoubleYoVariable>();
+      private final ArrayList<YoDouble> wrenchLinearPartErrors = new ArrayList<YoDouble>();
+      private final ArrayList<YoDouble> wrenchAngularPartErrors = new ArrayList<YoDouble>();
       
-      private final TwistCalculator twistCalculator;
       private final InverseDynamicsCalculator inverseDynamicsCalculator;
 
 
@@ -292,24 +283,23 @@ public class InverseDynamicsJointsFromSCSRobotGeneratorTest
          this.floatingJoints.addAll(scsToInverseDynamicsJointMap.getFloatingJoints());
          this.pinJoints.addAll(scsToInverseDynamicsJointMap.getSCSOneDegreeOfFreedomJoints());
          
-         this.twistCalculator = new TwistCalculator(inertialFrame, elevator);
-         this.inverseDynamicsCalculator = new InverseDynamicsCalculator(twistCalculator, -robot.getGravityZ());
+         this.inverseDynamicsCalculator = new InverseDynamicsCalculator(elevator, -robot.getGravityZ());
 
          for (FloatingJoint floatingJoint : floatingJoints)
          {
-            DoubleYoVariable wrenchLinearPartError = new DoubleYoVariable(floatingJoint.getName() + "LinearPartError", registry);
+            YoDouble wrenchLinearPartError = new YoDouble(floatingJoint.getName() + "LinearPartError", registry);
             wrenchLinearPartErrors.add(wrenchLinearPartError);
             
-            DoubleYoVariable wrenchAngularPartError = new DoubleYoVariable(floatingJoint.getName() + "AngularPartError", registry);
+            YoDouble wrenchAngularPartError = new YoDouble(floatingJoint.getName() + "AngularPartError", registry);
             wrenchAngularPartErrors.add(wrenchAngularPartError);
          }
 
          for (OneDegreeOfFreedomJoint pinJoint : pinJoints)
          {
-            DoubleYoVariable tauError = new DoubleYoVariable(pinJoint.getName() + "TauError", registry);
+            YoDouble tauError = new YoDouble(pinJoint.getName() + "TauError", registry);
             tauErrors.add(tauError);
 
-            DoubleYoVariable inverseDynamicsTau = new DoubleYoVariable(pinJoint.getName() + "InverseDynamicsTau", registry);
+            YoDouble inverseDynamicsTau = new YoDouble(pinJoint.getName() + "InverseDynamicsTau", registry);
             inverseDynamicsTaus.add(inverseDynamicsTau);
          }
 
@@ -383,7 +373,6 @@ public class InverseDynamicsJointsFromSCSRobotGeneratorTest
          generator.updateInverseDynamicsRobotModelFromRobot(true, true);
          
          // Compute the inverse dynamics:
-         twistCalculator.compute();
          inverseDynamicsCalculator.compute();
          
          // Next, extract the inverse dynamics torques and compare to the applied torques:
@@ -393,10 +382,10 @@ public class InverseDynamicsJointsFromSCSRobotGeneratorTest
             double appliedTau = pinJoint.getTauYoVariable().getDoubleValue();
 
             OneDoFJoint revoluteJoint = scsToInverseDynamicsJointMap.getInverseDynamicsOneDoFJoint(pinJoint);
-            DoubleYoVariable inverseDynamicsTau = inverseDynamicsTaus.get(i);
+            YoDouble inverseDynamicsTau = inverseDynamicsTaus.get(i);
             inverseDynamicsTau.set(revoluteJoint.getTau());
 
-            DoubleYoVariable tauError = tauErrors.get(i);
+            YoDouble tauError = tauErrors.get(i);
             tauError.set(Math.abs(appliedTau - inverseDynamicsTau.getDoubleValue()));
 
             if (DO_ASSERTS)
@@ -406,28 +395,28 @@ public class InverseDynamicsJointsFromSCSRobotGeneratorTest
 
                if (DO_TWIST_ASSERTS)
                {
-                  Vector3d pinJointAngularVelocityInBody = new Vector3d();
-                  Vector3d pinJointCoMLinearVelocityInBody = new Vector3d();
+                  Vector3D pinJointAngularVelocityInBody = new Vector3D();
+                  Vector3D pinJointCoMLinearVelocityInBody = new Vector3D();
 
                   pinJoint.physics.getAngularVelocityInBody(pinJointAngularVelocityInBody);
-                  Vector3d comOffset = new Vector3d();
+                  Vector3D comOffset = new Vector3D();
                   pinJoint.getLink().getComOffset(comOffset);
                   pinJoint.physics.getLinearVelocityInBody(pinJointCoMLinearVelocityInBody, comOffset);
 
                   FramePoint comOffsetCheck = new FramePoint();
                   revoluteJoint.getSuccessor().getCoMOffset(comOffsetCheck);
                   comOffsetCheck.changeFrame(revoluteJoint.getFrameAfterJoint());
-                  JUnitTools.assertTuple3dEquals(comOffset, comOffsetCheck.getVectorCopy(), 1e-7);
+                  EuclidCoreTestTools.assertTuple3DEquals(comOffset, comOffsetCheck.getVectorCopy(), 1e-7);
 
                   Twist revoluteJointTwist = new Twist();
-                  twistCalculator.getTwistOfBody(revoluteJointTwist, revoluteJoint.getSuccessor());
+                  revoluteJoint.getSuccessor().getBodyFixedFrame().getTwistOfFrame(revoluteJointTwist);
                   revoluteJointTwist.changeFrame(revoluteJoint.getSuccessor().getBodyFixedFrame());
                   
-                  Vector3d revoluteJointAngularVelocityInBody = revoluteJointTwist.getAngularPartCopy();
-                  Vector3d revoluteJointCoMLinearVelocityInBody = revoluteJointTwist.getLinearPartCopy();
+                  Vector3D revoluteJointAngularVelocityInBody = revoluteJointTwist.getAngularPartCopy();
+                  Vector3D revoluteJointCoMLinearVelocityInBody = revoluteJointTwist.getLinearPartCopy();
 
-                  JUnitTools.assertTuple3dEquals(pinJointAngularVelocityInBody, revoluteJointAngularVelocityInBody, 1e-7);
-                  JUnitTools.assertTuple3dEquals(pinJointCoMLinearVelocityInBody, revoluteJointCoMLinearVelocityInBody, 1e-7);
+                  EuclidCoreTestTools.assertTuple3DEquals(pinJointAngularVelocityInBody, revoluteJointAngularVelocityInBody, 1e-7);
+                  EuclidCoreTestTools.assertTuple3DEquals(pinJointCoMLinearVelocityInBody, revoluteJointCoMLinearVelocityInBody, 1e-7);
                }
             }
          }
@@ -442,11 +431,11 @@ public class InverseDynamicsJointsFromSCSRobotGeneratorTest
             Wrench wrench = new Wrench();
             sixDoFJoint.getWrench(wrench);
             
-            Vector3d angularPartCopy = wrench.getAngularPartCopy();
-            Vector3d linearPartCopy = wrench.getLinearPartCopy();
+            Vector3D angularPartCopy = wrench.getAngularPartCopy();
+            Vector3D linearPartCopy = wrench.getLinearPartCopy();
             
-            DoubleYoVariable wrenchAngularPartError = wrenchAngularPartErrors.get(i);
-            DoubleYoVariable wrenchLinearPartError = wrenchLinearPartErrors.get(i);
+            YoDouble wrenchAngularPartError = wrenchAngularPartErrors.get(i);
+            YoDouble wrenchLinearPartError = wrenchLinearPartErrors.get(i);
             
             wrenchAngularPartError.set(angularPartCopy.length());
             wrenchLinearPartError.set(linearPartCopy.length());  
@@ -466,7 +455,7 @@ public class InverseDynamicsJointsFromSCSRobotGeneratorTest
 
          RigidBodyTransform transformToWorld = new RigidBodyTransform();
          lastJoint.getTransformToWorld(transformToWorld);
-         Matrix3d rotationMatrix = new Matrix3d();
+         RotationMatrix rotationMatrix = new RotationMatrix();
          transformToWorld.getRotation(rotationMatrix);
          lastFrameOrientation.set(rotationMatrix);
          

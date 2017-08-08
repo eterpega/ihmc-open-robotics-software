@@ -1,28 +1,34 @@
 package us.ihmc.commonWalkingControlModules.momentumBasedController.optimization.virtualModelControl;
 
-import org.ejml.data.DenseMatrix64F;
-import org.ejml.ops.CommonOps;
-import us.ihmc.commonWalkingControlModules.momentumBasedController.optimization.groundContactForce.GroundContactForceOptimizationControlModule;
-import us.ihmc.commonWalkingControlModules.virtualModelControl.VirtualModelControlSolution;
-import us.ihmc.commonWalkingControlModules.controllerCore.WholeBodyControlCoreToolbox;
-import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.*;
-import us.ihmc.commonWalkingControlModules.momentumBasedController.optimization.*;
-import us.ihmc.commonWalkingControlModules.wrenchDistribution.WrenchMatrixCalculator;
-import us.ihmc.humanoidRobotics.bipedSupportPolygons.ContactablePlaneBody;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.IntegerYoVariable;
-import us.ihmc.robotics.math.frames.YoFrameVector;
-import us.ihmc.robotics.math.frames.YoWrench;
-import us.ihmc.robotics.referenceFrames.ReferenceFrame;
-import us.ihmc.robotics.screwTheory.*;
-import us.ihmc.tools.exceptions.NoConvergenceException;
-import us.ihmc.tools.io.printing.PrintTools;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.ejml.data.DenseMatrix64F;
+import org.ejml.ops.CommonOps;
+
+import us.ihmc.commonWalkingControlModules.controllerCore.WholeBodyControlCoreToolbox;
+import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.ExternalWrenchCommand;
+import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.MomentumRateCommand;
+import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.PlaneContactStateCommand;
+import us.ihmc.commonWalkingControlModules.momentumBasedController.optimization.ExternalWrenchHandler;
+import us.ihmc.commonWalkingControlModules.momentumBasedController.optimization.groundContactForce.GroundContactForceOptimizationControlModule;
+import us.ihmc.commonWalkingControlModules.virtualModelControl.VirtualModelControlSolution;
+import us.ihmc.commonWalkingControlModules.wrenchDistribution.WrenchMatrixCalculator;
+import us.ihmc.commons.PrintTools;
+import us.ihmc.humanoidRobotics.bipedSupportPolygons.ContactablePlaneBody;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoInteger;
+import us.ihmc.robotics.math.frames.YoFrameVector;
+import us.ihmc.robotics.math.frames.YoWrench;
+import us.ihmc.robotics.referenceFrames.ReferenceFrame;
+import us.ihmc.robotics.screwTheory.InverseDynamicsJoint;
+import us.ihmc.robotics.screwTheory.RigidBody;
+import us.ihmc.robotics.screwTheory.SpatialForceVector;
+import us.ihmc.robotics.screwTheory.Wrench;
+import us.ihmc.tools.exceptions.NoConvergenceException;
 
 public class VirtualModelControlOptimizationControlModule
 {
@@ -44,8 +50,8 @@ public class VirtualModelControlOptimizationControlModule
    private final Map<RigidBody, YoWrench> contactWrenchSolutions = new HashMap<>();
 
    private final GroundContactForceOptimizationControlModule groundContactForceOptimization;
-   private final BooleanYoVariable hasNotConvergedInPast = new BooleanYoVariable("hasNotConvergedInPast", registry);
-   private final IntegerYoVariable hasNotConvergedCounts = new IntegerYoVariable("hasNotConvergedCounts", registry);
+   private final YoBoolean hasNotConvergedInPast = new YoBoolean("hasNotConvergedInPast", registry);
+   private final YoInteger hasNotConvergedCounts = new YoInteger("hasNotConvergedCounts", registry);
 
    private final List<? extends ContactablePlaneBody> contactablePlaneBodies;
    private final List<RigidBody> bodiesInContact = new ArrayList<>();
@@ -53,17 +59,16 @@ public class VirtualModelControlOptimizationControlModule
 
    private final boolean useMomentumQP;
 
-   public VirtualModelControlOptimizationControlModule(WholeBodyControlCoreToolbox toolbox, InverseDynamicsJoint rootJoint, boolean useMomentumQP,
-         YoVariableRegistry parentRegistry)
+   public VirtualModelControlOptimizationControlModule(WholeBodyControlCoreToolbox toolbox, boolean useMomentumQP, YoVariableRegistry parentRegistry)
    {
       this.useMomentumQP = useMomentumQP;
       jointsToOptimizeFor = toolbox.getJointIndexHandler().getIndexedJoints();
       centerOfMassFrame = toolbox.getCenterOfMassFrame();
       contactablePlaneBodies = toolbox.getContactablePlaneBodies();
 
-      WrenchMatrixCalculator wrenchMatrixCalculator = new WrenchMatrixCalculator(toolbox, registry);
+      WrenchMatrixCalculator wrenchMatrixCalculator = toolbox.getWrenchMatrixCalculator();
       groundContactForceOptimization = new GroundContactForceOptimizationControlModule(wrenchMatrixCalculator, contactablePlaneBodies,
-            toolbox.getMomentumOptimizationSettings(), parentRegistry, toolbox.getYoGraphicsListRegistry());
+            toolbox.getOptimizationSettings(), parentRegistry, toolbox.getYoGraphicsListRegistry());
 
       double gravityZ = toolbox.getGravityZ();
 
@@ -85,7 +90,7 @@ public class VirtualModelControlOptimizationControlModule
          achievedAngularMomentumRate = null;
       }
 
-      externalWrenchHandler = new ExternalWrenchHandler(gravityZ, centerOfMassFrame, rootJoint, contactablePlaneBodies);
+      externalWrenchHandler = new ExternalWrenchHandler(gravityZ, centerOfMassFrame, toolbox.getTotalRobotMass(), contactablePlaneBodies);
 
       parentRegistry.addChild(registry);
    }
@@ -210,7 +215,7 @@ public class VirtualModelControlOptimizationControlModule
    public void submitMomentumRateCommand(MomentumRateCommand command)
    {
       groundContactForceOptimization.submitMomentumRateCommand(command);
-      momentumSelectionMatrix.set(command.getSelectionMatrix());
+      command.getSelectionMatrix(centerOfMassFrame, momentumSelectionMatrix);
    }
 
    private final DenseMatrix64F currentColSum = new DenseMatrix64F(1, SpatialForceVector.SIZE);

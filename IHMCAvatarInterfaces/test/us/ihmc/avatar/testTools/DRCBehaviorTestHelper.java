@@ -1,27 +1,27 @@
 package us.ihmc.avatar.testTools;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import us.ihmc.robotModels.FullHumanoidRobotModel;
-import us.ihmc.robotModels.FullRobotModel;
 import us.ihmc.avatar.DRCStartingLocation;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
+import us.ihmc.avatar.networkProcessor.DRCNetworkModuleParameters;
 import us.ihmc.commonWalkingControlModules.controllers.Updatable;
+import us.ihmc.commons.PrintTools;
 import us.ihmc.communication.PacketRouter;
 import us.ihmc.communication.packetCommunicator.PacketCommunicator;
 import us.ihmc.communication.packets.Packet;
 import us.ihmc.communication.packets.PacketDestination;
 import us.ihmc.communication.util.NetworkPorts;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.humanoidBehaviors.IHMCHumanoidBehaviorManager;
 import us.ihmc.humanoidBehaviors.behaviors.AbstractBehavior;
 import us.ihmc.humanoidBehaviors.communication.CommunicationBridge;
-import us.ihmc.humanoidBehaviors.dispatcher.BehaviorDispatcher;
 import us.ihmc.humanoidBehaviors.dispatcher.BehaviorControlModeSubscriber;
+import us.ihmc.humanoidBehaviors.dispatcher.BehaviorDispatcher;
 import us.ihmc.humanoidBehaviors.dispatcher.HumanoidBehaviorTypeSubscriber;
 import us.ihmc.humanoidBehaviors.utilities.CapturePointUpdatable;
 import us.ihmc.humanoidBehaviors.utilities.StopThreadUpdatable;
@@ -38,19 +38,20 @@ import us.ihmc.humanoidRobotics.communication.subscribers.HumanoidRobotDataRecei
 import us.ihmc.humanoidRobotics.frames.HumanoidReferenceFrames;
 import us.ihmc.humanoidRobotics.kryo.IHMCCommunicationKryoNetClassList;
 import us.ihmc.robotDataLogger.YoVariableServer;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.robotModels.FullHumanoidRobotModel;
+import us.ihmc.robotModels.FullRobotModel;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.geometry.FramePose;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.robotics.sensors.ForceSensorDataHolder;
 import us.ihmc.sensorProcessing.communication.packets.dataobjects.RobotConfigurationData;
-import us.ihmc.simulationconstructionset.bambooTools.SimulationTestingParameters;
-import us.ihmc.simulationconstructionset.util.environments.CommonAvatarEnvironmentInterface;
-import us.ihmc.simulationconstructionset.util.environments.DefaultCommonAvatarEnvironment;
+import us.ihmc.simulationconstructionset.util.simulationTesting.SimulationTestingParameters;
+import us.ihmc.simulationConstructionSetTools.util.environments.CommonAvatarEnvironmentInterface;
+import us.ihmc.simulationConstructionSetTools.util.environments.DefaultCommonAvatarEnvironment;
 import us.ihmc.simulationconstructionset.util.simulationRunner.BlockingSimulationRunner.SimulationExceededMaximumTimeException;
-import us.ihmc.tools.io.printing.PrintTools;
 import us.ihmc.tools.thread.ThreadTools;
 
 /** 
@@ -62,9 +63,9 @@ public class DRCBehaviorTestHelper extends DRCSimulationTestHelper
 {
    private static final IHMCCommunicationKryoNetClassList NET_CLASS_LIST = new IHMCCommunicationKryoNetClassList();
    private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
-   private final DoubleYoVariable yoTimeRobot;
-   private final DoubleYoVariable yoTimeBehaviorDispatcher;
-   private final DoubleYoVariable yoTimeLastFullRobotModelUpdate;
+   private final YoDouble yoTimeRobot;
+   private final YoDouble yoTimeBehaviorDispatcher;
+   private final YoDouble yoTimeLastFullRobotModelUpdate;
 
    private final DRCRobotModel drcRobotModel;
    private final FullHumanoidRobotModel fullRobotModel;
@@ -98,19 +99,28 @@ public class DRCBehaviorTestHelper extends DRCSimulationTestHelper
    {
       this(commonAvatarEnvironmentInterface, name, selectedLocation, simulationTestingParameters, robotModel, true);
    }
-
+   
+   
+   
    public DRCBehaviorTestHelper(CommonAvatarEnvironmentInterface commonAvatarEnvironmentInterface,
          String name, DRCStartingLocation selectedLocation, SimulationTestingParameters simulationTestingParameters,
          DRCRobotModel robotModel, boolean automaticallySimulate)
    {
-      super(commonAvatarEnvironmentInterface, name, selectedLocation, simulationTestingParameters, robotModel, automaticallySimulate);
+	   this(commonAvatarEnvironmentInterface, name, selectedLocation, simulationTestingParameters, robotModel, null, automaticallySimulate);
+   }
+   
+   public DRCBehaviorTestHelper(CommonAvatarEnvironmentInterface commonAvatarEnvironmentInterface,
+	         String name, DRCStartingLocation selectedLocation, SimulationTestingParameters simulationTestingParameters,
+	         DRCRobotModel robotModel, DRCNetworkModuleParameters networkModuleParameters, boolean automaticallySimulate)	   
+   {
+      super(commonAvatarEnvironmentInterface, name, selectedLocation, simulationTestingParameters, robotModel, networkModuleParameters, automaticallySimulate);
 
       yoTimeRobot = getRobot().getYoTime();
-      yoTimeBehaviorDispatcher = new DoubleYoVariable("yoTimeBehaviorDispatcher", registry);
+      yoTimeBehaviorDispatcher = new YoDouble("yoTimeBehaviorDispatcher", registry);
 
       this.drcRobotModel = robotModel;
       this.fullRobotModel = robotModel.createFullRobotModel();
-      yoTimeLastFullRobotModelUpdate = new DoubleYoVariable("yoTimeRobotModelUpdate", registry);
+      yoTimeLastFullRobotModelUpdate = new YoDouble("yoTimeRobotModelUpdate", registry);
 
       
       this.mockUIPacketCommunicatorServer = PacketCommunicator.createIntraprocessPacketCommunicator(NetworkPorts.UI_MODULE, NET_CLASS_LIST);
@@ -182,7 +192,7 @@ public class DRCBehaviorTestHelper extends DRCSimulationTestHelper
       return robotDataReceiver;
    }
 
-   public DoubleYoVariable getYoTime()
+   public YoDouble getYoTime()
    {
       return yoTimeRobot;
    }
@@ -302,28 +312,28 @@ public class DRCBehaviorTestHelper extends DRCSimulationTestHelper
 
       if (mockUIPacketCommunicatorServer != null)
       {
-         mockUIPacketCommunicatorServer.close();
+         mockUIPacketCommunicatorServer.disconnect();
       }
       
       if (mockUIPacketCommunicatorClient != null)
       {
-         mockUIPacketCommunicatorClient.close();
+         mockUIPacketCommunicatorClient.disconnect();
       }
       
 
       if (behaviorCommunicatorClient != null)
       {
-         behaviorCommunicatorClient.close();
+         behaviorCommunicatorClient.disconnect();
       }
       
       if (behaviorCommunicatorServer != null)
       {
-         behaviorCommunicatorServer.close();
+         behaviorCommunicatorServer.disconnect();
       }
 
       if (controllerCommunicator != null)
       {
-         controllerCommunicator.close();
+         controllerCommunicator.disconnect();
       }
 
       super.destroySimulation();

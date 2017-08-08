@@ -8,19 +8,19 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
 import us.ihmc.quadrupedRobotics.QuadrupedForceTestYoVariables;
 import us.ihmc.quadrupedRobotics.QuadrupedMultiRobotTestInterface;
 import us.ihmc.quadrupedRobotics.QuadrupedTestBehaviors;
 import us.ihmc.quadrupedRobotics.QuadrupedTestFactory;
 import us.ihmc.quadrupedRobotics.QuadrupedTestGoals;
 import us.ihmc.quadrupedRobotics.controller.QuadrupedControlMode;
-import us.ihmc.robotics.dataStructures.parameter.ParameterRegistry;
 import us.ihmc.quadrupedRobotics.simulation.QuadrupedGroundContactModelType;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.robotics.dataStructures.parameter.ParameterRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.robotSide.RobotQuadrant;
-import us.ihmc.simulationconstructionset.util.simulationRunner.GoalOrientedTestConductor;
+import us.ihmc.simulationConstructionSetTools.util.simulationrunner.GoalOrientedTestConductor;
 import us.ihmc.tools.MemoryTools;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
 
 public abstract class QuadrupedStepControllerTest implements QuadrupedMultiRobotTestInterface
 {
@@ -62,7 +62,7 @@ public abstract class QuadrupedStepControllerTest implements QuadrupedMultiRobot
    {
       QuadrupedTestBehaviors.readyXGait(conductor, variables);
       
-      DoubleYoVariable frontLeftSolePositionX = (DoubleYoVariable) conductor.getScs().getVariable("frontLeftSolePositionX");
+      YoDouble frontLeftSolePositionX = (YoDouble) conductor.getScs().getVariable("frontLeftSolePositionX");
       double commandedStepPositionX = frontLeftSolePositionX.getDoubleValue() + 0.2;
       
       variables.getTimedStepQuadrant().set(RobotQuadrant.FRONT_LEFT);

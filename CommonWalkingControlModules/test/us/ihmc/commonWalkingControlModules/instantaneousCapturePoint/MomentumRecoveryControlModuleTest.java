@@ -12,38 +12,37 @@ import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.vecmath.Matrix3d;
-import javax.vecmath.Point2d;
-import javax.vecmath.Quat4d;
-import javax.vecmath.Vector3d;
 
 import org.junit.Test;
 
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
-import us.ihmc.graphics3DDescription.yoGraphics.plotting.ArtifactList;
-import us.ihmc.graphics3DDescription.yoGraphics.plotting.YoArtifactPolygon;
+import us.ihmc.commons.MutationTestFacilitator;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationPlan;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.continuousIntegration.IntegrationCategory;
+import us.ihmc.euclid.matrix.Matrix3D;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple2D.Point2D;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.graphicsDescription.yoGraphics.plotting.ArtifactList;
+import us.ihmc.graphicsDescription.yoGraphics.plotting.YoArtifactPolygon;
 import us.ihmc.humanoidRobotics.footstep.Footstep;
 import us.ihmc.plotting.Plotter;
 import us.ihmc.plotting.PlotterShowHideMenu;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
 import us.ihmc.robotics.geometry.FrameConvexPolygon2d;
 import us.ihmc.robotics.geometry.FramePoint2d;
 import us.ihmc.robotics.geometry.FramePose;
 import us.ihmc.robotics.geometry.FrameVector2d;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
 import us.ihmc.robotics.math.frames.YoFrameConvexPolygon2d;
-import us.ihmc.robotics.referenceFrames.PoseReferenceFrame;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.robotics.screwTheory.ScrewTools;
 import us.ihmc.robotics.screwTheory.SixDoFJoint;
-import us.ihmc.tools.testing.MutationTestingTools;
-import us.ihmc.tools.continuousIntegration.IntegrationCategory;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationPlan;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoBoolean;
 
 @ContinuousIntegrationPlan(categories = {IntegrationCategory.FAST})
 public class MomentumRecoveryControlModuleTest
@@ -62,12 +61,12 @@ public class MomentumRecoveryControlModuleTest
    private SideDependentList<ReferenceFrame> soleFrames = new SideDependentList<>();
    private SideDependentList<FrameConvexPolygon2d> defaultFootPolygons = new SideDependentList<>();
 
-   private BooleanYoVariable allowUpperBodyMomentumInSingleSupport;
-   private BooleanYoVariable allowUpperBodyMomentumInDoubleSupport;
-   private BooleanYoVariable allowUsingHighMomentumWeight;
+   private YoBoolean allowUpperBodyMomentumInSingleSupport;
+   private YoBoolean allowUpperBodyMomentumInDoubleSupport;
+   private YoBoolean allowUsingHighMomentumWeight;
 
-   private BooleanYoVariable usingUpperBodyMomentum;
-   private BooleanYoVariable usingHighMomentumWeight;
+   private YoBoolean usingUpperBodyMomentum;
+   private YoBoolean usingHighMomentumWeight;
 
    @ContinuousIntegrationTest(estimatedDuration = 0.0)
    @Test (timeout = 30000)
@@ -77,9 +76,9 @@ public class MomentumRecoveryControlModuleTest
     */
    public void testEnabledDoubleSupport()
    {
-      Vector3d leftFootPosition = new Vector3d(0.0, 0.1, 0.0);
-      Vector3d rightFootPosition = new Vector3d(0.05, -0.1, 0.0);
-      SideDependentList<Vector3d> footPositions = new SideDependentList<Vector3d>(leftFootPosition, rightFootPosition);
+      Vector3D leftFootPosition = new Vector3D(0.0, 0.1, 0.0);
+      Vector3D rightFootPosition = new Vector3D(0.05, -0.1, 0.0);
+      SideDependentList<Vector3D> footPositions = new SideDependentList<Vector3D>(leftFootPosition, rightFootPosition);
       setupTest(footPositions);
 
       FramePoint2d capturePoint = new FramePoint2d(worldFrame, Double.MAX_VALUE, Double.MAX_VALUE);
@@ -119,9 +118,9 @@ public class MomentumRecoveryControlModuleTest
     */
    public void testEnabledSingleSupport()
    {
-      Vector3d leftFootPosition = new Vector3d(0.0, 0.1, 0.0);
-      Vector3d rightFootPosition = new Vector3d(0.05, -0.1, 0.0);
-      SideDependentList<Vector3d> footPositions = new SideDependentList<Vector3d>(leftFootPosition, rightFootPosition);
+      Vector3D leftFootPosition = new Vector3D(0.0, 0.1, 0.0);
+      Vector3D rightFootPosition = new Vector3D(0.05, -0.1, 0.0);
+      SideDependentList<Vector3D> footPositions = new SideDependentList<Vector3D>(leftFootPosition, rightFootPosition);
       setupTest(footPositions);
 
       FramePoint2d capturePoint = new FramePoint2d(worldFrame, Double.MAX_VALUE, Double.MAX_VALUE);
@@ -161,9 +160,9 @@ public class MomentumRecoveryControlModuleTest
     */
    public void testDisabledDoubleSupport()
    {
-      Vector3d leftFootPosition = new Vector3d(0.0, 0.1, 0.0);
-      Vector3d rightFootPosition = new Vector3d(0.05, -0.1, 0.0);
-      SideDependentList<Vector3d> footPositions = new SideDependentList<Vector3d>(leftFootPosition, rightFootPosition);
+      Vector3D leftFootPosition = new Vector3D(0.0, 0.1, 0.0);
+      Vector3D rightFootPosition = new Vector3D(0.05, -0.1, 0.0);
+      SideDependentList<Vector3D> footPositions = new SideDependentList<Vector3D>(leftFootPosition, rightFootPosition);
       setupTest(footPositions);
 
       allowUpperBodyMomentumInSingleSupport.set(false);
@@ -205,9 +204,9 @@ public class MomentumRecoveryControlModuleTest
     */
    public void testDisabledSingleSupport()
    {
-      Vector3d leftFootPosition = new Vector3d(0.0, 0.1, 0.0);
-      Vector3d rightFootPosition = new Vector3d(0.05, -0.1, 0.0);
-      SideDependentList<Vector3d> footPositions = new SideDependentList<Vector3d>(leftFootPosition, rightFootPosition);
+      Vector3D leftFootPosition = new Vector3D(0.0, 0.1, 0.0);
+      Vector3D rightFootPosition = new Vector3D(0.05, -0.1, 0.0);
+      SideDependentList<Vector3D> footPositions = new SideDependentList<Vector3D>(leftFootPosition, rightFootPosition);
       setupTest(footPositions);
 
       allowUpperBodyMomentumInSingleSupport.set(false);
@@ -245,9 +244,9 @@ public class MomentumRecoveryControlModuleTest
    @Test (timeout = 30000)
    public void testLogicDoubleSupportSafe()
    {
-      Vector3d leftFootPosition = new Vector3d(0.0, 0.1, 0.0);
-      Vector3d rightFootPosition = new Vector3d(0.05, -0.1, 0.0);
-      SideDependentList<Vector3d> footPositions = new SideDependentList<Vector3d>(leftFootPosition, rightFootPosition);
+      Vector3D leftFootPosition = new Vector3D(0.0, 0.1, 0.0);
+      Vector3D rightFootPosition = new Vector3D(0.05, -0.1, 0.0);
+      SideDependentList<Vector3D> footPositions = new SideDependentList<Vector3D>(leftFootPosition, rightFootPosition);
       setupTest(footPositions);
 
       FramePoint2d capturePoint = new FramePoint2d(worldFrame, 0.1, 0.0);
@@ -280,9 +279,9 @@ public class MomentumRecoveryControlModuleTest
    @Test (timeout = 30000)
    public void testLogicDoubleSupportUnsafe()
    {
-      Vector3d leftFootPosition = new Vector3d(0.0, 0.1, 0.0);
-      Vector3d rightFootPosition = new Vector3d(0.05, -0.1, 0.0);
-      SideDependentList<Vector3d> footPositions = new SideDependentList<Vector3d>(leftFootPosition, rightFootPosition);
+      Vector3D leftFootPosition = new Vector3D(0.0, 0.1, 0.0);
+      Vector3D rightFootPosition = new Vector3D(0.05, -0.1, 0.0);
+      SideDependentList<Vector3D> footPositions = new SideDependentList<Vector3D>(leftFootPosition, rightFootPosition);
       setupTest(footPositions);
 
       FramePoint2d capturePoint = new FramePoint2d(worldFrame, -0.2, 0.0);
@@ -315,17 +314,17 @@ public class MomentumRecoveryControlModuleTest
    @Test (timeout = 30000)
    public void testLogicSingleSupportSafe()
    {
-      Vector3d leftFootPosition = new Vector3d(0.0, 0.1, 0.0);
-      Vector3d rightFootPosition = new Vector3d(0.2, -0.15, 0.0);
-      SideDependentList<Vector3d> footPositions = new SideDependentList<Vector3d>(leftFootPosition, rightFootPosition);
+      Vector3D leftFootPosition = new Vector3D(0.0, 0.1, 0.0);
+      Vector3D rightFootPosition = new Vector3D(0.2, -0.15, 0.0);
+      SideDependentList<Vector3D> footPositions = new SideDependentList<Vector3D>(leftFootPosition, rightFootPosition);
       setupTest(footPositions);
 
       FramePoint2d capturePoint = new FramePoint2d(worldFrame, 0.1, 0.0);
 
       RobotSide stepSide = RobotSide.RIGHT;
       FrameConvexPolygon2d supportPolygon = makeSupportPolygon(stepSide == RobotSide.RIGHT, stepSide == RobotSide.LEFT);
-      FramePose stepPose = new FramePose(worldFrame, rightFootPosition, new Quat4d());
-      Footstep footStep = new Footstep(feet.get(stepSide), stepSide, soleFrames.get(stepSide), new PoseReferenceFrame("stepFrame", stepPose));
+      FramePose stepPose = new FramePose(worldFrame, rightFootPosition, new Quaternion());
+      Footstep footStep = new Footstep(feet.get(stepSide), stepSide, stepPose);
 
       momentumRecoveryControlModule.setSupportSide(RobotSide.LEFT);
       momentumRecoveryControlModule.setICPError(new FrameVector2d(worldFrame));
@@ -355,17 +354,17 @@ public class MomentumRecoveryControlModuleTest
    @Test (timeout = 30000)
    public void testLogicSingleSupportUnsafe()
    {
-      Vector3d leftFootPosition = new Vector3d(0.0, 0.1, 0.0);
-      Vector3d rightFootPosition = new Vector3d(0.2, -0.15, 0.0);
-      SideDependentList<Vector3d> footPositions = new SideDependentList<Vector3d>(leftFootPosition, rightFootPosition);
+      Vector3D leftFootPosition = new Vector3D(0.0, 0.1, 0.0);
+      Vector3D rightFootPosition = new Vector3D(0.2, -0.15, 0.0);
+      SideDependentList<Vector3D> footPositions = new SideDependentList<Vector3D>(leftFootPosition, rightFootPosition);
       setupTest(footPositions);
 
       FramePoint2d capturePoint = new FramePoint2d(worldFrame, 0.35, 0.05);
 
       RobotSide stepSide = RobotSide.RIGHT;
       FrameConvexPolygon2d supportPolygon = makeSupportPolygon(stepSide == RobotSide.RIGHT, stepSide == RobotSide.LEFT);
-      FramePose stepPose = new FramePose(worldFrame, rightFootPosition, new Quat4d());
-      Footstep footStep = new Footstep(feet.get(stepSide), stepSide, soleFrames.get(stepSide), new PoseReferenceFrame("stepFrame", stepPose));
+      FramePose stepPose = new FramePose(worldFrame, rightFootPosition, new Quaternion());
+      Footstep footStep = new Footstep(feet.get(stepSide), stepSide, stepPose);
 
       momentumRecoveryControlModule.setSupportSide(RobotSide.LEFT);
       momentumRecoveryControlModule.setICPError(new FrameVector2d(worldFrame));
@@ -399,9 +398,9 @@ public class MomentumRecoveryControlModuleTest
     */
    public void testHighMomentumWeight()
    {
-      Vector3d leftFootPosition = new Vector3d(0.0, 0.1, 0.0);
-      Vector3d rightFootPosition = new Vector3d(0.05, -0.1, 0.0);
-      SideDependentList<Vector3d> footPositions = new SideDependentList<Vector3d>(leftFootPosition, rightFootPosition);
+      Vector3D leftFootPosition = new Vector3D(0.0, 0.1, 0.0);
+      Vector3D rightFootPosition = new Vector3D(0.05, -0.1, 0.0);
+      SideDependentList<Vector3D> footPositions = new SideDependentList<Vector3D>(leftFootPosition, rightFootPosition);
       setupTest(footPositions);
 
       FramePoint2d capturePoint = new FramePoint2d(worldFrame);
@@ -425,15 +424,15 @@ public class MomentumRecoveryControlModuleTest
       assertTrue(usingHighMomentumWeight.getBooleanValue());
    }
 
-   private void setupTest(SideDependentList<Vector3d> footPositions)
+   private void setupTest(SideDependentList<Vector3D> footPositions)
    {
       RigidBody elevator = new RigidBody("elevator", worldFrame);
 
       for (RobotSide robotSide : RobotSide.values)
       {
          String prefix = robotSide.getLowerCaseName();
-         SixDoFJoint footJoint = new SixDoFJoint(prefix + "FootJoint", elevator, worldFrame);
-         RigidBody foot = ScrewTools.addRigidBody(prefix + "Foot", footJoint, new Matrix3d(), 1.0, new Vector3d());
+         SixDoFJoint footJoint = new SixDoFJoint(prefix + "FootJoint", elevator);
+         RigidBody foot = ScrewTools.addRigidBody(prefix + "Foot", footJoint, new Matrix3D(), 1.0, new Vector3D());
          ReferenceFrame ankleFrame = foot.getBodyFixedFrame();
          ReferenceFrame soleFrame = ReferenceFrame.constructFrameWithUnchangingTransformToParent(prefix + "Sole", ankleFrame, new RigidBodyTransform());
 
@@ -443,10 +442,10 @@ public class MomentumRecoveryControlModuleTest
          soleFrames.put(robotSide, soleFrame);
 
          FrameConvexPolygon2d footPolygon = new FrameConvexPolygon2d(soleFrame);
-         footPolygon.addVertex(new Point2d(0.1, 0.05));
-         footPolygon.addVertex(new Point2d(0.1, -0.05));
-         footPolygon.addVertex(new Point2d(-0.1, -0.05));
-         footPolygon.addVertex(new Point2d(-0.1, 0.05));
+         footPolygon.addVertex(new Point2D(0.1, 0.05));
+         footPolygon.addVertex(new Point2D(0.1, -0.05));
+         footPolygon.addVertex(new Point2D(-0.1, -0.05));
+         footPolygon.addVertex(new Point2D(-0.1, 0.05));
          footPolygon.update();
          defaultFootPolygons.put(robotSide, footPolygon);
 
@@ -454,17 +453,17 @@ public class MomentumRecoveryControlModuleTest
       }
       elevator.updateFramesRecursively();
 
-      momentumRecoveryControlModule = new MomentumRecoveryControlModule(defaultFootPolygons, 0.1, registry, yoGraphicsListRegistry);
-      allowUpperBodyMomentumInSingleSupport = (BooleanYoVariable) registry.getVariable("allowUpperBodyMomentumInSingleSupport");
-      allowUpperBodyMomentumInDoubleSupport = (BooleanYoVariable) registry.getVariable("allowUpperBodyMomentumInDoubleSupport");
-      allowUsingHighMomentumWeight = (BooleanYoVariable) registry.getVariable("allowUsingHighMomentumWeight");
+      momentumRecoveryControlModule = new MomentumRecoveryControlModule(defaultFootPolygons, 0.1, false, registry, yoGraphicsListRegistry);
+      allowUpperBodyMomentumInSingleSupport = (YoBoolean) registry.getVariable("allowUpperBodyMomentumInSingleSupport");
+      allowUpperBodyMomentumInDoubleSupport = (YoBoolean) registry.getVariable("allowUpperBodyMomentumInDoubleSupport");
+      allowUsingHighMomentumWeight = (YoBoolean) registry.getVariable("allowUsingHighMomentumWeight");
 
       allowUpperBodyMomentumInSingleSupport.set(true);
       allowUpperBodyMomentumInDoubleSupport.set(true);
       allowUsingHighMomentumWeight.set(true);
 
-      usingUpperBodyMomentum = (BooleanYoVariable) registry.getVariable("usingUpperBodyMomentum");
-      usingHighMomentumWeight = (BooleanYoVariable) registry.getVariable("usingHighMomentumWeight");
+      usingUpperBodyMomentum = (YoBoolean) registry.getVariable("usingUpperBodyMomentum");
+      usingHighMomentumWeight = (YoBoolean) registry.getVariable("usingHighMomentumWeight");
 
       ArtifactList artifacts = new ArtifactList(getClass().getSimpleName());
       for (RobotSide robotSide : RobotSide.values)
@@ -555,9 +554,7 @@ public class MomentumRecoveryControlModuleTest
 
    public static void main(String[] args)
    {
-      String targetTests = "us.ihmc.commonWalkingControlModules.instantaneousCapturePoint.MomentumRecoveryControlModuleTest";
-      String targetClasses = "us.ihmc.commonWalkingControlModules.instantaneousCapturePoint.MomentumRecoveryControlModule";
-      MutationTestingTools.doPITMutationTestAndOpenResult(targetTests, targetClasses);
+      MutationTestFacilitator.facilitateMutationTestForClass(MomentumRecoveryControlModule.class, MomentumRecoveryControlModuleTest.class);
    }
 
 }

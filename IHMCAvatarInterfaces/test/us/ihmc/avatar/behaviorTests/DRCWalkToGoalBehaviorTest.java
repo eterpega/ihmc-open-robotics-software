@@ -8,20 +8,23 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-import javax.vecmath.Vector2d;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.avatar.DRCObstacleCourseStartingLocation;
 import us.ihmc.avatar.MultiRobotTestInterface;
 import us.ihmc.avatar.testTools.DRCSimulationTestHelper;
+import us.ihmc.commons.PrintTools;
+import us.ihmc.commons.RandomNumbers;
 import us.ihmc.communication.PacketRouter;
 import us.ihmc.communication.packetCommunicator.PacketCommunicator;
 import us.ihmc.communication.packets.PacketDestination;
 import us.ihmc.communication.util.NetworkPorts;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.continuousIntegration.IntegrationCategory;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple2D.Vector2D;
 import us.ihmc.humanoidBehaviors.behaviors.AbstractBehavior;
 import us.ihmc.humanoidBehaviors.behaviors.complexBehaviors.WalkToGoalBehavior;
 import us.ihmc.humanoidBehaviors.communication.CommunicationBridge;
@@ -30,28 +33,24 @@ import us.ihmc.humanoidRobotics.communication.packets.behaviors.WalkToGoalBehavi
 import us.ihmc.humanoidRobotics.communication.subscribers.HumanoidRobotDataReceiver;
 import us.ihmc.humanoidRobotics.frames.HumanoidReferenceFrames;
 import us.ihmc.humanoidRobotics.kryo.IHMCCommunicationKryoNetClassList;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotics.geometry.FramePose;
 import us.ihmc.robotics.geometry.FramePose2d;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
-import us.ihmc.robotics.random.RandomTools;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.sensors.ForceSensorDataHolder;
 import us.ihmc.sensorProcessing.communication.packets.dataobjects.RobotConfigurationData;
+import us.ihmc.simulationConstructionSetTools.bambooTools.BambooTools;
+import us.ihmc.simulationConstructionSetTools.util.environments.DefaultCommonAvatarEnvironment;
 import us.ihmc.simulationconstructionset.GroundContactPoint;
 import us.ihmc.simulationconstructionset.HumanoidFloatingRootJointRobot;
 import us.ihmc.simulationconstructionset.Joint;
 import us.ihmc.simulationconstructionset.Robot;
-import us.ihmc.simulationconstructionset.bambooTools.BambooTools;
-import us.ihmc.simulationconstructionset.bambooTools.SimulationTestingParameters;
-import us.ihmc.simulationconstructionset.util.environments.DefaultCommonAvatarEnvironment;
 import us.ihmc.simulationconstructionset.util.simulationRunner.BlockingSimulationRunner.SimulationExceededMaximumTimeException;
+import us.ihmc.simulationconstructionset.util.simulationTesting.SimulationTestingParameters;
 import us.ihmc.tools.MemoryTools;
-import us.ihmc.tools.continuousIntegration.IntegrationCategory;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
-import us.ihmc.tools.io.printing.PrintTools;
 import us.ihmc.tools.thread.ThreadTools;
+import us.ihmc.yoVariables.variable.YoDouble;
 
 public abstract class DRCWalkToGoalBehaviorTest implements MultiRobotTestInterface
 {
@@ -79,15 +78,15 @@ public abstract class DRCWalkToGoalBehaviorTest implements MultiRobotTestInterfa
          drcSimulationTestHelper.destroySimulation();
          drcSimulationTestHelper = null;
       }
-      
+
       if(behaviorCommunicatorClient != null)
       {
-         behaviorCommunicatorClient.close();
+         behaviorCommunicatorClient.disconnect();
       }
-      
+
       if(behaviorCommunicatorServer != null)
       {
-         behaviorCommunicatorServer.close();
+         behaviorCommunicatorServer.disconnect();
       }
 
       MemoryTools.printCurrentMemoryUsageAndReturnUsedMemoryInMB(getClass().getSimpleName() + " after test.");
@@ -103,7 +102,7 @@ public abstract class DRCWalkToGoalBehaviorTest implements MultiRobotTestInterfa
 
    private final DefaultCommonAvatarEnvironment testEnvironment = new DefaultCommonAvatarEnvironment();
 
-   private DoubleYoVariable yoTime;
+   private YoDouble yoTime;
 
    private ForceSensorDataHolder forceSensorDataHolder;
    private HumanoidRobotDataReceiver robotDataReceiver;
@@ -147,9 +146,9 @@ public abstract class DRCWalkToGoalBehaviorTest implements MultiRobotTestInterfa
 
       drcSimulationTestHelper.attachListener(RobotConfigurationData.class, robotDataReceiver);
 
-      
-      
-      
+
+
+
       PacketRouter<PacketDestination> networkProcessor = new PacketRouter<>(PacketDestination.class);
       networkProcessor.attachPacketCommunicator(PacketDestination.CONTROLLER, drcSimulationTestHelper.getControllerCommunicator());
       networkProcessor.attachPacketCommunicator(PacketDestination.BEHAVIOR_MODULE, behaviorCommunicatorClient);
@@ -165,8 +164,8 @@ public abstract class DRCWalkToGoalBehaviorTest implements MultiRobotTestInterfa
       boolean success = drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(1.0);
       assertTrue(success);
 
-      double walkDistance = RandomTools.generateRandomDouble(new Random(), 1.0, 2.0);
-      Vector2d walkDirection = new Vector2d(1, 0);
+      double walkDistance = RandomNumbers.nextDouble(new Random(), 1.0, 2.0);
+      Vector2D walkDirection = new Vector2D(1, 0);
       double trajectoryTime = walkDistance / ASSUMED_WALKING_SPEED_mPerSec;
 
       WalkToGoalBehavior walkToGoalBehavior = testWalkToGoalBehavior(walkDistance, walkDirection, trajectoryTime);
@@ -176,15 +175,14 @@ public abstract class DRCWalkToGoalBehaviorTest implements MultiRobotTestInterfa
       BambooTools.reportTestFinishedMessage(simulationTestingParameters.getShowWindows());
    }
 
-   private WalkToGoalBehavior testWalkToGoalBehavior(double walkDistance, Vector2d walkDirection, double trajectoryTime)
+   private WalkToGoalBehavior testWalkToGoalBehavior(double walkDistance, Vector2D walkDirection, double trajectoryTime)
          throws SimulationExceededMaximumTimeException
    {
       FramePose2d initialMidFeetPose = getCurrentMidFeetPose2dTheHardWayBecauseReferenceFramesDontUpdateProperly(robot);
 
       FramePose2d desiredMidFeetPose = offsetMidFeetPose2d(initialMidFeetPose, walkDistance, walkDirection);
 
-      final WalkToGoalBehavior walkToGoalBehavior = new WalkToGoalBehavior(communicationBridge, fullRobotModel, yoTime, getRobotModel().getPhysicalProperties()
-            .getAnkleHeight());
+      final WalkToGoalBehavior walkToGoalBehavior = new WalkToGoalBehavior(communicationBridge, fullRobotModel, yoTime);
       walkToGoalBehavior.initialize();
 
       WalkToGoalBehaviorPacket requestedGoal = new WalkToGoalBehaviorPacket(desiredMidFeetPose.getX(), desiredMidFeetPose.getY(), desiredMidFeetPose.getYaw(),
@@ -198,7 +196,7 @@ public abstract class DRCWalkToGoalBehaviorTest implements MultiRobotTestInterfa
       walkToGoalBehavior.getCommunicationBridge().consumeObjectFromNetwork(walkToGoalExecutePacket);
       walkToGoalBehavior.doControl();
       assertTrue( walkToGoalBehavior.hasInputBeenSet() );
-      
+
       boolean success = executeBehavior(walkToGoalBehavior, trajectoryTime);
       assertTrue(success);
 
@@ -211,7 +209,7 @@ public abstract class DRCWalkToGoalBehaviorTest implements MultiRobotTestInterfa
       return walkToGoalBehavior;
    }
 
-   private FramePose2d offsetMidFeetPose2d(FramePose2d initialPose, double walkDistance, Vector2d walkDirection)
+   private FramePose2d offsetMidFeetPose2d(FramePose2d initialPose, double walkDistance, Vector2D walkDirection)
    {
       FramePose2d ret = new FramePose2d(initialPose);
 
@@ -234,6 +232,7 @@ public abstract class DRCWalkToGoalBehaviorTest implements MultiRobotTestInterfa
 
       Thread behaviorThread = new Thread()
       {
+         @Override
          public void run()
          {
             {
@@ -279,7 +278,7 @@ public abstract class DRCWalkToGoalBehaviorTest implements MultiRobotTestInterfa
       midFeetPose.changeFrame(ReferenceFrame.getWorldFrame());
 
       FramePose2d ret = new FramePose2d();
-      ret.setPoseIncludingFrame(midFeetPose.getReferenceFrame(), midFeetPose.getX(), midFeetPose.getY(), midFeetPose.getYaw());
+      ret.setIncludingFrame(midFeetPose.getReferenceFrame(), midFeetPose.getX(), midFeetPose.getY(), midFeetPose.getYaw());
 
       return ret;
    }
@@ -289,7 +288,7 @@ public abstract class DRCWalkToGoalBehaviorTest implements MultiRobotTestInterfa
       FramePose midFeetPose = getRobotMidFeetPose(robot);
 
       FramePose2d ret = new FramePose2d();
-      ret.setPoseIncludingFrame(ReferenceFrame.getWorldFrame(), midFeetPose.getX(), midFeetPose.getY(), midFeetPose.getYaw());
+      ret.setIncludingFrame(ReferenceFrame.getWorldFrame(), midFeetPose.getX(), midFeetPose.getY(), midFeetPose.getYaw());
 
       return ret;
    }

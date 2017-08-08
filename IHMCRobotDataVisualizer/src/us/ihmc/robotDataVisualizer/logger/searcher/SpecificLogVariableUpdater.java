@@ -10,22 +10,22 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import us.ihmc.commons.Conversions;
 import us.ihmc.robotDataLogger.LogIndex;
 import us.ihmc.robotDataLogger.jointState.JointState;
 import us.ihmc.robotDataLogger.logger.LogPropertiesReader;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.LongYoVariable;
-import us.ihmc.robotics.dataStructures.variable.YoVariable;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoLong;
+import us.ihmc.yoVariables.variable.YoVariable;
 import us.ihmc.robotics.robotDescription.RobotDescription;
-import us.ihmc.robotics.time.TimeTools;
 import us.ihmc.tools.compression.SnappyUtils;
 
 public class SpecificLogVariableUpdater
 {
    private final YoVariableRegistry registry = new YoVariableRegistry("YoVariableSpecificLogVariablePlaybackRobot");
-   private final LongYoVariable timestamp = new LongYoVariable("timestamp", registry);
-   private final DoubleYoVariable robotTime = new DoubleYoVariable("robotTime", registry);
+   private final YoLong timestamp = new YoLong("timestamp", registry);
+   private final YoDouble robotTime = new YoDouble("robotTime", registry);
 
    private final FileChannel logChannel;
    private final List<YoVariable<?>> variables;
@@ -60,20 +60,20 @@ public class SpecificLogVariableUpdater
       int numberOfJointStates = JointState.getNumberOfJointStates(jointStates);
       int bufferSize = (1 + jointStateOffset + numberOfJointStates) * 8;
 
-      File logdata = new File(selectedFile, logProperties.getVariableDataFile());
+      File logdata = new File(selectedFile, logProperties.getVariables().getDataAsString());
       if (!logdata.exists())
       {
-         throw new RuntimeException("Cannot find " + logProperties.getVariableDataFile());
+         throw new RuntimeException("Cannot find " + logProperties.getVariables().getDataAsString());
       }
       this.logChannel = new FileInputStream(logdata).getChannel();
 
-      this.compressed = logProperties.getCompressed();
+      this.compressed = logProperties.getVariables().getCompressed();
       if (this.compressed)
       {
-         File indexData = new File(selectedFile, logProperties.getVariablesIndexFile());
+         File indexData = new File(selectedFile, logProperties.getVariables().getIndexAsString());
          if (!indexData.exists())
          {
-            throw new RuntimeException("Cannot find " + logProperties.getVariablesIndexFile());
+            throw new RuntimeException("Cannot find " + logProperties.getVariables().getIndexAsString());
          }
          logIndex = new LogIndex(indexData, logChannel.size());
          compressedBuffer = ByteBuffer.allocate(SnappyUtils.maxCompressedLength(bufferSize));
@@ -136,7 +136,7 @@ public class SpecificLogVariableUpdater
          }
 
          timestamp.set(logLongArray.get());
-         robotTime.set(TimeTools.nanoSecondstoSeconds(timestamp.getLongValue() - initialTimestamp));
+         robotTime.set(Conversions.nanosecondsToSeconds(timestamp.getLongValue() - initialTimestamp));
 
          for (int i = 0; i < variablesToUpdate.length; i++)
          {

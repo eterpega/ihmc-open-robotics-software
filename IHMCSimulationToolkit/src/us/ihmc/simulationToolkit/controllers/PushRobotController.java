@@ -4,22 +4,22 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
-import javax.vecmath.Vector3d;
 
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.graphicsDescription.appearance.YoAppearance;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphic;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicVector;
 import us.ihmc.robotModels.FullRobotModel;
-import us.ihmc.simulationconstructionset.FloatingRootJointRobot;
-import us.ihmc.graphics3DDescription.appearance.YoAppearance;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphic;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicVector;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.IntegerYoVariable;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoInteger;
 import us.ihmc.robotics.math.frames.YoFrameVector;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotController.RobotController;
-import us.ihmc.robotics.stateMachines.StateTransitionCondition;
+import us.ihmc.robotics.stateMachines.conditionBasedStateMachine.StateTransitionCondition;
 import us.ihmc.simulationconstructionset.ExternalForcePoint;
+import us.ihmc.simulationconstructionset.FloatingRootJointRobot;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
 
 public class PushRobotController implements RobotController
@@ -27,42 +27,42 @@ public class PushRobotController implements RobotController
    private static final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
 
    private final YoVariableRegistry registry;
-   private final DoubleYoVariable pushDuration;
-   private final DoubleYoVariable pushForceMagnitude;
+   private final YoDouble pushDuration;
+   private final YoDouble pushForceMagnitude;
    private final YoFrameVector pushDirection;
    private final YoFrameVector pushForce;
-   private final DoubleYoVariable pushTimeSwitch;
-   private final IntegerYoVariable pushNumber;
-   private final BooleanYoVariable isBeingPushed;
-   private final DoubleYoVariable pushDelay;
+   private final YoDouble pushTimeSwitch;
+   private final YoInteger pushNumber;
+   private final YoBoolean isBeingPushed;
+   private final YoDouble pushDelay;
 
-   private final DoubleYoVariable yoTime;
+   private final YoDouble yoTime;
 
    private StateTransitionCondition pushCondition = null;
    private final ExternalForcePoint forcePoint;
-   private final Vector3d forceVector = new Vector3d();
+   private final Vector3D forceVector = new Vector3D();
    
    private final YoGraphicVector forceVisualizer;
    
    public PushRobotController(FloatingRootJointRobot pushableRobot, FullRobotModel fullRobotModel)
    {
-      this(pushableRobot, fullRobotModel.getChest().getParentJoint().getName(), new Vector3d(0, 0, 0.3));
+      this(pushableRobot, fullRobotModel.getChest().getParentJoint().getName(), new Vector3D(0, 0, 0.3));
    }
    
-   public PushRobotController(FloatingRootJointRobot pushableRobot, String jointNameToApplyForce, Vector3d forcePointOffset)
+   public PushRobotController(FloatingRootJointRobot pushableRobot, String jointNameToApplyForce, Vector3D forcePointOffset)
    {
       yoTime = pushableRobot.getYoTime();
       registry = new YoVariableRegistry(jointNameToApplyForce + "_" + getClass().getSimpleName());
       forcePoint = new ExternalForcePoint(jointNameToApplyForce + "_externalForcePoint", forcePointOffset, pushableRobot);
       
-      pushDuration = new DoubleYoVariable(jointNameToApplyForce + "_pushDuration", registry);
-      pushForceMagnitude = new DoubleYoVariable(jointNameToApplyForce + "_pushMagnitude", registry);
+      pushDuration = new YoDouble(jointNameToApplyForce + "_pushDuration", registry);
+      pushForceMagnitude = new YoDouble(jointNameToApplyForce + "_pushMagnitude", registry);
       pushDirection = new YoFrameVector(jointNameToApplyForce + "_pushDirection", worldFrame, registry);
       pushForce = new YoFrameVector(jointNameToApplyForce + "_pushForce", worldFrame, registry);
-      pushTimeSwitch = new DoubleYoVariable(jointNameToApplyForce + "_pushTimeSwitch", registry);
-      pushNumber = new IntegerYoVariable(jointNameToApplyForce + "_pushNumber", registry);
-      isBeingPushed = new BooleanYoVariable(jointNameToApplyForce + "_isBeingPushed", registry);
-      pushDelay = new DoubleYoVariable(jointNameToApplyForce + "_pushDelay", registry);
+      pushTimeSwitch = new YoDouble(jointNameToApplyForce + "_pushTimeSwitch", registry);
+      pushNumber = new YoInteger(jointNameToApplyForce + "_pushNumber", registry);
+      isBeingPushed = new YoBoolean(jointNameToApplyForce + "_isBeingPushed", registry);
+      pushDelay = new YoDouble(jointNameToApplyForce + "_pushDelay", registry);
       
       pushableRobot.getJoint(jointNameToApplyForce).addExternalForcePoint(forcePoint);
       pushableRobot.setController(this);
@@ -93,7 +93,7 @@ public class PushRobotController implements RobotController
       pushForceMagnitude.set(magnitude);
    }
 
-   public void setPushForceDirection(Vector3d direction)
+   public void setPushForceDirection(Vector3D direction)
    {
       pushDirection.set(direction);
    }
@@ -125,12 +125,12 @@ public class PushRobotController implements RobotController
       }
    }
 
-   public void applyForce(Vector3d direction, double magnitude, double duration)
+   public void applyForce(Vector3D direction, double magnitude, double duration)
    {
       applyForceDelayed(null, 0.0, direction, magnitude, duration);
    }
 
-   public void applyForceDelayed(StateTransitionCondition pushCondition, double timeDelay, Vector3d direction, double magnitude, double duration)
+   public void applyForceDelayed(StateTransitionCondition pushCondition, double timeDelay, Vector3D direction, double magnitude, double duration)
    {
       this.pushCondition = pushCondition;
       setPushDuration(duration);

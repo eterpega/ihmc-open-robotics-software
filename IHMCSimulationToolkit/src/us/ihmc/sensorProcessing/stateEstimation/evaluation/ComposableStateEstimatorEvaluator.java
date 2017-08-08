@@ -1,11 +1,10 @@
 package us.ihmc.sensorProcessing.stateEstimation.evaluation;
 
-import javax.vecmath.Matrix3d;
-import javax.vecmath.Vector3d;
-
 import us.ihmc.controlFlow.ControlFlowGraph;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.euclid.matrix.RotationMatrix;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.geometry.FrameOrientation;
 import us.ihmc.robotics.geometry.FrameVector;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
@@ -74,7 +73,7 @@ public class ComposableStateEstimatorEvaluator
          @Override
          public void configureSensorProcessing(SensorProcessing sensorProcessing)
          {
-            DoubleYoVariable alphaFilter = sensorProcessing.createAlphaFilter("defaultAlphaFilter", 12.0);
+            YoDouble alphaFilter = sensorProcessing.createAlphaFilter("defaultAlphaFilter", 12.0);
 
             sensorProcessing.addSensorAlphaFilter(alphaFilter, false, SensorType.JOINT_POSITION);
             sensorProcessing.addSensorAlphaFilter(alphaFilter, false, SensorType.JOINT_VELOCITY);
@@ -328,9 +327,9 @@ public class ComposableStateEstimatorEvaluator
          boolean updateDesireds = false;
          generator.updateInverseDynamicsRobotModelFromRobot(updateRootJoints, updateDesireds);
 
-         Matrix3d rotationMatrix = new Matrix3d();
+         RotationMatrix rotationMatrix = new RotationMatrix();
          robot.getRootJoint().getRotationToWorld(rotationMatrix);
-         Vector3d angularVelocityInBody = robot.getRootJoint().getAngularVelocityInBody();
+         Vector3D angularVelocityInBody = robot.getRootJoint().getAngularVelocityInBody();
 
          FrameOrientation estimatedOrientation = new FrameOrientation(ReferenceFrame.getWorldFrame());
          orientationEstimator.getEstimatedOrientation(estimatedOrientation);

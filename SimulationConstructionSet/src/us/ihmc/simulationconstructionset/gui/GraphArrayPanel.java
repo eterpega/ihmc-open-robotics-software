@@ -13,9 +13,13 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
-import us.ihmc.robotics.dataStructures.variable.YoVariable;
-import us.ihmc.simulationconstructionset.DataBuffer;
-import us.ihmc.simulationconstructionset.DataBufferEntry;
+import us.ihmc.graphicsDescription.graphInterfaces.GraphIndicesHolder;
+import us.ihmc.graphicsDescription.graphInterfaces.SelectedVariableHolder;
+import us.ihmc.javaFXToolkit.graphing.JavaFX3DGraph;
+import us.ihmc.yoVariables.variable.YoVariable;
+import us.ihmc.yoVariables.dataBuffer.DataBuffer;
+import us.ihmc.yoVariables.dataBuffer.DataBufferEntry;
+import us.ihmc.simulationconstructionset.ExtraPanelConfiguration;
 import us.ihmc.simulationconstructionset.GraphConfiguration;
 import us.ihmc.simulationconstructionset.commands.ZoomGraphCommandExecutor;
 
@@ -24,7 +28,9 @@ public class GraphArrayPanel extends JPanel implements GraphIndicesHolder, YoGra
    private static final long serialVersionUID = -4366771635271760899L;
 
    private ArrayList<YoGraph> graphsOnThisPanel;
+   private ArrayList<JavaFX3DGraph> javaFX3DGraphs;
 
+   private StandardSimulationGUI standardSimulationGUI;
    private JFrame parentFrame;
    private DataBuffer dataBuffer;
 
@@ -37,22 +43,23 @@ public class GraphArrayPanel extends JPanel implements GraphIndicesHolder, YoGra
 
    private SelectedVariableHolder selectedVariableHolder;
 
-   public GraphArrayPanel(SelectedVariableHolder holder, DataBuffer buffer, JFrame frame)
+   public GraphArrayPanel(SelectedVariableHolder holder, DataBuffer buffer, JFrame frame, StandardSimulationGUI standardSimulationGUI)
    {
       // super(new GridLayout(0,2,2,2));
       super(new GridLayout(0, 1, 2, 2));
       this.selectedVariableHolder = holder;
       this.setBackground(Color.lightGray);
 
+      this.standardSimulationGUI = standardSimulationGUI;
       this.parentFrame = frame;
-
       this.dataBuffer = buffer;
 
       leftPlotIndex = 0;
       rightPlotIndex = getMaxIndex();
 
       this.setOpaque(true);
-      this.graphsOnThisPanel = new ArrayList<YoGraph>(16);
+      this.graphsOnThisPanel = new ArrayList<>(16);
+      this.javaFX3DGraphs = new ArrayList<>();
 
       this.setPreferredSize(new Dimension(800, 400));
    }
@@ -92,6 +99,7 @@ public class GraphArrayPanel extends JPanel implements GraphIndicesHolder, YoGra
       updateGraphs();
    }
 
+   @Override
    public void dataBufferChanged()
    {
       this.zoomFullView();
@@ -149,6 +157,7 @@ public class GraphArrayPanel extends JPanel implements GraphIndicesHolder, YoGra
 
    private boolean isPainting = false;
 
+   @Override
    public void paint(Graphics g)
    {
       isPainting = true;
@@ -180,47 +189,56 @@ public class GraphArrayPanel extends JPanel implements GraphIndicesHolder, YoGra
       return ret;
    }
 
+   @Override
    public int getInPoint()
    {
       return dataBuffer.getInPoint();
    }
 
+   @Override
    public int getOutPoint()
    {
       return dataBuffer.getOutPoint();
    }
 
+   @Override
    public int getIndex()
    {
       return dataBuffer.getIndex();
    }
 
+   @Override
    public boolean isIndexAtOutPoint()
    {
       return (getIndex() == getOutPoint());
    }
 
+   @Override
    public int getMaxIndex()
    {
       return dataBuffer.getBufferSize() - 1;
    }
 
+   @Override
    public int getLeftPlotIndex()
    {
       return this.leftPlotIndex;
    }
 
+   @Override
    public int getRightPlotIndex()
    {
       return this.rightPlotIndex;
    }
 
+   @Override
    public void setLeftPlotIndex(int idx)
    {
       this.leftPlotIndex = idx;
       repaintGraphs();
    } 
 
+   @Override
    public void setRightPlotIndex(int idx)
    {
       this.rightPlotIndex = idx;
@@ -234,6 +252,7 @@ public class GraphArrayPanel extends JPanel implements GraphIndicesHolder, YoGra
       updateGraphs();
    }
 
+   @Override
    public void zoomIn()
    {
       zoomIn(2);
@@ -270,6 +289,7 @@ public class GraphArrayPanel extends JPanel implements GraphIndicesHolder, YoGra
       repaint();
    }
 
+   @Override
    public void zoomOut()
    {
       zoomOut(2);
@@ -311,6 +331,7 @@ public class GraphArrayPanel extends JPanel implements GraphIndicesHolder, YoGra
    private int doTick = 0;
    private int doIndex = -1;
 
+   @Override
    public void tickLater(int n)
    {
       if (dataBuffer.isKeyPointModeToggled())
@@ -324,6 +345,7 @@ public class GraphArrayPanel extends JPanel implements GraphIndicesHolder, YoGra
          this.doTick = n;
    }
 
+   @Override
    public void setIndexLater(int idx)
    {
       this.doIndex = idx;
@@ -365,6 +387,7 @@ public class GraphArrayPanel extends JPanel implements GraphIndicesHolder, YoGra
       {
          EventDispatchThreadHelper.invokeAndWait(new Runnable()
          {
+            @Override
             public void run()
             {
                YoGraph g = new YoGraph(getGraphArrayPanel(), getGraphArrayPanel(), selectedVariableHolder, dataBuffer, dataBuffer, parentFrame);
@@ -388,6 +411,7 @@ public class GraphArrayPanel extends JPanel implements GraphIndicesHolder, YoGra
 
       EventDispatchThreadHelper.invokeAndWait(new Runnable()
       {
+         @Override
          public void run()
          {
             YoGraph g = new YoGraph(getGraphArrayPanel(), getGraphArrayPanel(), selectedVariableHolder, dataBuffer, dataBuffer, parentFrame);
@@ -434,7 +458,7 @@ public class GraphArrayPanel extends JPanel implements GraphIndicesHolder, YoGra
 
    public void addSelectedVariableGraph()
    {
-      YoVariable variable = selectedVariableHolder.getSelectedVariable();
+      YoVariable<?> variable = selectedVariableHolder.getSelectedVariable();
       DataBufferEntry entry = dataBuffer.getEntry(variable);
       YoGraph g = new YoGraph(this, this, selectedVariableHolder, dataBuffer, dataBuffer, parentFrame);
       g.addVariable(entry);
@@ -445,6 +469,16 @@ public class GraphArrayPanel extends JPanel implements GraphIndicesHolder, YoGra
    {
       YoGraph g = new YoGraph(this, this, selectedVariableHolder, dataBuffer, dataBuffer, parentFrame);
       addGraph(g);
+   }
+
+   public void addNew3dGraph()
+   {
+      JavaFX3DGraph javaFX3DGraph = new JavaFX3DGraph(this, selectedVariableHolder, dataBuffer, dataBuffer);
+      javaFX3DGraphs.add(javaFX3DGraph);
+      standardSimulationGUI.setupExtraPanels(new ExtraPanelConfiguration("3D Graph " + javaFX3DGraphs.size(),
+                                                                         javaFX3DGraph.getPanel(),
+                                                                         true));
+      standardSimulationGUI.selectPanel("3D Graph " + javaFX3DGraphs.size());
    }
 
    public void removeEmptyGraphs()
@@ -488,6 +522,7 @@ public class GraphArrayPanel extends JPanel implements GraphIndicesHolder, YoGra
        this.updateGraphs();
    }
 
+   @Override
    public int print(Graphics g, PageFormat pageFormat, int pageNumber)
    {
       Graphics2D g2 = (Graphics2D) g;
@@ -542,6 +577,7 @@ public class GraphArrayPanel extends JPanel implements GraphIndicesHolder, YoGra
       return Printable.NO_SUCH_PAGE;
    }
 
+   @Override
    public void paintComponent(Graphics g)
    {
       // System.out.println("Painting GraphArrayPanel");
@@ -576,6 +612,7 @@ public class GraphArrayPanel extends JPanel implements GraphIndicesHolder, YoGra
       this.removeAll();
    }
 
+   @Override
    public void removeGraph(YoGraph graph)
    {
       this.graphsOnThisPanel.remove(graph);
@@ -598,6 +635,7 @@ public class GraphArrayPanel extends JPanel implements GraphIndicesHolder, YoGra
       newGraphButton.setName("New Graph");
       newGraphButton.addActionListener(new java.awt.event.ActionListener()
       {
+         @Override
          public void actionPerformed(java.awt.event.ActionEvent evt)
          {
             addEmptyGraph();
@@ -609,6 +647,7 @@ public class GraphArrayPanel extends JPanel implements GraphIndicesHolder, YoGra
       removeEmptyGraphsButton.setName("Remove Empty");
       removeEmptyGraphsButton.addActionListener(new java.awt.event.ActionListener()
       {
+         @Override
          public void actionPerformed(java.awt.event.ActionEvent evt)
          {
             removeEmptyGraphs();
@@ -620,6 +659,7 @@ public class GraphArrayPanel extends JPanel implements GraphIndicesHolder, YoGra
       addColumnButton.setName("Add Column");
       addColumnButton.addActionListener(new java.awt.event.ActionListener()
       {
+         @Override
          public void actionPerformed(java.awt.event.ActionEvent evt)
          {
             addColumn();
@@ -631,12 +671,25 @@ public class GraphArrayPanel extends JPanel implements GraphIndicesHolder, YoGra
       subColumnButton.setName("Sub Column");
       subColumnButton.addActionListener(new java.awt.event.ActionListener()
       {
+         @Override
          public void actionPerformed(java.awt.event.ActionEvent evt)
          {
             subColumn();
          }
       });
       graphButtonPanel.add(subColumnButton);
+      
+      JButton new3DGraphButton = new JButton("New 3D Graph");
+      new3DGraphButton.setName("New 3D Graph");
+      new3DGraphButton.addActionListener(new java.awt.event.ActionListener()
+      {
+         @Override
+         public void actionPerformed(java.awt.event.ActionEvent evt)
+         {
+            addNew3dGraph();
+         }
+      });
+      graphButtonPanel.add(new3DGraphButton);
 
       return graphButtonPanel;
    }
@@ -672,6 +725,7 @@ public class GraphArrayPanel extends JPanel implements GraphIndicesHolder, YoGra
       return returnString;
    }
 
+   @Override
    public ArrayList<Integer> getKeyPoints()
    {
       return dataBuffer.getKeyPoints();

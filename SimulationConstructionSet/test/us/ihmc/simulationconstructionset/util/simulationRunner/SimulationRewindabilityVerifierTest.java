@@ -1,21 +1,20 @@
 package us.ihmc.simulationconstructionset.util.simulationRunner;
 
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 
 import org.junit.Test;
 
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.robotController.RobotController;
 import us.ihmc.simulationconstructionset.Robot;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
 import us.ihmc.simulationconstructionset.SimulationConstructionSetParameters;
 import us.ihmc.simulationconstructionset.UnreasonableAccelerationException;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
 
 public class SimulationRewindabilityVerifierTest
 {
@@ -170,10 +169,10 @@ public class SimulationRewindabilityVerifierTest
    {
       protected final YoVariableRegistry registry = new YoVariableRegistry("controller");
       
-      protected final DoubleYoVariable variableOne = new DoubleYoVariable("variableOne", registry);
-      protected final DoubleYoVariable variableTwo = new DoubleYoVariable("variableTwo", registry);
-      protected final DoubleYoVariable variableThree = new DoubleYoVariable("variableThree", registry);
-      protected final DoubleYoVariable variableFour = new DoubleYoVariable("variableFour", registry);
+      protected final YoDouble variableOne = new YoDouble("variableOne", registry);
+      protected final YoDouble variableTwo = new YoDouble("variableTwo", registry);
+      protected final YoDouble variableThree = new YoDouble("variableThree", registry);
+      protected final YoDouble variableFour = new YoDouble("variableFour", registry);
 
       protected final Robot robot;
       
@@ -182,6 +181,7 @@ public class SimulationRewindabilityVerifierTest
          this.robot = robot;
       }
       
+      @Override
       public void doControl()
       {      
          variableOne.set(Math.cos(robot.getTime()));
@@ -190,20 +190,24 @@ public class SimulationRewindabilityVerifierTest
          variableFour.set(1.2);
       }
 
+      @Override
       public YoVariableRegistry getYoVariableRegistry()
       {
          return registry;
       }
 
+      @Override
       public String getName()
       {
         return "Test";
       }
       
+      @Override
       public void initialize()
       {      
       }
 
+      @Override
       public String getDescription()
       {
          return getName();
@@ -221,6 +225,7 @@ public class SimulationRewindabilityVerifierTest
          super(robot);
       }
       
+      @Override
       public void doControl()
       {
          super.doControl();
@@ -241,7 +246,7 @@ public class SimulationRewindabilityVerifierTest
       private double lastTimeChanged;
       private double timeBetweenChanges = 3.0;
       
-      private DoubleYoVariable lastTimeUpdated = new DoubleYoVariable("lastTimeUpdated", registry);
+      private YoDouble lastTimeUpdated = new YoDouble("lastTimeUpdated", registry);
       private double timeBetweenUpdates = 5.0;
       
       public DifficultToDetectNonRewindableController(Robot robot)
@@ -249,6 +254,7 @@ public class SimulationRewindabilityVerifierTest
          super(robot);
       }
       
+      @Override
       public void doControl()
       {
          super.doControl();

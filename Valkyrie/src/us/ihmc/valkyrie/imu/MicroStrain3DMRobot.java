@@ -2,16 +2,14 @@ package us.ihmc.valkyrie.imu;
 
 import java.io.IOException;
 
-import javax.vecmath.Matrix3d;
-import javax.vecmath.Quat4d;
-import javax.vecmath.Vector3d;
-
-import us.ihmc.avatar.drcRobot.DRCRobotModel;
-import us.ihmc.graphics3DDescription.Graphics3DObject;
-import us.ihmc.graphics3DDescription.appearance.YoAppearance;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.geometry.RotationTools;
+import us.ihmc.avatar.drcRobot.RobotTarget;
+import us.ihmc.euclid.matrix.RotationMatrix;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.graphicsDescription.Graphics3DObject;
+import us.ihmc.graphicsDescription.appearance.YoAppearance;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.robotController.RobotController;
 import us.ihmc.simulationconstructionset.FloatingJoint;
 import us.ihmc.simulationconstructionset.Link;
@@ -30,29 +28,29 @@ public class MicroStrain3DMRobot extends Robot
    private static double MS3DM_HEIGHT = 0.011;
 
    protected FloatingJoint ms3DM;
-   protected final Matrix3d rotation = new Matrix3d();
+   protected final RotationMatrix rotation = new RotationMatrix();
 
    private YoVariableRegistry registry = new YoVariableRegistry("MicroStrain3DMData");
 
-   private DoubleYoVariable yaw = new DoubleYoVariable("yaw", registry);
-   private DoubleYoVariable pitch = new DoubleYoVariable("pitch", registry);
-   private DoubleYoVariable roll = new DoubleYoVariable("roll", registry);
+   private YoDouble yaw = new YoDouble("yaw", registry);
+   private YoDouble pitch = new YoDouble("pitch", registry);
+   private YoDouble roll = new YoDouble("roll", registry);
 
-   private DoubleYoVariable wz = new DoubleYoVariable("wz", registry);
-   private DoubleYoVariable wy = new DoubleYoVariable("wy", registry);
-   private DoubleYoVariable wx = new DoubleYoVariable("wx", registry);
+   private YoDouble wz = new YoDouble("wz", registry);
+   private YoDouble wy = new YoDouble("wy", registry);
+   private YoDouble wx = new YoDouble("wx", registry);
 
-   private DoubleYoVariable xdd = new DoubleYoVariable("xdd", registry);
-   private DoubleYoVariable ydd = new DoubleYoVariable("ydd", registry);
-   private DoubleYoVariable zdd = new DoubleYoVariable("zdd", registry);
+   private YoDouble xdd = new YoDouble("xdd", registry);
+   private YoDouble ydd = new YoDouble("ydd", registry);
+   private YoDouble zdd = new YoDouble("zdd", registry);
    
-   private final Matrix3d temporaryMatrix = new Matrix3d();
+   private final RotationMatrix temporaryMatrix = new RotationMatrix();
    
    public MicroStrain3DMRobot()
    {
       super("MicroStrain3DMRobot");
 
-      ms3DM = new FloatingJoint("ms3DM", new Vector3d(0.0, 0.0, 0.0), this);
+      ms3DM = new FloatingJoint("ms3DM", new Vector3D(0.0, 0.0, 0.0), this);
       ms3DM.setLink(MS3DMLink());
 
       this.addRootJoint(ms3DM);
@@ -96,15 +94,16 @@ public class MicroStrain3DMRobot extends Robot
 
    }
    
-   public void set(Vector3d accel, Vector3d angRate, Quat4d orientation)
+   public void set(Vector3D accel, Vector3D angRate, Quaternion orientation)
    {
       temporaryMatrix.set(orientation);
-      rotation.mul(MicroStrainData.MICROSTRAIN_TO_ZUP_WORLD, temporaryMatrix);
+      rotation.set(MicroStrainData.MICROSTRAIN_TO_ZUP_WORLD);
+      rotation.multiply(temporaryMatrix);
       
       ms3DM.setRotation(rotation);
-      yaw.set(RotationTools.computeYaw(rotation));
-      pitch.set(RotationTools.computePitch(rotation));
-      roll.set(RotationTools.computeRoll(rotation));
+      yaw.set(rotation.getYaw());
+      pitch.set(rotation.getPitch());
+      roll.set(rotation.getRoll());
       
       xdd.set(accel.getX() * MicroStrainData.MICROSTRAIN_GRAVITY);
       ydd.set(accel.getY() * MicroStrainData.MICROSTRAIN_GRAVITY);
@@ -119,7 +118,7 @@ public class MicroStrain3DMRobot extends Robot
    
    public static void main(String[] args) throws IOException
    {
-      ValkyrieSensorInformation sensorInformation = new ValkyrieSensorInformation(DRCRobotModel.RobotTarget.REAL_ROBOT);
+      ValkyrieSensorInformation sensorInformation = new ValkyrieSensorInformation(RobotTarget.REAL_ROBOT);
       final MicrostrainUDPPacketListener listener = MicrostrainUDPPacketListener.createNonRealtimeListener(sensorInformation.getImuUSBSerialIds().get("v1Pelvis_leftIMU"));
       
       final MicroStrain3DMRobot robot = new MicroStrain3DMRobot();

@@ -1,7 +1,6 @@
 package us.ihmc.humanoidBehaviors.behaviors.complexBehaviors;
 
-import javax.vecmath.Point2d;
-
+import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.humanoidBehaviors.behaviors.AbstractBehavior;
 import us.ihmc.humanoidBehaviors.behaviors.primitives.ClearLidarBehavior;
 import us.ihmc.humanoidBehaviors.behaviors.primitives.EnableLidarBehavior;
@@ -15,7 +14,7 @@ import us.ihmc.humanoidRobotics.communication.packets.walking.GoHomeMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.GoHomeMessage.BodyPart;
 import us.ihmc.humanoidRobotics.frames.HumanoidReferenceFrames;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.geometry.FramePose2d;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
@@ -38,7 +37,7 @@ public class BasicPipeLineBehavior extends AbstractBehavior
 
    private BasicStates currentState = BasicStates.ENABLE_LIDAR;
 
-   public BasicPipeLineBehavior(String name, DoubleYoVariable yoTime, CommunicationBridge outgoingCommunicationBridge,
+   public BasicPipeLineBehavior(String name, YoDouble yoTime, CommunicationBridge outgoingCommunicationBridge,
          FullHumanoidRobotModel fullRobotModel, HumanoidReferenceFrames referenceFrames, WholeBodyControllerParameters wholeBodyControllerParameters)
    {
       super(outgoingCommunicationBridge);
@@ -82,7 +81,7 @@ public class BasicPipeLineBehavior extends AbstractBehavior
          protected void setBehaviorInput()
          {
             currentState = BasicStates.WALK_TO_LOCATION_AND_HOME_ARM;
-            FramePose2d poseToWalkTo = new FramePose2d(ReferenceFrame.getWorldFrame(), new Point2d(0, 0), 0);
+            FramePose2d poseToWalkTo = new FramePose2d(ReferenceFrame.getWorldFrame(), new Point2D(0, 0), 0);
             walkToLocationBehavior.setTarget(poseToWalkTo);
          }
 

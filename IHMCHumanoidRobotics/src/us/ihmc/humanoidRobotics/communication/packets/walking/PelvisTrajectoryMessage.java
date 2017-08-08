@@ -1,17 +1,16 @@
 package us.ihmc.humanoidRobotics.communication.packets.walking;
 
-import javax.vecmath.Point3d;
-import javax.vecmath.Quat4d;
-import javax.vecmath.Vector3d;
+import java.util.Random;
 
-import us.ihmc.communication.ros.generators.RosMessagePacket;
 import us.ihmc.communication.packets.Packet;
 import us.ihmc.communication.packets.VisualizablePacket;
+import us.ihmc.communication.ros.generators.RosMessagePacket;
+import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.humanoidRobotics.communication.packets.AbstractSE3TrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.PacketValidityChecker;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
-
-import java.util.Random;
+import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 
 @RosMessagePacket(documentation =
       "This message commands the controller to move in taskspace the pelvis to the desired pose (position & orientation) while going through the specified trajectory points."
@@ -23,6 +22,10 @@ import java.util.Random;
                   topic = "/control/pelvis_trajectory")
 public class PelvisTrajectoryMessage extends AbstractSE3TrajectoryMessage<PelvisTrajectoryMessage> implements VisualizablePacket
 {
+   private static final long WORLD_FRAME_HASH_CODE = ReferenceFrame.getWorldFrame().getNameBasedHashCode();
+
+   public boolean enableUserPelvisControlDuringWalking = false;
+
    /**
     * Empty constructor for serialization.
     * Set the id of the message to {@link Packet#VALID_MESSAGE_DEFAULT_ID}.
@@ -30,13 +33,11 @@ public class PelvisTrajectoryMessage extends AbstractSE3TrajectoryMessage<Pelvis
    public PelvisTrajectoryMessage()
    {
       super();
-      setUniqueId(VALID_MESSAGE_DEFAULT_ID);
    }
 
    public PelvisTrajectoryMessage(Random random)
    {
       super(random);
-      setUniqueId(VALID_MESSAGE_DEFAULT_ID);
    }
 
    /**
@@ -46,8 +47,7 @@ public class PelvisTrajectoryMessage extends AbstractSE3TrajectoryMessage<Pelvis
    public PelvisTrajectoryMessage(PelvisTrajectoryMessage pelvisTrajectoryMessage)
    {
       super(pelvisTrajectoryMessage);
-      setUniqueId(pelvisTrajectoryMessage.getUniqueId());
-      setDestination(pelvisTrajectoryMessage.getDestination());
+      setEnableUserPelvisControlDuringWalking(pelvisTrajectoryMessage.isEnableUserPelvisControlDuringWalking());
    }
 
    /**
@@ -57,36 +57,36 @@ public class PelvisTrajectoryMessage extends AbstractSE3TrajectoryMessage<Pelvis
     * @param desiredPosition desired pelvis position expressed in world frame.
     * @param desiredOrientation desired pelvis orientation expressed in world frame.
     */
-   public PelvisTrajectoryMessage(double trajectoryTime, Point3d desiredPosition, Quat4d desiredOrientation)
+   public PelvisTrajectoryMessage(double trajectoryTime, Point3D desiredPosition, Quaternion desiredOrientation)
    {
-      super(trajectoryTime, desiredPosition, desiredOrientation);
-      setUniqueId(VALID_MESSAGE_DEFAULT_ID);
+      super(trajectoryTime, desiredPosition, desiredOrientation, ReferenceFrame.getWorldFrame());
    }
 
    /**
     * Use this constructor to build a message with more than one trajectory point.
     * Set the id of the message to {@link Packet#VALID_MESSAGE_DEFAULT_ID}.
-    * This constructor only allocates memory for the trajectory points, you need to call {@link #setTrajectoryPoint(int, double, Point3d, Quat4d, Vector3d, Vector3d)} for each trajectory point afterwards.
+    * This constructor only allocates memory for the trajectory points, you need to call {@link #setTrajectoryPoint(int, double, Point3D, Quaternion, Vector3D, Vector3D)} for each trajectory point afterwards.
     * @param numberOfTrajectoryPoints number of trajectory points that will be sent to the controller.
     */
    public PelvisTrajectoryMessage(int numberOfTrajectoryPoints)
    {
       super(numberOfTrajectoryPoints);
-      setUniqueId(VALID_MESSAGE_DEFAULT_ID);
+   }
+
+   public boolean isEnableUserPelvisControlDuringWalking()
+   {
+      return enableUserPelvisControlDuringWalking;
+   }
+
+   public void setEnableUserPelvisControlDuringWalking(boolean enableUserPelvisControlDuringWalking)
+   {
+      this.enableUserPelvisControlDuringWalking = enableUserPelvisControlDuringWalking;
    }
 
    @Override
    public boolean epsilonEquals(PelvisTrajectoryMessage other, double epsilon)
    {
       return super.epsilonEquals(other, epsilon);
-   }
-
-   @Override
-   public PelvisTrajectoryMessage transform(RigidBodyTransform transform)
-   {
-      PelvisTrajectoryMessage transformedPelvisTrajectoryMessage = new PelvisTrajectoryMessage(this);
-      transformedPelvisTrajectoryMessage.applyTransform(transform);
-      return transformedPelvisTrajectoryMessage;
    }
 
    @Override
@@ -97,11 +97,16 @@ public class PelvisTrajectoryMessage extends AbstractSE3TrajectoryMessage<Pelvis
       else
          return "Pelvis SE3 trajectory: no SE3 trajectory points";
    }
-   
+
    /** {@inheritDoc} */
    @Override
    public String validateMessage()
    {
       return PacketValidityChecker.validatePelvisTrajectoryMessage(this);
+   }
+
+   public final void setTrajectoryPoint(int trajectoryPointIndex, double time, Point3D position, Quaternion orientation, Vector3D linearVelocity, Vector3D angularVelocity)
+   {
+      super.setTrajectoryPoint(trajectoryPointIndex, time, position, orientation, linearVelocity, angularVelocity, WORLD_FRAME_HASH_CODE);
    }
 }

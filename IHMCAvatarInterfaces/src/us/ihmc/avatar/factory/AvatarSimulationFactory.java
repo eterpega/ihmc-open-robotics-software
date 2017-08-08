@@ -3,9 +3,6 @@ package us.ihmc.avatar.factory;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.vecmath.Point3d;
-import javax.vecmath.Quat4d;
-
 import org.apache.commons.lang3.tuple.ImmutablePair;
 
 import us.ihmc.avatar.DRCEstimatorThread;
@@ -17,20 +14,28 @@ import us.ihmc.avatar.initialSetup.DRCRobotInitialSetup;
 import us.ihmc.avatar.initialSetup.DRCSCSInitialSetup;
 import us.ihmc.avatar.sensors.DRCSimulatedIMUPublisher;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.MomentumBasedControllerFactory;
+import us.ihmc.commons.PrintTools;
+import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.humanoidRobotics.communication.packets.StampedPosePacket;
 import us.ihmc.humanoidRobotics.communication.streamingData.HumanoidGlobalDataProducer;
 import us.ihmc.humanoidRobotics.communication.subscribers.PelvisPoseCorrectionCommunicator;
 import us.ihmc.humanoidRobotics.communication.subscribers.PelvisPoseCorrectionCommunicatorInterface;
 import us.ihmc.robotDataLogger.YoVariableServer;
+import us.ihmc.util.PeriodicNonRealtimeThreadSchedulerFactory;
 import us.ihmc.robotModels.FullRobotModel;
 import us.ihmc.robotics.controllers.YoPDGains;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
 import us.ihmc.robotics.partNames.JointRole;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
 import us.ihmc.sensorProcessing.parameters.DRCRobotLidarParameters;
 import us.ihmc.sensorProcessing.simulatedSensors.DRCPerfectSensorReaderFactory;
 import us.ihmc.sensorProcessing.simulatedSensors.SensorReaderFactory;
 import us.ihmc.sensorProcessing.simulatedSensors.SimulatedSensorHolderAndReaderFromRobotFactory;
+import us.ihmc.simulationConstructionSetTools.robotController.AbstractThreadedRobotController;
+import us.ihmc.simulationConstructionSetTools.robotController.MultiThreadedRobotControlElement;
+import us.ihmc.simulationConstructionSetTools.robotController.MultiThreadedRobotController;
+import us.ihmc.simulationConstructionSetTools.robotController.SingleThreadedRobotController;
+import us.ihmc.simulationConstructionSetTools.util.environments.CommonAvatarEnvironmentInterface;
 import us.ihmc.simulationToolkit.controllers.ActualCMPComputer;
 import us.ihmc.simulationToolkit.controllers.JointLowLevelPositionControlSimulator;
 import us.ihmc.simulationToolkit.controllers.PIDLidarTorqueController;
@@ -42,16 +47,10 @@ import us.ihmc.simulationconstructionset.Robot;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
 import us.ihmc.simulationconstructionset.SimulationConstructionSetParameters;
 import us.ihmc.simulationconstructionset.UnreasonableAccelerationException;
-import us.ihmc.simulationconstructionset.gui.tools.VisualizerUtils;
-import us.ihmc.simulationconstructionset.robotController.AbstractThreadedRobotController;
-import us.ihmc.simulationconstructionset.robotController.MultiThreadedRobotControlElement;
-import us.ihmc.simulationconstructionset.robotController.MultiThreadedRobotController;
-import us.ihmc.simulationconstructionset.robotController.SingleThreadedRobotController;
-import us.ihmc.simulationconstructionset.util.environments.CommonAvatarEnvironmentInterface;
+import us.ihmc.simulationconstructionset.gui.tools.SimulationOverheadPlotterFactory;
 import us.ihmc.tools.factories.FactoryTools;
 import us.ihmc.tools.factories.OptionalFactoryField;
 import us.ihmc.tools.factories.RequiredFactoryField;
-import us.ihmc.tools.io.printing.PrintTools;
 import us.ihmc.tools.thread.CloseableAndDisposableRegistry;
 import us.ihmc.util.PeriodicNonRealtimeThreadScheduler;
 import us.ihmc.wholeBodyController.DRCControllerThread;
@@ -62,6 +61,7 @@ import us.ihmc.wholeBodyController.DRCRobotJointMap;
 import us.ihmc.wholeBodyController.concurrent.SingleThreadedThreadDataSynchronizer;
 import us.ihmc.wholeBodyController.concurrent.ThreadDataSynchronizer;
 import us.ihmc.wholeBodyController.concurrent.ThreadDataSynchronizerInterface;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 public class AvatarSimulationFactory
 {
@@ -102,7 +102,7 @@ public class AvatarSimulationFactory
    {
       if (robotModel.get().getLogSettings().isLog())
       {
-         yoVariableServer = new YoVariableServer(getClass(), new PeriodicNonRealtimeThreadScheduler("DRCSimulationYoVariableServer"),
+         yoVariableServer = new YoVariableServer(getClass(), new PeriodicNonRealtimeThreadSchedulerFactory(),
                                                  robotModel.get().getLogModelProvider(), robotModel.get().getLogSettings(), robotModel.get().getEstimatorDT());
       }
       else
@@ -162,6 +162,11 @@ public class AvatarSimulationFactory
    private void setupSimulationOutputWriter()
    {
       simulationOutputWriter = new DRCSimulationOutputWriter(humanoidFloatingRootJointRobot);
+
+      DRCOutputWriter customOutputWriter = robotModel.get().getCustomSimulationOutputWriter(simulationOutputWriter);
+
+      if (customOutputWriter != null)
+         simulationOutputWriter = customOutputWriter;
 
       if (doSmoothJointTorquesAtControllerStateChanges.get())
       {
@@ -268,10 +273,10 @@ public class AvatarSimulationFactory
             throw new RuntimeException("UnreasonableAccelerationException");
          }
 
-         Point3d initialCoMPosition = new Point3d();
+         Point3D initialCoMPosition = new Point3D();
          humanoidFloatingRootJointRobot.computeCenterOfMass(initialCoMPosition);
 
-         Quat4d initialEstimationLinkOrientation = new Quat4d();
+         Quaternion initialEstimationLinkOrientation = new Quaternion();
          humanoidFloatingRootJointRobot.getRootJoint().getJointTransform3D().getRotation(initialEstimationLinkOrientation);
 
          stateEstimationThread.initializeEstimatorToActual(initialCoMPosition, initialEstimationLinkOrientation);
@@ -310,6 +315,9 @@ public class AvatarSimulationFactory
             JointRole jointRole = robotModel.get().getJointMap().getJointRole(positionControlledJointName);
             boolean isUpperBodyJoint = ((jointRole != JointRole.LEG) && (jointRole != JointRole.SPINE));
             boolean isBackJoint = jointRole == JointRole.SPINE;
+
+            if (simulatedJoint == null || controllerJoint == null)
+               continue;
 
             JointLowLevelPositionControlSimulator positionControlSimulator = new JointLowLevelPositionControlSimulator(simulatedJoint, controllerJoint,
                                                                                                                        isUpperBodyJoint, isBackJoint, false,
@@ -365,9 +373,13 @@ public class AvatarSimulationFactory
 
       if (guiInitialSetup.get().isGuiShown())
       {
-         VisualizerUtils.createOverheadPlotter(simulationConstructionSet, guiInitialSetup.get().isShowOverheadView(), "centerOfMass",
-                                               controllerThread.getDynamicGraphicObjectsListRegistry(),
-                                               stateEstimationThread.getDynamicGraphicObjectsListRegistry(), actualCMPComputer.getYoGraphicsListRegistry());
+         SimulationOverheadPlotterFactory simulationOverheadPlotterFactory = simulationConstructionSet.createSimulationOverheadPlotterFactory();
+         simulationOverheadPlotterFactory.setShowOnStart(guiInitialSetup.get().isShowOverheadView());
+         simulationOverheadPlotterFactory.setVariableNameToTrack("centerOfMass");
+         simulationOverheadPlotterFactory.addYoGraphicsListRegistries(controllerThread.getYoGraphicsListRegistry());
+         simulationOverheadPlotterFactory.addYoGraphicsListRegistries(stateEstimationThread.getYoGraphicsListRegistry());
+         simulationOverheadPlotterFactory.addYoGraphicsListRegistries(actualCMPComputer.getYoGraphicsListRegistry());
+         simulationOverheadPlotterFactory.createOverheadPlotter();
          guiInitialSetup.get().initializeGUI(simulationConstructionSet, humanoidFloatingRootJointRobot, robotModel.get());
       }
 

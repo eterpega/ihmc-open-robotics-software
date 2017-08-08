@@ -1,20 +1,21 @@
 package us.ihmc.robotics.math.frames;
 
-import javax.vecmath.Quat4d;
-import javax.vecmath.Tuple3d;
-
-import us.ihmc.robotics.Settable;
-import us.ihmc.robotics.dataStructures.listener.VariableChangedListener;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.euclid.interfaces.Clearable;
+import us.ihmc.euclid.interfaces.Settable;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
+import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
+import us.ihmc.yoVariables.listener.VariableChangedListener;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.geometry.AbstractReferenceFrameHolder;
 import us.ihmc.robotics.geometry.FrameOrientation;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FramePose;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 
-public class YoFramePoseUsingQuaternions extends AbstractReferenceFrameHolder implements Settable<YoFramePoseUsingQuaternions>
+public class YoFramePoseUsingQuaternions extends AbstractReferenceFrameHolder implements Settable<YoFramePoseUsingQuaternions>, Clearable
 {
    private final YoFramePoint position;
    private final YoFrameQuaternion orientation;
@@ -145,7 +146,7 @@ public class YoFramePoseUsingQuaternions extends AbstractReferenceFrameHolder im
       position.set(framePoint, notifyListeners);
    }
 
-   public void setPosition(Tuple3d position)
+   public void setPosition(Tuple3DReadOnly position)
    {
       this.position.set(position);
    }
@@ -154,14 +155,14 @@ public class YoFramePoseUsingQuaternions extends AbstractReferenceFrameHolder im
    {
       orientation.set(yoFrameQuaternion);
    }
-
+   
    public void setOrientation(FrameOrientation frameOrientation)
    {
       boolean notifyListeners = true;
       orientation.set(frameOrientation, notifyListeners);
    }
 
-   public void setOrientation(Quat4d quaternion)
+   public void setOrientation(QuaternionReadOnly quaternion)
    {
       orientation.set(quaternion);
    }
@@ -267,42 +268,42 @@ public class YoFramePoseUsingQuaternions extends AbstractReferenceFrameHolder im
       return getPosition().getZ();
    }
 
-   public void getOrientation(Quat4d quaternionToPack)
+   public void getOrientation(Quaternion quaternionToPack)
    {
       getOrientation().get(quaternionToPack);
    }
 
-   public DoubleYoVariable getYoX()
+   public YoDouble getYoX()
    {
       return getPosition().getYoX();
    }
 
-   public DoubleYoVariable getYoY()
+   public YoDouble getYoY()
    {
       return getPosition().getYoY();
    }
 
-   public DoubleYoVariable getYoZ()
+   public YoDouble getYoZ()
    {
       return getPosition().getYoZ();
    }
 
-   public DoubleYoVariable getYoQs()
+   public YoDouble getYoQs()
    {
       return getOrientation().getYoQs();
    }
 
-   public DoubleYoVariable getYoQx()
+   public YoDouble getYoQx()
    {
       return getOrientation().getYoQx();
    }
 
-   public DoubleYoVariable getYoQy()
+   public YoDouble getYoQy()
    {
       return getOrientation().getYoQy();
    }
 
-   public DoubleYoVariable getYoQz()
+   public YoDouble getYoQz()
    {
       return getOrientation().getYoQz();
    }

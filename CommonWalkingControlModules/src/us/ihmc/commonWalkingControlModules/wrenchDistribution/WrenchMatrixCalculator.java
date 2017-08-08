@@ -5,19 +5,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.vecmath.Vector2d;
-
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 
 import us.ihmc.commonWalkingControlModules.controllerCore.WholeBodyControlCoreToolbox;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.CenterOfPressureCommand;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.PlaneContactStateCommand;
-import us.ihmc.commonWalkingControlModules.momentumBasedController.optimization.MomentumOptimizationSettings;
+import us.ihmc.commonWalkingControlModules.momentumBasedController.optimization.ControllerCoreOptimizationSettings;
+import us.ihmc.euclid.tuple2D.Vector2D;
 import us.ihmc.humanoidRobotics.bipedSupportPolygons.ContactablePlaneBody;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FrameVector;
 import us.ihmc.robotics.math.frames.YoFrameVector2d;
@@ -36,11 +35,11 @@ public class WrenchMatrixCalculator
 
    private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
 
-   private final BooleanYoVariable useForceRateHighWeight = new BooleanYoVariable("useForceRateHighWeight", registry);
+   private final YoBoolean useForceRateHighWeight = new YoBoolean("useForceRateHighWeight", registry);
 
-   private final DoubleYoVariable rhoWeight = new DoubleYoVariable("rhoWeight", registry);
-   private final DoubleYoVariable rhoRateDefaultWeight = new DoubleYoVariable("rhoRateDefaultWeight", registry);
-   private final DoubleYoVariable rhoRateHighWeight = new DoubleYoVariable("rhoRateHighWeight", registry);
+   private final YoDouble rhoWeight = new YoDouble("rhoWeight", registry);
+   private final YoDouble rhoRateDefaultWeight = new YoDouble("rhoRateDefaultWeight", registry);
+   private final YoDouble rhoRateHighWeight = new YoDouble("rhoRateHighWeight", registry);
    private final YoFrameVector2d desiredCoPWeight = new YoFrameVector2d("desiredCoPWeight", null, registry);
 
    private final YoFrameVector2d copRateDefaultWeight = new YoFrameVector2d("copRateDefaultWeight", null, registry);
@@ -53,6 +52,7 @@ public class WrenchMatrixCalculator
    private final DenseMatrix64F desiredCoPMatrix;
    private final DenseMatrix64F previousCoPMatrix;
    
+   private final DenseMatrix64F rhoMaxMatrix;
    private final DenseMatrix64F rhoWeightMatrix;
    private final DenseMatrix64F rhoRateWeightMatrix;
    private final DenseMatrix64F desiredCoPWeightMatrix;
@@ -74,6 +74,7 @@ public class WrenchMatrixCalculator
 
    public WrenchMatrixCalculator(WholeBodyControlCoreToolbox toolbox, ReferenceFrame centerOfMassFrame, YoVariableRegistry parentRegistry)
    {
+      this.centerOfMassFrame = centerOfMassFrame;
       List<? extends ContactablePlaneBody> contactablePlaneBodies = toolbox.getContactablePlaneBodies();
       
       
@@ -88,9 +89,10 @@ public class WrenchMatrixCalculator
       rhoPreviousMatrix = new DenseMatrix64F(rhoSize, 1);                      
                                                                                
       desiredCoPMatrix = new DenseMatrix64F(copTaskSize, 1);                   
-      previousCoPMatrix = new DenseMatrix64F(copTaskSize, 1);                  
-                                                                               
-      rhoWeightMatrix = new DenseMatrix64F(rhoSize, rhoSize);                  
+      previousCoPMatrix = new DenseMatrix64F(copTaskSize, 1);
+
+      rhoMaxMatrix = new DenseMatrix64F(rhoSize, 1);
+      rhoWeightMatrix = new DenseMatrix64F(rhoSize, rhoSize);
       rhoRateWeightMatrix = new DenseMatrix64F(rhoSize, rhoSize);              
       desiredCoPWeightMatrix = new DenseMatrix64F(copTaskSize, copTaskSize);   
       copRateWeightMatrix = new DenseMatrix64F(copTaskSize, copTaskSize);      
@@ -98,8 +100,6 @@ public class WrenchMatrixCalculator
 
       if (contactablePlaneBodies.size() > nContactableBodies)
          throw new RuntimeException("Unexpected number of contactable plane bodies: " + contactablePlaneBodies.size());
-
-      this.centerOfMassFrame = centerOfMassFrame;
 
       for (int i = 0; i < contactablePlaneBodies.size(); i++)
       {
@@ -121,13 +121,13 @@ public class WrenchMatrixCalculator
          wrenchesFromRho.put(rigidBody, wrench);
       }
 
-      MomentumOptimizationSettings momentumOptimizationSettings = toolbox.getMomentumOptimizationSettings();
-      rhoWeight.set(momentumOptimizationSettings.getRhoWeight());
-      rhoRateDefaultWeight.set(momentumOptimizationSettings.getRhoRateDefaultWeight());
-      rhoRateHighWeight.set(momentumOptimizationSettings.getRhoRateHighWeight());
-      desiredCoPWeight.set(momentumOptimizationSettings.getCoPWeight());
-      copRateDefaultWeight.set(momentumOptimizationSettings.getCoPRateDefaultWeight());
-      copRateHighWeight.set(momentumOptimizationSettings.getCoPRateHighWeight());
+      ControllerCoreOptimizationSettings optimizationSettings = toolbox.getOptimizationSettings();
+      rhoWeight.set(optimizationSettings.getRhoWeight());
+      rhoRateDefaultWeight.set(optimizationSettings.getRhoRateDefaultWeight());
+      rhoRateHighWeight.set(optimizationSettings.getRhoRateHighWeight());
+      desiredCoPWeight.set(optimizationSettings.getCoPWeight());
+      copRateDefaultWeight.set(optimizationSettings.getCoPRateDefaultWeight());
+      copRateHighWeight.set(optimizationSettings.getCoPRateHighWeight());
 
       parentRegistry.addChild(registry);
    }
@@ -145,8 +145,8 @@ public class WrenchMatrixCalculator
       helper.setCenterOfPressureCommand(command);
    }
 
-   private final Vector2d tempDeisredCoPWeight = new Vector2d();
-   private final Vector2d tempCoPRateWeight = new Vector2d();
+   private final Vector2D tempDeisredCoPWeight = new Vector2D();
+   private final Vector2D tempCoPRateWeight = new Vector2D();
 
    public void computeMatrices()
    {
@@ -182,6 +182,7 @@ public class WrenchMatrixCalculator
          CommonOps.insert(helper.getRhoJacobian(), rhoJacobianMatrix, 0, rhoStartIndex);
          CommonOps.insert(helper.getCopJacobianMatrix(), copJacobianMatrix, copStartIndex, rhoStartIndex);
 
+         CommonOps.insert(helper.getRhoMax(), rhoMaxMatrix, rhoStartIndex, 0);
          CommonOps.insert(helper.getRhoWeight(), rhoWeightMatrix, rhoStartIndex, rhoStartIndex);
          CommonOps.insert(helper.getRhoRateWeight(), rhoRateWeightMatrix, rhoStartIndex, rhoStartIndex);
          CommonOps.insert(helper.getDesiredCoPWeightMatrix(), desiredCoPWeightMatrix, copStartIndex, copStartIndex);
@@ -226,6 +227,11 @@ public class WrenchMatrixCalculator
       return rhoJacobianMatrix;
    }
 
+   public void getRhoJacobianMatrix(DenseMatrix64F rhoJacobianMatrix)
+   {
+      rhoJacobianMatrix.set(this.rhoJacobianMatrix);
+   }
+
    public DenseMatrix64F getCopJacobianMatrix()
    {
       return copJacobianMatrix;
@@ -244,6 +250,11 @@ public class WrenchMatrixCalculator
    public DenseMatrix64F getPreviousCoPMatrix()
    {
       return previousCoPMatrix;
+   }
+
+   public DenseMatrix64F getRhoMaxMatrix()
+   {
+      return rhoMaxMatrix;
    }
 
    public DenseMatrix64F getRhoWeightMatrix()
@@ -276,8 +287,23 @@ public class WrenchMatrixCalculator
       return basisVectorsOrigin;
    }
 
+   public DenseMatrix64F getRhoJacobianMatrix(RigidBody rigidBody)
+   {
+      return planeContactStateToWrenchMatrixHelpers.get(rigidBody).getRhoJacobian();
+   }
+
+   public ReferenceFrame getJacobianFrame()
+   {
+      return centerOfMassFrame;
+   }
+
    public List<FrameVector> getBasisVectors()
    {
       return basisVectors;
+   }
+
+   public int getRhoSize()
+   {
+      return rhoSize;
    }
 }

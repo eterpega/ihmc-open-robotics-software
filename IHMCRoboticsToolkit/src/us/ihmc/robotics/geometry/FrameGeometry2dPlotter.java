@@ -1,30 +1,23 @@
 package us.ihmc.robotics.geometry;
 
-import us.ihmc.robotics.referenceFrames.ReferenceFrame;
-
-import javax.swing.*;
-import javax.swing.event.MouseInputListener;
-import javax.vecmath.Point2d;
-import javax.vecmath.Vector2d;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Polygon;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 
-/**
- * <p>Title: </p>
- *
- * <p>Description: </p>
- *
- * <p>Copyright: Copyright (c) 2007</p>
- *
- * <p>Company: </p>
- *
- * @author not attributable
- * @version 1.0
- */
+import javax.swing.JPanel;
+import javax.swing.event.MouseInputListener;
+
+import us.ihmc.euclid.geometry.ConvexPolygon2D;
+import us.ihmc.euclid.tuple2D.Point2D;
+import us.ihmc.euclid.tuple2D.Vector2D;
+import us.ihmc.euclid.tuple2D.interfaces.Point2DReadOnly;
+import us.ihmc.robotics.referenceFrames.ReferenceFrame;
+
 public class FrameGeometry2dPlotter extends JPanel implements MouseInputListener
 {
    private static final long serialVersionUID = 2505175418803166784L;
@@ -304,7 +297,7 @@ public class FrameGeometry2dPlotter extends JPanel implements MouseInputListener
       frameConvexPolygonGroup.addFrameConvexPolygon2ds(frameConvexPolygons);
    }
 
-   public synchronized void addConvexPolygons(ArrayList<ConvexPolygon2d> convexPolygons, Color color)
+   public synchronized void addConvexPolygons(ArrayList<ConvexPolygon2D> convexPolygons, Color color)
    {
       FrameConvexPolygonGroup frameConvexPolygonGroup = frameConvexPolygonGroups.get(color);
       if (frameConvexPolygonGroup == null)
@@ -314,7 +307,7 @@ public class FrameGeometry2dPlotter extends JPanel implements MouseInputListener
       }
 
       ArrayList<FrameConvexPolygon2d> frameConvexPolygons = new ArrayList<FrameConvexPolygon2d>();
-      for (ConvexPolygon2d polygon : convexPolygons)
+      for (ConvexPolygon2D polygon : convexPolygons)
       {
          frameConvexPolygons.add(new FrameConvexPolygon2d(ReferenceFrame.getWorldFrame(), polygon));
       }
@@ -322,7 +315,7 @@ public class FrameGeometry2dPlotter extends JPanel implements MouseInputListener
       frameConvexPolygonGroup.addFrameConvexPolygon2ds(frameConvexPolygons);
    }
 
-   public synchronized void addConvexPolygons(ConvexPolygon2d[] convexPolygons, Color color)
+   public synchronized void addConvexPolygons(ConvexPolygon2D[] convexPolygons, Color color)
    {
       FrameConvexPolygonGroup frameConvexPolygonGroup = frameConvexPolygonGroups.get(color);
       if (frameConvexPolygonGroup == null)
@@ -332,7 +325,7 @@ public class FrameGeometry2dPlotter extends JPanel implements MouseInputListener
       }
 
       ArrayList<FrameConvexPolygon2d> frameConvexPolygons = new ArrayList<FrameConvexPolygon2d>();
-      for (ConvexPolygon2d polygon : convexPolygons)
+      for (ConvexPolygon2D polygon : convexPolygons)
       {
          if (polygon == null)
             continue;
@@ -342,7 +335,7 @@ public class FrameGeometry2dPlotter extends JPanel implements MouseInputListener
       frameConvexPolygonGroup.addFrameConvexPolygon2ds(frameConvexPolygons);
    }
 
-   public synchronized void addConvexPolygon(ConvexPolygon2d convexPolygon, Color color)
+   public synchronized void addConvexPolygon(ConvexPolygon2D convexPolygon, Color color)
    {
       FrameConvexPolygonGroup frameConvexPolygonGroup = frameConvexPolygonGroups.get(color);
       if (frameConvexPolygonGroup == null)
@@ -542,7 +535,7 @@ public class FrameGeometry2dPlotter extends JPanel implements MouseInputListener
 
       for (int i = 0; i < frameConvexPolygon2d.getNumberOfVertices(); i++)
       {
-         Point2d vertex = frameConvexPolygon2d.getVertex(i);
+         Point2DReadOnly vertex = frameConvexPolygon2d.getVertex(i);
          int xInt = doubleToInt(vertex.getX(), xCenter, scale, getWidth());
          int yInt = doubleToInt(vertex.getY(), yCenter, -scale, getHeight());
 
@@ -554,9 +547,9 @@ public class FrameGeometry2dPlotter extends JPanel implements MouseInputListener
 
    private void drawLine(FrameLine2d frameLine2d, Graphics graphics)
    {
-      Point2d point = new Point2d();
+      Point2D point = new Point2D();
       frameLine2d.getPoint2d(point);
-      Vector2d vector = new Vector2d();
+      Vector2D vector = new Vector2D();
       frameLine2d.getNormalizedFrameVector(vector);
 
       double largeNumber = scale * 100; // 1.0e3;
@@ -569,7 +562,7 @@ public class FrameGeometry2dPlotter extends JPanel implements MouseInputListener
 
    private void drawLineSegment(FrameLineSegment2d frameLineSegment2d, Graphics graphics)
    {
-      Point2d[] points = frameLineSegment2d.lineSegment.getEndpointsCopy();
+      Point2D[] points = frameLineSegment2d.lineSegment.getEndpointsCopy();
 
       drawLine(points[0].getX(), points[0].getY(), points[1].getX(), points[1].getY(), graphics);
    }

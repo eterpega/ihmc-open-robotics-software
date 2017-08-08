@@ -1,16 +1,19 @@
 package us.ihmc.robotics.math.frames;
 
-import javax.vecmath.Point3d;
-import javax.vecmath.Tuple2d;
-import javax.vecmath.Tuple3d;
-import javax.vecmath.Tuple3f;
-import javax.vecmath.Vector3d;
-
 import org.apache.commons.lang3.StringUtils;
+import org.ejml.data.DenseMatrix64F;
 
-import us.ihmc.robotics.dataStructures.listener.VariableChangedListener;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.euclid.interfaces.Clearable;
+import us.ihmc.euclid.transform.interfaces.Transform;
+import us.ihmc.euclid.tuple2D.interfaces.Tuple2DReadOnly;
+import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple3D.interfaces.Tuple3DBasics;
+import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
+import us.ihmc.yoVariables.listener.VariableChangedListener;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.robotics.geometry.AbstractReferenceFrameHolder;
 import us.ihmc.robotics.geometry.Direction;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FramePoint2d;
@@ -18,23 +21,21 @@ import us.ihmc.robotics.geometry.FrameTuple;
 import us.ihmc.robotics.geometry.FrameTuple2d;
 import us.ihmc.robotics.geometry.FrameVector;
 import us.ihmc.robotics.geometry.FrameVector2d;
-import us.ihmc.robotics.geometry.AbstractReferenceFrameHolder;
 import us.ihmc.robotics.geometry.ReferenceFrameMismatchException;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 
 //Note: You should only make these once at the initialization of a controller. You shouldn't make any on the fly since they contain YoVariables.
-public abstract class YoFrameTuple<S, T extends FrameTuple<?, ?>> extends AbstractReferenceFrameHolder
+public abstract class YoFrameTuple<S, T extends FrameTuple<?, ?>> extends AbstractReferenceFrameHolder implements Clearable
 {
    private final String namePrefix;
    private final String nameSuffix;
 
-   private final DoubleYoVariable x, y, z; // This is where the data is stored. All operations must act on these numbers.
+   private final YoDouble x, y, z; // This is where the data is stored. All operations must act on these numbers.
    private final T frameTuple; // This is only for assistance. The data is stored in the YoVariables, not in here!
    /** Never use this reference frame directly, use {@link #getReferenceFrame()} instead so the multiple frames version of this {@link YoFrameTuple} will work properly. */
    private final ReferenceFrame referenceFrame; // Redundant but allows to make sure the frame isn't changed
 
-   public YoFrameTuple(DoubleYoVariable xVariable, DoubleYoVariable yVariable, DoubleYoVariable zVariable, ReferenceFrame referenceFrame)
+   public YoFrameTuple(YoDouble xVariable, YoDouble yVariable, YoDouble zVariable, ReferenceFrame referenceFrame)
    {
       this.namePrefix = StringUtils.getCommonPrefix(xVariable.getName(), yVariable.getName(), zVariable.getName());
       this.nameSuffix = YoFrameVariableNameTools.getCommonSuffix(xVariable.getName(), yVariable.getName(), zVariable.getName());
@@ -51,35 +52,68 @@ public abstract class YoFrameTuple<S, T extends FrameTuple<?, ?>> extends Abstra
       this.namePrefix = namePrefix;
       this.nameSuffix = nameSuffix;
 
-      x = new DoubleYoVariable(YoFrameVariableNameTools.createXName(namePrefix, nameSuffix), registry);
-      y = new DoubleYoVariable(YoFrameVariableNameTools.createYName(namePrefix, nameSuffix), registry);
-      z = new DoubleYoVariable(YoFrameVariableNameTools.createZName(namePrefix, nameSuffix), registry);
+      x = new YoDouble(YoFrameVariableNameTools.createXName(namePrefix, nameSuffix), registry);
+      y = new YoDouble(YoFrameVariableNameTools.createYName(namePrefix, nameSuffix), registry);
+      z = new YoDouble(YoFrameVariableNameTools.createZName(namePrefix, nameSuffix), registry);
       this.referenceFrame = referenceFrame;
       this.frameTuple = createEmptyFrameTuple();
    }
 
-   public final void get(Tuple3d tuple3dToPack)
+   public final void get(Tuple3DBasics tuple3dToPack)
    {
       putYoValuesIntoFrameTuple();
       frameTuple.get(tuple3dToPack);
    }
 
-   public final void get(Tuple3f tuple3fToPack)
+   /**
+    * Packs the components {@code x}, {@code y}, {@code z} in order in a column vector starting from
+    * its first row index.
+    *
+    * @param tupleMatrixToPack the array in which this tuple is stored. Modified.
+    */
+   public void get(DenseMatrix64F tupleMatrixToPack)
    {
       putYoValuesIntoFrameTuple();
-      frameTuple.get(tuple3fToPack);
+      frameTuple.get(tupleMatrixToPack);
    }
 
-   public final Vector3d getVector3dCopy()
+   /**
+    * Packs the components {@code x}, {@code y}, {@code z} in order in a column vector starting from
+    * {@code startRow}.
+    *
+    * @param startRow the first row index to start writing in the dense-matrix.
+    * @param tupleMatrixToPack the column vector in which this tuple is stored. Modified.
+    */
+   public void get(int startRow, DenseMatrix64F tupleMatrixToPack)
    {
-      Vector3d vector3d = new Vector3d();
+      putYoValuesIntoFrameTuple();
+      frameTuple.get(startRow, tupleMatrixToPack);
+   }
+
+   /**
+    * Packs the components {@code x}, {@code y}, {@code z} in order in a column vector starting from
+    * {@code startRow} at the column index {@code column}.
+    *
+    * @param startRow the first row index to start writing in the dense-matrix.
+    * @param column the column index to write in the dense-matrix.
+    * @param tupleMatrixToPack the matrix in which this tuple is stored. Modified.
+    */
+   public void get(int startRow, int column, DenseMatrix64F tupleMatrixToPack)
+   {
+      putYoValuesIntoFrameTuple();
+      frameTuple.get(startRow, column, tupleMatrixToPack);
+   }
+
+   public final Vector3D getVector3dCopy()
+   {
+      Vector3D vector3d = new Vector3D();
       get(vector3d);
       return vector3d;
    }
 
-   public final Point3d getPoint3dCopy()
+   public final Point3D getPoint3dCopy()
    {
-      Point3d point3d = new Point3d();
+      Point3D point3d = new Point3D();
       get(point3d);
       return point3d;
    }
@@ -164,17 +198,34 @@ public abstract class YoFrameTuple<S, T extends FrameTuple<?, ?>> extends Abstra
       }
    }
 
-   public final DoubleYoVariable getYoX()
+   /**
+    * Selects a component of this tuple based on {@code index} and returns its value.
+    * <p>
+    * For an {@code index} of 0, the corresponding component is {@code x}, 1 it is {@code y}, 2 it
+    * is {@code z}.
+    * </p>
+    *
+    * @param index the index of the component to get.
+    * @return the value of the component.
+    * @throws IndexOutOfBoundsException if {@code index} &notin; [0, 2].
+    */
+   public double getElement(int index)
+   {
+      putYoValuesIntoFrameTuple();
+      return frameTuple.getElement(index);
+   }
+
+   public final YoDouble getYoX()
    {
       return x;
    }
 
-   public final DoubleYoVariable getYoY()
+   public final YoDouble getYoY()
    {
       return y;
    }
 
-   public final DoubleYoVariable getYoZ()
+   public final YoDouble getYoZ()
    {
       return z;
    }
@@ -200,10 +251,54 @@ public abstract class YoFrameTuple<S, T extends FrameTuple<?, ?>> extends Abstra
       y.set(newY);
       z.set(newZ);
    }
-   
+
+   /**
+    * Sets this tuple's components {@code x}, {@code y}, {@code z} in order from the given column
+    * vector starting to read from its first row index.
+    *
+    * @param matrix the column vector containing the new values for this tuple's components. Not
+    *           modified.
+    */
+   public final void set(DenseMatrix64F tupleDenseMatrix)
+   {
+      frameTuple.setIncludingFrame(getReferenceFrame(), tupleDenseMatrix);
+      getYoValuesFromFrameTuple();
+   }
+
+   /**
+    * Sets this tuple's components {@code x}, {@code y}, {@code z} in order from the given column
+    * vector starting to read from {@code startRow}.
+    *
+    * @param startRow the first row index to start reading in the dense-matrix.
+    * @param matrix the column vector containing the new values for this tuple's components. Not
+    *           modified.
+    */
+   public final void set(int startRow, DenseMatrix64F tupleDenseMatrix)
+   {
+      frameTuple.setIncludingFrame(getReferenceFrame(), startRow, tupleDenseMatrix);
+      getYoValuesFromFrameTuple();
+   }
+
+   /**
+    * Sets this tuple's components {@code x}, {@code y}, {@code z} in order from the given matrix
+    * starting to read from {@code startRow} at the column index {@code column}.
+    *
+    * @param startRow the first row index to start reading in the dense-matrix.
+    * @param column the column index to read in the dense-matrix.
+    * @param matrix the column vector containing the new values for this tuple's components. Not
+    *           modified.
+    */
+   public final void set(int startRow, int column, DenseMatrix64F tupleDenseMatrix)
+   {
+      frameTuple.setIncludingFrame(getReferenceFrame(), startRow, column, tupleDenseMatrix);
+      getYoValuesFromFrameTuple();
+   }
+
    /**
     * Sets x, y, and z with no checks for reference frame matches.
+    * @deprecated the user should simply use {@link #set(Tuple3DBasics)} instead.
     */
+   @Deprecated
    public final void setWithoutChecks(FrameTuple<?, ?> frameTuple)
    {
       x.set(frameTuple.getX());
@@ -276,7 +371,7 @@ public abstract class YoFrameTuple<S, T extends FrameTuple<?, ?>> extends Abstra
       set(yoFrameTuple.getFrameTuple());
    }
 
-   public final void setXY(Tuple2d tuple2d)
+   public final void setXY(Tuple2DReadOnly tuple2d)
    {
       this.frameTuple.setToZero(getReferenceFrame());
       this.frameTuple.setXY(tuple2d);
@@ -297,7 +392,7 @@ public abstract class YoFrameTuple<S, T extends FrameTuple<?, ?>> extends Abstra
       getYoValuesFromFrameTuple();
    }
 
-   public final void set(Tuple3d tuple)
+   public final void set(Tuple3DReadOnly tuple)
    {
       this.frameTuple.setToZero(getReferenceFrame());
       this.frameTuple.set(tuple);
@@ -311,7 +406,7 @@ public abstract class YoFrameTuple<S, T extends FrameTuple<?, ?>> extends Abstra
       z.set(z.getDoubleValue() + dz);
    }
 
-   public final void add(Tuple3d tuple)
+   public final void add(Tuple3DReadOnly tuple)
    {
       putYoValuesIntoFrameTuple();
       frameTuple.add(tuple);
@@ -332,7 +427,7 @@ public abstract class YoFrameTuple<S, T extends FrameTuple<?, ?>> extends Abstra
       getYoValuesFromFrameTuple();
    }
 
-   public final void add(Tuple3d tuple1, Tuple3d tuple2)
+   public final void add(Tuple3DReadOnly tuple1, Tuple3DReadOnly tuple2)
    {
       frameTuple.setToZero(getReferenceFrame());
       frameTuple.add(tuple1, tuple2);
@@ -346,7 +441,14 @@ public abstract class YoFrameTuple<S, T extends FrameTuple<?, ?>> extends Abstra
       getYoValuesFromFrameTuple();
    }
 
-   public final void sub(Tuple3d tuple)
+   public final void add(YoFrameTuple<?, ?> yoFrameTuple1, YoFrameTuple<?, ?> yoFrameTuple2)
+   {
+      putYoValuesIntoFrameTuple();
+      frameTuple.add(yoFrameTuple1.getFrameTuple(), yoFrameTuple2.getFrameTuple());
+      getYoValuesFromFrameTuple();
+   }
+
+   public final void sub(Tuple3DReadOnly tuple)
    {
       putYoValuesIntoFrameTuple();
       frameTuple.sub(tuple);
@@ -367,7 +469,7 @@ public abstract class YoFrameTuple<S, T extends FrameTuple<?, ?>> extends Abstra
       getYoValuesFromFrameTuple();
    }
 
-   public final void sub(Tuple3d tuple1, Tuple3d tuple2)
+   public final void sub(Tuple3DReadOnly tuple1, Tuple3DReadOnly tuple2)
    {
       frameTuple.sub(tuple1, tuple2);
       getYoValuesFromFrameTuple();
@@ -556,12 +658,14 @@ public abstract class YoFrameTuple<S, T extends FrameTuple<?, ?>> extends Abstra
       frameTuple.checkForNaN();
    }
 
+   @Override
    public final boolean containsNaN()
    {
       putYoValuesIntoFrameTuple();
       return frameTuple.containsNaN();
    }
 
+   @Override
    public final void setToZero()
    {
       setToZero(false);
@@ -573,13 +677,14 @@ public abstract class YoFrameTuple<S, T extends FrameTuple<?, ?>> extends Abstra
       getYoValuesFromFrameTuple(notifyListeners);
    }
 
+   @Override
    public final void setToNaN()
    {
       frameTuple.setToNaN(getReferenceFrame());
       getYoValuesFromFrameTuple();
    }
 
-   public final void applyTransform(RigidBodyTransform transform)
+   public final void applyTransform(Transform transform)
    {
       putYoValuesIntoFrameTuple();
       frameTuple.applyTransform(transform);
@@ -590,6 +695,24 @@ public abstract class YoFrameTuple<S, T extends FrameTuple<?, ?>> extends Abstra
    {
       putYoValuesIntoFrameTuple();
       frameTuple.set(direction, value);
+      getYoValuesFromFrameTuple();
+   }
+
+   /**
+    * Selects a component of this tuple based on {@code index} and sets it to {@code value}.
+    * <p>
+    * For an {@code index} of 0, the corresponding component is {@code x}, 1 it is {@code y}, 2 it
+    * is {@code z}.
+    * </p>
+    *
+    * @param index the index of the component to set.
+    * @param value the new value of the selected component.
+    * @throws IndexOutOfBoundsException if {@code index} &notin; [0, 2].
+    */
+   public void setElement(int index, double value)
+   {
+      putYoValuesIntoFrameTuple();
+      frameTuple.setElement(index, value);
       getYoValuesFromFrameTuple();
    }
 

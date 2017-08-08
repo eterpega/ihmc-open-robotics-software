@@ -4,11 +4,10 @@ import java.awt.Container;
 
 import javax.swing.JFrame;
 
-import us.ihmc.simulationconstructionset.DataBuffer;
+import us.ihmc.yoVariables.dataBuffer.DataBuffer;
 import us.ihmc.simulationconstructionset.Robot;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
 import us.ihmc.simulationconstructionset.TimeHolder;
-import us.ihmc.simulationconstructionset.commands.DataBufferCommandsExecutor;
 import us.ihmc.simulationconstructionset.commands.RunCommandsExecutor;
 import us.ihmc.simulationconstructionset.commands.StopCommandExecutor;
 import us.ihmc.simulationconstructionset.commands.ViewportSelectorCommandExecutor;
@@ -19,6 +18,7 @@ import us.ihmc.simulationconstructionset.gui.StandardSimulationGUI;
 import us.ihmc.simulationconstructionset.gui.config.VarGroupList;
 import us.ihmc.simulationconstructionset.synchronization.SimulationSynchronizer;
 import us.ihmc.simulationconstructionset.videos.ExportVideo;
+import us.ihmc.yoVariables.dataBuffer.DataBufferCommandsExecutor;
 
 public class StandardAllDialogConstructorsGenerator implements AllDialogConstructorsHolder
 {
@@ -29,7 +29,7 @@ public class StandardAllDialogConstructorsGenerator implements AllDialogConstruc
    private ExportSnapshotDialogGenerator exportSnapshotDialogConstructor;
    
    private PlaybackPropertiesDialogGenerator playbackPropertiesDialogConstructor;
-   
+
    private SaveConfigurationDialogGenerator saveConfigurationDialogConstructor;
    private LoadConfigurationDialogGenerator loadConfigurationDialogConstructor;
    private SaveGraphConfigurationDialogGenerator saveGraphConfigurationDialogConstructor;
@@ -43,6 +43,7 @@ public class StandardAllDialogConstructorsGenerator implements AllDialogConstruc
    private DataBufferPropertiesDialogGenerator dataBufferPropertiesDialogConstructor;
    
    private CameraPropertiesDialogGenerator cameraPropertiesDialogConstructor;
+   private YoGraphicsPropertiesDialogGenerator yoGraphicsPropertiesDialogConstructor;
    private ResizeViewportDialogGenerator resizeViewportDialogConstructor;
    
    private AboutDialogGenerator aboutDialogConstructor;
@@ -89,98 +90,123 @@ public class StandardAllDialogConstructorsGenerator implements AllDialogConstruc
       this.dataBufferPropertiesDialogConstructor = new DataBufferPropertiesDialogGenerator(myDataBuffer, parentContainer, frame, myGraphArrayPanel);
       
       this.cameraPropertiesDialogConstructor = new CameraPropertiesDialogGenerator(myGUI, parentContainer, frame);
+      this.yoGraphicsPropertiesDialogConstructor = new YoGraphicsPropertiesDialogGenerator(sim, parentContainer, frame);
       this.resizeViewportDialogConstructor = new ResizeViewportDialogGenerator(frame, viewportSelector);
 
       this.aboutDialogConstructor = new AboutDialogGenerator(frame);
    }
    
+   @Override
    public AboutDialogConstructor getAboutDialogConstructor()
    {
       return aboutDialogConstructor;
    }
 
+   @Override
    public CameraPropertiesDialogConstructor getCameraPropertiesDialogConstructor()
    {
       return cameraPropertiesDialogConstructor;
    }
 
+   @Override
+   public YoGraphicsPropertiesDialogConstructor getYoGraphicsPropertiesDialogConstructor()
+   {
+      return yoGraphicsPropertiesDialogConstructor;
+   }
+
+   @Override
    public DataBufferPropertiesDialogConstructor getDataBufferPropertiesDialogConstructor()
    {
       return dataBufferPropertiesDialogConstructor;
    }
 
+   @Override
    public ExportDataDialogConstructor getExportDataDialogConstructor()
    {
       return exportDataDialogConstructor;
    }
 
+   @Override
    public ExportSnapshotDialogConstructor getExportSnapshotDialogConstructor()
    {
       return exportSnapshotDialogConstructor;
    }
 
+   @Override
    public ImportDataDialogConstructor getImportDataDialogConstructor()
    {
       return importDataDialogConstructor;
    }
 
+   @Override
    public LoadConfigurationDialogConstructor getLoadConfigurationDialogConstructor()
    {
       return loadConfigurationDialogConstructor;
    }
 
+   @Override
    public MediaCaptureDialogConstructor getMediaCaptureDialogConstructor()
    {
       return mediaCaptureDialogConstructor;
    }
 
+   @Override
    public PlaybackPropertiesDialogConstructor getPlaybackPropertiesDialogConstructor()
    {
       return playbackPropertiesDialogConstructor;
    }
 
+   @Override
    public PrintGraphsDialogConstructor getPrintGraphsDialogConstructor()
    {
       return printGraphsDialogConstructor;
    }
 
+   @Override
    public ResizeViewportDialogConstructor getResizeViewportDialogConstructor()
    {
       return resizeViewportDialogConstructor;
    }
 
+   @Override
    public SaveConfigurationDialogConstructor getSaveConfigurationDialogConstructor()
    {
       return saveConfigurationDialogConstructor;
    }
 
+   @Override
    public SaveGraphConfigurationDialogConstructor getSaveGraphConfigurationDialogConstructor()
    {
       return saveGraphConfigurationDialogConstructor;
    }
    
+   @Override
    public LoadGraphGroupDialogConstructor getLoadGraphGroupDialogConstructor()
    {
       return loadGraphGroupDialogConstructor;
    }
    
+   @Override
    public ExportGraphsToFileConstructor getExportGraphsToFileConstructor()
    {
       return exportGraphsToFileConstructor;
    }
 
 
+   @Override
    public SaveRobotConfigurationDialogConstructor getSaveRobotConfigurationDialogConstructor()
    {
       return saveRobotConfigurationDialogConstructor;
    }
 
+   @Override
    public ExportSimulationTo3DMaxDialogConstructor getExportSimulationTo3DMaxDialogConstructor()
    {
       return exportSimulationTo3DMaxDialogConstructor;
    }
 
    private boolean alreadyClosing = false;
+   @Override
    public void closeAndDispose()
    {
       if (alreadyClosing) return;
@@ -215,7 +241,7 @@ public class StandardAllDialogConstructorsGenerator implements AllDialogConstruc
          playbackPropertiesDialogConstructor.closeAndDispose();
          playbackPropertiesDialogConstructor = null;
       }
-      
+
       if (saveConfigurationDialogConstructor != null)
       {
          saveConfigurationDialogConstructor.closeAndDispose();
@@ -269,7 +295,13 @@ public class StandardAllDialogConstructorsGenerator implements AllDialogConstruc
          cameraPropertiesDialogConstructor.closeAndDispose();
          cameraPropertiesDialogConstructor = null;
       }
-      
+
+      if (yoGraphicsPropertiesDialogConstructor != null)
+      {
+         yoGraphicsPropertiesDialogConstructor.closeAndDispose();
+         yoGraphicsPropertiesDialogConstructor = null;
+      }
+
       if (resizeViewportDialogConstructor != null)
       {
          resizeViewportDialogConstructor.closeAndDispose();

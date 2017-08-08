@@ -2,11 +2,10 @@ package us.ihmc.humanoidRobotics.footstep.footstepGenerator;
 
 import java.util.ArrayList;
 
-import javax.vecmath.Point2d;
-import javax.vecmath.Point3d;
-import javax.vecmath.Quat4d;
-import javax.vecmath.Vector3d;
-
+import us.ihmc.euclid.tuple2D.Point2D;
+import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.humanoidRobotics.bipedSupportPolygons.ContactablePlaneBody;
 import us.ihmc.humanoidRobotics.footstep.Footstep;
 import us.ihmc.humanoidRobotics.footstep.FootstepUtils;
@@ -17,7 +16,7 @@ import us.ihmc.humanoidRobotics.footstep.footstepSnapper.FootstepSnapper;
 import us.ihmc.humanoidRobotics.footstep.footstepSnapper.FootstepSnappingParameters;
 import us.ihmc.humanoidRobotics.footstep.footstepSnapper.SimpleFootstepValueFunction;
 import us.ihmc.robotics.dataStructures.HeightMapWithPoints;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.robotics.geometry.FrameOrientation2d;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FramePoint2d;
@@ -25,7 +24,6 @@ import us.ihmc.robotics.geometry.FramePose;
 import us.ihmc.robotics.geometry.FramePose2d;
 import us.ihmc.robotics.geometry.FrameVector2d;
 import us.ihmc.robotics.geometry.InsufficientDataException;
-import us.ihmc.robotics.geometry.RotationTools;
 import us.ihmc.robotics.referenceFrames.Pose2dReferenceFrame;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
@@ -113,14 +111,14 @@ public abstract class AbstractFootstepGenerator implements FootstepGenerator
          {
             FramePoint soleFrameInWorldPoint = new FramePoint(soleFrame);
             soleFrameInWorldPoint.changeFrame(WORLD_FRAME);
-            footstep = footstepSnapper.generateFootstepWithoutHeightMap(solePose, foot, soleFrame, currentFootstepSide, soleFrameInWorldPoint.getZ(), new Vector3d(0.0, 0.0, 1.0));
+            footstep = footstepSnapper.generateFootstepWithoutHeightMap(solePose, foot, soleFrame, currentFootstepSide, soleFrameInWorldPoint.getZ(), new Vector3D(0.0, 0.0, 1.0));
             if (VERBOSE_ERROR_PRINTS)
                System.err.println("AbstractFootstepGenerator: Grid data unavailable. Using best guess for ground height.");
          }
       }
       catch (InsufficientDataException e)
       {
-         footstep = footstepSnapper.generateFootstepWithoutHeightMap(solePose, foot, soleFrame, currentFootstepSide, 0, new Vector3d(0.0, 0.0, 1.0));
+         footstep = footstepSnapper.generateFootstepWithoutHeightMap(solePose, foot, soleFrame, currentFootstepSide, 0, new Vector3D(0.0, 0.0, 1.0));
 
          if (VERBOSE_DEBUG)
          {
@@ -134,12 +132,12 @@ public abstract class AbstractFootstepGenerator implements FootstepGenerator
    protected Footstep createFootstepPlacedAtBipedfootLocation(RobotSide side)
    {
       ReferenceFrame soleFrame = soleFrames.get(side);
-      Vector3d translation = new Vector3d();
-      Quat4d rotation = new Quat4d();
+      Vector3D translation = new Vector3D();
+      Quaternion rotation = new Quaternion();
       soleFrame.getTransformToWorldFrame().getTranslation(translation);
       soleFrame.getTransformToWorldFrame().getRotation(rotation);
 
-      FramePose2d solePose2d = new FramePose2d(soleFrame, new Point2d(translation.getX(), translation.getY()), RotationTools.computeYaw(rotation));
+      FramePose2d solePose2d = new FramePose2d(soleFrame, new Point2D(translation.getX(), translation.getY()), rotation.getYaw());
       Footstep foot = createFootstep(side, solePose2d);
 
       return foot;
@@ -188,8 +186,8 @@ public abstract class AbstractFootstepGenerator implements FootstepGenerator
 
       FramePose leftPose = new FramePose();
       FramePose rightPose = new FramePose();
-      left.getSolePose(leftPose);
-      right.getSolePose(rightPose);
+      left.getPose(leftPose);
+      right.getPose(rightPose);
 
       FramePose2d leftPose2d = new FramePose2d();
       FramePose2d rightPose2d = new FramePose2d();
@@ -205,7 +203,7 @@ public abstract class AbstractFootstepGenerator implements FootstepGenerator
       FrameOrientation2d rightOrientation = new FrameOrientation2d();
       leftPose.getOrientation2dIncludingFrame(leftOrientation);
       rightPose.getOrientation2dIncludingFrame(rightOrientation);
-      initialDeltaFeetYaw = leftOrientation.sub(rightOrientation);
+      initialDeltaFeetYaw = leftOrientation.difference(rightOrientation);
       initialDeltaFeetY = leftPose.getY() - rightPose.getY();
       initialDeltaFeetX = leftPose.getX() - rightPose.getX();
    }
@@ -228,7 +226,7 @@ public abstract class AbstractFootstepGenerator implements FootstepGenerator
    protected RobotSide determineClosestFootSideToEnd(SideDependentList<Footstep> lastFootsteps)
    {
       FramePose2d endPose = getPath().getPoseAtS(1);
-      Point3d endPoint = new Point3d(endPose.getX(), endPose.getY(), 0.0);
+      Point3D endPoint = new Point3D(endPose.getX(), endPose.getY(), 0.0);
       RobotSide closestSideToEnd = FootstepUtils.getFrontFootRobotSideFromFootsteps(lastFootsteps, new FramePoint(ReferenceFrame.getWorldFrame(), endPoint));
 
       return closestSideToEnd;

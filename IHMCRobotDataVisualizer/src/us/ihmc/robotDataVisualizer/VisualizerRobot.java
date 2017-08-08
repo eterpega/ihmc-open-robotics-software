@@ -1,6 +1,6 @@
 package us.ihmc.robotDataVisualizer;
 
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.robotics.robotDescription.RobotDescription;
 import us.ihmc.simulationconstructionset.FloatingRootJointRobot;
 import us.ihmc.simulationconstructionset.OneDegreeOfFreedomJoint;
@@ -12,7 +12,7 @@ public class VisualizerRobot extends FloatingRootJointRobot
 
    public VisualizerRobot(RobotDescription robotDescription)
    {
-      super(robotDescription);
+      super(robotDescription, false, false);
       this.reducedRegistry = new YoVariableRegistry(robotDescription.getName());
 
       reducedRegistry.registerVariable(getRootJoint().getQx());

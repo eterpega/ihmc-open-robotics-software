@@ -12,12 +12,14 @@ import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 import java.util.zip.GZIPInputStream;
 
-import us.ihmc.robotics.dataStructures.registry.NameSpace;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.YoVariable;
-import us.ihmc.robotics.dataStructures.variable.YoVariableList;
-import us.ihmc.simulationconstructionset.DataBuffer.RepeatDataBufferEntryException;
+import us.ihmc.yoVariables.dataBuffer.DataBuffer;
+import us.ihmc.yoVariables.dataBuffer.DataBufferEntry;
+import us.ihmc.yoVariables.registry.NameSpace;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoVariable;
+import us.ihmc.yoVariables.variable.YoVariableList;
+import us.ihmc.yoVariables.dataBuffer.DataBuffer.RepeatDataBufferEntryException;
 import us.ihmc.simulationconstructionset.robotdefinition.RobotDefinitionFixedFrame;
 
 public class DataFileReader
@@ -191,8 +193,6 @@ public class DataFileReader
 
    }
 
-
-   @SuppressWarnings("deprecation")
    public int readData(YoDataInputStream dataStream, YoVariableList newVars, YoVariableRegistry rootRegistryToAddNewVariablesTo, DataBuffer dataBuffer,
                        SimulationConstructionSet sim)
            throws IOException
@@ -380,7 +380,7 @@ public class DataFileReader
    private DataBufferEntry getDataBufferEntry(String varName, DataBuffer dataBuffer, YoVariableRegistry rootRegistryToAddNewVariablesTo, YoVariableList newVars)
            throws IOException
    {
-      YoVariable newVariable = dataBuffer.getVariable(varName);
+      YoVariable<?> newVariable = dataBuffer.getVariable(varName);
 
       if (newVariable == null)
       {
@@ -389,7 +389,7 @@ public class DataFileReader
 
          YoVariableRegistry registry = rootRegistryToAddNewVariablesTo.getOrCreateAndAddRegistry(nameSpace);
 
-         newVariable = new DoubleYoVariable(variableName, "Created Variable in DataFileReader", registry);
+         newVariable = new YoDouble(variableName, "Created Variable in DataFileReader", registry);
          newVars.addVariable(newVariable);
       }
 
@@ -496,9 +496,6 @@ public class DataFileReader
 
    }
 
-
-
-   @SuppressWarnings("deprecation")
    private int readASCIIData(YoDataInputStream dataStream, YoVariableList newVars, DataBuffer dataBuffer, String line,
                              YoVariableRegistry rootRegistryToAddNewVariablesTo)
            throws IOException
@@ -596,9 +593,6 @@ public class DataFileReader
       return nPoints;
    }
 
-
-
-   @SuppressWarnings("deprecation")
    private int readASCIICommaSeparatedData(YoDataInputStream dataStream, YoVariableList newVars, DataBuffer dataBuffer,
            YoVariableRegistry rootRegistryToAddNewVariablesTo)
            throws IOException
@@ -727,7 +721,7 @@ public class DataFileReader
          String varName = line.substring(0, equalsIndex).trim();
          String varVal = line.substring(equalsIndex + 1, semiIndex).trim();
 
-         YoVariable variable = varList.getVariable(varName);
+         YoVariable<?> variable = varList.getVariable(varName);
 
          boolean variableNotFound = (variable == null);
          if (variableNotFound)
@@ -745,11 +739,11 @@ public class DataFileReader
                   }
 
                   varName = NameSpace.stripOffNameSpaceToGetVariableName(varName);
-                  variable = new DoubleYoVariable(varName, registryToUse);
+                  variable = new YoDouble(varName, registryToUse);
                }
                else
                {
-                  variable = new DoubleYoVariable(varName, registry);
+                  variable = new YoDouble(varName, registry);
                }
 
                varList.addVariable(variable);

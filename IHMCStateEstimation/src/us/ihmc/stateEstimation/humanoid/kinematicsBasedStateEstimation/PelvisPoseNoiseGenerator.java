@@ -2,14 +2,12 @@ package us.ihmc.stateEstimation.humanoid.kinematicsBasedStateEstimation;
 
 import java.util.Random;
 
-import javax.vecmath.Matrix3d;
-import javax.vecmath.Quat4d;
-import javax.vecmath.Vector3d;
-
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
-import us.ihmc.robotics.geometry.RotationTools;
+import us.ihmc.euclid.matrix.RotationMatrix;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.math.frames.YoFramePoint;
 import us.ihmc.robotics.math.frames.YoFrameQuaternion;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
@@ -25,51 +23,51 @@ public class PelvisPoseNoiseGenerator
    
    private final Random random = new Random();
    private final RigidBodyTransform pelvisPose = new RigidBodyTransform();
-   private final Matrix3d rotationError = new Matrix3d();
-   private final Vector3d translationError = new Vector3d();
+   private final RotationMatrix rotationError = new RotationMatrix();
+   private final Vector3D translationError = new Vector3D();
    
-   private final Vector3d translationNoise = new Vector3d();
-   private final Vector3d pelvisTranslation = new Vector3d();
+   private final Vector3D translationNoise = new Vector3D();
+   private final Vector3D pelvisTranslation = new Vector3D();
    
-   private final Quat4d rot = new Quat4d();
+   private final Quaternion rot = new Quaternion();
    private final double[] tempRots = new double[3];
-   private final Matrix3d rotationNoise = new Matrix3d();
-   private final Matrix3d pelvisRotation = new Matrix3d();
+   private final RotationMatrix rotationNoise = new RotationMatrix();
+   private final RotationMatrix pelvisRotation = new RotationMatrix();
    
    
    private final YoFramePoint nonProcessedRootJointPosition;
    private final YoFrameQuaternion nonProcessedRootJointQuaternion;
-   private final DoubleYoVariable nonProcessedRootJointPitch;
-   private final DoubleYoVariable nonProcessedRootJointRoll;
-   private final DoubleYoVariable nonProcessedRootJointYaw;
+   private final YoDouble nonProcessedRootJointPitch;
+   private final YoDouble nonProcessedRootJointRoll;
+   private final YoDouble nonProcessedRootJointYaw;
    
    private final YoFramePoint processedRootJointPosition;
    private final YoFrameQuaternion processedRootJointQuaternion;
-   private final DoubleYoVariable processedRootJointPitch;
-   private final DoubleYoVariable processedRootJointRoll;
-   private final DoubleYoVariable processedRootJointYaw;
+   private final YoDouble processedRootJointPitch;
+   private final YoDouble processedRootJointRoll;
+   private final YoDouble processedRootJointYaw;
    
-   private final DoubleYoVariable error_x;
-   private final DoubleYoVariable error_y;
-   private final DoubleYoVariable error_z;
-   private final DoubleYoVariable error_yaw;
-   private final DoubleYoVariable error_pitch;
-   private final DoubleYoVariable error_roll;
+   private final YoDouble error_x;
+   private final YoDouble error_y;
+   private final YoDouble error_z;
+   private final YoDouble error_yaw;
+   private final YoDouble error_pitch;
+   private final YoDouble error_roll;
 
-   private final DoubleYoVariable noiseBias_x;
-   private final DoubleYoVariable noiseBias_y;
-   private final DoubleYoVariable noiseBias_z;
+   private final YoDouble noiseBias_x;
+   private final YoDouble noiseBias_y;
+   private final YoDouble noiseBias_z;
                                        
-   private final DoubleYoVariable noiseBias_roll;
-   private final DoubleYoVariable noiseBias_pitch;
-   private final DoubleYoVariable noiseBias_yaw;
+   private final YoDouble noiseBias_roll;
+   private final YoDouble noiseBias_pitch;
+   private final YoDouble noiseBias_yaw;
    
-   private final DoubleYoVariable noiseScalar_x;
-   private final DoubleYoVariable noiseScalar_y;
-   private final DoubleYoVariable noiseScalar_z;
-   private final DoubleYoVariable noiseScalar_yaw;
-   private final DoubleYoVariable noiseScalar_pitch;
-   private final DoubleYoVariable noiseScalar_roll;
+   private final YoDouble noiseScalar_x;
+   private final YoDouble noiseScalar_y;
+   private final YoDouble noiseScalar_z;
+   private final YoDouble noiseScalar_yaw;
+   private final YoDouble noiseScalar_pitch;
+   private final YoDouble noiseScalar_roll;
    
    public PelvisPoseNoiseGenerator(FullInverseDynamicsStructure inverseDynamicsStructure, YoVariableRegistry parentRegistry)
    {
@@ -83,39 +81,39 @@ public class PelvisPoseNoiseGenerator
       
       nonProcessedRootJointPosition = new YoFramePoint("PelvisPose_beforeNoise_position", ReferenceFrame.getWorldFrame(), registry);
       nonProcessedRootJointQuaternion = new YoFrameQuaternion("PelvisPose_beforeNoise_quaternion", ReferenceFrame.getWorldFrame(), registry);
-      nonProcessedRootJointYaw = new DoubleYoVariable("PelvisPose_beforeNoise_yaw", registry);
-      nonProcessedRootJointPitch = new DoubleYoVariable("PelvisPose_beforeNoise_pitch", registry);
-      nonProcessedRootJointRoll = new DoubleYoVariable("PelvisPose_beforeNoise_roll", registry);
+      nonProcessedRootJointYaw = new YoDouble("PelvisPose_beforeNoise_yaw", registry);
+      nonProcessedRootJointPitch = new YoDouble("PelvisPose_beforeNoise_pitch", registry);
+      nonProcessedRootJointRoll = new YoDouble("PelvisPose_beforeNoise_roll", registry);
       
       processedRootJointPosition = new YoFramePoint("PelvisPose_afterNoise_position", ReferenceFrame.getWorldFrame(), registry);
       processedRootJointQuaternion = new YoFrameQuaternion("PelvisPose_afterNoise_quaternion", ReferenceFrame.getWorldFrame(), registry);
-      processedRootJointYaw = new DoubleYoVariable("PelvisPose_afterNoise_yaw", registry);
-      processedRootJointPitch = new DoubleYoVariable("PelvisPose_afterNoise_pitch", registry);
-      processedRootJointRoll = new DoubleYoVariable("PelvisPose_afterNoise_roll", registry);
+      processedRootJointYaw = new YoDouble("PelvisPose_afterNoise_yaw", registry);
+      processedRootJointPitch = new YoDouble("PelvisPose_afterNoise_pitch", registry);
+      processedRootJointRoll = new YoDouble("PelvisPose_afterNoise_roll", registry);
       
-      error_x = new DoubleYoVariable("PelvisPose_noise_x", registry);            
-      error_y = new DoubleYoVariable("PelvisPose_noise_y", registry);            
-      error_z = new DoubleYoVariable("PelvisPose_noise_z", registry);
+      error_x = new YoDouble("PelvisPose_noise_x", registry);
+      error_y = new YoDouble("PelvisPose_noise_y", registry);
+      error_z = new YoDouble("PelvisPose_noise_z", registry);
       
-      error_yaw = new DoubleYoVariable("PelvisPose_noise_yaw", registry);           
-      error_pitch = new DoubleYoVariable("PelvisPose_noise_pitch", registry);       
-      error_roll = new DoubleYoVariable("PelvisPose_noise_roll", registry);        
+      error_yaw = new YoDouble("PelvisPose_noise_yaw", registry);
+      error_pitch = new YoDouble("PelvisPose_noise_pitch", registry);
+      error_roll = new YoDouble("PelvisPose_noise_roll", registry);
                         
-      noiseBias_x = new DoubleYoVariable("PelvisPose_bias_x", registry);       
-      noiseBias_y = new DoubleYoVariable("PelvisPose_bias_y", registry);       
-      noiseBias_z = new DoubleYoVariable("PelvisPose_bias_z", registry);       
+      noiseBias_x = new YoDouble("PelvisPose_bias_x", registry);
+      noiseBias_y = new YoDouble("PelvisPose_bias_y", registry);
+      noiseBias_z = new YoDouble("PelvisPose_bias_z", registry);
                         
-      noiseBias_roll = new DoubleYoVariable("PelvisPose_bias_roll", registry);   
-      noiseBias_pitch = new DoubleYoVariable("PelvisPose_bias_pitch", registry);   
-      noiseBias_yaw = new DoubleYoVariable("PelvisPose_bias_yaw", registry);   
+      noiseBias_roll = new YoDouble("PelvisPose_bias_roll", registry);
+      noiseBias_pitch = new YoDouble("PelvisPose_bias_pitch", registry);
+      noiseBias_yaw = new YoDouble("PelvisPose_bias_yaw", registry);
                         
-      noiseScalar_x = new DoubleYoVariable("PelvisPose_NoiseScalar_x", registry);       
-      noiseScalar_y = new DoubleYoVariable("PelvisPose_NoiseScalar_y", registry);   
-      noiseScalar_z = new DoubleYoVariable("PelvisPose_NoiseScalar_z", registry);
+      noiseScalar_x = new YoDouble("PelvisPose_NoiseScalar_x", registry);
+      noiseScalar_y = new YoDouble("PelvisPose_NoiseScalar_y", registry);
+      noiseScalar_z = new YoDouble("PelvisPose_NoiseScalar_z", registry);
       
-      noiseScalar_yaw = new DoubleYoVariable("PelvisPose_NoiseScalar_yaw", registry);       
-      noiseScalar_pitch = new DoubleYoVariable("PelvisPose_NoiseScalar_pitch", registry);   
-      noiseScalar_roll = new DoubleYoVariable("PelvisPose_NoiseScalar_roll", registry);     
+      noiseScalar_yaw = new YoDouble("PelvisPose_NoiseScalar_yaw", registry);
+      noiseScalar_pitch = new YoDouble("PelvisPose_NoiseScalar_pitch", registry);
+      noiseScalar_roll = new YoDouble("PelvisPose_NoiseScalar_roll", registry);
    }
    
    
@@ -127,7 +125,7 @@ public class PelvisPoseNoiseGenerator
       integrateError();
       
       pelvisPose.getRotation(pelvisRotation);
-      pelvisRotation.mul(rotationError);
+      pelvisRotation.multiply(rotationError);
       pelvisPose.setRotation(pelvisRotation);
       
       pelvisPose.getTranslation(pelvisTranslation);
@@ -155,9 +153,9 @@ public class PelvisPoseNoiseGenerator
    
    private void updateAfterYoVariables()
    {
-      error_pitch.set(RotationTools.computePitch(rotationError));
-      error_roll.set(RotationTools.computeRoll(rotationError));
-      error_yaw.set(RotationTools.computeYaw(rotationError));
+      error_pitch.set(rotationError.getPitch());
+      error_roll.set(rotationError.getRoll());
+      error_yaw.set(rotationError.getYaw());
       error_x.set(translationError.getX()); 
       error_y.set(translationError.getY());  
       error_z.set(translationError.getZ()); 
@@ -179,8 +177,8 @@ public class PelvisPoseNoiseGenerator
       double pitchNoise = (random.nextDouble() - 0.5) * Math.PI * noiseScalar_pitch.getDoubleValue() + noiseBias_pitch.getDoubleValue();
       double rollNoise = (random.nextDouble() - 0.5) * Math.PI * noiseScalar_roll.getDoubleValue() + noiseBias_roll.getDoubleValue();
       
-      RotationTools.convertYawPitchRollToMatrix(yawNoise, pitchNoise, rollNoise, rotationNoise);
-      rotationError.mul(rotationNoise);
+      rotationNoise.setYawPitchRoll(yawNoise, pitchNoise, rollNoise);
+      rotationError.multiply(rotationNoise);
       
       double xNoise = (random.nextDouble() - 0.5) * noiseScalar_x.getDoubleValue() + noiseBias_x.getDoubleValue(); 
       double yNoise =  (random.nextDouble() - 0.5) * noiseScalar_y.getDoubleValue() + noiseBias_y.getDoubleValue(); 
@@ -190,7 +188,7 @@ public class PelvisPoseNoiseGenerator
       
       pelvisPose.getRotation(pelvisRotation);
       
-      pelvisRotation.mul(rotationError);
+      pelvisRotation.multiply(rotationError);
       pelvisRotation.transform(translationNoise);
       
       translationError.add(translationNoise);

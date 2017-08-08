@@ -1,24 +1,26 @@
 package us.ihmc.robotics.math.frames;
 
-import javax.vecmath.Matrix3d;
-import javax.vecmath.Quat4d;
-import javax.vecmath.Vector3d;
-
-import us.ihmc.robotics.dataStructures.listener.VariableChangedListener;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.geometry.FrameOrientation;
+import us.ihmc.euclid.interfaces.Clearable;
+import us.ihmc.euclid.matrix.RotationMatrix;
+import us.ihmc.euclid.matrix.interfaces.RotationMatrixReadOnly;
+import us.ihmc.euclid.rotationConversion.QuaternionConversion;
+import us.ihmc.euclid.rotationConversion.RotationMatrixConversion;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
+import us.ihmc.yoVariables.listener.VariableChangedListener;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.geometry.AbstractReferenceFrameHolder;
+import us.ihmc.robotics.geometry.FrameOrientation;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
-import us.ihmc.robotics.geometry.RotationTools;
-
 
 //Note: You should only make these once at the initialization of a controller. You shouldn't make any on the fly
 //since they contain YoVariables.
-public class YoFrameOrientation extends AbstractReferenceFrameHolder
+public class YoFrameOrientation extends AbstractReferenceFrameHolder implements Clearable
 {
-   private final DoubleYoVariable yaw, pitch, roll; // This is where the data is stored. All operations must act on these numbers.
+   private final YoDouble yaw, pitch, roll; // This is where the data is stored. All operations must act on these numbers.
    private final ReferenceFrame referenceFrame;
    private final double[] tempYawPitchRoll = new double[3];
    private final FrameOrientation tempFrameOrientation = new FrameOrientation();
@@ -30,16 +32,16 @@ public class YoFrameOrientation extends AbstractReferenceFrameHolder
 
    public YoFrameOrientation(String namePrefix, String nameSuffix, ReferenceFrame referenceFrame, YoVariableRegistry registry)
    {
-      yaw = new DoubleYoVariable(YoFrameVariableNameTools.createName(namePrefix, "yaw", nameSuffix), registry);
-      pitch = new DoubleYoVariable(YoFrameVariableNameTools.createName(namePrefix, "pitch", nameSuffix), registry);
-      roll = new DoubleYoVariable(YoFrameVariableNameTools.createName(namePrefix, "roll", nameSuffix), registry);
+      yaw = new YoDouble(YoFrameVariableNameTools.createName(namePrefix, "yaw", nameSuffix), registry);
+      pitch = new YoDouble(YoFrameVariableNameTools.createName(namePrefix, "pitch", nameSuffix), registry);
+      roll = new YoDouble(YoFrameVariableNameTools.createName(namePrefix, "roll", nameSuffix), registry);
 
       this.referenceFrame = referenceFrame;
 
       // frameVector = new FrameVector(frame);
    }
 
-   public YoFrameOrientation(DoubleYoVariable yaw, DoubleYoVariable pitch, DoubleYoVariable roll, ReferenceFrame referenceFrame)
+   public YoFrameOrientation(YoDouble yaw, YoDouble pitch, YoDouble roll, ReferenceFrame referenceFrame)
    {
       this.yaw = yaw;
       this.pitch = pitch;
@@ -48,7 +50,7 @@ public class YoFrameOrientation extends AbstractReferenceFrameHolder
       this.referenceFrame = referenceFrame;
    }
 
-   public void setEulerAngles(Vector3d eulerAngles)
+   public void setEulerAngles(Vector3D eulerAngles)
    {
       setYawPitchRoll(eulerAngles.getZ(), eulerAngles.getY(), eulerAngles.getX());
    }
@@ -85,18 +87,24 @@ public class YoFrameOrientation extends AbstractReferenceFrameHolder
       this.roll.set(roll);
    }
 
-   public void set(Matrix3d rotation)
+   public void set(QuaternionReadOnly rotation)
    {
       tempFrameOrientation.setIncludingFrame(getReferenceFrame(), rotation);
       set(tempFrameOrientation);
    }
 
-   public void set(Quat4d quaternion)
+   public void set(RotationMatrixReadOnly rotation)
+   {
+      tempFrameOrientation.setIncludingFrame(getReferenceFrame(), rotation);
+      set(tempFrameOrientation);
+   }
+
+   public void set(Quaternion quaternion)
    {
       set(quaternion, true);
    }
 
-   public void set(Quat4d quaternion, boolean notifyListeners)
+   public void set(Quaternion quaternion, boolean notifyListeners)
    {
       tempFrameOrientation.setIncludingFrame(getReferenceFrame(), quaternion);
       set(tempFrameOrientation, notifyListeners);
@@ -207,6 +215,7 @@ public class YoFrameOrientation extends AbstractReferenceFrameHolder
       setFromReferenceFrame(referenceFrame, true);
    }
 
+   @Override
    public void setToNaN()
    {
       yaw.set(Double.NaN);
@@ -214,6 +223,7 @@ public class YoFrameOrientation extends AbstractReferenceFrameHolder
       roll.set(Double.NaN);
    }
 
+   @Override
    public void setToZero()
    {
       yaw.set(0.0);
@@ -228,6 +238,13 @@ public class YoFrameOrientation extends AbstractReferenceFrameHolder
       roll.add(orientation.getRoll());
    }
 
+   public void add(double yaw, double pitch, double roll)
+   {
+      this.yaw.add(yaw);
+      this.pitch.add(pitch);
+      this.roll.add(roll);
+   }
+
    public double[] getYawPitchRoll()
    {
       return new double[] { yaw.getDoubleValue(), pitch.getDoubleValue(), roll.getDoubleValue() };
@@ -240,34 +257,34 @@ public class YoFrameOrientation extends AbstractReferenceFrameHolder
       yawPitchRollToPack[2] = roll.getDoubleValue();
    }
 
-   public DoubleYoVariable getYaw()
+   public YoDouble getYaw()
    {
       return yaw;
    }
 
-   public DoubleYoVariable getPitch()
+   public YoDouble getPitch()
    {
       return pitch;
    }
 
-   public DoubleYoVariable getRoll()
+   public YoDouble getRoll()
    {
       return roll;
    }
 
-   public void getEulerAngles(Vector3d eulerAnglesToPack)
+   public void getEulerAngles(Vector3D eulerAnglesToPack)
    {
       eulerAnglesToPack.set(roll.getDoubleValue(), pitch.getDoubleValue(), yaw.getDoubleValue());
    }
 
-   public void getQuaternion(Quat4d quaternionToPack)
+   public void getQuaternion(Quaternion quaternionToPack)
    {
-      RotationTools.convertYawPitchRollToQuaternion(yaw.getDoubleValue(), pitch.getDoubleValue(), roll.getDoubleValue(), quaternionToPack);
+      QuaternionConversion.convertYawPitchRollToQuaternion(yaw.getDoubleValue(), pitch.getDoubleValue(), roll.getDoubleValue(), quaternionToPack);
    }
 
-   public void getMatrix3d(Matrix3d rotationMatrixToPack)
+   public void getMatrix3d(RotationMatrix rotationMatrixToPack)
    {
-      RotationTools.convertYawPitchRollToMatrix(yaw.getDoubleValue(), pitch.getDoubleValue(), roll.getDoubleValue(), rotationMatrixToPack);
+      RotationMatrixConversion.convertYawPitchRollToMatrix(yaw.getDoubleValue(), pitch.getDoubleValue(), roll.getDoubleValue(), rotationMatrixToPack);
    }
 
    public void getFrameOrientationIncludingFrame(FrameOrientation orientationToPack)
@@ -311,6 +328,7 @@ public class YoFrameOrientation extends AbstractReferenceFrameHolder
       tempFrameOrientation.setYawPitchRoll(yaw.getDoubleValue(), pitch.getDoubleValue(), roll.getDoubleValue());
    }
 
+   @Override
    public boolean containsNaN()
    {
       return Double.isNaN(yaw.getDoubleValue()) || Double.isNaN(pitch.getDoubleValue()) || Double.isNaN(roll.getDoubleValue());

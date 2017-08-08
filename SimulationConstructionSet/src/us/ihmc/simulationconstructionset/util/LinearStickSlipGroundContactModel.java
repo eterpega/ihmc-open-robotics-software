@@ -2,13 +2,12 @@ package us.ihmc.simulationconstructionset.util;
 
 import java.util.ArrayList;
 
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector3d;
-
-import us.ihmc.graphics3DAdapter.GroundProfile3D;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.jMonkeyEngineToolkit.GroundProfile3D;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.simulationconstructionset.GroundContactModel;
 import us.ihmc.simulationconstructionset.GroundContactPoint;
 import us.ihmc.simulationconstructionset.GroundContactPointsHolder;
@@ -24,22 +23,22 @@ public class LinearStickSlipGroundContactModel implements GroundContactModel
    private static final double DEFAULT_ALPHA_SLIP = 0.7;
    private static final double DEFAULT_ALPHA_STICK = 0.7;
 
-   private final DoubleYoVariable groundKxy = new DoubleYoVariable("groundKxy", "LinearStickSlipGroundContactModel x and y spring constant", registry);
-   private final DoubleYoVariable groundBxy = new DoubleYoVariable("groundBxy", "LinearStickSlipGroundContactModel x and y damping constant", registry);
-   private final DoubleYoVariable groundKz = new DoubleYoVariable("groundKz", "LinearStickSlipGroundContactModel z spring constant", registry);
-   private final DoubleYoVariable groundBz = new DoubleYoVariable("groundBz", "LinearStickSlipGroundContactModel z damping constant", registry);
-   private final DoubleYoVariable groundStiffeningLength = new DoubleYoVariable("groundStiffeningLength",
+   private final YoDouble groundKxy = new YoDouble("groundKxy", "LinearStickSlipGroundContactModel x and y spring constant", registry);
+   private final YoDouble groundBxy = new YoDouble("groundBxy", "LinearStickSlipGroundContactModel x and y damping constant", registry);
+   private final YoDouble groundKz = new YoDouble("groundKz", "LinearStickSlipGroundContactModel z spring constant", registry);
+   private final YoDouble groundBz = new YoDouble("groundBz", "LinearStickSlipGroundContactModel z damping constant", registry);
+   private final YoDouble groundStiffeningLength = new YoDouble("groundStiffeningLength",
                                                               "LinearStickSlipGroundContactModel z spring nominal stiffening length", registry);
-   private final DoubleYoVariable groundAlphaSlip = new DoubleYoVariable("groundAlphaSlip", "LinearStickSlipGroundContactModel slip coefficient of friction",
+   private final YoDouble groundAlphaSlip = new YoDouble("groundAlphaSlip", "LinearStickSlipGroundContactModel slip coefficient of friction",
                                                        registry);
-   private final DoubleYoVariable groundAlphaStick = new DoubleYoVariable("groundAlphaStick",
+   private final YoDouble groundAlphaStick = new YoDouble("groundAlphaStick",
                                                         "LinearStickSlipGroundContactModel stick coefficient of friction", registry);
 
-   private final BooleanYoVariable groundEnableSlip = new BooleanYoVariable("groundEnableSlip", "LinearStickSlipGroundContactModel. If true can slip",
+   private final YoBoolean groundEnableSlip = new YoBoolean("groundEnableSlip", "LinearStickSlipGroundContactModel. If true can slip",
                                                          registry);
 
    
-   private final BooleanYoVariable groundEnableSurfaceNormal = new BooleanYoVariable("groundEnableSurfaceNormal", "LinearStickSlipGroundContactModel. If true will take into account surface normals in computations.",
+   private final YoBoolean groundEnableSurfaceNormal = new YoBoolean("groundEnableSurfaceNormal", "LinearStickSlipGroundContactModel. If true will take into account surface normals in computations.",
          registry);
 
    private ArrayList<GroundContactPoint> groundContactPoints;
@@ -137,16 +136,19 @@ public class LinearStickSlipGroundContactModel implements GroundContactModel
       this.groundBz.set(zDamping);
    }
 
+   @Override
    public void setGroundProfile3D(GroundProfile3D profile3D)
    {
       this.groundProfile3D = profile3D;
    }
 
+   @Override
    public GroundProfile3D getGroundProfile3D()
    {
       return groundProfile3D;
    }
 
+   @Override
    public void doGroundContact()
    {
       if (groundAlphaStick.getDoubleValue() < groundAlphaSlip.getDoubleValue())
@@ -161,8 +163,8 @@ public class LinearStickSlipGroundContactModel implements GroundContactModel
       zeroOutTemporaryVariables();
    }
 
-   private final Point3d intersectionPositionInWorld = new Point3d();
-   private final Vector3d surfaceNormalTemp = new Vector3d();
+   private final Point3D intersectionPositionInWorld = new Point3D();
+   private final Vector3D surfaceNormalTemp = new Vector3D();
 
    private boolean checkIfInContactUsingProfile3D(GroundContactPoint groundContactPoint)
    {
@@ -224,10 +226,10 @@ public class LinearStickSlipGroundContactModel implements GroundContactModel
       checkIfSlipping(groundContactPoint);
    }
 
-   private final Point3d touchdownLocation = new Point3d();
-   private final Point3d position = new Point3d();
-   private final Vector3d deltaPositionFromTouchdown = new Vector3d();
-   private final Vector3d velocity = new Vector3d();
+   private final Point3D touchdownLocation = new Point3D();
+   private final Point3D position = new Point3D();
+   private final Vector3D deltaPositionFromTouchdown = new Vector3D();
+   private final Vector3D velocity = new Vector3D();
 
    private void resolveContactForce(GroundContactPoint groundContactPoint)
    {
@@ -248,9 +250,9 @@ public class LinearStickSlipGroundContactModel implements GroundContactModel
    }
    
    
-   private final Vector3d inPlaneVector1 = new Vector3d();
-   private final Vector3d inPlaneVector2 = new Vector3d();
-   private void resolveContactForceUsingSurfaceNormal(Vector3d deltaPositionFromTouchdown, Vector3d velocity, GroundContactPoint groundContactPoint)
+   private final Vector3D inPlaneVector1 = new Vector3D();
+   private final Vector3D inPlaneVector2 = new Vector3D();
+   private void resolveContactForceUsingSurfaceNormal(Vector3D deltaPositionFromTouchdown, Vector3D velocity, GroundContactPoint groundContactPoint)
    {
 	   groundContactPoint.getSurfaceNormal(surfaceNormalTemp);
 	   
@@ -320,7 +322,7 @@ public class LinearStickSlipGroundContactModel implements GroundContactModel
       groundContactPoint.setForce(forceWorld);
    }
 
-   private void resolveContactForceZUp(Vector3d deltaPositionFromTouchdown, Vector3d velocity, GroundContactPoint groundContactPoint)
+   private void resolveContactForceZUp(Vector3D deltaPositionFromTouchdown, Vector3D velocity, GroundContactPoint groundContactPoint)
    {
       // TODO: Use actual surface normal for these forces. See ExperimentalLinearStickSlipGroundContactModel for an implementation.
       double xForce = groundKxy.getDoubleValue() * (deltaPositionFromTouchdown.getX()) - groundBxy.getDoubleValue() * velocity.getX();
@@ -361,10 +363,10 @@ public class LinearStickSlipGroundContactModel implements GroundContactModel
       groundContactPoint.setForce(xForce, yForce, zForce);
    }
 
-   private final Point3d touchDownPoint = new Point3d();
-   private final Vector3d tempVector = new Vector3d();
-   private final Vector3d
-      forceWorld = new Vector3d(), forceNormal = new Vector3d(), forceParallel = new Vector3d();
+   private final Point3D touchDownPoint = new Point3D();
+   private final Vector3D tempVector = new Vector3D();
+   private final Vector3D
+      forceWorld = new Vector3D(), forceNormal = new Vector3D(), forceParallel = new Vector3D();
 
    private void checkIfSlipping(GroundContactPoint groundContactPoint)
    {

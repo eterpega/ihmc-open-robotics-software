@@ -11,6 +11,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.yaml.snakeyaml.Yaml;
 
+import us.ihmc.commons.Conversions;
+import us.ihmc.commons.PrintTools;
 import us.ihmc.communication.controllerAPI.CommandInputManager;
 import us.ihmc.communication.controllerAPI.StatusMessageOutputManager;
 import us.ihmc.communication.controllerAPI.StatusMessageOutputManager.StatusMessageListener;
@@ -22,17 +24,15 @@ import us.ihmc.humanoidRobotics.communication.packets.dataobjects.HighLevelState
 import us.ihmc.humanoidRobotics.communication.packets.valkyrie.ValkyrieLowLevelControlModeMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.WalkingControllerFailureStatusMessage;
 import us.ihmc.robotics.MathTools;
-import us.ihmc.robotics.dataStructures.listener.VariableChangedListener;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.EnumYoVariable;
-import us.ihmc.robotics.dataStructures.variable.YoVariable;
+import us.ihmc.yoVariables.listener.VariableChangedListener;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoEnum;
+import us.ihmc.yoVariables.variable.YoVariable;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
-import us.ihmc.robotics.time.TimeTools;
 import us.ihmc.sensorProcessing.parameters.DRCRobotSensorInformation;
 import us.ihmc.stateEstimation.humanoid.kinematicsBasedStateEstimation.ForceSensorCalibrationModule;
 import us.ihmc.tools.TimestampProvider;
-import us.ihmc.tools.io.printing.PrintTools;
 import us.ihmc.tools.taskExecutor.Task;
 import us.ihmc.tools.taskExecutor.TaskExecutor;
 import us.ihmc.valkyrieRosControl.dataHolders.YoEffortJointHandleHolder;
@@ -52,24 +52,24 @@ public class ValkyrieRosControlLowLevelController
    private final ArrayList<ValkyrieRosControlPositionJointControlCommandCalculator> positionControlCommandCalculators = new ArrayList<>();
    private final LinkedHashMap<String, ValkyrieRosControlPositionJointControlCommandCalculator> positionJointToControlCommandCalculatorMap = new LinkedHashMap<>();
 
-   private final DoubleYoVariable yoTime = new DoubleYoVariable("lowLevelControlTime", registry);
-   private final DoubleYoVariable wakeUpTime = new DoubleYoVariable("lowLevelControlWakeUpTime", registry);
+   private final YoDouble yoTime = new YoDouble("lowLevelControlTime", registry);
+   private final YoDouble wakeUpTime = new YoDouble("lowLevelControlWakeUpTime", registry);
 
-   private final DoubleYoVariable timeInStandprep = new DoubleYoVariable("timeInStandprep", registry);
-   private final DoubleYoVariable standPrepStartTime = new DoubleYoVariable("standPrepStartTime", registry);
+   private final YoDouble timeInStandprep = new YoDouble("timeInStandprep", registry);
+   private final YoDouble standPrepStartTime = new YoDouble("standPrepStartTime", registry);
 
-   private final DoubleYoVariable doIHMCControlRatio = new DoubleYoVariable("doIHMCControlRatio", registry);
-   private final DoubleYoVariable standPrepRampDuration = new DoubleYoVariable("standPrepRampDuration", registry);
-   private final DoubleYoVariable masterGain = new DoubleYoVariable("standPrepMasterGain", registry);
+   private final YoDouble doIHMCControlRatio = new YoDouble("doIHMCControlRatio", registry);
+   private final YoDouble standPrepRampDuration = new YoDouble("standPrepRampDuration", registry);
+   private final YoDouble masterGain = new YoDouble("standPrepMasterGain", registry);
 
-   private final DoubleYoVariable controlRatioRampDuration = new DoubleYoVariable("controlRatioRampDuration", registry);
-   private final DoubleYoVariable calibrationDuration = new DoubleYoVariable("calibrationDuration", registry);
-   private final DoubleYoVariable calibrationStartTime = new DoubleYoVariable("calibrationStartTime", registry);
-   private final DoubleYoVariable timeInCalibration = new DoubleYoVariable("timeInCalibration", registry);
+   private final YoDouble controlRatioRampDuration = new YoDouble("controlRatioRampDuration", registry);
+   private final YoDouble calibrationDuration = new YoDouble("calibrationDuration", registry);
+   private final YoDouble calibrationStartTime = new YoDouble("calibrationStartTime", registry);
+   private final YoDouble timeInCalibration = new YoDouble("timeInCalibration", registry);
 
-   private final EnumYoVariable<ValkyrieLowLevelControlModeMessage.ControlMode> currentControlMode = new EnumYoVariable<>("lowLevelControlMode", registry, ValkyrieLowLevelControlModeMessage.ControlMode.class);
+   private final YoEnum<ValkyrieLowLevelControlModeMessage.ControlMode> currentControlMode = new YoEnum<>("lowLevelControlMode", registry, ValkyrieLowLevelControlModeMessage.ControlMode.class);
 
-   private final EnumYoVariable<ValkyrieLowLevelControlModeMessage.ControlMode> requestedLowLevelControlMode = new EnumYoVariable<>("requestedLowLevelControlMode", registry, ValkyrieLowLevelControlModeMessage.ControlMode.class, true);
+   private final YoEnum<ValkyrieLowLevelControlModeMessage.ControlMode> requestedLowLevelControlMode = new YoEnum<>("requestedLowLevelControlMode", registry, ValkyrieLowLevelControlModeMessage.ControlMode.class, true);
    private final AtomicReference<ValkyrieLowLevelControlModeMessage.ControlMode> requestedLowLevelControlModeAtomic = new AtomicReference<>(null);
 
    private final ValkyrieTorqueHysteresisCompensator torqueHysteresisCompensator;
@@ -124,7 +124,7 @@ public class ValkyrieRosControlLowLevelController
          public void doAction()
          {
             double newRatio = doIHMCControlRatio.getDoubleValue() - updateDT / controlRatioRampDuration.getDoubleValue();
-            doIHMCControlRatio.set(MathTools.clipToMinMax(newRatio, 0.0, 1.0));
+            doIHMCControlRatio.set(MathTools.clamp(newRatio, 0.0, 1.0));
          }
 
          @Override
@@ -140,7 +140,7 @@ public class ValkyrieRosControlLowLevelController
          public void doAction()
          {
             double newRatio = doIHMCControlRatio.getDoubleValue() + updateDT / controlRatioRampDuration.getDoubleValue();
-            doIHMCControlRatio.set(MathTools.clipToMinMax(newRatio, 0.0, 1.0));
+            doIHMCControlRatio.set(MathTools.clamp(newRatio, 0.0, 1.0));
          }
 
          @Override
@@ -262,7 +262,7 @@ public class ValkyrieRosControlLowLevelController
 
    public void setDoIHMCControlRatio(double controlRatio)
    {
-      doIHMCControlRatio.set(MathTools.clipToMinMax(controlRatio, 0.0, 1.0));
+      doIHMCControlRatio.set(MathTools.clamp(controlRatio, 0.0, 1.0));
    }
 
    public void requestCalibration()
@@ -275,9 +275,9 @@ public class ValkyrieRosControlLowLevelController
       long timestamp = timestampProvider.getTimestamp();
 
       if (wakeUpTime.isNaN())
-         wakeUpTime.set(TimeTools.nanoSecondstoSeconds(timestamp));
+         wakeUpTime.set(Conversions.nanosecondsToSeconds(timestamp));
 
-      yoTime.set(TimeTools.nanoSecondstoSeconds(timestamp) - wakeUpTime.getDoubleValue());
+      yoTime.set(Conversions.nanosecondsToSeconds(timestamp) - wakeUpTime.getDoubleValue());
 
       taskExecutor.doControl();
       ValkyrieLowLevelControlModeMessage.ControlMode newRequest = requestedLowLevelControlModeAtomic.getAndSet(null);
@@ -367,7 +367,7 @@ public class ValkyrieRosControlLowLevelController
          timeInStandprep.set(yoTime.getDoubleValue() - standPrepStartTime.getDoubleValue());
 
          double ramp = timeInStandprep.getDoubleValue() / standPrepRampDuration.getDoubleValue();
-         ramp = MathTools.clipToMinMax(ramp, 0.0, 1.0);
+         ramp = MathTools.clamp(ramp, 0.0, 1.0);
 
          for (int i = 0; i < effortControlCommandCalculators.size(); i++)
          {

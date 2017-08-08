@@ -1,7 +1,6 @@
 package us.ihmc.avatar;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 
@@ -14,22 +13,22 @@ import us.ihmc.avatar.initialSetup.DRCGuiInitialSetup;
 import us.ihmc.avatar.initialSetup.DRCRobotInitialSetup;
 import us.ihmc.avatar.initialSetup.DRCSCSInitialSetup;
 import us.ihmc.avatar.testTools.DRCSimulationTestHelper;
-import us.ihmc.graphics3DAdapter.GroundProfile3D;
-import us.ihmc.graphics3DAdapter.camera.CameraConfiguration;
-import us.ihmc.robotModels.visualizer.RobotVisualizer;
+import us.ihmc.commonWalkingControlModules.desiredHeadingAndVelocity.HeadingAndVelocityEvaluationScriptParameters;
+import us.ihmc.jMonkeyEngineToolkit.GroundProfile3D;
+import us.ihmc.jMonkeyEngineToolkit.camera.CameraConfiguration;
+import us.ihmc.robotDataLogger.RobotVisualizer;
 import us.ihmc.robotics.controllers.ControllerFailureException;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.time.GlobalTimer;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.simulationconstructionset.HumanoidFloatingRootJointRobot;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
-import us.ihmc.simulationconstructionset.bambooTools.BambooTools;
-import us.ihmc.simulationconstructionset.bambooTools.SimulationTestingParameters;
-import us.ihmc.simulationconstructionset.util.environments.FlatGroundEnvironment;
+import us.ihmc.simulationConstructionSetTools.bambooTools.BambooTools;
+import us.ihmc.simulationconstructionset.util.simulationTesting.SimulationTestingParameters;
+import us.ihmc.simulationConstructionSetTools.util.environments.FlatGroundEnvironment;
 import us.ihmc.simulationconstructionset.util.ground.FlatGroundProfile;
 import us.ihmc.simulationconstructionset.util.simulationRunner.BlockingSimulationRunner;
 import us.ihmc.simulationconstructionset.util.simulationRunner.BlockingSimulationRunner.SimulationExceededMaximumTimeException;
-import us.ihmc.simulationconstructionset.util.simulationTesting.SimulationRunsSameWayTwiceVerifier;
+import us.ihmc.simulationConstructionSetTools.simulationTesting.SimulationRunsSameWayTwiceVerifier;
 import us.ihmc.tools.ArrayTools;
 import us.ihmc.tools.MemoryTools;
 import us.ihmc.tools.thread.ThreadTools;
@@ -81,7 +80,6 @@ public abstract class DRCFlatGroundWalkingTest implements MultiRobotTestInterfac
       }
 
       simulationTestingParameters = null;
-      GlobalTimer.clearTimers();
       MemoryTools.printCurrentMemoryUsageAndReturnUsedMemoryInMB(getClass().getSimpleName() + " after test.");
    }
 
@@ -93,7 +91,8 @@ public abstract class DRCFlatGroundWalkingTest implements MultiRobotTestInterfac
       FlatGroundEnvironment flatGround = new FlatGroundEnvironment();
       DRCObstacleCourseStartingLocation selectedLocation = DRCObstacleCourseStartingLocation.DEFAULT;
       drcSimulationTestHelper = new DRCSimulationTestHelper(flatGround, robotModel.getSimpleRobotName() + "FlatGroundWalking", selectedLocation,
-            simulationTestingParameters, getRobotModel(), true, useVelocityAndHeadingScript, cheatWithGroundHeightAtForFootstep);
+            simulationTestingParameters, getRobotModel(), true, useVelocityAndHeadingScript, cheatWithGroundHeightAtForFootstep, getWalkingScriptParameters());
+      
       SimulationConstructionSet scs = drcSimulationTestHelper.getSimulationConstructionSet();
       setupCameraForUnitTest(scs);
       simulateAndAssertGoodWalking(drcSimulationTestHelper, doPelvisWarmup);
@@ -112,14 +111,14 @@ public abstract class DRCFlatGroundWalkingTest implements MultiRobotTestInterfac
    {
       SimulationConstructionSet scs = drcSimulationTestHelper.getSimulationConstructionSet();
 
-      BooleanYoVariable walk = (BooleanYoVariable) scs.getVariable("walk");
-      DoubleYoVariable comError = (DoubleYoVariable) scs.getVariable("positionError_comHeight");
-      BooleanYoVariable userUpdateDesiredPelvisPose = (BooleanYoVariable) scs.getVariable("userUpdateDesiredPelvisPose");
-      BooleanYoVariable userDoPelvisPose = (BooleanYoVariable) scs.getVariable("userDoPelvisPose");
-      DoubleYoVariable userDesiredPelvisPoseYaw = (DoubleYoVariable) scs.getVariable("userDesiredPelvisPoseYaw");
-      DoubleYoVariable userDesiredPelvisPoseTrajectoryTime = (DoubleYoVariable) scs.getVariable("userDesiredPelvisPoseTrajectoryTime");
-      DoubleYoVariable icpErrorX = (DoubleYoVariable) scs.getVariable("icpErrorX");
-      DoubleYoVariable icpErrorY = (DoubleYoVariable) scs.getVariable("icpErrorY");
+      YoBoolean walk = (YoBoolean) scs.getVariable("walk");
+      YoDouble comError = (YoDouble) scs.getVariable("positionError_comHeight");
+      YoBoolean userUpdateDesiredPelvisPose = (YoBoolean) scs.getVariable("userUpdateDesiredPelvisPose");
+      YoBoolean userDoPelvisPose = (YoBoolean) scs.getVariable("userDoPelvisPose");
+      YoDouble userDesiredPelvisPoseYaw = (YoDouble) scs.getVariable("userDesiredPelvisPoseYaw");
+      YoDouble userDesiredPelvisPoseTrajectoryTime = (YoDouble) scs.getVariable("userDesiredPelvisPoseTrajectoryTime");
+      YoDouble icpErrorX = (YoDouble) scs.getVariable("icpErrorX");
+      YoDouble icpErrorY = (YoDouble) scs.getVariable("icpErrorY");
 
       drcSimulationTestHelper.simulateAndBlock(standingTimeDuration);
 
@@ -201,9 +200,9 @@ public abstract class DRCFlatGroundWalkingTest implements MultiRobotTestInterfac
 
    private void verifyDesiredICPIsContinous(SimulationConstructionSet scs)
    {
-      DoubleYoVariable desiredICPX = (DoubleYoVariable) scs.getVariable("desiredICPX");
-      DoubleYoVariable desiredICPY = (DoubleYoVariable) scs.getVariable("desiredICPY");
-      DoubleYoVariable t = (DoubleYoVariable) scs.getVariable("t");
+      YoDouble desiredICPX = (YoDouble) scs.getVariable("desiredICPX");
+      YoDouble desiredICPY = (YoDouble) scs.getVariable("desiredICPY");
+      YoDouble t = (YoDouble) scs.getVariable("t");
 
       scs.gotoInPointNow();
       while(Math.abs(desiredICPX.getDoubleValue()) < 1e-4)
@@ -248,7 +247,7 @@ public abstract class DRCFlatGroundWalkingTest implements MultiRobotTestInterfac
    {
       if (simulationTestingParameters.getCreateSCSVideos())
       {
-         BambooTools.createVideoAndDataWithDateTimeClassMethodAndShareOnSharedDriveIfAvailable(getSimpleRobotName(), scs, 3);
+         BambooTools.createVideoWithDateTimeClassMethodAndShareOnSharedDriveIfAvailable(getSimpleRobotName(), scs, 2);
       }
    }
 
@@ -311,5 +310,10 @@ public abstract class DRCFlatGroundWalkingTest implements MultiRobotTestInterfac
    public SimulationTestingParameters getSimulationTestingParameters()
    {
       return simulationTestingParameters;
+   }
+   
+   public HeadingAndVelocityEvaluationScriptParameters getWalkingScriptParameters()
+   {
+      return null;
    }
 }

@@ -5,8 +5,8 @@ import java.awt.event.KeyEvent;
 
 import javax.swing.AbstractAction;
 
-import us.ihmc.simulationconstructionset.commands.GotoOutPointCommandExecutor;
 import us.ihmc.simulationconstructionset.gui.actions.dialogActions.AbstractActionTools;
+import us.ihmc.yoVariables.dataBuffer.GotoOutPointCommandExecutor;
 
 public class GotoOutPointAction extends AbstractAction
 {
@@ -27,6 +27,7 @@ public class GotoOutPointAction extends AbstractAction
       AbstractActionTools.setupIconButton(this, iconFilename, shortKey, longDescription, shortDescription);
    }
 
+   @Override
    public void actionPerformed(ActionEvent actionEvent)
    {
       executor.gotoOutPoint();

@@ -1,9 +1,9 @@
 package us.ihmc.exampleSimulations.jointLimits;
 
 import us.ihmc.robotics.MathTools;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.math.filters.AlphaFilteredYoVariable;
-import us.ihmc.simulationconstructionset.robotController.SimpleRobotController;
+import us.ihmc.simulationConstructionSetTools.robotController.SimpleRobotController;
 
 public class JointLimitsController extends SimpleRobotController
 {
@@ -12,26 +12,26 @@ public class JointLimitsController extends SimpleRobotController
 
    private final JointLimitsRobot robot;
 
-   private final DoubleYoVariable magnitude = new DoubleYoVariable("Magnitude", registry);
-   private final DoubleYoVariable frequency = new DoubleYoVariable("Frequency", registry);
-   private final DoubleYoVariable gain = new DoubleYoVariable("Gain", registry);
+   private final YoDouble magnitude = new YoDouble("Magnitude", registry);
+   private final YoDouble frequency = new YoDouble("Frequency", registry);
+   private final YoDouble gain = new YoDouble("Gain", registry);
 
-   private final DoubleYoVariable qDesired = new DoubleYoVariable("QDesired", registry);
-   private final DoubleYoVariable qddDesired = new DoubleYoVariable("QDDDesired", registry);
-   private final DoubleYoVariable qddDesiredLimited = new DoubleYoVariable("QDDDesiredLimited", registry);
+   private final YoDouble qDesired = new YoDouble("QDesired", registry);
+   private final YoDouble qddDesired = new YoDouble("QDDDesired", registry);
+   private final YoDouble qddDesiredLimited = new YoDouble("QDDDesiredLimited", registry);
 
-   private final DoubleYoVariable lowerLimit = new DoubleYoVariable("LowerLimit", registry);
-   private final DoubleYoVariable upperLimit = new DoubleYoVariable("UpperLimit", registry);
+   private final YoDouble lowerLimit = new YoDouble("LowerLimit", registry);
+   private final YoDouble upperLimit = new YoDouble("UpperLimit", registry);
 
-   private final DoubleYoVariable qddMax = new DoubleYoVariable("QDDMax", registry);
-   private final DoubleYoVariable qddMin = new DoubleYoVariable("QDDMin", registry);
-   private final DoubleYoVariable qddMaxAbs = new DoubleYoVariable("QDDMaxAbs", registry);
+   private final YoDouble qddMax = new YoDouble("QDDMax", registry);
+   private final YoDouble qddMin = new YoDouble("QDDMin", registry);
+   private final YoDouble qddMaxAbs = new YoDouble("QDDMaxAbs", registry);
 
-   private final DoubleYoVariable filterAlpha = new DoubleYoVariable("FilterAlpha", registry);
+   private final YoDouble filterAlpha = new YoDouble("FilterAlpha", registry);
    private final AlphaFilteredYoVariable lowerLimitFiltered = new AlphaFilteredYoVariable("LowerLimitFiltered", registry, filterAlpha);
    private final AlphaFilteredYoVariable upperLimitFiltered = new AlphaFilteredYoVariable("UpperLimitFiltered", registry, filterAlpha);
 
-   private final DoubleYoVariable slope = new DoubleYoVariable("Slope", registry);
+   private final YoDouble slope = new YoDouble("Slope", registry);
 
    public JointLimitsController(JointLimitsRobot robot, double controlDT)
    {
@@ -84,7 +84,7 @@ public class JointLimitsController extends SimpleRobotController
 
          double qDotMin = -Math.pow(distance, 2) * slope.getDoubleValue();
          double qDDotMin = (qDotMin - robot.getQd()) / timeHorizon;
-         qDDotMin = MathTools.clipToMinMax(qDDotMin, -absoluteMaximumJointAcceleration, maxBreakAcceleration);
+         qDDotMin = MathTools.clamp(qDDotMin, -absoluteMaximumJointAcceleration, maxBreakAcceleration);
 
          lowerLimitFiltered.update(qDDotMin);
          qddMin.set(lowerLimitFiltered.getDoubleValue());
@@ -97,14 +97,14 @@ public class JointLimitsController extends SimpleRobotController
 
          double qDotMax = Math.pow(distance, 2) * slope.getDoubleValue();
          double qDDotMax = (qDotMax - robot.getQd()) / timeHorizon;
-         qDDotMax = MathTools.clipToMinMax(qDDotMax, -maxBreakAcceleration, absoluteMaximumJointAcceleration);
+         qDDotMax = MathTools.clamp(qDDotMax, -maxBreakAcceleration, absoluteMaximumJointAcceleration);
 
          upperLimitFiltered.update(qDDotMax);
          qddMax.set(upperLimitFiltered.getDoubleValue());
       }
       // ---
 
-      double qddLimited = MathTools.clipToMinMax(qddDesired.getDoubleValue(), qddMin.getDoubleValue(), qddMax.getDoubleValue());
+      double qddLimited = MathTools.clamp(qddDesired.getDoubleValue(), qddMin.getDoubleValue(), qddMax.getDoubleValue());
       qddDesiredLimited.set(qddLimited);
    }
 }

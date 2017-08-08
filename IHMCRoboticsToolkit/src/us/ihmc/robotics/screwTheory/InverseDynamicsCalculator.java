@@ -1,11 +1,11 @@
 package us.ihmc.robotics.screwTheory;
 
-import us.ihmc.robotics.referenceFrames.ReferenceFrame;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+
+import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 
 /**
  * Computes joint torques based on desired joint accelerations.
@@ -25,7 +25,6 @@ public class InverseDynamicsCalculator
    private final ArrayList<InverseDynamicsJoint> allJoints = new ArrayList<InverseDynamicsJoint>();
    private final LinkedHashMap<RigidBody, Wrench> netWrenches = new LinkedHashMap<RigidBody, Wrench>();
    private final LinkedHashMap<InverseDynamicsJoint, Wrench> jointWrenches = new LinkedHashMap<InverseDynamicsJoint, Wrench>();
-   private final TwistCalculator twistCalculator;
    private final SpatialAccelerationCalculator spatialAccelerationCalculator;
 
    private final SpatialAccelerationVector tempAcceleration = new SpatialAccelerationVector();
@@ -35,35 +34,34 @@ public class InverseDynamicsCalculator
 
    private InverseDynamicsCalculatorListener inverseDynamicsCalculatorListener;
    
-   public InverseDynamicsCalculator(TwistCalculator twistCalculator, double gravity)
+   public InverseDynamicsCalculator(RigidBody body, double gravity)
    {
-      this(twistCalculator, gravity, new ArrayList<InverseDynamicsJoint>());
+      this(body, gravity, new ArrayList<InverseDynamicsJoint>());
    }
 
-   public InverseDynamicsCalculator(TwistCalculator twistCalculator, double gravity, List<InverseDynamicsJoint> jointsToIgnore)
+   public InverseDynamicsCalculator(RigidBody body, double gravity, List<InverseDynamicsJoint> jointsToIgnore)
    {
-      this(ReferenceFrame.getWorldFrame(), ScrewTools.createGravitationalSpatialAcceleration(twistCalculator.getRootBody(), gravity),
-            new LinkedHashMap<RigidBody, Wrench>(), jointsToIgnore, true, true, twistCalculator);
+      this(body, ScrewTools.createGravitationalSpatialAcceleration(ScrewTools.getRootBody(body), gravity),
+            new LinkedHashMap<RigidBody, Wrench>(), jointsToIgnore, true, true);
    }
 
    // FIXME: doVelocityTerms = false does not seem to work
-   public InverseDynamicsCalculator(ReferenceFrame inertialFrame, SpatialAccelerationVector rootAcceleration, HashMap<RigidBody, Wrench> externalWrenches,
-         List<InverseDynamicsJoint> jointsToIgnore, boolean doVelocityTerms, boolean doAccelerationTerms, TwistCalculator twistCalculator)
+   public InverseDynamicsCalculator(RigidBody body, SpatialAccelerationVector rootAcceleration, HashMap<RigidBody, Wrench> externalWrenches,
+         List<InverseDynamicsJoint> jointsToIgnore, boolean doVelocityTerms, boolean doAccelerationTerms)
    {
-      this(inertialFrame, externalWrenches, jointsToIgnore, new SpatialAccelerationCalculator(twistCalculator.getRootBody(), inertialFrame, rootAcceleration,
-            twistCalculator, doVelocityTerms, doAccelerationTerms, true), twistCalculator, doVelocityTerms);
+      this(externalWrenches, jointsToIgnore, new SpatialAccelerationCalculator(body, rootAcceleration, doVelocityTerms,
+            doAccelerationTerms, true));
    }
 
-   public InverseDynamicsCalculator(ReferenceFrame inertialFrame, HashMap<RigidBody, Wrench> externalWrenches, List<InverseDynamicsJoint> jointsToIgnore,
-         SpatialAccelerationCalculator spatialAccelerationCalculator, TwistCalculator twistCalculator, boolean doVelocityTerms)
+   public InverseDynamicsCalculator(HashMap<RigidBody, Wrench> externalWrenches, List<InverseDynamicsJoint> jointsToIgnore,
+         SpatialAccelerationCalculator spatialAccelerationCalculator)
    {
-      this.rootBody = twistCalculator.getRootBody();
+      this.rootBody = spatialAccelerationCalculator.getRootBody();
       this.externalWrenches = new LinkedHashMap<RigidBody, Wrench>(externalWrenches);
       this.jointsToIgnore = new ArrayList<InverseDynamicsJoint>(jointsToIgnore);
-      this.twistCalculator = twistCalculator;
       this.spatialAccelerationCalculator = spatialAccelerationCalculator;
 
-      this.doVelocityTerms = doVelocityTerms;
+      this.doVelocityTerms = spatialAccelerationCalculator.areVelocitiesConsidered();
 
       populateMapsAndLists();
 
@@ -119,11 +117,11 @@ public class InverseDynamicsCalculator
       {
          RigidBody body = allBodiesExceptRoot.get(bodyIndex);
          Wrench netWrench = netWrenches.get(body);
-         twistCalculator.getTwistOfBody(tempTwist, body);
+         body.getBodyFixedFrame().getTwistOfFrame(tempTwist);
          if (!doVelocityTerms)
             tempTwist.setToZero();
-         spatialAccelerationCalculator.getAccelerationOfBody(tempAcceleration, body);
-         body.getInertia().computeDynamicWrenchInBodyCoordinates(netWrench, tempAcceleration, tempTwist);
+         spatialAccelerationCalculator.getAccelerationOfBody(body, tempAcceleration);
+         body.getInertia().computeDynamicWrenchInBodyCoordinates(tempAcceleration, tempTwist, netWrench);
       }
    }
 

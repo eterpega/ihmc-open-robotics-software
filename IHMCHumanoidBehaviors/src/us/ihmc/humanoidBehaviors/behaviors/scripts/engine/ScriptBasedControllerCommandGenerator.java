@@ -2,10 +2,12 @@ package us.ihmc.humanoidBehaviors.behaviors.scripts.engine;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import us.ihmc.communication.controllerAPI.command.Command;
+import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.FootTrajectoryCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.FootstepDataListCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.HandTrajectoryCommand;
@@ -16,26 +18,30 @@ import us.ihmc.humanoidRobotics.communication.packets.walking.FootTrajectoryMess
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataListMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.PauseWalkingMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.PelvisHeightTrajectoryMessage;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
+import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 
 public class ScriptBasedControllerCommandGenerator
 {
    private final ConcurrentLinkedQueue<ScriptObject> scriptObjects = new ConcurrentLinkedQueue<ScriptObject>();
    private final ConcurrentLinkedQueue<Command<?, ?>> controllerCommands;
-   
-   public ScriptBasedControllerCommandGenerator(ConcurrentLinkedQueue<Command<?, ?>> controllerCommands)
+   private final ReferenceFrame worldFrame;
+   private final FullHumanoidRobotModel fullRobotModel;
+
+   public ScriptBasedControllerCommandGenerator(ConcurrentLinkedQueue<Command<?, ?>> controllerCommands, FullHumanoidRobotModel fullRobotModel)
    {
       this.controllerCommands = controllerCommands;
+      this.fullRobotModel = fullRobotModel;
+      worldFrame = ReferenceFrame.getWorldFrame();
    }
 
-   public void loadScriptFile(String scriptFilename, ReferenceFrame referenceFrame)
+   public void loadScriptFile(Path scriptFilePath, ReferenceFrame referenceFrame)
    {
       ScriptFileLoader scriptFileLoader;
       try
       {
-         scriptFileLoader = new ScriptFileLoader(scriptFilename);
-         
+         scriptFileLoader = new ScriptFileLoader(scriptFilePath);
+
          RigidBodyTransform transformFromReferenceFrameToWorldFrame = referenceFrame.getTransformToDesiredFrame(ReferenceFrame.getWorldFrame());
          ArrayList<ScriptObject> scriptObjectsList = scriptFileLoader.readIntoList(transformFromReferenceFrameToWorldFrame);
          scriptObjects.addAll(scriptObjectsList);
@@ -43,17 +49,17 @@ public class ScriptBasedControllerCommandGenerator
       }
       catch (IOException e)
       {
-         System.err.println("Could not load script file " + scriptFilename);
-      }            
+         System.err.println("Could not load script file " + scriptFilePath);
+      }
    }
-   
+
    public void loadScriptFile(InputStream scriptInputStream, ReferenceFrame referenceFrame)
    {
       ScriptFileLoader scriptFileLoader;
       try
       {
          scriptFileLoader = new ScriptFileLoader(scriptInputStream);
-         
+
          RigidBodyTransform transformFromReferenceFrameToWorldFrame = referenceFrame.getTransformToDesiredFrame(ReferenceFrame.getWorldFrame());
          ArrayList<ScriptObject> scriptObjectsList = scriptFileLoader.readIntoList(transformFromReferenceFrameToWorldFrame);
          scriptObjects.addAll(scriptObjectsList);
@@ -62,8 +68,8 @@ public class ScriptBasedControllerCommandGenerator
       catch (IOException e)
       {
          System.err.println("Could not load script file " + scriptInputStream);
-      }           
-      
+      }
+
    }
 
    private void convertFromScriptObjectsToControllerCommands()
@@ -83,15 +89,20 @@ public class ScriptBasedControllerCommandGenerator
       else if (scriptObject instanceof FootTrajectoryMessage)
       {
          FootTrajectoryMessage message = (FootTrajectoryMessage) scriptObject;
+         message.getFrameInformation().setTrajectoryReferenceFrame(worldFrame);
+         message.getFrameInformation().setDataReferenceFrame(worldFrame);
          FootTrajectoryCommand command = new FootTrajectoryCommand();
-         command.set(message);
+         command.set(worldFrame, worldFrame, message);
          controllerCommands.add(command);
       }
       else if (scriptObject instanceof HandTrajectoryMessage)
       {
+         ReferenceFrame chestFrame = fullRobotModel.getChest().getBodyFixedFrame();
          HandTrajectoryMessage message = (HandTrajectoryMessage) scriptObject;
+         message.getFrameInformation().setTrajectoryReferenceFrame(chestFrame);
+         message.getFrameInformation().setDataReferenceFrame(worldFrame);
          HandTrajectoryCommand command = new HandTrajectoryCommand();
-         command.set(message);
+         command.set(worldFrame, chestFrame, message);
          controllerCommands.add(command);
       }
       else if (scriptObject instanceof PelvisHeightTrajectoryMessage)
@@ -108,17 +119,17 @@ public class ScriptBasedControllerCommandGenerator
          command.set(message);
          controllerCommands.add(command);
       }
-      
+
 
 //      else if (scriptObject instanceof ArmTrajectoryMessage)
 //      {
 //         ArmTrajectoryMessage armTrajectoryMessage = (ArmTrajectoryMessage) scriptObject;
 //         armTrajectoryMessageSubscriber.receivedPacket(armTrajectoryMessage);
-//         
+//
 //         setupTimesForNewScriptEvent(armTrajectoryMessage.getTrajectoryTime());
 //      }
 
-      
+
       else
       {
          System.err.println("ScriptBasedControllerCommandGenerator: Didn't process script object " + nextObject);
@@ -130,5 +141,5 @@ public class ScriptBasedControllerCommandGenerator
 
 
 
-  
+
 }

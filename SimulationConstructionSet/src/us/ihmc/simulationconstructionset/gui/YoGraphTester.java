@@ -1,16 +1,16 @@
 package us.ihmc.simulationconstructionset.gui;
 
-import java.util.ArrayList;
-
 import javax.swing.JFrame;
 
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.YoVariable;
-import us.ihmc.simulationconstructionset.DataBufferEntry;
-import us.ihmc.simulationconstructionset.dataBuffer.DataEntry;
-import us.ihmc.simulationconstructionset.dataBuffer.DataEntryHolder;
-import us.ihmc.simulationconstructionset.dataBuffer.TimeDataHolder;
+import us.ihmc.yoVariables.dataBuffer.DataEntry;
+import us.ihmc.yoVariables.dataBuffer.DataEntryHolder;
+import us.ihmc.yoVariables.dataBuffer.TimeDataHolder;
+import us.ihmc.graphicsDescription.graphInterfaces.GraphIndicesHolder;
+import us.ihmc.graphicsDescription.graphInterfaces.SelectedVariableHolder;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoVariable;
+import us.ihmc.yoVariables.dataBuffer.DataBufferEntry;
 
 public class YoGraphTester
 {
@@ -24,6 +24,7 @@ public class YoGraphTester
 
       YoGraphRemover yoGraphRemover = new YoGraphRemover()
       {
+         @Override
          public void removeGraph(YoGraph yoGraph)
          {
          }
@@ -31,7 +32,8 @@ public class YoGraphTester
 
       DataEntryHolder dataEntryHolder = new DataEntryHolder()
       {
-         public DataEntry getEntry(YoVariable yoVariable)
+         @Override
+         public DataEntry getEntry(YoVariable<?> yoVariable)
          {
             return null;
          }
@@ -46,7 +48,7 @@ public class YoGraphTester
 
       int nPoints = 200;
       YoVariableRegistry registry = new YoVariableRegistry("registry");
-      DoubleYoVariable yoVariable = new DoubleYoVariable("variableOne", registry);
+      YoDouble yoVariable = new YoDouble("variableOne", registry);
       
       DataBufferEntry dataEntry = new DataBufferEntry(yoVariable, nPoints);
       
@@ -79,101 +81,6 @@ public class YoGraphTester
    }
 
    
-   private class MinimalTimeDataHolder implements TimeDataHolder
-   {
-      private double[] timeData;
-      
-      MinimalTimeDataHolder(int nPoints)
-      {
-         timeData = new double[nPoints];
-         double time = 1.0;
-         
-         for (int i=0; i<nPoints; i++)
-         {
-            timeData[i] = time;
-            time = time + 0.01;
-         }
-      }
-      
-      public double[] getTimeData()
-      {
-         return timeData;
-      }
-      
-   }
-   
-   private class MinimalGraphIndicesHolder implements GraphIndicesHolder
-   {
-      ArrayList<Integer> keyPoints = new ArrayList<Integer>();
-      
-      int leftPlotIndex = 0;
-      int rightPlotIndex = 100;
-      int inPoint = 50;
-      int index = 60;
-      int outPoint = 75;
-      int maxIndex = 200;
-      
-      public void tickLater(int i)
-      {
-         index = index + i;
-      }
-
-      public void setRightPlotIndex(int newRightIndex)
-      {
-         this.rightPlotIndex = newRightIndex;
-      }
-
-      public void setLeftPlotIndex(int newLeftIndex)
-      {
-         this.leftPlotIndex = newLeftIndex;
-      }
-
-      public void setIndexLater(int newIndex)
-      {
-         this.index = newIndex;
-      }
-
-      public int getRightPlotIndex()
-      {
-         return rightPlotIndex;
-      }
-
-      public int getMaxIndex()
-      {
-         return maxIndex;
-      }
-
-      public int getLeftPlotIndex()
-      {
-         return leftPlotIndex;
-      }
-
-      public ArrayList<Integer> getKeyPoints()
-      {
-         return keyPoints;
-      }
-
-      public int getIndex()
-      {
-         return index;
-      }
-
-      public int getInPoint()
-      {
-         return inPoint;
-      }
-      
-      public int getOutPoint()
-      {
-         return outPoint;
-      }
-
-      public boolean isIndexAtOutPoint()
-      {
-         return (getIndex() == getOutPoint());
-      }
-   }
-
    public static void main(String[] args)
    {
       new YoGraphTester().testYoGraph();

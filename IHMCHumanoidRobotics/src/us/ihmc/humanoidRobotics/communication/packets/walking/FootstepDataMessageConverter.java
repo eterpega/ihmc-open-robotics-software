@@ -2,15 +2,13 @@ package us.ihmc.humanoidRobotics.communication.packets.walking;
 
 import java.util.ArrayList;
 
-import javax.vecmath.Point2d;
-import javax.vecmath.Point3d;
-import javax.vecmath.Quat4d;
-
+import us.ihmc.euclid.geometry.ConvexPolygon2D;
+import us.ihmc.euclid.tuple2D.Point2D;
+import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.footstepPlanning.FootstepPlan;
 import us.ihmc.footstepPlanning.SimpleFootstep;
 import us.ihmc.humanoidRobotics.communication.packets.ExecutionMode;
-import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage.FootstepOrigin;
-import us.ihmc.robotics.geometry.ConvexPolygon2d;
 import us.ihmc.robotics.geometry.ConvexPolygonTools;
 import us.ihmc.robotics.geometry.FramePose;
 
@@ -23,8 +21,8 @@ public class FootstepDataMessageConverter
          return null;
 
       FootstepDataListMessage footstepDataListMessage = new FootstepDataListMessage();
-      footstepDataListMessage.setSwingTime(swingTime);
-      footstepDataListMessage.setTransferTime(transferTime);
+      footstepDataListMessage.setDefaultSwingDuration(swingTime);
+      footstepDataListMessage.setDefaultTransferDuration(transferTime);
 
       for (int i = 0; i < footstepPlan.getNumberOfSteps(); i++)
       {
@@ -32,25 +30,24 @@ public class FootstepDataMessageConverter
 
          FramePose footstepPose = new FramePose();
          footstep.getSoleFramePose(footstepPose);
-         Point3d location = new Point3d();
-         Quat4d orientation = new Quat4d();
+         Point3D location = new Point3D();
+         Quaternion orientation = new Quaternion();
          footstepPose.getPosition(location);
          footstepPose.getOrientation(orientation);
 
          FootstepDataMessage footstepData = new FootstepDataMessage(footstep.getRobotSide(), location, orientation);
-         footstepData.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
 
          if (footstep.hasFoothold())
          {
-            ConvexPolygon2d foothold = new ConvexPolygon2d();
+            ConvexPolygon2D foothold = new ConvexPolygon2D();
             footstep.getFoothold(foothold);
 
             if (foothold.getNumberOfVertices() != 4)
                ConvexPolygonTools.limitVerticesConservative(foothold, 4);
 
-            ArrayList<Point2d> contactPoints = new ArrayList<>();
+            ArrayList<Point2D> contactPoints = new ArrayList<>();
             for (int contactPointIdx = 0; contactPointIdx < 4; contactPointIdx++)
-               contactPoints.add(new Point2d(foothold.getVertex(contactPointIdx)));
+               contactPoints.add(new Point2D(foothold.getVertex(contactPointIdx)));
             footstepData.setPredictedContactPoints(contactPoints);
          }
 
@@ -69,25 +66,24 @@ public class FootstepDataMessageConverter
 
          FramePose footstepPose = new FramePose();
          footstep.getSoleFramePose(footstepPose);
-         Point3d location = new Point3d();
-         Quat4d orientation = new Quat4d();
+         Point3D location = new Point3D();
+         Quaternion orientation = new Quaternion();
          footstepPose.getPosition(location);
          footstepPose.getOrientation(orientation);
 
          FootstepDataMessage footstepData = new FootstepDataMessage(footstep.getRobotSide(), location, orientation);
-         footstepData.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
 
          if (footstep.hasFoothold())
          {
-            ConvexPolygon2d foothold = new ConvexPolygon2d();
+            ConvexPolygon2D foothold = new ConvexPolygon2D();
             footstep.getFoothold(foothold);
 
             if (foothold.getNumberOfVertices() != 4)
                ConvexPolygonTools.limitVerticesConservative(foothold, 4);
 
-            ArrayList<Point2d> contactPoints = new ArrayList<>();
+            ArrayList<Point2D> contactPoints = new ArrayList<>();
             for (int contactPointIdx = 0; contactPointIdx < 4; contactPointIdx++)
-               contactPoints.add(new Point2d(foothold.getVertex(contactPointIdx)));
+               contactPoints.add(new Point2D(foothold.getVertex(contactPointIdx)));
             footstepData.setPredictedContactPoints(contactPoints);
          }
 

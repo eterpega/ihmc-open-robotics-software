@@ -1,8 +1,6 @@
 package us.ihmc.simulationconstructionset;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.io.BufferedReader;
 import java.io.DataInputStream;
@@ -21,14 +19,12 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.IntegerYoVariable;
-import us.ihmc.robotics.dataStructures.variable.YoVariable;
-import us.ihmc.robotics.dataStructures.variable.YoVariableList;
-import us.ihmc.simulationconstructionset.DataBuffer.RepeatDataBufferEntryException;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.yoVariables.dataBuffer.DataBuffer;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.*;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.dataBuffer.DataBuffer.RepeatDataBufferEntryException;
 
 public class DataFileWriterTest
 {
@@ -54,13 +50,13 @@ public class DataFileWriterTest
       rootRegistry.addChild(registryTwo);
       registryTwo.addChild(registryThree);
 
-      DoubleYoVariable variableOne = new DoubleYoVariable("variableOne", rootRegistry);
-      DoubleYoVariable variableTwo = new DoubleYoVariable("variableTwo", rootRegistry);
-      DoubleYoVariable variableThree = new DoubleYoVariable("variableThree", rootRegistry);
-      DoubleYoVariable variableFour = new DoubleYoVariable("variableFour", registryOne);
-      DoubleYoVariable variableFive = new DoubleYoVariable("variableFive", registryTwo);
-      BooleanYoVariable variableSix = new BooleanYoVariable("variableSix", rootRegistry);
-      IntegerYoVariable variableSeven = new IntegerYoVariable("variableSeven", registryThree);
+      YoDouble variableOne = new YoDouble("variableOne", rootRegistry);
+      YoDouble variableTwo = new YoDouble("variableTwo", rootRegistry);
+      YoDouble variableThree = new YoDouble("variableThree", rootRegistry);
+      YoDouble variableFour = new YoDouble("variableFour", registryOne);
+      YoDouble variableFive = new YoDouble("variableFive", registryTwo);
+      YoBoolean variableSix = new YoBoolean("variableSix", rootRegistry);
+      YoInteger variableSeven = new YoInteger("variableSeven", registryThree);
 
       dataBuffer.addVariable(variableOne);
       dataBuffer.addVariable(variableTwo);
@@ -413,14 +409,14 @@ public class DataFileWriterTest
       registryOne.addChild(registryTwo);
       registryTwo.addChild(registryThree);
 
-      DoubleYoVariable t = new DoubleYoVariable("t", registryThree);
-      DoubleYoVariable time = new DoubleYoVariable("time", registryThree);
+      YoDouble t = new YoDouble("t", registryThree);
+      YoDouble time = new YoDouble("time", registryThree);
       t.set(1.1);
       time.set(2.2);
 
       for (int i = 0; i < numberOfVariables; i++)
       {
-         DoubleYoVariable variable = new DoubleYoVariable("variable" + i, registryThree);
+         YoDouble variable = new YoDouble("variable" + i, registryThree);
          variable.set(Math.random());
       }
 

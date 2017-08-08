@@ -3,13 +3,13 @@ package us.ihmc.atlas.parameters;
 import java.util.ArrayList;
 import java.util.EnumMap;
 
-import javax.vecmath.Matrix3d;
-import javax.vecmath.Vector3d;
-
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 
-import us.ihmc.avatar.drcRobot.DRCRobotModel;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
+import us.ihmc.atlas.AtlasRobotVersion;
+import us.ihmc.avatar.drcRobot.RobotTarget;
+import us.ihmc.euclid.matrix.RotationMatrix;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
@@ -29,9 +29,9 @@ public class AtlasSensorInformation implements DRCRobotSensorInformation
    /**
     * Force Sensor Parameters
     */
-   public static final String[] forceSensorNames = { "l_leg_akx", "r_leg_akx", "l_arm_wry2", "r_arm_wry2" };
-   public static final SideDependentList<String> feetForceSensorNames = new SideDependentList<String>("l_leg_akx", "r_leg_akx");
-   public static final SideDependentList<String> handForceSensorNames = new SideDependentList<String>("l_arm_wry2", "r_arm_wry2");
+   private final String[] forceSensorNames;
+   private final SideDependentList<String> feetForceSensorNames = new SideDependentList<String>("l_leg_akx", "r_leg_akx");
+   private final SideDependentList<String> handForceSensorNames;
 
    /**
     * PPS Parameters
@@ -99,7 +99,7 @@ public class AtlasSensorInformation implements DRCRobotSensorInformation
    private static final String bodyIMUSensor = "pelvis_imu_sensor_at_pelvis_frame";
    private static final String chestIMUSensor = "utorso_imu_sensor_chest";
    private static final String[] imuSensorsToUseInStateEstimator = { bodyIMUSensor };
-   private static EnumMap<DRCRobotModel.RobotTarget, ReferenceFrame> headIMUFramesWhenLevel=new EnumMap<>(DRCRobotModel.RobotTarget.class);
+   private static EnumMap<RobotTarget, ReferenceFrame> headIMUFramesWhenLevel=new EnumMap<>(RobotTarget.class);
 
    /**
     * Stereo Parameters
@@ -115,12 +115,24 @@ public class AtlasSensorInformation implements DRCRobotSensorInformation
    private final boolean isMultisenseHead;
    private final boolean setupROSLocationService;
    private final boolean setupROSParameterSetters;
-   private final DRCRobotModel.RobotTarget target;
+   private final RobotTarget target;
 
-   public AtlasSensorInformation(DRCRobotModel.RobotTarget target)
+   public AtlasSensorInformation(AtlasRobotVersion atlasRobotVersion, RobotTarget target)
    {
 	   this.target = target;
-      if(target == DRCRobotModel.RobotTarget.REAL_ROBOT)
+
+	   if (atlasRobotVersion != AtlasRobotVersion.ATLAS_UNPLUGGED_V5_NO_FOREARMS)
+	   {
+	      forceSensorNames = new String[]{ "l_leg_akx", "r_leg_akx", "l_arm_wry2", "r_arm_wry2" };
+	      handForceSensorNames = new SideDependentList<String>("l_arm_wry2", "r_arm_wry2");
+	   }
+	   else
+	   {
+	      forceSensorNames = new String[]{ "l_leg_akx", "r_leg_akx" };
+	      handForceSensorNames = null;
+	   }
+
+      if(target == RobotTarget.REAL_ROBOT)
       {
          cameraParameters[MULTISENSE_SL_LEFT_CAMERA_ID] = new DRCRobotCameraParameters(RobotSide.LEFT, left_camera_name, left_camera_topic, left_info_camera_topic, multisenseHandoffFrame, baseTfName, left_frame_name, MULTISENSE_SL_LEFT_CAMERA_ID);
          cameraParameters[MULTISENSE_SL_RIGHT_CAMERA_ID] = new DRCRobotCameraParameters(RobotSide.RIGHT, right_camera_name, right_camera_topic, right_info_camera_topic, multisenseHandoffFrame, baseTfName, right_frame_name, MULTISENSE_SL_RIGHT_CAMERA_ID);
@@ -128,7 +140,7 @@ public class AtlasSensorInformation implements DRCRobotSensorInformation
                multisense_laser_scan_topic_string, lidarJointName, lidarJointTopic, multisenseHandoffFrame, lidarBaseFrame, lidarEndFrame, lidar_spindle_velocity, MULTISENSE_LIDAR_ID);
          pointCloudParameters[MULTISENSE_STEREO_ID] = new DRCRobotPointCloudParameters(stereoSensorName, stereoColorTopic, multisenseHandoffFrame, stereoBaseFrame, stereoEndFrame, MULTISENSE_STEREO_ID);
       }
-      else if(target == DRCRobotModel.RobotTarget.HEAD_ON_A_STICK)
+      else if(target == RobotTarget.HEAD_ON_A_STICK)
       {
          cameraParameters[MULTISENSE_SL_LEFT_CAMERA_ID] = new DRCRobotCameraParameters(RobotSide.LEFT, left_camera_name, left_camera_topic, left_info_camera_topic, multisenseHandoffFrame, baseTfName, left_frame_name, MULTISENSE_SL_LEFT_CAMERA_ID);
          cameraParameters[MULTISENSE_SL_RIGHT_CAMERA_ID] = new DRCRobotCameraParameters(RobotSide.RIGHT, right_camera_name, right_camera_topic, right_info_camera_topic, multisenseHandoffFrame, baseTfName, right_frame_name, MULTISENSE_SL_RIGHT_CAMERA_ID);
@@ -136,7 +148,7 @@ public class AtlasSensorInformation implements DRCRobotSensorInformation
                  multisense_ground_point_cloud_topic_string, lidarJointName, lidarJointTopic, multisenseHandoffFrame, lidarBaseFrame, lidarEndFrame, lidar_spindle_velocity, MULTISENSE_LIDAR_ID);
          pointCloudParameters[MULTISENSE_STEREO_ID] = new DRCRobotPointCloudParameters(stereoSensorName, stereoColorTopic, multisenseHandoffFrame, stereoBaseFrame, stereoEndFrame, MULTISENSE_STEREO_ID);
       }
-      else if (target == DRCRobotModel.RobotTarget.GAZEBO)
+      else if (target == RobotTarget.GAZEBO)
       {
          String baseTfName = "head";
          String left_frame_name = "left_camera_frame";
@@ -167,9 +179,9 @@ public class AtlasSensorInformation implements DRCRobotSensorInformation
       cameraParameters[BLACKFLY_LEFT_CAMERA_ID] = new DRCRobotCameraParameters(RobotSide.LEFT, leftFisheyeCameraName, fisheye_left_camera_topic, fisheye_pose_source, fisheye_left_camera_info, BLACKFLY_LEFT_CAMERA_ID);
       cameraParameters[BLACKFLY_RIGHT_CAMERA_ID] = new DRCRobotCameraParameters(RobotSide.RIGHT, right_fisheye_camera_name, fisheye_right_camera_topic, fisheye_pose_source, fisheye_right_camera_info, BLACKFLY_RIGHT_CAMERA_ID);
 
-      setupROSLocationService = target == DRCRobotModel.RobotTarget.REAL_ROBOT || (target == DRCRobotModel.RobotTarget.SCS && SEND_ROBOT_DATA_TO_ROS);
-      setupROSParameterSetters = target == DRCRobotModel.RobotTarget.REAL_ROBOT;
-      isMultisenseHead = target == DRCRobotModel.RobotTarget.REAL_ROBOT;
+      setupROSLocationService = target == RobotTarget.REAL_ROBOT || (target == RobotTarget.SCS && SEND_ROBOT_DATA_TO_ROS);
+      setupROSParameterSetters = target == RobotTarget.REAL_ROBOT;
+      isMultisenseHead = target == RobotTarget.REAL_ROBOT;
 
       setupStaticTransformsForRos();
 	}
@@ -181,21 +193,21 @@ public class AtlasSensorInformation implements DRCRobotSensorInformation
    }
 
    private void setupHeadIMUFrames() {
-		for (DRCRobotModel.RobotTarget target : DRCRobotModel.RobotTarget.values()) {
-			Matrix3d headIMUBasisWhenLevel;
-			if (target == DRCRobotModel.RobotTarget.REAL_ROBOT) {
+		for (RobotTarget target : RobotTarget.values()) {
+			RotationMatrix headIMUBasisWhenLevel;
+			if (target == RobotTarget.REAL_ROBOT) {
 				// each column is the unit vector of X,Y,Z axis in world frame
-				headIMUBasisWhenLevel = new Matrix3d( 0, 0, 1,
+				headIMUBasisWhenLevel = new RotationMatrix( 0, 0, 1,
 						                              0,  1, 0,
 						                             -1,  0, 0);
 
 			} else {
-				headIMUBasisWhenLevel = new Matrix3d(1, 0, 0, 0, 1, 0, 0, 0, 1);
+				headIMUBasisWhenLevel = new RotationMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);
 
 			}
-			headIMUFramesWhenLevel.put(target, ReferenceFrame .constructBodyFrameWithUnchangingTransformToParent(
+			headIMUFramesWhenLevel.put(target, ReferenceFrame .constructFrameWithUnchangingTransformToParent(
 							"head_imu", ReferenceFrame.getWorldFrame(),
-							new RigidBodyTransform(headIMUBasisWhenLevel, new Vector3d())));
+							new RigidBodyTransform(headIMUBasisWhenLevel, new Vector3D())));
 		}
 
 	}
@@ -330,7 +342,7 @@ public class AtlasSensorInformation implements DRCRobotSensorInformation
 
 	}
 
-	public static EnumMap<DRCRobotModel.RobotTarget, ReferenceFrame> getHeadIMUFramesWhenLevel() {
+	public static EnumMap<RobotTarget, ReferenceFrame> getHeadIMUFramesWhenLevel() {
 		return headIMUFramesWhenLevel;
 	}
 

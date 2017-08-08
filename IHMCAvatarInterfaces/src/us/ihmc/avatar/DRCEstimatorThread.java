@@ -4,18 +4,16 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.vecmath.Point3d;
-import javax.vecmath.Quat4d;
-
-import us.ihmc.robotModels.FullHumanoidRobotModel;
-import us.ihmc.robotModels.visualizer.RobotVisualizer;
 import us.ihmc.commonWalkingControlModules.controlModules.ForceSensorToJointTorqueProjector;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.ContactableBodiesFactory;
 import us.ihmc.commonWalkingControlModules.sensors.footSwitch.KinematicsBasedFootSwitch;
 import us.ihmc.commonWalkingControlModules.sensors.footSwitch.WrenchAndContactSensorFusedFootSwitch;
 import us.ihmc.commonWalkingControlModules.sensors.footSwitch.WrenchBasedFootSwitch;
 import us.ihmc.communication.packets.ControllerCrashNotificationPacket.CrashLocation;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.humanoidRobotics.bipedSupportPolygons.ContactablePlaneBody;
 import us.ihmc.humanoidRobotics.communication.packets.sensing.RequestWristForceSensorCalibrationPacket;
 import us.ihmc.humanoidRobotics.communication.packets.sensing.StateEstimatorModePacket;
@@ -27,12 +25,14 @@ import us.ihmc.humanoidRobotics.communication.subscribers.StateEstimatorModeSubs
 import us.ihmc.humanoidRobotics.frames.HumanoidReferenceFrames;
 import us.ihmc.humanoidRobotics.kryo.IHMCCommunicationKryoNetClassList;
 import us.ihmc.humanoidRobotics.model.CenterOfPressureDataHolder;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.LongYoVariable;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
+import us.ihmc.robotDataLogger.RobotVisualizer;
+import us.ihmc.robotModels.FullHumanoidRobotModel;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoLong;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotController.ModularRobotController;
+import us.ihmc.robotics.robotController.RobotController;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.robotics.screwTheory.FloatingInverseDynamicsJoint;
@@ -62,7 +62,7 @@ import us.ihmc.sensorProcessing.simulatedSensors.SensorReaderFactory;
 import us.ihmc.sensorProcessing.stateEstimation.IMUSensorReadOnly;
 import us.ihmc.sensorProcessing.stateEstimation.StateEstimatorParameters;
 import us.ihmc.sensorProcessing.stateEstimation.evaluation.FullInverseDynamicsStructure;
-import us.ihmc.simulationconstructionset.robotController.MultiThreadedRobotControlElement;
+import us.ihmc.simulationConstructionSetTools.robotController.MultiThreadedRobotControlElement;
 import us.ihmc.stateEstimation.humanoid.kinematicsBasedStateEstimation.DRCKinematicsBasedStateEstimator;
 import us.ihmc.stateEstimation.humanoid.kinematicsBasedStateEstimation.ForceSensorCalibrationModule;
 import us.ihmc.util.PeriodicThreadScheduler;
@@ -87,14 +87,14 @@ public class DRCEstimatorThread implements MultiThreadedRobotControlElement
    private final ThreadDataSynchronizerInterface threadDataSynchronizer;
    private final SensorReader sensorReader;
 
-   private final LongYoVariable estimatorTime = new LongYoVariable("estimatorTime", estimatorRegistry);
-   private final LongYoVariable estimatorTick = new LongYoVariable("estimatorTick", estimatorRegistry);
-   private final BooleanYoVariable firstTick = new BooleanYoVariable("firstTick", estimatorRegistry);
+   private final YoLong estimatorTime = new YoLong("estimatorTime", estimatorRegistry);
+   private final YoLong estimatorTick = new YoLong("estimatorTick", estimatorRegistry);
+   private final YoBoolean firstTick = new YoBoolean("firstTick", estimatorRegistry);
 
-   private final LongYoVariable startClockTime = new LongYoVariable("startTime", estimatorRegistry);
+   private final YoLong startClockTime = new YoLong("startTime", estimatorRegistry);
    private final ExecutionTimer estimatorTimer = new ExecutionTimer("estimatorTimer", 10.0, estimatorRegistry);
 
-   private final LongYoVariable actualEstimatorDT = new LongYoVariable("actualEstimatorDT", estimatorRegistry);
+   private final YoLong actualEstimatorDT = new YoLong("actualEstimatorDT", estimatorRegistry);
 
    private final SensorOutputMapReadOnly sensorOutputMapReadOnly;
    private final SensorRawOutputMapReadOnly sensorRawOutputMapReadOnly;
@@ -109,7 +109,7 @@ public class DRCEstimatorThread implements MultiThreadedRobotControlElement
 
    public DRCEstimatorThread(DRCRobotSensorInformation sensorInformation, RobotContactPointParameters contactPointParameters,
          StateEstimatorParameters stateEstimatorParameters, SensorReaderFactory sensorReaderFactory, ThreadDataSynchronizerInterface threadDataSynchronizer,
-         PeriodicThreadScheduler scheduler, HumanoidGlobalDataProducer dataProducer, RobotVisualizer robotVisualizer, double gravity)
+         PeriodicThreadScheduler poseCommunicatorScheduler, HumanoidGlobalDataProducer dataProducer, RobotVisualizer robotVisualizer, double gravity)
    {
       this.threadDataSynchronizer = threadDataSynchronizer;
       this.robotVisualizer = robotVisualizer;
@@ -194,7 +194,7 @@ public class DRCEstimatorThread implements MultiThreadedRobotControlElement
                forceSensorDataHolderToSend);
 
          poseCommunicator = new DRCPoseCommunicator(estimatorFullRobotModel, jointConfigurationGathererAndProducer, sensorReader, dataProducer,
-               sensorOutputMapReadOnly, sensorRawOutputMapReadOnly, robotMotionStatusFromController, sensorInformation, scheduler, new IHMCCommunicationKryoNetClassList());
+               sensorOutputMapReadOnly, sensorRawOutputMapReadOnly, robotMotionStatusFromController, sensorInformation, poseCommunicatorScheduler, new IHMCCommunicationKryoNetClassList());
          estimatorController.setRawOutputWriter(poseCommunicator);
       }
       else
@@ -207,7 +207,7 @@ public class DRCEstimatorThread implements MultiThreadedRobotControlElement
 
       if (robotVisualizer != null)
       {
-         robotVisualizer.setMainRegistry(estimatorRegistry, estimatorFullRobotModel, yoGraphicsListRegistry);
+         robotVisualizer.setMainRegistry(estimatorRegistry, estimatorFullRobotModel.getElevator(), yoGraphicsListRegistry);
       }
    }
 
@@ -382,7 +382,7 @@ public class DRCEstimatorThread implements MultiThreadedRobotControlElement
    }
 
    @Override
-   public YoGraphicsListRegistry getDynamicGraphicObjectsListRegistry()
+   public YoGraphicsListRegistry getYoGraphicsListRegistry()
    {
       return yoGraphicsListRegistry;
    }
@@ -398,7 +398,7 @@ public class DRCEstimatorThread implements MultiThreadedRobotControlElement
       throw new RuntimeException("Estimator thread should not wake up based on clock");
    }
 
-   public void initializeEstimatorToActual(Point3d initialCoMPosition, Quat4d initialEstimationLinkOrientation)
+   public void initializeEstimatorToActual(Point3D initialCoMPosition, Quaternion initialEstimationLinkOrientation)
    {
       if (drcStateEstimator != null)
          drcStateEstimator.initializeEstimatorToActual(initialCoMPosition, initialEstimationLinkOrientation);
@@ -427,5 +427,13 @@ public class DRCEstimatorThread implements MultiThreadedRobotControlElement
       {
          poseCommunicator.stop();
       }
+   }
+
+   /**
+    * used primarily for unit tests, but could be useful. 
+    */
+   public void addRobotController(RobotController controller)
+   {
+      estimatorController.addRobotController(controller);
    }
 }

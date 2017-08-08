@@ -1,27 +1,27 @@
 package us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.highLevelStates.walkingController.states;
 
-import us.ihmc.commonWalkingControlModules.controlModules.PelvisOrientationManager;
 import us.ihmc.commonWalkingControlModules.controlModules.WalkingFailureDetectionControlModule;
 import us.ihmc.commonWalkingControlModules.controlModules.foot.FeetManager;
+import us.ihmc.commonWalkingControlModules.controlModules.pelvis.PelvisOrientationManager;
 import us.ihmc.commonWalkingControlModules.desiredFootStep.TransferToAndNextFootstepsData;
 import us.ihmc.commonWalkingControlModules.desiredFootStep.WalkingMessageHandler;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.HighLevelControlManagerFactory;
 import us.ihmc.commonWalkingControlModules.instantaneousCapturePoint.BalanceManager;
 import us.ihmc.commonWalkingControlModules.instantaneousCapturePoint.CenterOfMassHeightManager;
 import us.ihmc.commonWalkingControlModules.momentumBasedController.HighLevelHumanoidControllerToolbox;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.robotSide.RobotSide;
 
 public class TransferToStandingState extends WalkingState
 {
-   private final DoubleYoVariable maxICPErrorToSwitchToStanding = new DoubleYoVariable("maxICPErrorToSwitchToStanding", registry);
+   private final YoDouble maxICPErrorToSwitchToStanding = new YoDouble("maxICPErrorToSwitchToStanding", registry);
 
-   private final BooleanYoVariable doFootExplorationInTransferToStanding = new BooleanYoVariable("doFootExplorationInTransferToStanding", registry);
+   private final YoBoolean doFootExplorationInTransferToStanding = new YoBoolean("doFootExplorationInTransferToStanding", registry);
 
    private final WalkingMessageHandler walkingMessageHandler;
-   private final HighLevelHumanoidControllerToolbox momentumBasedController;
+   private final HighLevelHumanoidControllerToolbox controllerToolbox;
    private final WalkingFailureDetectionControlModule failureDetectionControlModule;
 
    private final CenterOfMassHeightManager comHeightManager;
@@ -29,14 +29,14 @@ public class TransferToStandingState extends WalkingState
    private final PelvisOrientationManager pelvisOrientationManager;
    private final FeetManager feetManager;
 
-   public TransferToStandingState(WalkingMessageHandler walkingMessageHandler, HighLevelHumanoidControllerToolbox momentumBasedController,
+   public TransferToStandingState(WalkingMessageHandler walkingMessageHandler, HighLevelHumanoidControllerToolbox controllerToolbox,
          HighLevelControlManagerFactory managerFactory, WalkingFailureDetectionControlModule failureDetectionControlModule, YoVariableRegistry parentRegistry)
    {
       super(WalkingStateEnum.TO_STANDING, parentRegistry);
       maxICPErrorToSwitchToStanding.set(0.025);
 
       this.walkingMessageHandler = walkingMessageHandler;
-      this.momentumBasedController = momentumBasedController;
+      this.controllerToolbox = controllerToolbox;
       this.failureDetectionControlModule = failureDetectionControlModule;
 
       comHeightManager = managerFactory.getOrCreateCenterOfMassHeightManager();
@@ -82,7 +82,7 @@ public class TransferToStandingState extends WalkingState
          }
       }
 
-      momentumBasedController.updateBipedSupportPolygons(); // need to always update biped support polygons after a change to the contact states
+      controllerToolbox.updateBipedSupportPolygons(); // need to always update biped support polygons after a change to the contact states
 
       failureDetectionControlModule.setNextFootstep(null);
 
@@ -92,9 +92,10 @@ public class TransferToStandingState extends WalkingState
       comHeightManager.initialize(transferToAndNextFootstepsDataForDoubleSupport, extraToeOffHeight);
 
       // Just standing in double support, do nothing
-      pelvisOrientationManager.setToHoldCurrentDesiredInMidFeetZUpFrame();
+      double finalTransferTime = walkingMessageHandler.getFinalTransferTime();
+      pelvisOrientationManager.centerInMidFeetZUpFrame(finalTransferTime);
       balanceManager.setICPPlanTransferFromSide(previousSupportSide);
-      balanceManager.initializeICPPlanForStanding(walkingMessageHandler.getSwingTime(), walkingMessageHandler.getTransferTime());
+      balanceManager.initializeICPPlanForStanding(finalTransferTime);
    }
 
    @Override

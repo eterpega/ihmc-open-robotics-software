@@ -1,7 +1,6 @@
 package us.ihmc.simulationconstructionset.gui.actions;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.awt.Dimension;
 import java.awt.Point;
@@ -18,19 +17,23 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.JPanel;
+
 import org.junit.Test;
 
 import com.google.common.base.Defaults;
 
-import us.ihmc.graphics3DAdapter.camera.CameraPropertiesHolder;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationPlan;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.continuousIntegration.IntegrationCategory;
+import us.ihmc.jMonkeyEngineToolkit.camera.CameraPropertiesHolder;
+import us.ihmc.simulationconstructionset.ExtraPanelConfiguration;
 import us.ihmc.simulationconstructionset.commands.AddCameraKeyCommandExecutor;
 import us.ihmc.simulationconstructionset.commands.AddKeyPointCommandExecutor;
 import us.ihmc.simulationconstructionset.commands.CreateNewGraphWindowCommandExecutor;
 import us.ihmc.simulationconstructionset.commands.CreateNewViewportWindowCommandExecutor;
 import us.ihmc.simulationconstructionset.commands.CropBufferCommandExecutor;
 import us.ihmc.simulationconstructionset.commands.CutBufferCommandExecutor;
-import us.ihmc.simulationconstructionset.commands.GotoInPointCommandExecutor;
-import us.ihmc.simulationconstructionset.commands.GotoOutPointCommandExecutor;
 import us.ihmc.simulationconstructionset.commands.NextCameraKeyCommandExecutor;
 import us.ihmc.simulationconstructionset.commands.PackBufferCommandExecutor;
 import us.ihmc.simulationconstructionset.commands.PlayCommandExecutor;
@@ -46,8 +49,6 @@ import us.ihmc.simulationconstructionset.commands.StepForwardCommandExecutor;
 import us.ihmc.simulationconstructionset.commands.StopCommandExecutor;
 import us.ihmc.simulationconstructionset.commands.ThinBufferCommandExecutor;
 import us.ihmc.simulationconstructionset.commands.ToggleCameraKeyModeCommandExecutor;
-import us.ihmc.simulationconstructionset.commands.ToggleKeyPointModeCommandExecutor;
-import us.ihmc.simulationconstructionset.commands.ToggleKeyPointModeCommandListener;
 import us.ihmc.simulationconstructionset.commands.ViewportSelectorCommandExecutor;
 import us.ihmc.simulationconstructionset.commands.ViewportSelectorCommandListener;
 import us.ihmc.simulationconstructionset.commands.ZoomGraphCommandExecutor;
@@ -100,9 +101,10 @@ import us.ihmc.simulationconstructionset.gui.dialogConstructors.ResizeViewportDi
 import us.ihmc.simulationconstructionset.gui.dialogConstructors.SaveConfigurationDialogConstructor;
 import us.ihmc.simulationconstructionset.gui.dialogConstructors.SaveGraphConfigurationDialogConstructor;
 import us.ihmc.simulationconstructionset.gui.dialogConstructors.SaveRobotConfigurationDialogConstructor;
-import us.ihmc.tools.continuousIntegration.IntegrationCategory;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationPlan;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.yoVariables.dataBuffer.GotoInPointCommandExecutor;
+import us.ihmc.yoVariables.dataBuffer.GotoOutPointCommandExecutor;
+import us.ihmc.yoVariables.dataBuffer.ToggleKeyPointModeCommandExecutor;
+import us.ihmc.yoVariables.dataBuffer.ToggleKeyPointModeCommandListener;
 
 @ContinuousIntegrationPlan(categories = { IntegrationCategory.UI})
 public class ActionsTest
@@ -489,7 +491,7 @@ public class ActionsTest
                  @Override
                  public void test(ExtraPanelSelector mock)
                  {
-                    callPublicMethods(new SelectExtraPanelAction(mock, "Test"));
+                    callPublicMethods(new SelectExtraPanelAction(mock, new ExtraPanelConfiguration("Test", new JPanel(), false)));
                  }
               })
               .assertMethodCalled("selectPanel", "Test")

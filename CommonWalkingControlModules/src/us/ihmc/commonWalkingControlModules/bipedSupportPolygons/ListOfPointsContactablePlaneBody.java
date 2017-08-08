@@ -3,32 +3,38 @@ package us.ihmc.commonWalkingControlModules.bipedSupportPolygons;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.vecmath.Point2d;
-import javax.vecmath.Tuple2d;
-
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple2D.Point2D;
+import us.ihmc.euclid.tuple2D.interfaces.Tuple2DBasics;
 import us.ihmc.humanoidRobotics.bipedSupportPolygons.ContactablePlaneBody;
 import us.ihmc.robotics.geometry.FrameConvexPolygon2d;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FramePoint2d;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
+import us.ihmc.robotics.screwTheory.MovingReferenceFrame;
 import us.ihmc.robotics.screwTheory.RigidBody;
 
 public class ListOfPointsContactablePlaneBody implements ContactablePlaneBody
 {
    private final RigidBody rigidBody;
    private final ReferenceFrame soleFrame;
-   private final List<Point2d> contactPoints = new ArrayList<Point2d>();
+   private final List<Point2D> contactPoints = new ArrayList<Point2D>();
+   private final List<FramePoint2d> frameContactPoints = new ArrayList<FramePoint2d>();
    private final int totalNumberOfContactPoints;
 
-   public ListOfPointsContactablePlaneBody(RigidBody rigidBody, ReferenceFrame soleFrame, List<Point2d> contactPointsInSoleFrame)
+   public ListOfPointsContactablePlaneBody(RigidBody rigidBody, ReferenceFrame soleFrame, List<Point2D> contactPointsInSoleFrame)
    {
       this.rigidBody = rigidBody;
       this.soleFrame = soleFrame;
 
-      for (Point2d contactPoint : contactPointsInSoleFrame)
+      for (Point2D contactPoint : contactPointsInSoleFrame)
       {
-         this.contactPoints.add(new Point2d(contactPoint));
+         Point2D point = new Point2D(contactPoint);
+         this.contactPoints.add(point);
+         frameContactPoints.add(new FramePoint2d(soleFrame, point));
       }
+      
 
       totalNumberOfContactPoints = contactPoints.size();
    }
@@ -51,7 +57,7 @@ public class ListOfPointsContactablePlaneBody implements ContactablePlaneBody
       List<FramePoint> ret = new ArrayList<FramePoint>(contactPoints.size());
       for (int i = 0; i < contactPoints.size(); i++)
       {
-         Tuple2d point = contactPoints.get(i);
+         Tuple2DBasics point = contactPoints.get(i);
          ret.add(new FramePoint(soleFrame, point.getX(), point.getY(), 0.0));
       }
 
@@ -59,7 +65,7 @@ public class ListOfPointsContactablePlaneBody implements ContactablePlaneBody
    }
 
    @Override
-   public ReferenceFrame getFrameAfterParentJoint()
+   public MovingReferenceFrame getFrameAfterParentJoint()
    {
       return rigidBody.getParentJoint().getFrameAfterJoint();
    }
@@ -78,20 +84,19 @@ public class ListOfPointsContactablePlaneBody implements ContactablePlaneBody
    @Override
    public List<FramePoint2d> getContactPoints2d()
    {
-      List<FramePoint2d> ret = new ArrayList<FramePoint2d>(contactPoints.size());
-      for (int i = 0; i < contactPoints.size(); i++)
-      {
-         Tuple2d point = contactPoints.get(i);
-         ret.add(new FramePoint2d(soleFrame, point));
-      }
-
-      return ret;
+      return frameContactPoints;
    }
 
    @Override
    public int getTotalNumberOfContactPoints()
    {
       return totalNumberOfContactPoints;
+   }
+
+   @Override
+   public void setSoleFrameTransformFromParentJoint(RigidBodyTransform transform)
+   {
+      throw new NotImplementedException();
    }
 
 }

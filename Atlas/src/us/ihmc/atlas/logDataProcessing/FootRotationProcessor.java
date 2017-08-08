@@ -7,11 +7,11 @@ import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParam
 import us.ihmc.commonWalkingControlModules.controlModules.foot.FootControlModule.ConstraintType;
 import us.ihmc.commonWalkingControlModules.controlModules.foot.PartialFootholdControlModule;
 import us.ihmc.commonWalkingControlModules.momentumBasedController.HighLevelHumanoidControllerToolbox;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.robotics.geometry.FramePoint2d;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 public class FootRotationProcessor implements LogDataProcessorFunction
 {
@@ -19,7 +19,7 @@ public class FootRotationProcessor implements LogDataProcessorFunction
    private final YoVariableRegistry registry = new YoVariableRegistry(name);
    private final YoGraphicsListRegistry yoGraphicsListRegistry = new YoGraphicsListRegistry();
    private final SideDependentList<PartialFootholdControlModule> partialFootholdControlModules = new SideDependentList<>();
-   private final HighLevelHumanoidControllerToolbox momentumBasedController;
+   private final HighLevelHumanoidControllerToolbox controllerToolbox;
 
    private final LogDataProcessorHelper logDataProcessorHelper;
 
@@ -27,12 +27,12 @@ public class FootRotationProcessor implements LogDataProcessorFunction
    {
       this.logDataProcessorHelper = logDataProcessorHelper;
       WalkingControllerParameters walkingControllerParameters = logDataProcessorHelper.getWalkingControllerParameters();
-      momentumBasedController = logDataProcessorHelper.getMomentumBasedController();
+      controllerToolbox = logDataProcessorHelper.getHighLevelHumanoidControllerToolbox();
 
       walkingControllerParameters.getOrCreateExplorationParameters(registry);
       for (RobotSide robotSide : RobotSide.values)
       {
-         PartialFootholdControlModule partialFootholdControlModule = new PartialFootholdControlModule(robotSide, momentumBasedController,
+         PartialFootholdControlModule partialFootholdControlModule = new PartialFootholdControlModule(robotSide, controllerToolbox,
                walkingControllerParameters, registry, yoGraphicsListRegistry);
          partialFootholdControlModules.put(robotSide, partialFootholdControlModule);
       }
@@ -50,15 +50,13 @@ public class FootRotationProcessor implements LogDataProcessorFunction
       {
          PartialFootholdControlModule partialFootholdControlModule = partialFootholdControlModules.get(robotSide);
 
-         if (logDataProcessorHelper.getCurrenFootState(robotSide) == ConstraintType.FULL
-               || logDataProcessorHelper.getCurrenFootState(robotSide) == ConstraintType.EXPLORE_POLYGON
-               || logDataProcessorHelper.getCurrenFootState(robotSide) == ConstraintType.HOLD_POSITION)
+         if (logDataProcessorHelper.getCurrenFootState(robotSide) == ConstraintType.FULL)
          {
             logDataProcessorHelper.getMeasuredCoP(robotSide, measuredCoP2d);
             logDataProcessorHelper.getDesiredCoP(robotSide, desiredCoP2d);
             partialFootholdControlModule.compute(desiredCoP2d, measuredCoP2d);
 
-            YoPlaneContactState contactState = momentumBasedController.getFootContactStates().get(robotSide);
+            YoPlaneContactState contactState = controllerToolbox.getFootContactStates().get(robotSide);
             boolean contactStateHasChanged = partialFootholdControlModule.applyShrunkPolygon(contactState);
             if (contactStateHasChanged)
             {

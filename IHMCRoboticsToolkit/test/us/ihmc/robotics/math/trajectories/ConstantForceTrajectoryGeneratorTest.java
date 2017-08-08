@@ -7,9 +7,8 @@ import static org.junit.Assert.fail;
 
 import org.junit.Test;
 
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.math.trajectories.ConstantForceTrajectoryGenerator;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 public class ConstantForceTrajectoryGeneratorTest
 {

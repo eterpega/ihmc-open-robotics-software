@@ -1,15 +1,15 @@
 package us.ihmc.simulationconstructionset.util;
 
-import us.ihmc.graphics3DAdapter.GroundProfile3D;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import java.util.ArrayList;
+
+import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.jMonkeyEngineToolkit.GroundProfile3D;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.simulationconstructionset.GroundContactModel;
 import us.ihmc.simulationconstructionset.GroundContactPoint;
 import us.ihmc.simulationconstructionset.GroundContactPointsHolder;
-
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector3d;
-import java.util.ArrayList;
 
 public class BidirectionGroundContactModel implements GroundContactModel
 {
@@ -19,10 +19,10 @@ public class BidirectionGroundContactModel implements GroundContactModel
 
    private static final double DEFAULT_K_XY = 1422, DEFAULT_B_XY = 15.6, DEFAULT_K_Z = 125, DEFAULT_B_Z = 300;
 
-   private final DoubleYoVariable groundKxy = new DoubleYoVariable("groundKxy", "BidirectionGroundContactModel x and y spring constant", registry);
-   private final DoubleYoVariable groundBxy = new DoubleYoVariable("groundBxy", "BidirectionalGroundContactModel x and y damping constant", registry);
-   private final DoubleYoVariable groundKz = new DoubleYoVariable("groundKz", "BidirectionalGroundContactModel z spring constant", registry);
-   private final DoubleYoVariable groundBz = new DoubleYoVariable("groundBz", "BidirectionalGroundContactModel z damping constant", registry);
+   private final YoDouble groundKxy = new YoDouble("groundKxy", "BidirectionGroundContactModel x and y spring constant", registry);
+   private final YoDouble groundBxy = new YoDouble("groundBxy", "BidirectionalGroundContactModel x and y damping constant", registry);
+   private final YoDouble groundKz = new YoDouble("groundKz", "BidirectionalGroundContactModel z spring constant", registry);
+   private final YoDouble groundBz = new YoDouble("groundBz", "BidirectionalGroundContactModel z damping constant", registry);
 
    private ArrayList<GroundContactPoint> groundContactPoints;
    private GroundProfile3D groundProfile3D;
@@ -71,16 +71,19 @@ public class BidirectionGroundContactModel implements GroundContactModel
       this.groundBz.set(zDamping);
    }
 
+   @Override
    public void setGroundProfile3D(GroundProfile3D profile3D)
    {
       this.groundProfile3D = profile3D;
    }
 
+   @Override
    public GroundProfile3D getGroundProfile3D()
    {
       return groundProfile3D;
    }
 
+   @Override
    public void doGroundContact()
    {
       for (int i = 0; i < groundContactPoints.size(); i++)
@@ -111,10 +114,10 @@ public class BidirectionGroundContactModel implements GroundContactModel
       resolveContactForce(groundContactPoint);
    }
 
-   private final Point3d touchdownLocation = new Point3d();
-   private final Point3d position = new Point3d();
-   private final Vector3d deltaPositionFromTouchdown = new Vector3d();
-   private final Vector3d velocity = new Vector3d();
+   private final Point3D touchdownLocation = new Point3D();
+   private final Point3D position = new Point3D();
+   private final Vector3D deltaPositionFromTouchdown = new Vector3D();
+   private final Vector3D velocity = new Vector3D();
 
    private void resolveContactForce(GroundContactPoint groundContactPoint)
    {
@@ -127,7 +130,7 @@ public class BidirectionGroundContactModel implements GroundContactModel
       resolveContactForceZUp(deltaPositionFromTouchdown, velocity, groundContactPoint);
    }
 
-   private void resolveContactForceZUp(Vector3d deltaPositionFromTouchdown, Vector3d velocity, GroundContactPoint groundContactPoint)
+   private void resolveContactForceZUp(Vector3D deltaPositionFromTouchdown, Vector3D velocity, GroundContactPoint groundContactPoint)
    {
       double xForce = groundKxy.getDoubleValue() * (deltaPositionFromTouchdown.getX() - groundBxy.getDoubleValue()) * velocity.getX();
       double yForce = groundKxy.getDoubleValue() * (deltaPositionFromTouchdown.getY() - groundBxy.getDoubleValue()) * velocity.getY();

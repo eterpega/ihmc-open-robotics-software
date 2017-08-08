@@ -4,17 +4,15 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.math.filters.FirstOrderBandPassFilteredYoVariable;
-import us.ihmc.robotics.math.filters.FirstOrderFilteredYoVariable;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.math.filters.FirstOrderFilteredYoVariable.FirstOrderFilterType;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
 
 public class FirstOrderFilteredYoVariableTest
 {
    private final YoVariableRegistry registry = new YoVariableRegistry("testRegistry");
-   private final DoubleYoVariable yoTime = new DoubleYoVariable("yoTime", registry);
+   private final YoDouble yoTime = new YoDouble("yoTime", registry);
 
    private final double DT = 0.001;
 
@@ -115,7 +113,7 @@ public class FirstOrderFilteredYoVariableTest
       return ret;
    }
 
-   private double computeSteadyStateFilteredOutputAmplitude(DoubleYoVariable yoTime, double DT, double inputFrequencyRadPerSec, FirstOrderFilteredYoVariable filteredYoVariable)
+   private double computeSteadyStateFilteredOutputAmplitude(YoDouble yoTime, double DT, double inputFrequencyRadPerSec, FirstOrderFilteredYoVariable filteredYoVariable)
    {
       double t;
       double sineWaveInput;

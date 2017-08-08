@@ -5,9 +5,6 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import javax.vecmath.Point3d;
-import javax.vecmath.Quat4d;
-
 import boofcv.struct.calib.IntrinsicParameters;
 import us.ihmc.codecs.generated.EUsageType;
 import us.ihmc.codecs.generated.FilterModeEnum;
@@ -16,11 +13,13 @@ import us.ihmc.codecs.generated.YUVPicture;
 import us.ihmc.codecs.generated.YUVPicture.YUVSubsamplingType;
 import us.ihmc.codecs.h264.OpenH264Encoder;
 import us.ihmc.codecs.yuv.YUVPictureConverter;
-import us.ihmc.communication.net.NetStateListener;
+import us.ihmc.commons.Conversions;
+import us.ihmc.communication.net.ConnectionStateListener;
+import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
+import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
 import us.ihmc.robotics.MathTools;
-import us.ihmc.robotics.time.TimeTools;
 
-public class H264CompressedVideoDataServer implements NetStateListener, CompressedVideoDataServer
+public class H264CompressedVideoDataServer implements ConnectionStateListener, CompressedVideoDataServer
 {
    private OpenH264Encoder encoder;
 
@@ -65,7 +64,7 @@ public class H264CompressedVideoDataServer implements NetStateListener, Compress
    }
 
    @Override
-   public synchronized void updateImage(VideoSource videoSource, BufferedImage bufferedImage, final long timeStamp, final Point3d cameraPosition, final Quat4d cameraOrientation,
+   public synchronized void onFrame(VideoSource videoSource, BufferedImage bufferedImage, final long timeStamp, final Point3DReadOnly cameraPosition, final QuaternionReadOnly cameraOrientation,
          IntrinsicParameters intrinsicParameters)
    {
       if (!handler.isConnected() || !videoEnabled)
@@ -82,7 +81,7 @@ public class H264CompressedVideoDataServer implements NetStateListener, Compress
       {
          initialTimestamp = timeStamp;
       }
-      else if ((timeStamp - prevTimeStamp) < TimeTools.secondsToNanoSeconds(1.0 / ((double) fps)))
+      else if ((timeStamp - prevTimeStamp) < Conversions.secondsToNanoseconds(1.0 / ((double) fps)))
       {
          return;
       }
@@ -133,7 +132,7 @@ public class H264CompressedVideoDataServer implements NetStateListener, Compress
             ByteBuffer nal = encoder.getNAL();
             byte[] data = new byte[nal.remaining()];
             nal.get(data);
-            handler.newVideoPacketAvailable(videoSource, timeStamp, data, cameraPosition, cameraOrientation, intrinsicParameters);
+            handler.onFrame(videoSource, data, timeStamp, cameraPosition, cameraOrientation, intrinsicParameters);
          }
       }
       catch (IOException e)
@@ -144,26 +143,31 @@ public class H264CompressedVideoDataServer implements NetStateListener, Compress
       prevTimeStamp = timeStamp;
    }
 
-   public synchronized void close()
+   @Override
+   public synchronized void dispose()
    {
       encoder.delete();
    }
 
+   @Override
    public boolean isConnected()
    {
       return handler.isConnected();
    }
 
+   @Override
    public synchronized void connected()
    {
       encoder.sendIntraFrame();
    }
 
+   @Override
    public synchronized void disconnected()
    {
       videoEnabled = false;
    }
 
+   @Override
    public synchronized void setVideoControlSettings(VideoControlSettings object)
    {
       if (object.isSendVideo())
@@ -175,8 +179,8 @@ public class H264CompressedVideoDataServer implements NetStateListener, Compress
          cropVideo = object.crop();
          videoEnabled = true;
 
-         cropX = MathTools.clipToMinMax(object.cropX(), 0, 100);
-         cropY = MathTools.clipToMinMax(object.cropY(), 0, 100);
+         cropX = MathTools.clamp(object.cropX(), 0, 100);
+         cropY = MathTools.clamp(object.cropY(), 0, 100);
 
       }
       else

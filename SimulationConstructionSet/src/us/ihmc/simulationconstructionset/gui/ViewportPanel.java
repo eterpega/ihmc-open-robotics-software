@@ -9,18 +9,18 @@ import java.util.ArrayList;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.vecmath.Tuple3d;
 
-import us.ihmc.graphics3DAdapter.Graphics3DAdapter;
-import us.ihmc.graphics3DAdapter.camera.CameraConfiguration;
-import us.ihmc.graphics3DAdapter.camera.CameraConfigurationList;
-import us.ihmc.graphics3DAdapter.camera.CameraMountList;
-import us.ihmc.graphics3DAdapter.camera.CaptureDevice;
-import us.ihmc.graphics3DAdapter.camera.ClassicCameraController;
-import us.ihmc.graphics3DAdapter.camera.TrackingDollyCameraController;
-import us.ihmc.graphics3DAdapter.camera.ViewportAdapter;
-import us.ihmc.robotics.dataStructures.YoVariableHolder;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.euclid.tuple3D.interfaces.Tuple3DBasics;
+import us.ihmc.jMonkeyEngineToolkit.Graphics3DAdapter;
+import us.ihmc.jMonkeyEngineToolkit.camera.CameraConfiguration;
+import us.ihmc.jMonkeyEngineToolkit.camera.CameraConfigurationList;
+import us.ihmc.jMonkeyEngineToolkit.camera.CameraMountList;
+import us.ihmc.jMonkeyEngineToolkit.camera.CaptureDevice;
+import us.ihmc.jMonkeyEngineToolkit.camera.ClassicCameraController;
+import us.ihmc.jMonkeyEngineToolkit.camera.TrackingDollyCameraController;
+import us.ihmc.jMonkeyEngineToolkit.camera.ViewportAdapter;
+import us.ihmc.yoVariables.dataBuffer.YoVariableHolder;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.simulationconstructionset.ViewportConfiguration;
 import us.ihmc.simulationconstructionset.ViewportPanelConfiguration;
 import us.ihmc.simulationconstructionset.commands.RunCommandsExecutor;
@@ -55,6 +55,7 @@ public class ViewportPanel extends JPanel implements CameraSelector, ActiveCamer
 
    }
 
+   @Override
    public TrackingDollyCameraController getCameraPropertiesForActiveCamera()
    {
       return activeView.getCameraController();
@@ -351,6 +352,7 @@ public class ViewportPanel extends JPanel implements CameraSelector, ActiveCamer
 
    // public YoCanvas3D getCanvas3D(){return activeView.getCanvas3D();}
    // public YoCanvas3D getOffscreenCanvas3D(){return this.offscreenCanvas3D;}
+   @Override
    public TrackingDollyCameraController getCamera()
    {
       return activeView.getCameraController();
@@ -378,7 +380,7 @@ public class ViewportPanel extends JPanel implements CameraSelector, ActiveCamer
       activeView.getCameraController().setFieldOfView(fieldOfView);
    }
 
-   public void setCameraTrackingVars(DoubleYoVariable xVar, DoubleYoVariable yVar, DoubleYoVariable zVar)
+   public void setCameraTrackingVars(YoDouble xVar, YoDouble yVar, YoDouble zVar)
    {
       CameraTrackAndDollyYoVariablesHolder cameraTrackAndDollyVariablesHolder = (CameraTrackAndDollyYoVariablesHolder) activeView.getCameraController()
             .getCameraTrackAndDollyVariablesHolder();
@@ -387,7 +389,7 @@ public class ViewportPanel extends JPanel implements CameraSelector, ActiveCamer
       //    activeView.getCamera().setTrackingVars(xVar, yVar, zVar);
    }
 
-   public void setCameraDollyVars(DoubleYoVariable xVar, DoubleYoVariable yVar, DoubleYoVariable zVar)
+   public void setCameraDollyVars(YoDouble xVar, YoDouble yVar, YoDouble zVar)
    {
       CameraTrackAndDollyYoVariablesHolder cameraTrackAndDollyVariablesHolder = (CameraTrackAndDollyYoVariablesHolder) activeView.getCameraController()
             .getCameraTrackAndDollyVariablesHolder();
@@ -411,7 +413,7 @@ public class ViewportPanel extends JPanel implements CameraSelector, ActiveCamer
       activeView.getCameraController().setFixPosition(fixX, fixY, fixZ);
    }
 
-   public void setCameraFix(Tuple3d cameraFix)
+   public void setCameraFix(Tuple3DBasics cameraFix)
    {
       activeView.getCameraController().setFixPosition(cameraFix.getX(), cameraFix.getY(), cameraFix.getZ());      
    }
@@ -421,7 +423,7 @@ public class ViewportPanel extends JPanel implements CameraSelector, ActiveCamer
       activeView.getCameraController().setCameraPosition(posX, posY, posZ);
    }
 
-   public void setCameraPosition(Tuple3d cameraPosition)
+   public void setCameraPosition(Tuple3DBasics cameraPosition)
    {
       activeView.getCameraController().setCameraPosition(cameraPosition.getX(), cameraPosition.getY(), cameraPosition.getZ());      
    }
@@ -457,6 +459,7 @@ public class ViewportPanel extends JPanel implements CameraSelector, ActiveCamer
       standard3DViews.clear();
    }
 
+   @Override
    public CaptureDevice getActiveCaptureDevice()
    {
       return this.getActiveView().getCaptureDevice();
@@ -474,6 +477,7 @@ public class ViewportPanel extends JPanel implements CameraSelector, ActiveCamer
       setActiveView(canvasPanel.getStandard3DView(), canvasPanel);
    }
 
+   @Override
    public void selectCamera(String name)
    {
       CameraConfiguration config = cameraConfigurationList.getCameraConfiguration(name);
@@ -595,6 +599,7 @@ public class ViewportPanel extends JPanel implements CameraSelector, ActiveCamer
       return visible.trim().equalsIgnoreCase("true");
    }
 
+   @Override
    public Dimension getMinimumSize()
    {
       return new Dimension(0, 0);
@@ -832,19 +837,19 @@ public class ViewportPanel extends JPanel implements CameraSelector, ActiveCamer
       CameraTrackAndDollyYoVariablesHolder cameraTrackAndDollyYoVariablesHolder = (CameraTrackAndDollyYoVariablesHolder) camera
             .getCameraTrackAndDollyVariablesHolder();
 
-      DoubleYoVariable trackXVar = (DoubleYoVariable) holder.getVariable(config.getTrackXVar());
-      DoubleYoVariable trackYVar = (DoubleYoVariable) holder.getVariable(config.getTrackYVar());
-      DoubleYoVariable trackZVar = (DoubleYoVariable) holder.getVariable(config.getTrackZVar());
+      YoDouble trackXVar = (YoDouble) holder.getVariable(config.getTrackXVar());
+      YoDouble trackYVar = (YoDouble) holder.getVariable(config.getTrackYVar());
+      YoDouble trackZVar = (YoDouble) holder.getVariable(config.getTrackZVar());
       cameraTrackAndDollyYoVariablesHolder.setTrackingVars(trackXVar, trackYVar, trackZVar);
 
-      DoubleYoVariable dollyXVar = (DoubleYoVariable) holder.getVariable(config.getDollyXVar());
-      DoubleYoVariable dollyYVar = (DoubleYoVariable) holder.getVariable(config.getDollyYVar());
-      DoubleYoVariable dollyZVar = (DoubleYoVariable) holder.getVariable(config.getDollyZVar());
+      YoDouble dollyXVar = (YoDouble) holder.getVariable(config.getDollyXVar());
+      YoDouble dollyYVar = (YoDouble) holder.getVariable(config.getDollyYVar());
+      YoDouble dollyZVar = (YoDouble) holder.getVariable(config.getDollyZVar());
       cameraTrackAndDollyYoVariablesHolder.setDollyVars(dollyXVar, dollyYVar, dollyZVar);
 
       if (config.getFieldOfViewVar() != null)
       {
-         DoubleYoVariable fieldOfViewVar = (DoubleYoVariable) yoVariableHolder.getVariable(config.getFieldOfViewVar());
+         YoDouble fieldOfViewVar = (YoDouble) yoVariableHolder.getVariable(config.getFieldOfViewVar());
          cameraTrackAndDollyYoVariablesHolder.setFieldOfViewVar(fieldOfViewVar);
       }
 

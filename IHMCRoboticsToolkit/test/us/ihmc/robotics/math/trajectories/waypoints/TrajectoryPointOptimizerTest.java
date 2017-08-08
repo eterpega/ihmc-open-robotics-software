@@ -8,11 +8,14 @@ import java.util.ArrayList;
 import org.junit.Test;
 
 import gnu.trove.list.array.TDoubleArrayList;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
-import us.ihmc.tools.testing.MutationTestingTools;
+import us.ihmc.commons.MutationTestFacilitator;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationPlan;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.continuousIntegration.IntegrationCategory;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 
+@ContinuousIntegrationPlan(categories = {IntegrationCategory.FAST})
 public class TrajectoryPointOptimizerTest
 {
    private static final double epsilon = 10E-7;
@@ -73,7 +76,7 @@ public class TrajectoryPointOptimizerTest
       YoVariableRegistry registry = new YoVariableRegistry("");
       new TrajectoryPointOptimizer(dimensions, order, registry);
 
-      DoubleYoVariable timeGain = (DoubleYoVariable) registry.getVariable("TimeGain");
+      YoDouble timeGain = (YoDouble) registry.getVariable("TimeGain");
       assertTrue(timeGain.getDoubleValue() != 0.0);
 
    }
@@ -275,8 +278,6 @@ public class TrajectoryPointOptimizerTest
 
    public static void main(String[] args)
    {
-      String targetTests = "us.ihmc.robotics.trajectories.TrajectoryPointOptimizerTest";
-      String targetClasses = "us.ihmc.robotics.math.trajectories.waypoints.TrajectoryPointOptimizer";
-      MutationTestingTools.doPITMutationTestAndOpenResult(targetTests, targetClasses);
+      MutationTestFacilitator.facilitateMutationTestForClass(TrajectoryPointOptimizer.class, TrajectoryPointOptimizerTest.class);
    }
 }

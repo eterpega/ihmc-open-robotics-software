@@ -4,15 +4,14 @@ import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import javax.vecmath.Tuple3d;
-import javax.vecmath.Vector3d;
-
 import org.ejml.data.DenseMatrix64F;
 
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple3D.interfaces.Tuple3DBasics;
 import us.ihmc.kalman.KalmanFilter;
 import us.ihmc.kalman.YoKalmanFilter;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.geometry.Direction;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FrameVector;
@@ -44,8 +43,8 @@ public class BodyPositionAndVelocityEstimatorKalman implements BodyPositionAndVe
    private final EnumMap<Direction, DenseMatrix64F> inputs = new EnumMap<Direction, DenseMatrix64F>(Direction.class);
    private final EnumMap<Direction, DenseMatrix64F> measurements = new EnumMap<Direction, DenseMatrix64F>(Direction.class);
 
-   private final DoubleYoVariable accelerationCovariance = new DoubleYoVariable("accelerationCovariance", registry);
-   private final DoubleYoVariable velocityCovariance = new DoubleYoVariable("velocityCovariance", registry);
+   private final YoDouble accelerationCovariance = new YoDouble("accelerationCovariance", registry);
+   private final YoDouble velocityCovariance = new YoDouble("velocityCovariance", registry);
 
    private final FramePoint bodyPosition = new FramePoint(world);
    private final FrameVector bodyVelocity = new FrameVector(world);
@@ -223,7 +222,7 @@ public class BodyPositionAndVelocityEstimatorKalman implements BodyPositionAndVe
       }
    }
 
-   private final Tuple3d covariance = new Vector3d();
+   private final Tuple3DBasics covariance = new Vector3D();
 
    private void determineMeasurementNoiseCovariance()
    {

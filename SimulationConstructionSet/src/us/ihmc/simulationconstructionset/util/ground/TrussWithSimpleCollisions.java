@@ -1,17 +1,15 @@
 package us.ihmc.simulationconstructionset.util.ground;
 
-import javax.vecmath.Vector3d;
-
-import us.ihmc.robotics.geometry.shapes.Box3d;
-import us.ihmc.graphics3DDescription.Graphics3DObject;
-import us.ihmc.graphics3DDescription.appearance.AppearanceDefinition;
-import us.ihmc.robotics.geometry.Direction;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
+import us.ihmc.euclid.geometry.Box3D;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.graphicsDescription.Graphics3DObject;
+import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
 import us.ihmc.robotics.geometry.TransformTools;
 
 public class TrussWithSimpleCollisions extends RotatableBoxTerrainObject
 {
-	public TrussWithSimpleCollisions(Box3d box, AppearanceDefinition appearance)
+	public TrussWithSimpleCollisions(Box3D box, AppearanceDefinition appearance)
 	{
 		super(box, appearance);
 	}
@@ -19,7 +17,7 @@ public class TrussWithSimpleCollisions extends RotatableBoxTerrainObject
 	public TrussWithSimpleCollisions(double[] newPoint, double trussLength,
 			double trussSide, double courseAngleDeg, AppearanceDefinition color)
 	{
-		this(new Box3d(TransformTools.yawPitchDegreesTransform(new Vector3d(newPoint[0], newPoint[1], trussSide/2), courseAngleDeg, 0),
+		this(new Box3D(TransformTools.yawPitchDegreesTransform(new Vector3D(newPoint[0], newPoint[1], trussSide/2), courseAngleDeg, 0),
 				trussSide, trussLength, trussSide), color);
 	}
 //	// TODO Auto-generated constructor stub
@@ -36,7 +34,7 @@ public class TrussWithSimpleCollisions extends RotatableBoxTerrainObject
 ////	location.rotZ(Math.toRadians(yawDegrees));
 ////
 ////	Transform3D tilt = new Transform3D();
-////	tilt.rotY(-slopeRadians);
+////	tilt.setToPitchMatrix(-slopeRadians);
 ////	location.mul(tilt);
 ////
 ////	location.setTranslation(new Vector3d(xCenter, yCenter, zCenter));
@@ -51,7 +49,7 @@ public class TrussWithSimpleCollisions extends RotatableBoxTerrainObject
 //	//		location.rotZ(Math.toRadians(yawDegrees));
 //	//
 //	//		Transform3D tilt = new Transform3D();
-//	//		tilt.rotY(-slopeRadians);
+//	//		tilt.setToPitchMatrix(-slopeRadians);
 //	//		location.mul(tilt);
 //	//
 //	//		location.setTranslation(new Vector3d(xCenter, yCenter, zCenter));
@@ -71,14 +69,16 @@ public class TrussWithSimpleCollisions extends RotatableBoxTerrainObject
 //	combinedTerrainObject.addStaticLinkGraphics(linkGraphics);
 
 
-	protected void addGraphics()
+	@Override
+   protected void addGraphics()
 	{
-		RigidBodyTransform transformCenterConventionToBottomConvention = box.getTransformCopy();
+		RigidBodyTransform transformCenterConventionToBottomConvention = new RigidBodyTransform();
+		box.getPose(transformCenterConventionToBottomConvention);
 //		transformCenterConventionToBottomConvention = TransformTools.transformLocalZ(transformCenterConventionToBottomConvention, -box.getDimension(Direction.Z) / 2.0);
 		
 		double graphicSide=.291;
 		double graphicLength=1.524;
-		Vector3d vector = new Vector3d(box.getDimension(Direction.X)/graphicSide, box.getDimension(Direction.Y)/graphicLength, box.getDimension(Direction.Z)/graphicSide);
+		Vector3D vector = new Vector3D(box.getSizeX()/graphicSide, box.getSizeY()/graphicLength, box.getSizeZ()/graphicSide);
 
 		linkGraphics = new Graphics3DObject();
 		linkGraphics.transform(transformCenterConventionToBottomConvention);

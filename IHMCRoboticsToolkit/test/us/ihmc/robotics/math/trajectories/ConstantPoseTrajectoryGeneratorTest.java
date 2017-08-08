@@ -9,19 +9,18 @@ import static org.junit.Assert.fail;
 import org.junit.Before;
 import org.junit.Test;
 
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.robotics.geometry.FrameOrientation;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FrameVector;
-import us.ihmc.robotics.referenceFrames.ReferenceFrame;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
 import us.ihmc.robotics.geometry.ReferenceFrameMismatchException;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
 import us.ihmc.robotics.math.frames.YoFramePoint;
 import us.ihmc.robotics.math.frames.YoFramePointInMultipleFrames;
 import us.ihmc.robotics.math.frames.YoFrameQuaternion;
 import us.ihmc.robotics.math.frames.YoFrameQuaternionInMultipleFrames;
-import us.ihmc.robotics.math.trajectories.ConstantPoseTrajectoryGenerator;
+import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 
 
 public class ConstantPoseTrajectoryGeneratorTest
@@ -97,7 +96,7 @@ public class ConstantPoseTrajectoryGeneratorTest
 
       try
       {
-         YoFrameQuaternion orientationQuaternion2 = new YoFrameQuaternion("orientationPrefix2", ReferenceFrame.constructAWorldFrame("worldFrame"), registry);
+         YoFrameQuaternion orientationQuaternion2 = new YoFrameQuaternion("orientationPrefix2", ReferenceFrame.constructARootFrame("worldFrame"), registry);
          generator1 = null;
          generator1 = new ConstantPoseTrajectoryGenerator(positionYoFramePoint, orientationQuaternion2);
          fail();
@@ -109,7 +108,7 @@ public class ConstantPoseTrajectoryGeneratorTest
       try
       {
          YoFrameQuaternionInMultipleFrames orientationMultipleFrames2 = new YoFrameQuaternionInMultipleFrames("orientationMultipleFrames2", registry,
-               ReferenceFrame.constructAWorldFrame("worldFrame2"), frame2);
+               ReferenceFrame.constructARootFrame("worldFrame2"), frame2);
          generator2 = null;
          generator2 = new ConstantPoseTrajectoryGenerator(positionMultipleFrames, orientationMultipleFrames2);
          fail();

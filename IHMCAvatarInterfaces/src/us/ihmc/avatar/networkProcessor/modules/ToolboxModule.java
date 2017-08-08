@@ -13,6 +13,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import us.ihmc.commonWalkingControlModules.controllerAPI.input.ControllerNetworkSubscriber;
 import us.ihmc.commonWalkingControlModules.controllerAPI.input.ControllerNetworkSubscriber.MessageFilter;
+import us.ihmc.commons.Conversions;
+import us.ihmc.commons.PrintTools;
 import us.ihmc.communication.controllerAPI.CommandInputManager;
 import us.ihmc.communication.controllerAPI.CommandInputManager.HasReceivedInputListener;
 import us.ihmc.communication.controllerAPI.StatusMessageOutputManager;
@@ -25,20 +27,18 @@ import us.ihmc.communication.packets.StatusPacket;
 import us.ihmc.communication.packets.ToolboxStateMessage;
 import us.ihmc.communication.packets.TrackablePacket;
 import us.ihmc.communication.util.NetworkPorts;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.humanoidRobotics.kryo.IHMCCommunicationKryoNetClassList;
 import us.ihmc.multicastLogDataProtocol.modelLoaders.LogModelProvider;
 import us.ihmc.robotDataLogger.YoVariableServer;
 import us.ihmc.robotDataLogger.logger.LogSettings;
+import us.ihmc.util.PeriodicNonRealtimeThreadSchedulerFactory;
+import us.ihmc.util.PeriodicThreadSchedulerFactory;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.EnumYoVariable;
-import us.ihmc.robotics.time.TimeTools;
-import us.ihmc.tools.io.printing.PrintTools;
 import us.ihmc.tools.thread.ThreadTools;
-import us.ihmc.util.PeriodicNonRealtimeThreadScheduler;
-import us.ihmc.util.PeriodicThreadScheduler;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoEnum;
 
 /**
  * This is a base class for any toolbox in the network manager. See the KinematicsToolboxModule as an example.
@@ -52,7 +52,7 @@ public abstract class ToolboxModule
    protected final String name = getClass().getSimpleName();
    protected final YoGraphicsListRegistry yoGraphicsListRegistry = new YoGraphicsListRegistry();
    protected final YoVariableRegistry registry = new YoVariableRegistry(name);
-   protected final DoubleYoVariable yoTime = new DoubleYoVariable("localTime", registry);
+   protected final YoDouble yoTime = new YoDouble("localTime", registry);
    protected final FullHumanoidRobotModel fullRobotModel;
 
    protected final PacketCommunicator packetCommunicator;
@@ -61,7 +61,7 @@ public abstract class ToolboxModule
    protected final ControllerNetworkSubscriber controllerNetworkSubscriber;
    private final int thisDesitination;
 
-   protected final EnumYoVariable<PacketDestination> activeMessageSource = new EnumYoVariable<>("activeMessageSource", registry, PacketDestination.class, true);
+   protected final YoEnum<PacketDestination> activeMessageSource = new YoEnum<>("activeMessageSource", registry, PacketDestination.class, true);
 
    protected final ThreadFactory threadFactory = ThreadTools.getNamedThreadFactory(name);
    protected final ScheduledExecutorService executorService;
@@ -70,8 +70,8 @@ public abstract class ToolboxModule
    protected Runnable toolboxRunnable = null;
    protected final int updatePeriodMilliseconds = 1;
 
-   protected final DoubleYoVariable timeWithoutInputsBeforeGoingToSleep = new DoubleYoVariable("timeWithoutInputsBeforeGoingToSleep", registry);
-   protected final DoubleYoVariable timeOfLastInput = new DoubleYoVariable("timeOfLastInput", registry);
+   protected final YoDouble timeWithoutInputsBeforeGoingToSleep = new YoDouble("timeWithoutInputsBeforeGoingToSleep", registry);
+   protected final YoDouble timeOfLastInput = new YoDouble("timeOfLastInput", registry);
    protected final AtomicBoolean receivedInput = new AtomicBoolean();
    private final LogModelProvider modelProvider;
    private final boolean startYoVariableServer;
@@ -95,10 +95,8 @@ public abstract class ToolboxModule
       statusOutputManager = new StatusMessageOutputManager(createListOfSupportedStatus());
       controllerNetworkSubscriber = new ControllerNetworkSubscriber(commandInputManager, statusOutputManager, null, packetCommunicator);
 
-      if (startYoVariableServer)
-         executorService = Executors.newScheduledThreadPool(2, threadFactory);
-      else
-         executorService = Executors.newScheduledThreadPool(1, threadFactory);
+
+      executorService = Executors.newScheduledThreadPool(1, threadFactory);
 
       activeMessageSource.set(null);
       timeWithoutInputsBeforeGoingToSleep.set(0.5);
@@ -130,9 +128,9 @@ public abstract class ToolboxModule
       if (!startYoVariableServer)
          return;
 
-      PeriodicThreadScheduler scheduler = new PeriodicNonRealtimeThreadScheduler("WholeBodyIKScheduler");
+      PeriodicThreadSchedulerFactory scheduler = new PeriodicNonRealtimeThreadSchedulerFactory();
       yoVariableServer = new YoVariableServer(getClass(), scheduler, modelProvider, LogSettings.TOOLBOX, YO_VARIABLE_SERVER_DT);
-      yoVariableServer.setMainRegistry(registry, fullRobotModel, yoGraphicsListRegistry);
+      yoVariableServer.setMainRegistry(registry, fullRobotModel.getElevator(), yoGraphicsListRegistry);
       startYoVariableServerOnAThread(yoVariableServer);
 
       yoVariableServerScheduled = executorService.scheduleAtFixedRate(createYoVariableServerRunnable(yoVariableServer), 0, updatePeriodMilliseconds,
@@ -163,8 +161,8 @@ public abstract class ToolboxModule
             if (Thread.interrupted())
                return;
 
-            serverTime += TimeTools.milliSecondsToSeconds(updatePeriodMilliseconds);
-            yoVariableServer.update(TimeTools.secondsToNanoSeconds(serverTime));
+            serverTime += Conversions.millisecondsToSeconds(updatePeriodMilliseconds);
+            yoVariableServer.update(Conversions.secondsToNanoseconds(serverTime));
          }
       };
    }
@@ -318,7 +316,7 @@ public abstract class ToolboxModule
       }
       executorService.shutdownNow();
       packetCommunicator.closeConnection();
-      packetCommunicator.close();
+      packetCommunicator.disconnect();
 
       if (yoVariableServer != null)
       {
@@ -352,7 +350,7 @@ public abstract class ToolboxModule
             {
                getToolboxController().update();
                controllerNetworkSubscriber.run();
-               yoTime.add(TimeTools.milliSecondsToSeconds(updatePeriodMilliseconds));
+               yoTime.add(Conversions.millisecondsToSeconds(updatePeriodMilliseconds));
 
                if (receivedInput.getAndSet(false))
                   timeOfLastInput.set(yoTime.getDoubleValue());

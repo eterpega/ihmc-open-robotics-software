@@ -4,23 +4,11 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.YoVariableList;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoVariableList;
 import us.ihmc.simulationconstructionset.DataFileReader;
 
-/**
- * <p>Title: </p>
- *
- * <p>Description: </p>
- *
- * <p>Copyright: Copyright (c) 2007</p>
- *
- * <p>Company: </p>
- *
- * @author not attributable
- * @version 1.0
- */
 public class StateFileComparer
 {
    /**
@@ -123,7 +111,7 @@ public class StateFileComparer
       VariablesThatShouldMatchList list = new VariablesThatShouldMatchList(varListOne, varListTwo, exceptions);
       ArrayList<VariableDifference> variableDifferences = new ArrayList<VariableDifference>();
       
-      DoubleYoVariable timeYoVariable = (DoubleYoVariable) varListOne.getVariable("t");
+      YoDouble timeYoVariable = (YoDouble) varListOne.getVariable("t");
       double time = Double.NaN;
       if (timeYoVariable != null)
       {

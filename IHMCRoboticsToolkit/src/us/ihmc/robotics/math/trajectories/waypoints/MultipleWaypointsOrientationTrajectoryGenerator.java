@@ -4,12 +4,8 @@ import static us.ihmc.robotics.math.trajectories.waypoints.MultipleWaypointsTraj
 
 import java.util.ArrayList;
 
-import javax.vecmath.Quat4d;
-import javax.vecmath.Vector3d;
-
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.IntegerYoVariable;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.robotics.geometry.FrameOrientation;
 import us.ihmc.robotics.geometry.FrameVector;
 import us.ihmc.robotics.math.trajectories.HermiteCurveBasedOrientationTrajectoryGenerator;
@@ -17,6 +13,9 @@ import us.ihmc.robotics.math.trajectories.OrientationTrajectoryGeneratorInMultip
 import us.ihmc.robotics.math.trajectories.waypoints.interfaces.SO3TrajectoryPointInterface;
 import us.ihmc.robotics.math.trajectories.waypoints.interfaces.TrajectoryPointListInterface;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoInteger;
 
 public class MultipleWaypointsOrientationTrajectoryGenerator extends OrientationTrajectoryGeneratorInMultipleFrames
 {
@@ -26,10 +25,10 @@ public class MultipleWaypointsOrientationTrajectoryGenerator extends Orientation
 
    private final YoVariableRegistry registry;
 
-   private final DoubleYoVariable currentTrajectoryTime;
+   private final YoDouble currentTrajectoryTime;
 
-   private final IntegerYoVariable numberOfWaypoints;
-   private final IntegerYoVariable currentWaypointIndex;
+   private final YoInteger numberOfWaypoints;
+   private final YoInteger currentWaypointIndex;
    private final ArrayList<YoFrameSO3TrajectoryPoint> waypoints;
 
    private final HermiteCurveBasedOrientationTrajectoryGenerator subTrajectory;
@@ -40,19 +39,19 @@ public class MultipleWaypointsOrientationTrajectoryGenerator extends Orientation
    }
 
    public MultipleWaypointsOrientationTrajectoryGenerator(String namePrefix, boolean allowMultipleFrames, ReferenceFrame referenceFrame,
-         YoVariableRegistry parentRegistry)
+                                                          YoVariableRegistry parentRegistry)
    {
       this(namePrefix, defaultMaximumNumberOfWaypoints, allowMultipleFrames, referenceFrame, parentRegistry);
    }
 
    public MultipleWaypointsOrientationTrajectoryGenerator(String namePrefix, int maximumNumberOfWaypoints, ReferenceFrame referenceFrame,
-         YoVariableRegistry parentRegistry)
+                                                          YoVariableRegistry parentRegistry)
    {
       this(namePrefix, maximumNumberOfWaypoints, false, referenceFrame, parentRegistry);
    }
 
    public MultipleWaypointsOrientationTrajectoryGenerator(String namePrefix, int maximumNumberOfWaypoints, boolean allowMultipleFrames,
-         ReferenceFrame referenceFrame, YoVariableRegistry parentRegistry)
+                                                          ReferenceFrame referenceFrame, YoVariableRegistry parentRegistry)
    {
       super(allowMultipleFrames, referenceFrame);
 
@@ -61,13 +60,13 @@ public class MultipleWaypointsOrientationTrajectoryGenerator extends Orientation
 
       registry = new YoVariableRegistry(namePrefix + getClass().getSimpleName());
 
-      numberOfWaypoints = new IntegerYoVariable(namePrefix + "NumberOfWaypoints", registry);
+      numberOfWaypoints = new YoInteger(namePrefix + "NumberOfWaypoints", registry);
       numberOfWaypoints.set(0);
 
       waypoints = new ArrayList<>(maximumNumberOfWaypoints);
 
-      currentTrajectoryTime = new DoubleYoVariable(namePrefix + "CurrentTrajectoryTime", registry);
-      currentWaypointIndex = new IntegerYoVariable(namePrefix + "CurrentWaypointIndex", registry);
+      currentTrajectoryTime = new YoDouble(namePrefix + "CurrentTrajectoryTime", registry);
+      currentWaypointIndex = new YoInteger(namePrefix + "CurrentWaypointIndex", registry);
 
       subTrajectory = new HermiteCurveBasedOrientationTrajectoryGenerator(namePrefix + "SubTrajectory", allowMultipleFrames, referenceFrame, registry);
       registerTrajectoryGeneratorsInMultipleFrames(subTrajectory);
@@ -102,13 +101,13 @@ public class MultipleWaypointsOrientationTrajectoryGenerator extends Orientation
       switchTrajectoryFrame(referenceFrame);
    }
 
-   public void appendWaypoint(double timeAtWaypoint, Quat4d orientation, Vector3d angularVelocity)
+   public void appendWaypoint(double timeAtWaypoint, Quaternion orientation, Vector3D angularVelocity)
    {
       checkNumberOfWaypoints(numberOfWaypoints.getIntegerValue() + 1);
       appendWaypointUnsafe(timeAtWaypoint, orientation, angularVelocity);
    }
 
-   private void appendWaypointUnsafe(double timeAtWaypoint, Quat4d orientation, Vector3d angularVelocity)
+   private void appendWaypointUnsafe(double timeAtWaypoint, Quaternion orientation, Vector3D angularVelocity)
    {
       waypoints.get(numberOfWaypoints.getIntegerValue()).set(timeAtWaypoint, orientation, angularVelocity);
       numberOfWaypoints.increment();
@@ -132,13 +131,27 @@ public class MultipleWaypointsOrientationTrajectoryGenerator extends Orientation
       appendWaypointUnsafe(so3Waypoint);
    }
 
+   public void appendWaypoint(FrameSO3TrajectoryPoint frameSO3TrajectoryPoint)
+   {
+      frameSO3TrajectoryPoint.checkReferenceFrameMatch(getCurrentTrajectoryFrame());
+      checkNumberOfWaypoints(numberOfWaypoints.getIntegerValue() + 1);
+      appendWaypointUnsafe(frameSO3TrajectoryPoint);
+   }
+
+   public void appendWaypoint(FrameSE3TrajectoryPoint frameSE3TrajectoryPoint)
+   {
+      frameSE3TrajectoryPoint.checkReferenceFrameMatch(getCurrentTrajectoryFrame());
+      checkNumberOfWaypoints(numberOfWaypoints.getIntegerValue() + 1);
+      appendWaypointUnsafe(frameSE3TrajectoryPoint);
+   }
+
    private void appendWaypointUnsafe(SO3TrajectoryPointInterface<?> so3Waypoint)
    {
       waypoints.get(numberOfWaypoints.getIntegerValue()).set(so3Waypoint);
       numberOfWaypoints.increment();
    }
 
-   public void appendWaypoints(double[] timeAtWaypoints, Quat4d[] orientations, Vector3d[] angularVelocities)
+   public void appendWaypoints(double[] timeAtWaypoints, Quaternion[] orientations, Vector3D[] angularVelocities)
    {
       if (timeAtWaypoints.length != orientations.length || angularVelocities != null && orientations.length != angularVelocities.length)
          throw new RuntimeException("Arguments are inconsistent.");
@@ -227,12 +240,29 @@ public class MultipleWaypointsOrientationTrajectoryGenerator extends Orientation
    @Override
    public void compute(double time)
    {
-      currentTrajectoryTime.set(time);
+      if (isEmpty())
+      {
+         throw new RuntimeException("Can not call compute on an empty trajectory.");
+      }
 
-      if (currentWaypointIndex.getIntegerValue() < numberOfWaypoints.getIntegerValue() - 2
+      currentTrajectoryTime.set(time);
+      boolean changedSubTrajectory = false;
+
+      if (time < waypoints.get(currentWaypointIndex.getIntegerValue()).getTime())
+      {
+         currentWaypointIndex.set(0);
+         changedSubTrajectory = true;
+      }
+
+      while (currentWaypointIndex.getIntegerValue() < numberOfWaypoints.getIntegerValue() - 2
             && time >= waypoints.get(currentWaypointIndex.getIntegerValue() + 1).getTime())
       {
          currentWaypointIndex.increment();
+         changedSubTrajectory = true;
+      }
+
+      if (changedSubTrajectory)
+      {
          initializeSubTrajectory(currentWaypointIndex.getIntegerValue());
       }
 
@@ -300,6 +330,11 @@ public class MultipleWaypointsOrientationTrajectoryGenerator extends Orientation
    public double getLastWaypointTime()
    {
       return waypoints.get(numberOfWaypoints.getIntegerValue() - 1).getTime();
+   }
+
+   public void getLastWaypoint(FrameSO3TrajectoryPoint pointToPack)
+   {
+      pointToPack.set(waypoints.get(numberOfWaypoints.getIntegerValue() - 1));
    }
 
    @Override

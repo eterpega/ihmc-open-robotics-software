@@ -2,7 +2,7 @@ package us.ihmc.quadrupedRobotics.controller.force.speedTorqueLimits;
 
 import java.io.IOException;
 
-import javax.vecmath.Vector3d;
+import us.ihmc.euclid.tuple3D.Vector3D;
 
 import us.ihmc.commonWalkingControlModules.pushRecovery.PushRobotTestConductor;
 import us.ihmc.quadrupedRobotics.QuadrupedForceTestYoVariables;
@@ -13,7 +13,7 @@ import us.ihmc.quadrupedRobotics.QuadrupedTestGoals;
 import us.ihmc.quadrupedRobotics.controller.QuadrupedControlMode;
 import us.ihmc.quadrupedRobotics.simulation.QuadrupedGroundContactModelType;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
-import us.ihmc.simulationconstructionset.util.simulationRunner.GoalOrientedTestConductor;
+import us.ihmc.simulationConstructionSetTools.util.simulationrunner.GoalOrientedTestConductor;
 import us.ihmc.tools.thread.ThreadTools;
 
 public abstract class QuadrupedSpeedTorqueLimitGraphing implements QuadrupedMultiRobotTestInterface
@@ -94,7 +94,7 @@ public abstract class QuadrupedSpeedTorqueLimitGraphing implements QuadrupedMult
       {
          try
          {
-            pusher.applyForce(new Vector3d(0.0, 0.0, -1.0), force, dt);
+            pusher.applyForce(new Vector3D(0.0, 0.0, -1.0), force, dt);
             
             conductor.addSustainGoal(QuadrupedTestGoals.notFallen(variables));
             conductor.addTerminalGoal(QuadrupedTestGoals.timeInFuture(variables, dt));

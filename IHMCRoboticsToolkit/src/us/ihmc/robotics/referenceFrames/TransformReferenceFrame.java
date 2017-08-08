@@ -1,6 +1,6 @@
 package us.ihmc.robotics.referenceFrames;
 
-import us.ihmc.robotics.geometry.RigidBodyTransform;
+import us.ihmc.euclid.transform.RigidBodyTransform;
 
 public class TransformReferenceFrame extends ReferenceFrame
 {
@@ -9,7 +9,7 @@ public class TransformReferenceFrame extends ReferenceFrame
 
    public TransformReferenceFrame(String frameName, ReferenceFrame parentFrame)
    {
-      super(frameName, parentFrame, false, false, false);
+      super(frameName, parentFrame);
    }
 
    public TransformReferenceFrame(String frameName, ReferenceFrame parentFrame, RigidBodyTransform transformToParent)

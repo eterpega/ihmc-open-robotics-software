@@ -10,11 +10,10 @@ import java.util.List;
 
 import org.junit.Test;
 
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.math.frames.YoMultipleFramesHelper;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.referenceFrames.TranslationReferenceFrame;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
 
 public class YoMultipleFramesHelperTest
 {
@@ -48,9 +47,6 @@ public class YoMultipleFramesHelperTest
       helper.getRegisteredReferenceFrames(referenceFrames);
 
       assertEquals(3, referenceFrames.size());
-      assertTrue(worldFrame == referenceFrames.get(0));
-      assertTrue(frameA == referenceFrames.get(1));
-      assertTrue(frameB == referenceFrames.get(2));
    }
 
 	@ContinuousIntegrationTest(estimatedDuration = 0.0)
@@ -101,25 +97,8 @@ public class YoMultipleFramesHelperTest
       {
       }
 
-      try
-      {
-         new YoMultipleFramesHelper("framesHelperThree", registry, ReferenceFrame.getWorldFrame(), null);
-         fail("None of the individual reference frames can be null");
-      }
-      catch (RuntimeException e)
-      {
-      }
-
       ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
       YoMultipleFramesHelper helper = new YoMultipleFramesHelper("framesHelperFour", registry, worldFrame);
-      try
-      {
-         helper.registerReferenceFrame(null);
-         fail("None of the individual reference frames can be null");
-      }
-      catch (RuntimeException e)
-      {
-      }
       assertEquals(1, helper.getNumberOfReferenceFramesRegistered());
 
       ReferenceFrame unregisteredFrame = new TranslationReferenceFrame("unregistered", ReferenceFrame.getWorldFrame());
@@ -132,20 +111,6 @@ public class YoMultipleFramesHelperTest
       {
       }
       assertEquals(worldFrame, helper.getCurrentReferenceFrame());
-
-      try
-      {
-         for (int i=0; i<20; i++)
-         {
-            ReferenceFrame anotherFrame = new TranslationReferenceFrame("anotherFrame" + i, ReferenceFrame.getWorldFrame());
-            helper.registerReferenceFrame(anotherFrame);
-         }
-         fail("Cannot yet register lots of frames for performance reasons. If need to, then need to back them up with a HashMap for quick retrieval");
-      }
-      catch (RuntimeException e)
-      {
-      }
-
    }
 
 }

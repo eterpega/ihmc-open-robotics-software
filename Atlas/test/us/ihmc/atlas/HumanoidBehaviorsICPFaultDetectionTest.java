@@ -3,9 +3,10 @@ package us.ihmc.atlas;
 
 import us.ihmc.avatar.DRCHumanoidBehaviorICPFaultDetectionTest;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
-import us.ihmc.simulationconstructionset.bambooTools.BambooTools;
-import us.ihmc.tools.continuousIntegration.IntegrationCategory;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationPlan;
+import us.ihmc.avatar.drcRobot.RobotTarget;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationPlan;
+import us.ihmc.continuousIntegration.IntegrationCategory;
+import us.ihmc.simulationConstructionSetTools.bambooTools.BambooTools;
 
 
 @ContinuousIntegrationPlan(categories = {IntegrationCategory.IN_DEVELOPMENT})
@@ -13,7 +14,7 @@ public class HumanoidBehaviorsICPFaultDetectionTest extends DRCHumanoidBehaviorI
 {  
    public DRCRobotModel getRobotModel()
    {
-      return new AtlasRobotModel(AtlasRobotVersion.ATLAS_UNPLUGGED_V5_NO_HANDS, DRCRobotModel.RobotTarget.SCS, false);
+      return new AtlasRobotModel(AtlasRobotVersion.ATLAS_UNPLUGGED_V5_NO_HANDS, RobotTarget.SCS, false);
    }
 
    public String getSimpleRobotName()

@@ -2,19 +2,18 @@ package us.ihmc.commonWalkingControlModules.controlModules.foot;
 
 import java.awt.Color;
 
-import javax.vecmath.Vector2d;
-
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.CenterOfPressureCommand;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.InverseDynamicsCommand;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicPosition.GraphicType;
-import us.ihmc.graphics3DDescription.yoGraphics.plotting.YoArtifactPosition;
+import us.ihmc.euclid.tuple2D.Vector2D;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition.GraphicType;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.graphicsDescription.yoGraphics.plotting.YoArtifactPosition;
 import us.ihmc.humanoidRobotics.bipedSupportPolygons.ContactableFoot;
 import us.ihmc.robotics.MathTools;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.IntegerYoVariable;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoInteger;
 import us.ihmc.robotics.geometry.FrameConvexPolygon2d;
 import us.ihmc.robotics.geometry.FramePoint2d;
 import us.ihmc.robotics.math.frames.YoFramePoint2d;
@@ -26,17 +25,17 @@ import us.ihmc.robotics.referenceFrames.ReferenceFrame;
  */
 public class ExplorationHelper
 {
-   private final BooleanYoVariable footholdExplorationActive;
+   private final YoBoolean footholdExplorationActive;
    private final ExplorationParameters explorationParameters;
    private final ReferenceFrame soleFrame;
 
    private final FramePoint2d desiredCenterOfPressure = new FramePoint2d();
-   private final DoubleYoVariable copCommandWeight;
-   private final Vector2d commandWeight = new Vector2d();
+   private final YoDouble copCommandWeight;
+   private final Vector2D commandWeight = new Vector2D();
    private final CenterOfPressureCommand centerOfPressureCommand = new CenterOfPressureCommand();
 
-   private final DoubleYoVariable startTime;
-   private final DoubleYoVariable timeExploring;
+   private final YoDouble startTime;
+   private final YoDouble timeExploring;
    private final PartialFootholdControlModule partialFootholdControlModule;
 
    private int currentCornerIdx = 0;
@@ -44,17 +43,17 @@ public class ExplorationHelper
    private double lastShrunkTime = 0.0;
    private final FrameConvexPolygon2d supportPolygon = new FrameConvexPolygon2d();
    private final FramePoint2d currentCorner = new FramePoint2d();
-   private final IntegerYoVariable yoCurrentCorner;
+   private final YoInteger yoCurrentCorner;
 
    private final FramePoint2d desiredCopInWorld = new FramePoint2d();
    private final YoFramePoint2d yoDesiredCop;
 
    public ExplorationHelper(ContactableFoot contactableFoot, FootControlHelper footControlHelper, String prefix, YoVariableRegistry registry)
    {
-      footholdExplorationActive = new BooleanYoVariable(prefix + "FootholdExplorationActive", registry);
-      timeExploring = new DoubleYoVariable(prefix + "TimeExploring", registry);
-      startTime = new DoubleYoVariable(prefix + "StartTime", registry);
-      yoCurrentCorner = new IntegerYoVariable(prefix + "CurrentCornerExplored", registry);
+      footholdExplorationActive = new YoBoolean(prefix + "FootholdExplorationActive", registry);
+      timeExploring = new YoDouble(prefix + "TimeExploring", registry);
+      startTime = new YoDouble(prefix + "StartTime", registry);
+      yoCurrentCorner = new YoInteger(prefix + "CurrentCornerExplored", registry);
 
       centerOfPressureCommand.setContactingRigidBody(contactableFoot.getRigidBody());
       explorationParameters = footControlHelper.getWalkingControllerParameters().getOrCreateExplorationParameters(registry);
@@ -65,7 +64,7 @@ public class ExplorationHelper
       soleFrame = footControlHelper.getContactableFoot().getSoleFrame();
       partialFootholdControlModule = footControlHelper.getPartialFootholdControlModule();
 
-      YoGraphicsListRegistry graphicObjectsListRegistry = footControlHelper.getMomentumBasedController().getDynamicGraphicObjectsListRegistry();
+      YoGraphicsListRegistry graphicObjectsListRegistry = footControlHelper.getHighLevelHumanoidControllerToolbox().getYoGraphicsListRegistry();
       if (graphicObjectsListRegistry != null)
       {
          yoDesiredCop = new YoFramePoint2d(prefix + "DesiredExplorationCop", ReferenceFrame.getWorldFrame(), registry);
@@ -139,13 +138,13 @@ public class ExplorationHelper
 
       currentCorner.changeFrame(soleFrame);
       centroid.changeFrame(soleFrame);
-      desiredCenterOfPressure.changeFrame(soleFrame);
+      desiredCenterOfPressure.setToZero(soleFrame);
 
       double timeExploringCurrentCorner = timeExploring - (double)currentCornerIdx * timeToExploreCorner;
       if (timeExploringCurrentCorner <= timeToGoToCorner)
       {
          double percent = timeExploringCurrentCorner / timeToGoToCorner;
-         percent = MathTools.clipToMinMax(percent, 0.0, 1.0);
+         percent = MathTools.clamp(percent, 0.0, 1.0);
          desiredCenterOfPressure.interpolate(centroid, currentCorner, percent);
       }
       else

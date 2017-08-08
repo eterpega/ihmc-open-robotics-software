@@ -1,7 +1,7 @@
 package us.ihmc.robotics.referenceFrames;
 
+import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.robotics.geometry.FrameOrientation;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
 
 public class OrientationFrame extends ReferenceFrame
 {
@@ -11,7 +11,7 @@ public class OrientationFrame extends ReferenceFrame
 
    public OrientationFrame(FrameOrientation orientation)
    {
-      super("Orientation_" + orientationNumber, orientation.getReferenceFrame(), false, false, false);
+      super("Orientation_" + orientationNumber, orientation.getReferenceFrame());
 
       orientationNumber++;
 

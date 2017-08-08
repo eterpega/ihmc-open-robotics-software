@@ -3,10 +3,6 @@ package us.ihmc.avatar.pushRecovery;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import javax.vecmath.Point3d;
-import javax.vecmath.Quat4d;
-import javax.vecmath.Vector3d;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,22 +12,23 @@ import us.ihmc.avatar.MultiRobotTestInterface;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
 import us.ihmc.avatar.initialSetup.OffsetAndYawRobotInitialSetup;
 import us.ihmc.avatar.testTools.DRCSimulationTestHelper;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataListMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage;
-import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage.FootstepOrigin;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
+import us.ihmc.simulationConstructionSetTools.bambooTools.BambooTools;
+import us.ihmc.simulationConstructionSetTools.robotController.SimpleRobotController;
+import us.ihmc.simulationConstructionSetTools.util.environments.FlatGroundEnvironment;
 import us.ihmc.simulationToolkit.controllers.PushRobotController;
-import us.ihmc.simulationconstructionset.bambooTools.BambooTools;
-import us.ihmc.simulationconstructionset.bambooTools.SimulationTestingParameters;
-import us.ihmc.simulationconstructionset.robotController.SimpleRobotController;
-import us.ihmc.simulationconstructionset.util.environments.FlatGroundEnvironment;
 import us.ihmc.simulationconstructionset.util.simulationRunner.BlockingSimulationRunner.SimulationExceededMaximumTimeException;
+import us.ihmc.simulationconstructionset.util.simulationTesting.SimulationTestingParameters;
 import us.ihmc.tools.MemoryTools;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
 import us.ihmc.tools.thread.ThreadTools;
 
 public abstract class HumanoidMomentumRecoveryTest implements MultiRobotTestInterface
@@ -39,21 +36,43 @@ public abstract class HumanoidMomentumRecoveryTest implements MultiRobotTestInte
    private static final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
 
    private SimulationTestingParameters simulationTestingParameters = SimulationTestingParameters.createFromEnvironmentVariables();
-   private OffsetAndYawRobotInitialSetup location = new OffsetAndYawRobotInitialSetup(new Vector3d(0.0, 0.0, 0.0), 0.0);
+   private OffsetAndYawRobotInitialSetup location = new OffsetAndYawRobotInitialSetup(new Vector3D(0.0, 0.0, 0.0), 0.0);
    private DRCSimulationTestHelper drcSimulationTestHelper;
    private PushRobotController pushController;
 
-   private BooleanYoVariable allowUpperBodyMomentumInSingleSupport;
-   private BooleanYoVariable allowUpperBodyMomentumInDoubleSupport;
-   private BooleanYoVariable allowUsingHighMomentumWeight;
+   private YoBoolean allowUpperBodyMomentumInSingleSupport;
+   private YoBoolean allowUpperBodyMomentumInDoubleSupport;
+   private YoBoolean allowUsingHighMomentumWeight;
 
-   private DoubleYoVariable swingTime;
+   protected double getDoubleSupportPushMagnitude()
+   {
+      return 1000.0;
+   }
 
-   private static final double doubleSupportPushMagnitude = 1000.0;
-   private static final double doubleSupportPushDuration = 0.05;
+   protected double getDoubleSupportPushDuration()
+   {
+      return 0.05;
+   }
 
-   private static final double singleSupportPushMagnitude = 600.0;
-   private static final double singleSupportPushDuration = 0.05;
+   protected double getSingleSupportPushMagnitude()
+   {
+      return 600.0;
+   }
+
+   protected double getSingleSupportPushDuration()
+   {
+      return 0.05;
+   }
+   
+   protected double getXOffsetForSteps()
+   {
+      return 0.6;
+   }
+
+   protected double getYOffsetForSteps()
+   {
+      return 0.15;
+   }
 
    @ContinuousIntegrationTest(estimatedDuration = 30.6)
    @Test(timeout = 150000)
@@ -134,11 +153,14 @@ public abstract class HumanoidMomentumRecoveryTest implements MultiRobotTestInte
       enableMomentum();
       ControllerSpy controllerSpy = new ControllerSpy(drcSimulationTestHelper);
 
+      double yOffset = getYOffsetForSteps();
+      double xOffset = getXOffsetForSteps();
+      
       FootstepDataListMessage message = new FootstepDataListMessage();
-      addFootstep(new Point3d(0.3, 0.15, -0.02), RobotSide.LEFT, message);
-      addFootstep(new Point3d(0.6, -0.15, -0.02), RobotSide.RIGHT, message);
-      addFootstep(new Point3d(0.6, 0.3, -0.02), RobotSide.LEFT, message);
-      addFootstep(new Point3d(0.6, 0.0, -0.02), RobotSide.RIGHT, message);
+      addFootstep(new Point3D(xOffset / 2.0, yOffset, -0.02), RobotSide.LEFT, message);
+      addFootstep(new Point3D(xOffset, -yOffset, -0.02), RobotSide.RIGHT, message);
+      addFootstep(new Point3D(xOffset, yOffset * 2.0, -0.02), RobotSide.LEFT, message);
+      addFootstep(new Point3D(xOffset, 0.0, -0.02), RobotSide.RIGHT, message);
 
       drcSimulationTestHelper.send(message);
       double simulationTime = 1.0 * message.footstepDataList.size() + 2.0;
@@ -148,48 +170,45 @@ public abstract class HumanoidMomentumRecoveryTest implements MultiRobotTestInte
       assertFalse(controllerSpy.wasWeightTriggered());
    }
 
-   private void addFootstep(Point3d stepLocation, RobotSide robotSide, FootstepDataListMessage message)
+   private void addFootstep(Point3D stepLocation, RobotSide robotSide, FootstepDataListMessage message)
    {
       FootstepDataMessage footstepData = new FootstepDataMessage();
       footstepData.setLocation(stepLocation);
-      footstepData.setOrientation(new Quat4d(0.0, 0.0, 0.0, 1.0));
+      footstepData.setOrientation(new Quaternion(0.0, 0.0, 0.0, 1.0));
       footstepData.setRobotSide(robotSide);
-      footstepData.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
       message.add(footstepData);
    }
 
    private boolean standAndPush() throws SimulationExceededMaximumTimeException
    {
       assertTrue(drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(1.0));
-      pushController.applyForce(new Vector3d(1.0, 0.0, 0.0), doubleSupportPushMagnitude, doubleSupportPushDuration);
+      pushController.applyForce(new Vector3D(1.0, 0.0, 0.0), getDoubleSupportPushMagnitude(), getDoubleSupportPushDuration());
       return drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(10.0);
    }
 
    private boolean stepAndPush() throws SimulationExceededMaximumTimeException
    {
-      swingTime.set(3.0);
-
       assertTrue(drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(1.0));
 
-      FootstepDataListMessage message = new FootstepDataListMessage();
+      FootstepDataListMessage message = new FootstepDataListMessage(3.0, 0.3);
       FootstepDataMessage footstepData = new FootstepDataMessage();
       RobotSide stepSide = RobotSide.LEFT;
 
+      double xOffset = getXOffsetForSteps();
       ReferenceFrame soleFrame = drcSimulationTestHelper.getControllerFullRobotModel().getSoleFrame(stepSide);
       FramePoint placeToStepInWorld = new FramePoint(soleFrame, 0.3, 0.0, 0.0);
       placeToStepInWorld.changeFrame(worldFrame);
 
       footstepData.setLocation(placeToStepInWorld.getPointCopy());
-      footstepData.setOrientation(new Quat4d(0.0, 0.0, 0.0, 1.0));
+      footstepData.setOrientation(new Quaternion(0.0, 0.0, 0.0, 1.0));
       footstepData.setRobotSide(stepSide);
-      footstepData.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
       message.add(footstepData);
 
       drcSimulationTestHelper.send(message);
       assertTrue(drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(2.0));
 
       // push the robot
-      pushController.applyForce(new Vector3d(0.0, -1.0, 0.0), singleSupportPushMagnitude, singleSupportPushDuration);
+      pushController.applyForce(new Vector3D(0.0, -1.0, 0.0), getSingleSupportPushMagnitude(), getSingleSupportPushDuration());
       return drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(5.0);
    }
 
@@ -224,29 +243,27 @@ public abstract class HumanoidMomentumRecoveryTest implements MultiRobotTestInte
       };
       DRCRobotModel robotModel = getRobotModel();
       drcSimulationTestHelper = new DRCSimulationTestHelper(emptyEnvironment, className, startingLocation, simulationTestingParameters, robotModel);
-      Vector3d forcePointOffset = new Vector3d(0.0, 0.0, 0.1);
+      Vector3D forcePointOffset = new Vector3D(0.0, 0.0, 0.1);
       pushController = new PushRobotController(drcSimulationTestHelper.getRobot(), drcSimulationTestHelper.getRobot().getRootJoint().getName(), forcePointOffset);
 
-      allowUpperBodyMomentumInSingleSupport = (BooleanYoVariable) drcSimulationTestHelper.getYoVariable("allowUpperBodyMomentumInSingleSupport");
-      allowUpperBodyMomentumInDoubleSupport = (BooleanYoVariable) drcSimulationTestHelper.getYoVariable("allowUpperBodyMomentumInDoubleSupport");
-      allowUsingHighMomentumWeight = (BooleanYoVariable) drcSimulationTestHelper.getYoVariable("allowUsingHighMomentumWeight");
-
-      swingTime = (DoubleYoVariable) drcSimulationTestHelper.getYoVariable("swingTime");
+      allowUpperBodyMomentumInSingleSupport = (YoBoolean) drcSimulationTestHelper.getYoVariable("allowUpperBodyMomentumInSingleSupport");
+      allowUpperBodyMomentumInDoubleSupport = (YoBoolean) drcSimulationTestHelper.getYoVariable("allowUpperBodyMomentumInDoubleSupport");
+      allowUsingHighMomentumWeight = (YoBoolean) drcSimulationTestHelper.getYoVariable("allowUsingHighMomentumWeight");
 
       ThreadTools.sleep(1000);
    }
 
    private void setupCameraBackView()
    {
-      Point3d cameraFix = new Point3d(0.0, 0.0, 1.0);
-      Point3d cameraPosition = new Point3d(-10.0, 0.0, 1.0);
+      Point3D cameraFix = new Point3D(0.0, 0.0, 1.0);
+      Point3D cameraPosition = new Point3D(-10.0, 0.0, 1.0);
       drcSimulationTestHelper.setupCameraForUnitTest(cameraFix, cameraPosition);
    }
 
    private void setupCameraSideView()
    {
-      Point3d cameraFix = new Point3d(0.0, 0.0, 1.0);
-      Point3d cameraPosition = new Point3d(0.0, 10.0, 1.0);
+      Point3D cameraFix = new Point3D(0.0, 0.0, 1.0);
+      Point3D cameraPosition = new Point3D(0.0, 10.0, 1.0);
       drcSimulationTestHelper.setupCameraForUnitTest(cameraFix, cameraPosition);
    }
 
@@ -277,16 +294,16 @@ public abstract class HumanoidMomentumRecoveryTest implements MultiRobotTestInte
 
    private class ControllerSpy extends SimpleRobotController
    {
-      private final BooleanYoVariable usingUpperBodyMomentum;
-      private final BooleanYoVariable usingHighMomentumWeight;
+      private final YoBoolean usingUpperBodyMomentum;
+      private final YoBoolean usingHighMomentumWeight;
 
-      private final BooleanYoVariable momentumWasTriggered = new BooleanYoVariable("momentumWasTriggered", registry);
-      private final BooleanYoVariable weightWasTriggered = new BooleanYoVariable("weightWasTriggered", registry);
+      private final YoBoolean momentumWasTriggered = new YoBoolean("momentumWasTriggered", registry);
+      private final YoBoolean weightWasTriggered = new YoBoolean("weightWasTriggered", registry);
 
       public ControllerSpy(DRCSimulationTestHelper drcSimulationTestHelper)
       {
-         usingUpperBodyMomentum = (BooleanYoVariable) drcSimulationTestHelper.getYoVariable("usingUpperBodyMomentum");
-         usingHighMomentumWeight = (BooleanYoVariable) drcSimulationTestHelper.getYoVariable("usingHighMomentumWeight");
+         usingUpperBodyMomentum = (YoBoolean) drcSimulationTestHelper.getYoVariable("usingUpperBodyMomentum");
+         usingHighMomentumWeight = (YoBoolean) drcSimulationTestHelper.getYoVariable("usingHighMomentumWeight");
          drcSimulationTestHelper.addRobotControllerOnControllerThread(this);
       }
 

@@ -6,7 +6,13 @@ import java.util.Map;
 import org.ejml.data.DenseMatrix64F;
 
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics.InverseKinematicsCommand;
+import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics.InverseKinematicsCommandList;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics.InverseKinematicsSolution;
+import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics.JointLimitReductionCommand;
+import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics.JointspaceVelocityCommand;
+import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics.MomentumCommand;
+import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics.PrivilegedConfigurationCommand;
+import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics.SpatialVelocityCommand;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.lowLevel.LowLevelJointControlMode;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.lowLevel.LowLevelOneDoFJointDesiredDataHolder;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.lowLevel.RootJointDesiredConfigurationData;
@@ -15,11 +21,11 @@ import us.ihmc.commonWalkingControlModules.inverseKinematics.InverseKinematicsOp
 import us.ihmc.commonWalkingControlModules.inverseKinematics.InverseKinematicsOptimizationException;
 import us.ihmc.commonWalkingControlModules.inverseKinematics.RobotJointVelocityAccelerationIntegrator;
 import us.ihmc.commonWalkingControlModules.momentumBasedController.optimization.JointIndexHandler;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.robotics.screwTheory.FloatingInverseDynamicsJoint;
 import us.ihmc.robotics.screwTheory.InverseDynamicsJoint;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
-import us.ihmc.robotics.screwTheory.FloatingInverseDynamicsJoint;
 
 public class WholeBodyInverseKinematicsSolver
 {
@@ -30,8 +36,8 @@ public class WholeBodyInverseKinematicsSolver
 
    private final RootJointDesiredConfigurationData rootJointDesiredConfiguration = new RootJointDesiredConfigurationData();
    private final LowLevelOneDoFJointDesiredDataHolder lowLevelOneDoFJointDesiredDataHolder = new LowLevelOneDoFJointDesiredDataHolder();
-   private final Map<OneDoFJoint, DoubleYoVariable> jointVelocitiesSolution = new HashMap<>();
-   private final Map<OneDoFJoint, DoubleYoVariable> jointPositionsSolution = new HashMap<>();
+   private final Map<OneDoFJoint, YoDouble> jointVelocitiesSolution = new HashMap<>();
+   private final Map<OneDoFJoint, YoDouble> jointPositionsSolution = new HashMap<>();
 
    private final FloatingInverseDynamicsJoint rootJoint;
    private final OneDoFJoint[] controlledOneDoFJoints;
@@ -40,7 +46,7 @@ public class WholeBodyInverseKinematicsSolver
 
    public WholeBodyInverseKinematicsSolver(WholeBodyControlCoreToolbox toolbox, YoVariableRegistry parentRegistry)
    {
-      rootJoint = toolbox.getRobotRootJoint();
+      rootJoint = toolbox.getRootJoint();
       jointIndexHandler = toolbox.getJointIndexHandler();
       jointsToOptimizeFor = jointIndexHandler.getIndexedJoints();
       controlledOneDoFJoints = jointIndexHandler.getIndexedOneDoFJoints();
@@ -53,8 +59,8 @@ public class WholeBodyInverseKinematicsSolver
       for (int i = 0; i < controlledOneDoFJoints.length; i++)
       {
          OneDoFJoint joint = controlledOneDoFJoints[i];
-         DoubleYoVariable jointVelocitySolution = new DoubleYoVariable("qd_qp_" + joint.getName(), registry);
-         DoubleYoVariable jointPositionSolution = new DoubleYoVariable("q_qp_" + joint.getName(), registry);
+         YoDouble jointVelocitySolution = new YoDouble("qd_qp_" + joint.getName(), registry);
+         YoDouble jointPositionSolution = new YoDouble("q_qp_" + joint.getName(), registry);
          jointVelocitySolution.set(Double.NaN);
          jointPositionSolution.set(Double.NaN);
          jointVelocitiesSolution.put(joint, jointVelocitySolution);
@@ -91,9 +97,12 @@ public class WholeBodyInverseKinematicsSolver
       DenseMatrix64F jointConfigurations = integrator.getJointConfigurations();
       jointVelocities = integrator.getJointVelocities();
 
-      int[] rootJointIndices = jointIndexHandler.getJointIndices(rootJoint);
-      rootJointDesiredConfiguration.setDesiredConfiguration(jointConfigurations, rootJointIndices[0]);
-      rootJointDesiredConfiguration.setDesiredVelocity(jointVelocities, rootJointIndices[0]);
+      if (rootJoint != null)
+      {
+         int[] rootJointIndices = jointIndexHandler.getJointIndices(rootJoint);
+         rootJointDesiredConfiguration.setDesiredConfiguration(jointConfigurations, rootJointIndices[0]);
+         rootJointDesiredConfiguration.setDesiredVelocity(jointVelocities, rootJointIndices[0]);
+      }
 
       for (int i = 0; i < controlledOneDoFJoints.length; i++)
       {
@@ -103,7 +112,7 @@ public class WholeBodyInverseKinematicsSolver
          lowLevelOneDoFJointDesiredDataHolder.setDesiredJointVelocity(joint, desiredVelocity);
          jointVelocitiesSolution.get(joint).set(desiredVelocity);
 
-         if (jointIndex > rootJointIndices[rootJointIndices.length - 1])
+         if (rootJoint != null)
             jointIndex++; // Because of quaternion :/
          double desiredPosition = jointConfigurations.get(jointIndex, 0);
          lowLevelOneDoFJointDesiredDataHolder.setDesiredJointPosition(joint, desiredPosition);
@@ -111,9 +120,36 @@ public class WholeBodyInverseKinematicsSolver
       }
    }
 
-   public void submitInverseKinematicsCommand(InverseKinematicsCommand<?> inverseKinematicsCommand)
+   public void submitInverseKinematicsCommandList(InverseKinematicsCommandList inverseKinematicsCommandList)
    {
-      optimizationControlModule.submitInverseKinematicsCommand(inverseKinematicsCommand);
+      while (inverseKinematicsCommandList.getNumberOfCommands() > 0)
+      {
+         InverseKinematicsCommand<?> command = inverseKinematicsCommandList.pollCommand();
+
+         switch (command.getCommandType())
+         {
+         case TASKSPACE:
+            optimizationControlModule.submitSpatialVelocityCommand((SpatialVelocityCommand) command);
+            break;
+         case JOINTSPACE:
+            optimizationControlModule.submitJointspaceVelocityCommand((JointspaceVelocityCommand) command);
+            break;
+         case MOMENTUM:
+            optimizationControlModule.submitMomentumCommand((MomentumCommand) command);
+            break;
+         case PRIVILEGED_CONFIGURATION:
+            optimizationControlModule.submitPrivilegedConfigurationCommand((PrivilegedConfigurationCommand) command);
+            break;
+         case LIMIT_REDUCTION:
+            optimizationControlModule.submitJointLimitReductionCommand((JointLimitReductionCommand) command);
+            break;
+         case COMMAND_LIST:
+            submitInverseKinematicsCommandList((InverseKinematicsCommandList) command);
+            break;
+         default:
+            throw new RuntimeException("The command type: " + command.getCommandType() + " is not handled.");
+         }
+      }
    }
 
    public LowLevelOneDoFJointDesiredDataHolder getOutput()

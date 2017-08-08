@@ -1,34 +1,33 @@
 package us.ihmc.quadrupedRobotics.estimator;
 
-import us.ihmc.graphics3DDescription.Graphics3DObject;
-import us.ihmc.graphics3DDescription.appearance.AppearanceDefinition;
-import us.ihmc.graphics3DDescription.appearance.YoAppearance;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicShape;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
+import us.ihmc.graphicsDescription.Graphics3DObject;
+import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
+import us.ihmc.graphicsDescription.appearance.YoAppearance;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicShape;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FrameVector;
 import us.ihmc.robotics.geometry.LeastSquaresZPlaneFitter;
-import us.ihmc.robotics.geometry.shapes.Plane3d;
 import us.ihmc.robotics.math.frames.YoFrameOrientation;
 import us.ihmc.robotics.math.frames.YoFramePoint;
 import us.ihmc.robotics.math.frames.YoFrameVector;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.QuadrantDependentList;
 import us.ihmc.robotics.robotSide.RobotQuadrant;
-
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector3d;
+import us.ihmc.euclid.geometry.Plane3D;
+import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple3D.Vector3D;
 import java.util.ArrayList;
 import java.util.List;
 
 public class GroundPlaneEstimator
 {
    public final static int MAX_GROUND_PLANE_POINTS = 100;
-   private final Plane3d groundPlane = new Plane3d();
-   private final Vector3d groundPlaneNormal = new Vector3d();
-   private final Point3d groundPlanePoint = new Point3d();
-   private final ArrayList<Point3d> groundPlanePoints = new ArrayList<>(MAX_GROUND_PLANE_POINTS);
+   private final Plane3D groundPlane = new Plane3D();
+   private final Vector3D groundPlaneNormal = new Vector3D();
+   private final Point3D groundPlanePoint = new Point3D();
+   private final ArrayList<Point3D> groundPlanePoints = new ArrayList<>(MAX_GROUND_PLANE_POINTS);
    private final LeastSquaresZPlaneFitter planeFitter = new LeastSquaresZPlaneFitter();
    private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
    private final YoFramePoint yoGroundPlanePoint = new YoFramePoint("groundPlanePoint", ReferenceFrame.getWorldFrame(), registry);
@@ -101,7 +100,7 @@ public class GroundPlaneEstimator
    /**
     * @param plane3d : ground plane in World Frame
     */
-   public void getPlane(Plane3d plane3d)
+   public void getPlane(Plane3D plane3d)
    {
       plane3d.set(groundPlane);
    }
@@ -136,7 +135,7 @@ public class GroundPlaneEstimator
    /**
     * @param point : point in world frame to be vertically projected onto ground plane
     */
-   public void projectZ(Point3d point)
+   public void projectZ(Point3D point)
    {
       point.setZ(groundPlane.getZOnPlane(point.getX(), point.getY()));
    }
@@ -153,7 +152,7 @@ public class GroundPlaneEstimator
    /**
     * @param point : point in world frame to be orthogonally projected onto ground plane
     */
-   public void projectOrthogonal(Point3d point)
+   public void projectOrthogonal(Point3D point)
    {
       groundPlane.orthogonalProjection(point);
    }
@@ -170,7 +169,7 @@ public class GroundPlaneEstimator
     * Add a point to the list of ground contact points.
     * @param contactPoint : ground contact point in world frame
     */
-   public void addContactPoint(Point3d contactPoint)
+   public void addContactPoint(Point3D contactPoint)
    {
       groundPlanePoints.add(contactPoint);
    }

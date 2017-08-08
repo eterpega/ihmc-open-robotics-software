@@ -1,14 +1,13 @@
 package us.ihmc.exampleSimulations.simplePendulum;
 
-import us.ihmc.graphics3DDescription.Graphics3DObject;
-import us.ihmc.graphics3DDescription.appearance.YoAppearance;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.graphicsDescription.Graphics3DObject;
+import us.ihmc.graphicsDescription.appearance.YoAppearance;
 import us.ihmc.robotics.Axis;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.simulationconstructionset.Link;
 import us.ihmc.simulationconstructionset.PinJoint;
 import us.ihmc.simulationconstructionset.Robot;
-
-import javax.vecmath.Vector3d;
 
 /**
  *
@@ -41,7 +40,7 @@ public class SimplePendulumRobot extends Robot
    private double fulcrumInitialVelocity = 0.0;
 
    /* Some joint state variables */
-   private DoubleYoVariable tau_fulcrum, q_fulcrum, qd_fulcrum; // Respectively Torque, Position, Velocity
+   private YoDouble tau_fulcrum, q_fulcrum, qd_fulcrum; // Respectively Torque, Position, Velocity
 
    /*
       Define its constructor
@@ -52,7 +51,7 @@ public class SimplePendulumRobot extends Robot
       super("pendulum");
 
       // b. Add a joint to the robot
-      PinJoint fulcrumPinJoint = new PinJoint("FulcrumPin", new Vector3d(0.0, 0.0, 1.5), this, Axis.Y);
+      PinJoint fulcrumPinJoint = new PinJoint("FulcrumPin", new Vector3D(0.0, 0.0, 1.5), this, Axis.Y);
       fulcrumPinJoint.setInitialState(fulcrumInitialPositionRadians, fulcrumInitialVelocity);
       fulcrumPinJoint.setLink(pendulumLink());// pendulumLink() method defined next.
       fulcrumPinJoint.setDamping(0.3);

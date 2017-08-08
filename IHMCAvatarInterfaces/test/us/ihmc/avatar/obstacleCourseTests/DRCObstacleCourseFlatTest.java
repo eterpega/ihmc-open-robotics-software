@@ -6,47 +6,50 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import javax.vecmath.Point3d;
-import javax.vecmath.Quat4d;
-import javax.vecmath.Tuple3d;
-import javax.vecmath.Vector3d;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.avatar.DRCObstacleCourseStartingLocation;
 import us.ihmc.avatar.MultiRobotTestInterface;
 import us.ihmc.avatar.testTools.DRCSimulationTestHelper;
 import us.ihmc.avatar.testTools.ScriptedFootstepGenerator;
 import us.ihmc.avatar.testTools.ScriptedHandstepGenerator;
+import us.ihmc.commonWalkingControlModules.controllerCore.FeedbackControllerDataReadOnly;
+import us.ihmc.commonWalkingControlModules.controllerCore.FeedbackControllerToolbox;
 import us.ihmc.commonWalkingControlModules.desiredFootStep.Handstep;
+import us.ihmc.commons.PrintTools;
 import us.ihmc.communication.controllerAPI.command.Command;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.continuousIntegration.IntegrationCategory;
+import us.ihmc.euclid.geometry.BoundingBox3D;
+import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple3D.interfaces.Tuple3DBasics;
+import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.ChestTrajectoryCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.FootTrajectoryCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.FootstepDataCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.FootstepDataListCommand;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataListMessage;
-import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage.FootstepOrigin;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.geometry.BoundingBox3d;
+import us.ihmc.robotModels.FullHumanoidRobotModel;
+import us.ihmc.robotModels.FullRobotModel;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.geometry.FramePoint;
+import us.ihmc.robotics.math.frames.YoFrameVariableNameTools;
 import us.ihmc.robotics.math.trajectories.waypoints.FrameSE3TrajectoryPointList;
 import us.ihmc.robotics.math.trajectories.waypoints.FrameSO3TrajectoryPointList;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
+import us.ihmc.simulationConstructionSetTools.bambooTools.BambooTools;
+import us.ihmc.simulationConstructionSetTools.util.environments.FlatGroundEnvironment;
 import us.ihmc.simulationToolkit.controllers.OscillateFeetPerturber;
 import us.ihmc.simulationconstructionset.HumanoidFloatingRootJointRobot;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
 import us.ihmc.simulationconstructionset.SimulationDoneCriterion;
-import us.ihmc.simulationconstructionset.bambooTools.BambooTools;
-import us.ihmc.simulationconstructionset.bambooTools.SimulationTestingParameters;
-import us.ihmc.simulationconstructionset.util.environments.FlatGroundEnvironment;
 import us.ihmc.simulationconstructionset.util.simulationRunner.BlockingSimulationRunner.SimulationExceededMaximumTimeException;
+import us.ihmc.simulationconstructionset.util.simulationTesting.SimulationTestingParameters;
 import us.ihmc.tools.MemoryTools;
-import us.ihmc.tools.continuousIntegration.IntegrationCategory;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
 import us.ihmc.tools.thread.ThreadTools;
 
 public abstract class DRCObstacleCourseFlatTest implements MultiRobotTestInterface
@@ -81,7 +84,7 @@ public abstract class DRCObstacleCourseFlatTest implements MultiRobotTestInterfa
 
    // Invoked manually to test memory & thread leaks
 	@ContinuousIntegrationTest(estimatedDuration = 50.0, categoriesOverride = IntegrationCategory.MANUAL)
-	@Test(timeout=300000)
+	@Test
    public void testForMemoryLeaks() throws Exception
    {
       for (int i = 0; i < 10; i++)
@@ -93,7 +96,7 @@ public abstract class DRCObstacleCourseFlatTest implements MultiRobotTestInterfa
    }
 
 	@ContinuousIntegrationTest(estimatedDuration = 15.3)
-	@Test(timeout = 77000)
+	@Test
    public void testStandingForACoupleSeconds() throws SimulationExceededMaximumTimeException
    {
       BambooTools.reportTestStartedMessage(simulationTestingParameters.getShowWindows());
@@ -115,16 +118,16 @@ public abstract class DRCObstacleCourseFlatTest implements MultiRobotTestInterfa
 
       assertTrue(success);
 
-      Point3d center = new Point3d(-8.956281888358388E-4, -3.722237566790175E-7, 0.8882009563211146);
-      Vector3d plusMinusVector = new Vector3d(0.2, 0.2, 0.5);
-      BoundingBox3d boundingBox = BoundingBox3d.createUsingCenterAndPlusMinusVector(center, plusMinusVector);
+      Point3D center = new Point3D(-8.956281888358388E-4, -3.722237566790175E-7, 0.8882009563211146);
+      Vector3D plusMinusVector = new Vector3D(0.2, 0.2, 0.5);
+      BoundingBox3D boundingBox = BoundingBox3D.createUsingCenterAndPlusMinusVector(center, plusMinusVector);
       drcSimulationTestHelper.assertRobotsRootJointIsInBoundingBox(boundingBox);
 
       BambooTools.reportTestFinishedMessage(simulationTestingParameters.getShowWindows());
    }
 
 	@ContinuousIntegrationTest(estimatedDuration = 19.0)
-	@Test(timeout = 95000)
+	@Test
    public void testStandingTooHighToCheckIfSingularityStuffIsWorkingProperly() throws SimulationExceededMaximumTimeException
    {
       BambooTools.reportTestStartedMessage(simulationTestingParameters.getShowWindows());
@@ -139,7 +142,7 @@ public abstract class DRCObstacleCourseFlatTest implements MultiRobotTestInterfa
       boolean success = drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(0.5);
       assertTrue(success);
 
-      DoubleYoVariable offsetHeightAboveGround = (DoubleYoVariable) drcSimulationTestHelper.getSimulationConstructionSet().getVariable("LookAheadCoMHeightTrajectoryGenerator", "offsetHeightAboveGround");
+      YoDouble offsetHeightAboveGround = (YoDouble) drcSimulationTestHelper.getSimulationConstructionSet().getVariable("LookAheadCoMHeightTrajectoryGenerator", "offsetHeightAboveGround");
       offsetHeightAboveGround.set(0.15);
       success = drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(0.5);
       assertTrue(success);
@@ -156,16 +159,16 @@ public abstract class DRCObstacleCourseFlatTest implements MultiRobotTestInterfa
 
       assertTrue(success);
 
-      Point3d center = new Point3d(-8.956281888358388E-4, -3.722237566790175E-7, 0.8882009563211146);
-      Vector3d plusMinusVector = new Vector3d(0.2, 0.2, 0.5);
-      BoundingBox3d boundingBox = BoundingBox3d.createUsingCenterAndPlusMinusVector(center, plusMinusVector);
+      Point3D center = new Point3D(-8.956281888358388E-4, -3.722237566790175E-7, 0.8882009563211146);
+      Vector3D plusMinusVector = new Vector3D(0.2, 0.2, 0.5);
+      BoundingBox3D boundingBox = BoundingBox3D.createUsingCenterAndPlusMinusVector(center, plusMinusVector);
       drcSimulationTestHelper.assertRobotsRootJointIsInBoundingBox(boundingBox);
 
       BambooTools.reportTestFinishedMessage(simulationTestingParameters.getShowWindows());
    }
 
 	@ContinuousIntegrationTest(estimatedDuration = 39.4)
-	@Test(timeout = 200000)
+	@Test
    public void testSimpleFlatGroundScriptWithRandomFootSlip() throws SimulationExceededMaximumTimeException
    {
       BambooTools.reportTestStartedMessage(simulationTestingParameters.getShowWindows());
@@ -200,16 +203,16 @@ public abstract class DRCObstacleCourseFlatTest implements MultiRobotTestInterfa
 
       assertTrue(success);
 
-      Point3d center = new Point3d(1.2315617729419353, 0.14530717103231391, 0.8358344340816537);
-      Vector3d plusMinusVector = new Vector3d(0.2, 0.2, 0.5);
-      BoundingBox3d boundingBox = BoundingBox3d.createUsingCenterAndPlusMinusVector(center, plusMinusVector);
+      Point3D center = new Point3D(1.2315617729419353, 0.14530717103231391, 0.8358344340816537);
+      Vector3D plusMinusVector = new Vector3D(0.2, 0.2, 0.5);
+      BoundingBox3D boundingBox = BoundingBox3D.createUsingCenterAndPlusMinusVector(center, plusMinusVector);
       drcSimulationTestHelper.assertRobotsRootJointIsInBoundingBox(boundingBox);
 
       BambooTools.reportTestFinishedMessage(simulationTestingParameters.getShowWindows());
    }
 
 	  @ContinuousIntegrationTest(estimatedDuration = 39.9)
-	   @Test(timeout = 200000)
+	   @Test
 	   public void testSimpleScripts() throws SimulationExceededMaximumTimeException, IOException
 	   {
 	      BambooTools.reportTestStartedMessage(simulationTestingParameters.getShowWindows());
@@ -261,9 +264,9 @@ public abstract class DRCObstacleCourseFlatTest implements MultiRobotTestInterfa
 
 	      assertTrue(success);
 
-	      Point3d center = new Point3d(0.24, 0.18, 0.8358344340816537);
-	      Vector3d plusMinusVector = new Vector3d(0.2, 0.2, 0.5);
-	      BoundingBox3d boundingBox = BoundingBox3d.createUsingCenterAndPlusMinusVector(center, plusMinusVector);
+	      Point3D center = new Point3D(0.24, 0.18, 0.8358344340816537);
+	      Vector3D plusMinusVector = new Vector3D(0.2, 0.2, 0.5);
+	      BoundingBox3D boundingBox = BoundingBox3D.createUsingCenterAndPlusMinusVector(center, plusMinusVector);
 	      drcSimulationTestHelper.assertRobotsRootJointIsInBoundingBox(boundingBox);
 
 	      BambooTools.reportTestFinishedMessage(simulationTestingParameters.getShowWindows());
@@ -271,7 +274,7 @@ public abstract class DRCObstacleCourseFlatTest implements MultiRobotTestInterfa
 
 
 	  @ContinuousIntegrationTest(estimatedDuration = 29.1)
-	   @Test(timeout = 150000)
+	   @Test
 	   public void testACoupleStepsUsingQueuedControllerCommands() throws SimulationExceededMaximumTimeException
 	   {
 	      BambooTools.reportTestStartedMessage(simulationTestingParameters.getShowWindows());
@@ -289,37 +292,33 @@ public abstract class DRCObstacleCourseFlatTest implements MultiRobotTestInterfa
 	      ThreadTools.sleep(1000);
 	      boolean success = drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(1.0);
 
-//	      BooleanYoVariable walk = (BooleanYoVariable) robot.getVariable("walk");
+//	      YoBoolean walk = (YoBoolean) robot.getVariable("walk");
 //	      walk.set(true);
 
 	      FootstepDataListCommand footstepList = new FootstepDataListCommand();
          FootstepDataCommand footstepCommand = new FootstepDataCommand();
 
-         Point3d position = new Point3d(0.0, 0.2, 0.0);
-         Quat4d orientation = new Quat4d(0.0, 0.0, 0.0, 1.0);
+         Point3D position = new Point3D(0.0, 0.2, 0.0);
+         Quaternion orientation = new Quaternion(0.0, 0.0, 0.0, 1.0);
          footstepCommand.setPose(position, orientation);
-         footstepCommand.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
          footstepCommand.setRobotSide(RobotSide.LEFT);
          footstepList.addFootstep(footstepCommand);
 
-         position = new Point3d(0.3, -0.2, 0.0);
-         orientation = new Quat4d(0.0, 0.0, 0.0, 1.0);
+         position = new Point3D(0.3, -0.2, 0.0);
+         orientation = new Quaternion(0.0, 0.0, 0.0, 1.0);
          footstepCommand.setPose(position, orientation);
-         footstepCommand.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
          footstepCommand.setRobotSide(RobotSide.RIGHT);
          footstepList.addFootstep(footstepCommand);
 
-         position = new Point3d(0.8, 0.2, 0.0);
-         orientation = new Quat4d(0.0, 0.0, 0.0, 1.0);
+         position = new Point3D(0.8, 0.2, 0.0);
+         orientation = new Quaternion(0.0, 0.0, 0.0, 1.0);
          footstepCommand.setPose(position, orientation);
-         footstepCommand.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
          footstepCommand.setRobotSide(RobotSide.LEFT);
          footstepList.addFootstep(footstepCommand);
 
-         position = new Point3d(0.8, -0.2, 0.0);
-         orientation = new Quat4d(0.0, 0.0, 0.0, 1.0);
+         position = new Point3D(0.8, -0.2, 0.0);
+         orientation = new Quaternion(0.0, 0.0, 0.0, 1.0);
          footstepCommand.setPose(position, orientation);
-         footstepCommand.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
          footstepCommand.setRobotSide(RobotSide.RIGHT);
          footstepList.addFootstep(footstepCommand);
 
@@ -330,31 +329,27 @@ public abstract class DRCObstacleCourseFlatTest implements MultiRobotTestInterfa
 	      footstepList = new FootstepDataListCommand();
          footstepCommand = new FootstepDataCommand();
 
-         position = new Point3d(1.0, 0.2, 0.0);
-         orientation = new Quat4d(0.0, 0.0, 0.0, 1.0);
+         position = new Point3D(1.0, 0.2, 0.0);
+         orientation = new Quaternion(0.0, 0.0, 0.0, 1.0);
          footstepCommand.setPose(position, orientation);
-         footstepCommand.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
          footstepCommand.setRobotSide(RobotSide.LEFT);
          footstepList.addFootstep(footstepCommand);
 
-         position = new Point3d(1.3, -0.2, 0.0);
-         orientation = new Quat4d(0.0, 0.0, 0.0, 1.0);
+         position = new Point3D(1.3, -0.2, 0.0);
+         orientation = new Quaternion(0.0, 0.0, 0.0, 1.0);
          footstepCommand.setPose(position, orientation);
-         footstepCommand.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
          footstepCommand.setRobotSide(RobotSide.RIGHT);
          footstepList.addFootstep(footstepCommand);
 
-         position = new Point3d(1.8, 0.2, 0.0);
-         orientation = new Quat4d(0.0, 0.0, 0.0, 1.0);
+         position = new Point3D(1.8, 0.2, 0.0);
+         orientation = new Quaternion(0.0, 0.0, 0.0, 1.0);
          footstepCommand.setPose(position, orientation);
-         footstepCommand.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
          footstepCommand.setRobotSide(RobotSide.LEFT);
          footstepList.addFootstep(footstepCommand);
 
-         position = new Point3d(1.8, -0.2, 0.0);
-         orientation = new Quat4d(0.0, 0.0, 0.0, 1.0);
+         position = new Point3D(1.8, -0.2, 0.0);
+         orientation = new Quaternion(0.0, 0.0, 0.0, 1.0);
          footstepCommand.setPose(position, orientation);
-         footstepCommand.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
          footstepCommand.setRobotSide(RobotSide.RIGHT);
          footstepList.addFootstep(footstepCommand);
 
@@ -370,9 +365,9 @@ public abstract class DRCObstacleCourseFlatTest implements MultiRobotTestInterfa
 
 	      assertTrue(success);
 
-	      Point3d center = new Point3d(1.8, 0.0, 0.78);
-	      Vector3d plusMinusVector = new Vector3d(0.2, 0.2, 0.5);
-	      BoundingBox3d boundingBox = BoundingBox3d.createUsingCenterAndPlusMinusVector(center, plusMinusVector);
+	      Point3D center = new Point3D(1.8, 0.0, 0.78);
+	      Vector3D plusMinusVector = new Vector3D(0.2, 0.2, 0.5);
+	      BoundingBox3D boundingBox = BoundingBox3D.createUsingCenterAndPlusMinusVector(center, plusMinusVector);
 	      drcSimulationTestHelper.assertRobotsRootJointIsInBoundingBox(boundingBox);
 
 	      BambooTools.reportTestFinishedMessage(simulationTestingParameters.getShowWindows());
@@ -380,7 +375,7 @@ public abstract class DRCObstacleCourseFlatTest implements MultiRobotTestInterfa
 
 
      @ContinuousIntegrationTest(estimatedDuration = 31.9)
-     @Test(timeout = 160000)
+     @Test
      public void testACoupleQueuedControllerCommands() throws SimulationExceededMaximumTimeException
      {
         BambooTools.reportTestStartedMessage(simulationTestingParameters.getShowWindows());
@@ -398,23 +393,21 @@ public abstract class DRCObstacleCourseFlatTest implements MultiRobotTestInterfa
         ThreadTools.sleep(1000);
         boolean success = drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(0.25);
 
-//      BooleanYoVariable walk = (BooleanYoVariable) robot.getVariable("walk");
+//      YoBoolean walk = (YoBoolean) robot.getVariable("walk");
 //      walk.set(true);
 
         FootstepDataListCommand footstepList = new FootstepDataListCommand();
         FootstepDataCommand footstepCommand = new FootstepDataCommand();
 
-        Point3d position = new Point3d(0.3, 0.2, 0.0);
-        Quat4d orientation = new Quat4d(0.0, 0.0, 0.0, 1.0);
+        Point3D position = new Point3D(0.3, 0.2, 0.0);
+        Quaternion orientation = new Quaternion(0.0, 0.0, 0.0, 1.0);
         footstepCommand.setPose(position, orientation);
-        footstepCommand.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
         footstepCommand.setRobotSide(RobotSide.LEFT);
         footstepList.addFootstep(footstepCommand);
 
-        position = new Point3d(0.3, -0.2, 0.0);
-        orientation = new Quat4d(0.0, 0.0, 0.0, 1.0);
+        position = new Point3D(0.3, -0.2, 0.0);
+        orientation = new Quaternion(0.0, 0.0, 0.0, 1.0);
         footstepCommand.setPose(position, orientation);
-        footstepCommand.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
         footstepCommand.setRobotSide(RobotSide.RIGHT);
         footstepList.addFootstep(footstepCommand);
 
@@ -423,42 +416,39 @@ public abstract class DRCObstacleCourseFlatTest implements MultiRobotTestInterfa
         // Some chest motions. These will continue during the steps to come afterwards:
         ChestTrajectoryCommand chestCommand = new ChestTrajectoryCommand();
         FrameSO3TrajectoryPointList chestTrajectoryPointList = new FrameSO3TrajectoryPointList();
-        chestTrajectoryPointList.addTrajectoryPoint(0.0, new Quat4d(0.0, 0.0, 0.0, 1.0), new Vector3d());
-        chestTrajectoryPointList.addTrajectoryPoint(1.0, new Quat4d(0.2, 0.0, 0.0, 1.0), new Vector3d());
-        chestTrajectoryPointList.addTrajectoryPoint(2.0, new Quat4d(-0.2, 0.0, 0.0, 1.0), new Vector3d());
-        chestTrajectoryPointList.addTrajectoryPoint(3.0, new Quat4d(0.0, 0.0, 0.0, 1.0), new Vector3d());
-        chestCommand.setIncludingFrame(chestTrajectoryPointList);
+        chestTrajectoryPointList.addTrajectoryPoint(0.0, new Quaternion(0.0, 0.0, 0.0, 1.0), new Vector3D());
+        chestTrajectoryPointList.addTrajectoryPoint(1.0, new Quaternion(0.2, 0.0, 0.0, 1.0), new Vector3D());
+        chestTrajectoryPointList.addTrajectoryPoint(2.0, new Quaternion(-0.2, 0.0, 0.0, 1.0), new Vector3D());
+        chestTrajectoryPointList.addTrajectoryPoint(3.0, new Quaternion(0.0, 0.0, 0.0, 1.0), new Vector3D());
+        chestCommand.setTrajectoryPointList(chestTrajectoryPointList);
+        chestCommand.setTrajectoryFrame(ReferenceFrame.getWorldFrame());
         queuedControllerCommands.add(chestCommand);
 
         // Some more steps:
         footstepList = new FootstepDataListCommand();
         footstepCommand = new FootstepDataCommand();
 
-        position = new Point3d(0.65, 0.2, 0.0);
-        orientation = new Quat4d(0.0, 0.0, 0.0, 1.0);
+        position = new Point3D(0.65, 0.2, 0.0);
+        orientation = new Quaternion(0.0, 0.0, 0.0, 1.0);
         footstepCommand.setPose(position, orientation);
-        footstepCommand.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
         footstepCommand.setRobotSide(RobotSide.LEFT);
         footstepList.addFootstep(footstepCommand);
 
-        position = new Point3d(0.65, -0.2, 0.0);
-        orientation = new Quat4d(0.0, 0.0, 0.0, 1.0);
+        position = new Point3D(0.65, -0.2, 0.0);
+        orientation = new Quaternion(0.0, 0.0, 0.0, 1.0);
         footstepCommand.setPose(position, orientation);
-        footstepCommand.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
         footstepCommand.setRobotSide(RobotSide.RIGHT);
         footstepList.addFootstep(footstepCommand);
 
-        position = new Point3d(1.1, 0.2, 0.0);
-        orientation = new Quat4d(0.0, 0.0, 0.0, 1.0);
+        position = new Point3D(1.1, 0.2, 0.0);
+        orientation = new Quaternion(0.0, 0.0, 0.0, 1.0);
         footstepCommand.setPose(position, orientation);
-        footstepCommand.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
         footstepCommand.setRobotSide(RobotSide.LEFT);
         footstepList.addFootstep(footstepCommand);
 
-        position = new Point3d(1.1, -0.2, 0.0);
-        orientation = new Quat4d(0.0, 0.0, 0.0, 1.0);
+        position = new Point3D(1.1, -0.2, 0.0);
+        orientation = new Quaternion(0.0, 0.0, 0.0, 1.0);
         footstepCommand.setPose(position, orientation);
-        footstepCommand.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
         footstepCommand.setRobotSide(RobotSide.RIGHT);
         footstepList.addFootstep(footstepCommand);
 
@@ -468,13 +458,14 @@ public abstract class DRCObstacleCourseFlatTest implements MultiRobotTestInterfa
         FootTrajectoryCommand footTrajectoryCommand = new FootTrajectoryCommand();
 
         FrameSE3TrajectoryPointList footPointList = new FrameSE3TrajectoryPointList();
-        footPointList.addTrajectoryPoint(0.2, new Point3d(1.1, -0.2, 0.25), new Quat4d(0.0, 0.0, 0.0, 1.0), new Vector3d(), new Vector3d());
-        footPointList.addTrajectoryPoint(0.5, new Point3d(1.1, -0.2, 0.35), new Quat4d(0.0, 0.0, 0.0, 1.0), new Vector3d(), new Vector3d());
-        footPointList.addTrajectoryPoint(1.0, new Point3d(1.1, -0.2, 0.25), new Quat4d(0.0, 0.0, 0.0, 1.0), new Vector3d(), new Vector3d());
-        footPointList.addTrajectoryPoint(2.0, new Point3d(1.1, -0.2, 0.35), new Quat4d(0.0, 0.0, 0.0, 1.0), new Vector3d(), new Vector3d());
+        footPointList.addTrajectoryPoint(0.2, new Point3D(1.1, -0.2, 0.25), new Quaternion(0.0, 0.0, 0.0, 1.0), new Vector3D(), new Vector3D());
+        footPointList.addTrajectoryPoint(0.5, new Point3D(1.1, -0.2, 0.35), new Quaternion(0.0, 0.0, 0.0, 1.0), new Vector3D(), new Vector3D());
+        footPointList.addTrajectoryPoint(1.0, new Point3D(1.1, -0.2, 0.25), new Quaternion(0.0, 0.0, 0.0, 1.0), new Vector3D(), new Vector3D());
+        footPointList.addTrajectoryPoint(2.0, new Point3D(1.1, -0.2, 0.35), new Quaternion(0.0, 0.0, 0.0, 1.0), new Vector3D(), new Vector3D());
 
-        footTrajectoryCommand.setIncludingFrame(footPointList);
+        footTrajectoryCommand.setTrajectoryPointList(footPointList);
         footTrajectoryCommand.setRobotSide(RobotSide.RIGHT);
+        footTrajectoryCommand.setTrajectoryFrame(ReferenceFrame.getWorldFrame());
         queuedControllerCommands.add(footTrajectoryCommand);
 
         success = success && drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(4.0);
@@ -485,9 +476,9 @@ public abstract class DRCObstacleCourseFlatTest implements MultiRobotTestInterfa
 
         assertTrue(success);
 
-        Point3d center = new Point3d(1.1, 0.22, 0.78);
-        Vector3d plusMinusVector = new Vector3d(0.2, 0.2, 0.5);
-        BoundingBox3d boundingBox = BoundingBox3d.createUsingCenterAndPlusMinusVector(center, plusMinusVector);
+        Point3D center = new Point3D(1.1, 0.22, 0.78);
+        Vector3D plusMinusVector = new Vector3D(0.2, 0.2, 0.5);
+        BoundingBox3D boundingBox = BoundingBox3D.createUsingCenterAndPlusMinusVector(center, plusMinusVector);
         drcSimulationTestHelper.assertRobotsRootJointIsInBoundingBox(boundingBox);
 
         BambooTools.reportTestFinishedMessage(simulationTestingParameters.getShowWindows());
@@ -495,7 +486,7 @@ public abstract class DRCObstacleCourseFlatTest implements MultiRobotTestInterfa
 
 
      @ContinuousIntegrationTest(estimatedDuration = 38.5)
-     @Test(timeout = 190000)
+     @Test
      public void testACoupleMoreQueuedControllerCommands() throws SimulationExceededMaximumTimeException
      {
         BambooTools.reportTestStartedMessage(simulationTestingParameters.getShowWindows());
@@ -513,18 +504,18 @@ public abstract class DRCObstacleCourseFlatTest implements MultiRobotTestInterfa
         ThreadTools.sleep(1000);
         boolean success = drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(0.25);
 
-//      BooleanYoVariable walk = (BooleanYoVariable) robot.getVariable("walk");
+//      YoBoolean walk = (YoBoolean) robot.getVariable("walk");
 //      walk.set(true);
 
         FootTrajectoryCommand footTrajectoryCommand = new FootTrajectoryCommand();
 
         FrameSE3TrajectoryPointList footPointList = new FrameSE3TrajectoryPointList();
-        footPointList.addTrajectoryPoint(1.0, new Point3d(0.0, -0.2, 0.25), new Quat4d(0.0, 0.0, 0.0, 1.0), new Vector3d(), new Vector3d());
-        footPointList.addTrajectoryPoint(2.0, new Point3d(0.0, -0.2, 0.15), new Quat4d(0.0, 0.0, 0.0, 1.0), new Vector3d(), new Vector3d());
-        footPointList.addTrajectoryPoint(3.0, new Point3d(0.0, -0.2, 0.25), new Quat4d(0.0, 0.0, 0.0, 1.0), new Vector3d(), new Vector3d());
-        footPointList.addTrajectoryPoint(4.0, new Point3d(0.0, -0.2, 0.15), new Quat4d(0.0, 0.0, 0.0, 1.0), new Vector3d(), new Vector3d());
+        footPointList.addTrajectoryPoint(1.0, new Point3D(0.0, -0.2, 0.25), new Quaternion(0.0, 0.0, 0.0, 1.0), new Vector3D(), new Vector3D());
+        footPointList.addTrajectoryPoint(2.0, new Point3D(0.0, -0.2, 0.15), new Quaternion(0.0, 0.0, 0.0, 1.0), new Vector3D(), new Vector3D());
+        footPointList.addTrajectoryPoint(3.0, new Point3D(0.0, -0.2, 0.25), new Quaternion(0.0, 0.0, 0.0, 1.0), new Vector3D(), new Vector3D());
+        footPointList.addTrajectoryPoint(4.0, new Point3D(0.0, -0.2, 0.15), new Quaternion(0.0, 0.0, 0.0, 1.0), new Vector3D(), new Vector3D());
 
-        footTrajectoryCommand.setIncludingFrame(footPointList);
+        footTrajectoryCommand.setTrajectoryPointList(footPointList);
         footTrajectoryCommand.setRobotSide(RobotSide.RIGHT);
         queuedControllerCommands.add(footTrajectoryCommand);
 
@@ -534,12 +525,12 @@ public abstract class DRCObstacleCourseFlatTest implements MultiRobotTestInterfa
         footTrajectoryCommand = new FootTrajectoryCommand();
 
         footPointList = new FrameSE3TrajectoryPointList();
-        footPointList.addTrajectoryPoint(1.0, new Point3d(0.0, -0.2, 0.15), new Quat4d(0.1, 0.0, 0.0, 1.0), new Vector3d(), new Vector3d());
-        footPointList.addTrajectoryPoint(2.0, new Point3d(0.0, -0.2, 0.15), new Quat4d(0.0, 0.1, 0.0, 1.0), new Vector3d(), new Vector3d());
-        footPointList.addTrajectoryPoint(3.0, new Point3d(0.0, -0.2, 0.15), new Quat4d(0.0, 0.0, 0.1, 1.0), new Vector3d(), new Vector3d());
-        footPointList.addTrajectoryPoint(4.0, new Point3d(0.0, -0.2, 0.15), new Quat4d(0.0, 0.1, 0.0, 1.0), new Vector3d(), new Vector3d());
+        footPointList.addTrajectoryPoint(1.0, new Point3D(0.0, -0.2, 0.15), new Quaternion(0.1, 0.0, 0.0, 1.0), new Vector3D(), new Vector3D());
+        footPointList.addTrajectoryPoint(2.0, new Point3D(0.0, -0.2, 0.15), new Quaternion(0.0, 0.1, 0.0, 1.0), new Vector3D(), new Vector3D());
+        footPointList.addTrajectoryPoint(3.0, new Point3D(0.0, -0.2, 0.15), new Quaternion(0.0, 0.0, 0.1, 1.0), new Vector3D(), new Vector3D());
+        footPointList.addTrajectoryPoint(4.0, new Point3D(0.0, -0.2, 0.15), new Quaternion(0.0, 0.1, 0.0, 1.0), new Vector3D(), new Vector3D());
 
-        footTrajectoryCommand.setIncludingFrame(footPointList);
+        footTrajectoryCommand.setTrajectoryPointList(footPointList);
         footTrajectoryCommand.setRobotSide(RobotSide.RIGHT);
         queuedControllerCommands.add(footTrajectoryCommand);
 
@@ -551,9 +542,9 @@ public abstract class DRCObstacleCourseFlatTest implements MultiRobotTestInterfa
 
         assertTrue(success);
 
-        Point3d center = new Point3d(-0.1, 0.18, 0.78);
-        Vector3d plusMinusVector = new Vector3d(0.2, 0.2, 0.5);
-        BoundingBox3d boundingBox = BoundingBox3d.createUsingCenterAndPlusMinusVector(center, plusMinusVector);
+        Point3D center = new Point3D(-0.1, 0.18, 0.78);
+        Vector3D plusMinusVector = new Vector3D(0.2, 0.2, 0.5);
+        BoundingBox3D boundingBox = BoundingBox3D.createUsingCenterAndPlusMinusVector(center, plusMinusVector);
         drcSimulationTestHelper.assertRobotsRootJointIsInBoundingBox(boundingBox);
 
         BambooTools.reportTestFinishedMessage(simulationTestingParameters.getShowWindows());
@@ -561,7 +552,7 @@ public abstract class DRCObstacleCourseFlatTest implements MultiRobotTestInterfa
 
 
 	@ContinuousIntegrationTest(estimatedDuration = 52.3)
-	@Test(timeout = 260000)
+	@Test
    public void testSimpleFlatGroundScriptWithOscillatingFeet() throws SimulationExceededMaximumTimeException
    {
       BambooTools.reportTestStartedMessage(simulationTestingParameters.getShowWindows());
@@ -601,9 +592,9 @@ public abstract class DRCObstacleCourseFlatTest implements MultiRobotTestInterfa
 
       assertTrue(success);
 
-      Point3d center = new Point3d(1.199355605426889, 0.15130115291430654, 0.8414863015120644);
-      Vector3d plusMinusVector = new Vector3d(0.2, 0.3, 0.5);
-      BoundingBox3d boundingBox = BoundingBox3d.createUsingCenterAndPlusMinusVector(center, plusMinusVector);
+      Point3D center = new Point3D(1.199355605426889, 0.15130115291430654, 0.8414863015120644);
+      Vector3D plusMinusVector = new Vector3D(0.2, 0.3, 0.5);
+      BoundingBox3D boundingBox = BoundingBox3D.createUsingCenterAndPlusMinusVector(center, plusMinusVector);
       drcSimulationTestHelper.assertRobotsRootJointIsInBoundingBox(boundingBox);
 
       BambooTools.reportTestFinishedMessage(simulationTestingParameters.getShowWindows());
@@ -618,7 +609,7 @@ public abstract class DRCObstacleCourseFlatTest implements MultiRobotTestInterfa
    }
 
 	@ContinuousIntegrationTest(estimatedDuration = 20.8)
-	@Test(timeout = 100000)
+	@Test
    public void testStandingWithOscillatingFeet() throws SimulationExceededMaximumTimeException
    {
       BambooTools.reportTestStartedMessage(simulationTestingParameters.getShowWindows());
@@ -652,16 +643,16 @@ public abstract class DRCObstacleCourseFlatTest implements MultiRobotTestInterfa
 
       assertTrue(success);
 
-      Point3d center = new Point3d(0.011508654344298094, -0.005208268357032689, 0.780662368979778);
-      Vector3d plusMinusVector = new Vector3d(0.2, 0.2, 0.5);
-      BoundingBox3d boundingBox = BoundingBox3d.createUsingCenterAndPlusMinusVector(center, plusMinusVector);
+      Point3D center = new Point3D(0.011508654344298094, -0.005208268357032689, 0.780662368979778);
+      Vector3D plusMinusVector = new Vector3D(0.2, 0.2, 0.5);
+      BoundingBox3D boundingBox = BoundingBox3D.createUsingCenterAndPlusMinusVector(center, plusMinusVector);
       drcSimulationTestHelper.assertRobotsRootJointIsInBoundingBox(boundingBox);
 
       BambooTools.reportTestFinishedMessage(simulationTestingParameters.getShowWindows());
    }
 
 	@ContinuousIntegrationTest(estimatedDuration = 42.8)
-	@Test(timeout = 210000)
+	@Test
    public void testLongStepsMaxHeightPauseAndResume() throws SimulationExceededMaximumTimeException
    {
       BambooTools.reportTestStartedMessage(simulationTestingParameters.getShowWindows());
@@ -687,16 +678,16 @@ public abstract class DRCObstacleCourseFlatTest implements MultiRobotTestInterfa
 
       assertTrue(success);
 
-      Point3d center = new Point3d(2.36472504931194, 0.012458249442189283, 0.7892313252995141);
-      Vector3d plusMinusVector = new Vector3d(0.2, 0.2, 0.5);
-      BoundingBox3d boundingBox = BoundingBox3d.createUsingCenterAndPlusMinusVector(center, plusMinusVector);
+      Point3D center = new Point3D(2.36472504931194, 0.012458249442189283, 0.7892313252995141);
+      Vector3D plusMinusVector = new Vector3D(0.2, 0.2, 0.5);
+      BoundingBox3D boundingBox = BoundingBox3D.createUsingCenterAndPlusMinusVector(center, plusMinusVector);
       drcSimulationTestHelper.assertRobotsRootJointIsInBoundingBox(boundingBox);
 
       BambooTools.reportTestFinishedMessage(simulationTestingParameters.getShowWindows());
    }
 
 	@ContinuousIntegrationTest(estimatedDuration = 34.4)
-	@Test(timeout = 170000)
+	@Test
    public void testSideStepsWithSlipping() throws SimulationExceededMaximumTimeException
    {
       BambooTools.reportTestStartedMessage(simulationTestingParameters.getShowWindows());
@@ -732,16 +723,16 @@ public abstract class DRCObstacleCourseFlatTest implements MultiRobotTestInterfa
 
       assertTrue(success);
 
-      Point3d center = new Point3d(0.09590605437816137, 1.0379918543616593, 0.8383906558584916);
-      Vector3d plusMinusVector = new Vector3d(0.2, 0.2, 0.5);
-      BoundingBox3d boundingBox = BoundingBox3d.createUsingCenterAndPlusMinusVector(center, plusMinusVector);
+      Point3D center = new Point3D(0.09590605437816137, 1.0379918543616593, 0.8383906558584916);
+      Vector3D plusMinusVector = new Vector3D(0.2, 0.2, 0.5);
+      BoundingBox3D boundingBox = BoundingBox3D.createUsingCenterAndPlusMinusVector(center, plusMinusVector);
       drcSimulationTestHelper.assertRobotsRootJointIsInBoundingBox(boundingBox);
 
       BambooTools.reportTestFinishedMessage(simulationTestingParameters.getShowWindows());
    }
 
 	@ContinuousIntegrationTest(estimatedDuration = 33.1)
-	@Test(timeout = 170000)
+	@Test
    public void testSideStepsWithRandomSlipping() throws SimulationExceededMaximumTimeException
    {
       BambooTools.reportTestStartedMessage(simulationTestingParameters.getShowWindows());
@@ -759,7 +750,7 @@ public abstract class DRCObstacleCourseFlatTest implements MultiRobotTestInterfa
       slipRandomOnEachStepPerturber.setRotationRangeToSlipNextStep(new double[]{0.0, 0.0, 0.0}, new double[]{0.2, 0.05, 0.02});
       slipRandomOnEachStepPerturber.setSlipAfterStepTimeDeltaRange(0.01, 1.0);
       slipRandomOnEachStepPerturber.setSlipPercentSlipPerTickRange(0.02, 1.0);
-      slipRandomOnEachStepPerturber.setProbabilityOfSlip(0.0);
+      slipRandomOnEachStepPerturber.setProbabilityOfSlip(0.70);
 
       robot.setController(slipRandomOnEachStepPerturber, 10);
 
@@ -779,9 +770,9 @@ public abstract class DRCObstacleCourseFlatTest implements MultiRobotTestInterfa
 
       assertTrue(success);
 
-      Point3d center = new Point3d(0.022704922237925088, 1.0831838988457891, 0.8389256934215261);
-      Vector3d plusMinusVector = new Vector3d(0.2, 0.2, 0.5);
-      BoundingBox3d boundingBox = BoundingBox3d.createUsingCenterAndPlusMinusVector(center, plusMinusVector);
+      Point3D center = new Point3D(0.022704922237925088, 1.0831838988457891, 0.8389256934215261);
+      Vector3D plusMinusVector = new Vector3D(0.2, 0.2, 0.5);
+      BoundingBox3D boundingBox = BoundingBox3D.createUsingCenterAndPlusMinusVector(center, plusMinusVector);
       drcSimulationTestHelper.assertRobotsRootJointIsInBoundingBox(boundingBox);
 
       BambooTools.reportTestFinishedMessage(simulationTestingParameters.getShowWindows());
@@ -789,7 +780,7 @@ public abstract class DRCObstacleCourseFlatTest implements MultiRobotTestInterfa
 
    // TODO re-enable that test when we have polygon to polygon contact model for SCS
 	@ContinuousIntegrationTest(estimatedDuration = 50.0, categoriesOverride = IntegrationCategory.EXCLUDE)
-	@Test(timeout=300000)
+	@Test
    public void testStandingOnUnevenTerrainForACoupleSeconds() throws SimulationExceededMaximumTimeException
    {
       BambooTools.reportTestStartedMessage(simulationTestingParameters.getShowWindows());
@@ -798,8 +789,8 @@ public abstract class DRCObstacleCourseFlatTest implements MultiRobotTestInterfa
 
       drcSimulationTestHelper = new DRCSimulationTestHelper("DRCStandingTest", selectedLocation, simulationTestingParameters, getRobotModel());
 
-      Point3d cameraFix = new Point3d(3.25, 3.25, 1.02);
-      Point3d cameraPosition = new Point3d(6.35, 0.18, 0.97);
+      Point3D cameraFix = new Point3D(3.25, 3.25, 1.02);
+      Point3D cameraPosition = new Point3D(6.35, 0.18, 0.97);
       drcSimulationTestHelper.setupCameraForUnitTest(cameraFix, cameraPosition);
 
       setupCameraForWalkingUpToRamp();
@@ -833,7 +824,7 @@ public abstract class DRCObstacleCourseFlatTest implements MultiRobotTestInterfa
 
    // Added for fixing DRC-866. Does not work for fast walking
 	@ContinuousIntegrationTest(estimatedDuration = 50.0)
-	@Test(timeout=300000)
+	@Test
    public void testRotatedStepInTheAir() throws SimulationExceededMaximumTimeException
    {
       BambooTools.reportTestStartedMessage(simulationTestingParameters.getShowWindows());
@@ -862,7 +853,7 @@ public abstract class DRCObstacleCourseFlatTest implements MultiRobotTestInterfa
    }
 
 	@ContinuousIntegrationTest(estimatedDuration = 39.0)
-	@Test(timeout = 190000)
+	@Test
    public void testWalkingUpToRampWithShortSteps() throws SimulationExceededMaximumTimeException
    {
       BambooTools.reportTestStartedMessage(simulationTestingParameters.getShowWindows());
@@ -887,16 +878,16 @@ public abstract class DRCObstacleCourseFlatTest implements MultiRobotTestInterfa
 
       assertTrue(success);
 
-      Point3d center = new Point3d(3.281440097950577, 0.08837997229569997, 0.7855496116044516);
-      Vector3d plusMinusVector = new Vector3d(0.2, 0.2, 0.5);
-      BoundingBox3d boundingBox = BoundingBox3d.createUsingCenterAndPlusMinusVector(center, plusMinusVector);
+      Point3D center = new Point3D(3.281440097950577, 0.08837997229569997, 0.7855496116044516);
+      Vector3D plusMinusVector = new Vector3D(0.2, 0.2, 0.5);
+      BoundingBox3D boundingBox = BoundingBox3D.createUsingCenterAndPlusMinusVector(center, plusMinusVector);
       drcSimulationTestHelper.assertRobotsRootJointIsInBoundingBox(boundingBox);
 
       BambooTools.reportTestFinishedMessage(simulationTestingParameters.getShowWindows());
    }
 
 	@ContinuousIntegrationTest(estimatedDuration = 36.5)
-	@Test(timeout = 180000)
+	@Test
    public void testWalkingUpToRampWithLongStepsAndOccasionallyStraightKnees() throws SimulationExceededMaximumTimeException
    {
       BambooTools.reportTestStartedMessage(simulationTestingParameters.getShowWindows());
@@ -926,16 +917,16 @@ public abstract class DRCObstacleCourseFlatTest implements MultiRobotTestInterfa
 
       assertTrue(success);
 
-      Point3d center = new Point3d(3.1200570722246437, 0.017275273114368033, 0.8697236867426688);
-      Vector3d plusMinusVector = new Vector3d(0.2, 0.2, 0.5);
-      BoundingBox3d boundingBox = BoundingBox3d.createUsingCenterAndPlusMinusVector(center, plusMinusVector);
+      Point3D center = new Point3D(3.1200570722246437, 0.017275273114368033, 0.8697236867426688);
+      Vector3D plusMinusVector = new Vector3D(0.2, 0.2, 0.5);
+      BoundingBox3D boundingBox = BoundingBox3D.createUsingCenterAndPlusMinusVector(center, plusMinusVector);
       drcSimulationTestHelper.assertRobotsRootJointIsInBoundingBox(boundingBox);
 
       BambooTools.reportTestFinishedMessage(simulationTestingParameters.getShowWindows());
    }
 
 	@ContinuousIntegrationTest(estimatedDuration = 65.6)
-	@Test(timeout = 330000)
+	@Test
    public void testTurningInPlaceAndPassingPI() throws SimulationExceededMaximumTimeException
    {
       BambooTools.reportTestStartedMessage(simulationTestingParameters.getShowWindows());
@@ -956,14 +947,19 @@ public abstract class DRCObstacleCourseFlatTest implements MultiRobotTestInterfa
       FootstepDataListMessage footstepDataList = createFootstepsForTurningInPlaceAndPassingPI(scriptedFootstepGenerator);
       drcSimulationTestHelper.send(footstepDataList);
 
-      final DoubleYoVariable pelvisOrientationError = getPelvisOrientationErrorVariableName(simulationConstructionSet);
+      FullRobotModel fullRobotModel = drcSimulationTestHelper.getControllerFullRobotModel();
+      final YoDouble pelvisOrientationError = getPelvisOrientationErrorVariableName(simulationConstructionSet, fullRobotModel);
 
       SimulationDoneCriterion checkPelvisOrientationError = new SimulationDoneCriterion()
       {
          @Override
          public boolean isSimulationDone()
          {
-            return (Math.abs(pelvisOrientationError.getDoubleValue()) > 0.1);
+            double errorMag = Math.abs(pelvisOrientationError.getDoubleValue());
+            boolean largeError = errorMag > 0.15;
+            if (largeError)
+               PrintTools.error(DRCObstacleCourseFlatTest.class, "Large pelvis orientation error, stopping sim. Error magnitude: " + errorMag);
+            return largeError;
          }
       };
 
@@ -976,9 +972,9 @@ public abstract class DRCObstacleCourseFlatTest implements MultiRobotTestInterfa
 
       assertTrue(success);
 
-      Point3d center = new Point3d(0.125, 0.03, 0.78);
-      Vector3d plusMinusVector = new Vector3d(0.2, 0.2, 0.5);
-      BoundingBox3d boundingBox = BoundingBox3d.createUsingCenterAndPlusMinusVector(center, plusMinusVector);
+      Point3D center = new Point3D(0.125, 0.03, 0.78);
+      Vector3D plusMinusVector = new Vector3D(0.2, 0.2, 0.5);
+      BoundingBox3D boundingBox = BoundingBox3D.createUsingCenterAndPlusMinusVector(center, plusMinusVector);
       drcSimulationTestHelper.assertRobotsRootJointIsInBoundingBox(boundingBox);
 
       BambooTools.reportTestFinishedMessage(simulationTestingParameters.getShowWindows());
@@ -986,24 +982,24 @@ public abstract class DRCObstacleCourseFlatTest implements MultiRobotTestInterfa
 
    private void setupCameraForWalkingUpToRamp()
    {
-      Point3d cameraFix = new Point3d(1.8375, -0.16, 0.89);
-      Point3d cameraPosition = new Point3d(1.10, 8.30, 1.37);
+      Point3D cameraFix = new Point3D(1.8375, -0.16, 0.89);
+      Point3D cameraPosition = new Point3D(1.10, 8.30, 1.37);
 
       drcSimulationTestHelper.setupCameraForUnitTest(cameraFix, cameraPosition);
    }
 
    private void setupCameraForSideStepSlipping()
    {
-      Point3d cameraFix = new Point3d(2.0, 0.4, 0.75);
-      Point3d cameraPosition = new Point3d(6.5, 0.4, 0.75);
+      Point3D cameraFix = new Point3D(2.0, 0.4, 0.75);
+      Point3D cameraPosition = new Point3D(6.5, 0.4, 0.75);
 
       drcSimulationTestHelper.setupCameraForUnitTest(cameraFix, cameraPosition);
    }
 
    private void setupCameraForTurningInPlaceAndPassingPI()
    {
-      Point3d cameraFix = new Point3d(0.036, 0.0, 0.89);
-      Point3d cameraPosition = new Point3d(-7, -0.3575, 1.276);
+      Point3D cameraFix = new Point3D(0.036, 0.0, 0.89);
+      Point3D cameraPosition = new Point3D(-7, -0.3575, 1.276);
 
       drcSimulationTestHelper.setupCameraForUnitTest(cameraFix, cameraPosition);
    }
@@ -1030,8 +1026,8 @@ public abstract class DRCObstacleCourseFlatTest implements MultiRobotTestInterfa
    private Handstep createHandstepForTesting(ScriptedHandstepGenerator scriptedHandstepGenerator)
    {
       RobotSide robotSide = RobotSide.LEFT;
-      Tuple3d position = new Point3d(0.6, 0.3, 1.0);
-      Vector3d surfaceNormal = new Vector3d(-1.0, 0.0, 0.0);
+      Tuple3DBasics position = new Point3D(0.6, 0.3, 1.0);
+      Vector3D surfaceNormal = new Vector3D(-1.0, 0.0, 0.0);
       double rotationAngleAboutNormal = 0.0;
       double swingTrajectoryTime = 1.0;
       return scriptedHandstepGenerator.createHandstep(robotSide, position, surfaceNormal, rotationAngleAboutNormal, swingTrajectoryTime);
@@ -1221,9 +1217,15 @@ public abstract class DRCObstacleCourseFlatTest implements MultiRobotTestInterfa
       return scriptedFootstepGenerator.generateFootstepsFromLocationsAndOrientations(robotSides, footstepLocationsAndOrientations);
    }
 
-   protected abstract Vector3d getFootSlipVector();
+   protected abstract Vector3D getFootSlipVector();
 
    protected abstract double getFootSlipTimeDeltaAfterTouchdown();
 
-   protected abstract DoubleYoVariable getPelvisOrientationErrorVariableName(SimulationConstructionSet scs);
+   private YoDouble getPelvisOrientationErrorVariableName(SimulationConstructionSet scs, FullRobotModel fullRobotModel)
+   {
+      String pelvisName = fullRobotModel.getPelvis().getName();
+      String namePrefix = pelvisName + FeedbackControllerDataReadOnly.Type.ERROR.getName() + FeedbackControllerDataReadOnly.Space.ROTATION_VECTOR.getName();
+      String varName = YoFrameVariableNameTools.createZName(namePrefix, "");
+      return (YoDouble) scs.getVariable(FeedbackControllerToolbox.class.getSimpleName(), varName);
+   }
 }

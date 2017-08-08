@@ -2,11 +2,10 @@ package us.ihmc.sensorProcessing;
 
 import java.util.ArrayList;
 
-import javax.vecmath.Matrix3d;
-import javax.vecmath.Vector3d;
-
+import us.ihmc.euclid.matrix.Matrix3D;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.robotics.geometry.FrameVector;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.screwTheory.AbstractInverseDynamicsJoint;
 import us.ihmc.robotics.screwTheory.InverseDynamicsJoint;
@@ -27,17 +26,17 @@ public class SimulatedSensorsTestFullRobotModel
    public SimulatedSensorsTestFullRobotModel()
    {
       worldFrame = ReferenceFrame.getWorldFrame();
-      ReferenceFrame elevatorFrame = ReferenceFrame.constructFrameWithUnchangingTransformToParent("elevator", worldFrame, new RigidBodyTransform());
 
-      elevator = new RigidBody("elevator", elevatorFrame);
+      elevator = new RigidBody("elevator", worldFrame);
+      ReferenceFrame elevatorFrame = elevator.getBodyFixedFrame();
 
-      rootJoint = new SixDoFJoint("imu", elevator, elevatorFrame);    // origin is at the IMU
-      Matrix3d momentOfInertia = new Matrix3d();
+      rootJoint = new SixDoFJoint("imu", elevator);    // origin is at the IMU
+      Matrix3D momentOfInertia = new Matrix3D();
       momentOfInertia.setM00(1.0);
       momentOfInertia.setM11(1.0);
       momentOfInertia.setM22(0.1);
   
-      body = ScrewTools.addRigidBody("body", rootJoint, momentOfInertia, 1.0, new Vector3d(0.0, 0.0, 0.0));
+      body = ScrewTools.addRigidBody("body", rootJoint, momentOfInertia, 1.0, new Vector3D(0.0, 0.0, 0.0));
    }
 
    public void update(SingleRigidBodyRobot robot)

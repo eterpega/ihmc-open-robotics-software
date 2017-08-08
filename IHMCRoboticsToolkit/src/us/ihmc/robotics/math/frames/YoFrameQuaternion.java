@@ -5,30 +5,40 @@ import static us.ihmc.robotics.math.frames.YoFrameVariableNameTools.createQxName
 import static us.ihmc.robotics.math.frames.YoFrameVariableNameTools.createQyName;
 import static us.ihmc.robotics.math.frames.YoFrameVariableNameTools.createQzName;
 
-import javax.vecmath.AxisAngle4d;
-import javax.vecmath.Matrix3d;
-import javax.vecmath.Matrix3f;
-import javax.vecmath.Quat4d;
-
 import org.apache.commons.lang3.StringUtils;
 
+import us.ihmc.euclid.axisAngle.interfaces.AxisAngleBasics;
+import us.ihmc.euclid.axisAngle.interfaces.AxisAngleReadOnly;
+import us.ihmc.euclid.interfaces.Clearable;
+import us.ihmc.euclid.matrix.RotationMatrix;
+import us.ihmc.euclid.matrix.interfaces.RotationMatrixReadOnly;
+import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
+import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.euclid.tuple4D.interfaces.QuaternionBasics;
+import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
 import us.ihmc.robotics.MathTools;
-import us.ihmc.robotics.dataStructures.listener.VariableChangedListener;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.geometry.FrameOrientation;
+import us.ihmc.yoVariables.listener.VariableChangedListener;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.geometry.AbstractReferenceFrameHolder;
+import us.ihmc.robotics.geometry.FrameOrientation;
+import us.ihmc.robotics.geometry.FrameVector;
+import us.ihmc.robotics.geometry.ReferenceFrameMismatchException;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 
-//Note: You should only make these once at the initialization of a controller. You shouldn't make any on the fly since they contain YoVariables.
-public class YoFrameQuaternion extends AbstractReferenceFrameHolder
+// Note: You should only make these once at the initialization of a controller. You shouldn't make
+// any on the fly since they contain YoVariables.
+public class YoFrameQuaternion extends AbstractReferenceFrameHolder implements Clearable
 {
    private final String namePrefix;
    private final String nameSuffix;
 
-   private final DoubleYoVariable qx, qy, qz, qs;
+   private final YoDouble qx, qy, qz, qs;
    private final FrameOrientation frameOrientation = new FrameOrientation();
-   /** Never use this reference frame directly, use {@link #getReferenceFrame()} instead so the multiple frames version of this {@link YoFrameQuaternion} will work properly. */
+   /**
+    * Never use this reference frame directly, use {@link #getReferenceFrame()} instead so the
+    * multiple frames version of this {@link YoFrameQuaternion} will work properly.
+    */
    private final ReferenceFrame referenceFrame;
 
    public YoFrameQuaternion(String namePrefix, ReferenceFrame referenceFrame, YoVariableRegistry registry)
@@ -41,16 +51,16 @@ public class YoFrameQuaternion extends AbstractReferenceFrameHolder
       this.namePrefix = namePrefix;
       this.nameSuffix = nameSuffix;
 
-      this.qx = new DoubleYoVariable(createQxName(namePrefix, nameSuffix), registry);
-      this.qy = new DoubleYoVariable(createQyName(namePrefix, nameSuffix), registry);
-      this.qz = new DoubleYoVariable(createQzName(namePrefix, nameSuffix), registry);
-      this.qs = new DoubleYoVariable(createQsName(namePrefix, nameSuffix), registry);
+      this.qx = new YoDouble(createQxName(namePrefix, nameSuffix), registry);
+      this.qy = new YoDouble(createQyName(namePrefix, nameSuffix), registry);
+      this.qz = new YoDouble(createQzName(namePrefix, nameSuffix), registry);
+      this.qs = new YoDouble(createQsName(namePrefix, nameSuffix), registry);
       this.referenceFrame = referenceFrame;
 
       qs.set(1.0);
    }
 
-   public YoFrameQuaternion(DoubleYoVariable qx, DoubleYoVariable qy, DoubleYoVariable qz, DoubleYoVariable qs, ReferenceFrame referenceFrame)
+   public YoFrameQuaternion(YoDouble qx, YoDouble qy, YoDouble qz, YoDouble qs, ReferenceFrame referenceFrame)
    {
       this.namePrefix = StringUtils.getCommonPrefix(qx.getName(), qy.getName(), qz.getName(), qs.getName());
       this.nameSuffix = YoFrameVariableNameTools.getCommonSuffix(qx.getName(), qy.getName(), qz.getName(), qs.getName());
@@ -68,19 +78,19 @@ public class YoFrameQuaternion extends AbstractReferenceFrameHolder
       return frameOrientation;
    }
 
-   public void set(Quat4d quaternion)
+   public void set(QuaternionReadOnly quaternion)
    {
       frameOrientation.set(quaternion);
       getYoValuesFromFrameOrientation();
    }
 
-   public void set(Matrix3d matrix)
+   public void set(RotationMatrixReadOnly matrix)
    {
       frameOrientation.set(matrix);
       getYoValuesFromFrameOrientation();
    }
 
-   public void set(AxisAngle4d axisAngle)
+   public void set(AxisAngleReadOnly axisAngle)
    {
       frameOrientation.set(axisAngle);
       getYoValuesFromFrameOrientation();
@@ -159,25 +169,80 @@ public class YoFrameQuaternion extends AbstractReferenceFrameHolder
       setFromReferenceFrame(referenceFrame, true);
    }
 
-   public void get(Quat4d quaternionToPack)
+   /**
+    * Sets this quaternion to the same orientation described by the given rotation vector
+    * {@code rotationVector}.
+    * <p>
+    * WARNING: a rotation vector is different from a yaw-pitch-roll or Euler angles representation.
+    * A rotation vector is equivalent to the axis of an axis-angle that is multiplied by the angle
+    * of the same axis-angle.
+    * </p>
+    *
+    * @param rotation vector the rotation vector used to set this {@code YoFrameQuaternion}. Not
+    *           modified.
+    */
+   public void setRotationVector(Vector3DReadOnly rotationVector)
+   {
+      frameOrientation.setToZero(getReferenceFrame());
+      frameOrientation.setRotationVector(rotationVector);
+      getYoValuesFromFrameOrientation();
+   }
+
+   /**
+    * Sets this quaternion to the same orientation described by the given rotation vector
+    * {@code rotationVector}.
+    * <p>
+    * WARNING: a rotation vector is different from a yaw-pitch-roll or Euler angles representation.
+    * A rotation vector is equivalent to the axis of an axis-angle that is multiplied by the angle
+    * of the same axis-angle.
+    * </p>
+    *
+    * @param rotation vector the rotation vector used to set this {@code YoFrameQuaternion}. Not
+    *           modified.
+    * @throws ReferenceFrameMismatchException if the argument is not expressed in
+    *            {@code this.referenceFrame}.
+    */
+   public void setRotationVector(FrameVector rotationVector)
+   {
+      frameOrientation.setToZero(getReferenceFrame());
+      frameOrientation.setRotationVector(rotationVector);
+      getYoValuesFromFrameOrientation();
+   }
+
+   /**
+    * Sets this quaternion to the same orientation described by the given rotation vector
+    * {@code rotationVector}.
+    * <p>
+    * WARNING: a rotation vector is different from a yaw-pitch-roll or Euler angles representation.
+    * A rotation vector is equivalent to the axis of an axis-angle that is multiplied by the angle
+    * of the same axis-angle.
+    * </p>
+    *
+    * @param rotation vector the rotation vector used to set this {@code YoFrameQuaternion}. Not
+    *           modified.
+    * @throws ReferenceFrameMismatchException if the argument is not expressed in
+    *            {@code this.referenceFrame}.
+    */
+   public void setRotationVector(YoFrameVector rotationVector)
+   {
+      frameOrientation.setToZero(getReferenceFrame());
+      frameOrientation.setRotationVector(rotationVector.getFrameTuple());
+      getYoValuesFromFrameOrientation();
+   }
+
+   public void get(QuaternionBasics quaternionToPack)
    {
       putYoValuesIntoFrameOrientation();
       frameOrientation.getQuaternion(quaternionToPack);
    }
 
-   public void get(Matrix3d matrixToPack)
+   public void get(RotationMatrix matrixToPack)
    {
       putYoValuesIntoFrameOrientation();
       frameOrientation.getMatrix3d(matrixToPack);
    }
 
-   public void get(Matrix3f matrixToPack)
-   {
-      putYoValuesIntoFrameOrientation();
-      frameOrientation.getMatrix3f(matrixToPack);
-   }
-
-   public void get(AxisAngle4d axisAngleToPack)
+   public void get(AxisAngleBasics axisAngleToPack)
    {
       putYoValuesIntoFrameOrientation();
       frameOrientation.getAxisAngle(axisAngleToPack);
@@ -201,7 +266,7 @@ public class YoFrameQuaternion extends AbstractReferenceFrameHolder
       frameOrientationToPack.setIncludingFrame(frameOrientation);
    }
 
-   public Quat4d getQuaternionCopy()
+   public Quaternion getQuaternionCopy()
    {
       putYoValuesIntoFrameOrientation();
       return frameOrientation.getQuaternionCopy();
@@ -213,22 +278,77 @@ public class YoFrameQuaternion extends AbstractReferenceFrameHolder
       return new FrameOrientation(frameOrientation);
    }
 
-   public DoubleYoVariable getYoQx()
+   /**
+    * Computes and packs the orientation described by this {@code YoFrameQuaternion} as a rotation
+    * vector.
+    * <p>
+    * WARNING: a rotation vector is different from a yaw-pitch-roll or Euler angles representation.
+    * A rotation vector is equivalent to the axis of an axis-angle that is multiplied by the angle
+    * of the same axis-angle.
+    * </p>
+    *
+    * @param frameRotationVectorToPack the vector in which the rotation vector and the reference
+    *           frame it is expressed in are stored. Modified.
+    * @throws ReferenceFrameMismatchException if the argument is not expressed in
+    *            {@code this.referenceFrame}.
+    */
+   public void getRotationVector(FrameVector frameRotationVectorToPack)
+   {
+      getFrameOrientation().getRotationVector(frameRotationVectorToPack);
+   }
+
+   /**
+    * Computes and packs the orientation described by this {@code YoFrameQuaternion} as a rotation
+    * vector including the reference frame it is expressed in.
+    * <p>
+    * WARNING: a rotation vector is different from a yaw-pitch-roll or Euler angles representation.
+    * A rotation vector is equivalent to the axis of an axis-angle that is multiplied by the angle
+    * of the same axis-angle.
+    * </p>
+    *
+    * @param frameRotationVectorToPack the vector in which the rotation vector and the reference
+    *           frame it is expressed in are stored. Modified.
+    */
+   public void getRotationVectorIncludingFrame(FrameVector frameRotationVectorToPack)
+   {
+      getFrameOrientation().getRotationVectorIncludingFrame(frameRotationVectorToPack);
+   }
+
+   /**
+    * Computes and packs the orientation described by this {@code YoFrameQuaternion} as a rotation
+    * vector.
+    * <p>
+    * WARNING: a rotation vector is different from a yaw-pitch-roll or Euler angles representation.
+    * A rotation vector is equivalent to the axis of an axis-angle that is multiplied by the angle
+    * of the same axis-angle.
+    * </p>
+    *
+    * @param yoFrameRotationVectorToPack the vector in which the rotation vector and the reference
+    *           frame it is expressed in are stored. Modified.
+    * @throws ReferenceFrameMismatchException if the argument is not expressed in
+    *            {@code this.referenceFrame}.
+    */
+   public void getRotationVector(YoFrameVector yoFrameRotationVectorToPack)
+   {
+      yoFrameRotationVectorToPack.setAsRotationVector(getFrameOrientation());
+   }
+
+   public YoDouble getYoQx()
    {
       return qx;
    }
 
-   public DoubleYoVariable getYoQy()
+   public YoDouble getYoQy()
    {
       return qy;
    }
 
-   public DoubleYoVariable getYoQz()
+   public YoDouble getYoQz()
    {
       return qz;
    }
 
-   public DoubleYoVariable getYoQs()
+   public YoDouble getYoQs()
    {
       return qs;
    }
@@ -271,9 +391,9 @@ public class YoFrameQuaternion extends AbstractReferenceFrameHolder
       getYoValuesFromFrameOrientation();
    }
 
-   public void interpolate(Quat4d quaternion1, Quat4d quaternion2, double alpha)
+   public void interpolate(QuaternionReadOnly quaternion1, QuaternionReadOnly quaternion2, double alpha)
    {
-      alpha = MathTools.clipToMinMax(alpha, 0.0, 1.0);
+      alpha = MathTools.clamp(alpha, 0.0, 1.0);
 
       frameOrientation.interpolate(quaternion1, quaternion2, alpha);
       frameOrientation.checkQuaternionIsUnitMagnitude();
@@ -281,24 +401,47 @@ public class YoFrameQuaternion extends AbstractReferenceFrameHolder
    }
 
    /**
-    * Method used to concatenate the orientation represented by this YoFrameQuaternion and the orientation represented by the FrameOrientation.
-    * @param quaternion
+    * Multiplies this quaternion by {@code quaternion}.
+    * <p>
+    * this = this * quaternion
+    * </p>
+    *
+    * @param quaternion the other quaternion to multiply this. Not modified.
     */
-   public void mul(Quat4d quaternion)
+   public void multiply(Quaternion quaternion)
    {
       putYoValuesIntoFrameOrientation();
-      frameOrientation.mul(quaternion);
+      frameOrientation.multiply(quaternion);
       getYoValuesFromFrameOrientation();
    }
 
    /**
-    * Method used to concatenate the orientation represented by this YoFrameQuaternion and the orientation represented by the FrameOrientation.
-    * @param frameOrientation
+    * Multiplies this quaternion by {@code frameOrientation}.
+    * <p>
+    * this = this * frameOrientation.quaternion
+    * </p>
+    *
+    * @param frameOrientation the frame orientation to multiply this. Not modified.
     */
-   public void mul(FrameOrientation frameOrientation)
+   public void multiply(FrameOrientation frameOrientation)
    {
       putYoValuesIntoFrameOrientation();
-      this.frameOrientation.mul(frameOrientation);
+      this.frameOrientation.multiply(frameOrientation);
+      getYoValuesFromFrameOrientation();
+   }
+
+   /**
+    * Multiplies this quaternion by {@code other}.
+    * <p>
+    * this = this * other
+    * </p>
+    *
+    * @param other the quaternion to multiply this. Not modified.
+    */
+   public void multiply(YoFrameQuaternion other)
+   {
+      putYoValuesIntoFrameOrientation();
+      this.frameOrientation.multiply(other.getFrameOrientation());
       getYoValuesFromFrameOrientation();
    }
 
@@ -310,7 +453,9 @@ public class YoFrameQuaternion extends AbstractReferenceFrameHolder
    }
 
    /**
-    * Compute the dot product between this quaternion and the orhter quaternion: this . other = qx * other.qx + qy * other.qy + qz * other.qz + qs * other.qs.
+    * Compute the dot product between this quaternion and the other quaternion: this . other = qx *
+    * other.qx + qy * other.qy + qz * other.qz + qs * other.qs.
+    * 
     * @param other
     * @return
     */
@@ -322,10 +467,10 @@ public class YoFrameQuaternion extends AbstractReferenceFrameHolder
 
    public void negate()
    {
-      qx.set(- qx.getDoubleValue());
-      qy.set(- qy.getDoubleValue());
-      qz.set(- qz.getDoubleValue());
-      qs.set(- qs.getDoubleValue());
+      qx.set(-qx.getDoubleValue());
+      qy.set(-qy.getDoubleValue());
+      qz.set(-qz.getDoubleValue());
+      qs.set(-qs.getDoubleValue());
    }
 
    public void checkQuaternionIsUnitMagnitude()
@@ -353,18 +498,21 @@ public class YoFrameQuaternion extends AbstractReferenceFrameHolder
       qs.set(frameOrientation.getQs(), notifyListeners);
    }
 
+   @Override
    public void setToNaN()
    {
       frameOrientation.setToNaN();
       getYoValuesFromFrameOrientation();
    }
 
+   @Override
    public void setToZero()
    {
       frameOrientation.setToZero(getReferenceFrame());
       getYoValuesFromFrameOrientation();
    }
 
+   @Override
    public boolean containsNaN()
    {
       return qx.isNaN() || qy.isNaN() || qz.isNaN() || qs.isNaN();
@@ -411,6 +559,4 @@ public class YoFrameQuaternion extends AbstractReferenceFrameHolder
       putYoValuesIntoFrameOrientation();
       return frameOrientation.epsilonEquals(other.frameOrientation, epsilon);
    }
-
-
 }

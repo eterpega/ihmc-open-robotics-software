@@ -1,25 +1,28 @@
 package us.ihmc.commonWalkingControlModules.controllerAPI.input.userDesired;
 
+import java.util.List;
+
 import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParameters;
-import us.ihmc.commonWalkingControlModules.controllers.Updatable;
 import us.ihmc.communication.controllerAPI.CommandInputManager;
+import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.humanoidRobotics.bipedSupportPolygons.ContactableFoot;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.FootstepDataCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.FootstepDataListCommand;
 import us.ihmc.humanoidRobotics.communication.packets.ExecutionMode;
-import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage.FootstepOrigin;
-import us.ihmc.robotics.dataStructures.listener.VariableChangedListener;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.*;
-import us.ihmc.robotics.geometry.*;
+import us.ihmc.yoVariables.listener.VariableChangedListener;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.*;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.robotics.geometry.FrameOrientation;
+import us.ihmc.robotics.geometry.FramePoint;
+import us.ihmc.robotics.geometry.FramePoint2d;
+import us.ihmc.robotics.geometry.FramePose;
+import us.ihmc.robotics.geometry.FrameVector;
 import us.ihmc.robotics.lists.RecyclingArrayList;
 import us.ihmc.robotics.referenceFrames.PoseReferenceFrame;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
-
-import javax.vecmath.Point2d;
-import java.util.List;
 
 public class UserDesiredFootstepDataMessageGenerator
 {
@@ -28,34 +31,34 @@ public class UserDesiredFootstepDataMessageGenerator
    private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
 
    private final String namePrefix = "userDesiredStep";
-   private final IntegerYoVariable stepsToTake = new IntegerYoVariable(namePrefix + "sToTake", registry);
-   private final EnumYoVariable<RobotSide> firstStepSide = new EnumYoVariable<RobotSide>(namePrefix + "FirstSide", registry, RobotSide.class);
-   private final DoubleYoVariable minimumWidth = new DoubleYoVariable(namePrefix + "MinWidth", registry);
+   private final YoInteger stepsToTake = new YoInteger(namePrefix + "sToTake", registry);
+   private final YoEnum<RobotSide> firstStepSide = new YoEnum<RobotSide>(namePrefix + "FirstSide", registry, RobotSide.class);
+   private final YoDouble minimumWidth = new YoDouble(namePrefix + "MinWidth", registry);
 
-   private final BooleanYoVariable stepSquareUp = new BooleanYoVariable(namePrefix + "SquareUp", registry);
+   private final YoBoolean stepSquareUp = new YoBoolean(namePrefix + "SquareUp", registry);
 
-   private final DoubleYoVariable swingTime = new DoubleYoVariable(namePrefix + "SwingTime", registry);
-   private final DoubleYoVariable transferTime = new DoubleYoVariable(namePrefix + "TransferTime", registry);
+   private final YoDouble swingTime = new YoDouble(namePrefix + "SwingTime", registry);
+   private final YoDouble transferTime = new YoDouble(namePrefix + "TransferTime", registry);
 
-   private final DoubleYoVariable swingHeight = new DoubleYoVariable(namePrefix + "SwingHeight", registry);
+   private final YoDouble swingHeight = new YoDouble(namePrefix + "SwingHeight", registry);
 
-   private final DoubleYoVariable stepHeelPercentage = new DoubleYoVariable(namePrefix + "HeelPercentage", registry);
-   private final DoubleYoVariable stepToePercentage = new DoubleYoVariable(namePrefix + "ToePercentage", registry);
+   private final YoDouble stepHeelPercentage = new YoDouble(namePrefix + "HeelPercentage", registry);
+   private final YoDouble stepToePercentage = new YoDouble(namePrefix + "ToePercentage", registry);
 
-   private final DoubleYoVariable stepLength = new DoubleYoVariable(namePrefix + "Length", registry);
-   private final DoubleYoVariable stepWidth = new DoubleYoVariable(namePrefix + "Width", registry);
-   private final DoubleYoVariable stepHeight = new DoubleYoVariable(namePrefix + "Height", registry);
-   private final DoubleYoVariable stepSideways = new DoubleYoVariable(namePrefix + "Sideways", registry);
+   private final YoDouble stepLength = new YoDouble(namePrefix + "Length", registry);
+   private final YoDouble stepWidth = new YoDouble(namePrefix + "Width", registry);
+   private final YoDouble stepHeight = new YoDouble(namePrefix + "Height", registry);
+   private final YoDouble stepSideways = new YoDouble(namePrefix + "Sideways", registry);
 
-   private final DoubleYoVariable stepYaw = new DoubleYoVariable(namePrefix + "Yaw", registry);
-   private final DoubleYoVariable stepPitch = new DoubleYoVariable(namePrefix + "Pitch", registry);
-   private final DoubleYoVariable stepRoll = new DoubleYoVariable(namePrefix + "Roll", registry);
+   private final YoDouble stepYaw = new YoDouble(namePrefix + "Yaw", registry);
+   private final YoDouble stepPitch = new YoDouble(namePrefix + "Pitch", registry);
+   private final YoDouble stepRoll = new YoDouble(namePrefix + "Roll", registry);
 
-   private final BooleanYoVariable sendSteps = new BooleanYoVariable(namePrefix + "Send", registry);
+   private final YoBoolean sendSteps = new YoBoolean(namePrefix + "Send", registry);
 
    private List<FramePoint2d> contactFramePoints;
-   private RecyclingArrayList<Point2d> contactPoints = new RecyclingArrayList<Point2d>(4, Point2d.class);
-   private Point2d contactPoint;
+   private RecyclingArrayList<Point2D> contactPoints = new RecyclingArrayList<Point2D>(4, Point2D.class);
+   private Point2D contactPoint;
 
    private final SideDependentList<ContactableFoot> bipedFeet;
    private ContactableFoot swingFoot;
@@ -101,6 +104,7 @@ public class UserDesiredFootstepDataMessageGenerator
 
       sendSteps.addVariableChangedListener(new VariableChangedListener()
       {
+         @Override
          public void variableChanged(YoVariable<?> v)
          {
             if (sendSteps.getBooleanValue())
@@ -132,7 +136,6 @@ public class UserDesiredFootstepDataMessageGenerator
          swingFoot = bipedFeet.get(swingSide);
 
          desiredFootstepCommand.clear();
-         desiredFootstepCommand.setOrigin(FootstepOrigin.AT_SOLE_FRAME);
          desiredFootstepCommand.setRobotSide(swingSide);
          desiredFootstepCommand.setSwingHeight(swingHeight.getDoubleValue());
 
@@ -153,8 +156,8 @@ public class UserDesiredFootstepDataMessageGenerator
       }
 
       footstepCommandList.setExecutionMode(ExecutionMode.OVERRIDE);
-      footstepCommandList.setSwingTime(swingTime.getDoubleValue());
-      footstepCommandList.setTransferTime(transferTime.getDoubleValue());
+      footstepCommandList.setDefaultSwingDuration(swingTime.getDoubleValue());
+      footstepCommandList.setDefaultTransferDuration(transferTime.getDoubleValue());
 
       commandInputManager.submitCommand(footstepCommandList);
    }

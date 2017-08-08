@@ -1,12 +1,16 @@
 package us.ihmc.robotics.stateMachines;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.robotics.stateMachines.conditionBasedStateMachine.FinishableState;
+import us.ihmc.robotics.stateMachines.conditionBasedStateMachine.StateMachine;
 
 public class FinishableStateTest
 {
@@ -16,7 +20,7 @@ public class FinishableStateTest
    public void testExampleStateMachineWithFinishableStates()
    {
       YoVariableRegistry registry = new YoVariableRegistry("registry");
-      DoubleYoVariable time = new DoubleYoVariable("time", registry);
+      YoDouble time = new YoDouble("time", registry);
 
       StateMachine<StateEnum> stateMachine = new StateMachine<StateEnum>("stateMachine", "switchTime", StateEnum.class, time, registry);
 

@@ -1,13 +1,19 @@
 package us.ihmc.commonWalkingControlModules.instantaneousCapturePoint;
 
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.geometry.FramePoint;
+import us.ihmc.robotics.geometry.FramePoint2d;
 import us.ihmc.robotics.geometry.FrameVector;
 import us.ihmc.robotics.math.frames.YoFramePoint;
+import us.ihmc.robotics.math.frames.YoFramePoint2d;
 import us.ihmc.robotics.math.frames.YoFrameVector;
 import us.ihmc.robotics.math.trajectories.PositionTrajectoryGenerator;
 import us.ihmc.robotics.math.trajectories.VelocityConstrainedPositionTrajectoryGenerator;
+import us.ihmc.robotics.math.trajectories.YoPolynomial;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
+
+import static us.ihmc.commonWalkingControlModules.dynamicReachability.CoMIntegrationTools.integrateCoMPositionUsingCubicICP;
 
 public class ICPPlannerTrajectoryGenerator implements PositionTrajectoryGenerator
 {
@@ -18,9 +24,15 @@ public class ICPPlannerTrajectoryGenerator implements PositionTrajectoryGenerato
    private final FramePoint finalPositionInSpecificFrame = new FramePoint();
    private final FrameVector finalVelocityInSpecificFrame = new FrameVector();
 
-   public ICPPlannerTrajectoryGenerator(String namePrefix, ReferenceFrame trajectoryFrame, YoVariableRegistry registry)
+   private final FramePoint initialCoMPositionInSpecificFrame = new FramePoint();
+   private final FramePoint desiredCoMPosition = new FramePoint();
+
+   private final YoDouble omega0;
+
+   public ICPPlannerTrajectoryGenerator(String namePrefix, ReferenceFrame trajectoryFrame, YoDouble omega0, YoVariableRegistry registry)
    {
-      doubleSupportCapturePointTrajectory = new VelocityConstrainedPositionTrajectoryGenerator(namePrefix, 4, trajectoryFrame, registry);
+      this.omega0 = omega0;
+      doubleSupportCapturePointTrajectory = new VelocityConstrainedPositionTrajectoryGenerator(namePrefix, trajectoryFrame, registry);
    }
 
    public void setTrajectoryTime(double duration)
@@ -35,6 +47,12 @@ public class ICPPlannerTrajectoryGenerator implements PositionTrajectoryGenerato
       initialPositionInSpecificFrame.changeFrame(attachedFrame);
       initialVelocityInSpecificFrame.changeFrame(attachedFrame);
    }
+
+   public void setInitialCoMPosition(YoFramePoint initialCoMPosition, ReferenceFrame attachedFrame)
+   {
+      initialCoMPosition.getFrameTupleIncludingFrame(initialCoMPositionInSpecificFrame);
+      initialCoMPositionInSpecificFrame.changeFrame(attachedFrame);
+   }
    
    public void setFinalConditions(YoFramePoint finalPosition, YoFrameVector finalVelocity, ReferenceFrame attachedFrame)
    {
@@ -44,9 +62,17 @@ public class ICPPlannerTrajectoryGenerator implements PositionTrajectoryGenerato
       finalVelocityInSpecificFrame.changeFrame(attachedFrame);
    }
 
+   public void computeFinalCoMPosition(FramePoint finalCoMToPack)
+   {
+      computeCoMPosition(doubleSupportCapturePointTrajectory.getTrajectoryTime(), finalCoMToPack);
+   }
+
    @Override
    public void initialize()
    {
+      doubleSupportCapturePointTrajectory.setInitialConditions(initialPositionInSpecificFrame, initialVelocityInSpecificFrame);
+      doubleSupportCapturePointTrajectory.setFinalConditions(finalPositionInSpecificFrame, finalVelocityInSpecificFrame);
+      doubleSupportCapturePointTrajectory.initialize();
    }
 
    @Override
@@ -56,6 +82,24 @@ public class ICPPlannerTrajectoryGenerator implements PositionTrajectoryGenerato
       doubleSupportCapturePointTrajectory.setFinalConditions(finalPositionInSpecificFrame, finalVelocityInSpecificFrame);
       doubleSupportCapturePointTrajectory.initialize();
       doubleSupportCapturePointTrajectory.compute(time);
+
+      computeCoMPosition(time, desiredCoMPosition);
+   }
+
+   public void computeCoMPosition(double time, FramePoint comPositionToPack)
+   {
+      YoPolynomial xPolynomial = doubleSupportCapturePointTrajectory.getXPolynomial();
+      YoPolynomial yPolynomial = doubleSupportCapturePointTrajectory.getYPolynomial();
+
+      if (Double.isNaN(doubleSupportCapturePointTrajectory.getTrajectoryTime()))
+      {
+         comPositionToPack.set(initialCoMPositionInSpecificFrame);
+      }
+      else
+      {
+         integrateCoMPositionUsingCubicICP(0.0, time, doubleSupportCapturePointTrajectory.getTrajectoryTime(), omega0.getDoubleValue(),
+               doubleSupportCapturePointTrajectory.getCurrentTrajectoryFrame(), xPolynomial, yPolynomial, initialCoMPositionInSpecificFrame, comPositionToPack);
+      }
    }
 
    @Override
@@ -74,6 +118,7 @@ public class ICPPlannerTrajectoryGenerator implements PositionTrajectoryGenerato
    {
       doubleSupportCapturePointTrajectory.get(positionToPack);
    }
+
 
    @Override
    public void getVelocity(FrameVector velocityToPack)
@@ -106,6 +151,11 @@ public class ICPPlannerTrajectoryGenerator implements PositionTrajectoryGenerato
    public void getLinearData(YoFramePoint positionToPack, YoFrameVector velocityToPack, YoFrameVector accelerationToPack)
    {
       doubleSupportCapturePointTrajectory.getLinearData(positionToPack, velocityToPack, accelerationToPack);
+   }
+
+   public void getCoMPosition(YoFramePoint positionToPack)
+   {
+      positionToPack.set(desiredCoMPosition);
    }
 
    @Override

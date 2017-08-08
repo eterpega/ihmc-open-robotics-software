@@ -1,43 +1,46 @@
 package us.ihmc.commonWalkingControlModules.trajectories;
 
 import java.util.ArrayList;
-import java.util.EnumMap;
+import java.util.List;
 
-import us.ihmc.graphics3DDescription.appearance.YoAppearance;
-import us.ihmc.graphics3DDescription.yoGraphics.BagOfBalls;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.commons.PrintTools;
+import us.ihmc.graphicsDescription.appearance.YoAppearance;
+import us.ihmc.graphicsDescription.yoGraphics.BagOfBalls;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.robotics.MathTools;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.EnumYoVariable;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FrameVector;
 import us.ihmc.robotics.lists.RecyclingArrayList;
 import us.ihmc.robotics.math.trajectories.PositionTrajectoryGenerator;
+import us.ihmc.robotics.math.trajectories.waypoints.FrameEuclideanTrajectoryPoint;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.trajectories.TrajectoryType;
-import us.ihmc.tools.io.printing.PrintTools;
 
 public class TwoWaypointSwingGenerator implements PositionTrajectoryGenerator
 {
-   private static final int maxTimeIterations = 1;
+   private static final int maxTimeIterations = -1; // setting this negative activates continuous updating
    private static final int numberWaypoints = 2;
-   private static final double[] waypointProportions = new double[] {0.15, 0.85};
+   private static final double[] defaultWaypointProportions = new double[] {0.15, 0.85};
 
    private static final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
 
    private final YoVariableRegistry registry;
 
-   private final DoubleYoVariable stepTime;
-   private final DoubleYoVariable timeIntoStep;
-   private final BooleanYoVariable isDone;
-   private final EnumYoVariable<TrajectoryType> trajectoryType;
-   private final DoubleYoVariable swingHeight;
-   private final DoubleYoVariable maxSwingHeight;
-   private final DoubleYoVariable minSwingHeight;
+   private final YoDouble stepTime;
+   private final YoDouble timeIntoStep;
+   private final YoBoolean isDone;
+   private final YoDouble swingHeight;
+   private final YoDouble maxSwingHeight;
+   private final YoDouble minSwingHeight;
 
-   private final EnumMap<TrajectoryType, WaypointTrajectoryGenerator> trajectoryMap = new EnumMap<>(TrajectoryType.class);
+   private final List<YoDouble> waypointProportions = new ArrayList<>();
+   private final List<YoDouble> obstacleClearanceWaypointProportions = new ArrayList<>();
+
+   private TrajectoryType trajectoryType;
+   private final PositionOptimizedTrajectoryGenerator trajectory;
 
    private final FramePoint initialPosition = new FramePoint();
    private final FrameVector initialVelocity = new FrameVector();
@@ -46,32 +49,52 @@ public class TwoWaypointSwingGenerator implements PositionTrajectoryGenerator
    private final ArrayList<FramePoint> waypointPositions = new ArrayList<>();
    private final FramePoint stanceFootPosition = new FramePoint();
 
+   private final FrameVector initialVelocityNoTimeDimension = new FrameVector();
+   private final FrameVector finalVelocityNoTimeDiemension = new FrameVector();
+   private final FrameVector tempWaypointVelocity = new FrameVector();
+
    private final BagOfBalls waypointViz;
 
-   public TwoWaypointSwingGenerator(String namePrefix, double minSwingHeight, double maxSwingHeight, YoVariableRegistry parentRegistry, YoGraphicsListRegistry yoGraphicsListRegistry)
+   public TwoWaypointSwingGenerator(String namePrefix, double minSwingHeight, double maxSwingHeight, YoVariableRegistry parentRegistry,
+         YoGraphicsListRegistry yoGraphicsListRegistry)
+   {
+      this(namePrefix, null, null, minSwingHeight, maxSwingHeight, parentRegistry, yoGraphicsListRegistry);
+   }
+
+   public TwoWaypointSwingGenerator(String namePrefix, double[] waypointProportions, double[] obstacleClearanceProportions, double minSwingHeight,
+         double maxSwingHeight, YoVariableRegistry parentRegistry, YoGraphicsListRegistry yoGraphicsListRegistry)
    {
       registry = new YoVariableRegistry(namePrefix + getClass().getSimpleName());
       parentRegistry.addChild(registry);
 
-      stepTime = new DoubleYoVariable(namePrefix + "StepTime", registry);
-      timeIntoStep = new DoubleYoVariable(namePrefix + "TimeIntoStep", registry);
-      isDone = new BooleanYoVariable(namePrefix + "IsDone", registry);
-      trajectoryType = new EnumYoVariable<>(namePrefix + "TrajectoryType", registry, TrajectoryType.class);
-      swingHeight = new DoubleYoVariable(namePrefix + "SwingHeight", registry);
+      stepTime = new YoDouble(namePrefix + "StepTime", registry);
+      timeIntoStep = new YoDouble(namePrefix + "TimeIntoStep", registry);
+      isDone = new YoBoolean(namePrefix + "IsDone", registry);
+      swingHeight = new YoDouble(namePrefix + "SwingHeight", registry);
       swingHeight.set(minSwingHeight);
 
-      this.maxSwingHeight = new DoubleYoVariable(namePrefix + "MaxSwingHeight", registry);
+      this.maxSwingHeight = new YoDouble(namePrefix + "MaxSwingHeight", registry);
       this.maxSwingHeight.set(maxSwingHeight);
 
-      this.minSwingHeight = new DoubleYoVariable(namePrefix + "MinSwingHeight", registry);
+      this.minSwingHeight = new YoDouble(namePrefix + "MinSwingHeight", registry);
       this.minSwingHeight.set(minSwingHeight);
 
-      WaypointTrajectoryGenerator trajectory = new Position2dOptimizedSwingTrajectoryGenerator(namePrefix + "2d", registry, yoGraphicsListRegistry, maxTimeIterations);
-      WaypointTrajectoryGenerator trajectoryForCustomWaypoints = new PositionOptimizedTrajectoryGenerator(namePrefix + "3d", registry, yoGraphicsListRegistry, maxTimeIterations);
+      if (waypointProportions == null)
+         waypointProportions = defaultWaypointProportions;
+      if (obstacleClearanceProportions == null)
+         obstacleClearanceProportions = defaultWaypointProportions;
 
-      trajectoryMap.put(TrajectoryType.DEFAULT, trajectory);
-      trajectoryMap.put(TrajectoryType.OBSTACLE_CLEARANCE, trajectory);
-      trajectoryMap.put(TrajectoryType.CUSTOM, trajectoryForCustomWaypoints);
+      for (int i = 0; i < numberWaypoints; i++)
+      {
+         YoDouble waypointProportion = new YoDouble(namePrefix + "WaypointProportion" + i, registry);
+         YoDouble obstacleClearanceWaypointProportion = new YoDouble(namePrefix + "ObstacleClearanceWaypointProportion" + i, registry);
+         waypointProportion.set(waypointProportions[i]);
+         obstacleClearanceWaypointProportion.set(obstacleClearanceProportions[i]);
+         this.waypointProportions.add(waypointProportion);
+         this.obstacleClearanceWaypointProportions.add(obstacleClearanceWaypointProportion);
+      }
+
+      trajectory = new PositionOptimizedTrajectoryGenerator(namePrefix, registry, yoGraphicsListRegistry, maxTimeIterations, numberWaypoints);
 
       for (int i = 0; i < numberWaypoints; i++)
          waypointPositions.add(new FramePoint());
@@ -85,11 +108,6 @@ public class TwoWaypointSwingGenerator implements PositionTrajectoryGenerator
    public void setStepTime(double stepTime)
    {
       this.stepTime.set(stepTime);
-   }
-
-   public void setMinimumSwingHeight(double minSwingHeight)
-   {
-//      this.minSwingHeight = minSwingHeight;
    }
 
    public void setInitialConditions(FramePoint initialPosition, FrameVector initialVelocity)
@@ -113,18 +131,20 @@ public class TwoWaypointSwingGenerator implements PositionTrajectoryGenerator
    {
       if (trajectoryType == TrajectoryType.CUSTOM && waypoints == null)
       {
-         PrintTools.warn("Recieved no waypoints but trajectory type is custom. Using desault trajectory.");
-         this.trajectoryType.set(TrajectoryType.DEFAULT);
+         PrintTools.warn("Recieved no waypoints but trajectory type is custom. Using default trajectory.");
+         this.trajectoryType = TrajectoryType.DEFAULT;
       }
       else if (trajectoryType == TrajectoryType.CUSTOM && waypoints.size() != numberWaypoints)
       {
-         PrintTools.warn("Recieved too many waypoints. Using default trajectory.");
-         this.trajectoryType.set(TrajectoryType.DEFAULT);
+         PrintTools.warn("Recieved unexpected amount of waypoints. Using default trajectory.");
+         this.trajectoryType = TrajectoryType.DEFAULT;
       }
       else
-         this.trajectoryType.set(trajectoryType);
+      {
+         this.trajectoryType = trajectoryType;
+      }
 
-      if (this.trajectoryType.getEnumValue() != TrajectoryType.CUSTOM)
+      if (this.trajectoryType != TrajectoryType.CUSTOM)
          return;
 
       for (int i = 0; i < numberWaypoints; i++)
@@ -153,7 +173,7 @@ public class TwoWaypointSwingGenerator implements PositionTrajectoryGenerator
 
    public void informDone()
    {
-      trajectoryMap.get(trajectoryType.getEnumValue()).informDone();
+      trajectory.informDone();
    }
 
    @Override
@@ -161,26 +181,24 @@ public class TwoWaypointSwingGenerator implements PositionTrajectoryGenerator
    {
       timeIntoStep.set(0.0);
       isDone.set(false);
-      for (TrajectoryType trajectoryType : TrajectoryType.values)
-         trajectoryMap.get(trajectoryType).hideVisualization();
 
       initialPosition.changeFrame(worldFrame);
       finalPosition.changeFrame(worldFrame);
       double maxStepZ = Math.max(initialPosition.getZ(), finalPosition.getZ());
 
-      switch (trajectoryType.getEnumValue())
+      switch (trajectoryType)
       {
       case OBSTACLE_CLEARANCE:
          for (int i = 0; i < numberWaypoints; i++)
          {
-            waypointPositions.get(i).interpolate(initialPosition, finalPosition, waypointProportions[i]);
+            waypointPositions.get(i).interpolate(initialPosition, finalPosition, obstacleClearanceWaypointProportions.get(i).getDoubleValue());
             waypointPositions.get(i).setZ(maxStepZ + swingHeight.getDoubleValue());
          }
          break;
       case DEFAULT:
          for (int i = 0; i < numberWaypoints; i++)
          {
-            waypointPositions.get(i).interpolate(initialPosition, finalPosition, waypointProportions[i]);
+            waypointPositions.get(i).interpolate(initialPosition, finalPosition, waypointProportions.get(i).getDoubleValue());
             waypointPositions.get(i).add(0.0, 0.0, swingHeight.getDoubleValue());
          }
          break;
@@ -197,8 +215,13 @@ public class TwoWaypointSwingGenerator implements PositionTrajectoryGenerator
          waypointPositions.get(i).setZ(Math.min(waypointPositions.get(i).getZ(), maxWaypointZ));
       }
 
-      WaypointTrajectoryGenerator trajectory = trajectoryMap.get(trajectoryType.getEnumValue());
-      trajectory.setEndpointConditions(initialPosition, initialVelocity, finalPosition, finalVelocity);
+      initialVelocityNoTimeDimension.setIncludingFrame(initialVelocity);
+      finalVelocityNoTimeDiemension.setIncludingFrame(finalVelocity);
+
+      initialVelocityNoTimeDimension.scale(stepTime.getDoubleValue());
+      finalVelocityNoTimeDiemension.scale(stepTime.getDoubleValue());
+
+      trajectory.setEndpointConditions(initialPosition, initialVelocityNoTimeDimension, finalPosition, finalVelocityNoTimeDiemension);
       trajectory.setWaypoints(waypointPositions);
       trajectory.initialize();
 
@@ -213,6 +236,11 @@ public class TwoWaypointSwingGenerator implements PositionTrajectoryGenerator
       for (int i = 0; i < numberWaypoints; i++)
          waypointViz.setBall(waypointPositions.get(i), i);
    }
+   
+   public boolean doOptimizationUpdate()
+   {
+      return trajectory.doOptimizationUpdate();
+   }
 
    @Override
    public void compute(double time)
@@ -220,11 +248,11 @@ public class TwoWaypointSwingGenerator implements PositionTrajectoryGenerator
       double trajectoryTime = stepTime.getDoubleValue();
       isDone.set(time >= trajectoryTime);
 
-      time = MathTools.clipToMinMax(time, 0.0, trajectoryTime);
+      time = MathTools.clamp(time, 0.0, trajectoryTime);
       timeIntoStep.set(time);
 
       double percent = time / trajectoryTime;
-      trajectoryMap.get(trajectoryType.getEnumValue()).compute(percent);
+      trajectory.compute(percent);
    }
 
    @Override
@@ -236,19 +264,22 @@ public class TwoWaypointSwingGenerator implements PositionTrajectoryGenerator
    @Override
    public void getPosition(FramePoint positionToPack)
    {
-      trajectoryMap.get(trajectoryType.getEnumValue()).getPosition(positionToPack);
+      trajectory.getPosition(positionToPack);
    }
 
    @Override
    public void getVelocity(FrameVector velocityToPack)
    {
-      trajectoryMap.get(trajectoryType.getEnumValue()).getVelocity(velocityToPack);
+      trajectory.getVelocity(velocityToPack);
+      velocityToPack.scale(1.0 / stepTime.getDoubleValue());
    }
 
    @Override
    public void getAcceleration(FrameVector accelerationToPack)
    {
-      trajectoryMap.get(trajectoryType.getEnumValue()).getAcceleration(accelerationToPack);
+      trajectory.getAcceleration(accelerationToPack);
+      accelerationToPack.scale(1.0 / stepTime.getDoubleValue());
+      accelerationToPack.scale(1.0 / stepTime.getDoubleValue());
    }
 
    @Override
@@ -262,15 +293,40 @@ public class TwoWaypointSwingGenerator implements PositionTrajectoryGenerator
    @Override
    public void showVisualization()
    {
-      // TODO Auto-generated method stub
-
+      trajectory.showVisualization();
    }
 
    @Override
    public void hideVisualization()
    {
-      // TODO Auto-generated method stub
-
+      trajectory.hideVisualization();
    }
 
+   public static double[] getDefaultWaypointProportions()
+   {
+      return defaultWaypointProportions;
+   }
+   
+   public int getNumberOfWaypoints()
+   {
+      return numberWaypoints;
+   }
+
+   public void getWaypointData(int waypointIndex, FrameEuclideanTrajectoryPoint waypointDataToPack)
+   {
+      double waypointTime = stepTime.getDoubleValue() * trajectory.getWaypointTime(waypointIndex);
+      trajectory.getWaypointVelocity(waypointIndex, tempWaypointVelocity);
+      tempWaypointVelocity.scale(1.0 / stepTime.getDoubleValue());
+
+      waypointDataToPack.setToNaN(worldFrame);
+      waypointDataToPack.setTime(waypointTime);
+      waypointDataToPack.setPosition(waypointPositions.get(waypointIndex));
+      waypointDataToPack.setLinearVelocity(tempWaypointVelocity);
+   }
+
+   public double computeAndGetMaxSpeed()
+   {
+      trajectory.computeMaxSpeed();
+      return trajectory.getMaxSpeed() / stepTime.getDoubleValue();
+   }
 }

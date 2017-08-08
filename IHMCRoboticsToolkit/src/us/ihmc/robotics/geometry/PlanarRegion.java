@@ -1,12 +1,24 @@
 package us.ihmc.robotics.geometry;
 
-import us.ihmc.robotics.MathTools;
-import us.ihmc.robotics.random.RandomTools;
-
-import javax.vecmath.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+
+import us.ihmc.euclid.geometry.BoundingBox2D;
+import us.ihmc.euclid.geometry.BoundingBox3D;
+import us.ihmc.euclid.geometry.ConvexPolygon2D;
+import us.ihmc.euclid.geometry.LineSegment2D;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple2D.Point2D;
+import us.ihmc.euclid.tuple2D.interfaces.Point2DReadOnly;
+import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple3D.Vector3D32;
+import us.ihmc.euclid.tuple3D.interfaces.Point3DBasics;
+import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
+import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.robotics.MathTools;
+import us.ihmc.robotics.random.RandomGeometry;
 
 public class PlanarRegion
 {
@@ -16,18 +28,19 @@ public class PlanarRegion
    private int regionId = NO_REGION_ID;
    private final RigidBodyTransform fromLocalToWorldTransform = new RigidBodyTransform();
    private final RigidBodyTransform fromWorldToLocalTransform = new RigidBodyTransform();
-   private final List<Point2d[]> concaveHullsVertices;
+   private final List<Point2D[]> concaveHullsVertices;
    /**
     * List of the convex polygons representing this planar region.
     * They are in the local frame of the plane.
     */
-   private final List<ConvexPolygon2d> convexPolygons;
+   private final List<ConvexPolygon2D> convexPolygons;
 
-   private final BoundingBox3d boundingBox3dInWorld = new BoundingBox3d(new Point3d(Double.NaN, Double.NaN, Double.NaN),
-         new Point3d(Double.NaN, Double.NaN, Double.NaN));
-   private final Point3d tempPointForConvexPolygonProjection = new Point3d();
+   private final BoundingBox3D boundingBox3dInWorld = new BoundingBox3D(new Point3D(Double.NaN, Double.NaN, Double.NaN),
+         new Point3D(Double.NaN, Double.NaN, Double.NaN));
+   private double boundingBoxEpsilon = DEFAULT_BOUNDING_BOX_EPSILON;
+   private final Point3D tempPointForConvexPolygonProjection = new Point3D();
 
-   private final ConvexPolygon2d convexHull = new ConvexPolygon2d();
+   private final ConvexPolygon2D convexHull = new ConvexPolygon2D();
 
    /**
     * Create a new, empty planar region.
@@ -36,7 +49,6 @@ public class PlanarRegion
    {
       concaveHullsVertices = new ArrayList<>();
       convexPolygons = new ArrayList<>();
-      boundingBox3dInWorld.setEpsilonToGrow(DEFAULT_BOUNDING_BOX_EPSILON);
       updateBoundingBox();
       updateConvexHull();
    }
@@ -46,13 +58,12 @@ public class PlanarRegion
     * @param transformToWorld transform from the region local coordinate system to world.
     * @param planarRegionConvexPolygons the list of convex polygon that represents the planar region. Expressed in local coordinate system.
     */
-   public PlanarRegion(RigidBodyTransform transformToWorld, List<ConvexPolygon2d> planarRegionConvexPolygons)
+   public PlanarRegion(RigidBodyTransform transformToWorld, List<ConvexPolygon2D> planarRegionConvexPolygons)
    {
       fromLocalToWorldTransform.set(transformToWorld);
-      fromWorldToLocalTransform.invert(fromLocalToWorldTransform);
+      fromWorldToLocalTransform.setAndInvert(fromLocalToWorldTransform);
       concaveHullsVertices = new ArrayList<>();
       convexPolygons = planarRegionConvexPolygons;
-      boundingBox3dInWorld.setEpsilonToGrow(DEFAULT_BOUNDING_BOX_EPSILON);
       updateBoundingBox();
       updateConvexHull();
    }
@@ -63,14 +74,13 @@ public class PlanarRegion
     * @param concaveHullVertices vertices of the concave hull of the region.
     * @param planarRegionConvexPolygons the list of convex polygon that represents the planar region. Expressed in local coordinate system.
     */
-   public PlanarRegion(RigidBodyTransform transformToWorld, Point2d[] concaveHullVertices, List<ConvexPolygon2d> planarRegionConvexPolygons)
+   public PlanarRegion(RigidBodyTransform transformToWorld, Point2D[] concaveHullVertices, List<ConvexPolygon2D> planarRegionConvexPolygons)
    {
       fromLocalToWorldTransform.set(transformToWorld);
-      fromWorldToLocalTransform.invert(fromLocalToWorldTransform);
+      fromWorldToLocalTransform.setAndInvert(fromLocalToWorldTransform);
       this.concaveHullsVertices = new ArrayList<>();
       concaveHullsVertices.add(concaveHullVertices);
       convexPolygons = planarRegionConvexPolygons;
-      boundingBox3dInWorld.setEpsilonToGrow(DEFAULT_BOUNDING_BOX_EPSILON);
       updateBoundingBox();
       updateConvexHull();
    }
@@ -81,13 +91,12 @@ public class PlanarRegion
     * @param concaveHullVertices vertices of the concave hull of the region.
     * @param planarRegionConvexPolygons the list of convex polygon that represents the planar region. Expressed in local coordinate system.
     */
-   public PlanarRegion(RigidBodyTransform transformToWorld, List<Point2d[]> concaveHullsVertices, List<ConvexPolygon2d> planarRegionConvexPolygons)
+   public PlanarRegion(RigidBodyTransform transformToWorld, List<Point2D[]> concaveHullsVertices, List<ConvexPolygon2D> planarRegionConvexPolygons)
    {
       fromLocalToWorldTransform.set(transformToWorld);
-      fromWorldToLocalTransform.invert(fromLocalToWorldTransform);
+      fromWorldToLocalTransform.setAndInvert(fromLocalToWorldTransform);
       this.concaveHullsVertices = concaveHullsVertices;
       convexPolygons = planarRegionConvexPolygons;
-      boundingBox3dInWorld.setEpsilonToGrow(DEFAULT_BOUNDING_BOX_EPSILON);
       updateBoundingBox();
       updateConvexHull();
    }
@@ -97,14 +106,13 @@ public class PlanarRegion
     * @param transformToWorld transform from the region local coordinate system to world.
     * @param convexPolygon a single convex polygon that represents the planar region. Expressed in local coordinate system.
     */
-   public PlanarRegion(RigidBodyTransform transformToWorld, ConvexPolygon2d convexPolygon)
+   public PlanarRegion(RigidBodyTransform transformToWorld, ConvexPolygon2D convexPolygon)
    {
       fromLocalToWorldTransform.set(transformToWorld);
-      fromWorldToLocalTransform.invert(fromLocalToWorldTransform);
+      fromWorldToLocalTransform.setAndInvert(fromLocalToWorldTransform);
       concaveHullsVertices = new ArrayList<>();
       convexPolygons = new ArrayList<>();
       convexPolygons.add(convexPolygon);
-      boundingBox3dInWorld.setEpsilonToGrow(DEFAULT_BOUNDING_BOX_EPSILON);
       updateBoundingBox();
       updateConvexHull();
    }
@@ -114,17 +122,17 @@ public class PlanarRegion
     * @param lineSegmentInWorld
     * @return true if the lineSegment intersects this PlanarRegion.
     */
-   public boolean isLineSegmentIntersecting(LineSegment2d lineSegmentInWorld)
+   public boolean isLineSegmentIntersecting(LineSegment2D lineSegmentInWorld)
    {
       // Instead of projecting all the polygons of this region onto the world XY-plane,
       // the given lineSegment is projected along the z-world axis to be snapped onto plane.
-      LineSegment2d projectedLineSegment = projectLineSegmentVerticallyToRegion(lineSegmentInWorld);
+      LineSegment2D projectedLineSegment = projectLineSegmentVerticallyToRegion(lineSegmentInWorld);
 
       // Now, just need to go through each polygon of this region and see there is at least one intersection
       for (int i = 0; i < getNumberOfConvexPolygons(); i++)
       {
-         ConvexPolygon2d polygonToCheck = convexPolygons.get(i);
-         Point2d[] intersectionPoints = polygonToCheck.intersectionWith(projectedLineSegment);
+         ConvexPolygon2D polygonToCheck = convexPolygons.get(i);
+         Point2D[] intersectionPoints = polygonToCheck.intersectionWith(projectedLineSegment);
          if ((intersectionPoints != null) && (intersectionPoints.length > 0) && (intersectionPoints[0] != null))
             return true;
       }
@@ -137,16 +145,16 @@ public class PlanarRegion
     * @param convexPolygonInWorld Polygon to project vertically.
     * @param intersectionsInPlaneFrameToPack ArrayList of ConvexPolygon2d to pack with the intersections.
     */
-   public void getLineSegmentIntersectionsWhenProjectedVertically(LineSegment2d lineSegmentInWorld, ArrayList<Point2d[]> intersectionsInPlaneFrameToPack)
+   public void getLineSegmentIntersectionsWhenProjectedVertically(LineSegment2D lineSegmentInWorld, ArrayList<Point2D[]> intersectionsInPlaneFrameToPack)
    {
       // Instead of projecting all the polygons of this region onto the world XY-plane,
       // the given lineSegment is projected along the z-world axis to be snapped onto plane.
-      LineSegment2d projectedLineSegment = projectLineSegmentVerticallyToRegion(lineSegmentInWorld);
+      LineSegment2D projectedLineSegment = projectLineSegmentVerticallyToRegion(lineSegmentInWorld);
 
       // Now, just need to go through each polygon of this region and see there is at least one intersection
       for (int i = 0; i < getNumberOfConvexPolygons(); i++)
       {
-         Point2d[] intersectionPoints = convexPolygons.get(i).intersectionWith(projectedLineSegment);
+         Point2D[] intersectionPoints = convexPolygons.get(i).intersectionWith(projectedLineSegment);
 
          if ((intersectionPoints != null) && (intersectionPoints.length > 0) && (intersectionPoints[0] != null))
          {
@@ -160,22 +168,22 @@ public class PlanarRegion
     * @param convexPolygon2d
     * @return true if the polygon intersects this PlanarRegion.
     */
-   public boolean isPolygonIntersecting(ConvexPolygon2d convexPolygon2d)
+   public boolean isPolygonIntersecting(ConvexPolygon2D convexPolygon2d)
    {
-	   BoundingBox2d polygonBoundingBox = convexPolygon2d.getBoundingBox();
-	   if (!boundingBox3dInWorld.intersectsInXYPlane(polygonBoundingBox))
+	   BoundingBox2D polygonBoundingBox = convexPolygon2d.getBoundingBox();
+	   if (!boundingBox3dInWorld.intersectsEpsilonInXYPlane(polygonBoundingBox, boundingBoxEpsilon))
 		   return false;
 
 	   // Instead of projecting all the polygons of this region onto the world XY-plane,
 	   // the given convex polygon is projected along the z-world axis to be snapped onto plane.
-      ConvexPolygon2d projectedPolygon = projectPolygonVerticallyToRegion(convexPolygon2d);
-      ConvexPolygon2d dummyPolygon = new ConvexPolygon2d();
+      ConvexPolygon2D projectedPolygon = projectPolygonVerticallyToRegion(convexPolygon2d);
+      ConvexPolygon2D dummyPolygon = new ConvexPolygon2D();
 
       // Now, just need to go through each polygon of this region and see there is at least one intersection
       for (int i = 0; i < getNumberOfConvexPolygons(); i++)
       {
-         ConvexPolygon2d polygonToCheck = convexPolygons.get(i);
-         boolean hasIntersection = polygonToCheck.intersectionWith(projectedPolygon, dummyPolygon);
+         ConvexPolygon2D polygonToCheck = convexPolygons.get(i);
+         boolean hasIntersection = ConvexPolygonTools.computeIntersectionOfPolygons(polygonToCheck, projectedPolygon, dummyPolygon);
          if (hasIntersection)
             return true;
       }
@@ -188,16 +196,16 @@ public class PlanarRegion
     * @param convexPolygonInWorld Polygon to project vertically.
     * @param intersectionsInPlaneFrameToPack ArrayList of ConvexPolygon2d to pack with the intersections.
     */
-   public void getPolygonIntersectionsWhenProjectedVertically(ConvexPolygon2d convexPolygonInWorld, ArrayList<ConvexPolygon2d> intersectionsInPlaneFrameToPack)
+   public void getPolygonIntersectionsWhenProjectedVertically(ConvexPolygon2D convexPolygonInWorld, ArrayList<ConvexPolygon2D> intersectionsInPlaneFrameToPack)
    {
       // Instead of projecting all the polygons of this region onto the world XY-plane,
       // the given convex polygon is projected along the z-world axis to be snapped onto plane.
-      ConvexPolygon2d projectedPolygon = projectPolygonVerticallyToRegion(convexPolygonInWorld);
+      ConvexPolygon2D projectedPolygon = projectPolygonVerticallyToRegion(convexPolygonInWorld);
 
       // Now, just need to go through each polygon of this region and see there is at least one intersection
       for (int i = 0; i < getNumberOfConvexPolygons(); i++)
       {
-         ConvexPolygon2d intersectingPolygon = convexPolygons.get(i).intersectionWith(projectedPolygon);
+         ConvexPolygon2D intersectingPolygon = ConvexPolygonTools.computeIntersectionOfPolygons(convexPolygons.get(i), projectedPolygon);
 
          if (intersectingPolygon != null)
          {
@@ -213,7 +221,7 @@ public class PlanarRegion
     * @param intersectionsToPack ArrayList of ConvexPolygon2d to pack with the intersections.
     * @return intersectionArea Total area of intersections
     */
-   public double getPolygonIntersectionAreaWhenSnapped(ConvexPolygon2d convexPolygon2d, RigidBodyTransform snappingTransform)
+   public double getPolygonIntersectionAreaWhenSnapped(ConvexPolygon2D convexPolygon2d, RigidBodyTransform snappingTransform)
    {
       return getPolygonIntersectionAreaWhenSnapped(convexPolygon2d, snappingTransform, null);
    }
@@ -225,10 +233,10 @@ public class PlanarRegion
     * @param intersectionsToPack ArrayList of ConvexPolygon2d to pack with the intersections.
     * @return intersectionArea Total area of intersections
     */
-   public double getPolygonIntersectionAreaWhenSnapped(ConvexPolygon2d convexPolygon2d, RigidBodyTransform snappingTransform,
-         ConvexPolygon2d intersectionPolygonToPack)
+   public double getPolygonIntersectionAreaWhenSnapped(ConvexPolygon2D convexPolygon2d, RigidBodyTransform snappingTransform,
+         ConvexPolygon2D intersectionPolygonToPack)
    {
-      ConvexPolygon2d projectedPolygon = snapPolygonIntoRegionAndChangeFrameToRegionFrame(convexPolygon2d, snappingTransform);
+      ConvexPolygon2D projectedPolygon = snapPolygonIntoRegionAndChangeFrameToRegionFrame(convexPolygon2d, snappingTransform);
       double intersectionArea = 0.0;
       
       if (intersectionPolygonToPack != null)
@@ -239,12 +247,13 @@ public class PlanarRegion
       RigidBodyTransform inverseSnappingTransform = new RigidBodyTransform(snappingTransform);
       inverseSnappingTransform.invert();
       RigidBodyTransform regionToPolygonTransform = new RigidBodyTransform();
-      regionToPolygonTransform.multiply(inverseSnappingTransform, fromLocalToWorldTransform);
+      regionToPolygonTransform.set(inverseSnappingTransform);
+      regionToPolygonTransform.multiply(fromLocalToWorldTransform);
       
       // Now, just need to go through each polygon of this region and see there is at least one intersection
       for (int i = 0; i < getNumberOfConvexPolygons(); i++)
       {
-         ConvexPolygon2d intersectingPolygon = convexPolygons.get(i).intersectionWith(projectedPolygon);
+         ConvexPolygon2D intersectingPolygon = ConvexPolygonTools.computeIntersectionOfPolygons(convexPolygons.get(i), projectedPolygon);
 
          if (intersectingPolygon != null)
          {
@@ -274,10 +283,11 @@ public class PlanarRegion
     * @param snappingTransform
     * @return ConvexPolygon2d Snapped polygon in the frame of this PlanarRegion.
     */
-   public ConvexPolygon2d snapPolygonIntoRegionAndChangeFrameToRegionFrame(ConvexPolygon2d polygonToSnap, RigidBodyTransform snappingTransform)
+   public ConvexPolygon2D snapPolygonIntoRegionAndChangeFrameToRegionFrame(ConvexPolygon2D polygonToSnap, RigidBodyTransform snappingTransform)
    {
       RigidBodyTransform fromPolygonToPlanarRegionTransform = new RigidBodyTransform();
-      fromPolygonToPlanarRegionTransform.multiply(fromWorldToLocalTransform, snappingTransform);
+      fromPolygonToPlanarRegionTransform.set(fromWorldToLocalTransform);
+      fromPolygonToPlanarRegionTransform.multiply(snappingTransform);
 
       double m02 = Math.abs(fromPolygonToPlanarRegionTransform.getM02());
       double m12 = Math.abs(fromPolygonToPlanarRegionTransform.getM12());
@@ -287,7 +297,7 @@ public class PlanarRegion
          System.err.println("Snapping transform does not seem consistent with PlanarRegion transform!");
       }
 
-      ConvexPolygon2d snappedPolygonToReturn = new ConvexPolygon2d(polygonToSnap);
+      ConvexPolygon2D snappedPolygonToReturn = new ConvexPolygon2D(polygonToSnap);
       snappedPolygonToReturn.applyTransformAndProjectToXYPlane(fromPolygonToPlanarRegionTransform);
 
       return snappedPolygonToReturn;
@@ -299,15 +309,15 @@ public class PlanarRegion
     * @param convexPolygonInWorld Polygon to project
     * @return new projected ConvexPolygon2d
     */
-   private ConvexPolygon2d projectPolygonVerticallyToRegion(ConvexPolygon2d convexPolygonInWorld)
+   private ConvexPolygon2D projectPolygonVerticallyToRegion(ConvexPolygon2D convexPolygonInWorld)
    {
-      ConvexPolygon2d projectedPolygon = new ConvexPolygon2d();
+      ConvexPolygon2D projectedPolygon = new ConvexPolygon2D();
 
-      Point3d snappedVertex3d = new Point3d();
+      Point3D snappedVertex3d = new Point3D();
 
       for (int i = 0; i < convexPolygonInWorld.getNumberOfVertices(); i++)
       {
-         Point2d originalVertex = convexPolygonInWorld.getVertex(i);
+         Point2DReadOnly originalVertex = convexPolygonInWorld.getVertex(i);
          // Find the vertex 3d that is snapped to the plane following z-world.
          snappedVertex3d.setX(originalVertex.getX());
          snappedVertex3d.setY(originalVertex.getY());
@@ -329,12 +339,12 @@ public class PlanarRegion
     * @param lineSegmentInWorld LineSegment2d to project
     * @return new projected LineSegment2d
     */
-   private LineSegment2d projectLineSegmentVerticallyToRegion(LineSegment2d lineSegmentInWorld)
+   private LineSegment2D projectLineSegmentVerticallyToRegion(LineSegment2D lineSegmentInWorld)
    {
-      Point2d[] snappedEndpoints = new Point2d[2];
+      Point2D[] snappedEndpoints = new Point2D[2];
 
-      Point2d originalVertex = lineSegmentInWorld.getFirstEndpoint();
-      Point3d snappedVertex3d = new Point3d();
+      Point2DReadOnly originalVertex = lineSegmentInWorld.getFirstEndpoint();
+      Point3D snappedVertex3d = new Point3D();
 
       // Find the vertex 3d that is snapped to the plane following z-world.
       snappedVertex3d.setX(originalVertex.getX());
@@ -343,7 +353,7 @@ public class PlanarRegion
 
       // Transform to local coordinates
       fromWorldToLocalTransform.transform(snappedVertex3d);
-      snappedEndpoints[0] = new Point2d(snappedVertex3d.getX(), snappedVertex3d.getY());
+      snappedEndpoints[0] = new Point2D(snappedVertex3d.getX(), snappedVertex3d.getY());
 
       originalVertex = lineSegmentInWorld.getSecondEndpoint();
 
@@ -354,9 +364,9 @@ public class PlanarRegion
 
       // Transform to local coordinates
       fromWorldToLocalTransform.transform(snappedVertex3d);
-      snappedEndpoints[1] = new Point2d(snappedVertex3d.getX(), snappedVertex3d.getY());
+      snappedEndpoints[1] = new Point2D(snappedVertex3d.getX(), snappedVertex3d.getY());
 
-      LineSegment2d projectedLineSegment = new LineSegment2d(snappedEndpoints);
+      LineSegment2D projectedLineSegment = new LineSegment2D(snappedEndpoints);
       return projectedLineSegment;
    }
    
@@ -366,7 +376,7 @@ public class PlanarRegion
     * @param point3d query coordinates.
     * @return true if the point is inside this region, false otherwise.
     */
-   public boolean isPointInsideByProjectionOntoXYPlane(Point3d point3d)
+   public boolean isPointInsideByProjectionOntoXYPlane(Point3DReadOnly point3d)
    {
       return isPointInsideByProjectionOntoXYPlane(point3d.getX(), point3d.getY());
    }
@@ -376,7 +386,7 @@ public class PlanarRegion
     * @param point2d query coordinates.
     * @return true if the point is inside this region, false otherwise.
     */
-   public boolean isPointInsideByProjectionOntoXYPlane(Point2d point2d)
+   public boolean isPointInsideByProjectionOntoXYPlane(Point2DReadOnly point2d)
    {
       return isPointInsideByProjectionOntoXYPlane(point2d.getX(), point2d.getY());
    }
@@ -389,7 +399,7 @@ public class PlanarRegion
     */
    public boolean isPointInsideByProjectionOntoXYPlane(double x, double y)
    {
-      Point3d localPoint = new Point3d();
+      Point3D localPoint = new Point3D();
       localPoint.setX(x);
       localPoint.setY(y);
       localPoint.setZ(getPlaneZGivenXY(x, y));
@@ -405,12 +415,12 @@ public class PlanarRegion
     * @param maximumOrthogonalDistance tolerance expressed as maximum orthogonal distance from the region.
     * @return true if the point is inside this region, false otherwise.
     */
-   public boolean isPointInside(Point3d point3dInWorld, double maximumOrthogonalDistance)
+   public boolean isPointInside(Point3DReadOnly point3dInWorld, double maximumOrthogonalDistance)
    {
-      Point3d localPoint = new Point3d();
+      Point3D localPoint = new Point3D();
       fromWorldToLocalTransform.transform(point3dInWorld, localPoint);
 
-      if (!MathTools.isInsideBoundsInclusive(localPoint.getZ(), maximumOrthogonalDistance))
+      if (!MathTools.intervalContains(localPoint.getZ(), maximumOrthogonalDistance))
          return false;
       else
          return isPointInside(localPoint.getX(), localPoint.getY());
@@ -423,10 +433,10 @@ public class PlanarRegion
     * @param distanceFromPlane The distance above the plane that the point is allowed to be
     * @return True if the point is on the plane or no more than distanceFromPlane above it.
     */
-   public boolean isPointOnOrSlightlyAbove(Point3d point3dInWorld, double distanceFromPlane)
+   public boolean isPointOnOrSlightlyAbove(Point3DReadOnly point3dInWorld, double distanceFromPlane)
    {
-      MathTools.checkIfPositive(distanceFromPlane);
-      Point3d localPoint = new Point3d();
+      MathTools.checkPositive(distanceFromPlane);
+      Point3D localPoint = new Point3D();
       fromWorldToLocalTransform.transform(point3dInWorld, localPoint);
 
       boolean onOrAbove = localPoint.getZ() >= 0.0;
@@ -443,10 +453,10 @@ public class PlanarRegion
     * @param distanceFromPlane The distance below the plane that the point is allowed to be
     * @return True if the point is on the plane or no more than distanceFromPlane below it.
     */
-   public boolean isPointOnOrSlightlyBelow(Point3d point3dInWorld, double distanceFromPlane)
+   public boolean isPointOnOrSlightlyBelow(Point3DReadOnly point3dInWorld, double distanceFromPlane)
    {
-      MathTools.checkIfPositive(distanceFromPlane);
-      Point3d localPoint = new Point3d();
+      MathTools.checkPositive(distanceFromPlane);
+      Point3D localPoint = new Point3D();
       fromWorldToLocalTransform.transform(point3dInWorld, localPoint);
 
       boolean onOrBelow = localPoint.getZ() <= 0.0;
@@ -461,9 +471,9 @@ public class PlanarRegion
     * @param point2dInLocal query expressed in local coordinates.
     * @return true if the point is inside this region, false otherwise.
     */
-   public boolean isPointInside(Point2d point2dInLocal)
+   public boolean isPointInside(Point2DReadOnly point2dInLocal)
    {
-      return isPointInside(point2dInLocal.x, point2dInLocal.y);
+      return isPointInside(point2dInLocal.getX(), point2dInLocal.getY());
    }
 
    /**
@@ -543,7 +553,7 @@ public class PlanarRegion
       return concaveHullsVertices.size();
    }
 
-   public Point2d[] getFirstConcaveHull()
+   public Point2D[] getFirstConcaveHull()
    {
       if (concaveHullsVertices.isEmpty())
          return null;
@@ -551,7 +561,7 @@ public class PlanarRegion
          return concaveHullsVertices.get(0);
    }
 
-   public Point2d[] getLastConcaveHull()
+   public Point2D[] getLastConcaveHull()
    {
       if (concaveHullsVertices.isEmpty())
          return null;
@@ -559,12 +569,12 @@ public class PlanarRegion
          return concaveHullsVertices.get(getNumberOfConcaveHulls() - 1);
    }
 
-   public Point2d[] getConcaveHull(int i)
+   public Point2D[] getConcaveHull(int i)
    {
       return concaveHullsVertices.get(i);
    }
 
-   public List<Point2d[]> getConcaveHulls()
+   public List<Point2D[]> getConcaveHulls()
    {
       return concaveHullsVertices;
    }
@@ -579,7 +589,7 @@ public class PlanarRegion
     * Returns the i<sup>th</sup> convex polygon representing a portion of this region.
     * The polygon is expressed in the region local coordinates.
     */
-   public ConvexPolygon2d getConvexPolygon(int i)
+   public ConvexPolygon2D getConvexPolygon(int i)
    {
       return convexPolygons.get(i);
    }
@@ -589,7 +599,7 @@ public class PlanarRegion
     * Special case: returns null when this region is empty.
     * The polygon is expressed in the region local coordinates.
     */
-   public ConvexPolygon2d getLastConvexPolygon()
+   public ConvexPolygon2D getLastConvexPolygon()
    {
       if (isEmpty())
          return null;
@@ -601,9 +611,9 @@ public class PlanarRegion
     * Returns the i<sup>th</sup> convex polygon representing a portion of this region and removes it from this planar region.
     * The polygon is expressed in the region local coordinates.
     */
-   public ConvexPolygon2d pollConvexPolygon(int i)
+   public ConvexPolygon2D pollConvexPolygon(int i)
    {
-      ConvexPolygon2d polledPolygon = convexPolygons.remove(i);
+      ConvexPolygon2D polledPolygon = convexPolygons.remove(i);
       updateBoundingBox();
       updateConvexHull();
       return polledPolygon;
@@ -614,7 +624,7 @@ public class PlanarRegion
     * Special case: returns null when this region is empty.
     * The polygon is expressed in the region local coordinates.
     */
-   public ConvexPolygon2d pollLastConvexPolygon()
+   public ConvexPolygon2D pollLastConvexPolygon()
    {
       if (isEmpty())
          return null;
@@ -623,10 +633,10 @@ public class PlanarRegion
    }
 
    /**
-    * Retrieves the normal of this planar region and stores it in the given {@link Vector3d}.
+    * Retrieves the normal of this planar region and stores it in the given {@link Vector3D}.
     * @param normalToPack used to store the normal of this planar region.
     */
-   public void getNormal(Vector3d normalToPack)
+   public void getNormal(Vector3D normalToPack)
    {
       normalToPack.setX(fromLocalToWorldTransform.getM02());
       normalToPack.setY(fromLocalToWorldTransform.getM12());
@@ -634,10 +644,10 @@ public class PlanarRegion
    }
 
    /**
-    * Retrieves the normal of this planar region and stores it in the given {@link Vector3f}.
+    * Retrieves the normal of this planar region and stores it in the given {@link Vector3D32}.
     * @param normalToPack used to store the normal of this planar region.
     */
-   public void getNormal(Vector3f normalToPack)
+   public void getNormal(Vector3D32 normalToPack)
    {
       normalToPack.setX((float) fromLocalToWorldTransform.getM02());
       normalToPack.setY((float) fromLocalToWorldTransform.getM12());
@@ -659,17 +669,7 @@ public class PlanarRegion
     * This point is also used as the origin of the local coordinate system of this planar region.
     * @param pointToPack used to store the point coordinates.
     */
-   public void getPointInRegion(Point3d pointToPack)
-   {
-      fromLocalToWorldTransform.getTranslation(pointToPack);
-   }
-
-   /**
-    * Retrieves a point that lies in this planar region.
-    * This point is also used as the origin of the local coordinate system of this planar region.
-    * @param pointToPack used to store the point coordinates.
-    */
-   public void getPointInRegion(Point3f pointToPack)
+   public void getPointInRegion(Point3DBasics pointToPack)
    {
       fromLocalToWorldTransform.getTranslation(pointToPack);
    }
@@ -687,7 +687,7 @@ public class PlanarRegion
     * Get a reference to the PlanarRegion's axis-aligned minimal bounding box (AABB) in world.
     * @return the axis-aligned minimal bounding box for the planar region, in world coordinates.
     */
-   public BoundingBox3d getBoundingBox3dInWorld()
+   public BoundingBox3D getBoundingBox3dInWorld()
    {
       return this.boundingBox3dInWorld;
    }
@@ -696,18 +696,18 @@ public class PlanarRegion
     * Get a deep copy of this PlanarRegion's axis-aligned minimal bounding box (AABB) in world
     * @return a deep copy of the axis-aligned minimal bounding box for the planar region, in world coordinates.
     */
-   public BoundingBox3d getBoundingBox3dInWorldCopy()
+   public BoundingBox3D getBoundingBox3dInWorldCopy()
    {
-      return new BoundingBox3d(this.boundingBox3dInWorld);
+      return new BoundingBox3D(this.boundingBox3dInWorld);
    }
 
    /**
-    * Set defining points of the passed-in BoundingBox3d to the same as
+    * Set defining points of the passed-in BoundingBox3D to the same as
     * those in this PlanarRegion's axis-aligned minimal bounding box (AABB) in world coordinates.
     *
     * @param boundingBox3dToPack the bounding box that will be updated to reflect this PlanarRegion's AABB
     */
-   public void getBoundingBox3dInWorld(BoundingBox3d boundingBox3dToPack)
+   public void getBoundingBox3dInWorld(BoundingBox3D boundingBox3dToPack)
    {
       boundingBox3dToPack.set(this.boundingBox3dInWorld);
    }
@@ -737,10 +737,16 @@ public class PlanarRegion
       fromWorldToLocalTransform.set(other.fromWorldToLocalTransform);
       convexPolygons.clear();
       for (int i = 0; i < other.getNumberOfConvexPolygons(); i++)
-         convexPolygons.add(new ConvexPolygon2d(other.convexPolygons.get(i)));
+         convexPolygons.add(new ConvexPolygon2D(other.convexPolygons.get(i)));
 
       updateBoundingBox();
       convexHull.setAndUpdate(other.convexHull);
+   }
+
+   public void setBoundingBoxEpsilon(double epsilon)
+   {
+      boundingBoxEpsilon = epsilon;
+      updateBoundingBox();
    }
 
    private void updateBoundingBox()
@@ -748,12 +754,12 @@ public class PlanarRegion
       boundingBox3dInWorld.set(Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN);
       for (int i = 0; i < this.getNumberOfConvexPolygons(); i++)
       {
-         ConvexPolygon2d convexPolygon = this.getConvexPolygon(i);
+         ConvexPolygon2D convexPolygon = this.getConvexPolygon(i);
 
          for (int j = 0; j < convexPolygon.getNumberOfVertices(); j++)
          {
-            Point2d vertex = convexPolygon.getVertex(j);
-            tempPointForConvexPolygonProjection.set(vertex.x, vertex.y, 0.0);
+            Point2DReadOnly vertex = convexPolygon.getVertex(j);
+            tempPointForConvexPolygonProjection.set(vertex.getX(), vertex.getY(), 0.0);
             fromLocalToWorldTransform.transform(tempPointForConvexPolygonProjection);
 
             this.boundingBox3dInWorld.updateToIncludePoint(tempPointForConvexPolygonProjection);
@@ -766,7 +772,7 @@ public class PlanarRegion
       convexHull.clear();
       for (int i = 0; i < this.getNumberOfConvexPolygons(); i++)
       {
-         ConvexPolygon2d convexPolygon = this.getConvexPolygon(i);
+         ConvexPolygon2D convexPolygon = this.getConvexPolygon(i);
          for (int j = 0; j < convexPolygon.getNumberOfVertices(); j++)
             convexHull.addVertex(convexPolygon.getVertex(j));
       }
@@ -779,18 +785,18 @@ public class PlanarRegion
    public PlanarRegion copy()
    {
       RigidBodyTransform transformToWorldCopy = new RigidBodyTransform(fromLocalToWorldTransform);
-      List<Point2d[]> concaveHullsCopy = new ArrayList<>();
+      List<Point2D[]> concaveHullsCopy = new ArrayList<>();
       for (int hullIndex = 0; hullIndex < concaveHullsVertices.size(); hullIndex++)
       {
-         Point2d[] hullVertices = new Point2d[concaveHullsVertices.get(hullIndex).length];
+         Point2D[] hullVertices = new Point2D[concaveHullsVertices.get(hullIndex).length];
          for (int i = 0; i < hullVertices.length; i++)
-            hullVertices[i] = new Point2d(concaveHullsVertices.get(hullIndex)[i]);
+            hullVertices[i] = new Point2D(concaveHullsVertices.get(hullIndex)[i]);
          concaveHullsCopy.add(hullVertices);
       }
 
-      List<ConvexPolygon2d> convexPolygonsCopy = new ArrayList<>();
+      List<ConvexPolygon2D> convexPolygonsCopy = new ArrayList<>();
       for (int i = 0; i < getNumberOfConvexPolygons(); i++)
-         convexPolygonsCopy.add(new ConvexPolygon2d(convexPolygons.get(i)));
+         convexPolygonsCopy.add(new ConvexPolygon2D(convexPolygons.get(i)));
 
       PlanarRegion planarRegion = new PlanarRegion(transformToWorldCopy, concaveHullsCopy, convexPolygonsCopy);
       planarRegion.setRegionId(regionId);
@@ -800,7 +806,7 @@ public class PlanarRegion
    /**
     * @return the convex hull of the region.
     */
-   public ConvexPolygon2d getConvexHull()
+   public ConvexPolygon2D getConvexHull()
    {
       return convexHull;
    }
@@ -808,22 +814,35 @@ public class PlanarRegion
    public static PlanarRegion generatePlanarRegionFromRandomPolygonsWithRandomTransform(Random random, int numberOfRandomlyGeneratedPolygons,
          double maxAbsoluteXYForPolygons, int numberOfPossiblePointsForPolygons)
    {
-      List<ConvexPolygon2d> regionConvexPolygons = new ArrayList<>();
+      List<ConvexPolygon2D> regionConvexPolygons = new ArrayList<>();
 
       for (int i = 0; i < numberOfRandomlyGeneratedPolygons; i++)
       {
-         ConvexPolygon2d randomPolygon = ConvexPolygon2d.generateRandomConvexPolygon2d(random, maxAbsoluteXYForPolygons, numberOfPossiblePointsForPolygons);
+         ConvexPolygon2D randomPolygon = ConvexPolygon2D.generateRandomConvexPolygon2d(random, maxAbsoluteXYForPolygons, numberOfPossiblePointsForPolygons);
          regionConvexPolygons.add(randomPolygon);
       }
 
-      for (ConvexPolygon2d convexPolygon : regionConvexPolygons)
+      for (ConvexPolygon2D convexPolygon : regionConvexPolygons)
          convexPolygon.update();
 
-      Vector3d randomTranslation = RandomTools.generateRandomVector(random, 10.0);
-      Quat4d randomOrientation = RandomTools.generateRandomQuaternion(random, Math.toRadians(45.0));
+      Vector3D randomTranslation = RandomGeometry.nextVector3D(random, 10.0);
+      Quaternion randomOrientation = RandomGeometry.nextQuaternion(random, Math.toRadians(45.0));
       RigidBodyTransform regionTransform = new RigidBodyTransform(randomOrientation, randomTranslation);
 
       return new PlanarRegion(regionTransform, regionConvexPolygons);
    }
 
+   /**
+    * Transforms the planar region
+    * @param rigidBodyTransform transform from current frame to desired frame
+    */   
+   public void transform(RigidBodyTransform fromDesiredToCurrentTransform)
+   {
+      fromLocalToWorldTransform.multiply(fromDesiredToCurrentTransform);
+      fromWorldToLocalTransform.set(fromLocalToWorldTransform);
+      fromWorldToLocalTransform.invert();
+      
+      updateBoundingBox();
+      updateConvexHull();
+   }
 }

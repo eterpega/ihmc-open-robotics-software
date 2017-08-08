@@ -4,9 +4,11 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import us.ihmc.commons.Conversions;
 import us.ihmc.javadecklink.Capture;
+import us.ihmc.javadecklink.Capture.CodecID;
 import us.ihmc.javadecklink.CaptureHandler;
-import us.ihmc.robotics.time.TimeTools;
+import us.ihmc.robotDataLogger.LogProperties;
 import us.ihmc.tools.maps.CircularLongMap;
 
 public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface implements CaptureHandler
@@ -17,7 +19,7 @@ public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface implemen
     */
 
    private final int decklink;
-   private final double quality;
+   private final YoVariableLoggerOptions options;
    private Capture capture;
    
    private final CircularLongMap circularLongMap = new CircularLongMap(10000);
@@ -26,11 +28,11 @@ public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface implemen
    
    private int frame;
 
-   public BlackmagicVideoDataLogger(File logPath, LogProperties logProperties, int decklinkID, YoVariableLoggerOptions options) throws IOException
+   public BlackmagicVideoDataLogger(String name, File logPath, LogProperties logProperties, int decklinkID, YoVariableLoggerOptions options) throws IOException
    {
-      super(logPath, logProperties, "Camera" + decklinkID);
-      decklink = decklinkID;
-      quality = options.getVideoQuality();
+      super(logPath, logProperties, name);
+      this.decklink = decklinkID;
+      this.options = options;
 
       createCaptureInterface();
    }
@@ -38,11 +40,29 @@ public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface implemen
    private void createCaptureInterface()
    {
       File timestampFile = new File(timestampData);
-      capture = new Capture(this);
+      
+      switch(options.getVideoCodec())
+      {
+      case AV_CODEC_ID_H264:
+         capture = new Capture(this, CodecID.AV_CODEC_ID_H264);
+         capture.setOption("g", "1");
+         capture.setOption("crf", String.valueOf(options.getCrf()));
+         capture.setOption("profile", "high");
+         capture.setOption("coder", "vlc");
+         break;
+      case AV_CODEC_ID_MJPEG:
+         capture = new Capture(this, CodecID.AV_CODEC_ID_H264);
+         capture.setMJPEGQuality(options.getVideoQuality());
+         break;
+         default: throw new RuntimeException();
+      }
+      
+      
+      
       try
       {
          timestampWriter = new FileWriter(timestampFile);
-         capture.startCapture(videoFile, decklink, quality);
+         capture.startCapture(videoFile, decklink);
       }
       catch (IOException e)
       {
@@ -123,7 +143,7 @@ public class BlackmagicVideoDataLogger extends VideoDataLoggerInterface implemen
       {
          if(frame % 60 == 0)
          {
-            System.out.println("[Decklink " + decklink + "] Received frame " + frame + " at time " + hardwareTime + "ns, delay: " + TimeTools.nanoSecondstoSeconds(circularLongMap.getLatestKey() - hardwareTime) + "s. pts: " + pts);
+            System.out.println("[Decklink " + decklink + "] Received frame " + frame + " at time " + hardwareTime + "ns, delay: " + Conversions.nanosecondsToSeconds(circularLongMap.getLatestKey() - hardwareTime) + "s. pts: " + pts);
          }
 
          

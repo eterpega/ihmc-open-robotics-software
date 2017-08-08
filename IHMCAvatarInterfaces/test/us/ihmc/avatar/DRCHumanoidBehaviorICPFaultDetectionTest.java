@@ -1,7 +1,5 @@
 package us.ihmc.avatar;
 
-import javax.vecmath.Vector3d;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -12,25 +10,26 @@ import us.ihmc.avatar.networkProcessor.DRCNetworkModuleParameters;
 import us.ihmc.avatar.simulationStarter.DRCSimulationStarter;
 import us.ihmc.commonWalkingControlModules.controlModules.foot.FootControlModule.ConstraintType;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.highLevelStates.walkingController.states.WalkingStateEnum;
-import us.ihmc.graphics3DAdapter.camera.CameraConfiguration;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.continuousIntegration.IntegrationCategory;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.jMonkeyEngineToolkit.camera.CameraConfiguration;
+import us.ihmc.robotDataLogger.RobotVisualizer;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
-import us.ihmc.robotModels.visualizer.RobotVisualizer;
 import us.ihmc.robotics.controllers.ControllerFailureException;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.EnumYoVariable;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoEnum;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
-import us.ihmc.robotics.stateMachines.StateTransitionCondition;
+import us.ihmc.robotics.stateMachines.conditionBasedStateMachine.StateTransitionCondition;
 import us.ihmc.simulationToolkit.controllers.PushRobotController;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
-import us.ihmc.simulationconstructionset.bambooTools.BambooTools;
-import us.ihmc.simulationconstructionset.bambooTools.SimulationTestingParameters;
-import us.ihmc.simulationconstructionset.util.environments.DefaultCommonAvatarEnvironment;
+import us.ihmc.simulationConstructionSetTools.bambooTools.BambooTools;
+import us.ihmc.simulationconstructionset.util.simulationTesting.SimulationTestingParameters;
+import us.ihmc.simulationConstructionSetTools.util.environments.DefaultCommonAvatarEnvironment;
 import us.ihmc.simulationconstructionset.util.simulationRunner.BlockingSimulationRunner;
 import us.ihmc.simulationconstructionset.util.simulationRunner.BlockingSimulationRunner.SimulationExceededMaximumTimeException;
 import us.ihmc.tools.MemoryTools;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
-import us.ihmc.tools.continuousIntegration.IntegrationCategory;
 import us.ihmc.tools.thread.ThreadTools;
 
 public abstract class DRCHumanoidBehaviorICPFaultDetectionTest implements MultiRobotTestInterface
@@ -73,7 +72,7 @@ public abstract class DRCHumanoidBehaviorICPFaultDetectionTest implements MultiR
    private RobotVisualizer robotVisualizer;
    private SimulationConstructionSet scs;
    
-   private  BooleanYoVariable enablePushing;
+   private YoBoolean enablePushing;
 
 
    @After
@@ -101,7 +100,7 @@ public abstract class DRCHumanoidBehaviorICPFaultDetectionTest implements MultiR
       setupTest(getRobotModel());
 
       // setup all parameters
-      Vector3d forceDirection = new Vector3d(0.0, 1.0, 0.0);
+      Vector3D forceDirection = new Vector3D(0.0, 1.0, 0.0);
       double magnitude = 150.0;
       double duration = 0.5;
       double percentInSwing = 0.05;
@@ -121,7 +120,7 @@ public abstract class DRCHumanoidBehaviorICPFaultDetectionTest implements MultiR
       setupTest(getRobotModel());
 
       // setup all parameters
-      Vector3d forceDirection = new Vector3d(0.0, 1.0, 0.0);
+      Vector3D forceDirection = new Vector3D(0.0, 1.0, 0.0);
       double magnitude = 750.0;
       double duration = 0.04;
       double percentInSwing = 0.2;
@@ -142,7 +141,7 @@ public abstract class DRCHumanoidBehaviorICPFaultDetectionTest implements MultiR
       setupTest(getRobotModel());
 
       // setup all parameters
-      Vector3d forceDirection = new Vector3d(0.0, 1.0, 0.0);
+      Vector3D forceDirection = new Vector3D(0.0, 1.0, 0.0);
       double magnitude = 800.0;
       double duration = 0.05;
       double percentInSwing = 0.5;
@@ -162,7 +161,7 @@ public abstract class DRCHumanoidBehaviorICPFaultDetectionTest implements MultiR
       setupTest(getRobotModel());
 
       // setup all parameters
-      Vector3d forceDirection = new Vector3d(0.0, -1.0, 0.0);
+      Vector3D forceDirection = new Vector3D(0.0, -1.0, 0.0);
       double magnitude = 800.0;
       double duration = 0.05;
       double percentInSwing = 0.4;
@@ -172,7 +171,7 @@ public abstract class DRCHumanoidBehaviorICPFaultDetectionTest implements MultiR
       testPush(forceDirection, magnitude, duration, percentInSwing, side, swingStartConditions, swingTime);
 
       // push the robot again with new parameters
-      forceDirection = new Vector3d(-1.0, 0.0, 0.0);
+      forceDirection = new Vector3D(-1.0, 0.0, 0.0);
       magnitude = 700.0;
       duration = 0.05;
       side = RobotSide.LEFT;
@@ -196,7 +195,7 @@ public abstract class DRCHumanoidBehaviorICPFaultDetectionTest implements MultiR
       double percentInSwing = 0.2;
       RobotSide side = RobotSide.LEFT;
       double magnitude = 800;
-      Vector3d forceDirection = new Vector3d(-1.0, 0.0, 0.0);
+      Vector3D forceDirection = new Vector3D(-1.0, 0.0, 0.0);
 
       // apply the push
       ThreadTools.sleep(25000);
@@ -209,13 +208,13 @@ public abstract class DRCHumanoidBehaviorICPFaultDetectionTest implements MultiR
          if (i % 2 == 0)
          {
             magnitude = 400;
-            forceDirection = new Vector3d(-1.0, 0.0, 0.0);
+            forceDirection = new Vector3D(-1.0, 0.0, 0.0);
             System.out.println("DRCHumanoidBehaviorICPFaultDetectionTest: Pushing with " + magnitude + " N of force from the front");
          }
          else
          {
             magnitude = 800;
-            forceDirection = new Vector3d(0.0, 1.0, 0.0);
+            forceDirection = new Vector3D(0.0, 1.0, 0.0);
             System.out.println("DRCHumanoidBehaviorICPFaultDetectionTest: Pushing with " + magnitude + " N of force from the right");
          }
          testPush(forceDirection, magnitude, duration, percentInSwing, side, swingStartConditions, swingTime);
@@ -235,7 +234,7 @@ public abstract class DRCHumanoidBehaviorICPFaultDetectionTest implements MultiR
       setupTest(getRobotModel());
 
       // setup all parameters
-      Vector3d forceDirection = new Vector3d(0.5, 1.0, 0.0);
+      Vector3D forceDirection = new Vector3D(0.5, 1.0, 0.0);
       double magnitude = 8000.0;
       double duration = 0.05;
       //      double percentInSwing = 0.4;
@@ -272,7 +271,7 @@ public abstract class DRCHumanoidBehaviorICPFaultDetectionTest implements MultiR
       cameraConfiguration.setCameraTracking(true, true, false, false);
       scs.setupCamera(cameraConfiguration);
       scs.selectCamera("testCamera");
-      enablePushing = new BooleanYoVariable("enablePushing", scs.getRootRegistry());
+      enablePushing = new YoBoolean("enablePushing", scs.getRootRegistry());
       enablePushing.set(false);
 
       if (VISUALIZE_FORCE)
@@ -283,18 +282,18 @@ public abstract class DRCHumanoidBehaviorICPFaultDetectionTest implements MultiR
       blockingSimulationRunner = new BlockingSimulationRunner(scs, 60.0);
 
       // get YoVariables
-      BooleanYoVariable walk = (BooleanYoVariable) scs.getVariable("DesiredFootstepCalculatorFootstepProviderWrapper", "walk");
-      BooleanYoVariable enable = (BooleanYoVariable) scs.getVariable("PushRecoveryControlModule", "enablePushRecovery");
+      YoBoolean walk = (YoBoolean) scs.getVariable("DesiredFootstepCalculatorFootstepProviderWrapper", "walk");
+      YoBoolean enable = (YoBoolean) scs.getVariable("PushRecoveryControlModule", "enablePushRecovery");
 
       for (RobotSide robotSide : RobotSide.values)
       {
          //         System.out.println("DRCHumanoidBehaviorICPFaultDetectionTest: made it to the for loop " + robotSide.toString());
          String prefix = fullRobotModel.getFoot(robotSide).getName();
          @SuppressWarnings("unchecked")
-         final EnumYoVariable<ConstraintType> footConstraintType = (EnumYoVariable<ConstraintType>) scs.getVariable(prefix + "FootControlModule", prefix
+         final YoEnum<ConstraintType> footConstraintType = (YoEnum<ConstraintType>) scs.getVariable(prefix + "FootControlModule", prefix
                + "State");
          @SuppressWarnings("unchecked")
-         final EnumYoVariable<WalkingStateEnum> walkingState = (EnumYoVariable<WalkingStateEnum>) scs.getVariable("WalkingHighLevelHumanoidController", "walkingState");
+         final YoEnum<WalkingStateEnum> walkingState = (YoEnum<WalkingStateEnum>) scs.getVariable("WalkingHighLevelHumanoidController", "walkingState");
 
          swingStartConditions.put(robotSide, new SingleSupportStartCondition(footConstraintType));
          swingFinishConditions.put(robotSide, new DoubleSupportStartCondition(walkingState, robotSide));
@@ -329,7 +328,7 @@ public abstract class DRCHumanoidBehaviorICPFaultDetectionTest implements MultiR
    //      return drcFlatGroundWalkingTrack;
    //   }
 
-   private void testPush(Vector3d forceDirection, double magnitude, double duration, double percentInState, RobotSide side,
+   private void testPush(Vector3D forceDirection, double magnitude, double duration, double percentInState, RobotSide side,
          SideDependentList<StateTransitionCondition> condition, double stateTime) throws SimulationExceededMaximumTimeException, InterruptedException
    {
       System.out.println("DRCHumanoidBehaviorICPFaultDetectionFault: testPush called.");
@@ -342,9 +341,9 @@ public abstract class DRCHumanoidBehaviorICPFaultDetectionTest implements MultiR
 
    private class SingleSupportStartCondition implements StateTransitionCondition
    {
-      private final EnumYoVariable<ConstraintType> footConstraintType;
+      private final YoEnum<ConstraintType> footConstraintType;
 
-      public SingleSupportStartCondition(EnumYoVariable<ConstraintType> footConstraintType)
+      public SingleSupportStartCondition(YoEnum<ConstraintType> footConstraintType)
       {
          this.footConstraintType = footConstraintType;
       }
@@ -358,10 +357,10 @@ public abstract class DRCHumanoidBehaviorICPFaultDetectionTest implements MultiR
 
    private class DoubleSupportStartCondition implements StateTransitionCondition
    {
-      private final EnumYoVariable<WalkingStateEnum> walkingState;
+      private final YoEnum<WalkingStateEnum> walkingState;
       private final RobotSide side;
 
-      public DoubleSupportStartCondition(EnumYoVariable<WalkingStateEnum> walkingState, RobotSide side)
+      public DoubleSupportStartCondition(YoEnum<WalkingStateEnum> walkingState, RobotSide side)
       {
          this.walkingState = walkingState;
          this.side = side;

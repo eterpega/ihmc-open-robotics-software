@@ -10,15 +10,14 @@ import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import javax.vecmath.Vector3d;
-
 import org.junit.Test;
 
 import com.esotericsoftware.minlog.Log;
 
-import us.ihmc.tools.continuousIntegration.IntegrationCategory;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationPlan;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationPlan;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.continuousIntegration.IntegrationCategory;
+import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.tools.thread.ThreadTools;
 
 @ContinuousIntegrationPlan(categories = {IntegrationCategory.FLAKY})
@@ -33,7 +32,7 @@ public class KryoObjectCommunicatorTest
       int TCP_PORT = 49152 + (int)(Math.random() * (65535 - 49152));
       Log.set(Log.LEVEL_INFO);
       
-      KryoObjectServer testServer = new KryoObjectServer(TCP_PORT, new NetClassList());;
+      KryoObjectServer testServer = new KryoObjectServer(TCP_PORT, new NetClassList());
       boolean connected = false;
       
       do
@@ -59,9 +58,10 @@ public class KryoObjectCommunicatorTest
       client.setReconnectAutomatically(true);
       
 
-      NetStateListener netStateListener = new NetStateListener()
+      ConnectionStateListener netStateListener = new ConnectionStateListener()
       {
          
+         @Override
          public void disconnected()
          {
             System.out.println("Disconnected " + disconnectLatch.getCount());
@@ -80,10 +80,11 @@ public class KryoObjectCommunicatorTest
             }
          }
          
+         @Override
          public void connected()
          {
             System.out.println("Connected");
-            server.close();
+            server.disconnect();
          }
       };
       client.attachStateListener(netStateListener);
@@ -93,8 +94,8 @@ public class KryoObjectCommunicatorTest
       
       disconnectLatch.await(5L, TimeUnit.SECONDS);
       
-      client.close();
-      server.close();
+      client.disconnect();
+      server.disconnect();
    }
 
 	@ContinuousIntegrationTest(estimatedDuration = 0.0)
@@ -107,14 +108,16 @@ public class KryoObjectCommunicatorTest
       KryoObjectServer server = new KryoObjectServer(TCP_PORT, new NetClassList());
       KryoObjectClient client = new KryoObjectClient("127.0.0.1", TCP_PORT, new NetClassList());
       
-      NetStateListener netStateListener = new NetStateListener()
+      ConnectionStateListener netStateListener = new ConnectionStateListener()
       {
          
+         @Override
          public void disconnected()
          {
             disconnectLatch.countDown();
          }
          
+         @Override
          public void connected()
          {
             connectLatch.countDown();
@@ -141,15 +144,16 @@ public class KryoObjectCommunicatorTest
       
       }while(!connected);
       
-      server.close();
+      server.disconnect();
       
       assertTrue(connectLatch.await(1, TimeUnit.SECONDS));
       assertTrue(disconnectLatch.await(1, TimeUnit.SECONDS));
       
-      client.close();
+      client.disconnect();
    }
 
-	@ContinuousIntegrationTest(estimatedDuration = 0.2)
+	@SuppressWarnings("unused")
+   @ContinuousIntegrationTest(estimatedDuration = 0.2)
 	@Test(timeout=300000)
    public void testConnectionLimiter() throws IOException, InterruptedException
    {
@@ -161,6 +165,7 @@ public class KryoObjectCommunicatorTest
       KryoObjectServer server = null;      
       ObjectConsumer<Object> objectListener = new ObjectConsumer<Object>()
       {
+         @Override
          public void consumeObject(Object object)
          {
             latch.countDown();
@@ -196,7 +201,7 @@ public class KryoObjectCommunicatorTest
       for(int i = 0; i < 5; i++)
       {
          assertTrue(clients.get(i).isConnected());
-         clients.get(i).close();
+         clients.get(i).disconnect();
       }
       
       for(int i = 5; i < 7; i++)
@@ -216,8 +221,8 @@ public class KryoObjectCommunicatorTest
       assertTrue(client.isConnected());
       
       
-      client.close();
-      server.close();
+      client.disconnect();
+      server.disconnect();
       
       
       
@@ -235,7 +240,7 @@ public class KryoObjectCommunicatorTest
       NetClassList netClassList = new NetClassList();
       netClassList.registerPacketClass(TypeA.class);
       netClassList.registerPacketClass(TypeB.class);
-      netClassList.registerPacketField(Vector3d.class);
+      netClassList.registerPacketField(Vector3D.class);
       KryoObjectServer server = new KryoObjectServer(TCP_PORT, netClassList);
       KryoObjectClient client = new KryoObjectClient("127.0.0.1", TCP_PORT, netClassList);
       
@@ -263,7 +268,7 @@ public class KryoObjectCommunicatorTest
       aObjectToSend.a = "@!aedsf";
       aObjectToSend.b = 1;
       aObjectToSend.c = 0.2;
-      aObjectToSend.testVector = new Vector3d(3.2, 1.1, 2.2);
+      aObjectToSend.testVector = new Vector3D(3.2, 1.1, 2.2);
       
       final TypeB bObjectToSend = new TypeB();
       bObjectToSend.a = 0.23;
@@ -274,6 +279,7 @@ public class KryoObjectCommunicatorTest
       ObjectConsumer<TypeA> aListener = new ObjectConsumer<TypeA>()
       {
 
+         @Override
          public void consumeObject(TypeA object)
          {
             assertTrue(aObjectToSend.equals(object));
@@ -283,6 +289,7 @@ public class KryoObjectCommunicatorTest
       ObjectConsumer<TypeB> bListener = new ObjectConsumer<TypeB>()
             {
          
+         @Override
          public void consumeObject(TypeB object)
          {
             assertTrue(bObjectToSend.equals(object));
@@ -305,11 +312,11 @@ public class KryoObjectCommunicatorTest
       
       assertTrue(latch.await(1, TimeUnit.SECONDS));
       
-      client.close();
+      client.disconnect();
       Thread.sleep(100);
       assertFalse(server.isConnected());
       assertFalse(client.isConnected());
-      server.close();
+      server.disconnect();
       
    }
 
@@ -319,8 +326,9 @@ public class KryoObjectCommunicatorTest
       public String a;
       public int b;
       public double c;
-      public Vector3d testVector;
+      public Vector3D testVector;
       
+      @Override
       public String toString()
       {
          return a + b + c;
@@ -338,6 +346,7 @@ public class KryoObjectCommunicatorTest
       public int b;
       public float c;
       
+      @Override
       public String toString()
       {
          return a + " | " + b + " | " + c;

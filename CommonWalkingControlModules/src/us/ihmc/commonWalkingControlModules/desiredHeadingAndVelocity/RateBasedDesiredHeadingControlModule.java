@@ -1,18 +1,17 @@
 package us.ihmc.commonWalkingControlModules.desiredHeadingAndVelocity;
 
-import javax.vecmath.Matrix3d;
-
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.euclid.matrix.RotationMatrix;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.geometry.FrameVector2d;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 
 public class RateBasedDesiredHeadingControlModule implements DesiredHeadingControlModule
 {
    private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
-   private final DoubleYoVariable desiredHeading = new DoubleYoVariable("desiredHeading", registry);
-   private final DoubleYoVariable desiredHeadingDot = new DoubleYoVariable("desiredHeadingDot", registry);
+   private final YoDouble desiredHeading = new YoDouble("desiredHeading", registry);
+   private final YoDouble desiredHeadingDot = new YoDouble("desiredHeadingDot", registry);
 
    private final DesiredHeadingFrame desiredHeadingFrame = new DesiredHeadingFrame();
    private final DesiredHeadingFrame predictedHeadingFrame = new DesiredHeadingFrame();
@@ -106,10 +105,10 @@ public class RateBasedDesiredHeadingControlModule implements DesiredHeadingContr
 
       public DesiredHeadingFrame()
       {
-         super("DesiredHeadingFrame", ReferenceFrame.getWorldFrame(), false, false, true);
+         super("DesiredHeadingFrame", ReferenceFrame.getWorldFrame(), false, true);
       }
 
-      private final Matrix3d rotation = new Matrix3d();
+      private final RotationMatrix rotation = new RotationMatrix();
 
       @Override
       protected void updateTransformToParent(RigidBodyTransform transformToParent)
@@ -120,7 +119,7 @@ public class RateBasedDesiredHeadingControlModule implements DesiredHeadingContr
 
       public void setHeadingAngleAndUpdate(double headingAngle)
       {
-         rotation.rotZ(headingAngle);
+         rotation.setToYawMatrix(headingAngle);
          update();
       }
    }

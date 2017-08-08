@@ -2,28 +2,27 @@ package us.ihmc.acsell.hardware.state;
 
 import java.nio.ByteBuffer;
 
-import javax.vecmath.Quat4d;
-import javax.vecmath.Vector3d;
-
 import us.ihmc.acsell.hardware.configuration.AcsellRobot;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.IntegerYoVariable;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoInteger;
 
 public class AcsellXSensState
 {
    private final YoVariableRegistry registry;
-   private final DoubleYoVariable accelX, accelY, accelZ;
-   private final DoubleYoVariable gyroX, gyroY, gyroZ;
-   private final DoubleYoVariable magX, magY, magZ;
+   private final YoDouble accelX, accelY, accelZ;
+   private final YoDouble gyroX, gyroY, gyroZ;
+   private final YoDouble magX, magY, magZ;
    
-   private final DoubleYoVariable qs, qx, qy, qz;
+   private final YoDouble qs, qx, qy, qz;
    
-   private final IntegerYoVariable sample;
+   private final YoInteger sample;
    
-   private final Quat4d Qsi = new Quat4d();
-   private final Quat4d Qip = new Quat4d();
-   private final Quat4d Qip2 = new Quat4d();
+   private final Quaternion Qsi = new Quaternion();
+   private final Quaternion Qip = new Quaternion();
+   private final Quaternion Qip2 = new Quaternion();
    private final AcsellRobot robot;   
    
    
@@ -31,50 +30,50 @@ public class AcsellXSensState
    {
       this.registry = new YoVariableRegistry(name);
       this.robot = robot;
-      this.accelX = new DoubleYoVariable("accelX", registry);
-      this.accelY = new DoubleYoVariable("accelY", registry);
-      this.accelZ = new DoubleYoVariable("accelZ", registry);
+      this.accelX = new YoDouble("accelX", registry);
+      this.accelY = new YoDouble("accelY", registry);
+      this.accelZ = new YoDouble("accelZ", registry);
 
-      this.gyroX = new DoubleYoVariable("gyroX", registry);
-      this.gyroY = new DoubleYoVariable("gyroY", registry);
-      this.gyroZ = new DoubleYoVariable("gyroZ", registry);
+      this.gyroX = new YoDouble("gyroX", registry);
+      this.gyroY = new YoDouble("gyroY", registry);
+      this.gyroZ = new YoDouble("gyroZ", registry);
 
-      this.magX = new DoubleYoVariable("magX", registry);
-      this.magY = new DoubleYoVariable("magY", registry);
-      this.magZ = new DoubleYoVariable("magZ", registry);
+      this.magX = new YoDouble("magX", registry);
+      this.magY = new YoDouble("magY", registry);
+      this.magZ = new YoDouble("magZ", registry);
 
-      this.qs = new DoubleYoVariable("qs", registry);
-      this.qx = new DoubleYoVariable("qx", registry);
-      this.qy = new DoubleYoVariable("qy", registry);
-      this.qz = new DoubleYoVariable("qz", registry);
+      this.qs = new YoDouble("qs", registry);
+      this.qx = new YoDouble("qx", registry);
+      this.qy = new YoDouble("qy", registry);
+      this.qz = new YoDouble("qz", registry);
       
-      this.sample = new IntegerYoVariable("sample", registry);
+      this.sample = new YoInteger("sample", registry);
       
       parentRegistry.addChild(registry);
    }
    
-   public void getAccel(Vector3d accelToPack)
+   public void getAccel(Vector3D accelToPack)
    {
       accelToPack.setX(accelX.getDoubleValue());
       accelToPack.setY(accelY.getDoubleValue());
       accelToPack.setZ(accelZ.getDoubleValue());
    }
    
-   public void getGyro(Vector3d gyroToPack)
+   public void getGyro(Vector3D gyroToPack)
    {
       gyroToPack.setX(gyroX.getDoubleValue());
       gyroToPack.setY(gyroY.getDoubleValue());
       gyroToPack.setZ(gyroZ.getDoubleValue());
    }
    
-   public void getMagnetometer(Vector3d magToPack)
+   public void getMagnetometer(Vector3D magToPack)
    {
       magToPack.setX(magX.getDoubleValue());
       magToPack.setY(magY.getDoubleValue());
       magToPack.setZ(magZ.getDoubleValue());
    }
    
-   public void getQuaternion(Quat4d quatToPack)
+   public void getQuaternion(Quaternion quatToPack)
    {
       quatToPack.set(qx.getDoubleValue(), qy.getDoubleValue(), qz.getDoubleValue(), qs.getDoubleValue());
    }
@@ -119,8 +118,8 @@ public class AcsellXSensState
     
     Qsi.set(qxtemp,qytemp,qztemp,qstemp);
     Qip.set(0,.707106781186548,0,-.707106781186548);
-    Qsi.mul(Qip);
-    qs.set(Qsi.getW());
+    Qsi.multiply(Qip);
+    qs.set(Qsi.getS());
     qx.set(Qsi.getX());
     qy.set(Qsi.getY());
     qz.set(Qsi.getZ());
@@ -161,9 +160,9 @@ public class AcsellXSensState
     Qsi.set(qxtemp,qytemp,qztemp,qstemp);
     Qip.set(0,.707106781186548,0,-.707106781186548);
     Qip2.set(0,0,1,0);
-    Qip.mul(Qip2);
-    Qsi.mul(Qip);
-    qs.set(Qsi.getW());
+    Qip.multiply(Qip2);
+    Qsi.multiply(Qip);
+    qs.set(Qsi.getS());
     qx.set(Qsi.getX());
     qy.set(Qsi.getY());
     qz.set(Qsi.getZ());

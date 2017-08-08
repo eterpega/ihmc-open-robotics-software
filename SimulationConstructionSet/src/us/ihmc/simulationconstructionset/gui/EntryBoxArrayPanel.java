@@ -10,8 +10,8 @@ import java.util.TimerTask;
 
 import javax.swing.JPanel;
 
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.YoVariable;
+import us.ihmc.graphicsDescription.graphInterfaces.SelectedVariableHolder;
+import us.ihmc.yoVariables.variable.YoVariable;
 
 
 public class EntryBoxArrayPanel extends JPanel
@@ -68,6 +68,7 @@ public class EntryBoxArrayPanel extends JPanel
       alertChangeListenersTimer = new Timer("EntryBoxArrayPanelTimer");
       alertChangeListenersTask = new TimerTask()
       {
+         @Override
          public void run()
          {
             final ArrayList<YoEntryBox> entryBoxes = new ArrayList<YoEntryBox>(entryBoxesOnThisPanel);
@@ -76,6 +77,7 @@ public class EntryBoxArrayPanel extends JPanel
                EventDispatchThreadHelper.justRun(new Runnable()
                {
 
+                  @Override
                   public void run()
                   {
                      for (YoEntryBox entryBox : entryBoxes)
@@ -127,7 +129,7 @@ public class EntryBoxArrayPanel extends JPanel
    }
 
 
-   public boolean isHoldingVariable(YoVariable v)
+   public boolean isHoldingVariable(YoVariable<?> v)
    {
       boolean ret = false;
 
@@ -174,10 +176,11 @@ public class EntryBoxArrayPanel extends JPanel
       this.checkStatus();
    }
 
-   public void addEntryBox(final YoVariable v)
+   public void addEntryBox(final YoVariable<?> v)
    {
       EventDispatchThreadHelper.invokeAndWait(new Runnable()
       {
+         @Override
          public void run()
          {
             YoEntryBox entryBox = new YoEntryBox(getEntryBoxArrayPanel(), selectedVariableHolder);
@@ -214,6 +217,7 @@ public class EntryBoxArrayPanel extends JPanel
    {
       EventDispatchThreadHelper.invokeLater(new Runnable()
       {
+         @Override
          public void run()
          {
             checkStatusThreadUnsafe();

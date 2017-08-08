@@ -3,19 +3,18 @@ package us.ihmc.exampleSimulations.exampleContact;
 import java.util.ArrayList;
 import java.util.Random;
 
-import javax.vecmath.Point2d;
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector2d;
-import javax.vecmath.Vector3d;
-
-import us.ihmc.graphics3DAdapter.jme.JMEGraphics3DAdapter;
-import us.ihmc.graphics3DDescription.appearance.AppearanceDefinition;
-import us.ihmc.graphics3DDescription.appearance.YoAppearance;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicPosition;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicVector;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.geometry.ConvexPolygon2d;
+import us.ihmc.euclid.geometry.ConvexPolygon2D;
+import us.ihmc.euclid.tuple2D.Point2D;
+import us.ihmc.euclid.tuple2D.Vector2D;
+import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
+import us.ihmc.graphicsDescription.appearance.YoAppearance;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicVector;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.jMonkeyEngineToolkit.jme.JMEGraphics3DAdapter;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.robotics.math.frames.YoFramePoint;
 import us.ihmc.robotics.math.frames.YoFrameVector;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
@@ -25,10 +24,10 @@ import us.ihmc.simulationconstructionset.Robot;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
 import us.ihmc.simulationconstructionset.SimulationConstructionSetParameters;
 import us.ihmc.simulationconstructionset.util.LinearStickSlipGroundContactModel;
-import us.ihmc.simulationconstructionset.util.environments.ContactableSelectableBoxRobot;
+import us.ihmc.simulationConstructionSetTools.util.environments.environmentRobots.ContactableSelectableBoxRobot;
 import us.ihmc.simulationconstructionset.util.ground.CombinedTerrainObject3D;
 import us.ihmc.simulationconstructionset.util.ground.RotatableConvexPolygonTerrainObject;
-import us.ihmc.simulationconstructionset.util.inputdevices.MidiSliderBoard;
+import us.ihmc.simulationConstructionSetTools.util.inputdevices.MidiSliderBoard;
 import us.ihmc.tools.thread.ThreadTools;
 
 public class ExampleRockContactSimulation
@@ -88,7 +87,7 @@ public class ExampleRockContactSimulation
       YoGraphicsListRegistry yoGraphicsListRegistry = new YoGraphicsListRegistry();
       double forceVectorScale = 0.001;
       AppearanceDefinition appearance = YoAppearance.Green();
-      contactableBoxRobot.addDynamicGraphicForceVectorsToGroundContactPoints(forceVectorScale, appearance , yoGraphicsListRegistry);
+      contactableBoxRobot.addYoGraphicForceVectorsToGroundContactPoints(forceVectorScale, appearance , yoGraphicsListRegistry);
       
       YoGraphicPosition checkGroundPosition = new YoGraphicPosition("checkGround", groundCheckPoint, 0.01, YoAppearance.Orange());
       yoGraphicsListRegistry.registerYoGraphic("CheckGroundPosition", checkGroundPosition);
@@ -125,8 +124,8 @@ public class ExampleRockContactSimulation
       Thread myThread = new Thread(scs);
       myThread.start();
       
-      Vector3d  normal = new Vector3d();
-      Point3d  intersection = new Point3d();
+      Vector3D  normal = new Vector3D();
+      Point3D  intersection = new Point3D();
       
       MidiSliderBoard sliderBoard = new MidiSliderBoard(scs);
       int i = 1;
@@ -158,7 +157,7 @@ public class ExampleRockContactSimulation
       for(int i = 0; i < NUM_ROCKS; i++)
       {
          double centroidHeight = random.nextDouble() * (MAX_ROCK_CENTROID_HEIGHT - MIN_ROCK_CENTROID_HEIGHT) + MIN_ROCK_CENTROID_HEIGHT;
-         Vector3d normal = generateRandomUpFacingNormal();
+         Vector3D normal = generateRandomUpFacingNormal();
 
          double[] approximateCentroid = generateRandomApproximateCentroid(i);
 
@@ -190,11 +189,11 @@ public class ExampleRockContactSimulation
       return approximateCentroid;
    }
 
-   private Vector3d generateRandomUpFacingNormal()
+   private Vector3D generateRandomUpFacingNormal()
    {
       double normalX = random.nextDouble() * (2.0 * MAX_ABS_XY_NORMAL_VALUE) - MAX_ABS_XY_NORMAL_VALUE;
       double normalY = random.nextDouble() * (2.0 * MAX_ABS_XY_NORMAL_VALUE) - MAX_ABS_XY_NORMAL_VALUE;
-      Vector3d normal = new Vector3d(normalX, normalY, 1.0);
+      Vector3D normal = new Vector3D(normalX, normalY, 1.0);
       normal.normalize();
       return normal;
    }
@@ -211,17 +210,17 @@ public class ExampleRockContactSimulation
       return vertices;
    }
 
-   private void addRock(Vector3d normal, double centroidHeight, double[][] vertices)
+   private void addRock(Vector3D normal, double centroidHeight, double[][] vertices)
    {
-      ArrayList<Point2d> vertexPoints = new ArrayList<Point2d>();
+      ArrayList<Point2D> vertexPoints = new ArrayList<Point2D>();
       
       for (double[] point : vertices)
       {
-         Point2d point2d = new Point2d(point);
+         Point2D point2d = new Point2D(point);
          vertexPoints.add(point2d);
       }
       
-      ConvexPolygon2d convexPolygon = new ConvexPolygon2d(vertexPoints);
+      ConvexPolygon2D convexPolygon = new ConvexPolygon2D(vertexPoints);
       AppearanceDefinition appearance = YoAppearance.Red();
       YoAppearance.makeTransparent(appearance, 0.7f);
       RotatableConvexPolygonTerrainObject rock = new RotatableConvexPolygonTerrainObject(normal, convexPolygon, centroidHeight, appearance);
@@ -230,49 +229,49 @@ public class ExampleRockContactSimulation
 
    private void addWall()
    {
-      Vector3d normal = new Vector3d(0.0, 0.0, 1.0);
+      Vector3D normal = new Vector3D(0.0, 0.0, 1.0);
       double centroidHeight = 2.0;
-      ArrayList<Point2d> pointList = new ArrayList<Point2d>();
+      ArrayList<Point2D> pointList = new ArrayList<Point2D>();
 
-      Point2d wallPoint0 = new Point2d(WALL_START_X, WALL_Y);
-      Point2d wallPoint1 = new Point2d(WALL_START_X + WALL_LENGTH, WALL_Y);
-      Point2d wallPoint2 = new Point2d(WALL_START_X + WALL_LENGTH, WALL_Y + Math.signum(WALL_Y) * WALL_THICKNESS);
-      Point2d wallPoint3 = new Point2d(WALL_START_X, WALL_Y + Math.signum(WALL_Y) * WALL_THICKNESS);
+      Point2D wallPoint0 = new Point2D(WALL_START_X, WALL_Y);
+      Point2D wallPoint1 = new Point2D(WALL_START_X + WALL_LENGTH, WALL_Y);
+      Point2D wallPoint2 = new Point2D(WALL_START_X + WALL_LENGTH, WALL_Y + Math.signum(WALL_Y) * WALL_THICKNESS);
+      Point2D wallPoint3 = new Point2D(WALL_START_X, WALL_Y + Math.signum(WALL_Y) * WALL_THICKNESS);
       pointList.add(wallPoint0);
       pointList.add(wallPoint1);
       pointList.add(wallPoint2);
       pointList.add(wallPoint3);
       
-      ConvexPolygon2d convexPolygon = new ConvexPolygon2d(pointList);
+      ConvexPolygon2D convexPolygon = new ConvexPolygon2D(pointList);
       RotatableConvexPolygonTerrainObject rightWall = new RotatableConvexPolygonTerrainObject(normal, convexPolygon, centroidHeight, YoAppearance.Brown());
       combinedTerrainObject.addTerrainObject(rightWall);
    }
    
    private void addPillars()
    {
-      Vector3d normal = new Vector3d(0.0, 0.0, 1.0);
+      Vector3D normal = new Vector3D(0.0, 0.0, 1.0);
       double centroidHeight = 2.0;
       
-      Point2d bottomLeft = new Point2d(-PILLAR_WIDTH/2.0, PILLAR_WIDTH/2.0);
-      Point2d bottomRight = new Point2d(-PILLAR_WIDTH/2.0, -PILLAR_WIDTH/2.0);
-      Point2d topLeft = new Point2d(PILLAR_WIDTH/2.0, PILLAR_WIDTH/2.0);
-      Point2d topRight = new Point2d(PILLAR_WIDTH/2.0, -PILLAR_WIDTH/2.0);
+      Point2D bottomLeft = new Point2D(-PILLAR_WIDTH/2.0, PILLAR_WIDTH/2.0);
+      Point2D bottomRight = new Point2D(-PILLAR_WIDTH/2.0, -PILLAR_WIDTH/2.0);
+      Point2D topLeft = new Point2D(PILLAR_WIDTH/2.0, PILLAR_WIDTH/2.0);
+      Point2D topRight = new Point2D(PILLAR_WIDTH/2.0, -PILLAR_WIDTH/2.0);
       
       double pillarDistance = ((double) WALL_LENGTH)/((double) NUM_PILLARS - 1.0);
-      Vector2d offset = new Vector2d(0.0, -WALL_Y + PILLAR_WIDTH/2.0);
+      Vector2D offset = new Vector2D(0.0, -WALL_Y + PILLAR_WIDTH/2.0);
       
       for(int i = 0; i < NUM_PILLARS; i++)
       {
-         ArrayList<Point2d> points = new ArrayList<Point2d>();
+         ArrayList<Point2D> points = new ArrayList<Point2D>();
          offset.setX(WALL_START_X + pillarDistance * i);
 
-         Point2d localBottomLeft = new Point2d();
+         Point2D localBottomLeft = new Point2D();
          localBottomLeft.add(bottomLeft, offset);
-         Point2d localBottomRight = new Point2d();
+         Point2D localBottomRight = new Point2D();
          localBottomRight.add(bottomRight, offset);
-         Point2d localTopLeft = new Point2d();
+         Point2D localTopLeft = new Point2D();
          localTopLeft.add(topLeft, offset);
-         Point2d localTopRight = new Point2d();
+         Point2D localTopRight = new Point2D();
          localTopRight.add(topRight, offset);
 
          points.add(localBottomLeft);
@@ -280,7 +279,7 @@ public class ExampleRockContactSimulation
          points.add(localTopLeft);
          points.add(localTopRight);
          
-         ConvexPolygon2d convexPolygon = new ConvexPolygon2d(points);
+         ConvexPolygon2D convexPolygon = new ConvexPolygon2D(points);
          AppearanceDefinition appearance = YoAppearance.Brown();
          YoAppearance.makeTransparent(appearance, 0.7f);
          RotatableConvexPolygonTerrainObject pillar = new RotatableConvexPolygonTerrainObject(normal, convexPolygon, centroidHeight, appearance);

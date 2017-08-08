@@ -1,17 +1,17 @@
 package us.ihmc.robotics.screwTheory;
 
-import org.ejml.data.DenseMatrix64F;
-import org.ejml.factory.LinearSolverFactory;
-import org.ejml.interfaces.linsol.LinearSolver;
-import org.ejml.ops.CommonOps;
-import org.ejml.ops.SpecializedOps;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.ejml.data.DenseMatrix64F;
+import org.ejml.factory.LinearSolverFactory;
+import org.ejml.interfaces.linsol.LinearSolver;
+import org.ejml.ops.CommonOps;
+import org.ejml.ops.SpecializedOps;
 
 /**
  *
@@ -203,10 +203,9 @@ public class OriginalDynamicallyConsistentNullspaceCalculator implements Dynamic
          {
             if (supportingJoints.contains(inverseDynamicsJoint))
             {
-               GeometricJacobian motionSubspace = inverseDynamicsJoint.getMotionSubspace();
-               for (Twist twist : motionSubspace.getAllUnitTwists())
+               for (int dofIndex = 0; dofIndex < inverseDynamicsJoint.getDegreesOfFreedom(); dofIndex++)
                {
-                  tempTwist.set(twist);
+                  inverseDynamicsJoint.getUnitTwist(dofIndex, tempTwist);
                   tempTwist.changeFrame(rootJoint.getFrameAfterJoint());
                   tempTwist.getMatrix(tempTwistMatrix, 0);
                   tempJacobianPart.reshape(selectionMatrix.getNumRows(), 1);

@@ -1,43 +1,29 @@
 package us.ihmc.atlas.ObstacleCourseTests;
 
-import java.util.List;
-
-import javax.vecmath.Vector3d;
-
-import org.apache.commons.lang3.tuple.ImmutablePair;
-
-import us.ihmc.atlas.AtlasJointMap;
 import us.ihmc.atlas.AtlasRobotModel;
 import us.ihmc.atlas.AtlasRobotVersion;
-import us.ihmc.atlas.parameters.AtlasContactPointParameters;
-import us.ihmc.atlas.parameters.AtlasPhysicalProperties;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
+import us.ihmc.avatar.drcRobot.RobotTarget;
 import us.ihmc.avatar.obstacleCourseTests.DRCObstacleCourseWobblyFootTest;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationPlan;
+import us.ihmc.continuousIntegration.IntegrationCategory;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
-import us.ihmc.simulationconstructionset.bambooTools.BambooTools;
-import us.ihmc.tools.continuousIntegration.IntegrationCategory;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationPlan;
-import us.ihmc.wholeBodyController.DRCRobotJointMap;
+import us.ihmc.simulationConstructionSetTools.bambooTools.BambooTools;
+import us.ihmc.wholeBodyController.FootContactPoints;
+import us.ihmc.wholeBodyController.WobblySimulationContactPoints;
 
 @ContinuousIntegrationPlan(categories = {IntegrationCategory.SLOW, IntegrationCategory.VIDEO})
 public class AtlasObstacleCourseWobblyFootTest extends DRCObstacleCourseWobblyFootTest
 {
+   private static final double footZWobbleForTests = 0.01;
+
    @Override
    public DRCRobotModel getRobotModel()
    {
       final AtlasRobotVersion atlasVersion = AtlasRobotVersion.ATLAS_UNPLUGGED_V5_NO_HANDS;
-
-      DRCRobotModel robotModel = new AtlasRobotModel(atlasVersion, DRCRobotModel.RobotTarget.SCS, false)
-      {
-         @Override
-         public AtlasJointMap getJointMap()
-         {
-            return createJointMapWithWobblyFeet(getAtlasVersion());
-         }
-      };
-
-      return robotModel;
+      FootContactPoints simulationContactPoints = new WobblySimulationContactPoints(footZWobbleForTests);
+      return new AtlasRobotModel(atlasVersion, RobotTarget.SCS, false, simulationContactPoints);
    }
 
    @Override
@@ -47,31 +33,9 @@ public class AtlasObstacleCourseWobblyFootTest extends DRCObstacleCourseWobblyFo
    }
 
    @Override
-   protected DoubleYoVariable getPelvisOrientationErrorVariableName(SimulationConstructionSet scs)
+   protected YoDouble getPelvisOrientationErrorVariableName(SimulationConstructionSet scs)
    {
-      return (DoubleYoVariable) scs.getVariable("root.atlas.DRCSimulation.DRCControllerThread.DRCMomentumBasedController.HighLevelHumanoidControllerManager.MomentumBasedControllerFactory.WholeBodyControllerCore.WholeBodyFeedbackController.pelvisOrientationFBController.pelvisAxisAngleOrientationController",
+      return (YoDouble) scs.getVariable("root.atlas.DRCSimulation.DRCControllerThread.DRCMomentumBasedController.HighLevelHumanoidControllerManager.MomentumBasedControllerFactory.WholeBodyControllerCore.WholeBodyFeedbackController.pelvisOrientationFBController.pelvisAxisAngleOrientationController",
             "pelvisRotationErrorInBodyZ");
-   }
-
-   private AtlasJointMap createJointMapWithWobblyFeet(final AtlasRobotVersion atlasVersion)
-   {
-      AtlasJointMap atlasJointMap = new AtlasJointMap(atlasVersion, new AtlasPhysicalProperties(1))
-      {
-         @Override
-         public List<ImmutablePair<String, Vector3d>> getJointNameGroundContactPointMap()
-         {
-            return createWobblyContactPoints(this, atlasVersion).getJointNameGroundContactPointMap();
-         }
-      };
-
-      return atlasJointMap;
-   }
-
-   private AtlasContactPointParameters createWobblyContactPoints(AtlasJointMap jointMap, AtlasRobotVersion atlasVersion)
-   {
-      AtlasContactPointParameters contactPointParameters = new AtlasContactPointParameters(jointMap, atlasVersion, false);
-      double footZWobbleForTests = 0.01;
-      contactPointParameters.createWobblyFootContactPoints(footZWobbleForTests);
-      return contactPointParameters;
    }
 }

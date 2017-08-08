@@ -3,10 +3,10 @@ package us.ihmc.simulationconstructionset;
 import java.util.ArrayList;
 import java.util.List;
 
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicReferenceFrame;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsList;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicReferenceFrame;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsList;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotController.RobotController;
 import us.ihmc.robotics.screwTheory.InverseDynamicsJoint;
@@ -16,7 +16,7 @@ public class InverseDynamicsMechanismReferenceFrameVisualizer implements RobotCo
 {
    private final String name = getClass().getSimpleName();
    private final YoVariableRegistry registry = new YoVariableRegistry(name);
-   private final List<YoGraphicReferenceFrame> dynamicGraphicReferenceFrames = new ArrayList<YoGraphicReferenceFrame>();
+   private final List<YoGraphicReferenceFrame> yoGraphicReferenceFrames = new ArrayList<YoGraphicReferenceFrame>();
 
    public InverseDynamicsMechanismReferenceFrameVisualizer(RigidBody rootBody, YoGraphicsListRegistry yoGraphicsListRegistry,
          double length)
@@ -27,9 +27,9 @@ public class InverseDynamicsMechanismReferenceFrameVisualizer implements RobotCo
       {
          InverseDynamicsJoint joint = jointStack.get(0);
          ReferenceFrame referenceFrame = joint.getSuccessor().getBodyFixedFrame();
-         YoGraphicReferenceFrame dynamicGraphicReferenceFrame = new YoGraphicReferenceFrame(referenceFrame, registry, length);
-         yoGraphicsList.add(dynamicGraphicReferenceFrame);
-         dynamicGraphicReferenceFrames.add(dynamicGraphicReferenceFrame);
+         YoGraphicReferenceFrame yoGraphicReferenceFrame = new YoGraphicReferenceFrame(referenceFrame, registry, length);
+         yoGraphicsList.add(yoGraphicReferenceFrame);
+         yoGraphicReferenceFrames.add(yoGraphicReferenceFrame);
          List<InverseDynamicsJoint> childrenJoints = joint.getSuccessor().getChildrenJoints();
          jointStack.addAll(childrenJoints);
          jointStack.remove(joint);
@@ -37,31 +37,36 @@ public class InverseDynamicsMechanismReferenceFrameVisualizer implements RobotCo
       yoGraphicsListRegistry.registerYoGraphicsList(yoGraphicsList);
    }
 
+   @Override
    public void initialize()
    {
       doControl();
    }
 
+   @Override
    public YoVariableRegistry getYoVariableRegistry()
    {
       return registry;
    }
 
+   @Override
    public String getName()
    {
       return name;
    }
 
+   @Override
    public String getDescription()
    {
       return getName();
    }
 
+   @Override
    public void doControl()
    {
-      for (YoGraphicReferenceFrame dynamicGraphicReferenceFrame : dynamicGraphicReferenceFrames)
+      for (YoGraphicReferenceFrame yoGraphicReferenceFrame : yoGraphicReferenceFrames)
       {
-         dynamicGraphicReferenceFrame.update();
+         yoGraphicReferenceFrame.update();
       }
    }
 }

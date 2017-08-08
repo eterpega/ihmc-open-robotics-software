@@ -1,8 +1,6 @@
 package us.ihmc.avatar;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -12,33 +10,31 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import us.ihmc.avatar.DRCFlatGroundWalkingTrack;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
 import us.ihmc.avatar.initialSetup.DRCGuiInitialSetup;
 import us.ihmc.avatar.initialSetup.DRCRobotInitialSetup;
 import us.ihmc.avatar.initialSetup.DRCSCSInitialSetup;
-import us.ihmc.commonWalkingControlModules.configurations.ArmControllerParameters;
 import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParameters;
-import us.ihmc.graphics3DAdapter.GroundProfile3D;
-import us.ihmc.graphics3DAdapter.camera.CameraConfiguration;
-import us.ihmc.graphics3DDescription.appearance.AppearanceDefinition;
-import us.ihmc.graphics3DDescription.appearance.YoAppearance;
+import us.ihmc.commons.RandomNumbers;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.continuousIntegration.IntegrationCategory;
+import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
+import us.ihmc.graphicsDescription.appearance.YoAppearance;
+import us.ihmc.jMonkeyEngineToolkit.GroundProfile3D;
+import us.ihmc.jMonkeyEngineToolkit.camera.CameraConfiguration;
 import us.ihmc.robotics.controllers.ControllerFailureException;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.random.RandomTools;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.simulationconstructionset.HumanoidFloatingRootJointRobot;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
-import us.ihmc.simulationconstructionset.bambooTools.BambooTools;
-import us.ihmc.simulationconstructionset.bambooTools.SimulationTestingParameters;
+import us.ihmc.simulationConstructionSetTools.bambooTools.BambooTools;
+import us.ihmc.simulationconstructionset.util.simulationTesting.SimulationTestingParameters;
 import us.ihmc.simulationconstructionset.util.ground.BumpyGroundProfile;
 import us.ihmc.simulationconstructionset.util.ground.CombinedTerrainObject3D;
 import us.ihmc.simulationconstructionset.util.simulationRunner.BlockingSimulationRunner;
 import us.ihmc.simulationconstructionset.util.simulationRunner.BlockingSimulationRunner.SimulationExceededMaximumTimeException;
-import us.ihmc.simulationconstructionset.util.simulationTesting.NothingChangedVerifier;
+import us.ihmc.simulationConstructionSetTools.simulationTesting.NothingChangedVerifier;
 import us.ihmc.tools.MemoryTools;
-import us.ihmc.tools.continuousIntegration.IntegrationCategory;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
 import us.ihmc.tools.thread.ThreadTools;
 
 public abstract class DRCBumpyAndShallowRampsWalkingTest implements MultiRobotTestInterface
@@ -99,7 +95,6 @@ public abstract class DRCBumpyAndShallowRampsWalkingTest implements MultiRobotTe
       if (simulationTestingParameters.getCheckNothingChangedInSimulation()) maximumWalkTime = 3.0;
 
       WalkingControllerParameters drcControlParameters = robotModel.getWalkingControllerParameters();
-      ArmControllerParameters armControllerParameters = robotModel.getArmControllerParameters();
 
 //      drcControlParameters.setNominalHeightAboveAnkle(drcControlParameters.nominalHeightAboveAnkle() - 0.03);    // Need to do this or the leg goes straight and the robot falls.
 
@@ -110,8 +105,7 @@ public abstract class DRCBumpyAndShallowRampsWalkingTest implements MultiRobotTe
       double rampEndX = combinedTerrainObjectAndRampEndX.getRight();
       DRCRobotInitialSetup<HumanoidFloatingRootJointRobot> robotInitialSetup = robotModel.getDefaultRobotInitialSetup(0, 0);
 
-
-      DRCFlatGroundWalkingTrack track = setupSimulationTrack(drcControlParameters, armControllerParameters, null, combinedTerrainObject, drawGroundProfile, useVelocityAndHeadingScript,
+      DRCFlatGroundWalkingTrack track = setupSimulationTrack(drcControlParameters, null, combinedTerrainObject, drawGroundProfile, useVelocityAndHeadingScript,
             cheatWithGroundHeightAtForFootstep, robotInitialSetup);
 
       SimulationConstructionSet scs = track.getSimulationConstructionSet();
@@ -126,15 +120,15 @@ public abstract class DRCBumpyAndShallowRampsWalkingTest implements MultiRobotTe
          nothingChangedVerifier = new NothingChangedVerifier("DRCOverShallowRampTest", scs);
       }
 
-      BooleanYoVariable walk = (BooleanYoVariable) scs.getVariable("walk");
-      DoubleYoVariable q_x = (DoubleYoVariable) scs.getVariable("q_x");
-      DoubleYoVariable desiredSpeed = (DoubleYoVariable) scs.getVariable("desiredVelocityX");
-      DoubleYoVariable desiredHeading = (DoubleYoVariable) scs.getVariable("desiredHeading");
+      YoBoolean walk = (YoBoolean) scs.getVariable("walk");
+      YoDouble q_x = (YoDouble) scs.getVariable("q_x");
+      YoDouble desiredSpeed = (YoDouble) scs.getVariable("desiredVelocityX");
+      YoDouble desiredHeading = (YoDouble) scs.getVariable("desiredHeading");
 
-//    DoubleYoVariable centerOfMassHeight = (DoubleYoVariable) scs.getVariable("ProcessedSensors.comPositionz");
-      DoubleYoVariable comError = (DoubleYoVariable) scs.getVariable("positionError_comHeight");
-//      DoubleYoVariable leftFootHeight = (DoubleYoVariable) scs.getVariable("p_leftFootPositionZ");
-//      DoubleYoVariable rightFootHeight = (DoubleYoVariable) scs.getVariable("p_rightFootPositionZ");
+//    YoDouble centerOfMassHeight = (YoDouble) scs.getVariable("ProcessedSensors.comPositionz");
+      YoDouble comError = (YoDouble) scs.getVariable("positionError_comHeight");
+//      YoDouble leftFootHeight = (YoDouble) scs.getVariable("p_leftFootPositionZ");
+//      YoDouble rightFootHeight = (YoDouble) scs.getVariable("p_rightFootPositionZ");
 
       initiateMotion(standingTimeDuration, blockingSimulationRunner, walk);
       desiredSpeed.set(desiredVelocityValue);
@@ -181,7 +175,6 @@ public abstract class DRCBumpyAndShallowRampsWalkingTest implements MultiRobotTe
       boolean cheatWithGroundHeightAtForFootstep = true;
 
       WalkingControllerParameters drcControlParameters = robotModel.getWalkingControllerParameters();
-      ArmControllerParameters armControllerParameters = robotModel.getArmControllerParameters();
 
 //      drcControlParameters.setNominalHeightAboveAnkle(drcControlParameters.nominalHeightAboveAnkle() - 0.03);    // Need to do this or the leg goes straight and the robot falls.
 
@@ -192,7 +185,7 @@ public abstract class DRCBumpyAndShallowRampsWalkingTest implements MultiRobotTe
       double rampEndX = combinedTerrainObjectAndRampEndX.getRight();
       DRCRobotInitialSetup<HumanoidFloatingRootJointRobot> robotInitialSetup = robotModel.getDefaultRobotInitialSetup(0.01, 0);
 
-      DRCFlatGroundWalkingTrack track = setupSimulationTrack(drcControlParameters, armControllerParameters, null, combinedTerrainObject, drawGroundProfile, useVelocityAndHeadingScript,
+      DRCFlatGroundWalkingTrack track = setupSimulationTrack(drcControlParameters, null, combinedTerrainObject, drawGroundProfile, useVelocityAndHeadingScript,
             cheatWithGroundHeightAtForFootstep, robotInitialSetup);
 
       SimulationConstructionSet scs = track.getSimulationConstructionSet();
@@ -201,13 +194,13 @@ public abstract class DRCBumpyAndShallowRampsWalkingTest implements MultiRobotTe
 
       blockingSimulationRunner = new BlockingSimulationRunner(scs, 1000.0);
 
-      BooleanYoVariable walk = (BooleanYoVariable) scs.getVariable("walk");
-      DoubleYoVariable q_x = (DoubleYoVariable) scs.getVariable("q_x");
-      DoubleYoVariable desiredSpeed = (DoubleYoVariable) scs.getVariable("desiredVelocityX");
-      DoubleYoVariable desiredHeading = (DoubleYoVariable) scs.getVariable("desiredHeading");
+      YoBoolean walk = (YoBoolean) scs.getVariable("walk");
+      YoDouble q_x = (YoDouble) scs.getVariable("q_x");
+      YoDouble desiredSpeed = (YoDouble) scs.getVariable("desiredVelocityX");
+      YoDouble desiredHeading = (YoDouble) scs.getVariable("desiredHeading");
 
-//    DoubleYoVariable centerOfMassHeight = (DoubleYoVariable) scs.getVariable("ProcessedSensors.comPositionz");
-      DoubleYoVariable comError = (DoubleYoVariable) scs.getVariable("positionError_comHeight");
+//    YoDouble centerOfMassHeight = (YoDouble) scs.getVariable("ProcessedSensors.comPositionz");
+      YoDouble comError = (YoDouble) scs.getVariable("positionError_comHeight");
 
       initiateMotion(standingTimeDuration, blockingSimulationRunner, walk);
       desiredSpeed.set(desiredVelocityValue);
@@ -263,7 +256,7 @@ public abstract class DRCBumpyAndShallowRampsWalkingTest implements MultiRobotTe
       combinedTerrainObject.addBox(landingStartX, rampYStart, landingEndX, rampYEnd, 0.0, landingHeight, YoAppearance.Gray());
       combinedTerrainObject.addRamp(rampEndX, rampYStart, landingEndX, rampYEnd, landingHeight, appearance);
 
-      combinedTerrainObject.addBox(rampXStart0 - 2.0, rampYStart, rampEndX + 2.0, rampYEnd, -0.05, 0.0);
+      combinedTerrainObject.addBox(rampXStart0 - 2.0, rampYStart, rampEndX + 6.0, rampYEnd, -0.05, 0.0);
 
       return new ImmutablePair<CombinedTerrainObject3D, Double>(combinedTerrainObject, rampEndX);
    }
@@ -284,12 +277,12 @@ public abstract class DRCBumpyAndShallowRampsWalkingTest implements MultiRobotTe
 
       for (int i=0; i<numberOfBoxes; i++)
       {
-         double xStart = RandomTools.generateRandomDouble(random, xMin, xMax);
-         double yStart = RandomTools.generateRandomDouble(random, yMin, yMax);
-         double xEnd = xStart + RandomTools.generateRandomDouble(random, maxLength*0.1, maxLength);
-         double yEnd = yStart + RandomTools.generateRandomDouble(random, maxLength*0.1, maxLength);
+         double xStart = RandomNumbers.nextDouble(random, xMin, xMax);
+         double yStart = RandomNumbers.nextDouble(random, yMin, yMax);
+         double xEnd = xStart + RandomNumbers.nextDouble(random, maxLength*0.1, maxLength);
+         double yEnd = yStart + RandomNumbers.nextDouble(random, maxLength*0.1, maxLength);
          double zStart = 0.0;
-         double zEnd = zStart + RandomTools.generateRandomDouble(random, maxHeight*0.1, maxHeight);
+         double zEnd = zStart + RandomNumbers.nextDouble(random, maxHeight*0.1, maxHeight);
          combinedTerrainObject.addBox(xStart, yStart, xEnd, yEnd, zStart, zEnd, YoAppearance.Green());
       }
 
@@ -314,20 +307,19 @@ public abstract class DRCBumpyAndShallowRampsWalkingTest implements MultiRobotTe
       boolean drawGroundProfile = true;
 
       WalkingControllerParameters drcControlParameters = robotModel.getWalkingControllerParameters();
-      ArmControllerParameters armControllerParameters = robotModel.getArmControllerParameters();
       DRCRobotInitialSetup<HumanoidFloatingRootJointRobot> robotInitialSetup = robotModel.getDefaultRobotInitialSetup(0, 0);
 
-      DRCFlatGroundWalkingTrack track = setupSimulationTrack(drcControlParameters, armControllerParameters, groundProfile, null, drawGroundProfile,
-            useVelocityAndHeadingScript, cheatWithGroundHeightAtForFootstep, robotInitialSetup);
+      DRCFlatGroundWalkingTrack track = setupSimulationTrack(drcControlParameters, groundProfile, null, drawGroundProfile, useVelocityAndHeadingScript,
+            cheatWithGroundHeightAtForFootstep, robotInitialSetup);
 
       SimulationConstructionSet scs = track.getSimulationConstructionSet();
 
       blockingSimulationRunner = new BlockingSimulationRunner(scs, 1000.0);
 
-      BooleanYoVariable walk = (BooleanYoVariable) scs.getVariable("walk");
-      DoubleYoVariable stepLength = (DoubleYoVariable) scs.getVariable("maxStepLength");
-      DoubleYoVariable offsetHeightAboveGround = (DoubleYoVariable) scs.getVariable("offsetHeightAboveGround");
-      DoubleYoVariable comError = (DoubleYoVariable) scs.getVariable("positionError_comHeight");
+      YoBoolean walk = (YoBoolean) scs.getVariable("walk");
+      YoDouble stepLength = (YoDouble) scs.getVariable("maxStepLength");
+      YoDouble offsetHeightAboveGround = (YoDouble) scs.getVariable("offsetHeightAboveGround");
+      YoDouble comError = (YoDouble) scs.getVariable("positionError_comHeight");
       stepLength.set(0.4);
       offsetHeightAboveGround.set(-0.1);
       initiateMotion(standingTimeDuration, blockingSimulationRunner, walk);
@@ -348,7 +340,7 @@ public abstract class DRCBumpyAndShallowRampsWalkingTest implements MultiRobotTe
       BambooTools.reportTestFinishedMessage(simulationTestingParameters.getShowWindows());
    }
 
-   private void initiateMotion(double standingTimeDuration, BlockingSimulationRunner runner, BooleanYoVariable walk)
+   private void initiateMotion(double standingTimeDuration, BlockingSimulationRunner runner, YoBoolean walk)
            throws SimulationExceededMaximumTimeException, ControllerFailureException
    {
       walk.set(false);
@@ -360,15 +352,15 @@ public abstract class DRCBumpyAndShallowRampsWalkingTest implements MultiRobotTe
    {
       if (simulationTestingParameters.getCreateSCSVideos())
       {
-         BambooTools.createVideoAndDataWithDateTimeClassMethodAndShareOnSharedDriveIfAvailable(getSimpleRobotName(), scs, 1);
+         BambooTools.createVideoWithDateTimeClassMethodAndShareOnSharedDriveIfAvailable(getSimpleRobotName(), scs, 1);
       }
    }
 
    boolean setupForCheatingUsingGroundHeightAtForFootstepProvider = false;
 
-   private DRCFlatGroundWalkingTrack setupSimulationTrack(WalkingControllerParameters drcControlParameters, ArmControllerParameters
-         armControllerParameters, GroundProfile3D groundProfile, GroundProfile3D groundProfile3D, boolean drawGroundProfile,
-         boolean useVelocityAndHeadingScript, boolean cheatWithGroundHeightAtForFootstep, DRCRobotInitialSetup<HumanoidFloatingRootJointRobot> robotInitialSetup)
+   private DRCFlatGroundWalkingTrack setupSimulationTrack(WalkingControllerParameters drcControlParameters, GroundProfile3D groundProfile,
+         GroundProfile3D groundProfile3D, boolean drawGroundProfile, boolean useVelocityAndHeadingScript, boolean cheatWithGroundHeightAtForFootstep,
+         DRCRobotInitialSetup<HumanoidFloatingRootJointRobot> robotInitialSetup)
    {
       DRCGuiInitialSetup guiInitialSetup = createGUIInitialSetup();
 

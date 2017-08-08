@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 
-import javax.vecmath.Vector3d;
-
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.factory.DecompositionFactory;
 import org.ejml.interfaces.decomposition.SingularValueDecomposition;
@@ -14,12 +12,12 @@ import org.ejml.ops.NormOps;
 
 import com.google.common.primitives.Doubles;
 
+import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.functionApproximation.DampedLeastSquaresSolver;
 import us.ihmc.robotics.linearAlgebra.ColumnSpaceProjector;
-import us.ihmc.robotics.linearAlgebra.MatrixTools;
 import us.ihmc.robotics.math.frames.YoFrameVector;
 import us.ihmc.robotics.referenceFrames.CenterOfMassReferenceFrame;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
@@ -46,23 +44,23 @@ public class ConstrainedCenterOfMassJacobianEvaluator implements RobotController
    private final ConstrainedCentroidalMomentumMatrixCalculator constrainedCentroidalMomentumMatrixCalculator;
    private final ReferenceFrame centerOfMassFrame;
 
-   private final DoubleYoVariable comJacobianConditionNumber = new DoubleYoVariable("comJacCondition", registry);
-   private final DoubleYoVariable comJacobianSigmaMin = new DoubleYoVariable("comJacobianSigmaMin", registry);
-   private final DoubleYoVariable constrainedComJacobianConditionNumber = new DoubleYoVariable("constrComJacCondition", registry);
-   private final DoubleYoVariable constrainedComJacobianSigmaMin = new DoubleYoVariable("constrComJacobianSigmaMin", registry);
+   private final YoDouble comJacobianConditionNumber = new YoDouble("comJacCondition", registry);
+   private final YoDouble comJacobianSigmaMin = new YoDouble("comJacobianSigmaMin", registry);
+   private final YoDouble constrainedComJacobianConditionNumber = new YoDouble("constrComJacCondition", registry);
+   private final YoDouble constrainedComJacobianSigmaMin = new YoDouble("constrComJacobianSigmaMin", registry);
    private final YoFrameVector comVelocity = new YoFrameVector("comJacComVelocity", ReferenceFrame.getWorldFrame(), registry);
    private final YoFrameVector constrainedComVelocity = new YoFrameVector("constrComJacComVelocity", ReferenceFrame.getWorldFrame(), registry);
 
-   private final DoubleYoVariable cmmConditionNumber = new DoubleYoVariable("CMMCondition", registry);
-   private final DoubleYoVariable cmmSigmaMin = new DoubleYoVariable("CMMSigmaMin", registry);
-   private final DoubleYoVariable constrainedCMMConditionNumber = new DoubleYoVariable("constrCMMCondition", registry);
-   private final DoubleYoVariable constrainedCMMSigmaMin = new DoubleYoVariable("constrCMMSigmaMin", registry);
+   private final YoDouble cmmConditionNumber = new YoDouble("CMMCondition", registry);
+   private final YoDouble cmmSigmaMin = new YoDouble("CMMSigmaMin", registry);
+   private final YoDouble constrainedCMMConditionNumber = new YoDouble("constrCMMCondition", registry);
+   private final YoDouble constrainedCMMSigmaMin = new YoDouble("constrCMMSigmaMin", registry);
 
    private final InverseDynamicsJoint[] allJoints;
    private final DenseMatrix64F v;
    private final DenseMatrix64F vActuated;
    private final DenseMatrix64F tempCoMVelocityMatrix = new DenseMatrix64F(3, 1);
-   private final Vector3d tempCoMVelocity = new Vector3d();
+   private final Vector3D tempCoMVelocity = new Vector3D();
    private final Collection<InverseDynamicsJoint> actuatedJoints;
    private final ColumnSpaceProjector projector;
 
@@ -157,7 +155,7 @@ public class ConstrainedCenterOfMassJacobianEvaluator implements RobotController
 
       ScrewTools.getJointVelocitiesMatrix(allJoints, v);
       CommonOps.mult(centerOfMassJacobian, v, tempCoMVelocityMatrix);
-      MatrixTools.denseMatrixToVector3d(tempCoMVelocityMatrix, tempCoMVelocity, 0, 0);
+      tempCoMVelocity.set(tempCoMVelocityMatrix);
       comVelocity.set(tempCoMVelocity);
 
       ScrewTools.getJointVelocitiesMatrix(actuatedJoints, vActuated);
@@ -185,8 +183,8 @@ public class ConstrainedCenterOfMassJacobianEvaluator implements RobotController
 
 
       //TODO: hack:
-      Vector3d linearMomentumPlus = new Vector3d();
-      MatrixTools.denseMatrixToVector3d(centroidalMomentumPlusDenseMatrix, linearMomentumPlus, 0, 0);
+      Vector3D linearMomentumPlus = new Vector3D();
+      linearMomentumPlus.set(centroidalMomentumPlusDenseMatrix);
       centroidalLinearMomentumPlus.set(linearMomentumPlus);
 
 //      Momentum centroidalMomentumPlus = new Momentum(centerOfMassFrame, centroidalMomentumPlusDenseMatrix);

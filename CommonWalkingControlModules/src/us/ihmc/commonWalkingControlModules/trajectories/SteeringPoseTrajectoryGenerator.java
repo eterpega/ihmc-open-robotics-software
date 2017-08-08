@@ -3,26 +3,25 @@ package us.ihmc.commonWalkingControlModules.trajectories;
 import static us.ihmc.robotics.geometry.AngleTools.computeAngleDifferenceMinusPiToPi;
 import static us.ihmc.robotics.geometry.AngleTools.trimAngleMinusPiToPi;
 
-import javax.vecmath.Matrix3d;
-import javax.vecmath.Vector3d;
-
-import us.ihmc.graphics3DDescription.appearance.YoAppearance;
-import us.ihmc.graphics3DDescription.yoGraphics.BagOfBalls;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicCoordinateSystem;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicPosition;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsList;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.euclid.matrix.RotationMatrix;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.graphicsDescription.appearance.YoAppearance;
+import us.ihmc.graphicsDescription.yoGraphics.BagOfBalls;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicCoordinateSystem;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsList;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.robotics.MathTools;
-import us.ihmc.robotics.dataStructures.listener.VariableChangedListener;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.YoVariable;
+import us.ihmc.yoVariables.listener.VariableChangedListener;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoVariable;
 import us.ihmc.robotics.geometry.FrameOrientation;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FramePose;
 import us.ihmc.robotics.geometry.FrameVector;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
 import us.ihmc.robotics.math.frames.YoFramePoint;
 import us.ihmc.robotics.math.frames.YoFramePose;
 import us.ihmc.robotics.math.frames.YoFrameQuaternion;
@@ -38,23 +37,23 @@ public class SteeringPoseTrajectoryGenerator implements PoseTrajectoryGenerator
 
    private final YoVariableRegistry registry;
 
-   private final DoubleYoVariable currentTime;
+   private final YoDouble currentTime;
    private final YoPolynomial steeringAnglePolynomial;
 
-   private final DoubleYoVariable trajectoryTime;
-   private final DoubleYoVariable desiredSteeringSpeed;
-   private final DoubleYoVariable steeringWheelRadius;
-   private final DoubleYoVariable initialZ;
+   private final YoDouble trajectoryTime;
+   private final YoDouble desiredSteeringSpeed;
+   private final YoDouble steeringWheelRadius;
+   private final YoDouble initialZ;
 
-   private final DoubleYoVariable initialSteeringAngle;
-   private final DoubleYoVariable currentRelativeSteeringAngle;
-   private final DoubleYoVariable finalSteeringAngle;
+   private final YoDouble initialSteeringAngle;
+   private final YoDouble currentRelativeSteeringAngle;
+   private final YoDouble finalSteeringAngle;
 
-   private final BooleanYoVariable isCurrentAngleBeingAdjusted;
-   private final DoubleYoVariable maximumAngleTrackingErrorTolerated;
-   private final DoubleYoVariable currentControlledFrameRelativeAngle;
-   private final DoubleYoVariable currentAngleTrackingError;
-   private final DoubleYoVariable currentAdjustedRelativeAngle;
+   private final YoBoolean isCurrentAngleBeingAdjusted;
+   private final YoDouble maximumAngleTrackingErrorTolerated;
+   private final YoDouble currentControlledFrameRelativeAngle;
+   private final YoDouble currentAngleTrackingError;
+   private final YoDouble currentAdjustedRelativeAngle;
 
    private final YoFramePoint yoInitialPosition;
    private final YoFramePoint yoFinalPosition;
@@ -106,35 +105,35 @@ public class SteeringPoseTrajectoryGenerator implements PoseTrajectoryGenerator
    private final FramePose tangentialSteeringFramePose = new FramePose();
    private final YoFramePose yoTangentialSteeringFramePose;
 
-   /** Use a BooleanYoVariable to hide and show visualization with a VariableChangedListener, so it is still working in playback mode. */
-   private final BooleanYoVariable showViz;
+   /** Use a YoBoolean to hide and show visualization with a VariableChangedListener, so it is still working in playback mode. */
+   private final YoBoolean showViz;
 
    public SteeringPoseTrajectoryGenerator(String namePrefix, ReferenceFrame trajectoryFrame, YoVariableRegistry parentRegistry,
          YoGraphicsListRegistry yoGraphicsListRegistry)
    {
       this.registry = new YoVariableRegistry(namePrefix + getClass().getSimpleName());
-      this.trajectoryTime = new DoubleYoVariable(namePrefix + "SteeringTrajectoryTime", registry);
-      this.desiredSteeringSpeed = new DoubleYoVariable(namePrefix + "DesiredSteeringSpeed", registry);
-      this.currentTime = new DoubleYoVariable(namePrefix + "Time", registry);
+      this.trajectoryTime = new YoDouble(namePrefix + "SteeringTrajectoryTime", registry);
+      this.desiredSteeringSpeed = new YoDouble(namePrefix + "DesiredSteeringSpeed", registry);
+      this.currentTime = new YoDouble(namePrefix + "Time", registry);
 
       this.steeringAnglePolynomial = new YoPolynomial(namePrefix + "SteeringParameterPolynomial", 2, registry);
 
       this.trajectoryFrame = trajectoryFrame;
 
-      initialZ = new DoubleYoVariable(namePrefix + "SteeringZPosition", registry);
+      initialZ = new YoDouble(namePrefix + "SteeringZPosition", registry);
 
-      isCurrentAngleBeingAdjusted = new BooleanYoVariable(namePrefix + "IsCurrentSteeringAngleBeingAdjusted", registry);
-      maximumAngleTrackingErrorTolerated = new DoubleYoVariable(namePrefix + "MaxSteeringAngleTrackingErrorTolerated", registry);
+      isCurrentAngleBeingAdjusted = new YoBoolean(namePrefix + "IsCurrentSteeringAngleBeingAdjusted", registry);
+      maximumAngleTrackingErrorTolerated = new YoDouble(namePrefix + "MaxSteeringAngleTrackingErrorTolerated", registry);
       maximumAngleTrackingErrorTolerated.set(Math.toRadians(30.0));
-      currentControlledFrameRelativeAngle = new DoubleYoVariable(namePrefix + "CurrentControlledFrameSteeringAngle", registry);
-      currentAngleTrackingError = new DoubleYoVariable(namePrefix + "CurrentSteeringAngleTrackingError", registry);
-      currentAdjustedRelativeAngle = new DoubleYoVariable(namePrefix + "CurrentAdjustedRelativeSteeringAngle", registry);
+      currentControlledFrameRelativeAngle = new YoDouble(namePrefix + "CurrentControlledFrameSteeringAngle", registry);
+      currentAngleTrackingError = new YoDouble(namePrefix + "CurrentSteeringAngleTrackingError", registry);
+      currentAdjustedRelativeAngle = new YoDouble(namePrefix + "CurrentAdjustedRelativeSteeringAngle", registry);
 
-      steeringWheelRadius = new DoubleYoVariable(namePrefix + "SteeringWheelRadius", registry);
+      steeringWheelRadius = new YoDouble(namePrefix + "SteeringWheelRadius", registry);
 
-      initialSteeringAngle = new DoubleYoVariable(namePrefix + "InitialSteeringAngle", registry);
-      currentRelativeSteeringAngle = new DoubleYoVariable(namePrefix + "CurrentRelativeSteeringAngle", registry);
-      finalSteeringAngle = new DoubleYoVariable(namePrefix + "FinalSteeringAngle", registry);
+      initialSteeringAngle = new YoDouble(namePrefix + "InitialSteeringAngle", registry);
+      currentRelativeSteeringAngle = new YoDouble(namePrefix + "CurrentRelativeSteeringAngle", registry);
+      finalSteeringAngle = new YoDouble(namePrefix + "FinalSteeringAngle", registry);
 
       yoInitialPosition = new YoFramePoint(namePrefix + "InitialSteeringPosition", trajectoryFrame, registry);
       yoFinalPosition = new YoFramePoint(namePrefix + "FinalSteeringPosition", trajectoryFrame, registry);
@@ -165,13 +164,13 @@ public class SteeringPoseTrajectoryGenerator implements PoseTrajectoryGenerator
       {
          private static final long serialVersionUID = 9102217353690768074L;
 
-         private final Vector3d localTranslation = new Vector3d();
+         private final Vector3D localTranslation = new Vector3D();
 
-         private final Vector3d localXAxis = new Vector3d();
-         private final Vector3d localYAxis = new Vector3d();
-         private final Vector3d localZAxis = new Vector3d();
+         private final Vector3D localXAxis = new Vector3D();
+         private final Vector3D localYAxis = new Vector3D();
+         private final Vector3D localZAxis = new Vector3D();
 
-         private final Matrix3d localRotation = new Matrix3d();
+         private final RotationMatrix localRotation = new RotationMatrix();
 
          @Override
          protected void updateTransformToParent(RigidBodyTransform transformToParent)
@@ -184,9 +183,7 @@ public class SteeringPoseTrajectoryGenerator implements PoseTrajectoryGenerator
             steeringWheelZeroAxis.set(localXAxis);
 
             steeringWheelCenter.get(localTranslation);
-            localRotation.setColumn(0, localXAxis);
-            localRotation.setColumn(1, localYAxis);
-            localRotation.setColumn(2, localZAxis);
+            localRotation.setColumns(localXAxis, localYAxis, localZAxis);
             transformToParent.set(localRotation, localTranslation);
          }
       };
@@ -221,7 +218,7 @@ public class SteeringPoseTrajectoryGenerator implements PoseTrajectoryGenerator
 
          bagOfBalls = new BagOfBalls(numberOfBalls, 0.01, yoGraphicsList.getLabel(), registry, yoGraphicsListRegistry);
 
-         showViz = new BooleanYoVariable(namePrefix + "ShowSteeringViz", registry);
+         showViz = new YoBoolean(namePrefix + "ShowSteeringViz", registry);
          showViz.addVariableChangedListener(new VariableChangedListener()
          {
             public void variableChanged(YoVariable<?> v)
@@ -324,7 +321,7 @@ public class SteeringPoseTrajectoryGenerator implements PoseTrajectoryGenerator
       initialSteeringAngle.set(Math.atan2(y, x));
       double initialToFinalAngle = computeAngleDifferenceMinusPiToPi(finalSteeringAngle.getDoubleValue(), initialSteeringAngle.getDoubleValue());
       double finalSteeringAngleForShortestPath = initialSteeringAngle.getDoubleValue() + initialToFinalAngle;
-      trajectoryTime.set(MathTools.clipToMinMax(Math.abs(initialToFinalAngle) / desiredSteeringSpeed.getDoubleValue(), 0.25, Double.POSITIVE_INFINITY));
+      trajectoryTime.set(MathTools.clamp(Math.abs(initialToFinalAngle) / desiredSteeringSpeed.getDoubleValue(), 0.25, Double.POSITIVE_INFINITY));
 
       steeringAnglePolynomial.setLinear(0.0, trajectoryTime.getDoubleValue(), initialSteeringAngle.getDoubleValue(), finalSteeringAngleForShortestPath);
 
@@ -351,7 +348,7 @@ public class SteeringPoseTrajectoryGenerator implements PoseTrajectoryGenerator
    public void compute(double time, boolean adjustAngle)
    {
       this.currentTime.set(time);
-      time = MathTools.clipToMinMax(time, 0.0, trajectoryTime.getDoubleValue());
+      time = MathTools.clamp(time, 0.0, trajectoryTime.getDoubleValue());
       steeringAnglePolynomial.compute(time);
 
       double angle = steeringAnglePolynomial.getPosition();

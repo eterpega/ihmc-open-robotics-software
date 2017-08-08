@@ -3,23 +3,23 @@ package us.ihmc.steppr.hardware.controllers;
 import java.io.IOException;
 import java.util.EnumMap;
 
-import javax.vecmath.Quat4d;
-
-import us.ihmc.robotModels.FullHumanoidRobotModel;
-import us.ihmc.robotModels.visualizer.RobotVisualizer;
 import us.ihmc.acsell.hardware.AcsellSetup;
 import us.ihmc.acsell.hardware.command.AcsellJointCommand;
 import us.ihmc.acsell.hardware.command.UDPAcsellOutputWriter;
 import us.ihmc.acsell.hardware.state.AcsellJointState;
 import us.ihmc.acsell.hardware.state.AcsellXSensState;
 import us.ihmc.acsell.hardware.state.UDPAcsellStateReader;
+import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.realtime.PriorityParameters;
 import us.ihmc.realtime.RealtimeMemory;
 import us.ihmc.realtime.RealtimeThread;
+import us.ihmc.robotDataLogger.RobotVisualizer;
 import us.ihmc.robotDataLogger.YoVariableServer;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.screwTheory.OneDoFJoint;
+import us.ihmc.util.PeriodicRealtimeThreadSchedulerFactory;
+import us.ihmc.util.PeriodicThreadSchedulerFactory;
+import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotics.screwTheory.FloatingInverseDynamicsJoint;
+import us.ihmc.robotics.screwTheory.OneDoFJoint;
 import us.ihmc.sensorProcessing.sensors.RawJointSensorDataHolder;
 import us.ihmc.sensorProcessing.sensors.RawJointSensorDataHolderMap;
 import us.ihmc.steppr.hardware.StepprJoint;
@@ -28,8 +28,7 @@ import us.ihmc.steppr.hardware.configuration.StepprNetworkParameters;
 import us.ihmc.steppr.hardware.state.StepprState;
 import us.ihmc.steppr.parameters.BonoRobotModel;
 import us.ihmc.tools.thread.ThreadTools;
-import us.ihmc.util.PeriodicRealtimeThreadScheduler;
-import us.ihmc.util.PeriodicThreadScheduler;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 public class StepprSingleThreadedController extends RealtimeThread
 {
@@ -40,7 +39,7 @@ public class StepprSingleThreadedController extends RealtimeThread
 
       YoVariableRegistry registry = new YoVariableRegistry("steppr");
       BonoRobotModel robotModel = new BonoRobotModel(true, true);
-      PeriodicThreadScheduler scheduler = new PeriodicRealtimeThreadScheduler(45);
+      PeriodicThreadSchedulerFactory scheduler = new PeriodicRealtimeThreadSchedulerFactory(45);
       YoVariableServer variableServer = new YoVariableServer(StepprSingleThreadedController.class, scheduler, robotModel.getLogModelProvider(), robotModel.getLogSettings(), 0.01);
 
       AcsellSetup stepprSetup = new AcsellSetup(variableServer);
@@ -63,7 +62,7 @@ public class StepprSingleThreadedController extends RealtimeThread
    private final UDPAcsellOutputWriter outputWriter;
 
    private final FloatingInverseDynamicsJoint rootJoint;
-   private final Quat4d rotation = new Quat4d();
+   private final Quaternion rotation = new Quaternion();
    private final EnumMap<StepprJoint, OneDoFJoint> jointMap = new EnumMap<>(StepprJoint.class);
    private final RawJointSensorDataHolderMap rawSensors;
 
@@ -109,7 +108,7 @@ public class StepprSingleThreadedController extends RealtimeThread
 
       if (visualizer != null)
       {
-         visualizer.setMainRegistry(registry, fullRobotModel, null);
+         visualizer.setMainRegistry(registry, fullRobotModel.getElevator(), null);
       }
 
       outputWriter.connect(new StepprNetworkParameters());

@@ -1,60 +1,81 @@
 package us.ihmc.commonWalkingControlModules.virtualModelControl;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+
 import org.ejml.data.DenseMatrix64F;
 import org.junit.Assert;
+
+import gnu.trove.map.hash.TLongObjectHashMap;
+import us.ihmc.commonWalkingControlModules.bipedSupportPolygons.ListOfPointsContactableFoot;
+import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.ContactableBodiesFactory;
+import us.ihmc.euclid.geometry.LineSegment2D;
+import us.ihmc.euclid.matrix.Matrix3D;
+import us.ihmc.euclid.tools.EuclidCoreTestTools;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple2D.Point2D;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.graphicsDescription.Graphics3DObject;
+import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
+import us.ihmc.graphicsDescription.appearance.YoAppearance;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicVector;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsList;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.humanoidRobotics.bipedSupportPolygons.ContactableFoot;
 import us.ihmc.robotModels.FullRobotModel;
+import us.ihmc.robotics.Axis;
+import us.ihmc.robotics.controllers.PIDController;
+import us.ihmc.robotics.controllers.YoPIDGains;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.robotics.geometry.FramePose;
+import us.ihmc.robotics.geometry.FrameVector;
+import us.ihmc.robotics.geometry.TransformTools;
+import us.ihmc.robotics.math.frames.YoFrameVector;
+import us.ihmc.robotics.math.frames.YoWrench;
 import us.ihmc.robotics.partNames.LegJointName;
 import us.ihmc.robotics.partNames.NeckJointName;
 import us.ihmc.robotics.partNames.RobotSpecificJointNames;
 import us.ihmc.robotics.partNames.SpineJointName;
-import us.ihmc.commonWalkingControlModules.bipedSupportPolygons.ListOfPointsContactableFoot;
-import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.ContactableBodiesFactory;
-import us.ihmc.commonWalkingControlModules.momentumBasedController.GeometricJacobianHolder;
-import us.ihmc.graphics3DDescription.Graphics3DObject;
-import us.ihmc.graphics3DDescription.appearance.AppearanceDefinition;
-import us.ihmc.graphics3DDescription.appearance.YoAppearance;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicVector;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsList;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
-import us.ihmc.humanoidRobotics.bipedSupportPolygons.ContactableFoot;
-import us.ihmc.robotics.Axis;
-import us.ihmc.robotics.controllers.PIDController;
-import us.ihmc.robotics.controllers.YoPIDGains;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.geometry.FramePose;
-import us.ihmc.robotics.geometry.FrameVector;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
-import us.ihmc.robotics.geometry.TransformTools;
-import us.ihmc.robotics.math.frames.YoFrameVector;
-import us.ihmc.robotics.math.frames.YoWrench;
 import us.ihmc.robotics.referenceFrames.CenterOfMassReferenceFrame;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotController.RobotController;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
-import us.ihmc.robotics.screwTheory.*;
+import us.ihmc.robotics.screwTheory.InverseDynamicsJoint;
+import us.ihmc.robotics.screwTheory.MovingReferenceFrame;
+import us.ihmc.robotics.screwTheory.OneDoFJoint;
+import us.ihmc.robotics.screwTheory.RevoluteJoint;
+import us.ihmc.robotics.screwTheory.RigidBody;
+import us.ihmc.robotics.screwTheory.ScrewTools;
+import us.ihmc.robotics.screwTheory.SixDoFJoint;
+import us.ihmc.robotics.screwTheory.Wrench;
 import us.ihmc.robotics.sensors.ContactSensorDefinition;
 import us.ihmc.robotics.sensors.ForceSensorDefinition;
 import us.ihmc.robotics.sensors.IMUDefinition;
 import us.ihmc.sensorProcessing.frames.CommonHumanoidReferenceFrames;
-import us.ihmc.simulationconstructionset.*;
+import us.ihmc.simulationconstructionset.ExternalForcePoint;
+import us.ihmc.simulationconstructionset.FloatingJoint;
+import us.ihmc.simulationconstructionset.Joint;
+import us.ihmc.simulationconstructionset.Link;
+import us.ihmc.simulationconstructionset.PinJoint;
+import us.ihmc.simulationconstructionset.Robot;
 import us.ihmc.simulationconstructionset.RobotTools.SCSRobotFromInverseDynamicsRobotModel;
-import us.ihmc.simulationconstructionset.bambooTools.SimulationTestingParameters;
+import us.ihmc.simulationconstructionset.SimulationConstructionSet;
 import us.ihmc.simulationconstructionset.util.simulationRunner.BlockingSimulationRunner;
-import us.ihmc.tools.testing.JUnitTools;
-
-import javax.vecmath.Matrix3d;
-import javax.vecmath.Point2d;
-import javax.vecmath.Quat4d;
-import javax.vecmath.Vector3d;
-import java.util.*;
+import us.ihmc.simulationconstructionset.util.simulationTesting.SimulationTestingParameters;
 
 public class VirtualModelControllerTestHelper
 {
-   private static final Vector3d X = new Vector3d(1.0, 0.0, 0.0);
-   private static final Vector3d Y = new Vector3d(0.0, 1.0, 0.0);
-   private static final Vector3d Z = new Vector3d(0.0, 0.0, 1.0);
+   private static final Vector3D X = new Vector3D(1.0, 0.0, 0.0);
+   private static final Vector3D Y = new Vector3D(0.0, 1.0, 0.0);
+   private static final Vector3D Z = new Vector3D(0.0, 0.0, 1.0);
 
    public static final double toFootCenterX = 0.05042;
    public static final double toFootCenterY = 0.082;
@@ -99,16 +120,15 @@ public class VirtualModelControllerTestHelper
    }
 
    public static void createVirtualModelControlTest(SCSRobotFromInverseDynamicsRobotModel robotModel, FullRobotModel controllerModel, ReferenceFrame centerOfMassFrame,
-         List<RigidBody> endEffectors, List<Vector3d> desiredForces, List<Vector3d> desiredTorques, List<ExternalForcePoint> externalForcePoints, DenseMatrix64F selectionMatrix, SimulationTestingParameters simulationTestingParameters) throws Exception
+         List<RigidBody> endEffectors, List<Vector3D> desiredForces, List<Vector3D> desiredTorques, List<ExternalForcePoint> externalForcePoints, DenseMatrix64F selectionMatrix, SimulationTestingParameters simulationTestingParameters) throws Exception
    {
       double simulationDuration = 20.0;
 
       YoGraphicsListRegistry yoGraphicsListRegistry = new YoGraphicsListRegistry();
       YoVariableRegistry registry = new YoVariableRegistry("robert");
 
-      GeometricJacobianHolder geometricJacobianHolder = new GeometricJacobianHolder();
-      VirtualModelController virtualModelController = new VirtualModelController(geometricJacobianHolder, controllerModel.getElevator(),
-            controllerModel.getOneDoFJoints(), registry, yoGraphicsListRegistry);
+      VirtualModelController virtualModelController = new VirtualModelController(controllerModel.getElevator(), controllerModel.getOneDoFJoints(),
+            registry, yoGraphicsListRegistry);
 
       List<ReferenceFrame> endEffectorFrames = new ArrayList<>();
       List<FramePose> desiredEndEffectorPoses = new ArrayList<>();
@@ -131,8 +151,8 @@ public class VirtualModelControllerTestHelper
          virtualModelController.registerControlledBody(endEffector, controllerModel.getElevator());
 
          Wrench desiredWrench = new Wrench(endEffectorFrame, endEffectorFrame);
-         Vector3d desiredForce = desiredForces.get(i);
-         Vector3d desiredTorque = desiredTorques.get(i);
+         Vector3D desiredForce = desiredForces.get(i);
+         Vector3D desiredTorque = desiredTorques.get(i);
          FrameVector forceFrameVector = new FrameVector(ReferenceFrame.getWorldFrame(), desiredForce);
          FrameVector torqueFrameVector = new FrameVector(ReferenceFrame.getWorldFrame(), desiredTorque);
          forceFrameVector.changeFrame(endEffectorFrame);
@@ -145,8 +165,8 @@ public class VirtualModelControllerTestHelper
 
          desiredWrenches.add(yoDesiredWrench);
 
-         Vector3d contactForce = new Vector3d();
-         Vector3d contactTorque = new Vector3d();
+         Vector3D contactForce = new Vector3D();
+         Vector3D contactTorque = new Vector3D();
          contactForce.set(desiredForce);
          contactTorque.set(desiredTorque);
          contactForce.scale(-1.0);
@@ -159,7 +179,7 @@ public class VirtualModelControllerTestHelper
       }
 
       DummyArmController armController = new DummyArmController(robotModel, controllerModel, controllerModel.getOneDoFJoints(), forcePointControllers, virtualModelController,
-            geometricJacobianHolder, endEffectors, desiredWrenches, selectionMatrix);
+            endEffectors, desiredWrenches, selectionMatrix);
 
       SimulationConstructionSet scs = new SimulationConstructionSet(robotModel, simulationTestingParameters);
       robotModel.setController(armController);
@@ -171,13 +191,13 @@ public class VirtualModelControllerTestHelper
       BlockingSimulationRunner blockingSimulationRunner = new BlockingSimulationRunner(scs, 1500.0);
       scs.startOnAThread();
 
-      Vector3d currentPosition = new Vector3d();
-      Quat4d currentOrientation = new Quat4d();
-      Vector3d currentForce = new Vector3d();
-      Vector3d currentTorque = new Vector3d();
+      Vector3D currentPosition = new Vector3D();
+      Quaternion currentOrientation = new Quaternion();
+      Vector3D currentForce = new Vector3D();
+      Vector3D currentTorque = new Vector3D();
 
-      List<Vector3d> desiredPositions = new ArrayList<>();
-      List<Quat4d> desiredOrientations = new ArrayList<>();
+      List<Vector3D> desiredPositions = new ArrayList<>();
+      List<Quaternion> desiredOrientations = new ArrayList<>();
 
       for (int i = 0; i < endEffectors.size(); i++)
       {
@@ -197,10 +217,10 @@ public class VirtualModelControllerTestHelper
             currentForce.set(armController.getCurrentForce(i));
             currentTorque.set(armController.getCurrentTorque(i));
 
-            JUnitTools.assertVector3dEquals("", currentPosition, desiredPositions.get(i), 0.01);
-            JUnitTools.assertQuaternionsEqual(currentOrientation, desiredOrientations.get(i), 0.01);
-            JUnitTools.assertVector3dEquals("", desiredForces.get(i), currentForce, 0.5);
-            JUnitTools.assertVector3dEquals("", desiredTorques.get(i), currentTorque, 0.5);
+            EuclidCoreTestTools.assertTuple3DEquals("", currentPosition, desiredPositions.get(i), 0.01);
+            EuclidCoreTestTools.assertQuaternionEquals(currentOrientation, desiredOrientations.get(i), 0.01);
+            EuclidCoreTestTools.assertTuple3DEquals("", desiredForces.get(i), currentForce, 0.5);
+            EuclidCoreTestTools.assertTuple3DEquals("", desiredTorques.get(i), currentTorque, 0.5);
          }
       }
    }
@@ -211,20 +231,20 @@ public class VirtualModelControllerTestHelper
       robotLeg.setGravity(gravity);
       HashMap<InverseDynamicsJoint, Joint> jointMap = new HashMap<>();
 
-      ReferenceFrame elevatorFrame = ReferenceFrame.constructFrameWithUnchangingTransformToParent("elevator", ReferenceFrame.getWorldFrame(), new RigidBodyTransform());
-      RigidBody elevator = new RigidBody("elevator", elevatorFrame);
+      RigidBody elevator = new RigidBody("elevator", ReferenceFrame.getWorldFrame());
+      ReferenceFrame elevatorFrame = elevator.getBodyFixedFrame();
 
-      FloatingJoint floatingJoint = new FloatingJoint("pelvis", new Vector3d(), robotLeg);
+      FloatingJoint floatingJoint = new FloatingJoint("pelvis", new Vector3D(), robotLeg);
       robotLeg.addRootJoint(floatingJoint);
-      SixDoFJoint rootJoint = new SixDoFJoint("pelvis", elevator, elevatorFrame);
+      SixDoFJoint rootJoint = new SixDoFJoint("pelvis", elevator);
       jointMap.put(rootJoint, floatingJoint);
 
       Link pelvisLink = pelvis();
       floatingJoint.setLink(pelvisLink);
       RigidBody pelvisBody = copyLinkAsRigidBody(pelvisLink, rootJoint, "pelvis");
 
-      Vector3d leftHipYawOffset = new Vector3d(0.0, HIP_WIDTH, 0.0);
-      Vector3d rightHipYawOffset = new Vector3d(0.0, -HIP_WIDTH, 0.0);
+      Vector3D leftHipYawOffset = new Vector3D(0.0, HIP_WIDTH, 0.0);
+      Vector3D rightHipYawOffset = new Vector3D(0.0, -HIP_WIDTH, 0.0);
       PinJoint l_hip_yaw = new PinJoint("l_leg_hpz", leftHipYawOffset, robotLeg, Axis.Z);
       PinJoint r_hip_yaw = new PinJoint("r_leg_hpz", rightHipYawOffset, robotLeg, Axis.Z);
       l_hip_yaw.setQ(random.nextDouble());
@@ -246,8 +266,8 @@ public class VirtualModelControllerTestHelper
       jointMap.put(l_leg_hpz, l_hip_yaw);
       jointMap.put(r_leg_hpz, r_hip_yaw);
 
-      Vector3d leftHipRollOffset = new Vector3d();
-      Vector3d rightHipRollOffset = new Vector3d();
+      Vector3D leftHipRollOffset = new Vector3D();
+      Vector3D rightHipRollOffset = new Vector3D();
       PinJoint l_hip_roll = new PinJoint("l_leg_hpx", leftHipRollOffset, robotLeg, Axis.X);
       PinJoint r_hip_roll = new PinJoint("r_leg_hpx", rightHipRollOffset, robotLeg, Axis.X);
       l_hip_roll.setQ(random.nextDouble());
@@ -269,8 +289,8 @@ public class VirtualModelControllerTestHelper
       jointMap.put(l_leg_hpx, l_hip_roll);
       jointMap.put(r_leg_hpx, r_hip_roll);
 
-      Vector3d leftHipPitchOffset = new Vector3d();
-      Vector3d rightHipPitchOffset = new Vector3d();
+      Vector3D leftHipPitchOffset = new Vector3D();
+      Vector3D rightHipPitchOffset = new Vector3D();
       PinJoint l_hip_pitch = new PinJoint("l_leg_hpy", leftHipPitchOffset, robotLeg, Axis.Y);
       PinJoint r_hip_pitch = new PinJoint("r_leg_hpy", rightHipPitchOffset, robotLeg, Axis.Y);
       l_hip_pitch.setQ(random.nextDouble());
@@ -292,8 +312,8 @@ public class VirtualModelControllerTestHelper
       jointMap.put(l_leg_hpy, l_hip_pitch);
       jointMap.put(r_leg_hpy, r_hip_pitch);
 
-      Vector3d leftKneePitchOffset = new Vector3d(0.0, 0.0, -THIGH_LENGTH);
-      Vector3d rightKneePitchOffset = new Vector3d(0.0, 0.0, -THIGH_LENGTH);
+      Vector3D leftKneePitchOffset = new Vector3D(0.0, 0.0, -THIGH_LENGTH);
+      Vector3D rightKneePitchOffset = new Vector3D(0.0, 0.0, -THIGH_LENGTH);
       PinJoint l_knee_pitch = new PinJoint("l_leg_kny", leftKneePitchOffset, robotLeg, Axis.Y);
       PinJoint r_knee_pitch = new PinJoint("r_leg_kny", rightKneePitchOffset, robotLeg, Axis.Y);
       l_knee_pitch.setQ(random.nextDouble());
@@ -315,8 +335,8 @@ public class VirtualModelControllerTestHelper
       jointMap.put(l_leg_kny, l_knee_pitch);
       jointMap.put(r_leg_kny, r_knee_pitch);
 
-      Vector3d leftAnklePitchOffset = new Vector3d(0.0, 0.0, -SHIN_LENGTH);
-      Vector3d rightAnklePitchOffset = new Vector3d(0.0, 0.0, -SHIN_LENGTH);
+      Vector3D leftAnklePitchOffset = new Vector3D(0.0, 0.0, -SHIN_LENGTH);
+      Vector3D rightAnklePitchOffset = new Vector3D(0.0, 0.0, -SHIN_LENGTH);
       PinJoint l_ankle_pitch = new PinJoint("l_leg_aky", leftAnklePitchOffset, robotLeg, Axis.Y);
       PinJoint r_ankle_pitch = new PinJoint("r_leg_aky", rightAnklePitchOffset, robotLeg, Axis.Y);
       l_ankle_pitch.setQ(random.nextDouble());
@@ -338,8 +358,8 @@ public class VirtualModelControllerTestHelper
       jointMap.put(l_leg_aky, l_ankle_pitch);
       jointMap.put(r_leg_aky, r_ankle_pitch);
 
-      Vector3d leftAnkleRollOffset = new Vector3d();
-      Vector3d rightAnkleRollOffset = new Vector3d();
+      Vector3D leftAnkleRollOffset = new Vector3D();
+      Vector3D rightAnkleRollOffset = new Vector3D();
       PinJoint l_ankle_roll = new PinJoint("l_leg_akx", leftAnkleRollOffset, robotLeg, Axis.X);
       PinJoint r_ankle_roll = new PinJoint("r_leg_akx", rightAnkleRollOffset, robotLeg, Axis.X);
       l_ankle_roll.setQ(random.nextDouble());
@@ -365,15 +385,15 @@ public class VirtualModelControllerTestHelper
             toFootCenterY, -ankleHeight);
       RigidBodyTransform rightSoleToAnkleFrame = TransformTools.createTranslationTransform(footLength / 2.0 - footBack + toFootCenterX,
             -toFootCenterY, -ankleHeight);
-      ReferenceFrame leftSoleFrame = ReferenceFrame.constructBodyFrameWithUnchangingTransformToParent("Left_Sole",
+      MovingReferenceFrame leftSoleFrame = MovingReferenceFrame.constructFrameFixedInParent("Left_Sole",
             leftFootBody.getBodyFixedFrame(), leftSoleToAnkleFrame);
-      ReferenceFrame rightSoleFrame = ReferenceFrame.constructBodyFrameWithUnchangingTransformToParent("Right_Sole",
+      MovingReferenceFrame rightSoleFrame = MovingReferenceFrame.constructFrameFixedInParent("Right_Sole",
             rightFootBody.getBodyFixedFrame(), rightSoleToAnkleFrame);
 
       SideDependentList<RigidBody> feet = new SideDependentList<>();
       feet.put(RobotSide.LEFT, leftFootBody);
       feet.put(RobotSide.RIGHT, rightFootBody);
-      SideDependentList<ReferenceFrame> soleFrames = new SideDependentList<>();
+      SideDependentList<MovingReferenceFrame> soleFrames = new SideDependentList<>();
       soleFrames.put(RobotSide.LEFT, leftSoleFrame);
       soleFrames.put(RobotSide.RIGHT, rightSoleFrame);
 
@@ -505,24 +525,20 @@ public class VirtualModelControllerTestHelper
    }
    private static RigidBody copyLinkAsRigidBody(Link link, InverseDynamicsJoint currentInverseDynamicsJoint, String bodyName)
    {
-      Vector3d comOffset = new Vector3d();
+      Vector3D comOffset = new Vector3D();
       link.getComOffset(comOffset);
-      Matrix3d momentOfInertia = new Matrix3d();
+      Matrix3D momentOfInertia = new Matrix3D();
       link.getMomentOfInertia(momentOfInertia);
-      ReferenceFrame nextFrame = createOffsetFrame(currentInverseDynamicsJoint, comOffset, bodyName);
-      nextFrame.update();
-      RigidBodyInertia inertia = new RigidBodyInertia(nextFrame, momentOfInertia, link.getMass());
-      RigidBody rigidBody = new RigidBody(bodyName, inertia, currentInverseDynamicsJoint);
 
-      return rigidBody;
+      return ScrewTools.addRigidBody(bodyName, currentInverseDynamicsJoint, momentOfInertia, link.getMass(), comOffset);
    }
 
-   public static ReferenceFrame createOffsetFrame(InverseDynamicsJoint currentInverseDynamicsJoint, Vector3d offset, String frameName)
+   public static ReferenceFrame createOffsetFrame(InverseDynamicsJoint currentInverseDynamicsJoint, Vector3D offset, String frameName)
    {
       ReferenceFrame parentFrame = currentInverseDynamicsJoint.getFrameAfterJoint();
       RigidBodyTransform transformToParent = new RigidBodyTransform();
       transformToParent.setTranslationAndIdentityRotation(offset);
-      ReferenceFrame beforeJointFrame = ReferenceFrame.constructBodyFrameWithUnchangingTransformToParent(frameName, parentFrame, transformToParent);
+      ReferenceFrame beforeJointFrame = ReferenceFrame.constructFrameWithUnchangingTransformToParent(frameName, parentFrame, transformToParent);
 
       return beforeJointFrame;
    }
@@ -563,8 +579,8 @@ public class VirtualModelControllerTestHelper
       inputWrench.getExpressedInFrame().checkReferenceFrameMatch(outputWrench.getExpressedInFrame());
 
       double epsilon = 1e-4;
-      JUnitTools.assertTuple3dEquals(inputWrench.getAngularPartCopy(), outputWrench.getAngularPartCopy(), epsilon);
-      JUnitTools.assertTuple3dEquals(inputWrench.getLinearPartCopy(), outputWrench.getLinearPartCopy(), epsilon);
+      EuclidCoreTestTools.assertTuple3DEquals(inputWrench.getAngularPartCopy(), outputWrench.getAngularPartCopy(), epsilon);
+      EuclidCoreTestTools.assertTuple3DEquals(inputWrench.getLinearPartCopy(), outputWrench.getLinearPartCopy(), epsilon);
    }
 
    public static RobotArm createRobotArm()
@@ -592,7 +608,7 @@ public class VirtualModelControllerTestHelper
       private final SCSRobotFromInverseDynamicsRobotModel scsRobotArm;
 
       private final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
-      private final ReferenceFrame elevatorFrame;
+      private final MovingReferenceFrame elevatorFrame;
       private final ReferenceFrame centerOfMassFrame;
 
       private final RigidBody elevator;
@@ -606,8 +622,8 @@ public class VirtualModelControllerTestHelper
 
       public PlanarRobotArm()
       {
-         elevatorFrame = ReferenceFrame.constructFrameWithUnchangingTransformToParent("elevator", worldFrame, new RigidBodyTransform());
-         elevator = new RigidBody("elevator", elevatorFrame);
+         elevator = new RigidBody("elevator", worldFrame);
+         elevatorFrame = elevator.getBodyFixedFrame();
          centerOfMassFrame = new CenterOfMassReferenceFrame("centerOfMassFrame", ReferenceFrame.getWorldFrame(), elevator);
 
          upperArm = createUpperArm(elevator);
@@ -665,23 +681,21 @@ public class VirtualModelControllerTestHelper
          return scsRobotArm;
       }
 
+      @Override
       public RobotSpecificJointNames getRobotSpecificJointNames()
       {
          return null;
       }
 
+      @Override
       public void updateFrames()
       {
          worldFrame.update();
          elevator.updateFramesRecursively();
       }
 
-      public ReferenceFrame getWorldFrame()
-      {
-         return worldFrame;
-      }
-
-      public ReferenceFrame getElevatorFrame()
+      @Override
+      public MovingReferenceFrame getElevatorFrame()
       {
          return elevatorFrame;
       }
@@ -701,11 +715,13 @@ public class VirtualModelControllerTestHelper
          return upperArm.getParentJoint();
       }
 
+      @Override
       public SixDoFJoint getRootJoint()
       {
          return null;
       }
 
+      @Override
       public RigidBody getElevator()
       {
          return elevator;
@@ -716,41 +732,49 @@ public class VirtualModelControllerTestHelper
          return hand;
       }
 
+      @Override
       public OneDoFJoint getSpineJoint(SpineJointName spineJointName)
       {
          return null;
       }
 
+      @Override
       public OneDoFJoint getNeckJoint(NeckJointName neckJointName)
       {
          return null;
       }
 
+      @Override
       public InverseDynamicsJoint getLidarJoint(String lidarName)
       {
          return null;
       }
 
+      @Override
       public RigidBody getPelvis()
       {
          return null;
       }
 
+      @Override
       public RigidBody getChest()
       {
          return null;
       }
 
+      @Override
       public RigidBody getHead()
       {
          return null;
       }
 
+      @Override
       public OneDoFJoint[] getOneDoFJoints()
       {
          return oneDoFJoints;
       }
 
+      @Override
       public void getOneDoFJoints(ArrayList<OneDoFJoint> oneDoFJointsToPack)
       {
          List<OneDoFJoint> list = Arrays.asList(oneDoFJoints);
@@ -759,16 +783,19 @@ public class VirtualModelControllerTestHelper
             oneDoFJointsToPack.set(i, list.get(i));
       }
 
+      @Override
       public IMUDefinition[] getIMUDefinitions()
       {
          return null;
       }
 
+      @Override
       public ForceSensorDefinition[] getForceSensorDefinitions()
       {
          return null;
       }
 
+      @Override
       public ContactSensorDefinition[] getContactSensorDefinitions()
       {
          return null;
@@ -776,62 +803,31 @@ public class VirtualModelControllerTestHelper
 
       private RigidBody createUpperArm(RigidBody parentBody)
       {
-         RevoluteJoint joint = ScrewTools.addRevoluteJoint("shoulderPitch_y", parentBody, new Vector3d(0.0, 0.0, 0.0), Y);
+         RevoluteJoint joint = ScrewTools.addRevoluteJoint("shoulderPitch_y", parentBody, new Vector3D(0.0, 0.0, 0.0), Y);
          joint.setQ(Math.toRadians(20));
 
-         Vector3d comOffset = new Vector3d(0.0, 0.0, THIGH_LENGTH / 2.0);
-         ReferenceFrame nextFrame = createOffsetFrame(joint, comOffset, "upperArmFrame");
-         nextFrame.update();
-
-         Matrix3d momentOfInertia = new Matrix3d();
-         momentOfInertia.setElement(0, 0, 0.0437);
-         momentOfInertia.setElement(1, 1, 0.0437);
-         momentOfInertia.setElement(2, 2, 0.0054);
-
-         RigidBodyInertia inertia = new RigidBodyInertia(nextFrame, momentOfInertia, THIGH_MASS);
-         RigidBody rigidBody = new RigidBody("upperArm", inertia, joint);
-
-         return rigidBody;
+         Vector3D comOffset = new Vector3D(0.0, 0.0, THIGH_LENGTH / 2.0);
+         return ScrewTools.addRigidBody("upperArm", joint, 0.0437, 0.0437, 0.0054, THIGH_MASS, comOffset);
       }
 
       private RigidBody createLowerArm(RigidBody parentBody)
       {
-         RevoluteJoint joint = ScrewTools.addRevoluteJoint("elbow_y", parentBody, new Vector3d(0.0, 0.0, THIGH_LENGTH), Y);
+         RevoluteJoint joint = ScrewTools.addRevoluteJoint("elbow_y", parentBody, new Vector3D(0.0, 0.0, THIGH_LENGTH), Y);
          joint.setQ(Math.toRadians(40));
 
-         Vector3d comOffset = new Vector3d(0.0, 0.0, SHIN_LENGTH / 2.0);
-         ReferenceFrame nextFrame = createOffsetFrame(joint, comOffset, "lowerArmFrame");
-         nextFrame.update();
+         Vector3D comOffset = new Vector3D(0.0, 0.0, SHIN_LENGTH / 2.0);
 
-         Matrix3d momentOfInertia = new Matrix3d();
-         momentOfInertia.setElement(0, 0, 0.0437);
-         momentOfInertia.setElement(1, 1, 0.0437);
-         momentOfInertia.setElement(2, 2, 0.0054);
-
-         RigidBodyInertia inertia = new RigidBodyInertia(nextFrame, momentOfInertia, SHIN_MASS);
-         RigidBody rigidBody = new RigidBody("lowerArm", inertia, joint);
-
-         return rigidBody;
+         return ScrewTools.addRigidBody("lowerArm", joint, 0.0437, 0.0437, 0.0054, SHIN_MASS, comOffset);
       }
 
       private RigidBody createHand(RigidBody parentBody)
       {
-         RevoluteJoint joint = ScrewTools.addRevoluteJoint("wristPitch_y", parentBody, new Vector3d(0.0, 0.0, SHIN_LENGTH), Y);
+         RevoluteJoint joint = ScrewTools.addRevoluteJoint("wristPitch_y", parentBody, new Vector3D(0.0, 0.0, SHIN_LENGTH), Y);
          joint.setQ(Math.toRadians(30));
 
-         Vector3d comOffset = new Vector3d(0.0, 0.0, SHIN_LENGTH / 4.0);
-         ReferenceFrame nextFrame = createOffsetFrame(joint, comOffset, "handFrame");
-         nextFrame.update();
+         Vector3D comOffset = new Vector3D(0.0, 0.0, SHIN_LENGTH / 4.0);
 
-         Matrix3d momentOfInertia = new Matrix3d();
-         momentOfInertia.setElement(0, 0, 0.0437);
-         momentOfInertia.setElement(1, 1, 0.0437);
-         momentOfInertia.setElement(2, 2, 0.0054);
-
-         RigidBodyInertia inertia = new RigidBodyInertia(nextFrame, momentOfInertia, FOOT_MASS);
-         RigidBody rigidBody = new RigidBody("hand", inertia, joint);
-
-         return rigidBody;
+         return ScrewTools.addRigidBody("hand", joint, 0.0437, 0.0437, 0.0054, FOOT_MASS, comOffset);
       }
 
       @Override
@@ -904,7 +900,7 @@ public class VirtualModelControllerTestHelper
       private final SCSRobotFromInverseDynamicsRobotModel scsRobotArm;
 
       private final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
-      private final ReferenceFrame elevatorFrame;
+      private final MovingReferenceFrame elevatorFrame;
       private final ReferenceFrame centerOfMassFrame;
 
       private final RigidBody elevator;
@@ -917,18 +913,18 @@ public class VirtualModelControllerTestHelper
 
       public RobotArm()
       {
-         elevatorFrame = ReferenceFrame.constructFrameWithUnchangingTransformToParent("elevator", worldFrame, new RigidBodyTransform());
-         elevator = new RigidBody("elevator", elevatorFrame);
+         elevator = new RigidBody("elevator", worldFrame);
+         elevatorFrame = elevator.getBodyFixedFrame();
          centerOfMassFrame = new CenterOfMassReferenceFrame("centerOfMass", ReferenceFrame.getWorldFrame(), elevator);
 
-         shoulderDifferentialYaw = createDifferential("shoulderDifferential", elevator, new Vector3d(), Z);
-         RigidBody shoulderDifferentialRoll = createDifferential("shoulderDifferential", shoulderDifferentialYaw, new Vector3d(), X);
+         shoulderDifferentialYaw = createDifferential("shoulderDifferential", elevator, new Vector3D(), Z);
+         RigidBody shoulderDifferentialRoll = createDifferential("shoulderDifferential", shoulderDifferentialYaw, new Vector3D(), X);
 
          RigidBody upperArm = createUpperArm(shoulderDifferentialRoll);
 
          RigidBody lowerArm = createLowerArm(upperArm);
 
-         RigidBody wristDifferentialRoll = createDifferential("wristDifferential", lowerArm, new Vector3d(0.0, 0.0, SHIN_LENGTH), X);
+         RigidBody wristDifferentialRoll = createDifferential("wristDifferential", lowerArm, new Vector3D(0.0, 0.0, SHIN_LENGTH), X);
          //RigidBody wristDifferentialYaw = createDifferential("wristDifferential", wristDifferentialRoll, new Vector3d(), Z);
 
          hand = createHand(wristDifferentialRoll);
@@ -984,23 +980,21 @@ public class VirtualModelControllerTestHelper
          return scsRobotArm;
       }
 
+      @Override
       public RobotSpecificJointNames getRobotSpecificJointNames()
       {
          return null;
       }
 
+      @Override
       public void updateFrames()
       {
          worldFrame.update();
          elevator.updateFramesRecursively();
       }
 
-      public ReferenceFrame getWorldFrame()
-      {
-         return worldFrame;
-      }
-
-      public ReferenceFrame getElevatorFrame()
+      @Override
+      public MovingReferenceFrame getElevatorFrame()
       {
          return elevatorFrame;
       }
@@ -1020,11 +1014,13 @@ public class VirtualModelControllerTestHelper
          return shoulderDifferentialYaw.getParentJoint();
       }
 
+      @Override
       public SixDoFJoint getRootJoint()
       {
          return null;
       }
 
+      @Override
       public RigidBody getElevator()
       {
          return elevator;
@@ -1035,41 +1031,49 @@ public class VirtualModelControllerTestHelper
          return hand;
       }
 
+      @Override
       public OneDoFJoint getSpineJoint(SpineJointName spineJointName)
       {
          return null;
       }
 
+      @Override
       public OneDoFJoint getNeckJoint(NeckJointName neckJointName)
       {
          return null;
       }
 
+      @Override
       public InverseDynamicsJoint getLidarJoint(String lidarName)
       {
          return null;
       }
 
+      @Override
       public RigidBody getPelvis()
       {
          return null;
       }
 
+      @Override
       public RigidBody getChest()
       {
          return null;
       }
 
+      @Override
       public RigidBody getHead()
       {
          return null;
       }
 
+      @Override
       public OneDoFJoint[] getOneDoFJoints()
       {
          return oneDoFJoints;
       }
 
+      @Override
       public void getOneDoFJoints(ArrayList<OneDoFJoint> oneDoFJointsToPack)
       {
          List<OneDoFJoint> list = Arrays.asList(oneDoFJoints);
@@ -1078,22 +1082,25 @@ public class VirtualModelControllerTestHelper
             oneDoFJointsToPack.set(i, list.get(i));
       }
 
+      @Override
       public IMUDefinition[] getIMUDefinitions()
       {
          return null;
       }
 
+      @Override
       public ForceSensorDefinition[] getForceSensorDefinitions()
       {
          return null;
       }
 
+      @Override
       public ContactSensorDefinition[] getContactSensorDefinitions()
       {
          return null;
       }
 
-      private RigidBody createDifferential(String name, RigidBody parentBody, Vector3d jointOffset, Vector3d jointAxis)
+      private RigidBody createDifferential(String name, RigidBody parentBody, Vector3D jointOffset, Vector3D jointAxis)
       {
          String jointName;
          if (jointAxis == X)
@@ -1105,79 +1112,38 @@ public class VirtualModelControllerTestHelper
          RevoluteJoint joint = ScrewTools.addRevoluteJoint(jointName, parentBody, jointOffset, jointAxis);
          joint.setQ(random.nextDouble());
 
-         Vector3d comOffset = new Vector3d();
-         ReferenceFrame nextFrame = createOffsetFrame(joint, comOffset, name + "Frame");
-         nextFrame.update();
+         Vector3D comOffset = new Vector3D();
 
-         Matrix3d momentOfInertia = new Matrix3d();
-         momentOfInertia.setElement(0, 0, 0.005);
-         momentOfInertia.setElement(1, 1, 0.005);
-         momentOfInertia.setElement(2, 2, 0.005);
-
-         RigidBodyInertia inertia = new RigidBodyInertia(nextFrame, momentOfInertia, 0.1);
-         RigidBody rigidBody = new RigidBody(name, inertia, joint);
-
-         return rigidBody;
+         return ScrewTools.addRigidBody(name, joint, 0.005, 0.005, 0.005, 0.1, comOffset);
       }
 
       private RigidBody createUpperArm(RigidBody parentBody)
       {
-         RevoluteJoint joint = ScrewTools.addRevoluteJoint("shoulderPitch_y", parentBody, new Vector3d(0.0, 0.0, 0.0), Y);
+         RevoluteJoint joint = ScrewTools.addRevoluteJoint("shoulderPitch_y", parentBody, new Vector3D(0.0, 0.0, 0.0), Y);
          joint.setQ(random.nextDouble());
 
-         Vector3d comOffset = new Vector3d(0.0, 0.0, THIGH_LENGTH / 2.0);
-         ReferenceFrame nextFrame = createOffsetFrame(joint, comOffset, "upperArmFrame");
-         nextFrame.update();
-
-         Matrix3d momentOfInertia = new Matrix3d();
-         momentOfInertia.setElement(0, 0, 0.0437);
-         momentOfInertia.setElement(1, 1, 0.0437);
-         momentOfInertia.setElement(2, 2, 0.0054);
-
-         RigidBodyInertia inertia = new RigidBodyInertia(nextFrame, momentOfInertia, THIGH_MASS);
-         RigidBody rigidBody = new RigidBody("upperArm", inertia, joint);
-
-         return rigidBody;
+         Vector3D comOffset = new Vector3D(0.0, 0.0, THIGH_LENGTH / 2.0);
+         return ScrewTools.addRigidBody("upperArm", joint, 0.0437, 0.0437, 0.0054, THIGH_MASS, comOffset);
       }
 
       private RigidBody createLowerArm(RigidBody parentBody)
       {
-         RevoluteJoint joint = ScrewTools.addRevoluteJoint("elbow_y", parentBody, new Vector3d(0.0, 0.0, THIGH_LENGTH), Y);
+         RevoluteJoint joint = ScrewTools.addRevoluteJoint("elbow_y", parentBody, new Vector3D(0.0, 0.0, THIGH_LENGTH), Y);
          joint.setQ(random.nextDouble());
 
-         Vector3d comOffset = new Vector3d(0.0, 0.0, SHIN_LENGTH / 2.0);
-         ReferenceFrame nextFrame = createOffsetFrame(joint, comOffset, "lowerArmFrame");
-         nextFrame.update();
+         Vector3D comOffset = new Vector3D(0.0, 0.0, SHIN_LENGTH / 2.0);
 
-         Matrix3d momentOfInertia = new Matrix3d();
-         momentOfInertia.setElement(0, 0, 0.0437);
-         momentOfInertia.setElement(1, 1, 0.0437);
-         momentOfInertia.setElement(2, 2, 0.0054);
-
-         RigidBodyInertia inertia = new RigidBodyInertia(nextFrame, momentOfInertia, SHIN_MASS);
-         RigidBody rigidBody = new RigidBody("lowerArm", inertia, joint);
-
-         return rigidBody;
+         return ScrewTools.addRigidBody("lowerArm", joint, 0.0437, 0.0437, 0.0054, SHIN_MASS, comOffset);
       }
 
       private RigidBody createHand(RigidBody parentBody)
       {
-         RevoluteJoint joint = ScrewTools.addRevoluteJoint("wristPitch_y", parentBody, new Vector3d(0.0, 0.0, 0.0), Y);
+         RevoluteJoint joint = ScrewTools.addRevoluteJoint("wristPitch_y", parentBody, new Vector3D(0.0, 0.0, 0.0), Y);
          joint.setQ(random.nextDouble());
 
-         Vector3d comOffset = new Vector3d(0.0, 0.0, SHIN_LENGTH / 4.0);
-         ReferenceFrame nextFrame = createOffsetFrame(joint, comOffset, "handFrame");
-         nextFrame.update();
+         Vector3D comOffset = new Vector3D(0.0, 0.0, SHIN_LENGTH / 4.0);
 
-         Matrix3d momentOfInertia = new Matrix3d();
-         momentOfInertia.setElement(0, 0, 0.0437);
-         momentOfInertia.setElement(1, 1, 0.0437);
-         momentOfInertia.setElement(2, 2, 0.0054);
-
-         RigidBodyInertia inertia = new RigidBodyInertia(nextFrame, momentOfInertia, FOOT_MASS);
-         RigidBody rigidBody = new RigidBody("hand", inertia, joint);
-
-         return rigidBody;
+         return ScrewTools.addRigidBody("hand", joint, 0.0437, 0.0437, 0.0054, FOOT_MASS, comOffset);
       }
 
       @Override
@@ -1250,7 +1216,7 @@ public class VirtualModelControllerTestHelper
       private final SCSRobotFromInverseDynamicsRobotModel scsRobotArm;
 
       private final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
-      private final ReferenceFrame elevatorFrame;
+      private final MovingReferenceFrame elevatorFrame;
       private final ReferenceFrame centerOfMassFrame;
 
       private final RigidBody elevator;
@@ -1267,17 +1233,17 @@ public class VirtualModelControllerTestHelper
 
       public ForkedRobotArm()
       {
-         elevatorFrame = ReferenceFrame.constructFrameWithUnchangingTransformToParent("elevator", worldFrame, new RigidBodyTransform());
-         elevator = new RigidBody("elevator", elevatorFrame);
+         elevator = new RigidBody("elevator", worldFrame);
+         elevatorFrame = elevator.getBodyFixedFrame();
          centerOfMassFrame = new CenterOfMassReferenceFrame("centerOfMass", ReferenceFrame.getWorldFrame(), elevator);
 
-         shoulderDifferentialYaw = createDifferential("shoulderDifferential", elevator, new Vector3d(), Z);
+         shoulderDifferentialYaw = createDifferential("shoulderDifferential", elevator, new Vector3D(), Z);
 
          RigidBody upperArm = createUpperArm(shoulderDifferentialYaw);
          joints.add(upperArm.getParentJoint());
 
-         RigidBody elbowDifferentialYaw1 = createDifferential("elbowDifferentialYaw1", upperArm, new Vector3d(0.0, 0.0, THIGH_LENGTH), Z);
-         RigidBody elbowDifferentialYaw2 = createDifferential("elbowDifferentialYaw2", upperArm, new Vector3d(0.0, 0.0, THIGH_LENGTH), Z);
+         RigidBody elbowDifferentialYaw1 = createDifferential("elbowDifferentialYaw1", upperArm, new Vector3D(0.0, 0.0, THIGH_LENGTH), Z);
+         RigidBody elbowDifferentialYaw2 = createDifferential("elbowDifferentialYaw2", upperArm, new Vector3D(0.0, 0.0, THIGH_LENGTH), Z);
          RevoluteJoint differential1 = (RevoluteJoint) elbowDifferentialYaw1.getParentJoint();
          RevoluteJoint differential2 = (RevoluteJoint) elbowDifferentialYaw2.getParentJoint();
          differential1.setQ(2.5 * random.nextDouble());
@@ -1290,8 +1256,8 @@ public class VirtualModelControllerTestHelper
          joints.add(lowerArm1.getParentJoint());
          joints.add(lowerArm2.getParentJoint());
 
-         RigidBody wristDifferentialRoll1 = createDifferential("wristDifferential1", lowerArm1, new Vector3d(0.0, 0.0, SHIN_LENGTH), X);
-         RigidBody wristDifferentialRoll2 = createDifferential("wristDifferential2", lowerArm2, new Vector3d(0.0, 0.0, SHIN_LENGTH), X);
+         RigidBody wristDifferentialRoll1 = createDifferential("wristDifferential1", lowerArm1, new Vector3D(0.0, 0.0, SHIN_LENGTH), X);
+         RigidBody wristDifferentialRoll2 = createDifferential("wristDifferential2", lowerArm2, new Vector3D(0.0, 0.0, SHIN_LENGTH), X);
          joints.add(wristDifferentialRoll1.getParentJoint());
          joints.add(wristDifferentialRoll2.getParentJoint());
 
@@ -1367,23 +1333,21 @@ public class VirtualModelControllerTestHelper
          return scsRobotArm;
       }
 
+      @Override
       public RobotSpecificJointNames getRobotSpecificJointNames()
       {
          return null;
       }
 
+      @Override
       public void updateFrames()
       {
          worldFrame.update();
          elevator.updateFramesRecursively();
       }
 
-      public ReferenceFrame getWorldFrame()
-      {
-         return worldFrame;
-      }
-
-      public ReferenceFrame getElevatorFrame()
+      @Override
+      public MovingReferenceFrame getElevatorFrame()
       {
          return elevatorFrame;
       }
@@ -1403,11 +1367,13 @@ public class VirtualModelControllerTestHelper
          return shoulderDifferentialYaw.getParentJoint();
       }
 
+      @Override
       public SixDoFJoint getRootJoint()
       {
          return null;
       }
 
+      @Override
       public RigidBody getElevator()
       {
          return elevator;
@@ -1422,41 +1388,49 @@ public class VirtualModelControllerTestHelper
       {
          return hands;
       }
+      @Override
       public OneDoFJoint getSpineJoint(SpineJointName spineJointName)
       {
          return null;
       }
 
+      @Override
       public OneDoFJoint getNeckJoint(NeckJointName neckJointName)
       {
          return null;
       }
 
+      @Override
       public InverseDynamicsJoint getLidarJoint(String lidarName)
       {
          return null;
       }
 
+      @Override
       public RigidBody getPelvis()
       {
          return null;
       }
 
+      @Override
       public RigidBody getChest()
       {
          return null;
       }
 
+      @Override
       public RigidBody getHead()
       {
          return null;
       }
 
+      @Override
       public OneDoFJoint[] getOneDoFJoints()
       {
          return oneDoFJoints;
       }
 
+      @Override
       public void getOneDoFJoints(ArrayList<OneDoFJoint> oneDoFJointsToPack)
       {
          List<OneDoFJoint> list = Arrays.asList(oneDoFJoints);
@@ -1465,22 +1439,25 @@ public class VirtualModelControllerTestHelper
             oneDoFJointsToPack.set(i, list.get(i));
       }
 
+      @Override
       public IMUDefinition[] getIMUDefinitions()
       {
          return null;
       }
 
+      @Override
       public ForceSensorDefinition[] getForceSensorDefinitions()
       {
          return null;
       }
 
+      @Override
       public ContactSensorDefinition[] getContactSensorDefinitions()
       {
          return null;
       }
 
-      private RigidBody createDifferential(String name, RigidBody parentBody, Vector3d jointOffset, Vector3d jointAxis)
+      private RigidBody createDifferential(String name, RigidBody parentBody, Vector3D jointOffset, Vector3D jointAxis)
       {
          String jointName;
          if (jointAxis == X)
@@ -1492,79 +1469,38 @@ public class VirtualModelControllerTestHelper
          RevoluteJoint joint = ScrewTools.addRevoluteJoint(jointName, parentBody, jointOffset, jointAxis);
          joint.setQ(random.nextDouble());
 
-         Vector3d comOffset = new Vector3d();
-         ReferenceFrame nextFrame = createOffsetFrame(joint, comOffset, name + "Frame");
-         nextFrame.update();
-
-         Matrix3d momentOfInertia = new Matrix3d();
-         momentOfInertia.setElement(0, 0, 0.005);
-         momentOfInertia.setElement(1, 1, 0.005);
-         momentOfInertia.setElement(2, 2, 0.005);
-
-         RigidBodyInertia inertia = new RigidBodyInertia(nextFrame, momentOfInertia, 0.1);
-         RigidBody rigidBody = new RigidBody(name, inertia, joint);
-
-         return rigidBody;
+         Vector3D comOffset = new Vector3D();
+         return ScrewTools.addRigidBody(jointName, joint, 0.005, 0.005, 0.005, 0.1, comOffset);
       }
 
       private RigidBody createUpperArm(RigidBody parentBody)
       {
-         RevoluteJoint joint = ScrewTools.addRevoluteJoint("shoulderPitch_y", parentBody, new Vector3d(0.0, 0.0, 0.0), Y);
+         RevoluteJoint joint = ScrewTools.addRevoluteJoint("shoulderPitch_y", parentBody, new Vector3D(0.0, 0.0, 0.0), Y);
          joint.setQ(random.nextDouble());
 
-         Vector3d comOffset = new Vector3d(0.0, 0.0, THIGH_LENGTH / 2.0);
-         ReferenceFrame nextFrame = createOffsetFrame(joint, comOffset, "upperArmFrame");
-         nextFrame.update();
+         Vector3D comOffset = new Vector3D(0.0, 0.0, THIGH_LENGTH / 2.0);
 
-         Matrix3d momentOfInertia = new Matrix3d();
-         momentOfInertia.setElement(0, 0, 0.0437);
-         momentOfInertia.setElement(1, 1, 0.0437);
-         momentOfInertia.setElement(2, 2, 0.0054);
-
-         RigidBodyInertia inertia = new RigidBodyInertia(nextFrame, momentOfInertia, THIGH_MASS);
-         RigidBody rigidBody = new RigidBody("upperArm", inertia, joint);
-
-         return rigidBody;
+         return ScrewTools.addRigidBody("upperArm", joint, 0.0437, 0.0437, 0.0054, THIGH_MASS, comOffset);
       }
 
       private RigidBody createLowerArm(String suffix, RigidBody parentBody)
       {
-         RevoluteJoint joint = ScrewTools.addRevoluteJoint("elbow_y_" + suffix, parentBody, new Vector3d(0.0, 0.0, 0.0), Y);
+         RevoluteJoint joint = ScrewTools.addRevoluteJoint("elbow_y_" + suffix, parentBody, new Vector3D(0.0, 0.0, 0.0), Y);
          joint.setQ(random.nextDouble());
 
-         Vector3d comOffset = new Vector3d(0.0, 0.0, SHIN_LENGTH / 2.0);
-         ReferenceFrame nextFrame = createOffsetFrame(joint, comOffset, "lowerArmFrame" + suffix);
-         nextFrame.update();
+         Vector3D comOffset = new Vector3D(0.0, 0.0, SHIN_LENGTH / 2.0);
 
-         Matrix3d momentOfInertia = new Matrix3d();
-         momentOfInertia.setElement(0, 0, 0.0437);
-         momentOfInertia.setElement(1, 1, 0.0437);
-         momentOfInertia.setElement(2, 2, 0.0054);
-
-         RigidBodyInertia inertia = new RigidBodyInertia(nextFrame, momentOfInertia, SHIN_MASS);
-         RigidBody rigidBody = new RigidBody("lowerArm" + suffix, inertia, joint);
-
-         return rigidBody;
+         return ScrewTools.addRigidBody("lowerArm" + suffix, joint, 0.0437, 0.0437, 0.0054, SHIN_MASS, comOffset);
       }
 
       private RigidBody createHand(String suffix, RigidBody parentBody)
       {
-         RevoluteJoint joint = ScrewTools.addRevoluteJoint("wristPitch_y_" + suffix, parentBody, new Vector3d(0.0, 0.0, 0.0), Y);
+         RevoluteJoint joint = ScrewTools.addRevoluteJoint("wristPitch_y_" + suffix, parentBody, new Vector3D(0.0, 0.0, 0.0), Y);
          joint.setQ(random.nextDouble());
 
-         Vector3d comOffset = new Vector3d(0.0, 0.0, SHIN_LENGTH / 4.0);
-         ReferenceFrame nextFrame = createOffsetFrame(joint, comOffset, "handFrame" + suffix);
-         nextFrame.update();
+         Vector3D comOffset = new Vector3D(0.0, 0.0, SHIN_LENGTH / 4.0);
 
-         Matrix3d momentOfInertia = new Matrix3d();
-         momentOfInertia.setElement(0, 0, 0.0437);
-         momentOfInertia.setElement(1, 1, 0.0437);
-         momentOfInertia.setElement(2, 2, 0.0054);
-
-         RigidBodyInertia inertia = new RigidBodyInertia(nextFrame, momentOfInertia, FOOT_MASS);
-         RigidBody rigidBody = new RigidBody("hand" + suffix, inertia, joint);
-
-         return rigidBody;
+         return ScrewTools.addRigidBody("hand" + suffix, joint, 0.0437, 0.0437, 0.0054, FOOT_MASS, comOffset);
       }
 
       @Override
@@ -1637,7 +1573,7 @@ public class VirtualModelControllerTestHelper
       private final SCSRobotFromInverseDynamicsRobotModel scsRobotArm;
 
       private final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
-      private final ReferenceFrame elevatorFrame;
+      private final MovingReferenceFrame elevatorFrame;
       private final ReferenceFrame centerOfMassFrame;
 
       private final RigidBody elevator;
@@ -1653,8 +1589,8 @@ public class VirtualModelControllerTestHelper
 
       public PlanarForkedRobotArm()
       {
-         elevatorFrame = ReferenceFrame.constructFrameWithUnchangingTransformToParent("elevator", worldFrame, new RigidBodyTransform());
-         elevator = new RigidBody("elevator", elevatorFrame);
+         elevator = new RigidBody("elevator", worldFrame);
+         elevatorFrame = elevator.getBodyFixedFrame();
          centerOfMassFrame = new CenterOfMassReferenceFrame("centerOfMassFrame", ReferenceFrame.getWorldFrame(), elevator);
 
          List<InverseDynamicsJoint> joints = new ArrayList<>();
@@ -1743,23 +1679,21 @@ public class VirtualModelControllerTestHelper
          return scsRobotArm;
       }
 
+      @Override
       public RobotSpecificJointNames getRobotSpecificJointNames()
       {
          return null;
       }
 
+      @Override
       public void updateFrames()
       {
          worldFrame.update();
          elevator.updateFramesRecursively();
       }
 
-      public ReferenceFrame getWorldFrame()
-      {
-         return worldFrame;
-      }
-
-      public ReferenceFrame getElevatorFrame()
+      @Override
+      public MovingReferenceFrame getElevatorFrame()
       {
          return elevatorFrame;
       }
@@ -1779,11 +1713,13 @@ public class VirtualModelControllerTestHelper
          return upperArm.getParentJoint();
       }
 
+      @Override
       public SixDoFJoint getRootJoint()
       {
          return null;
       }
 
+      @Override
       public RigidBody getElevator()
       {
          return elevator;
@@ -1798,41 +1734,49 @@ public class VirtualModelControllerTestHelper
       {
          return hands;
       }
+      @Override
       public OneDoFJoint getSpineJoint(SpineJointName spineJointName)
       {
          return null;
       }
 
+      @Override
       public OneDoFJoint getNeckJoint(NeckJointName neckJointName)
       {
          return null;
       }
 
+      @Override
       public InverseDynamicsJoint getLidarJoint(String lidarName)
       {
          return null;
       }
 
+      @Override
       public RigidBody getPelvis()
       {
          return null;
       }
 
+      @Override
       public RigidBody getChest()
       {
          return null;
       }
 
+      @Override
       public RigidBody getHead()
       {
          return null;
       }
 
+      @Override
       public OneDoFJoint[] getOneDoFJoints()
       {
          return oneDoFJoints;
       }
 
+      @Override
       public void getOneDoFJoints(ArrayList<OneDoFJoint> oneDoFJointsToPack)
       {
          List<OneDoFJoint> list = Arrays.asList(oneDoFJoints);
@@ -1841,106 +1785,51 @@ public class VirtualModelControllerTestHelper
             oneDoFJointsToPack.set(i, list.get(i));
       }
 
+      @Override
       public IMUDefinition[] getIMUDefinitions()
       {
          return null;
       }
 
+      @Override
       public ForceSensorDefinition[] getForceSensorDefinitions()
       {
          return null;
       }
 
+      @Override
       public ContactSensorDefinition[] getContactSensorDefinitions()
       {
          return null;
       }
 
-      private RigidBody createDifferential(String name, RigidBody parentBody, Vector3d jointOffset, Vector3d jointAxis)
-      {
-         String jointName;
-         if (jointAxis == X)
-            jointName = name + "_x";
-         else if (jointAxis == Y)
-            jointName = name + "_y";
-         else
-            jointName = name + "_z";
-         RevoluteJoint joint = ScrewTools.addRevoluteJoint(jointName, parentBody, jointOffset, jointAxis);
-         joint.setQ(random.nextDouble());
-
-         Vector3d comOffset = new Vector3d();
-         ReferenceFrame nextFrame = createOffsetFrame(joint, comOffset, name + "Frame");
-         nextFrame.update();
-
-         Matrix3d momentOfInertia = new Matrix3d();
-         momentOfInertia.setElement(0, 0, 0.005);
-         momentOfInertia.setElement(1, 1, 0.005);
-         momentOfInertia.setElement(2, 2, 0.005);
-
-         RigidBodyInertia inertia = new RigidBodyInertia(nextFrame, momentOfInertia, 0.1);
-         RigidBody rigidBody = new RigidBody(name, inertia, joint);
-
-         return rigidBody;
-      }
-
       private RigidBody createUpperArm(RigidBody parentBody)
       {
-         RevoluteJoint joint = ScrewTools.addRevoluteJoint("shoulderPitch_y", parentBody, new Vector3d(0.0, 0.0, 0.0), Y);
+         RevoluteJoint joint = ScrewTools.addRevoluteJoint("shoulderPitch_y", parentBody, new Vector3D(0.0, 0.0, 0.0), Y);
          joint.setQ(random.nextDouble());
 
-         Vector3d comOffset = new Vector3d(0.0, 0.0, THIGH_LENGTH / 2.0);
-         ReferenceFrame nextFrame = createOffsetFrame(joint, comOffset, "upperArmFrame");
-         nextFrame.update();
-
-         Matrix3d momentOfInertia = new Matrix3d();
-         momentOfInertia.setElement(0, 0, 0.0437);
-         momentOfInertia.setElement(1, 1, 0.0437);
-         momentOfInertia.setElement(2, 2, 0.0054);
-
-         RigidBodyInertia inertia = new RigidBodyInertia(nextFrame, momentOfInertia, THIGH_MASS);
-         RigidBody rigidBody = new RigidBody("upperArm", inertia, joint);
-
-         return rigidBody;
+         Vector3D comOffset = new Vector3D(0.0, 0.0, THIGH_LENGTH / 2.0);
+         return ScrewTools.addRigidBody("upperArm", joint, 0.0437, 0.0437, 0.0054, THIGH_MASS, comOffset);
       }
 
       private RigidBody createLowerArm(String suffix, RigidBody parentBody)
       {
-         RevoluteJoint joint = ScrewTools.addRevoluteJoint("elbow_y_" + suffix, parentBody, new Vector3d(0.0, 0.0, THIGH_LENGTH), Y);
+         RevoluteJoint joint = ScrewTools.addRevoluteJoint("elbow_y_" + suffix, parentBody, new Vector3D(0.0, 0.0, THIGH_LENGTH), Y);
          joint.setQ(random.nextDouble());
 
-         Vector3d comOffset = new Vector3d(0.0, 0.0, SHIN_LENGTH / 2.0);
-         ReferenceFrame nextFrame = createOffsetFrame(joint, comOffset, "lowerArmFrame" + suffix);
-         nextFrame.update();
+         Vector3D comOffset = new Vector3D(0.0, 0.0, SHIN_LENGTH / 2.0);
 
-         Matrix3d momentOfInertia = new Matrix3d();
-         momentOfInertia.setElement(0, 0, 0.0437);
-         momentOfInertia.setElement(1, 1, 0.0437);
-         momentOfInertia.setElement(2, 2, 0.0054);
-
-         RigidBodyInertia inertia = new RigidBodyInertia(nextFrame, momentOfInertia, SHIN_MASS);
-         RigidBody rigidBody = new RigidBody("lowerArm" + suffix, inertia, joint);
-
-         return rigidBody;
+         return ScrewTools.addRigidBody("lowerArm" + suffix, joint, 0.0437, 0.0437, 0.0054, SHIN_MASS, comOffset);
       }
 
       private RigidBody createHand(String suffix, RigidBody parentBody)
       {
-         RevoluteJoint joint = ScrewTools.addRevoluteJoint("wristPitch_y_" + suffix, parentBody, new Vector3d(0.0, 0.0, SHIN_LENGTH), Y);
+         RevoluteJoint joint = ScrewTools.addRevoluteJoint("wristPitch_y_" + suffix, parentBody, new Vector3D(0.0, 0.0, SHIN_LENGTH), Y);
          joint.setQ(random.nextDouble());
 
-         Vector3d comOffset = new Vector3d(0.0, 0.0, SHIN_LENGTH / 4.0);
-         ReferenceFrame nextFrame = createOffsetFrame(joint, comOffset, "handFrame" + suffix);
-         nextFrame.update();
+         Vector3D comOffset = new Vector3D(0.0, 0.0, SHIN_LENGTH / 4.0);
 
-         Matrix3d momentOfInertia = new Matrix3d();
-         momentOfInertia.setElement(0, 0, 0.0437);
-         momentOfInertia.setElement(1, 1, 0.0437);
-         momentOfInertia.setElement(2, 2, 0.0054);
-
-         RigidBodyInertia inertia = new RigidBodyInertia(nextFrame, momentOfInertia, FOOT_MASS);
-         RigidBody rigidBody = new RigidBody("hand" + suffix, inertia, joint);
-
-         return rigidBody;
+         return ScrewTools.addRigidBody("hand" + suffix, joint, 0.0437, 0.0437, 0.0054, FOOT_MASS, comOffset);
       }
 
       @Override
@@ -2014,15 +1903,16 @@ public class VirtualModelControllerTestHelper
       private RigidBody pelvis;
 
       private SideDependentList<RigidBody> feet = new SideDependentList<>();
-      private SideDependentList<ReferenceFrame> soleFrames = new SideDependentList<>();
+      private SideDependentList<MovingReferenceFrame> soleFrames = new SideDependentList<>();
       private SixDoFJoint rootJoint;
       private OneDoFJoint[] joints;
 
       private CommonHumanoidReferenceFrames referenceFrames;
       private final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
 
-      private final SideDependentList<ArrayList<Point2d>> controllerFootGroundContactPoints = new SideDependentList<>();
-      private final SideDependentList<Point2d> controllerToeContactPoints = new SideDependentList<>();
+      private final SideDependentList<ArrayList<Point2D>> controllerFootGroundContactPoints = new SideDependentList<>();
+      private final SideDependentList<Point2D> controllerToeContactPoints = new SideDependentList<>();
+      private final SideDependentList<LineSegment2D> controllerToeContactLines = new SideDependentList<>();
 
       private final ContactableBodiesFactory contactableBodiesFactory = new ContactableBodiesFactory();
       private final SideDependentList<ContactableFoot> footContactableBodies = new SideDependentList<>();
@@ -2032,6 +1922,7 @@ public class VirtualModelControllerTestHelper
          super(name);
       }
 
+      @Override
       public void updateFrames()
       {
          worldFrame.update();
@@ -2042,22 +1933,26 @@ public class VirtualModelControllerTestHelper
       {
          for (RobotSide robotSide : RobotSide.values)
          {
-            controllerFootGroundContactPoints.put(robotSide, new ArrayList<Point2d>());
-            controllerFootGroundContactPoints.get(robotSide).add(new Point2d(-footLength / 2.0, -footWidth / 2.0));
-            controllerFootGroundContactPoints.get(robotSide).add(new Point2d(-footLength / 2.0, footWidth / 2.0));
-            controllerFootGroundContactPoints.get(robotSide).add(new Point2d(footLength / 2.0, -toeWidth / 2.0));
-            controllerFootGroundContactPoints.get(robotSide).add(new Point2d(footLength / 2.0, toeWidth / 2.0));
-            controllerToeContactPoints.put(robotSide, new Point2d(footLength / 2.0, 0.0));
+            controllerFootGroundContactPoints.put(robotSide, new ArrayList<Point2D>());
+            controllerFootGroundContactPoints.get(robotSide).add(new Point2D(-footLength / 2.0, -footWidth / 2.0));
+            controllerFootGroundContactPoints.get(robotSide).add(new Point2D(-footLength / 2.0, footWidth / 2.0));
+            controllerFootGroundContactPoints.get(robotSide).add(new Point2D(footLength / 2.0, -toeWidth / 2.0));
+            controllerFootGroundContactPoints.get(robotSide).add(new Point2D(footLength / 2.0, toeWidth / 2.0));
+
+            controllerToeContactPoints.put(robotSide, new Point2D(footLength / 2.0, 0.0));
+
+            controllerToeContactLines.put(robotSide, new LineSegment2D(new Point2D(footLength / 2.0, -toeWidth / 2.0), new Point2D(footLength / 2.0, toeWidth / 2.0)));
          }
 
-         contactableBodiesFactory.addFootContactParameters(controllerFootGroundContactPoints, controllerToeContactPoints);
+         contactableBodiesFactory.addFootContactParameters(controllerFootGroundContactPoints, controllerToeContactPoints, controllerToeContactLines);
 
          for (RobotSide robotSide : RobotSide.values)
          {
             RigidBody foot = feet.get(robotSide);
             ReferenceFrame soleFrame = referenceFrames.getSoleFrame(robotSide);
-            List<Point2d> contactPointsInSoleFrame = controllerFootGroundContactPoints.get(robotSide);
-            ListOfPointsContactableFoot footContactableBody = new ListOfPointsContactableFoot(foot, soleFrame, contactPointsInSoleFrame, controllerToeContactPoints.get(robotSide));
+            List<Point2D> contactPointsInSoleFrame = controllerFootGroundContactPoints.get(robotSide);
+            ListOfPointsContactableFoot footContactableBody = new ListOfPointsContactableFoot(foot, soleFrame, contactPointsInSoleFrame,
+                  controllerToeContactPoints.get(robotSide), controllerToeContactLines.get(robotSide));
             footContactableBodies.put(robotSide, footContactableBody);
          }
       }
@@ -2082,7 +1977,7 @@ public class VirtualModelControllerTestHelper
          this.feet.set(feet);
       }
 
-      public void setSoleFrames(SideDependentList<ReferenceFrame> soleFrames)
+      public void setSoleFrames(SideDependentList<MovingReferenceFrame> soleFrames)
       {
          this.soleFrames.set(soleFrames);
       }
@@ -2097,66 +1992,73 @@ public class VirtualModelControllerTestHelper
          referenceFrames = new LegReferenceFrames(pelvis, elevator, feet, soleFrames);
       }
 
+      @Override
       public RobotSpecificJointNames getRobotSpecificJointNames()
       {
          return null;
       }
 
-      public ReferenceFrame getWorldFrame()
-      {
-         return worldFrame;
-      }
-
-      public ReferenceFrame getElevatorFrame()
+      @Override
+      public MovingReferenceFrame getElevatorFrame()
       {
          return elevator.getBodyFixedFrame();
       }
 
+      @Override
       public SixDoFJoint getRootJoint()
       {
          return rootJoint;
       }
 
+      @Override
       public RigidBody getElevator()
       {
          return elevator;
       }
 
+      @Override
       public OneDoFJoint getSpineJoint(SpineJointName spineJointName)
       {
          return null;
       }
 
+      @Override
       public OneDoFJoint getNeckJoint(NeckJointName neckJointName)
       {
          return null;
       }
 
+      @Override
       public InverseDynamicsJoint getLidarJoint(String lidarName)
       {
          return null;
       }
 
+      @Override
       public RigidBody getPelvis()
       {
          return pelvis;
       }
 
+      @Override
       public RigidBody getChest()
       {
          return null;
       }
 
+      @Override
       public RigidBody getHead()
       {
          return null;
       }
 
+      @Override
       public OneDoFJoint[] getOneDoFJoints()
       {
          return joints;
       }
 
+      @Override
       public void getOneDoFJoints(ArrayList<OneDoFJoint> oneDoFJointsToPack)
       {
          oneDoFJointsToPack.clear();
@@ -2164,16 +2066,19 @@ public class VirtualModelControllerTestHelper
             oneDoFJointsToPack.add(joint);
       }
 
+      @Override
       public IMUDefinition[] getIMUDefinitions()
       {
          return null;
       }
 
+      @Override
       public ForceSensorDefinition[] getForceSensorDefinitions()
       {
          return null;
       }
 
+      @Override
       public ContactSensorDefinition[] getContactSensorDefinitions()
       {
          return null;
@@ -2194,7 +2099,7 @@ public class VirtualModelControllerTestHelper
          return referenceFrames;
       }
 
-      public SideDependentList<ArrayList<Point2d>> getControllerFootGroundContactPoints()
+      public SideDependentList<ArrayList<Point2D>> getControllerFootGroundContactPoints()
       {
          return controllerFootGroundContactPoints;
       }
@@ -2276,13 +2181,13 @@ public class VirtualModelControllerTestHelper
 
    private static class LegReferenceFrames implements CommonHumanoidReferenceFrames
    {
-      private final ReferenceFrame pelvisFrame;
+      private final MovingReferenceFrame pelvisFrame;
       private final ReferenceFrame centerOfMassFrame;
 
-      private final SideDependentList<ReferenceFrame> footReferenceFrames = new SideDependentList<>();
-      private final SideDependentList<ReferenceFrame> soleReferenceFrames = new SideDependentList<>();
+      private final SideDependentList<MovingReferenceFrame> footReferenceFrames = new SideDependentList<>();
+      private final SideDependentList<MovingReferenceFrame> soleReferenceFrames = new SideDependentList<>();
 
-      public LegReferenceFrames(RigidBody pelvis, RigidBody elevator, SideDependentList<RigidBody> feet, SideDependentList<ReferenceFrame> soleFrames)
+      public LegReferenceFrames(RigidBody pelvis, RigidBody elevator, SideDependentList<RigidBody> feet, SideDependentList<MovingReferenceFrame> soleFrames)
       {
          pelvisFrame = pelvis.getBodyFixedFrame();
          centerOfMassFrame = new CenterOfMassReferenceFrame("centerOfMass", ReferenceFrame.getWorldFrame(), elevator);
@@ -2294,6 +2199,7 @@ public class VirtualModelControllerTestHelper
          }
       }
 
+      @Override
       public void updateFrames()
       {
          centerOfMassFrame.update();
@@ -2304,89 +2210,124 @@ public class VirtualModelControllerTestHelper
          }
       }
 
-      public ReferenceFrame getABodyAttachedZUpFrame()
+      @Override
+      public MovingReferenceFrame getABodyAttachedZUpFrame()
       {
          return null;
       }
 
-      public ReferenceFrame getMidFeetZUpFrame()
+      @Override
+      public MovingReferenceFrame getMidFeetZUpFrame()
       {
          return null;
       }
 
-      public ReferenceFrame getMidFeetUnderPelvisFrame()
+      @Override
+      public MovingReferenceFrame getMidFeetUnderPelvisFrame()
       {
          return null;
       }
 
-
-      public SideDependentList<ReferenceFrame> getAnkleZUpReferenceFrames()
+      @Override
+      public MovingReferenceFrame getMidFootZUpGroundFrame()
       {
          return null;
       }
 
-      public SideDependentList<ReferenceFrame> getFootReferenceFrames()
+      @Override
+      public SideDependentList<MovingReferenceFrame> getAnkleZUpReferenceFrames()
+      {
+         return null;
+      }
+
+      @Override
+      public SideDependentList<MovingReferenceFrame> getFootReferenceFrames()
       {
          return footReferenceFrames;
       }
 
-      public SideDependentList<ReferenceFrame> getSoleFrames()
+      @Override
+      public SideDependentList<MovingReferenceFrame> getSoleFrames()
       {
          return soleReferenceFrames;
       }
 
-      public ReferenceFrame getPelvisFrame()
+      @Override
+      public MovingReferenceFrame getPelvisFrame()
       {
          return pelvisFrame;
       }
 
-      public ReferenceFrame getAnkleZUpFrame(RobotSide robotSide)
+      @Override
+      public MovingReferenceFrame getAnkleZUpFrame(RobotSide robotSide)
       {
          return null;
       }
 
-      public ReferenceFrame getFootFrame(RobotSide robotSide)
+      @Override
+      public MovingReferenceFrame getFootFrame(RobotSide robotSide)
       {
          return footReferenceFrames.get(robotSide);
       }
 
-      public ReferenceFrame getLegJointFrame(RobotSide robotSide, LegJointName legJointName)
+      @Override
+      public MovingReferenceFrame getLegJointFrame(RobotSide robotSide, LegJointName legJointName)
       {
          return null;
       }
 
-      public EnumMap<LegJointName, ReferenceFrame> getLegJointFrames(RobotSide robotSide)
+      @Override
+      public EnumMap<LegJointName, MovingReferenceFrame> getLegJointFrames(RobotSide robotSide)
       {
          return null;
       }
 
+      @Override
       public ReferenceFrame getIMUFrame()
       {
          return null;
       }
 
+      @Override
       public ReferenceFrame getCenterOfMassFrame()
       {
          return centerOfMassFrame;
       }
 
-      public ReferenceFrame getPelvisZUpFrame()
+      @Override
+      public MovingReferenceFrame getPelvisZUpFrame()
       {
          return null;
       }
 
-      public ReferenceFrame getSoleFrame(RobotSide robotSide)
+      @Override
+      public MovingReferenceFrame getSoleFrame(RobotSide robotSide)
       {
          return soleReferenceFrames.get(robotSide);
       }
 
-      public ReferenceFrame getSoleZUpFrame(RobotSide robotSide)
+      @Override
+      public MovingReferenceFrame getSoleZUpFrame(RobotSide robotSide)
       {
          return null;
       }
 
-      public SideDependentList<ReferenceFrame> getSoleZUpFrames()
+      @Override
+      public SideDependentList<MovingReferenceFrame> getSoleZUpFrames()
       {
+         return null;
+      }
+
+      @Override
+      public MovingReferenceFrame getChestFrame()
+      {
+         return null;
+      }
+
+      @Override
+      public TLongObjectHashMap<ReferenceFrame> getReferenceFrameDefaultHashIds()
+      {
+         // TODO Auto-generated method stub
          return null;
       }
    }
@@ -2420,28 +2361,28 @@ public class VirtualModelControllerTestHelper
 
       private final ExternalForcePoint forcePoint;
 
-      private final DoubleYoVariable desiredLinearX;
-      private final DoubleYoVariable desiredLinearY;
-      private final DoubleYoVariable desiredLinearZ;
-      private final DoubleYoVariable currentLinearX;
-      private final DoubleYoVariable currentLinearY;
-      private final DoubleYoVariable currentLinearZ;
+      private final YoDouble desiredLinearX;
+      private final YoDouble desiredLinearY;
+      private final YoDouble desiredLinearZ;
+      private final YoDouble currentLinearX;
+      private final YoDouble currentLinearY;
+      private final YoDouble currentLinearZ;
 
-      private final DoubleYoVariable desiredAngularX;
-      private final DoubleYoVariable desiredAngularY;
-      private final DoubleYoVariable desiredAngularZ;
-      private final DoubleYoVariable currentAngularX;
-      private final DoubleYoVariable currentAngularY;
-      private final DoubleYoVariable currentAngularZ;
+      private final YoDouble desiredAngularX;
+      private final YoDouble desiredAngularY;
+      private final YoDouble desiredAngularZ;
+      private final YoDouble currentAngularX;
+      private final YoDouble currentAngularY;
+      private final YoDouble currentAngularZ;
 
       private final ReferenceFrame handFrame;
       private final FramePose currentPose = new FramePose();
-      private final Vector3d desiredPosition = new Vector3d();
-      private final Vector3d currentPosition = new Vector3d();
-      private final Quat4d desiredOrientation = new Quat4d();
-      private final Quat4d currentOrientation = new Quat4d();
-      private final Vector3d initialForce = new Vector3d();
-      private final Vector3d initialTorque = new Vector3d();
+      private final Vector3D desiredPosition = new Vector3D();
+      private final Vector3D currentPosition = new Vector3D();
+      private final Quaternion desiredOrientation = new Quaternion();
+      private final Quaternion currentOrientation = new Quaternion();
+      private final Vector3D initialForce = new Vector3D();
+      private final Vector3D initialTorque = new Vector3D();
 
       private final YoFrameVector contactForce;
       private final YoFrameVector contactTorque;
@@ -2466,19 +2407,19 @@ public class VirtualModelControllerTestHelper
 
          registry = new YoVariableRegistry("forcePointController" + suffix);
 
-         desiredLinearX = new DoubleYoVariable("desiredLinearX" + suffix, registry);
-         desiredLinearY = new DoubleYoVariable("desiredLinearY" + suffix, registry);
-         desiredLinearZ = new DoubleYoVariable("desiredLinearZ" + suffix, registry);
-         currentLinearX = new DoubleYoVariable("currentLinearX" + suffix, registry);
-         currentLinearY = new DoubleYoVariable("currentLinearY" + suffix, registry);
-         currentLinearZ = new DoubleYoVariable("currentLinearZ" + suffix, registry);
+         desiredLinearX = new YoDouble("desiredLinearX" + suffix, registry);
+         desiredLinearY = new YoDouble("desiredLinearY" + suffix, registry);
+         desiredLinearZ = new YoDouble("desiredLinearZ" + suffix, registry);
+         currentLinearX = new YoDouble("currentLinearX" + suffix, registry);
+         currentLinearY = new YoDouble("currentLinearY" + suffix, registry);
+         currentLinearZ = new YoDouble("currentLinearZ" + suffix, registry);
 
-         desiredAngularX = new DoubleYoVariable("desiredAngularX" + suffix, registry);
-         desiredAngularY = new DoubleYoVariable("desiredAngularY" + suffix, registry);
-         desiredAngularZ = new DoubleYoVariable("desiredAngularZ" + suffix, registry);
-         currentAngularX = new DoubleYoVariable("currentAngularX" + suffix, registry);
-         currentAngularY = new DoubleYoVariable("currentAngularY" + suffix, registry);
-         currentAngularZ = new DoubleYoVariable("currentAngularZ" + suffix, registry);
+         desiredAngularX = new YoDouble("desiredAngularX" + suffix, registry);
+         desiredAngularY = new YoDouble("desiredAngularY" + suffix, registry);
+         desiredAngularZ = new YoDouble("desiredAngularZ" + suffix, registry);
+         currentAngularX = new YoDouble("currentAngularX" + suffix, registry);
+         currentAngularY = new YoDouble("currentAngularY" + suffix, registry);
+         currentAngularZ = new YoDouble("currentAngularZ" + suffix, registry);
 
          contactForce = new YoFrameVector("contactForce" + suffix, worldFrame, registry);
          contactTorque = new YoFrameVector("contactTorque" + suffix, worldFrame, registry);
@@ -2533,7 +2474,7 @@ public class VirtualModelControllerTestHelper
          angularPidGains.setKd(kd);
       }
 
-      public void setInitialForce(Vector3d initialForce, Vector3d initialTorque)
+      public void setInitialForce(Vector3D initialForce, Vector3D initialTorque)
       {
          forcePoint.setForce(initialForce);
          forcePoint.setMoment(initialTorque);
@@ -2542,6 +2483,7 @@ public class VirtualModelControllerTestHelper
          hasInitialForce = true;
       }
 
+      @Override
       public void initialize()
       {
          if (!hasInitialForce)
@@ -2556,6 +2498,7 @@ public class VirtualModelControllerTestHelper
          pidControllerLinearZ.resetIntegrator();
       }
 
+      @Override
       public void doControl()
       {
          currentPose.setToZero(handFrame);
@@ -2609,52 +2552,55 @@ public class VirtualModelControllerTestHelper
          forceVisualizer.update();
       }
 
-      public Vector3d getDesiredPosition()
+      public Vector3D getDesiredPosition()
       {
          return desiredPosition;
       }
 
-      public Quat4d getDesiredOrientation()
+      public Quaternion getDesiredOrientation()
       {
          return desiredOrientation;
       }
 
-      public Vector3d getCurrentPosition()
+      public Vector3D getCurrentPosition()
       {
          return currentPosition;
       }
 
-      public Vector3d getCurrentTorque()
+      public Vector3D getCurrentTorque()
       {
-         Vector3d contactTorque = new Vector3d();
+         Vector3D contactTorque = new Vector3D();
          this.contactTorque.get(contactTorque);
          contactTorque.negate();
          return contactTorque;
       }
 
-      public Vector3d getCurrentForce()
+      public Vector3D getCurrentForce()
       {
-         Vector3d contactForce = new Vector3d();
+         Vector3D contactForce = new Vector3D();
          this.contactForce.get(contactForce);
          contactForce.negate();
          return contactForce;
       }
 
-      public Quat4d getCurrentOrientation()
+      public Quaternion getCurrentOrientation()
       {
          return currentOrientation;
       }
 
+      @Override
       public String getName()
       {
          return "robotArmController";
       }
 
+      @Override
       public String getDescription()
       {
          return getName();
       }
 
+      @Override
       public YoVariableRegistry getYoVariableRegistry()
       {
          return registry;
@@ -2665,14 +2611,13 @@ public class VirtualModelControllerTestHelper
    {
       private final YoVariableRegistry registry = new YoVariableRegistry("controller");
 
-      private final Map<InverseDynamicsJoint, DoubleYoVariable> yoJointTorques = new HashMap<>();
+      private final Map<InverseDynamicsJoint, YoDouble> yoJointTorques = new HashMap<>();
 
       private final SCSRobotFromInverseDynamicsRobotModel scsRobot;
       private final FullRobotModel controllerModel;
       private final OneDoFJoint[] controlledJoints;
 
       private final VirtualModelController virtualModelController;
-      private final GeometricJacobianHolder geometricJacobianHolder;
 
       private Wrench desiredWrench = new Wrench();
 
@@ -2684,32 +2629,33 @@ public class VirtualModelControllerTestHelper
       private boolean firstTick = true;
 
       public DummyArmController(SCSRobotFromInverseDynamicsRobotModel scsRobot, FullRobotModel controllerModel, OneDoFJoint[] controlledJoints,
-            List<ForcePointController> forcePointControllers, VirtualModelController virtualModelController, GeometricJacobianHolder geometricJacobianHolder,
-            List<RigidBody> endEffectors, List<YoWrench> yoDesiredWrenches, DenseMatrix64F selectionMatrix)
+            List<ForcePointController> forcePointControllers, VirtualModelController virtualModelController, List<RigidBody> endEffectors,
+            List<YoWrench> yoDesiredWrenches, DenseMatrix64F selectionMatrix)
       {
          this.scsRobot = scsRobot;
          this.controllerModel = controllerModel;
          this.controlledJoints = controlledJoints;
          this.forcePointControllers = forcePointControllers;
          this.virtualModelController = virtualModelController;
-         this.geometricJacobianHolder = geometricJacobianHolder;
          this.endEffectors = endEffectors;
          this.selectionMatrix = selectionMatrix;
          this.yoDesiredWrenches = yoDesiredWrenches;
 
          for (InverseDynamicsJoint joint : controlledJoints)
-            yoJointTorques.put(joint, new DoubleYoVariable(joint.getName() + "solutionTorque", registry));
+            yoJointTorques.put(joint, new YoDouble(joint.getName() + "solutionTorque", registry));
 
          for (ForcePointController forcePointController : forcePointControllers)
             registry.addChild(forcePointController.getYoVariableRegistry());
       }
 
+      @Override
       public void initialize()
       {
          for (ForcePointController forcePointController : forcePointControllers)
             forcePointController.initialize();
       }
 
+      @Override
       public void doControl()
       {
          // copy from scs
@@ -2720,7 +2666,6 @@ public class VirtualModelControllerTestHelper
 
          for (ForcePointController forcePointController : forcePointControllers)
             forcePointController.doControl();
-         geometricJacobianHolder.compute();
 
          // compute forces
          VirtualModelControlSolution virtualModelControlSolution = new VirtualModelControlSolution();
@@ -2746,46 +2691,49 @@ public class VirtualModelControllerTestHelper
          scsRobot.updateJointTorques_ID_to_SCS();
       }
 
-      public Vector3d getDesiredPosition(int index)
+      public Vector3D getDesiredPosition(int index)
       {
          return forcePointControllers.get(index).getDesiredPosition();
       }
 
-      public Quat4d getDesiredOrientation(int index)
+      public Quaternion getDesiredOrientation(int index)
       {
          return forcePointControllers.get(index).getDesiredOrientation();
       }
 
-      public Vector3d getCurrentPosition(int index)
+      public Vector3D getCurrentPosition(int index)
       {
          return forcePointControllers.get(index).getCurrentPosition();
       }
 
-      public Quat4d getCurrentOrientation(int index)
+      public Quaternion getCurrentOrientation(int index)
       {
          return forcePointControllers.get(index).getCurrentOrientation();
       }
 
-      public Vector3d getCurrentForce(int index)
+      public Vector3D getCurrentForce(int index)
       {
          return forcePointControllers.get(index).getCurrentForce();
       }
 
-      public Vector3d getCurrentTorque(int index)
+      public Vector3D getCurrentTorque(int index)
       {
          return forcePointControllers.get(index).getCurrentTorque();
       }
 
+      @Override
       public String getName()
       {
          return "robotArmController";
       }
 
+      @Override
       public String getDescription()
       {
          return getName();
       }
 
+      @Override
       public YoVariableRegistry getYoVariableRegistry()
       {
          return registry;

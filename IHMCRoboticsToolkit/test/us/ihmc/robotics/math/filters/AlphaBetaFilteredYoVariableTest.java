@@ -4,10 +4,9 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.math.filters.AlphaBetaFilteredYoVariable;
-import us.ihmc.tools.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 
 public class AlphaBetaFilteredYoVariableTest
 {
@@ -18,8 +17,8 @@ public class AlphaBetaFilteredYoVariableTest
    public void testAlphaBetaFilteredVelocityAndPositionEstimatesWithNoVelocity()
    {
       YoVariableRegistry registry = new YoVariableRegistry("testRegistry");
-      DoubleYoVariable positionVariable = new DoubleYoVariable("positionVariable", registry);
-      DoubleYoVariable xMeasuredVariable = new DoubleYoVariable("xMeasuredVariable", registry);
+      YoDouble positionVariable = new YoDouble("positionVariable", registry);
+      YoDouble xMeasuredVariable = new YoDouble("xMeasuredVariable", registry);
 
       double alpha = 0.2;
       double beta = 0.35;
@@ -46,8 +45,8 @@ public class AlphaBetaFilteredYoVariableTest
    public void testAlphaBetaFilteredVelocityAndPositionEstimatesWithConstantVelocity()
    {
       YoVariableRegistry registry = new YoVariableRegistry("testRegistry");
-      DoubleYoVariable positionVariable = new DoubleYoVariable("positionVariable", registry);
-      DoubleYoVariable xMeasuredVariable = new DoubleYoVariable("xMeasuredVariable", registry);
+      YoDouble positionVariable = new YoDouble("positionVariable", registry);
+      YoDouble xMeasuredVariable = new YoDouble("xMeasuredVariable", registry);
 
       double alpha = 0.2;
       double beta = 0.35;

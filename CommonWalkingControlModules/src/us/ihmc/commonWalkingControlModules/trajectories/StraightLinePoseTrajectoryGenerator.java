@@ -2,20 +2,19 @@ package us.ihmc.commonWalkingControlModules.trajectories;
 
 import java.util.ArrayList;
 
-import javax.vecmath.Quat4d;
-
-import us.ihmc.graphics3DDescription.appearance.YoAppearance;
-import us.ihmc.graphics3DDescription.yoGraphics.BagOfBalls;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicCoordinateSystem;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicPosition;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsList;
-import us.ihmc.graphics3DDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.graphicsDescription.appearance.YoAppearance;
+import us.ihmc.graphicsDescription.yoGraphics.BagOfBalls;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicCoordinateSystem;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsList;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.robotics.MathTools;
-import us.ihmc.robotics.dataStructures.listener.VariableChangedListener;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-import us.ihmc.robotics.dataStructures.variable.YoVariable;
+import us.ihmc.yoVariables.listener.VariableChangedListener;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoVariable;
 import us.ihmc.robotics.geometry.FrameOrientation;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FramePose;
@@ -58,8 +57,8 @@ public class StraightLinePoseTrajectoryGenerator implements PoseTrajectoryGenera
    // Not sure if that's actually necessary, the cubic one maybe enough.
    private final YoPolynomial quinticParameterPolynomial;
 
-   private final DoubleYoVariable currentTime;
-   private final DoubleYoVariable trajectoryTime;
+   private final YoDouble currentTime;
+   private final YoDouble trajectoryTime;
 
    private final FramePoint tempPosition = new FramePoint();
    private final FrameOrientation tempOrientation = new FrameOrientation();
@@ -71,8 +70,8 @@ public class StraightLinePoseTrajectoryGenerator implements PoseTrajectoryGenera
    private final FramePoint ballPosition = new FramePoint();
    private final int numberOfBalls = 50;
 
-   /** Use a BooleanYoVariable to hide and show visualization with a VariableChangedListener, so it is still working in playback mode. */
-   private final BooleanYoVariable showViz;
+   /** Use a YoBoolean to hide and show visualization with a VariableChangedListener, so it is still working in playback mode. */
+   private final YoBoolean showViz;
 
    private final OrientationInterpolationCalculator orientationInterpolationCalculator = new OrientationInterpolationCalculator();
 
@@ -120,8 +119,8 @@ public class StraightLinePoseTrajectoryGenerator implements PoseTrajectoryGenera
 
       quinticParameterPolynomial = new YoPolynomial(namePrefix + "QuinticParameterPolynomial", 6, registry);
 
-      currentTime = new DoubleYoVariable(namePrefix + "Time", registry);
-      trajectoryTime = new DoubleYoVariable(namePrefix + "TrajectoryTime", registry);
+      currentTime = new YoDouble(namePrefix + "Time", registry);
+      trajectoryTime = new YoDouble(namePrefix + "TrajectoryTime", registry);
 
       multipleFramesHolders = new ArrayList<YoMultipleFramesHolder>();
       registerMultipleFramesHolders(initialPosition, finalPosition, currentPosition, currentVelocity, currentAcceleration);
@@ -154,7 +153,7 @@ public class StraightLinePoseTrajectoryGenerator implements PoseTrajectoryGenera
 
          bagOfBalls = new BagOfBalls(numberOfBalls, 0.01, yoGraphicsList.getLabel(), registry, yoGraphicsListRegistry);
 
-         showViz = new BooleanYoVariable(namePrefix + "ShowViz", registry);
+         showViz = new YoBoolean(namePrefix + "ShowViz", registry);
          showViz.addVariableChangedListener(new VariableChangedListener()
          {
             public void variableChanged(YoVariable<?> v)
@@ -226,18 +225,17 @@ public class StraightLinePoseTrajectoryGenerator implements PoseTrajectoryGenera
    public void setInitialPose(FramePose initialPose)
    {
       initialPose.getPoseIncludingFrame(tempPosition, tempOrientation);
-      tempPosition.changeFrame(initialPosition.getReferenceFrame());
-      initialPosition.set(tempPosition);
-      tempOrientation.changeFrame(initialOrientation.getReferenceFrame());
-      initialOrientation.set(tempOrientation);
+
+      initialPosition.setAndMatchFrame(tempPosition);
+      initialOrientation.setAndMatchFrame(tempOrientation);
 
       initialOrientationForViz.setAndMatchFrame(tempOrientation);
    }
 
    public void setInitialPose(FramePoint initialPosition, FrameOrientation initialOrientation)
    {
-      this.initialPosition.set(initialPosition);
-      this.initialOrientation.set(initialOrientation);
+      this.initialPosition.setAndMatchFrame(initialPosition);
+      this.initialOrientation.setAndMatchFrame(initialOrientation);
 
       initialOrientationForViz.setAndMatchFrame(initialOrientation);
    }
@@ -246,16 +244,16 @@ public class StraightLinePoseTrajectoryGenerator implements PoseTrajectoryGenera
    {
       finalPose.getPoseIncludingFrame(tempPosition, tempOrientation);
 
-      finalPosition.set(tempPosition);
-      finalOrientation.set(tempOrientation);
+      finalPosition.setAndMatchFrame(tempPosition);
+      finalOrientation.setAndMatchFrame(tempOrientation);
 
       finalOrientationForViz.setAndMatchFrame(tempOrientation);
    }
 
    public void setFinalPose(FramePoint finalPosition, FrameOrientation finalOrientation)
    {
-      this.finalPosition.set(finalPosition);
-      this.finalOrientation.set(finalOrientation);
+      this.finalPosition.setAndMatchFrame(finalPosition);
+      this.finalOrientation.setAndMatchFrame(finalOrientation);
 
       finalOrientationForViz.setAndMatchFrame(finalOrientation);
 
@@ -266,7 +264,7 @@ public class StraightLinePoseTrajectoryGenerator implements PoseTrajectoryGenera
 
    public void initialize()
    {
-      MathTools.checkIfInRange(trajectoryTime.getDoubleValue(), 0.0, Double.POSITIVE_INFINITY);
+      MathTools.checkIntervalContains(trajectoryTime.getDoubleValue(), 0.0, Double.POSITIVE_INFINITY);
       quinticParameterPolynomial.setQuintic(0.0, trajectoryTime.getDoubleValue(), 0.0, 0.0, 0.0, 1.0, 0.0, 0.0);
 
       reset();
@@ -289,7 +287,7 @@ public class StraightLinePoseTrajectoryGenerator implements PoseTrajectoryGenera
    public void compute(double time)
    {
       this.currentTime.set(time);
-      time = MathTools.clipToMinMax(time, 0.0, trajectoryTime.getDoubleValue());
+      time = MathTools.clamp(time, 0.0, trajectoryTime.getDoubleValue());
       quinticParameterPolynomial.compute(time);
       boolean isDone = isDone();
       double alphaVel = isDone ? 0.0 : quinticParameterPolynomial.getVelocity();
@@ -395,7 +393,7 @@ public class StraightLinePoseTrajectoryGenerator implements PoseTrajectoryGenera
       getAngularAcceleration(angularAccelerationToPack);
    }
 
-   private final Quat4d temp = new Quat4d();
+   private final Quaternion temp = new Quaternion();
 
    public void getPose(FramePose framePoseToPack)
    {
@@ -409,6 +407,11 @@ public class StraightLinePoseTrajectoryGenerator implements PoseTrajectoryGenera
    public boolean isDone()
    {
       return currentTime.getDoubleValue() >= trajectoryTime.getDoubleValue();
+   }
+
+   public ReferenceFrame getCurrentReferenceFrame()
+   {
+      return currentPosition.getReferenceFrame();
    }
 
    private void checkIfMultipleFramesAllowed()

@@ -3,7 +3,7 @@ package us.ihmc.valkyrie.sensors;
 import java.io.IOException;
 import java.net.URI;
 
-import us.ihmc.avatar.drcRobot.DRCRobotModel;
+import us.ihmc.avatar.drcRobot.RobotTarget;
 import us.ihmc.avatar.networkProcessor.lidarScanPublisher.LidarScanPublisher;
 import us.ihmc.avatar.ros.DRCROSPPSTimestampOffsetProvider;
 import us.ihmc.avatar.sensors.DRCSensorSuiteManager;
@@ -14,6 +14,7 @@ import us.ihmc.communication.util.NetworkPorts;
 import us.ihmc.humanoidRobotics.kryo.IHMCCommunicationKryoNetClassList;
 import us.ihmc.ihmcPerception.camera.CameraDataReceiver;
 import us.ihmc.ihmcPerception.camera.SCSCameraDataReceiver;
+import us.ihmc.ihmcPerception.depthData.CollisionBoxProvider;
 import us.ihmc.robotModels.FullHumanoidRobotModelFactory;
 import us.ihmc.sensorProcessing.communication.packets.dataobjects.RobotConfigurationData;
 import us.ihmc.sensorProcessing.communication.producers.RobotConfigurationDataBuffer;
@@ -36,8 +37,8 @@ public class ValkyrieSensorSuiteManager implements DRCSensorSuiteManager
    private final FullHumanoidRobotModelFactory fullRobotModelFactory;
    private final LidarScanPublisher lidarScanPublisher;
 
-   public ValkyrieSensorSuiteManager(FullHumanoidRobotModelFactory fullRobotModelFactory, DRCROSPPSTimestampOffsetProvider ppsTimestampOffsetProvider,
-         DRCRobotSensorInformation sensorInformation, ValkyrieJointMap jointMap, DRCRobotModel.RobotTarget target)
+   public ValkyrieSensorSuiteManager(FullHumanoidRobotModelFactory fullRobotModelFactory, CollisionBoxProvider collisionBoxProvider, DRCROSPPSTimestampOffsetProvider ppsTimestampOffsetProvider,
+         DRCRobotSensorInformation sensorInformation, ValkyrieJointMap jointMap, RobotTarget target)
    {
       this.ppsTimestampOffsetProvider = ppsTimestampOffsetProvider;
       this.fullRobotModelFactory = fullRobotModelFactory;
@@ -47,7 +48,7 @@ public class ValkyrieSensorSuiteManager implements DRCSensorSuiteManager
       String sensorName = multisenseLidarParameters.getSensorNameInSdf();
       lidarScanPublisher = new LidarScanPublisher(sensorName, fullRobotModelFactory, sensorSuitePacketCommunicator);
       lidarScanPublisher.setPPSTimestampOffsetProvider(ppsTimestampOffsetProvider);
-//      lidarScanPublisher.setCollisionBoxProvider(null); // TODO Fill in when we made collision boxes for Val
+      lidarScanPublisher.setCollisionBoxProvider(collisionBoxProvider);
    }
 
    @Override

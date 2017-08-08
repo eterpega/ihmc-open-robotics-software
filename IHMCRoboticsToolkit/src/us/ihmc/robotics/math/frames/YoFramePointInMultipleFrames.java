@@ -3,11 +3,10 @@ package us.ihmc.robotics.math.frames;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.vecmath.Point3d;
-
-import us.ihmc.robotics.dataStructures.listener.VariableChangedListener;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.YoVariable;
+import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.yoVariables.listener.VariableChangedListener;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoVariable;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FrameTuple;
 import us.ihmc.robotics.geometry.FrameTuple2d;
@@ -18,7 +17,7 @@ public class YoFramePointInMultipleFrames extends YoFramePoint implements YoMult
    private final YoMultipleFramesHelper multipleFramesHelper;
 
    private final FramePoint framePoint = new FramePoint();
-   private final Point3d point = new Point3d();
+   private final Point3D point = new Point3D();
 
    private final String namePrefix;
    private final YoVariableRegistry registry;

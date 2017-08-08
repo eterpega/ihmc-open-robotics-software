@@ -7,11 +7,12 @@ import java.util.Map.Entry;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 
+import us.ihmc.commons.Conversions;
+import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.robotModels.FullRobotModel;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.LongYoVariable;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoLong;
 import us.ihmc.robotics.geometry.FrameVector;
-import us.ihmc.robotics.geometry.RigidBodyTransform;
 import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotController.RawSensorReader;
 import us.ihmc.robotics.screwTheory.FloatingInverseDynamicsJoint;
@@ -22,7 +23,6 @@ import us.ihmc.robotics.screwTheory.Twist;
 import us.ihmc.robotics.sensors.ForceSensorDataHolder;
 import us.ihmc.robotics.sensors.ForceSensorDataHolderReadOnly;
 import us.ihmc.robotics.sensors.ForceSensorDefinition;
-import us.ihmc.robotics.time.TimeTools;
 import us.ihmc.sensorProcessing.communication.packets.dataobjects.AuxiliaryRobotData;
 import us.ihmc.sensorProcessing.frames.ReferenceFrames;
 import us.ihmc.sensorProcessing.sensorProcessors.SensorOutputMapReadOnly;
@@ -42,9 +42,9 @@ public class SDFPerfectSimulatedSensorReader implements RawSensorReader, SensorO
    private final ArrayList<ImmutablePair<OneDegreeOfFreedomJoint, OneDoFJoint>> revoluteJoints = new ArrayList<ImmutablePair<OneDegreeOfFreedomJoint, OneDoFJoint>>();
 
    private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
-   private final LongYoVariable timestamp = new LongYoVariable("timestamp", registry);
-   private final LongYoVariable visionSensorTimestamp = new LongYoVariable("visionSensorTimestamp", registry);
-   private final LongYoVariable sensorHeadPPSTimetamp = new LongYoVariable("sensorHeadPPSTimetamp", registry);
+   private final YoLong timestamp = new YoLong("timestamp", registry);
+   private final YoLong visionSensorTimestamp = new YoLong("visionSensorTimestamp", registry);
+   private final YoLong sensorHeadPPSTimetamp = new YoLong("sensorHeadPPSTimetamp", registry);
 
    private final LinkedHashMap<ForceSensorDefinition, WrenchCalculatorInterface> forceTorqueSensors = new LinkedHashMap<ForceSensorDefinition, WrenchCalculatorInterface>();
 
@@ -127,7 +127,7 @@ public class SDFPerfectSimulatedSensorReader implements RawSensorReader, SensorO
       updateReferenceFrames();
       readAndUpdateRootJointAngularAndLinearVelocity();
 
-      long timestamp = TimeTools.secondsToNanoSeconds(robot.getTime());
+      long timestamp = Conversions.secondsToNanoseconds(robot.getTime());
       this.timestamp.set(timestamp);
       this.visionSensorTimestamp.set(timestamp);
       this.sensorHeadPPSTimetamp.set(timestamp);

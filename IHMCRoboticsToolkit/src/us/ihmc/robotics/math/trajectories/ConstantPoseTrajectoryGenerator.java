@@ -2,9 +2,8 @@ package us.ihmc.robotics.math.trajectories;
 
 import java.util.ArrayList;
 
-import javax.vecmath.Quat4d;
-
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
+import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.robotics.geometry.FrameOrientation;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FramePose;
@@ -182,7 +181,7 @@ public class ConstantPoseTrajectoryGenerator implements PoseTrajectoryGenerator
       getAngularAcceleration(angularAccelerationToPack);
    }
 
-   private final Quat4d temp = new Quat4d();
+   private final Quaternion temp = new Quaternion();
    
    public void getPose(FramePose framePoseToPack)
    {

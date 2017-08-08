@@ -1,10 +1,10 @@
 package us.ihmc.quadrupedRobotics.geometry.supportPolygon;
 
-import javax.vecmath.Point2d;
-import javax.vecmath.Vector3d;
+import us.ihmc.euclid.tuple3D.Vector3D;
 
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.BooleanYoVariable;
+import us.ihmc.euclid.tuple2D.Point2D;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FramePoint2d;
 import us.ihmc.robotics.math.frames.YoFrameConvexPolygon2d;
@@ -19,7 +19,7 @@ public class YoQuadrupedSupportPolygon
 {
    private final String namePrefix;
    
-   private final QuadrantDependentList<BooleanYoVariable> containsStorage = new QuadrantDependentList<>();
+   private final QuadrantDependentList<YoBoolean> containsStorage = new QuadrantDependentList<>();
    private final QuadrantDependentList<YoFramePoint> yoFootsteps = new QuadrantDependentList<>();
    
    private final QuadrupedSupportPolygon quadrupedSupportPolygon = new QuadrupedSupportPolygon();
@@ -30,7 +30,7 @@ public class YoQuadrupedSupportPolygon
       
       for (RobotQuadrant robotQuadrant : RobotQuadrant.values)
       {
-         containsStorage.set(robotQuadrant, new BooleanYoVariable(namePrefix + "Contains" + robotQuadrant.getPascalCaseName(), yoVariableRegistry));
+         containsStorage.set(robotQuadrant, new YoBoolean(namePrefix + "Contains" + robotQuadrant.getPascalCaseName(), yoVariableRegistry));
          yoFootsteps.set(robotQuadrant, new YoFramePoint(namePrefix + "Footstep" + robotQuadrant.getPascalCaseName(), ReferenceFrame.getWorldFrame(), yoVariableRegistry));
       }
    }
@@ -59,7 +59,7 @@ public class YoQuadrupedSupportPolygon
       return quadrupedSupportPolygon.containsSameQuadrants(polygonToCompare);
    }
    
-   public void getBounds(Point2d minToPack, Point2d maxToPack)
+   public void getBounds(Point2D minToPack, Point2D maxToPack)
    {
       putYoValuesIntoSupportPolygon();
       quadrupedSupportPolygon.getBounds(minToPack, maxToPack);
@@ -389,7 +389,7 @@ public class YoQuadrupedSupportPolygon
       getYoValuesFromSupportPolygon(quadrupedSupportPolygon);
    }
    
-   public void translate(Vector3d translateBy)
+   public void translate(Vector3D translateBy)
    {
       putYoValuesIntoSupportPolygon();
       quadrupedSupportPolygon.translate(translateBy);

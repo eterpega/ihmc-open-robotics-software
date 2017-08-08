@@ -2,14 +2,13 @@ package us.ihmc.quadrupedRobotics.providers;
 
 import us.ihmc.communication.net.PacketConsumer;
 import us.ihmc.communication.streamingData.GlobalDataProducer;
+import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.quadrupedRobotics.communication.packets.PlanarVelocityPacket;
+import us.ihmc.robotics.MathTools;
 import us.ihmc.robotics.dataStructures.parameter.DoubleArrayParameter;
 import us.ihmc.robotics.dataStructures.parameter.ParameterFactory;
-import us.ihmc.robotics.MathTools;
-import us.ihmc.robotics.dataStructures.registry.YoVariableRegistry;
-import us.ihmc.robotics.dataStructures.variable.DoubleYoVariable;
-
-import javax.vecmath.Vector3d;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 
 public class QuadrupedPlanarVelocityInputProvider
 {
@@ -19,20 +18,20 @@ public class QuadrupedPlanarVelocityInputProvider
    private final DoubleArrayParameter planarVelocityLowerLimitsParameter = parameterFactory.createDoubleArray("planarVelocityLowerLimits", -Double.MAX_VALUE, -Double.MAX_VALUE, -Double.MAX_VALUE);
    private final DoubleArrayParameter planarVelocityUpperLimitsParameter = parameterFactory.createDoubleArray("planarVelocityUpperLimits", Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
 
-   private final DoubleYoVariable yoPlanarVelocityInputX;
-   private final DoubleYoVariable yoPlanarVelocityInputY;
-   private final DoubleYoVariable yoPlanarVelocityInputZ;
-   private final Vector3d planarVelocityInput;
+   private final YoDouble yoPlanarVelocityInputX;
+   private final YoDouble yoPlanarVelocityInputY;
+   private final YoDouble yoPlanarVelocityInputZ;
+   private final Vector3D planarVelocityInput;
 
    public QuadrupedPlanarVelocityInputProvider(GlobalDataProducer globalDataProducer, YoVariableRegistry parentRegistry)
    {
-      yoPlanarVelocityInputX = new DoubleYoVariable("planarVelocityInputX", registry);
-      yoPlanarVelocityInputY = new DoubleYoVariable("planarVelocityInputY", registry);
-      yoPlanarVelocityInputZ = new DoubleYoVariable("planarVelocityInputZ", registry);
+      yoPlanarVelocityInputX = new YoDouble("planarVelocityInputX", registry);
+      yoPlanarVelocityInputY = new YoDouble("planarVelocityInputY", registry);
+      yoPlanarVelocityInputZ = new YoDouble("planarVelocityInputZ", registry);
       yoPlanarVelocityInputX.set(0);
       yoPlanarVelocityInputY.set(0);
       yoPlanarVelocityInputZ.set(0);
-      planarVelocityInput = new Vector3d();
+      planarVelocityInput = new Vector3D();
 
       if (globalDataProducer != null)
       {
@@ -43,11 +42,11 @@ public class QuadrupedPlanarVelocityInputProvider
             {
                packet.get(planarVelocityInput);
                yoPlanarVelocityInputX.set(MathTools
-                     .clipToMinMax(planarVelocityInput.getX(), planarVelocityLowerLimitsParameter.get(0), planarVelocityUpperLimitsParameter.get(0)));
+                     .clamp(planarVelocityInput.getX(), planarVelocityLowerLimitsParameter.get(0), planarVelocityUpperLimitsParameter.get(0)));
                yoPlanarVelocityInputY.set(MathTools
-                     .clipToMinMax(planarVelocityInput.getY(), planarVelocityLowerLimitsParameter.get(1), planarVelocityUpperLimitsParameter.get(1)));
+                     .clamp(planarVelocityInput.getY(), planarVelocityLowerLimitsParameter.get(1), planarVelocityUpperLimitsParameter.get(1)));
                yoPlanarVelocityInputZ.set(MathTools
-                     .clipToMinMax(planarVelocityInput.getZ(), planarVelocityLowerLimitsParameter.get(2), planarVelocityUpperLimitsParameter.get(2)));
+                     .clamp(planarVelocityInput.getZ(), planarVelocityLowerLimitsParameter.get(2), planarVelocityUpperLimitsParameter.get(2)));
             }
          });
       }
@@ -55,7 +54,7 @@ public class QuadrupedPlanarVelocityInputProvider
       parentRegistry.addChild(registry);
    }
 
-   public Vector3d get()
+   public Vector3D get()
    {
       planarVelocityInput.set(yoPlanarVelocityInputX.getDoubleValue(), yoPlanarVelocityInputY.getDoubleValue(), yoPlanarVelocityInputZ.getDoubleValue());
       return planarVelocityInput;
