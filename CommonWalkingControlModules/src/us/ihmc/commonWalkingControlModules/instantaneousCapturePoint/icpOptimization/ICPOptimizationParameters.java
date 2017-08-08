@@ -129,6 +129,14 @@ public abstract class ICPOptimizationParameters
     */
    public abstract boolean useAngularMomentum();
 
+   /**
+    * This is the amount that the CMP has to be different from the CoP to say that the controller is trying to use angular momentum.
+    */
+   public double getThresholdForUsingAngularMomentum()
+   {
+      return 0.02;
+   }
+
    public abstract boolean useTimingOptimization();
 
    /**

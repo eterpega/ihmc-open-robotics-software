@@ -73,8 +73,11 @@ public abstract class AbstractSimpleICPOptimizationController implements ICPOpti
    protected final YoDouble timeRemainingInState = new YoDouble(yoNamePrefix + "TimeRemainingInState", registry);
    private final YoDouble minimumTimeRemaining = new YoDouble(yoNamePrefix + "MinimumTimeRemaining", registry);
 
+   private final YoDouble thresholdForUsingAngularMomentum = new YoDouble(yoNamePrefix + "ThresholdForUsingAngularMomentum", registry);
+
    protected final YoFrameVector2d icpError = new YoFrameVector2d(yoNamePrefix + "ICPError", "", worldFrame, registry);
    protected final YoFramePoint2d feedbackCMP = new YoFramePoint2d(yoNamePrefix + "FeedbackCMPSolution", worldFrame, registry);
+   protected final YoFramePoint2d feedbackCoP = new YoFramePoint2d(yoNamePrefix + "FeedbackCoPSolution", worldFrame, registry);
    protected final YoFramePoint2d yoPerfectCMP = new YoFramePoint2d(yoNamePrefix + "PerfectCMP", worldFrame, registry);
    protected final YoFramePoint2d predictedEndOfStateICP = new YoFramePoint2d(yoNamePrefix + "PredictedEndOfStateICP", worldFrame, registry);
 
@@ -190,6 +193,8 @@ public abstract class AbstractSimpleICPOptimizationController implements ICPOpti
       angularMomentumMinimizationWeight.set(icpOptimizationParameters.getAngularMomentumMinimizationWeight());
       scaledAngularMomentumMinimizationWeight.set(icpOptimizationParameters.getAngularMomentumMinimizationWeight());
       limitReachabilityFromAdjustment.set(icpOptimizationParameters.getLimitReachabilityFromAdjustment());
+
+      thresholdForUsingAngularMomentum.set(icpOptimizationParameters.getThresholdForUsingAngularMomentum());
 
       safeCoPDistanceToEdge.set(icpOptimizationParameters.getSafeCoPDistanceToEdge());
       if (walkingControllerParameters != null)
@@ -394,9 +399,15 @@ public abstract class AbstractSimpleICPOptimizationController implements ICPOpti
    }
 
    @Override
-   public void getDesiredCMP(FramePoint2d desiredCMP)
+   public void getDesiredCMP(FramePoint2d desiredCMPToPack)
    {
-      feedbackCMP.getFrameTuple2d(desiredCMP);
+      feedbackCMP.getFrameTuple2d(desiredCMPToPack);
+   }
+
+   @Override
+   public void getDesiredCoP(FramePoint2d desiredCoPToPack)
+   {
+      feedbackCoP.getFrameTuple2d(desiredCoPToPack);
    }
 
    @Override
@@ -415,6 +426,12 @@ public abstract class AbstractSimpleICPOptimizationController implements ICPOpti
    public boolean useAngularMomentum()
    {
       return useAngularMomentum.getBooleanValue();
+   }
+
+   @Override
+   public boolean isUsingAngularMomentum()
+   {
+      return cmpCoPDifferenceSolution.length() > thresholdForUsingAngularMomentum.getDoubleValue();
    }
 
    @Override
@@ -575,6 +592,9 @@ public abstract class AbstractSimpleICPOptimizationController implements ICPOpti
       yoPerfectCMP.set(perfectCMP);
       feedbackCMP.set(perfectCMP);
       feedbackCMP.add(feedbackCMPDelta);
+
+      feedbackCoP.set(perfectCMP);
+      feedbackCoP.add(feedbackCoPDelta);
 
       if (limitReachabilityFromAdjustment.getBooleanValue())
          updateReachabilityRegionFromAdjustment();

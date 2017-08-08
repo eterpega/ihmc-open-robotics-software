@@ -76,11 +76,14 @@ public abstract class AbstractICPOptimizationController implements ICPOptimizati
    protected final YoDouble timeRemainingInState = new YoDouble(yoNamePrefix + "TimeRemainingInState", registry);
    protected final YoDouble minimumTimeRemaining = new YoDouble(yoNamePrefix + "MinimumTimeRemaining", registry);
 
+   private final YoDouble thresholdForUsingAngularMomentum = new YoDouble(yoNamePrefix + "ThresholdForUsingAngularMomentum", registry);
+
    protected final YoFrameVector2d icpError = new YoFrameVector2d(yoNamePrefix + "IcpError", "", worldFrame, registry);
-   protected final YoFramePoint2d controllerFeedbackCMP = new YoFramePoint2d(yoNamePrefix + "FeedbackCMPSolution", worldFrame, registry);
-   protected final YoFrameVector2d controllerFeedbackCMPDelta = new YoFrameVector2d(yoNamePrefix + "FeedbackCMPDeltaSolution", worldFrame, registry);
+   protected final YoFramePoint2d feedbackCMP = new YoFramePoint2d(yoNamePrefix + "FeedbackCMPSolution", worldFrame, registry);
+   protected final YoFramePoint2d feedbackCoP = new YoFramePoint2d(yoNamePrefix + "FeedbackCoPSolution", worldFrame, registry);
+   protected final YoFrameVector2d feedbackCMPDelta = new YoFrameVector2d(yoNamePrefix + "FeedbackCMPDeltaSolution", worldFrame, registry);
    protected final YoFramePoint2d dynamicRelaxation = new YoFramePoint2d(yoNamePrefix + "DynamicRelaxationSolution", "", worldFrame, registry);
-   protected final YoFramePoint2d cmpCoPDifferenceSolution = new YoFramePoint2d(yoNamePrefix + "CMPCoPDifferenceSolution", "", worldFrame, registry);
+   protected final YoFrameVector2d cmpCoPDifferenceSolution = new YoFrameVector2d(yoNamePrefix + "CMPCoPDifferenceSolution", "", worldFrame, registry);
 
    protected final YoFramePoint2d beginningOfStateICP = new YoFramePoint2d(yoNamePrefix + "BeginningOfStateICP", worldFrame, registry);
    protected final YoFrameVector2d beginningOfStateICPVelocity = new YoFrameVector2d(yoNamePrefix + "BeginningOfStateICPVelocity", worldFrame, registry);
@@ -234,6 +237,8 @@ public abstract class AbstractICPOptimizationController implements ICPOptimizati
       feedbackParallelGain.set(icpOptimizationParameters.getFeedbackParallelGain());
       dynamicRelaxationWeight.set(icpOptimizationParameters.getDynamicRelaxationWeight());
       angularMomentumMinimizationWeight.set(icpOptimizationParameters.getAngularMomentumMinimizationWeight());
+
+      thresholdForUsingAngularMomentum.set(icpOptimizationParameters.getThresholdForUsingAngularMomentum());
 
       safeCoPDistanceToEdge.set(icpOptimizationParameters.getSafeCoPDistanceToEdge());
       if (walkingControllerParameters != null)
@@ -728,7 +733,7 @@ public abstract class AbstractICPOptimizationController implements ICPOptimizati
                   numberOfFootstepsToConsider, solver);
 
          solver.getCMPFeedbackDifference(tempVector2d);
-         controllerFeedbackCMPDelta.set(tempVector2d);
+         feedbackCMPDelta.set(tempVector2d);
 
          if (COMPUTE_COST_TO_GO)
             solutionHandler.updateCostsToGo(solver);
@@ -763,10 +768,14 @@ public abstract class AbstractICPOptimizationController implements ICPOptimizati
       icpError.set(currentICP);
       icpError.sub(solutionHandler.getControllerReferenceICP());
 
-      controllerFeedbackCMPDelta.getFrameTuple2d(tempVector2d);
+      feedbackCMPDelta.getFrameTuple2d(tempVector2d);
       solutionHandler.getControllerReferenceCMP(tempPoint2d);
-      controllerFeedbackCMP.set(tempPoint2d);
-      controllerFeedbackCMP.add(tempVector2d);
+      feedbackCMP.set(tempPoint2d);
+      feedbackCMP.add(tempVector2d);
+
+      feedbackCoP.set(tempPoint2d);
+      cmpCoPDifferenceSolution.getFrameTuple2d(tempVector2d);
+      feedbackCoP.sub(tempVector2d);
 
       if (limitReachabilityFromAdjustment.getBooleanValue())
          updateReachabilityRegionFromAdjustment();
@@ -841,7 +850,12 @@ public abstract class AbstractICPOptimizationController implements ICPOptimizati
 
    public void getDesiredCMP(FramePoint2d desiredCMPToPack)
    {
-      controllerFeedbackCMP.getFrameTuple2d(desiredCMPToPack);
+      feedbackCMP.getFrameTuple2d(desiredCMPToPack);
+   }
+
+   public void getDesiredCoP(FramePoint2d desiredCoPToPack)
+   {
+      feedbackCoP.getFrameTuple2d(desiredCoPToPack);
    }
 
    public void getFootstepSolution(int footstepIndex, FramePoint2d footstepSolutionToPack)
@@ -859,6 +873,10 @@ public abstract class AbstractICPOptimizationController implements ICPOptimizati
       return useAngularMomentum.getBooleanValue();
    }
 
+   public boolean isUsingAngularMomentum()
+   {
+      return cmpCoPDifferenceSolution.length() > thresholdForUsingAngularMomentum.getDoubleValue();
+   }
 
 
 

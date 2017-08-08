@@ -23,9 +23,12 @@ public interface ICPOptimizationController
    public void initializeForSingleSupport(double initialTime, RobotSide transferToSide, double omega0);
 
    public int getNumberOfFootstepsToConsider();
-   public void getDesiredCMP(FramePoint2d desiredCMP);
+   public void getDesiredCMP(FramePoint2d desiredCMPToPack);
+   public void getDesiredCoP(FramePoint2d desiredCoPToPack);
    public void getFootstepSolution(int footstepIndex, FramePoint2d footstepSolutionToPack);
+
    public boolean wasFootstepAdjusted();
+   public boolean isUsingAngularMomentum();
    public boolean useAngularMomentum();
 
    public void compute(double currentTime, FramePoint2d desiredICP, FrameVector2d desiredICPVelocity, FramePoint2d perfectCMP, FramePoint2d currentICP, double omega0);
