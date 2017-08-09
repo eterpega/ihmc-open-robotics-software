@@ -269,7 +269,7 @@ public abstract class LinearMomentumRateOfChangeControlModule
       achievedCMPToPack.set(achievedCoMAcceleration2d);
       achievedCMPToPack.scale(-1.0 / (omega0 * omega0));
       achievedCMPToPack.add(centerOfMass2d);
-   }t st
+   }
 
    private final FramePoint cmp3d = new FramePoint();
    private final FrameVector groundReactionForce = new FrameVector();

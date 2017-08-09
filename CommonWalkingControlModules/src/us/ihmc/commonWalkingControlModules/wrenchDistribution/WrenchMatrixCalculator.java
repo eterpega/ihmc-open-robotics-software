@@ -168,6 +168,7 @@ public class WrenchMatrixCalculator
       else
       {
          totalDesiredCoPCommandWeight.setToZero(ReferenceFrame.getWorldFrame());
+         totalDesiredCoPCommand.getFrameTuple2d().setToZero(ReferenceFrame.getWorldFrame());
          totalDesiredCoPCommand.set(command.getDesiredCoPInWorldFrame());
          totalDesiredCoPCommandWeight.set(command.getWeightInWorldFrame());
 
@@ -219,8 +220,6 @@ public class WrenchMatrixCalculator
          CommonOps.insert(helper.getDesiredCoPWeightMatrix(), desiredCoPWeightMatrix, copStartIndex, copStartIndex);
          CommonOps.insert(helper.getCoPRateWeightMatrix(), copRateWeightMatrix, copStartIndex, copStartIndex);
 
-         CommonOps.multAdd(copSelectionMatrix, helper.getRhoJacobian(), totalCoPJacobianMatrix);
-
          Wrench wrench = helper.getWrenchFromRho();
          wrench.changeFrame(centerOfMassFrame);
          totalVerticalForce += wrench.getLinearPartZ();
@@ -231,6 +230,7 @@ public class WrenchMatrixCalculator
 
       if (totalVerticalForce > 1.0e-1 && hasReceivedCenterOfPressureCommand.getBooleanValue())
       {
+         CommonOps.mult(copSelectionMatrix, rhoJacobianMatrix, totalCoPJacobianMatrix);
          CommonOps.scale(1.0 / totalVerticalForce, totalCoPJacobianMatrix);
 
          totalDesiredCoPCommandWeight.changeFrame(centerOfMassFrame);
@@ -240,7 +240,7 @@ public class WrenchMatrixCalculator
          totalDesiredCoPWeightMatrix.set(0, 0, totalDesiredCoPCommandWeight.getX());
          totalDesiredCoPWeightMatrix.set(1, 1, totalDesiredCoPCommandWeight.getY());
          totalDesiredCoPMatrix.set(0, 0, desiredCoP.getX());
-         totalDesiredCoPMatrix.set(1, 1, desiredCoP.getY());
+         totalDesiredCoPMatrix.set(1, 0, desiredCoP.getY());
 
          hasReceivedCenterOfPressureCommand.set(false);
       }
