@@ -140,7 +140,7 @@ public class NumericTextField extends TextField
    public void setValue(double newValue)
    {
       // Ensure new value is within the limits, clipping if it isn't.
-      newValue = MathTools.clipToMinMax(newValue, minProperty.get(), maxProperty.get());
+      newValue = MathTools.clamp(newValue, minProperty.get(), maxProperty.get());
 
       valueProperty.setValue(allowDecimalsProperty.get() ? newValue : Math.round(newValue));
       setTextFromValue();

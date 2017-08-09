@@ -43,12 +43,6 @@ public class IntegerArrayParameter extends Parameter
    }
 
    @Override
-   public int length()
-   {
-      return value.length;
-   }
-
-   @Override
    public boolean tryLoadValue(String value)
    {
       try
