@@ -32,8 +32,6 @@ public class ICPBasedLinearMomentumRateOfChangeControlModule extends LinearMomen
 
 
       icpProportionalController = new ICPProportionalController(icpControlGains, controlDT, registry);
-
-
    }
 
    public void computeCMPInternal(FramePoint2d desiredCMPPreviousValue)
@@ -45,6 +43,7 @@ public class ICPBasedLinearMomentumRateOfChangeControlModule extends LinearMomen
 
       desiredCMP.set(icpProportionalController.doProportionalControl(desiredCMPPreviousValue, capturePoint, desiredCapturePoint,
             finalDesiredCapturePoint, desiredCapturePointVelocity, perfectCMP, omega0));
+      desiredCoP.setToNaN();
 
       yoUnprojectedDesiredCMP.set(desiredCMP);
 

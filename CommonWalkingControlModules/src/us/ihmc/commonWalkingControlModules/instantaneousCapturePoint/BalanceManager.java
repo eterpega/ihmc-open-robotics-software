@@ -13,6 +13,9 @@ import us.ihmc.commonWalkingControlModules.configurations.ICPAngularMomentumModi
 import us.ihmc.commonWalkingControlModules.configurations.ICPWithTimeFreezingPlannerParameters;
 import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParameters;
 import us.ihmc.commonWalkingControlModules.controlModules.PelvisICPBasedTranslationManager;
+import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.CenterOfPressureCommand;
+import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.InverseDynamicsCommand;
+import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.InverseDynamicsCommandList;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.MomentumRateCommand;
 import us.ihmc.commonWalkingControlModules.desiredFootStep.CenterOfMassTrajectoryHandler;
 import us.ihmc.commonWalkingControlModules.desiredFootStep.WalkingMessageHandler;
@@ -68,6 +71,8 @@ public class BalanceManager
    private final LinearMomentumRateOfChangeControlModule linearMomentumRateOfChangeControlModule;
    private final DynamicReachabilityCalculator dynamicReachabilityCalculator;
 
+   private final InverseDynamicsCommandList inverseDynamicsCommandList = new InverseDynamicsCommandList();
+
    private final PelvisICPBasedTranslationManager pelvisICPBasedTranslationManager;
    private final PushRecoveryControlModule pushRecoveryControlModule;
    private final MomentumRecoveryControlModule momentumRecoveryControlModule;
@@ -80,6 +85,7 @@ public class BalanceManager
 
    private final YoFramePoint2d yoPerfectCMP = new YoFramePoint2d("perfectCMP", worldFrame, registry);
    private final YoFramePoint2d yoDesiredCMP = new YoFramePoint2d("desiredCMP", worldFrame, registry);
+   private final YoFramePoint2d yoDesiredCoP = new YoFramePoint2d("desiredCoP", worldFrame, registry);
 
    // TODO It seems that the achieved CMP can be off sometimes.
    // Need to review the computation of the achieved linear momentum rate or of the achieved CMP. (Sylvain)
@@ -108,6 +114,7 @@ public class BalanceManager
    private final YoFramePoint2d yoAdjustedDesiredCapturePoint = new YoFramePoint2d("adjustedDesiredICP", worldFrame, registry);
 
    private final FramePoint2d desiredCMP = new FramePoint2d();
+   private final FramePoint2d desiredCoP = new FramePoint2d();
    private final FramePoint2d achievedCMP = new FramePoint2d();
 
    private final FrameVector2d icpError2d = new FrameVector2d();
@@ -268,6 +275,7 @@ public class BalanceManager
       yoDesiredCapturePoint.setToNaN();
       yoFinalDesiredICP.setToNaN();
       yoDesiredCMP.setToNaN();
+      yoDesiredCoP.setToNaN();
       yoAchievedCMP.setToNaN();
       yoPerfectCMP.setToNaN();
 
@@ -453,8 +461,10 @@ public class BalanceManager
       linearMomentumRateOfChangeControlModule.setPerfectCMP(perfectCMP);
       linearMomentumRateOfChangeControlModule.setSupportLeg(supportLeg);
       yoDesiredCMP.getFrameTuple2d(desiredCMP);
-      linearMomentumRateOfChangeControlModule.compute(desiredCMP, desiredCMP);
+      yoDesiredCoP.getFrameTuple2d(desiredCoP);
+      linearMomentumRateOfChangeControlModule.compute(desiredCMP, desiredCMP, desiredCoP);
       yoDesiredCMP.set(desiredCMP);
+      yoDesiredCoP.set(desiredCoP);
    }
 
    public Footstep createFootstepForRecoveringFromDisturbance(RobotSide swingSide, double swingTimeRemaining)
@@ -519,9 +529,13 @@ public class BalanceManager
       yoDesiredICPVelocity.getFrameTuple2dIncludingFrame(desiredICPVelocityToPack);
    }
 
-   public MomentumRateCommand getInverseDynamicsCommand()
+   public InverseDynamicsCommand<?> getInverseDynamicsCommand()
    {
-      return linearMomentumRateOfChangeControlModule.getMomentumRateCommand();
+      inverseDynamicsCommandList.clear();
+      inverseDynamicsCommandList.addCommand(linearMomentumRateOfChangeControlModule.getMomentumRateCommand());
+      inverseDynamicsCommandList.addCommand(linearMomentumRateOfChangeControlModule.getCenterOfPressureCommand());
+
+      return inverseDynamicsCommandList;
    }
 
    public void getNextExitCMP(FramePoint entryCMPToPack)

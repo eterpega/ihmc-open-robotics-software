@@ -2,10 +2,12 @@ package us.ihmc.commonWalkingControlModules.instantaneousCapturePoint;
 
 import static us.ihmc.graphicsDescription.appearance.YoAppearance.Purple;
 
+import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.CenterOfPressureCommand;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.MomentumRateCommand;
 import us.ihmc.commonWalkingControlModules.instantaneousCapturePoint.icpOptimization.ICPOptimizationController;
 import us.ihmc.commonWalkingControlModules.wrenchDistribution.WrenchDistributorTools;
 import us.ihmc.commons.PrintTools;
+import us.ihmc.euclid.tuple2D.Vector2D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
@@ -51,6 +53,9 @@ public abstract class LinearMomentumRateOfChangeControlModule
    protected final SelectionMatrix6D linearXYSelectionMatrix = new SelectionMatrix6D();
    protected final SelectionMatrix6D linearXYAndAngularZSelectionMatrix = new SelectionMatrix6D();
 
+   private final CenterOfPressureCommand centerOfPressureCommand = new CenterOfPressureCommand();
+   private final FrameVector2d desiredCoPWeight = new FrameVector2d(ReferenceFrame.getWorldFrame(), 5.0, 5.0);
+
    protected double omega0 = 0.0;
    protected double totalMass;
    protected double gravityZ;
@@ -66,6 +71,7 @@ public abstract class LinearMomentumRateOfChangeControlModule
 
    protected final FramePoint2d perfectCMP = new FramePoint2d();
    protected final FramePoint2d desiredCMP = new FramePoint2d();
+   protected final FramePoint2d desiredCoP = new FramePoint2d();
 
    protected final FrameConvexPolygon2d supportPolygon = new FrameConvexPolygon2d();
 
@@ -136,6 +142,7 @@ public abstract class LinearMomentumRateOfChangeControlModule
       linearMomentumRateWeight.set(defaultLinearMomentumRateWeight);
 
       momentumRateCommand.setWeights(0.0, 0.0, 0.0, linearMomentumRateWeight.getX(), linearMomentumRateWeight.getY(), linearMomentumRateWeight.getZ());
+      centerOfPressureCommand.setWeightInWorldFrame(desiredCoPWeight);
 
       if (yoGraphicsListRegistry != null)
       {
@@ -239,6 +246,14 @@ public abstract class LinearMomentumRateOfChangeControlModule
       return momentumRateCommand;
    }
 
+   public CenterOfPressureCommand getCenterOfPressureCommand()
+   {
+      if (desiredCoP.containsNaN())
+         return null;
+      else
+         return centerOfPressureCommand;
+   }
+
    public void computeAchievedCMP(FrameVector achievedLinearMomentumRate, FramePoint2d achievedCMPToPack)
    {
       if (achievedLinearMomentumRate.containsNaN())
@@ -254,7 +269,7 @@ public abstract class LinearMomentumRateOfChangeControlModule
       achievedCMPToPack.set(achievedCoMAcceleration2d);
       achievedCMPToPack.scale(-1.0 / (omega0 * omega0));
       achievedCMPToPack.add(centerOfMass2d);
-   }
+   }t st
 
    private final FramePoint cmp3d = new FramePoint();
    private final FrameVector groundReactionForce = new FrameVector();
@@ -273,7 +288,7 @@ public abstract class LinearMomentumRateOfChangeControlModule
 
    private boolean desiredCMPcontainedNaN = false;
 
-   public void compute(FramePoint2d desiredCMPPreviousValue, FramePoint2d desiredCMPToPack)
+   public void compute(FramePoint2d desiredCMPPreviousValue, FramePoint2d desiredCMPToPack, FramePoint2d desiredCoPToPack)
    {
       computeCMPInternal(desiredCMPPreviousValue);
 
@@ -290,6 +305,9 @@ public abstract class LinearMomentumRateOfChangeControlModule
       {
          desiredCMPcontainedNaN = false;
       }
+
+      desiredCoPToPack.setIncludingFrame(desiredCoP);
+      desiredCoPToPack.changeFrame(worldFrame);
 
       desiredCMPToPack.setIncludingFrame(desiredCMP);
       desiredCMPToPack.changeFrame(worldFrame);
@@ -327,6 +345,9 @@ public abstract class LinearMomentumRateOfChangeControlModule
 
       momentumRateCommand.setWeights(angularMomentumRateWeight.getX(), angularMomentumRateWeight.getY(), angularMomentumRateWeight.getZ(),
             linearMomentumRateWeight.getX(), linearMomentumRateWeight.getY(), linearMomentumRateWeight.getZ());
+
+      if (!desiredCoP.containsNaN())
+         centerOfPressureCommand.setDesiredCoPInWorldFrame(desiredCoPToPack);
    }
 
    public void setCMPProjectionArea(FrameConvexPolygon2d areaToProjectInto, FrameConvexPolygon2d safeArea)

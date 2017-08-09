@@ -128,6 +128,11 @@ public class ICPOptimizationLinearMomentumRateOfChangeControlModule extends Line
       icpOptimizationController.compute(yoTime.getDoubleValue(), desiredCapturePoint, desiredCapturePointVelocity, perfectCMP, capturePoint, omega0);
       icpOptimizationController.getDesiredCMP(desiredCMP);
 
+      if (icpOptimizationController.isUsingAngularMomentum())
+         icpOptimizationController.getDesiredCoP(desiredCoP);
+      else
+         desiredCoP.setToNaN();
+
       yoUnprojectedDesiredCMP.set(desiredCMP);
 
       // do projection here:
