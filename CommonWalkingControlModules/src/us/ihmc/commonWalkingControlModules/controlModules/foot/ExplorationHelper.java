@@ -97,16 +97,16 @@ public class ExplorationHelper
       if (yoDesiredCop != null)
          yoDesiredCop.set(desiredCopInWorld);
 
-      centerOfPressureCommand.setDesiredCoP(desiredCenterOfPressure.getPoint());
+      centerOfPressureCommand.setDesiredCoPInSoleFrame(desiredCenterOfPressure.getPoint());
       commandWeight.set(copCommandWeight.getDoubleValue(), copCommandWeight.getDoubleValue());
-      centerOfPressureCommand.setWeight(commandWeight);
+      centerOfPressureCommand.setWeightInSoleFrame(commandWeight);
    }
 
    private void reset()
    {
       yoDesiredCop.setToNaN();
       commandWeight.set(0.0, 0.0);
-      centerOfPressureCommand.setWeight(commandWeight);
+      centerOfPressureCommand.setWeightInSoleFrame(commandWeight);
       lastCornerCropped = 0;
       yoCurrentCorner.set(0);
       timeExploring.set(Double.NaN);

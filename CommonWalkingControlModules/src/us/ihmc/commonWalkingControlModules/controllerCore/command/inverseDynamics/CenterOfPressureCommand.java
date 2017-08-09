@@ -3,6 +3,8 @@ package us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynami
 import us.ihmc.commonWalkingControlModules.controllerCore.command.ControllerCoreCommandType;
 import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.euclid.tuple2D.Vector2D;
+import us.ihmc.robotics.geometry.FramePoint2d;
+import us.ihmc.robotics.geometry.FrameVector2d;
 import us.ihmc.robotics.screwTheory.RigidBody;
 
 public class CenterOfPressureCommand implements InverseDynamicsCommand<CenterOfPressureCommand>
@@ -11,6 +13,9 @@ public class CenterOfPressureCommand implements InverseDynamicsCommand<CenterOfP
    private String contactingRigidBodyName;
    private final Vector2D weightInSoleFrame = new Vector2D();
    private final Point2D desiredCoPInSoleFrame = new Point2D();
+
+   private final FrameVector2d weightInWorldFrame = new FrameVector2d();
+   private final FramePoint2d desiredCoPInWorldFrame = new FramePoint2d();
 
    public CenterOfPressureCommand()
    {
@@ -38,12 +43,32 @@ public class CenterOfPressureCommand implements InverseDynamicsCommand<CenterOfP
       this.contactingRigidBodyName = contactingRigidBody.getName();
    }
 
-   public void setWeight(Vector2D weightInSoleFrame)
+   public void setWeightInWorldFrame(FrameVector2d weightInWorldFrame)
+   {
+      this.weightInWorldFrame.set(weightInWorldFrame);
+   }
+
+   public void setDesiredCoPInWorldFrame(FramePoint2d desiredCoPInWorldFrame)
+   {
+      this.desiredCoPInWorldFrame.set(desiredCoPInWorldFrame);
+   }
+
+   public FrameVector2d getWeightInWorldFrame()
+   {
+      return weightInWorldFrame;
+   }
+
+   public FramePoint2d getDesiredCoPInWorldFrame()
+   {
+      return desiredCoPInWorldFrame;
+   }
+
+   public void setWeightInSoleFrame(Vector2D weightInSoleFrame)
    {
       this.weightInSoleFrame.set(weightInSoleFrame);
    }
 
-   public void setDesiredCoP(Point2D desiredCoPInSoleFrame)
+   public void setDesiredCoPInSoleFrame(Point2D desiredCoPInSoleFrame)
    {
       this.desiredCoPInSoleFrame.set(desiredCoPInSoleFrame);
    }

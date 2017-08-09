@@ -12,8 +12,12 @@ import us.ihmc.commonWalkingControlModules.controllerCore.WholeBodyControlCoreTo
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.CenterOfPressureCommand;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.PlaneContactStateCommand;
 import us.ihmc.commonWalkingControlModules.momentumBasedController.optimization.ControllerCoreOptimizationSettings;
+import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.euclid.tuple2D.Vector2D;
 import us.ihmc.humanoidRobotics.bipedSupportPolygons.ContactablePlaneBody;
+import us.ihmc.robotics.geometry.FramePoint2d;
+import us.ihmc.robotics.geometry.FrameVector2d;
+import us.ihmc.robotics.math.frames.YoFramePoint2d;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
@@ -36,6 +40,9 @@ public class WrenchMatrixCalculator
    private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
 
    private final YoBoolean useForceRateHighWeight = new YoBoolean("useForceRateHighWeight", registry);
+   private final YoBoolean hasReceivedCenterOfPressureCommand = new YoBoolean("hasReceivedTotalCenterOfPressureCommand", registry);
+   private final YoFramePoint2d totalDesiredCoPCommand = new YoFramePoint2d("totalDesiredCoP", ReferenceFrame.getWorldFrame(), registry);
+   private final FrameVector2d totalDesiredCoPCommandWeight = new FrameVector2d();
 
    private final YoDouble rhoWeight = new YoDouble("rhoWeight", registry);
    private final YoDouble rhoRateDefaultWeight = new YoDouble("rhoRateDefaultWeight", registry);
@@ -48,6 +55,11 @@ public class WrenchMatrixCalculator
    private final DenseMatrix64F rhoJacobianMatrix;
    private final DenseMatrix64F copJacobianMatrix;
    private final DenseMatrix64F rhoPreviousMatrix;
+
+   private final DenseMatrix64F copSelectionMatrix;
+   private final DenseMatrix64F totalCoPJacobianMatrix;
+   private final DenseMatrix64F totalDesiredCoPMatrix;
+   private final DenseMatrix64F totalDesiredCoPWeightMatrix;
 
    private final DenseMatrix64F desiredCoPMatrix;
    private final DenseMatrix64F previousCoPMatrix;
@@ -82,11 +94,18 @@ public class WrenchMatrixCalculator
       maxNumberOfContactPoints = toolbox.getNumberOfContactPointsPerContactableBody();        
       numberOfBasisVectorsPerContactPoint = toolbox.getNumberOfBasisVectorsPerContactPoint(); 
       rhoSize = toolbox.getRhoSize();                                                  
-      copTaskSize = 2 * nContactableBodies; 
-      
+      copTaskSize = 2 * nContactableBodies;
+
+      copSelectionMatrix = new DenseMatrix64F(2, SpatialForceVector.SIZE);
+      copSelectionMatrix.set(0, 1, -1.0);
+      copSelectionMatrix.set(1, 0, 1.0);
+      totalCoPJacobianMatrix = new DenseMatrix64F(2, rhoSize);
+      totalDesiredCoPMatrix = new DenseMatrix64F(2, 1);
+      totalDesiredCoPWeightMatrix = new DenseMatrix64F(2, 2);
+
       rhoJacobianMatrix = new DenseMatrix64F(SpatialForceVector.SIZE, rhoSize);
-      copJacobianMatrix = new DenseMatrix64F(copTaskSize, rhoSize);            
-      rhoPreviousMatrix = new DenseMatrix64F(rhoSize, 1);                      
+      copJacobianMatrix = new DenseMatrix64F(copTaskSize, rhoSize);
+      rhoPreviousMatrix = new DenseMatrix64F(rhoSize, 1);
                                                                                
       desiredCoPMatrix = new DenseMatrix64F(copTaskSize, 1);                   
       previousCoPMatrix = new DenseMatrix64F(copTaskSize, 1);
@@ -141,8 +160,19 @@ public class WrenchMatrixCalculator
 
    public void submitCenterOfPressureCommand(CenterOfPressureCommand command)
    {
-      PlaneContactStateToWrenchMatrixHelper helper = planeContactStateToWrenchMatrixHelpers.get(command.getContactingRigidBody());
-      helper.setCenterOfPressureCommand(command);
+      if (command.getContactingRigidBody() != null)
+      {
+         PlaneContactStateToWrenchMatrixHelper helper = planeContactStateToWrenchMatrixHelpers.get(command.getContactingRigidBody());
+         helper.setCenterOfPressureCommand(command);
+      }
+      else
+      {
+         totalDesiredCoPCommandWeight.setToZero(ReferenceFrame.getWorldFrame());
+         totalDesiredCoPCommand.set(command.getDesiredCoPInWorldFrame());
+         totalDesiredCoPCommandWeight.set(command.getWeightInWorldFrame());
+
+         hasReceivedCenterOfPressureCommand.set(true);
+      }
    }
 
    private final Vector2D tempDeisredCoPWeight = new Vector2D();
@@ -166,6 +196,7 @@ public class WrenchMatrixCalculator
 
       int rhoStartIndex = 0;
       int copStartIndex = 0;
+      double totalVerticalForce = 0.0;
 
       for (int i = 0; i < rigidBodies.size(); i++)
       {
@@ -188,9 +219,33 @@ public class WrenchMatrixCalculator
          CommonOps.insert(helper.getDesiredCoPWeightMatrix(), desiredCoPWeightMatrix, copStartIndex, copStartIndex);
          CommonOps.insert(helper.getCoPRateWeightMatrix(), copRateWeightMatrix, copStartIndex, copStartIndex);
 
+         CommonOps.multAdd(copSelectionMatrix, helper.getRhoJacobian(), totalCoPJacobianMatrix);
+
+         Wrench wrench = helper.getWrenchFromRho();
+         wrench.changeFrame(centerOfMassFrame);
+         totalVerticalForce += wrench.getLinearPartZ();
+
          rhoStartIndex += helper.getRhoSize();
          copStartIndex += 2;
       }
+
+      if (totalVerticalForce > 1.0e-1 && hasReceivedCenterOfPressureCommand.getBooleanValue())
+      {
+         CommonOps.scale(1.0 / totalVerticalForce, totalCoPJacobianMatrix);
+
+         totalDesiredCoPCommandWeight.changeFrame(centerOfMassFrame);
+         FramePoint2d desiredCoP = totalDesiredCoPCommand.getFrameTuple2d();
+         desiredCoP.changeFrame(centerOfMassFrame);
+
+         totalDesiredCoPWeightMatrix.set(0, 0, totalDesiredCoPCommandWeight.getX());
+         totalDesiredCoPWeightMatrix.set(1, 1, totalDesiredCoPCommandWeight.getY());
+         totalDesiredCoPMatrix.set(0, 0, desiredCoP.getX());
+         totalDesiredCoPMatrix.set(1, 1, desiredCoP.getY());
+
+         hasReceivedCenterOfPressureCommand.set(false);
+      }
+      else
+         totalCoPJacobianMatrix.zero();
    }
 
    public Map<RigidBody, Wrench> computeWrenchesFromRho(DenseMatrix64F rho)
@@ -237,6 +292,11 @@ public class WrenchMatrixCalculator
       return copJacobianMatrix;
    }
 
+   public DenseMatrix64F getTotalCoPJacobianMatrix()
+   {
+      return totalCoPJacobianMatrix;
+   }
+
    public DenseMatrix64F getRhoPreviousMatrix()
    {
       return rhoPreviousMatrix;
@@ -250,6 +310,11 @@ public class WrenchMatrixCalculator
    public DenseMatrix64F getPreviousCoPMatrix()
    {
       return previousCoPMatrix;
+   }
+
+   public DenseMatrix64F getTotalDesiredCoPMatrix()
+   {
+      return totalDesiredCoPMatrix;
    }
 
    public DenseMatrix64F getRhoMaxMatrix()
@@ -270,6 +335,11 @@ public class WrenchMatrixCalculator
    public DenseMatrix64F getDesiredCoPWeightMatrix()
    {
       return desiredCoPWeightMatrix;
+   }
+
+   public DenseMatrix64F getTotalDesiredCoPWeightMatrix()
+   {
+      return totalDesiredCoPWeightMatrix;
    }
 
    public DenseMatrix64F getCopRateWeightMatrix()
