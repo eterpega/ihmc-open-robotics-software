@@ -59,7 +59,6 @@ public class DRCControllerThread implements MultiThreadedRobotControlElement
    private final long estimatorTicksPerControlTick;
 
    private final YoDouble controllerTime = new YoDouble("controllerTime", registry);
-   private final YoLong controllerTimestamp = new YoLong("controllerTimestamp", registry);
    private final YoBoolean firstTick = new YoBoolean("firstTick", registry);
 
    private final FullHumanoidRobotModel controllerFullRobotModel;
@@ -304,8 +303,8 @@ public class DRCControllerThread implements MultiThreadedRobotControlElement
             else
             {
                long estimatorStartTime = threadDataSynchronizer.getEstimatorClockStartTime();
-               controllerTimestamp.set(threadDataSynchronizer.getTimestamp());
-               controllerTime.set(Conversions.nanosecondsToSeconds(controllerTimestamp.getLongValue()));
+               long timestamp = threadDataSynchronizer.getTimestamp();
+               controllerTime.set(Conversions.nanosecondsToSeconds(timestamp));
                actualControlDT.set(currentClockTime - controllerStartTime.getLongValue());
 
                if (expectedEstimatorTick.getLongValue() != threadDataSynchronizer.getEstimatorTick())
@@ -377,13 +376,13 @@ public class DRCControllerThread implements MultiThreadedRobotControlElement
       {
          if (runController.getBooleanValue())
          {
-            outputWriter.writeAfterController(controllerTimestamp.getLongValue());
+            outputWriter.writeAfterController(Conversions.secondsToNanoseconds(controllerTime.getDoubleValue()));
             totalDelay.set(timestamp - lastEstimatorStartTime.getLongValue());
 
             threadDataSynchronizer.publishControllerData();
             if (robotVisualizer != null)
             {
-               robotVisualizer.update(controllerTimestamp.getLongValue(), registry);
+               robotVisualizer.update(Conversions.secondsToNanoseconds(controllerTime.getDoubleValue()), registry);
             }
 
             rootFrame.getTransformToDesiredFrame(rootToWorldTransform, ReferenceFrame.getWorldFrame());

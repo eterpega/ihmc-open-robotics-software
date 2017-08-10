@@ -355,7 +355,7 @@ public class AtlasMultiDataExporter implements SimulationDoneListener
       handshakeStream.readFully(handshakeData);
       handshakeStream.close();
 
-      parser = YoVariableHandshakeParser.create(logProperties.getVariables().getHandshakeFileType());
+      parser = YoVariableHandshakeParser.create(logProperties.getVariables().getHandshakeFileType(), "logged");
       parser.parseFrom(handshakeData);
 
 //      boolean useCollisionMeshes = false;

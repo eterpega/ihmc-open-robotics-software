@@ -31,6 +31,9 @@ module robotDataLogger{
 	{
 		string identifier;
 		
+		octet dataIP[4];
+		unsigned short dataPort;
+		
 		string name;
 		string hostName;
 		sequence<CameraAnnouncement, 127> cameras;

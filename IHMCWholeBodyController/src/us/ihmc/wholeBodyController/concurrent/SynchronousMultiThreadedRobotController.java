@@ -1,6 +1,7 @@
 package us.ihmc.wholeBodyController.concurrent;
 
 import java.util.ArrayList;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -16,11 +17,13 @@ public class SynchronousMultiThreadedRobotController implements MultiThreadedRob
    private final MultiThreadedRobotControlElement sensorReader;
    private final TimestampProvider timestampProvider;
    private final ArrayList<ReentrantLockedControlElementRunner> robotControllerRunners = new ArrayList<>();
+   private final ThreadFactory namedThreadFactory;
 
    public SynchronousMultiThreadedRobotController(MultiThreadedRobotControlElement sensorReader, TimestampProvider timestampProvider)
    {
       this.sensorReader = sensorReader;
       this.timestampProvider = timestampProvider;
+      namedThreadFactory = ThreadTools.getNamedThreadFactory(this.getClass().getSimpleName());
    }
 
    public void addController(MultiThreadedRobotControlElement robotController, int sensorReaderTicksPerControlTick)
@@ -48,8 +51,8 @@ public class SynchronousMultiThreadedRobotController implements MultiThreadedRob
          ReentrantLockedControlElementRunner runner = robotControllerRunners.get(i);
 
          runner.getController().initialize();
-         
-         ThreadTools.getNamedThreadFactory(runner.getController().getName()).newThread(runner).start();
+
+         namedThreadFactory.newThread(runner).start();
       }
    }
 

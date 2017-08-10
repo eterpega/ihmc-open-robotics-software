@@ -13,7 +13,7 @@ import java.nio.channels.DatagramChannel;
 import us.ihmc.acsell.hardware.configuration.AcsellNetworkParameters;
 import us.ihmc.communication.configuration.NetworkParameterKeys;
 import us.ihmc.communication.configuration.NetworkParameters;
-import us.ihmc.robotDataLogger.util.LogUtils;
+import us.ihmc.multicastLogDataProtocol.LogUtils;
 
 public class UDPAcsellOutputWriter
 {

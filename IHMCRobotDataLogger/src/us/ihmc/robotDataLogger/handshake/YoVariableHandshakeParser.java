@@ -17,7 +17,7 @@ public abstract class YoVariableHandshakeParser
 {
 
    @SuppressWarnings("deprecation")
-   public static YoVariableHandshakeParser create(HandshakeFileType type)
+   public static YoVariableHandshakeParser create(HandshakeFileType type, String registryPrefix)
    {
       if(type == null)
       {
@@ -29,9 +29,9 @@ public abstract class YoVariableHandshakeParser
       {
       case IDL_CDR:
       case IDL_YAML:
-         return new IDLYoVariableHandshakeParser(type);
+         return new IDLYoVariableHandshakeParser(type, registryPrefix);
       case PROTOBUFFER:
-         return new ProtoBufferYoVariableHandshakeParser();
+         return new ProtoBufferYoVariableHandshakeParser(registryPrefix);
       default:
          throw new RuntimeException("Not implemented");
       }
@@ -39,35 +39,30 @@ public abstract class YoVariableHandshakeParser
    
    public static int getNumberOfStateVariables(HandshakeFileType type, byte[] data) throws IOException
    {
-      YoVariableHandshakeParser parser = create(type);
+      YoVariableHandshakeParser parser = create(type, "dummy");
       parser.parseFrom(data);
-      return parser.getNumberOfStates();
+      return parser.getNumberOfVariables();
    }
    
+   protected final String registryPrefix;
    protected final YoGraphicsListRegistry yoGraphicsListRegistry = new YoGraphicsListRegistry();
    protected final ArrayList<JointState> jointStates = new ArrayList<>();
    protected double dt;
    protected int stateVariables;
-   protected int numberOfVariables;
-   protected int numberOfJointStateVariables;
    protected List<YoVariableRegistry> registries = new ArrayList<>();
    protected List<YoVariable<?>> variables = new ArrayList<>();
 
    public abstract void parseFrom(Handshake handshake) throws IOException;
    public abstract void parseFrom(byte[] handShake) throws IOException;
    
-   public YoVariableHandshakeParser()
+   public YoVariableHandshakeParser(String registryPrefix)
    {
+      this.registryPrefix = registryPrefix;
    }
 
    public YoVariableRegistry getRootRegistry()
    {
       return registries.get(0);
-   }
-   
-   public List<YoVariableRegistry> getRegistries()
-   {
-      return Collections.unmodifiableList(registries);
    }
 
    public List<JointState> getJointStates()
@@ -95,21 +90,9 @@ public abstract class YoVariableHandshakeParser
       return stateVariables * 8;
    }
 
-   public int getNumberOfStates()
+   public int getNumberOfVariables()
    {
       return stateVariables;
 
    }
-   
-   public int getNumberOfVariables()
-   {
-      return numberOfVariables;
-   }
-
-   public int getNumberOfJointStateVariables()
-   {
-      return numberOfJointStateVariables;
-   }
-   
-   
 }

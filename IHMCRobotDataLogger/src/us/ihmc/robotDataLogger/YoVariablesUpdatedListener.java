@@ -1,5 +1,7 @@
 package us.ihmc.robotDataLogger;
 
+import java.nio.ByteBuffer;
+
 import us.ihmc.robotDataLogger.handshake.LogHandshake;
 import us.ihmc.robotDataLogger.handshake.YoVariableHandshakeParser;
 import us.ihmc.robotDataLogger.listeners.ClearLogListener;
@@ -26,6 +28,8 @@ public interface YoVariablesUpdatedListener extends TimestampListener, ClearLogL
 
    void setYoVariableClient(YoVariableClient client);
 
+   void receiveTimedOut();
+
    /**
     * On connect, the return value of this function is send to the server. The server will only send
     * one in n packets to this client
@@ -41,8 +45,9 @@ public interface YoVariablesUpdatedListener extends TimestampListener, ClearLogL
     * network conditions. Use receivedTimestampOnly for synchronization purposes.
     * 
     * @param timestamp timestamp
+    * @param buf data
     */
-   void receivedTimestampAndData(long timestamp);
+   void receivedTimestampAndData(long timestamp, ByteBuffer buf);
 
    boolean executeVariableChangedListeners();
 }

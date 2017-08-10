@@ -152,9 +152,13 @@ public abstract class KryoObjectCommunicator implements NetworkedObjectCommunica
          else
             return -1;
       }
-      int bytesSend = sendTCP(object);
-      updateDataRateTable(object, bytesSend);
-      return bytesSend;
+      if(isConnected())
+      {
+         int bytesSend = sendTCP(object);
+         updateDataRateTable(object, bytesSend);
+         return bytesSend;
+      }
+      return -1;
    }
 
    public void throwExceptionForUnregisteredPackets(boolean value)

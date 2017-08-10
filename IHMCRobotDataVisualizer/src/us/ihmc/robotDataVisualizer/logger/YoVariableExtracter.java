@@ -51,7 +51,7 @@ public class YoVariableExtracter
       handshakeStream.readFully(handshakeData);
       handshakeStream.close();
 
-      YoVariableHandshakeParser parser = YoVariableHandshakeParser.create(logProperties.getVariables().getHandshakeFileType());
+      YoVariableHandshakeParser parser = YoVariableHandshakeParser.create(logProperties.getVariables().getHandshakeFileType(), "logged");
       parser.parseFrom(handshakeData);
       YoVariableRegistry registry = parser.getRootRegistry();
 

@@ -1,1 +1,1 @@
-protoc protos/* --java_out=generated-src
+protoc protos/* --java_out=src

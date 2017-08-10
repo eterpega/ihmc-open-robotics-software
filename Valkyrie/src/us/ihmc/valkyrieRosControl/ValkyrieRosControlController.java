@@ -28,7 +28,6 @@ import us.ihmc.humanoidRobotics.kryo.IHMCCommunicationKryoNetClassList;
 import us.ihmc.multicastLogDataProtocol.modelLoaders.LogModelProvider;
 import us.ihmc.robotDataLogger.YoVariableServer;
 import us.ihmc.robotDataLogger.logger.LogSettings;
-import us.ihmc.util.PeriodicRealtimeThreadSchedulerFactory;
 import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.rosControl.EffortJointHandle;
 import us.ihmc.rosControl.wholeRobot.ForceTorqueSensorHandle;
@@ -238,7 +237,7 @@ public class ValkyrieRosControlController extends IHMCWholeRobotControlJavaBridg
        */
       PacketCommunicator controllerPacketCommunicator = PacketCommunicator
             .createTCPPacketCommunicatorServer(NetworkPorts.CONTROLLER_PORT, new IHMCCommunicationKryoNetClassList());
-      PeriodicRealtimeThreadSchedulerFactory yoVariableServerScheduler = new PeriodicRealtimeThreadSchedulerFactory(ValkyriePriorityParameters.LOGGER_PRIORITY);
+      PeriodicRealtimeThreadScheduler yoVariableServerScheduler = new PeriodicRealtimeThreadScheduler(ValkyriePriorityParameters.LOGGER_PRIORITY);
       LogModelProvider logModelProvider = robotModel.getLogModelProvider();
       LogSettings logSettings = robotModel.getLogSettings();
       double estimatorDT = robotModel.getEstimatorDT();

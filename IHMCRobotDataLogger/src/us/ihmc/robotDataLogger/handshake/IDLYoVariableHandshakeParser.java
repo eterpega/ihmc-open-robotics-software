@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import gnu.trove.map.hash.TIntIntHashMap;
 import us.ihmc.commons.PrintTools;
 import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
 import us.ihmc.graphicsDescription.appearance.YoAppearanceRGBColor;
@@ -42,12 +41,10 @@ import us.ihmc.yoVariables.variable.YoBoolean;
 public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
 {
    private final AbstractSerializer<Handshake> serializer;
-   
-   private TIntIntHashMap variableOffsets = new TIntIntHashMap();
 
-   public IDLYoVariableHandshakeParser(HandshakeFileType type)
+   public IDLYoVariableHandshakeParser(HandshakeFileType type, String registryPrefix)
    {
-      super();
+      super(registryPrefix);
       switch (type)
       {
       case IDL_YAML:
@@ -83,7 +80,7 @@ public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
    public void parseFrom(Handshake handshake)
    {
       this.dt = handshake.getDt();
-      List<YoVariableRegistry> regs = parseRegistries(handshake);
+      List<YoVariableRegistry> regs = parseRegistries(handshake, registryPrefix);
 
       // don't replace those list objects (it's a big code mess), just populate them with received data
       registries.clear();
@@ -98,15 +95,15 @@ public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
       addJointStates(handshake);
       addGraphicObjects(handshake);
 
-      this.numberOfVariables = handshake.getVariables().size();
-      this.numberOfJointStateVariables = getNumberOfJointStateVariables(handshake);
+      int numberOfVariables = handshake.getVariables().size();
+      int numberOfJointStateVariables = getNumberOfJointStateVariables(handshake);
       this.stateVariables = 1 + numberOfVariables + numberOfJointStateVariables;
    }
 
-   private static List<YoVariableRegistry> parseRegistries(Handshake handshake)
+   private static List<YoVariableRegistry> parseRegistries(Handshake handshake, String registryPrefix)
    {
       YoRegistryDefinition rootDefinition = handshake.getRegistries().get(0);
-      YoVariableRegistry rootRegistry = new YoVariableRegistry(rootDefinition.getNameAsString());
+      YoVariableRegistry rootRegistry = new YoVariableRegistry(registryPrefix + rootDefinition.getName());
 
       List<YoVariableRegistry> registryList = new ArrayList<>();
       registryList.add(rootRegistry);
@@ -121,14 +118,9 @@ public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
 
       return registryList;
    }
-   
-   public int getVariableOffset(int registryIndex)
-   {
-      return variableOffsets.get(registryIndex);
-   }
 
    @SuppressWarnings("rawtypes")
-   private List<YoVariable<?>> parseVariables(Handshake handshake, List<YoVariableRegistry> registryList)
+   private static List<YoVariable<?>> parseVariables(Handshake handshake, List<YoVariableRegistry> registryList)
    {
       List<YoVariable<?>> variableList = new ArrayList<>();
       for (int i = 0; i < handshake.getVariables().size(); i++)
@@ -138,11 +130,6 @@ public class IDLYoVariableHandshakeParser extends YoVariableHandshakeParser
          String name = yoVariableDefinition.getNameAsString();
          int registryIndex = yoVariableDefinition.getRegistry();
          YoVariableRegistry parent = registryList.get(registryIndex);
-         
-         if(!variableOffsets.contains(registryIndex))
-         {
-            variableOffsets.put(registryIndex, i);
-         }
 
          YoType type = yoVariableDefinition.getType();
          switch (type)

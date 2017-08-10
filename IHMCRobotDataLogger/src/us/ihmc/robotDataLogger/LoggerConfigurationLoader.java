@@ -2,16 +2,18 @@ package us.ihmc.robotDataLogger;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
 
 import gnu.trove.list.array.TByteArrayList;
 import us.ihmc.idl.serializers.extra.PropertiesSerializer;
+import us.ihmc.multicastLogDataProtocol.LogUtils;
 
 public class LoggerConfigurationLoader
 {
 
    public static final String location = System.getProperty("user.home") + File.separator + ".ihmc" + File.separator + "IHMCLoggerConfiguration.ini";
    
-   private final boolean publicBroadcast;
+   private final InetAddress myNetworkAddress;
    private final TByteArrayList cameras = new TByteArrayList();
    
    public LoggerConfigurationLoader() throws IOException
@@ -19,38 +21,45 @@ public class LoggerConfigurationLoader
 
       PropertiesSerializer<LoggerConfiguration> ser = new PropertiesSerializer<>(new LoggerConfigurationPubSubType());
 
-      boolean publicBroadcast = false;
+      String network = null;
       String cameraString = null;
       
       File in = new File(location);
       if(in.exists())
       {
          LoggerConfiguration config = ser.deserialize(in);
-         publicBroadcast = config.getPublicBroadcast();
+         network = config.getLoggerNetworkAsString();
          cameraString = config.getCamerasToCaptureAsString();
          
       }
       
       
-      String publicFromCmd = System.getProperty("ihmc.publicBroadcast");
+      String networkFromCmd = System.getProperty("ihmc.loggerNetwork");
       String cameraFromCmd = System.getProperty("ihmc.camerasToCapture");
       
       
-      if(publicFromCmd != null)
+      if(networkFromCmd != null)
       {
-         publicBroadcast = Boolean.parseBoolean(publicFromCmd);
+         network = networkFromCmd;
       }
       if(cameraFromCmd != null)
       {
          cameraString = cameraFromCmd;
       }
       
-      if(!publicBroadcast)
+      if(network == null)
       {
-         System.err.println("Public broadcasting of logger data is OFF. The logger will only connect to your local computer. To enable public broadcasting, add \"publicBroadcast=true\" to " + location + " or pass in -Dihmc.publicBroadcast=true");
+         throw new IOException("No network to bind to set for the logger. Please edit " + location + " or pass in a correct network with -Dihmc.loggerNetwork=[IP or hostname]");
       }
       
-      this.publicBroadcast = publicBroadcast;
+      try
+      {
+         myNetworkAddress = LogUtils.getMyIP(network);
+      }
+      catch (IOException e)
+      {
+         throw new IOException(network + " is not a valid hostname or IP. Please edit " + location + " or pass in a correct network with -Dihmc.loggerNetwork=[IP or hostname]", e);
+      }
       
       
       
@@ -83,9 +92,9 @@ public class LoggerConfigurationLoader
    
    
 
-   public boolean getPublicBroadcast()
+   public InetAddress getMyNetworkAddress()
    {
-      return publicBroadcast;
+      return myNetworkAddress;
    }
 
 

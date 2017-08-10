@@ -148,10 +148,4 @@ public class CostOfTransportCalculator implements RobotVisualizer
    {
       this.totalWorkVariable = totalWorkVariable;
    }
-
-   @Override
-   public long getLatestTimestamp()
-   {
-      return superVisualizer.getLatestTimestamp();
-   }
 }

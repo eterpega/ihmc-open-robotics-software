@@ -71,7 +71,7 @@ public class StepprControllerFactory
        * Create network servers/clients
        */
       PacketCommunicator controllerPacketCommunicator = PacketCommunicator.createTCPPacketCommunicatorServer(NetworkPorts.CONTROLLER_PORT, new IHMCCommunicationKryoNetClassList());
-      YoVariableServer yoVariableServer = new YoVariableServer(getClass(), new PeriodicRealtimeThreadSchedulerFactory(loggerPriority), robotModel.getLogModelProvider(), robotModel.getLogSettings(),
+      YoVariableServer yoVariableServer = new YoVariableServer(getClass(), new PeriodicRealtimeThreadScheduler(loggerPriority), robotModel.getLogModelProvider(), robotModel.getLogSettings(),
             robotModel.getEstimatorDT());
       HumanoidGlobalDataProducer dataProducer = new HumanoidGlobalDataProducer(controllerPacketCommunicator);
 

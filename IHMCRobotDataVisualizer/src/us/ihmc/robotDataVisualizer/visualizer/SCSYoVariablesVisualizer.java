@@ -19,7 +19,7 @@ public class SCSYoVariablesVisualizer
       SCSVisualizer scsYoVariablesUpdatedListener = new SCSVisualizer(bufferSize);
       scsYoVariablesUpdatedListener.setShowOverheadView(false);
 
-      YoVariableClient client = new YoVariableClient(scsYoVariablesUpdatedListener);
+      YoVariableClient client = new YoVariableClient(scsYoVariablesUpdatedListener, "remote");
       client.start();
    }
 

@@ -1,4 +1,4 @@
-package us.ihmc.robotDataLogger.util;
+package us.ihmc.multicastLogDataProtocol;
 
 import java.io.IOException;
 import java.net.InetAddress;

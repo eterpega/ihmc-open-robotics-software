@@ -66,7 +66,7 @@ public class MultiThreadedRealTimeRobotController implements MultiThreadedRobotC
       
       public MultiThreadedRobotControlElementRunner(MultiThreadedRobotControlElement controller, PriorityParameters priorityParameters)
       {
-         super(priorityParameters, controller.getName());
+         super(priorityParameters);
          this.controller = controller;
       }
       

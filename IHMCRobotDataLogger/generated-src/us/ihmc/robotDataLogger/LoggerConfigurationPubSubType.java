@@ -57,7 +57,7 @@ public class LoggerConfigurationPubSubType implements TopicDataType<us.ihmc.robo
 	            
 	    current_alignment += 4 + CDR.alignment(current_alignment, 4) + 255 + 1;
 
-	    current_alignment += 1 + CDR.alignment(current_alignment, 1);
+	    current_alignment += 4 + CDR.alignment(current_alignment, 4) + 255 + 1;
 
 	
 	    return current_alignment - initial_alignment;
@@ -75,7 +75,7 @@ public class LoggerConfigurationPubSubType implements TopicDataType<us.ihmc.robo
 	            
 	    current_alignment += 4 + CDR.alignment(current_alignment, 4) + data.getCamerasToCapture().length() + 1;
 
-	    current_alignment += 1 + CDR.alignment(current_alignment, 1);
+	    current_alignment += 4 + CDR.alignment(current_alignment, 4) + data.getLoggerNetwork().length() + 1;
 
 	
 	    return current_alignment - initial_alignment;
@@ -88,7 +88,9 @@ public class LoggerConfigurationPubSubType implements TopicDataType<us.ihmc.robo
 	    cdr.write_type_d(data.getCamerasToCapture());else
 	        throw new RuntimeException("camerasToCapture field exceeds the maximum length");
 
-	    cdr.write_type_7(data.getPublicBroadcast());
+	    if(data.getLoggerNetwork().length() <= 255)
+	    cdr.write_type_d(data.getLoggerNetwork());else
+	        throw new RuntimeException("loggerNetwork field exceeds the maximum length");
    }
 
    public static void read(us.ihmc.robotDataLogger.LoggerConfiguration data, CDR cdr)
@@ -96,8 +98,7 @@ public class LoggerConfigurationPubSubType implements TopicDataType<us.ihmc.robo
 
 	    	cdr.read_type_d(data.getCamerasToCapture());	
 
-	    	data.setPublicBroadcast(cdr.read_type_7());
-	    	
+	    	cdr.read_type_d(data.getLoggerNetwork());	
    }
    
 	@Override
@@ -105,7 +106,7 @@ public class LoggerConfigurationPubSubType implements TopicDataType<us.ihmc.robo
 	{
 			    ser.write_type_d("camerasToCapture", data.getCamerasToCapture());
 			    
-			    ser.write_type_7("publicBroadcast", data.getPublicBroadcast());
+			    ser.write_type_d("loggerNetwork", data.getLoggerNetwork());
 			    
 	}
 	
@@ -114,7 +115,7 @@ public class LoggerConfigurationPubSubType implements TopicDataType<us.ihmc.robo
 	{
 	    			ser.read_type_d("camerasToCapture", data.getCamerasToCapture());	
 	    	    
-	    			data.setPublicBroadcast(ser.read_type_7("publicBroadcast"));	
+	    			ser.read_type_d("loggerNetwork", data.getLoggerNetwork());	
 	    	    
 	}
 

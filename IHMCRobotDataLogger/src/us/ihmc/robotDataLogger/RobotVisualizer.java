@@ -15,6 +15,4 @@ public interface RobotVisualizer
    public void addRegistry(YoVariableRegistry registry, YoGraphicsListRegistry yoGraphicsListRegistry);
 
    public void close();
-
-   public long getLatestTimestamp();
 }

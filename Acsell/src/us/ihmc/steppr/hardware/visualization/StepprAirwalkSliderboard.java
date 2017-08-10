@@ -44,7 +44,7 @@ public class StepprAirwalkSliderboard extends SCSVisualizer
       SCSVisualizer scsYoVariablesUpdatedListener = new StepprAirwalkSliderboard(16384);
       scsYoVariablesUpdatedListener.setShowOverheadView(false);
       
-      YoVariableClient client = new YoVariableClient(scsYoVariablesUpdatedListener);
+      YoVariableClient client = new YoVariableClient(scsYoVariablesUpdatedListener, "remote");
       client.start();
    }
 }

@@ -1,6 +1,5 @@
 package us.ihmc.simulationconstructionset.graphics.joints;
 
-import us.ihmc.euclid.exceptions.NotARotationMatrixException;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.graphicsDescription.Graphics3DObject;
 import us.ihmc.graphicsDescription.structure.Graphics3DNode;
@@ -22,16 +21,9 @@ public class GraphicsJoint extends Graphics3DNode
 
    public final void updateFromJoint()
    {
-      try
-      {
-         RigidBodyTransform transformToParent = new RigidBodyTransform();
-         transformToParent.set(joint.getOffsetTransform3D());
-         transformToParent.multiply(joint.getJointTransform3D());
-         setTransform(transformToParent);
-      }
-      catch(NotARotationMatrixException e)
-      {
-         e.printStackTrace();
-      }
+      RigidBodyTransform transformToParent = new RigidBodyTransform();
+      transformToParent.set(joint.getOffsetTransform3D());
+      transformToParent.multiply(joint.getJointTransform3D());
+      setTransform(transformToParent);
    }
 }
