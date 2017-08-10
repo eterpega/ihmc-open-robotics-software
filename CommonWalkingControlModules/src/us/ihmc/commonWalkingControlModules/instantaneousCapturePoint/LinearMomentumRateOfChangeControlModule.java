@@ -54,7 +54,7 @@ public abstract class LinearMomentumRateOfChangeControlModule
    protected final SelectionMatrix6D linearXYAndAngularZSelectionMatrix = new SelectionMatrix6D();
 
    private final CenterOfPressureCommand centerOfPressureCommand = new CenterOfPressureCommand();
-   private final FrameVector2d desiredCoPWeight = new FrameVector2d(ReferenceFrame.getWorldFrame(), 5.0, 5.0);
+   private final FrameVector2d desiredCoPWeight = new FrameVector2d(ReferenceFrame.getWorldFrame(), 50.0, 50.0);
 
    protected double omega0 = 0.0;
    protected double totalMass;

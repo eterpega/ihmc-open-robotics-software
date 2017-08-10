@@ -169,6 +169,7 @@ public class WrenchMatrixCalculator
       {
          totalDesiredCoPCommandWeight.setToZero(ReferenceFrame.getWorldFrame());
          totalDesiredCoPCommand.getFrameTuple2d().setToZero(ReferenceFrame.getWorldFrame());
+
          totalDesiredCoPCommand.set(command.getDesiredCoPInWorldFrame());
          totalDesiredCoPCommandWeight.set(command.getWeightInWorldFrame());
 
@@ -245,7 +246,10 @@ public class WrenchMatrixCalculator
          hasReceivedCenterOfPressureCommand.set(false);
       }
       else
+      {
          totalCoPJacobianMatrix.zero();
+         totalDesiredCoPCommand.setToNaN();
+      }
    }
 
    public Map<RigidBody, Wrench> computeWrenchesFromRho(DenseMatrix64F rho)

@@ -256,6 +256,7 @@ public class BalanceManager
          YoGraphicPosition desiredCapturePointViz = new YoGraphicPosition("Desired Capture Point", yoDesiredCapturePoint, 0.01, Yellow(), GraphicType.BALL_WITH_ROTATED_CROSS);
          YoGraphicPosition finalDesiredCapturePointViz = new YoGraphicPosition("Final Desired Capture Point", yoFinalDesiredICP, 0.01, Beige(), GraphicType.BALL_WITH_ROTATED_CROSS);
          YoGraphicPosition desiredCMPViz = new YoGraphicPosition("Desired CMP", yoDesiredCMP, 0.012, Purple(), GraphicType.BALL_WITH_CROSS);
+         YoGraphicPosition desiredCoPViz = new YoGraphicPosition("Desired CoP", yoDesiredCoP, 0.012, Purple(), GraphicType.DIAMOND_WITH_CROSS);
          YoGraphicPosition achievedCMPViz = new YoGraphicPosition("Achieved CMP", yoAchievedCMP, 0.005, DarkRed(), GraphicType.BALL_WITH_CROSS);
          YoGraphicPosition perfectCMPViz = new YoGraphicPosition("Perfect CMP", yoPerfectCMP, 0.002, BlueViolet());
 
@@ -266,6 +267,7 @@ public class BalanceManager
          yoGraphicsListRegistry.registerArtifact(graphicListName, desiredCapturePointViz.createArtifact());
          yoGraphicsListRegistry.registerArtifact(graphicListName, finalDesiredCapturePointViz.createArtifact());
          yoGraphicsListRegistry.registerArtifact(graphicListName, desiredCMPViz.createArtifact());
+         yoGraphicsListRegistry.registerArtifact(graphicListName, desiredCoPViz.createArtifact());
          yoGraphicsListRegistry.registerArtifact(graphicListName, achievedCMPViz.createArtifact());
          YoArtifactPosition perfectCMPArtifact = perfectCMPViz.createArtifact();
          perfectCMPArtifact.setVisible(false);
