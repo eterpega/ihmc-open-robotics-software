@@ -33,8 +33,8 @@ public class AtlasMomentumOptimizationSettings extends MomentumOptimizationSetti
    private final Vector3D pelvisAngularWeight = new Vector3D(5.0, 5.0, 5.0);
    private final Vector3D pelvisLinearWeight = new Vector3D(5.0, 5.0, 50.0);
 
-   private final int nBasisVectorsPerContactPoint = 4;
-   private final int nContactPointsPerContactableBody = 4;
+   private final int nBasisVectorsPerContactPoint = 3;
+   private final int nContactPointsPerContactableBody = AtlasContactPointParameters.USE_SIX_CONTACT_POINTS ? 6 : 4;
    private final int nContactableBodies;
 
    private final double jointAccelerationWeight = 0.005;
