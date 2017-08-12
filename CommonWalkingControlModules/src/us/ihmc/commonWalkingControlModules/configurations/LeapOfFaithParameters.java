@@ -16,7 +16,7 @@ public class LeapOfFaithParameters
     */
    public double getFractionOfSwingToScaleFootWeight()
    {
-      return 0.95;
+      return 0.92;
    }
 
    /**
@@ -24,7 +24,7 @@ public class LeapOfFaithParameters
     */
    public double getHorizontalFootWeightScaleFactor()
    {
-      return 10.0;
+      return 0.0;
    }
 
    /**
@@ -66,7 +66,7 @@ public class LeapOfFaithParameters
     */
    public double getPelvisReachingRollGain()
    {
-      return 2.0;
+      return 1.0;
    }
 
    /**
