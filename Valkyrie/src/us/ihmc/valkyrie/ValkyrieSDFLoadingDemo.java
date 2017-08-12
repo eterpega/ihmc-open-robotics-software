@@ -30,7 +30,13 @@ public class ValkyrieSDFLoadingDemo
 
    public ValkyrieSDFLoadingDemo()
    {
-      ValkyrieRobotModel robotModel = new ValkyrieRobotModel(RobotTarget.SCS, false);
+	   // added for toe joint
+		String FOOTPLATE_WITHOUT_TOE_JOINT = "models/val_description/sdf/valkyrie_simfootplate.sdf";
+		String FOOTPLATE_WITH_TOE_JOINT_HALF = "models/val_description/sdf/valkyrie_simtoejoint_half.sdf";
+		String FOOTPLATE_WITH_TOE_JOINT_THREEQUATER = "models/val_description/sdf/valkyrie_simtoejoint_threequater.sdf";
+		
+		// added for toe joint
+      ValkyrieRobotModel robotModel = new ValkyrieRobotModel(RobotTarget.SCS, false, FOOTPLATE_WITH_TOE_JOINT_HALF);
 
       FloatingRootJointRobot valkyrieRobot = robotModel.createHumanoidFloatingRootJointRobot(false);
       valkyrieRobot.setPositionInWorld(new Vector3D());

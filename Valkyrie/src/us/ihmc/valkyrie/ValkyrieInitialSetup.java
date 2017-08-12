@@ -52,12 +52,14 @@ public class ValkyrieInitialSetup implements DRCRobotInitialSetup<HumanoidFloati
          String anklePitch = jointMap.getLegJointName(robotSide, LegJointName.ANKLE_PITCH);
          String hipRoll = jointMap.getLegJointName(robotSide, LegJointName.HIP_ROLL);
          String ankleRoll = jointMap.getLegJointName(robotSide, LegJointName.ANKLE_ROLL);
+         String toePitch = jointMap.getLegJointName(robotSide, LegJointName.TOE_PITCH); // added joint for toe
          
          robot.getOneDegreeOfFreedomJoint(hipPitch).setQ(-0.6);
          robot.getOneDegreeOfFreedomJoint(knee).setQ(1.3);
          robot.getOneDegreeOfFreedomJoint(anklePitch).setQ(-0.65);
          robot.getOneDegreeOfFreedomJoint(hipRoll).setQ(0.0);
          robot.getOneDegreeOfFreedomJoint(ankleRoll).setQ(0.0);
+         robot.getOneDegreeOfFreedomJoint(toePitch).setQ(0.0); // added joint value for toe
 
          String shoulderRoll = jointMap.getArmJointName(robotSide, ArmJointName.SHOULDER_ROLL);
          String shoulderPitch = jointMap.getArmJointName(robotSide, ArmJointName.SHOULDER_PITCH);
