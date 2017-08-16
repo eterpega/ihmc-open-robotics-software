@@ -75,6 +75,8 @@ dependencies {
     compile group: 'us.ihmc.thirdparty.org.opencv', name: 'opencv', version: '3.2.0-170503'
     compile 'org.ros.rosjava_messages:geometry_msgs:1.11.9'
     compile "org.boofcv:recognition:0.24.1"
+    
+    compile group: 'us.ihmc', name: 'IHMCRosControl', version: '0.5.0', changing: true
 
     testCompile group: 'us.ihmc', name: 'ihmc-continuous-integration-framework', version: '0.9.4'
 
