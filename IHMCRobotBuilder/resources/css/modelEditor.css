@@ -1,0 +1,15 @@
+.modelEditorButton {
+    -fx-pref-width:50px;
+    -fx-pref-height:50px;
+    -fx-border:5px;
+    -fx-border-color:black;
+    -fx-border-radius:5px;
+}
+
+.modelEditorButton:hover {
+    -fx-border-insets:2px;
+}
+
+.modelEditorButton:armed {
+    -fx-border-color:red;
+}

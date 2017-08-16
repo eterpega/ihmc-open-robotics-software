@@ -3,7 +3,9 @@ package us.ihmc.robotbuilder;
 import javafx.application.Application;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -15,18 +17,12 @@ import javafx.stage.FileChooser;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javaslang.control.Option;
-import javaslang.control.Try;
-import us.ihmc.robotbuilder.gui.JointSettingsHolder;
-import us.ihmc.robotbuilder.gui.JointTreeView;
-import us.ihmc.robotbuilder.gui.Preview3D;
-import us.ihmc.robotbuilder.gui.editors.NewBeanEditor;
-import us.ihmc.robotbuilder.gui.editors.PropertyEditorFactory;
+import us.ihmc.robotbuilder.gui.*;
 import us.ihmc.robotbuilder.model.Loader;
-import us.ihmc.robotics.immutableRobotDescription.ModifiablePinJointDescription;
-import us.ihmc.robotics.util.Tree;
-import us.ihmc.robotics.util.TreeFocus;
 import us.ihmc.robotbuilder.util.Util;
 import us.ihmc.robotics.immutableRobotDescription.JointDescription;
+import us.ihmc.robotics.util.Tree;
+import us.ihmc.robotics.util.TreeFocus;
 
 import java.io.File;
 import java.util.Optional;
@@ -44,6 +40,8 @@ public class MainWindow extends Application
    @FXML private Preview3D view3D;
 
    @FXML private JointTreeView treeView;
+
+   @FXML private ModelEditorToolbar editorToolbar;
 
    private Stage stage;
 
@@ -100,6 +98,7 @@ public class MainWindow extends Application
             Tree<JointDescription> tree = description.getRootJoint();
 
             jointSettings.setFocusProperty(treeView.focusProperty());
+
             functional(treeView.focusProperty())
                   .flatMapOptional(Function.identity())
                   .consume(this::updateUIState);
@@ -107,6 +106,7 @@ public class MainWindow extends Application
             functional(view3D.jointTreeProperty())
                   .avoidCycles()
                   .consume(treeView::setFocus);
+
             updateUIState(tree.getFocus());
          });
          treeView.getSelectionModel().select(0);

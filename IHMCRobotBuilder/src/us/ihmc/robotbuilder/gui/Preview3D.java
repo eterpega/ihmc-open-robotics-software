@@ -60,10 +60,18 @@ public class Preview3D extends BorderPane
    private final SubScene subScene = new SubScene(subSceneRootGroup, 0, 0, true, SceneAntialiasing.BALANCED);
    private final ToolBar toolBar = new ToolBar();
 
+   private static Preview3D instance;
+
+   public static Preview3D getInstance() {
+      return instance;
+   }
+
    private final TreeMapping<Tree<JointDescription>, Graphics3DNode> treeMapping = new TreeMapping<>(this::treeMapper);
 
    public Preview3D()
    {
+      instance = this;
+
       FunctionalObservableValue.combineLatest(widthProperty(), heightProperty())
                                .consume(dimension -> {
                subScene.widthProperty().setValue(dimension._1);
@@ -139,7 +147,7 @@ public class Preview3D extends BorderPane
       return jointTree;
    }
 
-   private void handleGraphicsClick(MouseEvent event)
+   void handleGraphicsClick(MouseEvent event)
    {
       if (event.getSource() instanceof Group)
       {

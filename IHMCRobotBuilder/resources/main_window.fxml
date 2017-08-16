@@ -7,7 +7,9 @@
 <?import us.ihmc.robotbuilder.gui.Preview3D?>
 <?import us.ihmc.robotbuilder.gui.JointSettingsHolder?>
 <?import us.ihmc.robotbuilder.gui.FontAwesomeLabel?>
-<BorderPane minHeight="300" minWidth="300" xmlns="http://javafx.com/javafx/8.0.76-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="us.ihmc.robotbuilder.MainWindow">
+<?import us.ihmc.robotbuilder.gui.ModelEditorToolbar?>
+<?import java.net.URL?>
+<BorderPane stylesheets="@/css/modelEditor.css" minHeight="300" minWidth="300" xmlns="http://javafx.com/javafx/8.0.76-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="us.ihmc.robotbuilder.MainWindow">
     <top>
         <MenuBar>
             <Menu mnemonicParsing="false" text="File">
@@ -28,7 +30,10 @@
                 <JointTreeView fx:id="treeView" prefWidth="200" />
                 <JointSettingsHolder fx:id="jointSettings" />
             </SplitPane>
-            <Preview3D fx:id="view3D" prefHeight="200.0" prefWidth="200.0" />
+            <SplitPane dividerPositions="0.9" orientation="VERTICAL">
+                <Preview3D fx:id="view3D" prefHeight="200.0" prefWidth="200.0" />
+                <ModelEditorToolbar fx:id="editorToolbar" prefWidth="200.0" />
+            </SplitPane>
         </SplitPane>
     </center>
 </BorderPane>
