@@ -11,6 +11,9 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import us.ihmc.commonWalkingControlModules.controlModules.YoSE3OffsetFrame;
 import us.ihmc.euclid.interfaces.Clearable;
+import us.ihmc.euclid.referenceFrame.FramePoint3D;
+import us.ihmc.euclid.referenceFrame.FrameVector3D;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.robotics.controllers.OrientationPIDGainsInterface;
 import us.ihmc.robotics.controllers.PositionPIDGainsInterface;
 import us.ihmc.robotics.controllers.SE3PIDGainsInterface;
@@ -23,8 +26,6 @@ import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.geometry.FrameOrientation;
-import us.ihmc.robotics.geometry.FramePoint;
-import us.ihmc.robotics.geometry.FrameVector;
 import us.ihmc.robotics.math.filters.RateLimitedYoFrameVector;
 import us.ihmc.robotics.math.filters.RateLimitedYoSpatialVector;
 import us.ihmc.robotics.math.frames.YoFramePoint;
@@ -32,7 +33,6 @@ import us.ihmc.robotics.math.frames.YoFramePoseUsingQuaternions;
 import us.ihmc.robotics.math.frames.YoFrameQuaternion;
 import us.ihmc.robotics.math.frames.YoFrameVector;
 import us.ihmc.robotics.math.frames.YoSpatialVector;
-import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.screwTheory.RigidBody;
 
 /**
@@ -600,7 +600,7 @@ public class FeedbackControllerToolbox implements FeedbackControllerDataReadOnly
    }
 
    @Override
-   public boolean getCenterOfMassPositionData(FramePoint positionDataToPack, Type type)
+   public boolean getCenterOfMassPositionData(FramePoint3D positionDataToPack, Type type)
    {
       Pair<YoFramePoint, List<YoBoolean>> positionData = centerOfMassPositions.get(type);
 
@@ -612,7 +612,7 @@ public class FeedbackControllerToolbox implements FeedbackControllerDataReadOnly
    }
 
    @Override
-   public boolean getCenterOfMassVectorData(FrameVector vectorDataToPack, Type type, Space space)
+   public boolean getCenterOfMassVectorData(FrameVector3D vectorDataToPack, Type type, Space space)
    {
       EnumMap<Space, Pair<YoFrameVector, List<YoBoolean>>> endEffectorDataTyped = centerOfMassDataVectors.get(type);
 
@@ -629,7 +629,7 @@ public class FeedbackControllerToolbox implements FeedbackControllerDataReadOnly
    }
 
    @Override
-   public boolean getPositionData(RigidBody endEffector, FramePoint positionDataToPack, Type type)
+   public boolean getPositionData(RigidBody endEffector, FramePoint3D positionDataToPack, Type type)
    {
       EnumMap<Type, Pair<YoFramePoint, List<YoBoolean>>> endEffectorData = endEffectorPositions.get(endEffector);
 
@@ -663,7 +663,7 @@ public class FeedbackControllerToolbox implements FeedbackControllerDataReadOnly
    }
 
    @Override
-   public boolean getVectorData(RigidBody endEffector, FrameVector vectorDataToPack, Type type, Space space)
+   public boolean getVectorData(RigidBody endEffector, FrameVector3D vectorDataToPack, Type type, Space space)
    {
       EnumMap<Type, EnumMap<Space, Pair<YoFrameVector, List<YoBoolean>>>> endEffectorData = endEffectorDataVectors.get(endEffector);
 

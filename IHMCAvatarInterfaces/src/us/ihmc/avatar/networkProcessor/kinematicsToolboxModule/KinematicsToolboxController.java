@@ -29,6 +29,8 @@ import us.ihmc.communication.controllerAPI.CommandInputManager;
 import us.ihmc.communication.controllerAPI.StatusMessageOutputManager;
 import us.ihmc.communication.packets.KinematicsToolboxConfigurationMessage;
 import us.ihmc.communication.packets.KinematicsToolboxOutputStatus;
+import us.ihmc.euclid.referenceFrame.FramePoint3D;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
 import us.ihmc.graphicsDescription.appearance.YoAppearance;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicCoordinateSystem;
@@ -47,12 +49,10 @@ import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.yoVariables.variable.YoInteger;
 import us.ihmc.robotics.geometry.FrameOrientation;
-import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.FramePose;
 import us.ihmc.robotics.math.frames.YoFramePoint;
 import us.ihmc.robotics.math.frames.YoFramePoseUsingQuaternions;
 import us.ihmc.robotics.partNames.LegJointName;
-import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.robotics.screwTheory.FloatingInverseDynamicsJoint;
@@ -688,7 +688,7 @@ public class KinematicsToolboxController extends ToolboxController
          return null;
       }
 
-      FramePoint positionToHold = new FramePoint();
+      FramePoint3D positionToHold = new FramePoint3D();
       initialCenterOfMassPosition.getFrameTupleIncludingFrame(positionToHold);
 
       CenterOfMassFeedbackControlCommand feedbackControlCommand = new CenterOfMassFeedbackControlCommand();
@@ -727,7 +727,7 @@ public class KinematicsToolboxController extends ToolboxController
    private void updateVisualization()
    {
       boolean hasData;
-      FramePoint position = new FramePoint();
+      FramePoint3D position = new FramePoint3D();
       FrameOrientation orientation = new FrameOrientation();
 
       for (RigidBody endEffector : desiredCoodinateSystems.keySet())

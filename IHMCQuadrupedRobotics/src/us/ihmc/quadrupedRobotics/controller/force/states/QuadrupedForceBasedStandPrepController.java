@@ -21,10 +21,9 @@ import us.ihmc.quadrupedRobotics.planning.SoleWaypoint;
 import us.ihmc.robotics.controllers.YoEuclideanPositionGains;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
-import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.robotSide.RobotQuadrant;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
-
+import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 
 public class QuadrupedForceBasedStandPrepController implements QuadrupedController
@@ -65,7 +64,7 @@ public class QuadrupedForceBasedStandPrepController implements QuadrupedControll
    private final QuadrupedTaskSpaceEstimator.Estimates taskSpaceEstimates;
    private final QuadrupedTaskSpaceEstimator taskSpaceEstimator;
    private final QuadrupedReferenceFrames referenceFrames;
-   private FramePoint solePositionSetpoint;
+   private FramePoint3D solePositionSetpoint;
    private final Vector3D zeroVelocity;
    private final double robotLength;
    private FullQuadrupedRobotModel fullRobotModel;
@@ -77,7 +76,7 @@ public class QuadrupedForceBasedStandPrepController implements QuadrupedControll
       taskSpaceEstimator = controllerToolbox.getTaskSpaceEstimator();
       referenceFrames = controllerToolbox.getReferenceFrames();
       quadrupedSoleWaypointList = new QuadrupedSoleWaypointList();
-      solePositionSetpoint = new FramePoint();
+      solePositionSetpoint = new FramePoint3D();
       for (RobotQuadrant quadrant : RobotQuadrant.values)
       {
          quadrupedSoleWaypointList.get(quadrant).add(new SoleWaypoint());
@@ -92,10 +91,10 @@ public class QuadrupedForceBasedStandPrepController implements QuadrupedControll
 
       // Calculate the robot length
       referenceFrames.updateFrames();
-      FramePoint frontLeftHipRollFrame = new FramePoint();
+      FramePoint3D frontLeftHipRollFrame = new FramePoint3D();
       frontLeftHipRollFrame.setToZero(referenceFrames.getLegAttachmentFrame(RobotQuadrant.FRONT_LEFT));
       frontLeftHipRollFrame.changeFrame(referenceFrames.getBodyFrame());
-      FramePoint hindLeftHipRollFrame = new FramePoint();
+      FramePoint3D hindLeftHipRollFrame = new FramePoint3D();
       hindLeftHipRollFrame.setToZero(referenceFrames.getLegAttachmentFrame(RobotQuadrant.HIND_LEFT));
       hindLeftHipRollFrame.changeFrame(referenceFrames.getBodyFrame());
       robotLength = frontLeftHipRollFrame.getX() - hindLeftHipRollFrame.getX();
