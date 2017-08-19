@@ -11,12 +11,12 @@ import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamic
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.SpatialAccelerationCommand;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics.*;
 import us.ihmc.commonWalkingControlModules.inverseKinematics.JointPrivilegedConfigurationHandler;
+import us.ihmc.euclid.referenceFrame.FrameVector3D;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
-import us.ihmc.robotics.geometry.FrameVector;
 import us.ihmc.robotics.linearAlgebra.MatrixTools;
 import us.ihmc.robotics.referenceFrames.PoseReferenceFrame;
-import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.screwTheory.GeometricJacobianCalculator;
 import us.ihmc.robotics.screwTheory.InverseDynamicsJoint;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
@@ -31,7 +31,7 @@ public class MotionQPInputCalculator
    private static final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
 
    private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
-   private final YoDouble nullspaceProjectionAlpha = new YoDouble("nullspaceProjectionAlpha", registry);
+   private final YoDouble nullspaceProjectionAlpha;
    private final YoDouble secondaryTaskJointsWeight = new YoDouble("secondaryTaskJointsWeight", registry);
 
    private final PoseReferenceFrame controlFrame = new PoseReferenceFrame("controlFrame", worldFrame);
@@ -55,8 +55,8 @@ public class MotionQPInputCalculator
 
    private final DenseMatrix64F tempSelectionMatrix = new DenseMatrix64F(SpatialAccelerationVector.SIZE, SpatialAccelerationVector.SIZE);
 
-   private final FrameVector angularMomentum = new FrameVector();
-   private final FrameVector linearMomentum = new FrameVector();
+   private final FrameVector3D angularMomentum = new FrameVector3D();
+   private final FrameVector3D linearMomentum = new FrameVector3D();
    private final ReferenceFrame centerOfMassFrame;
 
    private final JointIndexHandler jointIndexHandler;
@@ -74,17 +74,24 @@ public class MotionQPInputCalculator
       this.jointsToOptimizeFor = jointIndexHandler.getIndexedJoints();
       this.centroidalMomentumHandler = centroidalMomentumHandler;
       oneDoFJoints = jointIndexHandler.getIndexedOneDoFJoints();
+      numberOfDoFs = jointIndexHandler.getNumberOfDoFs();
 
       if (jointPrivilegedConfigurationParameters != null)
+      {
          privilegedConfigurationHandler = new JointPrivilegedConfigurationHandler(oneDoFJoints, jointPrivilegedConfigurationParameters, registry);
+         nullspaceProjectionAlpha = new YoDouble("nullspaceProjectionAlpha", registry);
+         nullspaceProjectionAlpha.set(jointPrivilegedConfigurationParameters.getNullspaceProjectionAlpha());
+         nullspaceCalculator = new DampedLeastSquaresNullspaceCalculator(numberOfDoFs, nullspaceProjectionAlpha.getDoubleValue());
+      }
       else
+      {
          privilegedConfigurationHandler = null;
+         nullspaceProjectionAlpha = null;
+         nullspaceCalculator = null;
+      }
 
-      numberOfDoFs = jointIndexHandler.getNumberOfDoFs();
       allTaskJacobian = new DenseMatrix64F(numberOfDoFs, numberOfDoFs);
       secondaryTaskJointsWeight.set(1.0); // TODO Needs to be rethought, it doesn't seem to be that useful.
-      nullspaceProjectionAlpha.set(0.005);
-      nullspaceCalculator = new DampedLeastSquaresNullspaceCalculator(numberOfDoFs, nullspaceProjectionAlpha.getDoubleValue());
 
       parentRegistry.addChild(registry);
    }

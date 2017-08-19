@@ -4,20 +4,20 @@ import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 
 import us.ihmc.commonWalkingControlModules.momentumBasedController.optimization.MotionQPInput;
-import us.ihmc.convexOptimization.quadraticProgram.SimpleEfficientActiveSetQPSolver;
+import us.ihmc.convexOptimization.quadraticProgram.ActiveSetQPSolver;
+import us.ihmc.robotics.linearAlgebra.MatrixTools;
+import us.ihmc.tools.exceptions.NoConvergenceException;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.yoVariables.variable.YoInteger;
-import us.ihmc.robotics.linearAlgebra.MatrixTools;
-import us.ihmc.tools.exceptions.NoConvergenceException;
 
 public class InverseKinematicsQPSolver
 {
    private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
 
    private final YoBoolean firstCall = new YoBoolean("firstCall", registry);
-   private final SimpleEfficientActiveSetQPSolver qpSolver = new SimpleEfficientActiveSetQPSolver();
+   private final ActiveSetQPSolver qpSolver;
 
    private final DenseMatrix64F solverInput_H;
    private final DenseMatrix64F solverInput_f;
@@ -42,8 +42,9 @@ public class InverseKinematicsQPSolver
 
    private final int numberOfDoFs;
 
-   public InverseKinematicsQPSolver(int numberOfDoFs, YoVariableRegistry parentRegistry)
+   public InverseKinematicsQPSolver(ActiveSetQPSolver qpSolver, int numberOfDoFs, YoVariableRegistry parentRegistry)
    {
+      this.qpSolver = qpSolver;
       this.numberOfDoFs = numberOfDoFs;
 
       firstCall.set(true);
@@ -184,11 +185,16 @@ public class InverseKinematicsQPSolver
       return desiredJointVelocities;
    }
 
-   public void setRegularizationWeight(double weight)
+   public void setVelocityRegularizationWeight(double weight)
    {
       jointVelocityRegularization.set(weight);
    }
 
+   public void setAccelerationRegularizationWeight(double weight)
+   {
+      jointAccelerationRegularization.set(weight);
+   }
+   
    public void setMinJointVelocities(DenseMatrix64F qDotMin)
    {
       solverInput_lb.set(qDotMin);

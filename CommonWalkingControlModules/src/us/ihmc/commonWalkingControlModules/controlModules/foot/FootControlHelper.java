@@ -1,15 +1,17 @@
 package us.ihmc.commonWalkingControlModules.controlModules.foot;
 
 import us.ihmc.commonWalkingControlModules.bipedSupportPolygons.BipedSupportPolygons;
+import us.ihmc.commonWalkingControlModules.configurations.SwingTrajectoryParameters;
+import us.ihmc.commonWalkingControlModules.configurations.ToeOffParameters;
 import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParameters;
 import us.ihmc.commonWalkingControlModules.momentumBasedController.HighLevelHumanoidControllerToolbox;
+import us.ihmc.euclid.referenceFrame.FramePoint2D;
+import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.humanoidRobotics.bipedSupportPolygons.ContactableFoot;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.robotics.geometry.FrameConvexPolygon2d;
-import us.ihmc.robotics.geometry.FramePoint2d;
-import us.ihmc.robotics.geometry.FrameVector;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.robotics.sensors.FootSwitchInterface;
@@ -25,7 +27,7 @@ public class FootControlHelper
    private final WalkingControllerParameters walkingControllerParameters;
    private final PartialFootholdControlModule partialFootholdControlModule;
 
-   private final FrameVector fullyConstrainedNormalContactVector;
+   private final FrameVector3D fullyConstrainedNormalContactVector;
    private final YoBoolean isDesiredCoPOnEdge;
 
    private final BipedSupportPolygons bipedSupportPolygons;
@@ -58,7 +60,7 @@ public class FootControlHelper
 
       isDesiredCoPOnEdge = new YoBoolean(namePrefix + "IsDesiredCoPOnEdge", registry);
 
-      fullyConstrainedNormalContactVector = new FrameVector(contactableFoot.getSoleFrame(), 0.0, 0.0, 1.0);
+      fullyConstrainedNormalContactVector = new FrameVector3D(contactableFoot.getSoleFrame(), 0.0, 0.0, 1.0);
 
       bipedSupportPolygons = controllerToolbox.getBipedSupportPolygons();
 
@@ -78,7 +80,7 @@ public class FootControlHelper
       }
    }
 
-   private final FramePoint2d desiredCoP = new FramePoint2d();
+   private final FramePoint2D desiredCoP = new FramePoint2D();
 
    public void update()
    {
@@ -119,12 +121,22 @@ public class FootControlHelper
       return walkingControllerParameters;
    }
 
+   public ToeOffParameters getToeOffParameters()
+   {
+      return walkingControllerParameters.getToeOffParameters();
+   }
+
+   public SwingTrajectoryParameters getSwingTrajectoryParameters()
+   {
+      return walkingControllerParameters.getSwingTrajectoryParameters();
+   }
+
    public PartialFootholdControlModule getPartialFootholdControlModule()
    {
       return partialFootholdControlModule;
    }
 
-   public void setFullyConstrainedNormalContactVector(FrameVector normalContactVector)
+   public void setFullyConstrainedNormalContactVector(FrameVector3D normalContactVector)
    {
       if (normalContactVector != null)
          fullyConstrainedNormalContactVector.setIncludingFrame(normalContactVector);
@@ -132,7 +144,7 @@ public class FootControlHelper
          fullyConstrainedNormalContactVector.setIncludingFrame(contactableFoot.getSoleFrame(), 0.0, 0.0, 1.0);
    }
 
-   public FrameVector getFullyConstrainedNormalContactVector()
+   public FrameVector3D getFullyConstrainedNormalContactVector()
    {
       return fullyConstrainedNormalContactVector;
    }

@@ -29,9 +29,9 @@ public class TransferToWalkingSingleSupportState extends TransferState
 
       this.minimumTransferTime.set(minimumTransferTime);
 
-      legConfigurationManager = managerFactory.getOrCreateKneeAngleManager();
+      legConfigurationManager = managerFactory.getOrCreateLegConfigurationManager();
 
-      fractionOfTransferToCollapseLeg.set(walkingControllerParameters.getStraightLegWalkingParameters().getFractionOfTransferToCollapseLeg());
+      fractionOfTransferToCollapseLeg.set(walkingControllerParameters.getLegConfigurationParameters().getFractionOfTransferToCollapseLeg());
    }
 
    @Override
@@ -71,6 +71,7 @@ public class TransferToWalkingSingleSupportState extends TransferState
       pelvisOrientationManager.initializeTransfer(transferToSide, footstepTiming.getTransferTime(), footstepTiming.getSwingTime());
 
       legConfigurationManager.beginStraightening(transferToSide);
+      legConfigurationManager.setFullyExtendLeg(transferToSide, false);
    }
 
    @Override
@@ -83,8 +84,9 @@ public class TransferToWalkingSingleSupportState extends TransferState
       {
          double transferDuration = footstepTiming.getTransferTime();
 
-         if (getTimeInCurrentState() > fractionOfTransferToCollapseLeg.getDoubleValue() * transferDuration
-               && !legConfigurationManager.isLegCollapsed(transferToSide.getOppositeSide()))
+         boolean pastMinimumTime = getTimeInCurrentState() > fractionOfTransferToCollapseLeg.getDoubleValue() * transferDuration;
+         boolean isFootWellPosition = legConfigurationManager.areFeetWellPositionedForCollapse(transferToSide.getOppositeSide());
+         if (pastMinimumTime && isFootWellPosition && !legConfigurationManager.isLegCollapsed(transferToSide.getOppositeSide()))
          {
             legConfigurationManager.collapseLegDuringTransfer(transferToSide);
          }

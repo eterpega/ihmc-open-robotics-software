@@ -3,6 +3,7 @@ package us.ihmc.robotics.math.trajectories.waypoints;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
@@ -14,7 +15,6 @@ import us.ihmc.robotics.geometry.frameObjects.FrameSO3Waypoint;
 import us.ihmc.robotics.geometry.transformables.EuclideanWaypoint;
 import us.ihmc.robotics.geometry.transformables.SE3Waypoint;
 import us.ihmc.robotics.geometry.transformables.SO3Waypoint;
-import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 
 public abstract class WaypointToStringTools
 {
@@ -86,7 +86,7 @@ public abstract class WaypointToStringTools
 
    private static DecimalFormat createNumberFormat()
    {
-      return new DecimalFormat(" 0.00;-0.00");
+      return new DecimalFormat(" 0.000;-0.000");
    }
 
    public static String waypointToString(Point3DReadOnly position, Vector3DReadOnly linearVelocity, NumberFormat format)

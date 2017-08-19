@@ -3,27 +3,73 @@ package us.ihmc.commonWalkingControlModules.momentumBasedController.optimization
 import us.ihmc.commonWalkingControlModules.controllerCore.WholeBodyControllerCore;
 import us.ihmc.commonWalkingControlModules.controllerCore.WholeBodyControllerCoreMode;
 import us.ihmc.commonWalkingControlModules.momentumBasedController.optimization.virtualModelControl.VirtualModelControlOptimizationControlModule;
+import us.ihmc.convexOptimization.quadraticProgram.ActiveSetQPSolver;
+import us.ihmc.convexOptimization.quadraticProgram.SimpleEfficientActiveSetQPSolver;
 import us.ihmc.euclid.tuple2D.Vector2D;
 
 public interface ControllerCoreOptimizationSettings
 {
    /**
-    * Gets the weight specifying how much high joint acceleration values should be penalized in the
+    * Gets the weight specifying how much high joint velocity values should be penalized in the
     * optimization problem.
     * <p>
-    * This parameter is used in {@link InverseDynamicsOptimizationControlModule} which itself is
+    * This parameter is used in {@link InverseKinematicsOptimizationControlModule} which itself is
     * used when running the {@link WholeBodyControllerCore} in the
-    * {@link WholeBodyControllerCoreMode#INVERSE_DYNAMICS} mode.
+    * {@link WholeBodyControllerCoreMode#INVERSE_KINEMATICS} mode.
     * </p>
     * <p>
     * A non-zero positive value should be used to ensure the Hessian matrix in the optimization is
     * invertible. It is should preferably be above {@code 1.0e-8}. A high value will cause the
-    * system to become too 'lazy'. A value of {@code 0.005} is used for Atlas' simulations.
+    * system to become too 'lazy'.
+    * </p>
+    * 
+    * @return the weight to use for joint acceleration regularization.
+    */
+   default double getJointVelocityWeight()
+   {
+      return 1.0e-8;
+   }
+
+   /**
+    * Gets the weight specifying how much high joint acceleration values should be penalized in the
+    * optimization problem.
+    * <p>
+    * This parameter is used in:
+    * <ul>
+    * <li>{@link InverseDynamicsOptimizationControlModule} which itself is used when running the
+    * {@link WholeBodyControllerCore} in the {@link WholeBodyControllerCoreMode#INVERSE_DYNAMICS}
+    * mode.
+    * <li>{@link InverseKinematicsOptimizationControlModule} which itself is used when running the
+    * {@link WholeBodyControllerCore} in the {@link WholeBodyControllerCoreMode#INVERSE_KINEMATICS}
+    * mode.
+    * </ul>
+    * </p>
+    * <p>
+    * When used for the inverse dynamics mode, a non-zero positive value should be used to ensure
+    * the Hessian matrix in the optimization is invertible. It is should preferably be above
+    * {@code 1.0e-8}. A high value will cause the system to become too 'lazy'. A value of
+    * {@code 0.005} is used for Atlas' simulations.
     * </p>
     * 
     * @return the weight to use for joint acceleration regularization.
     */
    double getJointAccelerationWeight();
+
+   /**
+    * Gets the maximum value for the absolute joint accelerations in the optimization problem.
+    * <p>
+    * This parameter is used in {@link InverseDynamicsOptimizationControlModule} which itself is
+    * used when running the {@link WholeBodyControllerCore} in the
+    * {@link WholeBodyControllerCoreMode#INVERSE_DYNAMICS} mode.
+    * </p>
+    * 
+    * @return the maximum joint acceleration, the returned value has to be in [0,
+    *         {@link Double#POSITIVE_INFINITY}].
+    */
+   default double getMaximumJointAcceleration()
+   {
+      return 200.0;
+   }
 
    /**
     * Gets the weight specifying how much high joint jerk values should be penalized in the
@@ -42,6 +88,11 @@ public interface ControllerCoreOptimizationSettings
     * @return the weight to use for joint jerk regularization.
     */
    double getJointJerkWeight();
+
+   default double getJointTorqueWeight()
+   {
+      return 0.005;
+   }
 
    /**
     * Gets the weight specifying how much high contact force values should be penalized in the
@@ -243,4 +294,17 @@ public interface ControllerCoreOptimizationSettings
     */
    int getRhoSize();
 
+   /**
+    * Gets a new instance of {@code ActiveSetQPSolver} to be used in the controller core.
+    * <p>
+    * A QP solver is needed for any of the three modes of the controller core.
+    * </p>
+    * 
+    * @return a new instance of the QP solver to be used. By default it is the
+    *         {@link SimpleEfficientActiveSetQPSolver}.
+    */
+   default ActiveSetQPSolver getActiveSetQPSolver()
+   {
+      return new SimpleEfficientActiveSetQPSolver();
+   }
 }

@@ -6,18 +6,18 @@ import us.ihmc.commonWalkingControlModules.controlModules.foot.FootControlModule
 import us.ihmc.commonWalkingControlModules.controllerCore.command.feedbackController.FeedbackControlCommand;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.feedbackController.SpatialFeedbackControlCommand;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.InverseDynamicsCommand;
+import us.ihmc.euclid.referenceFrame.FramePoint3D;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Vector3D;
-import us.ihmc.robotics.controllers.YoSE3PIDGainsInterface;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
-import us.ihmc.robotics.geometry.FramePoint;
+import us.ihmc.robotics.controllers.pidGains.YoPIDSE3Gains;
 import us.ihmc.robotics.geometry.FramePose;
 import us.ihmc.robotics.math.frames.YoFramePoint;
 import us.ihmc.robotics.math.frames.YoFrameVector;
 import us.ihmc.robotics.referenceFrames.PoseReferenceFrame;
-import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.tools.FormattingTools;
 
@@ -45,14 +45,14 @@ public abstract class AbstractUnconstrainedState extends AbstractFootControlStat
    protected final YoDouble secondaryJointWeightScale;
 
    private final YoFrameVector angularWeight;
-   private final YoFrameVector linearWeight;
+   protected final YoFrameVector linearWeight;
 
    private final ReferenceFrame ankleFrame;
    private final PoseReferenceFrame controlFrame;
 
-   private final YoSE3PIDGainsInterface gains;
+   private final YoPIDSE3Gains gains;
 
-   public AbstractUnconstrainedState(ConstraintType constraintType, FootControlHelper footControlHelper, YoSE3PIDGainsInterface gains,
+   public AbstractUnconstrainedState(ConstraintType constraintType, FootControlHelper footControlHelper, YoPIDSE3Gains gains,
          YoVariableRegistry registry)
    {
       super(constraintType, footControlHelper);
@@ -73,8 +73,8 @@ public abstract class AbstractUnconstrainedState extends AbstractFootControlStat
       secondaryJointWeightScale = new YoDouble(namePrefix + "SecondaryJointWeightScale", registry);
       secondaryJointWeightScale.set(1.0);
 
-      angularWeight = new YoFrameVector(namePrefix + "AngularWeight", null, registry);
-      linearWeight = new YoFrameVector(namePrefix + "LinearWeight", null, registry);
+      angularWeight = new YoFrameVector(namePrefix + "AngularWeight", worldFrame, registry);
+      linearWeight = new YoFrameVector(namePrefix + "LinearWeight", worldFrame, registry);
 
       angularWeight.set(FOOT_SWING_WEIGHT, FOOT_SWING_WEIGHT, FOOT_SWING_WEIGHT);
       linearWeight.set(FOOT_SWING_WEIGHT, FOOT_SWING_WEIGHT, FOOT_SWING_WEIGHT);
@@ -142,7 +142,7 @@ public abstract class AbstractUnconstrainedState extends AbstractFootControlStat
 
    private final Vector3D tempAngularWeightVector = new Vector3D();
    private final Vector3D tempLinearWeightVector = new Vector3D();
-   private final FramePoint desiredAnklePosition = new FramePoint();
+   private final FramePoint3D desiredAnklePosition = new FramePoint3D();
    private final FramePose desiredPose = new FramePose();
 
    @Override

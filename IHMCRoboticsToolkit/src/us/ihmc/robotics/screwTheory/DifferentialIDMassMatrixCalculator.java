@@ -6,8 +6,8 @@ import java.util.LinkedHashMap;
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.robotics.linearAlgebra.MatrixTools;
-import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 
 /**
  * Very inefficient. Should only be used for verification of better methods in unit tests
@@ -113,6 +113,12 @@ public class DifferentialIDMassMatrixCalculator implements MassMatrixCalculator
    public DenseMatrix64F getMassMatrix()
    {
       return massMatrix;
+   }
+
+   @Override
+   public void getMassMatrix(DenseMatrix64F massMatrixToPack)
+   {
+      massMatrixToPack.set(massMatrix);
    }
 
    @Override

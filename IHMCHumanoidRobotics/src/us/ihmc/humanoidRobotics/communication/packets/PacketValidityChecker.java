@@ -4,6 +4,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import us.ihmc.communication.packets.ObjectValidityChecker;
 import us.ihmc.communication.packets.ObjectValidityChecker.ObjectErrorType;
+import us.ihmc.euclid.utils.NameBasedHashCodeTools;
 import us.ihmc.communication.packets.Packet;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.ArmDesiredAccelerationsMessage;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.ArmTrajectoryMessage;
@@ -25,7 +26,6 @@ import us.ihmc.humanoidRobotics.communication.packets.walking.PelvisHeightTrajec
 import us.ihmc.humanoidRobotics.communication.packets.walking.PelvisOrientationTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.PelvisTrajectoryMessage;
 import us.ihmc.humanoidRobotics.footstep.Footstep;
-import us.ihmc.robotics.nameBasedHashCode.NameBasedHashCodeTools;
 import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.robotics.trajectories.TrajectoryType;
 
@@ -139,15 +139,9 @@ public abstract class PacketValidityChecker
             return errorMessage;
          }
 
-         if (packetToCheck.getSwingTrajectoryBlendDuration() > 0.0 && packetToCheck.getExpectedInitialLocation() == null)
+         if (packetToCheck.getSwingTrajectoryBlendDuration() > 0.0 && packetToCheck.getSwingTrajectory()[0].getTime() > 1.0e-5)
          {
-            String errorMessage = messageClassName + "'s swing trajectory blend duration is greater than zero but expected initial location is undefined.";
-            return errorMessage;
-         }
-
-         if (packetToCheck.getSwingTrajectoryBlendDuration() > 0.0 && packetToCheck.getExpectedInitialOrientation() == null)
-         {
-            String errorMessage = messageClassName + "'s swing trajectory blend duration is greater than zero but expected initial orientation is undefined.";
+            String errorMessage = messageClassName + "'s swing trajectory blend duration is greater than zero, initial waypoint at t = 0.0 is missing.";
             return errorMessage;
          }
       }

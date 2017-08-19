@@ -7,11 +7,11 @@ import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParam
 import us.ihmc.commonWalkingControlModules.controlModules.foot.FootControlModule.ConstraintType;
 import us.ihmc.commonWalkingControlModules.controlModules.foot.PartialFootholdControlModule;
 import us.ihmc.commonWalkingControlModules.momentumBasedController.HighLevelHumanoidControllerToolbox;
+import us.ihmc.euclid.referenceFrame.FramePoint2D;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
-import us.ihmc.robotics.geometry.FramePoint2d;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 public class FootRotationProcessor implements LogDataProcessorFunction
 {
@@ -38,8 +38,8 @@ public class FootRotationProcessor implements LogDataProcessorFunction
       }
    }
 
-   private final FramePoint2d measuredCoP2d = new FramePoint2d();
-   private final FramePoint2d desiredCoP2d = new FramePoint2d();
+   private final FramePoint2D measuredCoP2d = new FramePoint2D();
+   private final FramePoint2D desiredCoP2d = new FramePoint2D();
 
    @Override
    public void processDataAtControllerRate()
@@ -50,9 +50,7 @@ public class FootRotationProcessor implements LogDataProcessorFunction
       {
          PartialFootholdControlModule partialFootholdControlModule = partialFootholdControlModules.get(robotSide);
 
-         if (logDataProcessorHelper.getCurrenFootState(robotSide) == ConstraintType.FULL
-               || logDataProcessorHelper.getCurrenFootState(robotSide) == ConstraintType.EXPLORE_POLYGON
-               || logDataProcessorHelper.getCurrenFootState(robotSide) == ConstraintType.HOLD_POSITION)
+         if (logDataProcessorHelper.getCurrenFootState(robotSide) == ConstraintType.FULL)
          {
             logDataProcessorHelper.getMeasuredCoP(robotSide, measuredCoP2d);
             logDataProcessorHelper.getDesiredCoP(robotSide, desiredCoP2d);

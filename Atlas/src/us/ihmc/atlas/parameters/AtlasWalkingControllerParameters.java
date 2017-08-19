@@ -2,65 +2,52 @@ package us.ihmc.atlas.parameters;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang3.tuple.ImmutablePair;
-
 import gnu.trove.map.hash.TObjectDoubleHashMap;
 import us.ihmc.atlas.AtlasJointMap;
-import us.ihmc.avatar.drcRobot.DRCRobotModel;
-import us.ihmc.commonWalkingControlModules.configurations.JointPrivilegedConfigurationParameters;
-import us.ihmc.commonWalkingControlModules.configurations.StraightLegWalkingParameters;
-import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParameters;
+import us.ihmc.avatar.drcRobot.RobotTarget;
+import us.ihmc.commonWalkingControlModules.configurations.*;
 import us.ihmc.commonWalkingControlModules.controlModules.foot.ExplorationParameters;
 import us.ihmc.commonWalkingControlModules.controlModules.foot.ToeSlippingDetector;
-import us.ihmc.commonWalkingControlModules.controlModules.foot.YoFootOrientationGains;
-import us.ihmc.commonWalkingControlModules.controlModules.foot.YoFootSE3Gains;
 import us.ihmc.commonWalkingControlModules.controlModules.rigidBody.RigidBodyControlMode;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.JointAccelerationIntegrationSettings;
 import us.ihmc.commonWalkingControlModules.instantaneousCapturePoint.ICPControlGains;
+import us.ihmc.commonWalkingControlModules.instantaneousCapturePoint.icpOptimization.ICPOptimizationParameters;
 import us.ihmc.commonWalkingControlModules.momentumBasedController.optimization.JointLimitParameters;
 import us.ihmc.commonWalkingControlModules.momentumBasedController.optimization.MomentumOptimizationSettings;
 import us.ihmc.euclid.geometry.Pose3D;
 import us.ihmc.euclid.matrix.RotationMatrix;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Vector3D;
-import us.ihmc.robotics.controllers.YoOrientationPIDGainsInterface;
 import us.ihmc.robotics.controllers.YoPDGains;
 import us.ihmc.robotics.controllers.YoPIDGains;
-import us.ihmc.robotics.controllers.YoPositionPIDGainsInterface;
-import us.ihmc.robotics.controllers.YoSE3PIDGainsInterface;
-import us.ihmc.robotics.controllers.YoSymmetricSE3PIDGains;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.robotics.controllers.pidGains.GainCoupling;
+import us.ihmc.robotics.controllers.pidGains.YoPID3DGains;
+import us.ihmc.robotics.controllers.pidGains.YoPIDSE3Gains;
+import us.ihmc.robotics.controllers.pidGains.implementations.DefaultPID3DGains;
+import us.ihmc.robotics.controllers.pidGains.implementations.DefaultPIDSE3Gains;
+import us.ihmc.robotics.controllers.pidGains.implementations.DefaultYoPID3DGains;
+import us.ihmc.robotics.controllers.pidGains.implementations.DefaultYoPIDSE3Gains;
+import us.ihmc.robotics.controllers.pidGains.implementations.SymmetricYoPIDSE3Gains;
 import us.ihmc.robotics.partNames.ArmJointName;
 import us.ihmc.robotics.partNames.NeckJointName;
 import us.ihmc.robotics.partNames.SpineJointName;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.sensorProcessing.stateEstimation.FootSwitchType;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 
 
 public class AtlasWalkingControllerParameters extends WalkingControllerParameters
 {
-   private final DRCRobotModel.RobotTarget target;
+   private final RobotTarget target;
    private final boolean runningOnRealRobot;
    private final SideDependentList<RigidBodyTransform> handPosesWithRespectToChestFrame = new SideDependentList<RigidBodyTransform>();
 
-   // Limits
-   private final double neckPitchUpperLimit = 1.14494;    // 0.83;    // true limit is = 1.134460, but pitching down more just looks at more robot chest
-   private final double neckPitchLowerLimit = -0.602139;    // -0.610865;    // -math.pi/2.0;
-   private final double headYawLimit = Math.PI / 4.0;
-   private final double headRollLimit = Math.PI / 4.0;
-   private final double spineYawLimit = Math.PI / 4.0;
-   private final double spinePitchUpperLimit = 0.4;
-   private final double spinePitchLowerLimit = -0.1;    // -math.pi / 6.0;
-   private final double spineRollLimit = Math.PI / 4.0;
-
-   private final double min_leg_length_before_collapsing_single_support;// = 0.53;    // corresponds to q_kny = 1.70 rad
-   private final double min_mechanical_leg_length;// = 0.420;    // corresponds to a q_kny that is close to knee limit
+   private static final boolean USE_SIMPLE_ICP_OPTIMIZATION = true;
 
 // USE THESE FOR Real Atlas Robot and sims when controlling pelvis height instead of CoM.
    private final double minimumHeightAboveGround;// = 0.625;
@@ -69,38 +56,51 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
 
    private final AtlasJointMap jointMap;
    private final AtlasMomentumOptimizationSettings momentumOptimizationSettings;
+   private final ICPAngularMomentumModifierParameters angularMomentumModifierParameters;
    private final double massScale;
 
    private Map<String, YoPIDGains> jointspaceGains = null;
-   private Map<String, YoOrientationPIDGainsInterface> taskspaceAngularGains = null;
-   private Map<String, YoPositionPIDGainsInterface> taskspaceLinearGains = null;
+   private Map<String, YoPID3DGains> taskspaceAngularGains = null;
+   private Map<String, YoPID3DGains> taskspaceLinearGains = null;
    private TObjectDoubleHashMap<String> jointHomeConfiguration = null;
    private Map<String, Pose3D> bodyHomeConfiguration = null;
    private ArrayList<String> positionControlledJoints = null;
    private Map<String, JointAccelerationIntegrationSettings> integrationSettings = null;
 
    private final JointPrivilegedConfigurationParameters jointPrivilegedConfigurationParameters;
-   private final StraightLegWalkingParameters straightLegWalkingParameters;
+   private final LegConfigurationParameters legConfigurationParameters;
+   private final ToeOffParameters toeOffParameters;
+   private final SwingTrajectoryParameters swingTrajectoryParameters;
+   private final ICPOptimizationParameters icpOptimizationParameters;
+   private final AtlasSteppingParameters steppingParameters;
+   private final LeapOfFaithParameters leapOfFaithParameters;
 
-   public AtlasWalkingControllerParameters(DRCRobotModel.RobotTarget target, AtlasJointMap jointMap, AtlasContactPointParameters contactPointParameters)
+   public AtlasWalkingControllerParameters(RobotTarget target, AtlasJointMap jointMap, AtlasContactPointParameters contactPointParameters)
    {
       this.target = target;
       this.jointMap = jointMap;
       this.massScale = Math.pow(jointMap.getModelScale(), jointMap.getMassScalePower());
 
       momentumOptimizationSettings = new AtlasMomentumOptimizationSettings(jointMap, contactPointParameters.getNumberOfContactableBodies());
-
-      min_leg_length_before_collapsing_single_support = jointMap.getModelScale() * 0.53;
-      min_mechanical_leg_length = jointMap.getModelScale() * 0.420;
+      angularMomentumModifierParameters = new ICPAngularMomentumModifierParameters();
 
       minimumHeightAboveGround = jointMap.getModelScale() * ( 0.625 );
       nominalHeightAboveGround = jointMap.getModelScale() * ( 0.705 );
       maximumHeightAboveGround = jointMap.getModelScale() * ( 0.765 + 0.08 );
 
-      runningOnRealRobot = target == DRCRobotModel.RobotTarget.REAL_ROBOT;
+      runningOnRealRobot = target == RobotTarget.REAL_ROBOT;
 
       jointPrivilegedConfigurationParameters = new AtlasJointPrivilegedConfigurationParameters(runningOnRealRobot);
-      straightLegWalkingParameters = new AtlasStraightLegWalkingParameters(runningOnRealRobot);
+      legConfigurationParameters = new AtlasLegConfigurationParameters(runningOnRealRobot);
+      toeOffParameters = new AtlasToeOffParameters(jointMap);
+      swingTrajectoryParameters = new AtlasSwingTrajectoryParameters(target, jointMap.getModelScale());
+      steppingParameters = new AtlasSteppingParameters(jointMap);
+      leapOfFaithParameters = new AtlasLeapOfFaithParameters(runningOnRealRobot);
+
+      if (USE_SIMPLE_ICP_OPTIMIZATION)
+         icpOptimizationParameters = new AtlasSimpleICPOptimizationParameters(runningOnRealRobot);
+      else
+         icpOptimizationParameters = new AtlasICPOptimizationParameters(runningOnRealRobot);
 
       for (RobotSide robotSide : RobotSide.values)
       {
@@ -132,66 +132,6 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
 //      return 3.0;
    }
 
-   @Override
-   public double getMinSwingHeightFromStanceFoot()
-   {
-      return 0.10 * jointMap.getModelScale();
-   }
-
-   @Override
-   public double getTimeToGetPreparedForLocomotion()
-   {
-      return runningOnRealRobot ? 0.3 : 0.0; // 0.3 seems to be a good starting point
-   }
-
-   /** {@inheritDoc} */
-   @Override
-   public boolean doToeOffIfPossible()
-   {
-      return true;
-   }
-
-   @Override
-   public boolean doToeOffIfPossibleInSingleSupport()
-   {
-      return false;
-   }
-
-  @Override
-   public boolean checkECMPLocationToTriggerToeOff()
-   {
-      return true;
-   }
-
-   /** {@inheritDoc} */
-   @Override
-   public double getMinStepLengthForToeOff()
-   {
-      return getFootLength();
-   }
-
-   /** {@inheritDoc} */
-   @Override
-   public boolean doToeOffWhenHittingAnkleLimit()
-   {
-      return true;
-   }
-
-   /** {@inheritDoc} */
-   @Override
-   public double getAnkleLowerLimitToTriggerToeOff()
-   {
-      return -1.0;
-   }
-
-
-   /** {@inheritDoc} */
-   @Override
-   public double getMaximumToeOffAngle()
-   {
-      return Math.toRadians(45.0);
-   }
-
    /** {@inheritDoc} */
    @Override
    public boolean enableToeOffSlippingDetection()
@@ -208,37 +148,6 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
       double slippageDistanceThreshold = 0.04;
       double filterBreakFrequency = 10.0;
       toeSlippingDetectorToConfigure.configure(forceMagnitudeThreshold, velocityThreshold, slippageDistanceThreshold, filterBreakFrequency);
-   }
-
-   @Override
-   public boolean doToeTouchdownIfPossible()
-   {
-      return false;
-   }
-
-   @Override
-   public double getToeTouchdownAngle()
-   {
-      return Math.toRadians(20.0);
-   }
-
-   @Override
-   public boolean doHeelTouchdownIfPossible()
-   {
-      return false;
-   }
-
-   @Override
-   public double getHeelTouchdownAngle()
-   {
-      return Math.toRadians(-20.0);
-   }
-
-   @Override
-   public boolean allowShrinkingSingleSupportFootPolygon()
-   {
-//    return runningOnRealRobot;
-    return false; // Does more bad than good
    }
 
    /** @inheritDoc */
@@ -268,32 +177,6 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
       else
          return 0.3;
    }
-
-   @Override
-   public boolean isNeckPositionControlled()
-   {
-      if (runningOnRealRobot)
-         return true;
-      else
-         return false;
-   }
-
-   @Override
-   public String[] getDefaultHeadOrientationControlJointNames()
-   {
-         return new String[] {jointMap.getNeckJointName(NeckJointName.PROXIMAL_NECK_PITCH)};
-   }
-
-   @Override
-   public String[] getDefaultChestOrientationControlJointNames()
-   {
-      String[] defaultChestOrientationControlJointNames = new String[] {jointMap.getSpineJointName(SpineJointName.SPINE_YAW),
-              jointMap.getSpineJointName(SpineJointName.SPINE_PITCH), jointMap.getSpineJointName(SpineJointName.SPINE_ROLL)};
-
-      return defaultChestOrientationControlJointNames;
-   }
-
-
 
 // USE THESE FOR DRC Atlas Model TASK 2 UNTIL WALKING WORKS BETTER WITH OTHERS.
 //   private final double minimumHeightAboveGround = 0.785;
@@ -341,153 +224,15 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
    }
 
    @Override
-   public double getNeckPitchUpperLimit()
-   {
-      return neckPitchUpperLimit;
-   }
-
-   @Override
-   public double getNeckPitchLowerLimit()
-   {
-      return neckPitchLowerLimit;
-   }
-
-   @Override
-   public double getHeadYawLimit()
-   {
-      return headYawLimit;
-   }
-
-   @Override
-   public double getHeadRollLimit()
-   {
-      return headRollLimit;
-   }
-
-   @Override
-   public double getFootForwardOffset()
-   {
-      return jointMap.getPhysicalProperties().getFootForward();
-   }
-
-   @Override
-   public double getFootBackwardOffset()
-   {
-      return jointMap.getPhysicalProperties().getFootBackForControl();
-   }
-
-   @Override
-   public double getAnkleHeight()
-   {
-      return jointMap.getPhysicalProperties().getAnkleHeight();
-   }
-
-   @Override
-   public double getLegLength()
+   public double getMaximumLegLengthForSingularityAvoidance()
    {
       return jointMap.getPhysicalProperties().getShinLength()  + jointMap.getPhysicalProperties().getThighLength();
    }
 
    @Override
-   public double getMinLegLengthBeforeCollapsingSingleSupport()
+   public ICPControlGains createICPControlGains()
    {
-      return min_leg_length_before_collapsing_single_support;
-   }
-
-   @Override
-   public double getMinMechanicalLegLength()
-   {
-      return min_mechanical_leg_length;
-   }
-
-   @Override
-   public double getInPlaceWidth()
-   {
-      return 0.25 * jointMap.getModelScale();
-   }
-
-   @Override
-   public double getDesiredStepForward()
-   {
-      return 0.5 * jointMap.getModelScale();    // 0.35;
-   }
-
-   @Override
-   public double getMaxStepLength()
-   {
-      return 0.6 * jointMap.getModelScale();    // 0.5; //0.35;
-   }
-
-   @Override
-   public double getMinStepWidth()
-   {
-      return 0.15 * jointMap.getModelScale();
-   }
-
-   @Override
-   public double getMaxStepWidth()
-   {
-      return 0.6 * jointMap.getModelScale();    // 0.4;
-   }
-
-   @Override
-   public double getStepPitch()
-   {
-      return 0.0;
-   }
-
-   @Override
-   public double getDefaultStepLength()
-   {
-      return 0.6 * jointMap.getModelScale();
-   }
-
-   @Override
-   public double getMaxStepUp()
-   {
-      return 0.25 * jointMap.getModelScale();
-   }
-
-   @Override
-   public double getMaxStepDown()
-   {
-      return 0.2 * jointMap.getModelScale();
-   }
-
-   @Override
-   public double getMaxSwingHeightFromStanceFoot()
-   {
-      return 0.30 * jointMap.getModelScale();
-   }
-
-   @Override
-   public double getMaxAngleTurnOutwards()
-   {
-      return Math.PI / 4.0;
-   }
-
-   @Override
-   public double getMaxAngleTurnInwards()
-   {
-      return 0;
-   }
-
-   @Override
-   public double getMinAreaPercentForValidFootstep()
-   {
-      return 0.5;
-   }
-
-   @Override
-   public double getDangerAreaPercentForValidFootstep()
-   {
-      return 0.75;
-   }
-
-   @Override
-   public ICPControlGains createICPControlGains(YoVariableRegistry registry)
-   {
-      ICPControlGains gains = new ICPControlGains("", registry);
+      ICPControlGains gains = new ICPControlGains();
 
       double kpParallel = 2.5;
       double kpOrthogonal = 1.5;
@@ -522,27 +267,9 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
       return gains;
    }
 
-   @Override
-   public boolean getCoMHeightDriftCompensation()
+   private YoPID3DGains createPelvisOrientationControlGains(YoVariableRegistry registry)
    {
-      return true;
-   }
-
-   @Override
-   public YoPDGains createPelvisICPBasedXYControlGains(YoVariableRegistry registry)
-   {
-      YoPDGains gains = new YoPDGains("PelvisXY", registry);
-
-      gains.setKp(4.0);
-      gains.setKd(runningOnRealRobot ? 0.5 : 1.2);
-
-      return gains;
-   }
-
-   @Override
-   public YoOrientationPIDGainsInterface createPelvisOrientationControlGains(YoVariableRegistry registry)
-   {
-      YoFootOrientationGains gains = new YoFootOrientationGains("PelvisOrientation", registry);
+      DefaultPID3DGains gains = new DefaultPID3DGains(GainCoupling.XY, false);
 
       double kpXY = 80.0;
       double kpZ = 40.0;
@@ -550,36 +277,30 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
       double maxAccel = runningOnRealRobot ? 12.0 : 36.0;
       double maxJerk = runningOnRealRobot ? 180.0 : 540.0;
 
-      gains.setProportionalGains(kpXY, kpZ);
-      gains.setDampingRatio(zeta);
-      gains.setMaximumFeedback(maxAccel);
-      gains.setMaximumFeedbackRate(maxJerk);
-      gains.createDerivativeGainUpdater(true);
+      gains.setProportionalGains(kpXY, kpXY, kpZ);
+      gains.setDampingRatios(zeta);
+      gains.setMaxFeedbackAndFeedbackRate(maxAccel, maxJerk);
 
-      return gains;
+      return new DefaultYoPID3DGains("PelvisOrientation", gains, registry);
    }
 
-   @Override
-   public YoOrientationPIDGainsInterface createHeadOrientationControlGains(YoVariableRegistry registry)
+   private YoPID3DGains createHeadOrientationControlGains(YoVariableRegistry registry)
    {
-      YoSymmetricSE3PIDGains gains = new YoSymmetricSE3PIDGains("HeadOrientation", registry);
+      SymmetricYoPIDSE3Gains gains = new SymmetricYoPIDSE3Gains("HeadOrientation", registry);
 
       double kp = 40.0;
       double zeta = runningOnRealRobot ? 0.4 : 0.8;
       double maxAccel = runningOnRealRobot ? 6.0 : 36.0;
       double maxJerk = runningOnRealRobot ? 60.0 : 540.0;
 
-      gains.setProportionalGain(kp);
-      gains.setDampingRatio(zeta);
-      gains.setMaximumFeedback(maxAccel);
-      gains.setMaximumFeedbackRate(maxJerk);
-      gains.createDerivativeGainUpdater(true);
+      gains.setProportionalGains(kp);
+      gains.setDampingRatios(zeta);
+      gains.setMaxFeedbackAndFeedbackRate(maxAccel, maxJerk);
 
       return gains;
    }
 
-   @Override
-   public YoPIDGains createHeadJointspaceControlGains(YoVariableRegistry registry)
+   private YoPIDGains createHeadJointspaceControlGains(YoVariableRegistry registry)
    {
       YoPIDGains gains = new YoPIDGains("HeadJointspace", registry);
 
@@ -597,41 +318,9 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
       return gains;
    }
 
-   @Override
-   public double getTrajectoryTimeHeadOrientation()
+   private YoPID3DGains createChestControlGains(YoVariableRegistry registry)
    {
-      return 3.0;
-   }
-
-   @Override
-   public double[] getInitialHeadYawPitchRoll()
-   {
-      return new double[] {0.0, 0.67, 0.0};
-   }
-
-   @Override
-   public YoPDGains createUnconstrainedJointsControlGains(YoVariableRegistry registry)
-   {
-      YoPDGains gains = new YoPDGains("UnconstrainedJoints", registry);
-
-      double kp = 80.0;
-      double zeta = runningOnRealRobot ? 0.25 : 0.8;
-      double maxAcceleration = runningOnRealRobot ? 6.0 : 36.0;
-      double maxJerk = runningOnRealRobot ? 60.0 : 540.0;
-
-      gains.setKp(kp);
-      gains.setZeta(zeta);
-      gains.setMaximumFeedback(maxAcceleration);
-      gains.setMaximumFeedbackRate(maxJerk);
-      gains.createDerivativeGainUpdater(true);
-
-      return gains;
-   }
-
-   @Override
-   public YoOrientationPIDGainsInterface createChestControlGains(YoVariableRegistry registry)
-   {
-      YoFootOrientationGains gains = new YoFootOrientationGains("ChestOrientation", registry);
+      DefaultPID3DGains gains = new DefaultPID3DGains(GainCoupling.XY, false);
 
       double kpXY = 40.0;
       double kpZ = 40.0;
@@ -641,14 +330,12 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
       double maxJerk = runningOnRealRobot ? 60.0 : 540.0;
       double maxProportionalError = 10.0 * Math.PI/180.0;
 
-      gains.setProportionalGains(kpXY, kpZ);
-      gains.setDampingRatios(zetaXY, zetaZ);
-      gains.setMaximumFeedback(maxAccel);
-      gains.setMaximumFeedbackRate(maxJerk);
+      gains.setProportionalGains(kpXY, kpXY, kpZ);
+      gains.setDampingRatios(zetaXY, zetaXY, zetaZ);
+      gains.setMaxFeedbackAndFeedbackRate(maxAccel, maxJerk);
       gains.setMaxProportionalError(maxProportionalError);
-      gains.createDerivativeGainUpdater(true);
 
-      return gains;
+      return new DefaultYoPID3DGains("ChestOrientation", gains, registry);
    }
 
    private YoPIDGains createSpineControlGains(YoVariableRegistry registry)
@@ -694,9 +381,9 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
       return armGains;
    }
 
-   private YoOrientationPIDGainsInterface createHandOrientationControlGains(YoVariableRegistry registry)
+   private YoPID3DGains createHandOrientationControlGains(YoVariableRegistry registry)
    {
-      YoSymmetricSE3PIDGains orientationGains = new YoSymmetricSE3PIDGains("HandOrientation", registry);
+      SymmetricYoPIDSE3Gains orientationGains = new SymmetricYoPIDSE3Gains("HandOrientation", registry);
 
       double kp = runningOnRealRobot ? 40.0 :100.0;
       // When doing position control, the damping here seems to result into some kind of spring.
@@ -706,20 +393,17 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
       double maxAccel = runningOnRealRobot ? 10.0 : Double.POSITIVE_INFINITY;
       double maxJerk = runningOnRealRobot ? 100.0 : Double.POSITIVE_INFINITY;
 
-      orientationGains.setProportionalGain(kp);
-      orientationGains.setDampingRatio(zeta);
-      orientationGains.setIntegralGain(ki);
-      orientationGains.setMaximumIntegralError(maxIntegralError);
-      orientationGains.setMaximumFeedback(maxAccel);
-      orientationGains.setMaximumFeedbackRate(maxJerk);
-      orientationGains.createDerivativeGainUpdater(true);
+      orientationGains.setProportionalGains(kp);
+      orientationGains.setDampingRatios(zeta);
+      orientationGains.setIntegralGains(ki, maxIntegralError);
+      orientationGains.setMaxFeedbackAndFeedbackRate(maxAccel, maxJerk);
 
       return orientationGains;
    }
 
-   private YoPositionPIDGainsInterface createHandPositionControlGains(YoVariableRegistry registry)
+   private YoPID3DGains createHandPositionControlGains(YoVariableRegistry registry)
    {
-      YoSymmetricSE3PIDGains positionGains = new YoSymmetricSE3PIDGains("HandPosition", registry);
+      SymmetricYoPIDSE3Gains positionGains = new SymmetricYoPIDSE3Gains("HandPosition", registry);
 
       double kp = runningOnRealRobot ? 40.0 :100.0;
       // When doing position control, the damping here seems to result into some kind of spring.
@@ -729,13 +413,10 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
       double maxAccel = runningOnRealRobot ? 10.0 : Double.POSITIVE_INFINITY;
       double maxJerk = runningOnRealRobot ? 100.0 : Double.POSITIVE_INFINITY;
 
-      positionGains.setProportionalGain(kp);
-      positionGains.setDampingRatio(zeta);
-      positionGains.setIntegralGain(ki);
-      positionGains.setMaximumIntegralError(maxIntegralError);
-      positionGains.setMaximumFeedback(maxAccel);
-      positionGains.setMaximumFeedbackRate(maxJerk);
-      positionGains.createDerivativeGainUpdater(true);
+      positionGains.setProportionalGains(kp);
+      positionGains.setDampingRatios(zeta);
+      positionGains.setIntegralGains(ki, maxIntegralError);
+      positionGains.setMaxFeedbackAndFeedbackRate(maxAccel, maxJerk);
 
       return positionGains;
    }
@@ -769,36 +450,39 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
 
    /** {@inheritDoc} */
    @Override
-   public Map<String, YoOrientationPIDGainsInterface> getOrCreateTaskspaceOrientationControlGains(YoVariableRegistry registry)
+   public Map<String, YoPID3DGains> getOrCreateTaskspaceOrientationControlGains(YoVariableRegistry registry)
    {
       if (taskspaceAngularGains != null)
          return taskspaceAngularGains;
 
       taskspaceAngularGains = new HashMap<>();
 
-      YoOrientationPIDGainsInterface chestAngularGains = createChestControlGains(registry);
+      YoPID3DGains chestAngularGains = createChestControlGains(registry);
       taskspaceAngularGains.put(jointMap.getChestName(), chestAngularGains);
 
-      YoOrientationPIDGainsInterface headAngularGains = createHeadOrientationControlGains(registry);
+      YoPID3DGains headAngularGains = createHeadOrientationControlGains(registry);
       taskspaceAngularGains.put(jointMap.getHeadName(), headAngularGains);
 
-      YoOrientationPIDGainsInterface handAngularGains = createHandOrientationControlGains(registry);
+      YoPID3DGains handAngularGains = createHandOrientationControlGains(registry);
       for (RobotSide robotSide : RobotSide.values)
          taskspaceAngularGains.put(jointMap.getHandName(robotSide), handAngularGains);
+
+      YoPID3DGains pelvisAngularGains = createPelvisOrientationControlGains(registry);
+      taskspaceAngularGains.put(jointMap.getPelvisName(), pelvisAngularGains);
 
       return taskspaceAngularGains;
    }
 
    /** {@inheritDoc} */
    @Override
-   public Map<String, YoPositionPIDGainsInterface> getOrCreateTaskspacePositionControlGains(YoVariableRegistry registry)
+   public Map<String, YoPID3DGains> getOrCreateTaskspacePositionControlGains(YoVariableRegistry registry)
    {
       if (taskspaceLinearGains != null)
          return taskspaceLinearGains;
 
       taskspaceLinearGains = new HashMap<>();
 
-      YoPositionPIDGainsInterface handLinearGains = createHandPositionControlGains(registry);
+      YoPID3DGains handLinearGains = createHandPositionControlGains(registry);
       for (RobotSide robotSide : RobotSide.values)
          taskspaceLinearGains.put(jointMap.getHandName(robotSide), handLinearGains);
 
@@ -938,10 +622,8 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
    }
 
    @Override
-   public YoSE3PIDGainsInterface createSwingFootControlGains(YoVariableRegistry registry)
+   public YoPIDSE3Gains createSwingFootControlGains(YoVariableRegistry registry)
    {
-      YoFootSE3Gains gains = new YoFootSE3Gains("SwingFoot", registry);
-
       double kpXY = 150.0;
       double kpZ = 200.0;
       double zetaXYZ = runningOnRealRobot ? 0.7 : 0.7;
@@ -957,27 +639,20 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
       double maxOrientationAcceleration = runningOnRealRobot ? 100.0 : Double.POSITIVE_INFINITY;
       double maxOrientationJerk = runningOnRealRobot ? 1500.0 : Double.POSITIVE_INFINITY;
 
-      double kdReductionRatio = 1.0;
-      double parallelDampingDeadband = 100.0;
-      double positionErrorForMinimumKd = 10000.0;
-
-      gains.setPositionProportionalGains(kpXY, kpZ);
-      gains.setPositionDampingRatio(zetaXYZ);
+      DefaultPIDSE3Gains gains = new DefaultPIDSE3Gains(GainCoupling.XY, false);
+      gains.setPositionProportionalGains(kpXY, kpXY, kpZ);
+      gains.setPositionDampingRatios(zetaXYZ);
       gains.setPositionMaxFeedbackAndFeedbackRate(maxPositionAcceleration, maxPositionJerk);
-      gains.setOrientationProportionalGains(kpXYOrientation, kpZOrientation);
-      gains.setOrientationDampingRatio(zetaOrientation);
+      gains.setOrientationProportionalGains(kpXYOrientation, kpXYOrientation, kpZOrientation);
+      gains.setOrientationDampingRatios(zetaOrientation);
       gains.setOrientationMaxFeedbackAndFeedbackRate(maxOrientationAcceleration, maxOrientationJerk);
-      gains.setTangentialDampingGains(kdReductionRatio, parallelDampingDeadband, positionErrorForMinimumKd);
-      gains.createDerivativeGainUpdater(true);
 
-      return gains;
+      return new DefaultYoPIDSE3Gains("SwingFoot", gains, registry);
    }
 
    @Override
-   public YoSE3PIDGainsInterface createHoldPositionFootControlGains(YoVariableRegistry registry)
+   public YoPIDSE3Gains createHoldPositionFootControlGains(YoVariableRegistry registry)
    {
-      YoFootSE3Gains gains = new YoFootSE3Gains("HoldFoot", registry);
-
       double kpXY = 100.0;
       double kpZ = 0.0;
       double zetaXYZ = runningOnRealRobot ? 0.2 : 1.0;
@@ -991,22 +666,20 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
       double maxAngularAcceleration = runningOnRealRobot ? 100.0 : Double.POSITIVE_INFINITY;
       double maxAngularJerk = runningOnRealRobot ? 1500.0 : Double.POSITIVE_INFINITY;
 
-      gains.setPositionProportionalGains(kpXY, kpZ);
-      gains.setPositionDampingRatio(zetaXYZ);
+      DefaultPIDSE3Gains gains = new DefaultPIDSE3Gains(GainCoupling.XY, false);
+      gains.setPositionProportionalGains(kpXY, kpXY, kpZ);
+      gains.setPositionDampingRatios(zetaXYZ);
       gains.setPositionMaxFeedbackAndFeedbackRate(maxLinearAcceleration, maxLinearJerk);
-      gains.setOrientationProportionalGains(kpXYOrientation, kpZOrientation);
-      gains.setOrientationDampingRatio(zetaOrientation);
+      gains.setOrientationProportionalGains(kpXYOrientation, kpXYOrientation, kpZOrientation);
+      gains.setOrientationDampingRatios(zetaOrientation);
       gains.setOrientationMaxFeedbackAndFeedbackRate(maxAngularAcceleration, maxAngularJerk);
-      gains.createDerivativeGainUpdater(true);
 
-      return gains;
+      return new DefaultYoPIDSE3Gains("HoldFoot", gains, registry);
    }
 
    @Override
-   public YoSE3PIDGainsInterface createToeOffFootControlGains(YoVariableRegistry registry)
+   public YoPIDSE3Gains createToeOffFootControlGains(YoVariableRegistry registry)
    {
-      YoFootSE3Gains gains = new YoFootSE3Gains("ToeOffFoot", registry);
-
       double kpXY = 100.0;
       double kpZ = 100.0;
       double zetaXYZ = runningOnRealRobot ? 0.4 : 0.4;
@@ -1020,47 +693,15 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
       double maxAngularAcceleration = runningOnRealRobot ? 100.0 : Double.POSITIVE_INFINITY;
       double maxAngularJerk = runningOnRealRobot ? 1500.0 : Double.POSITIVE_INFINITY;
 
-      gains.setPositionProportionalGains(kpXY, kpZ);
-      gains.setPositionDampingRatio(zetaXYZ);
+      DefaultPIDSE3Gains gains = new DefaultPIDSE3Gains(GainCoupling.XY, false);
+      gains.setPositionProportionalGains(kpXY, kpXY, kpZ);
+      gains.setPositionDampingRatios(zetaXYZ);
       gains.setPositionMaxFeedbackAndFeedbackRate(maxLinearAcceleration, maxLinearJerk);
-      gains.setOrientationProportionalGains(kpXYOrientation, kpZOrientation);
-      gains.setOrientationDampingRatio(zetaOrientation);
+      gains.setOrientationProportionalGains(kpXYOrientation, kpXYOrientation, kpZOrientation);
+      gains.setOrientationDampingRatios(zetaOrientation);
       gains.setOrientationMaxFeedbackAndFeedbackRate(maxAngularAcceleration, maxAngularJerk);
-      gains.createDerivativeGainUpdater(true);
 
-      return gains;
-   }
-
-   @Override
-   public YoSE3PIDGainsInterface createEdgeTouchdownFootControlGains(YoVariableRegistry registry)
-   {
-      YoFootSE3Gains gains = new YoFootSE3Gains("EdgeTouchdownFoot", registry);
-
-      double kp = 0.0;
-      double zetaXYZ = 0.0;
-      double kpXYOrientation = runningOnRealRobot ? 40.0 : 300.0;
-      double kpZOrientation = runningOnRealRobot ? 40.0 : 300.0;
-      double zetaOrientation = 0.4;
-      double maxLinearAcceleration = runningOnRealRobot ? 10.0 : Double.POSITIVE_INFINITY;
-      double maxLinearJerk = runningOnRealRobot ? 150.0 : Double.POSITIVE_INFINITY;
-      double maxAngularAcceleration = runningOnRealRobot ? 100.0 : Double.POSITIVE_INFINITY;
-      double maxAngularJerk = runningOnRealRobot ? 1500.0 : Double.POSITIVE_INFINITY;
-
-      gains.setPositionProportionalGains(kp, kp);
-      gains.setPositionDampingRatio(zetaXYZ);
-      gains.setPositionMaxFeedbackAndFeedbackRate(maxLinearAcceleration, maxLinearJerk);
-      gains.setOrientationProportionalGains(kpXYOrientation, kpZOrientation);
-      gains.setOrientationDampingRatio(zetaOrientation);
-      gains.setOrientationMaxFeedbackAndFeedbackRate(maxAngularAcceleration, maxAngularJerk);
-      gains.createDerivativeGainUpdater(true);
-
-      return gains;
-   }
-
-   @Override
-   public double getSwingHeightMaxForPushRecoveryTrajectory()
-   {
-      return 0.12 * jointMap.getModelScale();
+      return new DefaultYoPIDSE3Gains("ToeOffFoot", gains, registry);
    }
 
    public double getSwingMaxHeightForPushRecoveryTrajectory()
@@ -1085,120 +726,6 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
    public double getDefaultSwingTime()
    {
       return (runningOnRealRobot ? 1.2 : 0.60); //Math.sqrt(jointMap.getModelScale()) *
-   }
-
-   /** @inheritDoc */
-   @Override
-   public double getSpineYawLimit()
-   {
-      return spineYawLimit;
-   }
-
-   /** @inheritDoc */
-   @Override
-   public double getSpinePitchUpperLimit()
-   {
-      return spinePitchUpperLimit;
-   }
-
-   /** @inheritDoc */
-   @Override
-   public double getSpinePitchLowerLimit()
-   {
-      return spinePitchLowerLimit;
-   }
-
-   /** @inheritDoc */
-   @Override
-   public double getSpineRollLimit()
-   {
-      return spineRollLimit;
-   }
-
-   /** @inheritDoc */
-   @Override
-   public boolean isSpinePitchReversed()
-   {
-      return false;
-   }
-
-   @Override
-   public double getFootWidth()
-   {
-      return jointMap.getPhysicalProperties().getFootWidthForControl();
-   }
-
-   @Override
-   public double getToeWidth()
-   {
-      return jointMap.getPhysicalProperties().getToeWidthForControl();
-   }
-
-   @Override
-   public double getFootLength()
-   {
-      return jointMap.getPhysicalProperties().getFootLengthForControl();
-   }
-
-   @Override
-   public double getActualFootWidth()
-   {
-      return jointMap.getPhysicalProperties().getActualFootWidth();
-   }
-
-   @Override
-   public double getActualFootLength()
-   {
-      return jointMap.getPhysicalProperties().getActualFootLength();
-   }
-
-   @Override
-   public double getFootstepArea()
-   {
-      return (getToeWidth() + getFootWidth()) * getFootLength() / 2.0;
-   }
-
-   @Override
-   public double getFoot_start_toetaper_from_back()
-   {
-      return jointMap.getPhysicalProperties().getFootStartToetaperFromBack();
-   }
-
-   @Override
-   public double getSideLengthOfBoundingBoxForFootstepHeight()
-   {
-      return (1 + 0.3) * 2 * Math.sqrt(getFootForwardOffset() * getFootForwardOffset() + 0.25 * getFootWidth() * getFootWidth());
-   }
-
-   @Override
-   public SideDependentList<RigidBodyTransform> getDesiredHandPosesWithRespectToChestFrame()
-   {
-      return handPosesWithRespectToChestFrame;
-   }
-
-   @Override
-   public double getDesiredTouchdownHeightOffset()
-   {
-      return 0;
-   }
-
-   @Override
-   public double getDesiredTouchdownVelocity()
-   {
-      return jointMap.getModelScale() * -0.3;
-   }
-
-   @Override
-   public double getDesiredTouchdownAcceleration()
-   {
-      switch (target)
-      {
-         case SCS:
-            return jointMap.getModelScale() * -2.0;
-
-         default :
-            return jointMap.getModelScale() * -1.0;
-      }
    }
 
    @Override
@@ -1245,9 +772,9 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
    }
 
    @Override
-   public boolean doFancyOnToesControl()
+   public ICPAngularMomentumModifierParameters getICPAngularMomentumModifierParameters()
    {
-      return !runningOnRealRobot;
+      return angularMomentumModifierParameters;
    }
 
    @Override
@@ -1278,30 +805,6 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
    public boolean finishSingleSupportWhenICPPlannerIsDone()
    {
       return false;
-   }
-
-   @Override
-   public double pelvisToAnkleThresholdForWalking()
-   {
-      return 0.623;
-   }
-
-   @Override
-   public boolean controlHeadAndHandsWithSliders()
-   {
-      return false;
-   }
-
-   @Override
-   public SideDependentList<LinkedHashMap<String, ImmutablePair<Double, Double>>> getSliderBoardControlledFingerJointsWithLimits()
-   {
-      return new SideDependentList<LinkedHashMap<String, ImmutablePair<Double,Double>>>();
-   }
-
-   @Override
-   public LinkedHashMap<NeckJointName, ImmutablePair<Double, Double>> getSliderBoardControlledNeckJointsWithLimits()
-   {
-      return new LinkedHashMap<NeckJointName, ImmutablePair<Double,Double>>();
    }
 
    /** {@inheritDoc} */
@@ -1338,25 +841,6 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
       return 0.06 * jointMap.getModelScale();
    }
 
-   @Override
-   public void useInverseDynamicsControlCore()
-   {
-      // once another mode is implemented, use this to change the default gains for inverse dynamics
-   }
-
-   @Override
-   public void useVirtualModelControlCore()
-   {
-      // once another mode is implemented, use this to change the default gains for virtual model control
-   }
-
-   /** {@inheritDoc} */
-   @Override
-   public boolean useSupportState()
-   {
-      return true;
-   }
-
    /** {@inheritDoc} */
    @Override
    public boolean useCenterOfMassVelocityFromEstimator()
@@ -1388,13 +872,6 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
 
    /** {@inheritDoc} */
    @Override
-   public double getSwingFootVelocityAdjustmentDamping()
-   {
-      return runningOnRealRobot ? 0.8 : 0.5; // Robert: 0.8
-   }
-
-   /** {@inheritDoc} */
-   @Override
    public boolean controlToeDuringSwing()
    {
       return true;
@@ -1409,9 +886,9 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
 
    /** {@inheritDoc} */
    @Override
-   public StraightLegWalkingParameters getStraightLegWalkingParameters()
+   public LegConfigurationParameters getLegConfigurationParameters()
    {
-      return straightLegWalkingParameters;
+      return legConfigurationParameters;
    }
 
    /** {@inheritDoc} */
@@ -1423,8 +900,42 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
 
    /** {@inheritDoc} */
    @Override
-   public double getICPPercentOfStanceForDSToeOff()
+   public ToeOffParameters getToeOffParameters()
    {
-      return 0.05; // JCarff ToeOff
+      return toeOffParameters;
+   }
+
+   /** {@inheritDoc} */
+   @Override
+   public SwingTrajectoryParameters getSwingTrajectoryParameters()
+   {
+      return swingTrajectoryParameters;
+   }
+
+   /** {@inheritDoc} */
+   @Override
+   public ICPOptimizationParameters getICPOptimizationParameters()
+   {
+      return icpOptimizationParameters;
+   }
+
+   /** {@inheritDoc} */
+   @Override
+   public SteppingParameters getSteppingParameters()
+   {
+      return steppingParameters;
+   }
+
+   /** {@inheritDoc} */
+   @Override
+   public LeapOfFaithParameters getLeapOfFaithParameters()
+   {
+      return leapOfFaithParameters;
+   }
+
+   @Override
+   public boolean alwaysAllowMomentum()
+   {
+      return false;
    }
 }

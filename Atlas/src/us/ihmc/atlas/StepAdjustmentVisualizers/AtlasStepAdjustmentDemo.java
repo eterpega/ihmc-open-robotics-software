@@ -4,7 +4,7 @@ import us.ihmc.atlas.AtlasRobotModel;
 import us.ihmc.atlas.AtlasRobotVersion;
 import us.ihmc.atlas.parameters.AtlasICPOptimizationParameters;
 import us.ihmc.atlas.parameters.AtlasWalkingControllerParameters;
-import us.ihmc.avatar.drcRobot.DRCRobotModel;
+import us.ihmc.avatar.drcRobot.RobotTarget;
 import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParameters;
 import us.ihmc.commonWalkingControlModules.instantaneousCapturePoint.icpOptimization.ICPOptimizationParameters;
 import us.ihmc.commons.PrintTools;
@@ -31,7 +31,7 @@ public class AtlasStepAdjustmentDemo
 
    public AtlasStepAdjustmentDemo(StepScriptType stepScriptType, TestType testType, PushDirection pushDirection)
    {
-      AtlasRobotModel robotModel = new AtlasRobotModel(AtlasRobotVersion.ATLAS_UNPLUGGED_V5_NO_HANDS, DRCRobotModel.RobotTarget.SCS, false)
+      AtlasRobotModel robotModel = new AtlasRobotModel(AtlasRobotVersion.ATLAS_UNPLUGGED_V5_NO_HANDS, RobotTarget.SCS, false)
       {
          @Override
          public WalkingControllerParameters getWalkingControllerParameters()
@@ -1278,7 +1278,7 @@ public class AtlasStepAdjustmentDemo
 
    public AtlasStepAdjustmentDemo(StepScriptType stepScriptType, TestType testType, PushDirection pushDirection, double percentWeight, boolean showGui)
    {
-      this(new AtlasRobotModel(AtlasRobotVersion.ATLAS_UNPLUGGED_V5_NO_HANDS, DRCRobotModel.RobotTarget.SCS, false)
+      this(new AtlasRobotModel(AtlasRobotVersion.ATLAS_UNPLUGGED_V5_NO_HANDS, RobotTarget.SCS, false)
       {
          @Override
          public WalkingControllerParameters getWalkingControllerParameters()
@@ -1320,37 +1320,37 @@ public class AtlasStepAdjustmentDemo
                   return 0.4;
                }
 
-            };
-         }
-
-         @Override
-         public ICPOptimizationParameters getICPOptimizationParameters()
-         {
-            return new AtlasICPOptimizationParameters(false)
-            {
-               public boolean useAngularMomentum()
+               @Override
+               public ICPOptimizationParameters getICPOptimizationParameters()
                {
-                  switch (testType)
+                  return new AtlasICPOptimizationParameters(false)
                   {
-                  case ADJUSTMENT_WITH_ANGULAR:
-                  case SPEED_UP_ADJUSTMENT_WITH_ANGULAR:
-                  case TIMING_WITH_ANGULAR:
-                     return true;
-                  default:
-                     return false;
-                  }
-               }
+                     public boolean useAngularMomentum()
+                     {
+                        switch (testType)
+                        {
+                        case ADJUSTMENT_WITH_ANGULAR:
+                        case SPEED_UP_ADJUSTMENT_WITH_ANGULAR:
+                        case TIMING_WITH_ANGULAR:
+                           return true;
+                        default:
+                           return false;
+                        }
+                     }
 
-               public boolean useTimingOptimization()
-               {
-                  switch (testType)
-                  {
-                  case TIMING:
-                  case TIMING_WITH_ANGULAR:
-                     return true;
-                  default:
-                     return false;
-                  }
+                     public boolean useTimingOptimization()
+                     {
+                        switch (testType)
+                        {
+                        case TIMING:
+                        case TIMING_WITH_ANGULAR:
+                           return true;
+                        default:
+                           return false;
+                        }
+                     }
+
+                  };
                }
 
             };

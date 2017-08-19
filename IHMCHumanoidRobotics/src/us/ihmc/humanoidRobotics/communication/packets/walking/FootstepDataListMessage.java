@@ -11,6 +11,7 @@ import us.ihmc.communication.packets.QueueableMessage;
 import us.ihmc.communication.packets.VisualizablePacket;
 import us.ihmc.communication.ros.generators.RosExportedField;
 import us.ihmc.communication.ros.generators.RosMessagePacket;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.humanoidRobotics.communication.TransformableDataObject;
@@ -19,7 +20,6 @@ import us.ihmc.humanoidRobotics.communication.packets.ExecutionTiming;
 import us.ihmc.humanoidRobotics.communication.packets.PacketValidityChecker;
 import us.ihmc.robotics.MathTools;
 import us.ihmc.robotics.geometry.FrameOrientation;
-import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
 
 @RosMessagePacket(documentation =
@@ -60,6 +60,9 @@ public class FootstepDataListMessage extends QueueableMessage<FootstepDataListMe
 
    /** If{@code false} the controller adjust each footstep height to be at the support sole height. */
    public boolean trustHeightOfFootsteps = true;
+
+   /** If {@code true} the controller will adjust upcoming footsteps with the location error of previous steps. */
+   public boolean offsetFootstepsWithExecutionError = false;
 
    /**
     * Empty constructor for serialization.
@@ -175,12 +178,12 @@ public class FootstepDataListMessage extends QueueableMessage<FootstepDataListMe
          }
       }
 
-      if (!MathTools.epsilonEquals(this.defaultSwingDuration, otherList.defaultSwingDuration, epsilon))
+      if (!MathTools.epsilonCompare(this.defaultSwingDuration, otherList.defaultSwingDuration, epsilon))
       {
          return false;
       }
 
-      if (!MathTools.epsilonEquals(this.defaultTransferDuration, otherList.defaultTransferDuration, epsilon))
+      if (!MathTools.epsilonCompare(this.defaultTransferDuration, otherList.defaultTransferDuration, epsilon))
       {
          return false;
       }
@@ -190,7 +193,12 @@ public class FootstepDataListMessage extends QueueableMessage<FootstepDataListMe
          return false;
       }
 
-      if (!MathTools.epsilonEquals(this.finalTransferDuration, otherList.finalTransferDuration, epsilon))
+      if (!MathTools.epsilonCompare(this.finalTransferDuration, otherList.finalTransferDuration, epsilon))
+      {
+         return false;
+      }
+
+      if (this.offsetFootstepsWithExecutionError != otherList.offsetFootstepsWithExecutionError)
       {
          return false;
       }
@@ -305,6 +313,16 @@ public class FootstepDataListMessage extends QueueableMessage<FootstepDataListMe
    public void setTrustHeightOfFootsteps(boolean trustHeight)
    {
       trustHeightOfFootsteps = trustHeight;
+   }
+
+   public void setOffsetFootstepsWithExecutionError(boolean offsetFootstepsWithExecutionError)
+   {
+      this.offsetFootstepsWithExecutionError = offsetFootstepsWithExecutionError;
+   }
+
+   public boolean isOffsetFootstepsWithExecutionError()
+   {
+      return offsetFootstepsWithExecutionError;
    }
 
    public FootstepDataListMessage(Random random)

@@ -3,6 +3,7 @@ package us.ihmc.commonWalkingControlModules.controlModules.pelvis;
 import java.util.ArrayList;
 import java.util.List;
 
+import us.ihmc.commonWalkingControlModules.configurations.LeapOfFaithParameters;
 import us.ihmc.commonWalkingControlModules.configurations.PelvisOffsetWhileWalkingParameters;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.feedbackController.FeedbackControlCommand;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.feedbackController.FeedbackControlCommandList;
@@ -13,7 +14,7 @@ import us.ihmc.humanoidRobotics.communication.controllerAPI.command.PelvisOrient
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.PelvisTrajectoryCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.StopAllTrajectoryCommand;
 import us.ihmc.humanoidRobotics.footstep.Footstep;
-import us.ihmc.robotics.controllers.YoOrientationPIDGainsInterface;
+import us.ihmc.robotics.controllers.pidGains.YoPID3DGains;
 import us.ihmc.robotics.geometry.FrameOrientation;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.screwTheory.SelectionMatrix3D;
@@ -37,8 +38,9 @@ public class PelvisOrientationManager
 
    private final FrameOrientation tempOrientation = new FrameOrientation();
 
-   public PelvisOrientationManager(YoOrientationPIDGainsInterface gains, PelvisOffsetWhileWalkingParameters pelvisOffsetWhileWalkingParameters,
-                                   HighLevelHumanoidControllerToolbox controllerToolbox, YoVariableRegistry parentRegistry)
+   public PelvisOrientationManager(YoPID3DGains gains, PelvisOffsetWhileWalkingParameters pelvisOffsetWhileWalkingParameters,
+                                   LeapOfFaithParameters leapOfFaithParameters, HighLevelHumanoidControllerToolbox controllerToolbox,
+                                   YoVariableRegistry parentRegistry)
    {
       parentRegistry.addChild(registry);
       YoDouble yoTime = controllerToolbox.getYoTime();
@@ -46,7 +48,7 @@ public class PelvisOrientationManager
       stateMachine = new GenericStateMachine<>(namePrefix + "State", namePrefix + "SwitchTime", PelvisOrientationControlMode.class, yoTime, registry);
       requestedState = new YoEnum<>(namePrefix + "RequestedControlMode", registry, PelvisOrientationControlMode.class, true);
 
-      walkingManager = new ControllerPelvisOrientationManager(gains, pelvisOffsetWhileWalkingParameters, controllerToolbox, registry);
+      walkingManager = new ControllerPelvisOrientationManager(gains, pelvisOffsetWhileWalkingParameters, leapOfFaithParameters, controllerToolbox, registry);
       userManager = new UserPelvisOrientationManager(gains, controllerToolbox, registry);
       setupStateMachine();
 
@@ -182,6 +184,16 @@ public class PelvisOrientationManager
    public void initializeTransfer(RobotSide transferToSide, double transferDuration, double swingDuration)
    {
       walkingManager.initializeTransfer(transferToSide, transferDuration, swingDuration);
+   }
+
+   public void initializeTrajectory()
+   {
+      walkingManager.updateTrajectoryFromFootstep();
+   }
+
+   public void updateTrajectoryFromFootstep()
+   {
+      walkingManager.updateTrajectoryFromFootstep();
    }
 
    public void setTrajectoryFromFootstep()
