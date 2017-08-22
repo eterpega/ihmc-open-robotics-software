@@ -8,6 +8,8 @@ import us.ihmc.robotics.controllers.ControllerFailureException;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class AtlasAutomatedStepAdjustmentDemo
 {
@@ -194,6 +196,17 @@ public class AtlasAutomatedStepAdjustmentDemo
       }
    }
 
+   private static void addControlTypeRowName(WritableSheet sheet, List<TestType> testTypes)
+   {
+      addStringToSheet(sheet, 0, 0, "Control Test Type");
+      int rowNumber = 1;
+      for (TestType testType : testTypes)
+      {
+         addStringToSheet(sheet, 0, rowNumber, testType.toString());
+         rowNumber++;
+      }
+   }
+
    private static void saveWorkbook(WritableWorkbook workbook, File workbookFile)
    {
       if (workbook != null)
@@ -226,7 +239,16 @@ public class AtlasAutomatedStepAdjustmentDemo
                             pushDirection + " is weight percent " + pushPercent + ".\n\n");
       */
 
-      /*
+      List<TestType> testTypes = new ArrayList<TestType>();
+      testTypes.add(TestType.BIG_ADJUSTMENT);
+      testTypes.add(TestType.ADJUSTMENT_ONLY);
+      testTypes.add(TestType.FEEDBACK_WITH_ANGULAR);
+      testTypes.add(TestType.ADJUSTMENT_WITH_ANGULAR);
+      testTypes.add(TestType.SPEED_UP_ADJUSTMENT_WITH_ANGULAR);
+
+
+
+
       StepScriptType stepScriptType = StepScriptType.FORWARD_FAST;
       File forwardFastFile = new File("/home/robert/StepAdjustmentForwardFast.xls");
       WritableWorkbook forwardFastWorkbook = createWorkbook(forwardFastFile);
@@ -234,13 +256,13 @@ public class AtlasAutomatedStepAdjustmentDemo
 
       // setup name headers
       addPushDirectionHeaders(forwardFastSheet);
-      addControlTypeRowName(forwardFastSheet);
+      addControlTypeRowName(forwardFastSheet, testTypes);
 
       int colNumber = 1;
       for (PushDirection pushDirection : PushDirection.values())
       {
          int rowNumber = 1;
-         for (TestType testType : TestType.values())
+         for (TestType testType : testTypes)
          {
             AtlasAutomatedStepAdjustmentDemo demo = new AtlasAutomatedStepAdjustmentDemo();
             double pushPercent = demo.computeMaxPushPercent(stepScriptType, testType, pushDirection);
@@ -251,7 +273,6 @@ public class AtlasAutomatedStepAdjustmentDemo
          colNumber++;
       }
       saveWorkbook(forwardFastWorkbook, forwardFastFile);
-      */
 
 
 
@@ -263,13 +284,13 @@ public class AtlasAutomatedStepAdjustmentDemo
 
       // setup name headers
       addPushDirectionHeaders(forwardSlowSheet);
-      addControlTypeRowName(forwardSlowSheet);
+      addControlTypeRowName(forwardSlowSheet, testTypes);
 
       int colNumber = 1;
       for (PushDirection pushDirection : PushDirection.values())
       {
          int rowNumber = 1;
-         for (TestType testType : TestType.values())
+         for (TestType testType : testTypes)
          {
             AtlasAutomatedStepAdjustmentDemo demo = new AtlasAutomatedStepAdjustmentDemo();
             double pushPercent = demo.computeMaxPushPercent(stepScriptType, testType, pushDirection);
@@ -293,13 +314,13 @@ public class AtlasAutomatedStepAdjustmentDemo
 
       // setup name headers
       addPushDirectionHeaders(stationaryFastSheet);
-      addControlTypeRowName(stationaryFastSheet);
+      addControlTypeRowName(stationaryFastSheet, testTypes);
 
       int colNumber = 1;
       for (PushDirection pushDirection : PushDirection.values())
       {
          int rowNumber = 1;
-         for (TestType testType : TestType.values())
+         for (TestType testType : testTypes)
          {
             AtlasAutomatedStepAdjustmentDemo demo = new AtlasAutomatedStepAdjustmentDemo();
             double pushPercent = demo.computeMaxPushPercent(stepScriptType, testType, pushDirection);
@@ -320,13 +341,13 @@ public class AtlasAutomatedStepAdjustmentDemo
 
       // setup name headers
       addPushDirectionHeaders(stationarySlowSheet);
-      addControlTypeRowName(stationarySlowSheet);
+      addControlTypeRowName(stationarySlowSheet, testTypes);
 
       int colNumber = 1;
       for (PushDirection pushDirection : PushDirection.values())
       {
          int rowNumber = 1;
-         for (TestType testType : TestType.values())
+         for (TestType testType : testTypes)
          {
             AtlasAutomatedStepAdjustmentDemo demo = new AtlasAutomatedStepAdjustmentDemo();
             double pushPercent = demo.computeMaxPushPercent(stepScriptType, testType, pushDirection);
