@@ -3,6 +3,7 @@ package us.ihmc.atlas.StepAdjustmentVisualizers;
 import us.ihmc.atlas.AtlasRobotModel;
 import us.ihmc.atlas.AtlasRobotVersion;
 import us.ihmc.atlas.parameters.AtlasICPOptimizationParameters;
+import us.ihmc.atlas.parameters.AtlasSimpleICPOptimizationParameters;
 import us.ihmc.atlas.parameters.AtlasWalkingControllerParameters;
 import us.ihmc.avatar.drcRobot.RobotTarget;
 import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParameters;
@@ -14,11 +15,11 @@ import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.stateMachines.conditionBasedStateMachine.StateTransitionCondition;
 import us.ihmc.simulationconstructionset.util.simulationRunner.BlockingSimulationRunner;
 
-public class AtlasStepAdjustmentDemo
+public class AtlasSimpleStepAdjustmentDemo
 {
    private static StepScriptType stepScriptType = StepScriptType.FORWARD_FAST;
-   private static TestType testType = TestType.ADJUSTMENT_WITH_ANGULAR;
-   private static PushDirection pushDirection = PushDirection.FORWARD_45;
+   private static TestType testType = TestType.FEEDBACK_ONLY;
+   private static PushDirection pushDirection = PushDirection.FORWARD_IN_30;
 
    private static String forwardFastScript = "scripts/stepAdjustment_forwardWalkingFast.xml";
    private static String forwardSlowScript = "scripts/stepAdjustment_forwardWalkingSlow.xml";
@@ -29,8 +30,56 @@ public class AtlasStepAdjustmentDemo
 
    private final StepAdjustmentDemoHelper stepAdjustmentDemo;
 
-   public AtlasStepAdjustmentDemo(StepScriptType stepScriptType, TestType testType, PushDirection pushDirection)
+   public AtlasSimpleStepAdjustmentDemo(StepScriptType stepScriptType, TestType testType, PushDirection pushDirection)
    {
+      AtlasRobotModel robotModel = new AtlasRobotModel(AtlasRobotVersion.ATLAS_UNPLUGGED_V5_NO_HANDS, RobotTarget.SCS, false)
+      {
+         @Override
+         public WalkingControllerParameters getWalkingControllerParameters()
+         {
+            return new AtlasWalkingControllerParameters(RobotTarget.SCS, getJointMap(), getContactPointParameters())
+            {
+               @Override
+               public boolean allowDisturbanceRecoveryBySpeedingUpSwing()
+               {
+                  switch (testType)
+                  {
+                  case FEEDBACK_ONLY:
+                  case ADJUSTMENT_ONLY:
+                     return false;
+                  default:
+                     return true;
+                  }
+               }
+
+               @Override
+               public boolean useOptimizationBasedICPController()
+               {
+                  switch (testType)
+                  {
+                  case FEEDBACK_ONLY:
+                  case SPEED_UP_ONLY:
+                     return false;
+                  default:
+                     return true;
+                  }
+               }
+
+               @Override
+               public double getMinimumSwingTimeForDisturbanceRecovery()
+               {
+                  switch (stepScriptType)
+                  {
+                  case FORWARD_FAST:
+                  case STATIONARY_FAST:
+                     return 0.5;
+                  default: // FORWARD_SLOW
+                     return 0.6;
+                  }
+               }
+            };
+         }
+      };
 
       String script;
       Vector3D forceDirection;
@@ -106,7 +155,7 @@ public class AtlasStepAdjustmentDemo
             switch (testType)
             {
             case BIG_ADJUSTMENT:
-               percentWeight = 1.62; //1.6;
+               percentWeight = 1.6;
                break;
             case ADJUSTMENT_ONLY:
                percentWeight = 0.86;
@@ -273,16 +322,13 @@ public class AtlasStepAdjustmentDemo
             switch (testType)
             {
             case BIG_ADJUSTMENT:
-               percentWeight = 1.58; //1.47;
+               percentWeight = 1.47;
                break;
             case ADJUSTMENT_ONLY:
                percentWeight = 0.92;
                break;
             case SPEED_UP_ONLY:
                percentWeight = 0.46;
-               break;
-            case ADJUSTMENT_WITH_ANGULAR:
-               percentWeight = 1.5; //1.35;
                break;
             default: // doesn't allow speed up or step adjustment
                percentWeight = 0.3;
@@ -779,10 +825,10 @@ public class AtlasStepAdjustmentDemo
             switch (testType)
             {
             case BIG_ADJUSTMENT:
-               percentWeight = 0.69;
+               percentWeight = 0.70;
                break;
             case ADJUSTMENT_ONLY:
-               percentWeight = 0.68;
+               percentWeight = 0.72;
                break;
             case SPEED_UP_ONLY:
                percentWeight = 0.33;
@@ -863,7 +909,7 @@ public class AtlasStepAdjustmentDemo
             switch (testType)
             {
             case BIG_ADJUSTMENT:
-               percentWeight = 1.43;
+               percentWeight = 1.56;
                break;
             case ADJUSTMENT_ONLY:
                percentWeight = 0.95;
@@ -1121,7 +1167,7 @@ public class AtlasStepAdjustmentDemo
                percentWeight = 1.01;
                break;
             case SPEED_UP_ONLY:
-               percentWeight = 1.15; //0.77;
+               percentWeight = 0.77;
                break;
             default: // doesn't allow speed up or step adjustment
                percentWeight = 0.83;
@@ -1201,10 +1247,10 @@ public class AtlasStepAdjustmentDemo
                percentWeight = 1.42;
                break;
             case ADJUSTMENT_ONLY:
-               percentWeight = 0.71; //0.83;
+               percentWeight = 0.83;
                break;
             case SPEED_UP_ONLY:
-               percentWeight = 0.40;
+               percentWeight = 0.36;
                break;
             default: // doesn't allow speed up or step adjustment
                percentWeight = 0.22;
@@ -1215,8 +1261,6 @@ public class AtlasStepAdjustmentDemo
          break;
       }
 
-
-      AtlasRobotModel robotModel = new TestRobotModel();
       stepAdjustmentDemo = new StepAdjustmentDemoHelper(robotModel, script);
 
       // push parameters:
@@ -1233,7 +1277,9 @@ public class AtlasStepAdjustmentDemo
       stepAdjustmentDemo.applyForceDelayed(pushCondition, delay, forceDirection, magnitude, duration);
    }
 
-   public AtlasStepAdjustmentDemo(StepScriptType stepScriptType, TestType testType, PushDirection pushDirection, double percentWeight, boolean showGui)
+
+   public AtlasSimpleStepAdjustmentDemo(StepScriptType stepScriptType, TestType testType, PushDirection pushDirection, double percentWeight,
+                                        boolean showGui)
    {
       AtlasRobotModel robotModel = new TestRobotModel();
       String script;
@@ -1338,7 +1384,7 @@ public class AtlasStepAdjustmentDemo
 
    public static void main(String[] args)
    {
-      AtlasStepAdjustmentDemo demo = new AtlasStepAdjustmentDemo(stepScriptType, testType, pushDirection);
+      AtlasSimpleStepAdjustmentDemo demo = new AtlasSimpleStepAdjustmentDemo(stepScriptType, testType, pushDirection);
 
       try
       {
@@ -1349,15 +1395,16 @@ public class AtlasStepAdjustmentDemo
       }
    }
 
-
    private class TestRobotModel extends AtlasRobotModel
    {
       private TestRobotModel()
       {
+
          super(AtlasRobotVersion.ATLAS_UNPLUGGED_V5_NO_HANDS, RobotTarget.SCS, false);
       }
 
-      @Override public WalkingControllerParameters getWalkingControllerParameters ()
+      @Override
+      public WalkingControllerParameters getWalkingControllerParameters()
       {
          return new AtlasWalkingControllerParameters(RobotTarget.SCS, getJointMap(), getContactPointParameters())
          {
@@ -1367,7 +1414,6 @@ public class AtlasStepAdjustmentDemo
                switch (testType)
                {
                case FEEDBACK_ONLY:
-               case FEEDBACK_WITH_ANGULAR:
                case ADJUSTMENT_ONLY:
                case ADJUSTMENT_WITH_ANGULAR:
                case TIMING:
@@ -1400,7 +1446,7 @@ public class AtlasStepAdjustmentDemo
             @Override
             public ICPOptimizationParameters getICPOptimizationParameters()
             {
-               return new AtlasICPOptimizationParameters(false)
+               return new AtlasSimpleICPOptimizationParameters(false)
                {
                   public boolean useAngularMomentum()
                   {
@@ -1409,7 +1455,6 @@ public class AtlasStepAdjustmentDemo
                      case ADJUSTMENT_WITH_ANGULAR:
                      case SPEED_UP_ADJUSTMENT_WITH_ANGULAR:
                      case TIMING_WITH_ANGULAR:
-                     case FEEDBACK_WITH_ANGULAR:
                         return true;
                      default:
                         return false;
@@ -1428,21 +1473,11 @@ public class AtlasStepAdjustmentDemo
                      }
                   }
 
-                  public boolean useStepAdjustment()
-                  {
-                     switch (testType)
-                     {
-                     case FEEDBACK_WITH_ANGULAR:
-                        return false;
-                     default:
-                        return true;
-                     }
-                  }
-
                };
             }
 
          };
       }
    }
+
 }
