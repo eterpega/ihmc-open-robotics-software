@@ -18,7 +18,7 @@ public class ControllerDataForEstimatorHolder
 {
    // Do not use FramePoint here, as HumanoidReferenceFrames are not shared between controller/estimator
    private final Map<String, Point2D> centerOfPressure = new HashMap<String, Point2D>();
-   private AtomicReference<RobotMotionStatus> robotMotionStatus = new AtomicReference<RobotMotionStatus>(null);
+   private RobotMotionStatus robotMotionStatus = null;
 
    private final List<RigidBody> controllerFeet;
    private final List<RigidBody> estimatorFeet;
@@ -61,8 +61,10 @@ public class ControllerDataForEstimatorHolder
          estimatorCenterOfPressureDataHolder.setCenterOfPressure(centerOfPressure.get(foot.getName()), foot);
       }
 
-      if (robotMotionStatus.get() != null)
-         estimatorRobotMotionStatusHolder.setCurrentRobotMotionStatus(robotMotionStatus.getAndSet(null));
+      if(robotMotionStatus != null)
+      {
+         estimatorRobotMotionStatusHolder.setCurrentRobotMotionStatus(robotMotionStatus);
+      }
       
       intermediateDesiredJointDataHolder.readIntoEstimator();
    }
@@ -75,7 +77,7 @@ public class ControllerDataForEstimatorHolder
          controllerCenterOfPressureDataHolder.getCenterOfPressureByName(centerOfPressure.get(foot.getName()), foot);
       }
 
-      robotMotionStatus.set(controllerRobotMotionStatusHolder.getCurrentRobotMotionStatus());
+      robotMotionStatus = controllerRobotMotionStatusHolder.getCurrentRobotMotionStatus();
 
       intermediateDesiredJointDataHolder.copyFromController();
    }
