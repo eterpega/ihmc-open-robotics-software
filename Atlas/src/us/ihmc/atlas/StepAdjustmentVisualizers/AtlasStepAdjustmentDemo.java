@@ -17,8 +17,8 @@ import us.ihmc.simulationconstructionset.util.simulationRunner.BlockingSimulatio
 public class AtlasStepAdjustmentDemo
 {
    private static StepScriptType stepScriptType = StepScriptType.FORWARD_FAST;
-   private static TestType testType = TestType.ADJUSTMENT_WITH_ANGULAR;
-   private static PushDirection pushDirection = PushDirection.FORWARD_45;
+   private static TestType testType = TestType.FEEDBACK_WITH_ANGULAR;
+   private static PushDirection pushDirection = PushDirection.FORWARD;
 
    private static String forwardFastScript = "scripts/stepAdjustment_forwardWalkingFast.xml";
    private static String forwardSlowScript = "scripts/stepAdjustment_forwardWalkingSlow.xml";
@@ -106,10 +106,13 @@ public class AtlasStepAdjustmentDemo
             switch (testType)
             {
             case BIG_ADJUSTMENT:
-               percentWeight = 1.62; //1.6;
+               percentWeight = 1.25; //1.6;
+               break;
+            case SPEED_UP_ADJUSTMENT_WITH_ANGULAR:
+               percentWeight = 1.6;
                break;
             case ADJUSTMENT_ONLY:
-               percentWeight = 0.86;
+               percentWeight = 0.93; // 0.92;
                break;
             case SPEED_UP_ONLY:
                percentWeight = 0.62;
@@ -191,11 +194,17 @@ public class AtlasStepAdjustmentDemo
             case BIG_ADJUSTMENT:
                percentWeight = 1.85;
                break;
+            case SPEED_UP_ADJUSTMENT_WITH_ANGULAR:
+               percentWeight = 1.95;//1.9;
+               break;
             case ADJUSTMENT_ONLY:
                percentWeight = 1.54;
                break;
             case SPEED_UP_ONLY:
                percentWeight = 0.86;
+               break;
+            case TIMING_WITH_ANGULAR:
+               percentWeight = 1.07;
                break;
             default: // doesn't allow speed up or step adjustment
                percentWeight = 0.86;
@@ -273,10 +282,16 @@ public class AtlasStepAdjustmentDemo
             switch (testType)
             {
             case BIG_ADJUSTMENT:
-               percentWeight = 1.58; //1.47;
+               percentWeight = 1.57;
+               break;
+            case SPEED_UP_ADJUSTMENT_WITH_ANGULAR:
+               percentWeight = 1.85;
                break;
             case ADJUSTMENT_ONLY:
-               percentWeight = 0.92;
+               percentWeight = 1.34;
+               break;
+            case TIMING_WITH_ANGULAR:
+               percentWeight = 0.77;//0.75;
                break;
             case SPEED_UP_ONLY:
                percentWeight = 0.46;
@@ -360,10 +375,13 @@ public class AtlasStepAdjustmentDemo
             switch (testType)
             {
             case BIG_ADJUSTMENT:
-               percentWeight = 1.35;
+               percentWeight = 1.47;
+               break;
+            case SPEED_UP_ADJUSTMENT_WITH_ANGULAR:
+               percentWeight = 1.54;
                break;
             case ADJUSTMENT_ONLY:
-               percentWeight = 0.94;
+               percentWeight = 0.87;//0.9;
                break;
             case SPEED_UP_ONLY:
                percentWeight = 0.39;
@@ -445,6 +463,9 @@ public class AtlasStepAdjustmentDemo
             {
             case BIG_ADJUSTMENT:
                percentWeight = 1.46;
+               break;
+            case SPEED_UP_ADJUSTMENT_WITH_ANGULAR:
+               percentWeight = 1.67;
                break;
             case ADJUSTMENT_ONLY:
                percentWeight = 1.12;
@@ -528,7 +549,10 @@ public class AtlasStepAdjustmentDemo
             switch (testType)
             {
             case BIG_ADJUSTMENT:
-               percentWeight = 1.52;
+               percentWeight = 1.42;
+               break;
+            case SPEED_UP_ADJUSTMENT_WITH_ANGULAR:
+               percentWeight = 1.47;
                break;
             case ADJUSTMENT_ONLY:
                percentWeight = 0.9;
@@ -612,6 +636,9 @@ public class AtlasStepAdjustmentDemo
             {
             case BIG_ADJUSTMENT:
                percentWeight = 0.43;
+               break;
+            case SPEED_UP_ADJUSTMENT_WITH_ANGULAR:
+               percentWeight = 0.46;
                break;
             case ADJUSTMENT_ONLY:
                percentWeight = 0.42;
@@ -697,11 +724,14 @@ public class AtlasStepAdjustmentDemo
             case BIG_ADJUSTMENT:
                percentWeight = 0.54;
                break;
-            case ADJUSTMENT_ONLY:
+            case SPEED_UP_ADJUSTMENT_WITH_ANGULAR:
                percentWeight = 0.54;
                break;
+            case ADJUSTMENT_ONLY:
+               percentWeight = 0.51;//0.54;
+               break;
             case SPEED_UP_ONLY:
-               percentWeight = 0.3;
+               percentWeight = 0.28;
                break;
             default: // doesn't allow speed up or step adjustment
                percentWeight = 0.31;
@@ -779,7 +809,7 @@ public class AtlasStepAdjustmentDemo
             switch (testType)
             {
             case BIG_ADJUSTMENT:
-               percentWeight = 0.69;
+               percentWeight = 0.61;
                break;
             case ADJUSTMENT_ONLY:
                percentWeight = 0.68;
@@ -865,6 +895,9 @@ public class AtlasStepAdjustmentDemo
             case BIG_ADJUSTMENT:
                percentWeight = 1.43;
                break;
+            case SPEED_UP_ADJUSTMENT_WITH_ANGULAR:
+               percentWeight = 1.72;
+               break;
             case ADJUSTMENT_ONLY:
                percentWeight = 0.95;
                break;
@@ -947,7 +980,10 @@ public class AtlasStepAdjustmentDemo
             switch (testType)
             {
             case BIG_ADJUSTMENT:
-               percentWeight = 1.95;
+               percentWeight = 1.86;
+               break;
+            case SPEED_UP_ADJUSTMENT_WITH_ANGULAR:
+               percentWeight = 2.05;//2.0;
                break;
             case ADJUSTMENT_ONLY:
                percentWeight = 1.45;
@@ -1033,6 +1069,9 @@ public class AtlasStepAdjustmentDemo
             case BIG_ADJUSTMENT:
                percentWeight = 0.69;
                break;
+            case SPEED_UP_ADJUSTMENT_WITH_ANGULAR:
+               percentWeight = 0.75;
+               break;
             case ADJUSTMENT_ONLY:
                percentWeight = 0.62;
                break;
@@ -1117,6 +1156,9 @@ public class AtlasStepAdjustmentDemo
             case BIG_ADJUSTMENT:
                percentWeight = 1.04;
                break;
+            case SPEED_UP_ADJUSTMENT_WITH_ANGULAR:
+               percentWeight = 1.15;
+               break;
             case ADJUSTMENT_ONLY:
                percentWeight = 1.01;
                break;
@@ -1198,10 +1240,13 @@ public class AtlasStepAdjustmentDemo
             switch (testType)
             {
             case BIG_ADJUSTMENT:
-               percentWeight = 1.42;
+               percentWeight = 1.37;
+               break;
+            case SPEED_UP_ADJUSTMENT_WITH_ANGULAR:
+               percentWeight = 1.47;
                break;
             case ADJUSTMENT_ONLY:
-               percentWeight = 0.71; //0.83;
+               percentWeight = 0.71;
                break;
             case SPEED_UP_ONLY:
                percentWeight = 0.40;
@@ -1216,7 +1261,7 @@ public class AtlasStepAdjustmentDemo
       }
 
 
-      AtlasRobotModel robotModel = new TestRobotModel();
+      AtlasRobotModel robotModel = new TestRobotModel(testType);
       stepAdjustmentDemo = new StepAdjustmentDemoHelper(robotModel, script);
 
       // push parameters:
@@ -1235,7 +1280,7 @@ public class AtlasStepAdjustmentDemo
 
    public AtlasStepAdjustmentDemo(StepScriptType stepScriptType, TestType testType, PushDirection pushDirection, double percentWeight, boolean showGui)
    {
-      AtlasRobotModel robotModel = new TestRobotModel();
+      AtlasRobotModel robotModel = new TestRobotModel(testType);
       String script;
       switch (stepScriptType)
       {
@@ -1352,9 +1397,12 @@ public class AtlasStepAdjustmentDemo
 
    private class TestRobotModel extends AtlasRobotModel
    {
-      private TestRobotModel()
+      private TestType testType;
+      private TestRobotModel(TestType testType)
       {
          super(AtlasRobotVersion.ATLAS_UNPLUGGED_V5_NO_HANDS, RobotTarget.SCS, false);
+
+         this.testType = testType;
       }
 
       @Override public WalkingControllerParameters getWalkingControllerParameters ()

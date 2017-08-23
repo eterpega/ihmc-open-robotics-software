@@ -240,17 +240,17 @@ public class AtlasAutomatedStepAdjustmentDemo
       */
 
       List<TestType> testTypes = new ArrayList<TestType>();
-      testTypes.add(TestType.BIG_ADJUSTMENT);
-      testTypes.add(TestType.ADJUSTMENT_ONLY);
+      //testTypes.add(TestType.BIG_ADJUSTMENT);
+      //testTypes.add(TestType.ADJUSTMENT_ONLY);
       testTypes.add(TestType.FEEDBACK_WITH_ANGULAR);
-      testTypes.add(TestType.ADJUSTMENT_WITH_ANGULAR);
-      testTypes.add(TestType.SPEED_UP_ADJUSTMENT_WITH_ANGULAR);
+      //testTypes.add(TestType.ADJUSTMENT_WITH_ANGULAR);
+      //testTypes.add(TestType.SPEED_UP_ADJUSTMENT_WITH_ANGULAR);
 
 
 
 
       StepScriptType stepScriptType = StepScriptType.FORWARD_FAST;
-      File forwardFastFile = new File("/home/robert/StepAdjustmentForwardFast.xls");
+      File forwardFastFile = new File("/home/robert/ForwardFastFeedbackAngular.xls");
       WritableWorkbook forwardFastWorkbook = createWorkbook(forwardFastFile);
       WritableSheet forwardFastSheet = forwardFastWorkbook.createSheet(stepScriptType.toString(), forwardFastWorkbook.getNumberOfSheets());
 
@@ -305,8 +305,8 @@ public class AtlasAutomatedStepAdjustmentDemo
 
 
 
-
       /*
+
       StepScriptType stepScriptType = StepScriptType.STATIONARY_FAST;
       File stationaryFastFile = new File("/home/robert/StepAdjustmentStationaryFast.xls");
       WritableWorkbook stationaryFastWorkbook = createWorkbook(stationaryFastFile);
