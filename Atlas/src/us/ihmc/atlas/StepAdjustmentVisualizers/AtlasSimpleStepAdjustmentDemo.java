@@ -18,7 +18,7 @@ public class AtlasSimpleStepAdjustmentDemo
 {
    private static StepScriptType stepScriptType = StepScriptType.FORWARD_FAST;
    private static TestType testType = TestType.BIG_ADJUSTMENT;
-   private static PushDirection pushDirection = PushDirection.FORWARD;
+   private static PushDirection pushDirection = PushDirection.FORWARD_IN_45;
 
    private static String forwardFastScript = "scripts/stepAdjustment_forwardWalkingFast.xml";
    private static String forwardSlowScript = "scripts/stepAdjustment_forwardWalkingSlow.xml";
@@ -31,7 +31,7 @@ public class AtlasSimpleStepAdjustmentDemo
 
    public AtlasSimpleStepAdjustmentDemo(StepScriptType stepScriptType, TestType testType, PushDirection pushDirection)
    {
-      TestRobotModel robotModel = new TestRobotModel();
+      TestRobotModel robotModel = new TestRobotModel(testType);
 
       String script;
       Vector3D forceDirection;
@@ -1239,7 +1239,7 @@ public class AtlasSimpleStepAdjustmentDemo
    public AtlasSimpleStepAdjustmentDemo(StepScriptType stepScriptType, TestType testType, PushDirection pushDirection, double percentWeight,
                                         boolean showGui)
    {
-      AtlasRobotModel robotModel = new TestRobotModel();
+      AtlasRobotModel robotModel = new TestRobotModel(testType);
       String script;
       switch (stepScriptType)
       {
@@ -1355,10 +1355,12 @@ public class AtlasSimpleStepAdjustmentDemo
 
    private class TestRobotModel extends AtlasRobotModel
    {
-      private TestRobotModel()
+      private final TestType testType;
+      private TestRobotModel(TestType testType)
       {
-
          super(AtlasRobotVersion.ATLAS_UNPLUGGED_V5_NO_HANDS, RobotTarget.SCS, false);
+
+         this.testType = testType;
       }
 
       @Override

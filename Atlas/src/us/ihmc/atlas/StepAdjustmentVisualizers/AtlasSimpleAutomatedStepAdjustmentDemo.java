@@ -246,7 +246,6 @@ public class AtlasSimpleAutomatedStepAdjustmentDemo
       testTypes.add(TestType.ADJUSTMENT_WITH_ANGULAR);
       testTypes.add(TestType.BIG_ADJUSTMENT);
       testTypes.add(TestType.SPEED_UP_ADJUSTMENT_WITH_ANGULAR);
-      /*
 
       StepScriptType stepScriptType = StepScriptType.FORWARD_FAST;
       File forwardFastFile = new File("/home/robert/Simple_StepAdjustmentForwardFast.xls");
@@ -272,11 +271,9 @@ public class AtlasSimpleAutomatedStepAdjustmentDemo
          colNumber++;
       }
       saveWorkbook(forwardFastWorkbook, forwardFastFile);
-      */
 
 
-
-
+      /*
       StepScriptType stepScriptType = StepScriptType.FORWARD_SLOW;
       File forwardSlowFile = new File("/home/robert/Simple_StepAdjustmentForwardSlow.xls");
       WritableWorkbook forwardSlowWorkbook = createWorkbook(forwardSlowFile);
@@ -301,6 +298,7 @@ public class AtlasSimpleAutomatedStepAdjustmentDemo
          colNumber++;
       }
       saveWorkbook(forwardSlowWorkbook, forwardSlowFile);
+      */
 
 
 
