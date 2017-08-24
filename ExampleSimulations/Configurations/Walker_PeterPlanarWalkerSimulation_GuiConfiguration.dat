@@ -18,7 +18,7 @@
 <Title>
 Tab0
 </Title>
-<Entry Boxes>desiredBodyVelocity</Entry Boxes>
+<Entry Boxes></Entry Boxes>
 </EntryBoxTab>
 </Entry Boxes Tab Pane>
 
@@ -37,9 +37,9 @@ Tab0
 
 <Current View>Normal View</Current View>
  <Canvas 1> 
- <Camera X>0.0</Camera X>
- <Camera Y>-18.05066412738758</Camera Y>
- <Camera Z>1.8033776084925053</Camera Z>
+ <Camera X>-0.8407644867357322</Camera X>
+ <Camera Y>-5.6985070956697195</Camera Y>
+ <Camera Z>2.3263058704775457</Camera Z>
  <Dolly data> 
  <Position X>2.0</Position X>
  <Position Y>12.0</Position Y>
