@@ -6,7 +6,7 @@ import java.util.List;
 
 import javax.swing.event.ChangeListener;
 
-import us.ihmc.graphicsDescription.graphInterfaces.SelectedVariableHolder;
+import us.ihmc.yoGraphs.graphInterfaces.SelectedVariableHolder;
 import us.ihmc.yoVariables.variable.YoVariable;
 import us.ihmc.yoVariables.variable.YoVariableList;
 import us.ihmc.simulationconstructionset.gui.EventDispatchThreadHelper;

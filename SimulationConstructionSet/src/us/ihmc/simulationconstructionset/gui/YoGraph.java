@@ -4,8 +4,8 @@ import javafx.application.Platform;
 import us.ihmc.yoVariables.dataBuffer.DataEntry;
 import us.ihmc.yoVariables.dataBuffer.DataEntryHolder;
 import us.ihmc.yoVariables.dataBuffer.TimeDataHolder;
-import us.ihmc.graphicsDescription.graphInterfaces.GraphIndicesHolder;
-import us.ihmc.graphicsDescription.graphInterfaces.SelectedVariableHolder;
+import us.ihmc.yoGraphs.graphInterfaces.GraphIndicesHolder;
+import us.ihmc.yoGraphs.graphInterfaces.SelectedVariableHolder;
 import us.ihmc.yoVariables.registry.NameSpace;
 import us.ihmc.yoVariables.variable.YoVariable;
 import us.ihmc.simulationconstructionset.GraphConfiguration;
@@ -362,7 +362,7 @@ public class YoGraph extends JPanel implements MouseListener, MouseMotionListene
 
         for (int i = 0; i < numVars; i++) {
             DataEntry entry = entriesOnThisGraph.get(i);
-            ret = (ret || entry.minMaxChanged());
+            ret = (ret || entry.hasMinMaxChanged());
         }
 
         return ret;

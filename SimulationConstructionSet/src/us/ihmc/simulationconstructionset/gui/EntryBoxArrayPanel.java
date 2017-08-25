@@ -10,7 +10,7 @@ import java.util.TimerTask;
 
 import javax.swing.JPanel;
 
-import us.ihmc.graphicsDescription.graphInterfaces.SelectedVariableHolder;
+import us.ihmc.yoGraphs.graphInterfaces.SelectedVariableHolder;
 import us.ihmc.yoVariables.variable.YoVariable;
 
 
