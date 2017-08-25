@@ -2,7 +2,7 @@ package us.ihmc.simulationconstructionset.gui;
 
 import java.util.ArrayList;
 
-import us.ihmc.graphicsDescription.graphInterfaces.GraphIndicesHolder;
+import us.ihmc.yoGraphs.graphInterfaces.GraphIndicesHolder;
 
 public class MinimalGraphIndicesHolder implements GraphIndicesHolder
 {
