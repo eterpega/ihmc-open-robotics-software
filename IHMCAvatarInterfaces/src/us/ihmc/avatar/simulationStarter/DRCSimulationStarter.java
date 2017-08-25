@@ -16,7 +16,7 @@ import us.ihmc.avatar.initialSetup.DRCSCSInitialSetup;
 import us.ihmc.avatar.initialSetup.OffsetAndYawRobotInitialSetup;
 import us.ihmc.avatar.networkProcessor.DRCNetworkModuleParameters;
 import us.ihmc.avatar.networkProcessor.DRCNetworkProcessor;
-import us.ihmc.commonWalkingControlModules.configurations.CapturePointPlannerParameters;
+import us.ihmc.commonWalkingControlModules.configurations.ICPWithTimeFreezingPlannerParameters;
 import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParameters;
 import us.ihmc.commonWalkingControlModules.desiredHeadingAndVelocity.HeadingAndVelocityEvaluationScriptParameters;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.ContactableBodiesFactory;
@@ -29,6 +29,7 @@ import us.ihmc.communication.controllerAPI.command.Command;
 import us.ihmc.communication.net.LocalObjectCommunicator;
 import us.ihmc.communication.packetCommunicator.PacketCommunicator;
 import us.ihmc.communication.packets.PacketDestination;
+import us.ihmc.communication.producers.VideoDataServerImageCallback;
 import us.ihmc.communication.util.NetworkPorts;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
@@ -40,6 +41,7 @@ import us.ihmc.humanoidRobotics.communication.streamingData.HumanoidGlobalDataPr
 import us.ihmc.humanoidRobotics.communication.subscribers.PelvisPoseCorrectionCommunicatorInterface;
 import us.ihmc.humanoidRobotics.kryo.IHMCCommunicationKryoNetClassList;
 import us.ihmc.jMonkeyEngineToolkit.Graphics3DAdapter;
+import us.ihmc.jMonkeyEngineToolkit.GroundProfile3D;
 import us.ihmc.jMonkeyEngineToolkit.camera.CameraConfiguration;
 import us.ihmc.robotDataVisualizer.logger.BehaviorVisualizer;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
@@ -99,8 +101,7 @@ public class DRCSimulationStarter implements SimulationStarterInterface
    private boolean setupControllerNetworkSubscriber = true;
 
    private final WalkingControllerParameters walkingControllerParameters;
-   private final CapturePointPlannerParameters capturePointPlannerParameters;
-   private final ICPOptimizationParameters icpOptimizationParameters;
+   private final ICPWithTimeFreezingPlannerParameters capturePointPlannerParameters;
    private final RobotContactPointParameters contactPointParameters;
 
    private final Point3D scsCameraPosition = new Point3D(6.0, -2.0, 4.5);
@@ -113,17 +114,17 @@ public class DRCSimulationStarter implements SimulationStarterInterface
 
    private final ConcurrentLinkedQueue<Command<?, ?>> controllerCommands = new ConcurrentLinkedQueue<>();
 
-   public DRCSimulationStarter(DRCRobotModel robotModel, DRCSCSInitialSetup scsInitialSetup)
+   public DRCSimulationStarter(DRCRobotModel robotModel, GroundProfile3D groundProfile3D)
    {
-      this(robotModel, null, scsInitialSetup);
+      this(robotModel, null, groundProfile3D);
    }
 
    public DRCSimulationStarter(DRCRobotModel robotModel, CommonAvatarEnvironmentInterface environment)
    {
-      this(robotModel, environment, null);
+      this(robotModel, environment, environment.getTerrainObject3D());
    }
 
-   public DRCSimulationStarter(DRCRobotModel robotModel, CommonAvatarEnvironmentInterface environment, DRCSCSInitialSetup scsInitialSetup)
+   private DRCSimulationStarter(DRCRobotModel robotModel, CommonAvatarEnvironmentInterface environment, GroundProfile3D groundProfile3D)
    {
       this.robotModel = robotModel;
       this.environment = environment;
@@ -133,21 +134,14 @@ public class DRCSimulationStarter implements SimulationStarterInterface
 
       this.createSCSSimulatedSensors = true;
 
-      if (scsInitialSetup == null)
-      {
-         this.scsInitialSetup = new DRCSCSInitialSetup(environment, robotModel.getSimulateDT());
-         this.scsInitialSetup.setInitializeEstimatorToActual(false);
-         this.scsInitialSetup.setTimePerRecordTick(robotModel.getControllerDT());
-         this.scsInitialSetup.setRunMultiThreaded(true);
-      }
-      else
-      {
-         this.scsInitialSetup = scsInitialSetup;
-      }
+      this.scsInitialSetup = new DRCSCSInitialSetup(groundProfile3D, robotModel.getSimulateDT());
+      this.scsInitialSetup.setDrawGroundProfile(environment == null);
+      this.scsInitialSetup.setInitializeEstimatorToActual(false);
+      this.scsInitialSetup.setTimePerRecordTick(robotModel.getControllerDT());
+      this.scsInitialSetup.setRunMultiThreaded(true);
 
       this.walkingControllerParameters = robotModel.getWalkingControllerParameters();
       this.capturePointPlannerParameters = robotModel.getCapturePointPlannerParameters();
-      this.icpOptimizationParameters = robotModel.getICPOptimizationParameters();
       this.contactPointParameters = robotModel.getContactPointParameters();
    }
 
@@ -415,7 +409,6 @@ public class DRCSimulationStarter implements SimulationStarterInterface
       controllerFactory = new MomentumBasedControllerFactory(contactableBodiesFactory, feetForceSensorNames, feetContactSensorNames, wristForceSensorNames,
             walkingControllerParameters, capturePointPlannerParameters, HighLevelState.WALKING);
       controllerFactory.attachControllerFailureListeners(controllerFailureListeners);
-      controllerFactory.setICPOptimizationControllerParameters(icpOptimizationParameters);
       if (setupControllerNetworkSubscriber)
          controllerFactory.createControllerNetworkSubscriber(new PeriodicNonRealtimeThreadScheduler("CapturabilityBasedStatusProducer"),
                                                              controllerPacketCommunicator);
@@ -494,7 +487,7 @@ public class DRCSimulationStarter implements SimulationStarterInterface
 
             int framesPerSecond = 25;
             RawVideoDataServer drcRenderedSceneVideoHandler = new RawVideoDataServer(scsSensorOutputPacketCommunicator);
-            simulationConstructionSet.startStreamingVideoData(cameraConfiguration, width, height, drcRenderedSceneVideoHandler, timeStampProvider,
+            simulationConstructionSet.startStreamingVideoData(cameraConfiguration, width, height, new VideoDataServerImageCallback(drcRenderedSceneVideoHandler), timeStampProvider,
                                                               framesPerSecond);
          }
 

@@ -15,6 +15,8 @@ import us.ihmc.avatar.testTools.ScriptedFootstepGenerator;
 import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
 import us.ihmc.continuousIntegration.IntegrationCategory;
 import us.ihmc.euclid.geometry.BoundingBox3D;
+import us.ihmc.euclid.referenceFrame.FramePoint3D;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple4D.Quaternion;
@@ -25,9 +27,7 @@ import us.ihmc.humanoidRobotics.communication.packets.walking.PelvisHeightTrajec
 import us.ihmc.humanoidRobotics.frames.HumanoidReferenceFrames;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotics.geometry.FrameOrientation;
-import us.ihmc.robotics.geometry.FramePoint;
 import us.ihmc.robotics.geometry.RotationTools;
-import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.trajectories.TrajectoryType;
 import us.ihmc.simulationConstructionSetTools.bambooTools.BambooTools;
@@ -73,7 +73,7 @@ public abstract class DRCObstacleCoursePlatformTest implements MultiRobotTestInt
 
    // "This test is flaky. Sometimes it works, sometimes it doesn't due to threading of the various globalDataProducer and communicators. We need to be able to shut those off or make them not screw up the robot run.")
    @ContinuousIntegrationTest(estimatedDuration = 48.6, categoriesOverride = IntegrationCategory.FLAKY)
-   @Test(timeout = 240000)
+   @Test
    public void testRunsTheSameWayTwiceJustStanding() throws UnreasonableAccelerationException, SimulationExceededMaximumTimeException
    {
       simulationTestingParameters = SimulationTestingParameters.createFromEnvironmentVariables();
@@ -152,7 +152,7 @@ public abstract class DRCObstacleCoursePlatformTest implements MultiRobotTestInt
    }
    
 	@ContinuousIntegrationTest(estimatedDuration = 25.7)
-	@Test(timeout = 130000)
+	@Test
    public void testWalkingOverSmallPlatformQuickly() throws SimulationExceededMaximumTimeException
    {
       simulationTestingParameters = SimulationTestingParameters.createFromEnvironmentVariables();
@@ -170,7 +170,7 @@ public abstract class DRCObstacleCoursePlatformTest implements MultiRobotTestInt
       boolean success = drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(2.0); //2.0);
 
       ReferenceFrame rootFrame = drcSimulationTestHelper.getControllerFullRobotModel().getRootJoint().getFrameAfterJoint();
-      FramePoint pelvisPosition = new FramePoint(rootFrame);
+      FramePoint3D pelvisPosition = new FramePoint3D(rootFrame);
       pelvisPosition.changeFrame(ReferenceFrame.getWorldFrame());
       PelvisHeightTrajectoryMessage message = new PelvisHeightTrajectoryMessage(0.5, pelvisPosition.getZ() + 0.10);
       drcSimulationTestHelper.send(message);
@@ -195,7 +195,7 @@ public abstract class DRCObstacleCoursePlatformTest implements MultiRobotTestInt
    }
 
 	@ContinuousIntegrationTest(estimatedDuration = 33.9)
-   @Test(timeout = 170000)
+   @Test
    public void testSidestepOverSmallPlatform() throws SimulationExceededMaximumTimeException
    {
       simulationTestingParameters = SimulationTestingParameters.createFromEnvironmentVariables();
@@ -230,7 +230,7 @@ public abstract class DRCObstacleCoursePlatformTest implements MultiRobotTestInt
    }
 
 	@ContinuousIntegrationTest(estimatedDuration = 40.5)
-   @Test(timeout = 200000)
+   @Test
    public void testSidestepOverSmallWall() throws SimulationExceededMaximumTimeException
    {
       simulationTestingParameters = SimulationTestingParameters.createFromEnvironmentVariables();
@@ -265,7 +265,7 @@ public abstract class DRCObstacleCoursePlatformTest implements MultiRobotTestInt
    }
 
 	@ContinuousIntegrationTest(estimatedDuration = 40.5)
-   @Test(timeout = 200000)
+   @Test
    public void testWalkingOverSmallPlatform() throws SimulationExceededMaximumTimeException
    {
       simulationTestingParameters = SimulationTestingParameters.createFromEnvironmentVariables();
@@ -312,7 +312,7 @@ public abstract class DRCObstacleCoursePlatformTest implements MultiRobotTestInt
 
 
 	@ContinuousIntegrationTest(estimatedDuration = 25.6)
-	@Test(timeout = 130000)
+	@Test
    public void testWalkingOntoMediumPlatformToesTouching() throws SimulationExceededMaximumTimeException
    {
       simulationTestingParameters = SimulationTestingParameters.createFromEnvironmentVariables();
@@ -349,7 +349,7 @@ public abstract class DRCObstacleCoursePlatformTest implements MultiRobotTestInt
 
 
 	@ContinuousIntegrationTest(estimatedDuration = 26.0)
-	@Test(timeout = 130000)
+	@Test
    public void testWalkingOffOfMediumPlatform() throws SimulationExceededMaximumTimeException
    {
       simulationTestingParameters = SimulationTestingParameters.createFromEnvironmentVariables();
@@ -386,7 +386,7 @@ public abstract class DRCObstacleCoursePlatformTest implements MultiRobotTestInt
 
 
 	@ContinuousIntegrationTest(estimatedDuration = 35.4)
-	@Test(timeout = 180000)
+	@Test
 	public void testWalkingOffOfMediumPlatformSlowSteps() throws SimulationExceededMaximumTimeException
 	{
 	   simulationTestingParameters = SimulationTestingParameters.createFromEnvironmentVariables();

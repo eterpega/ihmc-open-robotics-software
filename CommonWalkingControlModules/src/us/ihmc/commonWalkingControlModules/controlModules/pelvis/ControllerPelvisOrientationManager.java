@@ -1,21 +1,23 @@
 package us.ihmc.commonWalkingControlModules.controlModules.pelvis;
 
+import us.ihmc.commonWalkingControlModules.configurations.LeapOfFaithParameters;
 import us.ihmc.commonWalkingControlModules.configurations.PelvisOffsetWhileWalkingParameters;
+import us.ihmc.commonWalkingControlModules.controlModules.leapOfFaith.PelvisLeapOfFaithModule;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.feedbackController.FeedbackControlCommand;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.feedbackController.OrientationFeedbackControlCommand;
 import us.ihmc.commonWalkingControlModules.momentumBasedController.HighLevelHumanoidControllerToolbox;
+import us.ihmc.euclid.referenceFrame.FrameVector3D;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.humanoidRobotics.footstep.Footstep;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
-import us.ihmc.robotics.controllers.YoOrientationPIDGainsInterface;
+import us.ihmc.robotics.controllers.pidGains.YoPID3DGains;
 import us.ihmc.robotics.geometry.AngleTools;
 import us.ihmc.robotics.geometry.FrameOrientation;
-import us.ihmc.robotics.geometry.FrameVector;
 import us.ihmc.robotics.math.frames.YoFrameVector;
 import us.ihmc.robotics.math.trajectories.SimpleOrientationTrajectoryGenerator;
-import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.referenceFrames.ZUpFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
@@ -34,8 +36,8 @@ public class ControllerPelvisOrientationManager extends PelvisOrientationControl
    private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
 
    private final FrameOrientation desiredPelvisOrientation = new FrameOrientation();
-   private final FrameVector desiredPelvisAngularVelocity = new FrameVector();
-   private final FrameVector desiredPelvisAngularAcceleration = new FrameVector();
+   private final FrameVector3D desiredPelvisAngularVelocity = new FrameVector3D();
+   private final FrameVector3D desiredPelvisAngularAcceleration = new FrameVector3D();
    private final FrameOrientation desiredPelvisOrientationWithOffset = new FrameOrientation();
 
    private final FrameOrientation initialPelvisOrientation = new FrameOrientation();
@@ -43,6 +45,7 @@ public class ControllerPelvisOrientationManager extends PelvisOrientationControl
 
    private final SimpleOrientationTrajectoryGenerator pelvisOrientationTrajectoryGenerator;
    private final SimpleOrientationTrajectoryGenerator pelvisOrientationOffsetTrajectoryGenerator;
+   private final PelvisLeapOfFaithModule leapOfFaithModule;
 
    private final YoDouble initialPelvisOrientationTime = new YoDouble("initialPelvisOrientationTime", registry);
    private final YoDouble initialPelvisOrientationOffsetTime = new YoDouble("initialPelvisOrientationOffsetTime", registry);
@@ -54,15 +57,15 @@ public class ControllerPelvisOrientationManager extends PelvisOrientationControl
    private final SelectionMatrix3D selectionMatrix = new SelectionMatrix3D();
 
    private final FrameOrientation tempOrientation = new FrameOrientation();
-   private final FrameVector tempAngularVelocity = new FrameVector();
-   private final FrameVector tempAngularAcceleration = new FrameVector();
+   private final FrameVector3D tempAngularVelocity = new FrameVector3D();
+   private final FrameVector3D tempAngularAcceleration = new FrameVector3D();
 
    private final SideDependentList<MovingReferenceFrame> soleZUpFrames;
    private final ReferenceFrame midFeetZUpGroundFrame;
    private final ReferenceFrame pelvisFrame;
    private final ReferenceFrame desiredPelvisFrame;
 
-   private final YoOrientationPIDGainsInterface gains;
+   private final YoPID3DGains gains;
 
    private Footstep nextFootstep;
    private final ReferenceFrame nextSoleZUpFrame;
@@ -70,8 +73,9 @@ public class ControllerPelvisOrientationManager extends PelvisOrientationControl
 
    private final PelvisOffsetTrajectoryWhileWalking offsetTrajectoryWhileWalking;
 
-   public ControllerPelvisOrientationManager(YoOrientationPIDGainsInterface gains, PelvisOffsetWhileWalkingParameters pelvisOffsetWhileWalkingParameters,
-                                             HighLevelHumanoidControllerToolbox controllerToolbox, YoVariableRegistry parentRegistry)
+   public ControllerPelvisOrientationManager(YoPID3DGains gains, PelvisOffsetWhileWalkingParameters pelvisOffsetWhileWalkingParameters,
+                                             LeapOfFaithParameters leapOfFaithParameters, HighLevelHumanoidControllerToolbox controllerToolbox,
+                                             YoVariableRegistry parentRegistry)
    {
       super(PelvisOrientationControlMode.WALKING_CONTROLLER);
 
@@ -127,6 +131,7 @@ public class ControllerPelvisOrientationManager extends PelvisOrientationControl
       nextSoleZUpFrame = new ZUpFrame(worldFrame, nextSoleFrame, "nextAnkleZUp");
 
       pelvisOrientationOffsetTrajectoryGenerator = new SimpleOrientationTrajectoryGenerator("pelvisOffset", false, desiredPelvisFrame, registry);
+      leapOfFaithModule = new PelvisLeapOfFaithModule(soleZUpFrames, leapOfFaithParameters, registry);
 
       parentRegistry.addChild(registry);
    }
@@ -148,8 +153,12 @@ public class ControllerPelvisOrientationManager extends PelvisOrientationControl
 
    private void initialize(ReferenceFrame desiredTrajectoryFrame)
    {
-      initialPelvisOrientationTime.set(yoTime.getDoubleValue());
+      initializeTrajectoryFrame(desiredTrajectoryFrame);
+      initializeTiming();
+   }
 
+   private void initializeTrajectoryFrame(ReferenceFrame desiredTrajectoryFrame)
+   {
       initialPelvisOrientation.changeFrame(desiredTrajectoryFrame);
       finalPelvisOrientation.changeFrame(desiredTrajectoryFrame);
 
@@ -161,6 +170,11 @@ public class ControllerPelvisOrientationManager extends PelvisOrientationControl
       desiredPelvisOrientation.setIncludingFrame(initialPelvisOrientation);
       desiredPelvisOrientation.changeFrame(worldFrame);
       desiredPelvisFrame.update();
+   }
+
+   private void initializeTiming()
+   {
+      initialPelvisOrientationTime.set(yoTime.getDoubleValue());
    }
 
    @Override
@@ -186,12 +200,17 @@ public class ControllerPelvisOrientationManager extends PelvisOrientationControl
       offsetTrajectoryWhileWalking.update();
       offsetTrajectoryWhileWalking.addAngularOffset(tempOrientation);
 
+      yoPelvisAngularWeight.get(pelvisAngularWeight);
+      leapOfFaithModule.update(deltaTime);
+      leapOfFaithModule.updateAngularOffsets();
+      leapOfFaithModule.addAngularOffset(tempOrientation);
+      leapOfFaithModule.relaxAngularWeight(pelvisAngularWeight);
+
       desiredPelvisOrientationWithOffset.setIncludingFrame(tempOrientation);
       desiredPelvisAngularVelocity.add(tempAngularVelocity);
       desiredPelvisAngularAcceleration.add(tempAngularAcceleration);
 
       orientationFeedbackControlCommand.set(desiredPelvisOrientationWithOffset, desiredPelvisAngularVelocity, desiredPelvisAngularAcceleration);
-      yoPelvisAngularWeight.get(pelvisAngularWeight);
       orientationFeedbackControlCommand.setWeightsForSolver(pelvisAngularWeight);
       orientationFeedbackControlCommand.setGains(gains);
       orientationFeedbackControlCommand.setSelectionMatrix(selectionMatrix);
@@ -315,9 +334,17 @@ public class ControllerPelvisOrientationManager extends PelvisOrientationControl
       nextSoleZUpFrame.update();
 
       offsetTrajectoryWhileWalking.setUpcomingFootstep(upcomingFootstep);
+      leapOfFaithModule.setUpcomingFootstep(upcomingFootstep);
    }
 
    public void setTrajectoryFromFootstep()
+   {
+      updateTrajectoryFromFootstep();
+
+      initializeTiming();
+   }
+
+   public void updateTrajectoryFromFootstep()
    {
       initialPelvisOrientation.setIncludingFrame(desiredPelvisOrientation);
 
@@ -335,22 +362,28 @@ public class ControllerPelvisOrientationManager extends PelvisOrientationControl
       double finalDesiredPelvisYawAngle = AngleTools.computeAngleAverage(yawFootstep, yawSupportFoot);
       finalPelvisOrientation.setIncludingFrame(worldFrame, finalDesiredPelvisYawAngle, 0.0, 0.0);
 
-      initialize(worldFrame);
+      initializeTrajectoryFrame(worldFrame);
    }
 
    public void initializeStanding()
    {
+      initializeTiming();
       offsetTrajectoryWhileWalking.initializeStanding();
+      leapOfFaithModule.initializeStanding();
    }
 
    public void initializeTransfer(RobotSide transferToSide, double transferDuration, double swingDuration)
    {
+      initializeTiming();
       offsetTrajectoryWhileWalking.initializeTransfer(transferToSide, transferDuration, swingDuration);
+      leapOfFaithModule.initializeTransfer(transferDuration);
    }
 
    public void initializeSwing(RobotSide supportSide, double swingDuration, double nextTransferDuration, double nextSwingDuration)
    {
+      initializeTiming();
       offsetTrajectoryWhileWalking.initializeSwing(supportSide, swingDuration, nextTransferDuration, nextSwingDuration);
+      leapOfFaithModule.initializeSwing(swingDuration);
    }
 
    public void setSelectionMatrix(SelectionMatrix3D selectionMatrix)

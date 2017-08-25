@@ -34,11 +34,12 @@ public class AtlasMomentumOptimizationSettings extends MomentumOptimizationSetti
    private final Vector3D pelvisLinearWeight = new Vector3D(5.0, 5.0, 50.0);
 
    private final int nBasisVectorsPerContactPoint = 4;
-   private final int nContactPointsPerContactableBody = 4;
+   private final int nContactPointsPerContactableBody = AtlasContactPointParameters.USE_SIX_CONTACT_POINTS ? 6 : 4;
    private final int nContactableBodies;
 
    private final double jointAccelerationWeight = 0.005;
    private final double jointJerkWeight = 0.1;
+   private final double jointTorqueWeight = 0.005;
    private final Vector2D copWeight = new Vector2D(100.0, 200.0);
    private final Vector2D copRateDefaultWeight = new Vector2D(20000.0, 20000.0);
    private final Vector2D copRateHighWeight = new Vector2D(2500000.0, 10000000.0);
@@ -147,6 +148,13 @@ public class AtlasMomentumOptimizationSettings extends MomentumOptimizationSetti
    public double getJointJerkWeight()
    {
       return jointJerkWeight;
+   }
+
+   /** @inheritDoc */
+   @Override
+   public double getJointTorqueWeight()
+   {
+      return jointTorqueWeight;
    }
 
    /** @inheritDoc */

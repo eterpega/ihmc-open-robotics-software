@@ -3,17 +3,18 @@ package us.ihmc.humanoidRobotics.footstep;
 import java.util.ArrayList;
 import java.util.List;
 
+import us.ihmc.euclid.referenceFrame.FramePoint2D;
+import us.ihmc.euclid.referenceFrame.FramePoint3D;
+import us.ihmc.euclid.referenceFrame.FrameVector3D;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.robotics.MathTools;
 import us.ihmc.robotics.geometry.FrameOrientation;
-import us.ihmc.robotics.geometry.FramePoint;
-import us.ihmc.robotics.geometry.FramePoint2d;
 import us.ihmc.robotics.geometry.FramePose;
 import us.ihmc.robotics.lists.RecyclingArrayList;
 import us.ihmc.robotics.math.trajectories.waypoints.FrameSE3TrajectoryPoint;
 import us.ihmc.robotics.referenceFrames.PoseReferenceFrame;
-import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.robotics.trajectories.TrajectoryType;
@@ -22,7 +23,7 @@ public class Footstep
 {
    public static enum FootstepType {FULL_FOOTSTEP, PARTIAL_FOOTSTEP, BAD_FOOTSTEP}
 
-   public static final int maxNumberOfSwingWaypoints = 10;
+   public static final int maxNumberOfSwingWaypoints = 100;
 
    private static int counter = 0;
    private final String id;
@@ -31,7 +32,6 @@ public class Footstep
    private FootstepType footstepType = FootstepType.FULL_FOOTSTEP;
 
    private final FramePose footstepPose = new FramePose();
-   private final FramePose expectedInitialPose = new FramePose();
 
    private final FramePose tempPose = new FramePose();
    private final RigidBodyTransform tempTransform = new RigidBodyTransform();
@@ -39,7 +39,7 @@ public class Footstep
 
    private final List<Point2D> predictedContactPoints = new ArrayList<>();
 
-   private final RecyclingArrayList<FramePoint> customPositionWaypoints = new RecyclingArrayList<>(2, FramePoint.class);
+   private final RecyclingArrayList<FramePoint3D> customPositionWaypoints = new RecyclingArrayList<>(2, FramePoint3D.class);
    private final RecyclingArrayList<FrameSE3TrajectoryPoint> swingTrajectory = new RecyclingArrayList<>(maxNumberOfSwingWaypoints, FrameSE3TrajectoryPoint.class);
    private double swingTrajectoryBlendDuration = 0.0;
 
@@ -76,7 +76,6 @@ public class Footstep
       this.trajectoryType = footstep.trajectoryType;
       this.swingHeight = footstep.swingHeight;
       this.swingTrajectoryBlendDuration = footstep.swingTrajectoryBlendDuration;
-      this.expectedInitialPose.setIncludingFrame(footstep.expectedInitialPose);
    }
 
    public Footstep(RigidBody endEffector, RobotSide robotSide, FramePose footstepPose, boolean trustHeight, List<Point2D> predictedContactPoints)
@@ -98,7 +97,6 @@ public class Footstep
       this.trustHeight = trustHeight;
       this.footstepPose.setIncludingFrame(footstepPose);
       setPredictedContactPointsFromPoint2ds(predictedContactPoints);
-      this.expectedInitialPose.setToNaN();
       this.trajectoryType = trajectoryType;
       this.swingHeight = swingHeight;
       footstepSoleFrame = new PoseReferenceFrame(id + "_FootstepSoleFrame", ReferenceFrame.getWorldFrame());
@@ -114,12 +112,12 @@ public class Footstep
       this.trajectoryType = trajectoryType;
    }
 
-   public List<FramePoint> getCustomPositionWaypoints()
+   public List<FramePoint3D> getCustomPositionWaypoints()
    {
       return customPositionWaypoints;
    }
 
-   public void setCustomPositionWaypoints(RecyclingArrayList<FramePoint> customPositionWaypoints)
+   public void setCustomPositionWaypoints(RecyclingArrayList<FramePoint3D> customPositionWaypoints)
    {
       this.customPositionWaypoints.clear();
       for (int i = 0; i < customPositionWaypoints.size(); i++)
@@ -183,7 +181,7 @@ public class Footstep
       }
    }
 
-   public void setPredictedContactPointsFromFramePoint2ds(List<FramePoint2d> contactPointList)
+   public void setPredictedContactPointsFromFramePoint2ds(List<FramePoint2D> contactPointList)
    {
       efficientlyResizeContactPointList(contactPointList);
 
@@ -203,7 +201,7 @@ public class Footstep
 
       for (int i = 0; i < contactPointList.size(); i++)
       {
-         FramePoint2d point = contactPointList.get(i);
+         FramePoint2D point = contactPointList.get(i);
          this.predictedContactPoints.get(i).set(point.getX(), point.getY());
       }
 
@@ -302,26 +300,16 @@ public class Footstep
       this.footstepPose.setIncludingFrame(footstepPose);
    }
 
-   public void setPose(FramePoint position, FrameOrientation orientation)
+   public void setPose(FramePoint3D position, FrameOrientation orientation)
    {
       footstepPose.setPoseIncludingFrame(position, orientation);
    }
 
-   public void setPositionChangeOnlyXY(FramePoint2d position2d)
+   public void setPositionChangeOnlyXY(FramePoint2D position2d)
    {
       position2d.checkReferenceFrameMatch(footstepPose);
       setX(position2d.getX());
       setY(position2d.getY());
-   }
-
-   public void setExpectedInitialPose(FramePose expectedInitialPose)
-   {
-      this.expectedInitialPose.setIncludingFrame(expectedInitialPose);
-   }
-
-   public void setExpectedInitialPose(FramePoint expectedInitialPosition, FrameOrientation expectedInitialOrientation)
-   {
-      this.expectedInitialPose.setPoseIncludingFrame(expectedInitialPosition, expectedInitialOrientation);
    }
 
    public String getId()
@@ -359,24 +347,24 @@ public class Footstep
       poseToPack.setIncludingFrame(footstepPose);
    }
 
-   public void getPose(FramePoint positionToPack, FrameOrientation orientationToPack)
+   public void getPose(FramePoint3D positionToPack, FrameOrientation orientationToPack)
    {
       footstepPose.getPoseIncludingFrame(positionToPack, orientationToPack);
    }
 
-   public void getPosition(FramePoint positionToPack)
+   public void getPosition(FramePoint3D positionToPack)
    {
       footstepPose.getPositionIncludingFrame(positionToPack);
+   }
+
+   public void getPosition2d(FramePoint2D positionToPack)
+   {
+      footstepPose.getPosition2dIncludingFrame(positionToPack);
    }
 
    public void getOrientation(FrameOrientation orientationToPack)
    {
       footstepPose.getOrientationIncludingFrame(orientationToPack);
-   }
-
-   public void getExpectedInitialPose(FramePose poseToPack)
-   {
-      poseToPack.setIncludingFrame(expectedInitialPose);
    }
 
    public ReferenceFrame getTrajectoryFrame()
@@ -416,22 +404,15 @@ public class Footstep
       {
          for (int i = 0; i < customPositionWaypoints.size(); i++)
          {
-            FramePoint waypoint = customPositionWaypoints.get(i);
-            FramePoint otherWaypoint = otherFootstep.customPositionWaypoints.get(i);
+            FramePoint3D waypoint = customPositionWaypoints.get(i);
+            FramePoint3D otherWaypoint = otherFootstep.customPositionWaypoints.get(i);
             sameWaypoints = sameWaypoints && waypoint.epsilonEquals(otherWaypoint, epsilon);
          }
       }
 
-      boolean sameExpectedInitialPose = true;
-      if (expectedInitialPose.containsNaN() && !otherFootstep.expectedInitialPose.containsNaN())
-         sameExpectedInitialPose = false;
-      else if (!expectedInitialPose.containsNaN() && otherFootstep.expectedInitialPose.containsNaN())
-         sameExpectedInitialPose = false;
-      else if (!expectedInitialPose.containsNaN())
-         sameExpectedInitialPose = expectedInitialPose.epsilonEquals(otherFootstep.expectedInitialPose, epsilon);
       boolean sameBlendDuration = MathTools.epsilonEquals(swingTrajectoryBlendDuration, otherFootstep.swingTrajectoryBlendDuration, epsilon);
 
-      return arePosesEqual && bodiesHaveTheSameName && sameRobotSide && isTrustHeightTheSame && sameWaypoints && sameExpectedInitialPose && sameBlendDuration;
+      return arePosesEqual && bodiesHaveTheSameName && sameRobotSide && isTrustHeightTheSame && sameWaypoints && sameBlendDuration;
    }
 
    @Override
@@ -456,7 +437,7 @@ public class Footstep
       poseToPack.setPoseIncludingFrame(footstepPose.getReferenceFrame(), tempTransform);
    }
 
-   public void getAnklePosition(FramePoint positionToPack, RigidBodyTransform transformFromAnkleToSole)
+   public void getAnklePosition(FramePoint3D positionToPack, RigidBodyTransform transformFromAnkleToSole)
    {
       tempTransform.setRotation(footstepPose.getOrientation());
       tempTransform.setTranslation(footstepPose.getPosition());
@@ -464,7 +445,7 @@ public class Footstep
       positionToPack.setIncludingFrame(footstepPose.getReferenceFrame(), tempTransform.getTranslationVector());
    }
 
-   public void getAnklePosition2d(FramePoint2d position2dToPack, RigidBodyTransform transformFromAnkleToSole)
+   public void getAnklePosition2d(FramePoint2D position2dToPack, RigidBodyTransform transformFromAnkleToSole)
    {
       tempTransform.setRotation(footstepPose.getOrientation());
       tempTransform.setTranslation(footstepPose.getPosition());
@@ -488,6 +469,24 @@ public class Footstep
       tempTransform.setTranslation(anklePose.getPosition());
       tempTransform.multiplyInvertOther(transformFromAnkleToSole);
       footstepPose.setPoseIncludingFrame(anklePose.getReferenceFrame(), tempTransform);
+   }
+
+   public void addOffset(FrameVector3D offset)
+   {
+      footstepPose.prependTranslation(offset.getVector());
+
+      for (int pointIdx = 0; pointIdx < customPositionWaypoints.size(); pointIdx++)
+      {
+         customPositionWaypoints.get(pointIdx).add(offset);
+      }
+
+      for (int pointIdx = 0; pointIdx < swingTrajectory.size(); pointIdx++)
+      {
+         FrameSE3TrajectoryPoint trajectoryPoint = swingTrajectory.get(pointIdx);
+         trajectoryPoint.getPoseIncludingFrame(tempPose);
+         tempPose.prependTranslation(offset.getVector());
+         trajectoryPoint.setPosition(tempPose.getPosition());
+      }
    }
 
 }

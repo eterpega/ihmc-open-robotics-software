@@ -1,14 +1,13 @@
 package us.ihmc.robotics.math.trajectories;
 
+import us.ihmc.euclid.referenceFrame.FrameVector3D;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple4D.Quaternion;
-import us.ihmc.robotics.MathTools;
+import us.ihmc.robotics.geometry.FrameOrientation;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
-import us.ihmc.robotics.geometry.FrameOrientation;
-import us.ihmc.robotics.geometry.FrameVector;
-import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 
 public class BlendedOrientationTrajectoryGenerator implements OrientationTrajectoryGenerator
 {
@@ -29,17 +28,17 @@ public class BlendedOrientationTrajectoryGenerator implements OrientationTraject
    private final Vector3D finalConstraintAngularVelocityError = new Vector3D();
 
    private final FrameOrientation initialConstraintOrientationOffset = new FrameOrientation();
-   private final FrameVector initialConstraintAngularVelocityOffset = new FrameVector();
-   private final FrameVector initialConstraintAngularAccelerationOffset = new FrameVector();
+   private final FrameVector3D initialConstraintAngularVelocityOffset = new FrameVector3D();
+   private final FrameVector3D initialConstraintAngularAccelerationOffset = new FrameVector3D();
    private final FrameOrientation finalConstraintOrientationOffset = new FrameOrientation();
-   private final FrameVector finalConstraintAngularVelocityOffset = new FrameVector();
-   private final FrameVector finalConstraintAngularAccelerationOffset = new FrameVector();
+   private final FrameVector3D finalConstraintAngularVelocityOffset = new FrameVector3D();
+   private final FrameVector3D finalConstraintAngularAccelerationOffset = new FrameVector3D();
 
    private final FrameOrientation orientation = new FrameOrientation();
-   private final FrameVector angularVelocity = new FrameVector();
-   private final FrameVector angularAcceleration = new FrameVector();
+   private final FrameVector3D angularVelocity = new FrameVector3D();
+   private final FrameVector3D angularAcceleration = new FrameVector3D();
    private final FrameOrientation tempOrientation = new FrameOrientation();
-   private final FrameVector tempAngularVelocity = new FrameVector();
+   private final FrameVector3D tempAngularVelocity = new FrameVector3D();
    private final RigidBodyTransform tempTransform = new RigidBodyTransform();
 
    public BlendedOrientationTrajectoryGenerator(String prefix, OrientationTrajectoryGenerator trajectory, ReferenceFrame trajectoryFrame,
@@ -76,22 +75,26 @@ public class BlendedOrientationTrajectoryGenerator implements OrientationTraject
 
    public void clearInitialConstraint()
    {
-      for (int i = 0; i < 3; i++)
-      {
-         initialConstraintOrientationError.setToZero();
-         initialConstraintAngularVelocityError.setToZero();
-         computeInitialConstraintTrajectory(0.0, 0.5);
-      }
+      initialConstraintOrientationError.setToZero();
+      initialConstraintAngularVelocityError.setToZero();
+      tempOrientation.set(initialConstraintOrientationError);
+      tempAngularVelocity.set(initialConstraintAngularVelocityError);
+      initialConstraintTrajectory.setTrajectoryTime(0.0);
+      initialConstraintTrajectory.setInitialConditions(tempOrientation, tempAngularVelocity);
+      initialConstraintTrajectory.setFinalConditions(tempOrientation, tempAngularVelocity);
+      initialConstraintTrajectory.initialize();
    }
 
    public void clearFinalConstraint()
    {
-      for (int i = 0; i < 3; i++)
-      {
-         finalConstraintOrientationError.setToZero();
-         finalConstraintAngularVelocityError.setToZero();
-         computeFinalConstraintTrajectory(1.0, 0.5);
-      }
+      finalConstraintOrientationError.setToZero();
+      finalConstraintAngularVelocityError.setToZero();
+      tempOrientation.set(finalConstraintOrientationError);
+      tempAngularVelocity.set(finalConstraintAngularVelocityError);
+      finalConstraintTrajectory.setTrajectoryTime(0.0);
+      finalConstraintTrajectory.setInitialConditions(tempOrientation, tempAngularVelocity);
+      finalConstraintTrajectory.setFinalConditions(tempOrientation, tempAngularVelocity);
+      finalConstraintTrajectory.initialize();
    }
 
    public void blendInitialConstraint(FrameOrientation initialPose, double initialTime, double blendDuration)
@@ -101,7 +104,7 @@ public class BlendedOrientationTrajectoryGenerator implements OrientationTraject
       computeInitialConstraintTrajectory(initialTime, blendDuration);
    }
 
-   public void blendInitialConstraint(FrameOrientation initialPose, FrameVector initialAngularVelocity, double initialTime, double blendDuration)
+   public void blendInitialConstraint(FrameOrientation initialPose, FrameVector3D initialAngularVelocity, double initialTime, double blendDuration)
    {
       clearInitialConstraint();
       computeInitialConstraintError(initialPose, initialAngularVelocity, initialTime);
@@ -115,7 +118,7 @@ public class BlendedOrientationTrajectoryGenerator implements OrientationTraject
       computeFinalConstraintTrajectory(finalTime, blendDuration);
    }
 
-   public void blendFinalConstraint(FrameOrientation finalOrientation, FrameVector finalAngularVelocity, double finalTime, double blendDuration)
+   public void blendFinalConstraint(FrameOrientation finalOrientation, FrameVector3D finalAngularVelocity, double finalTime, double blendDuration)
    {
       clearFinalConstraint();
       computeFinalConstraintError(finalOrientation, finalAngularVelocity, finalTime);
@@ -129,13 +132,13 @@ public class BlendedOrientationTrajectoryGenerator implements OrientationTraject
    }
 
    @Override
-   public void getAngularVelocity(FrameVector angularVelocityToPack)
+   public void getAngularVelocity(FrameVector3D angularVelocityToPack)
    {
       angularVelocityToPack.setIncludingFrame(angularVelocity);
    }
 
    @Override
-   public void getAngularAcceleration(FrameVector angularAccelerationToPack)
+   public void getAngularAcceleration(FrameVector3D angularAccelerationToPack)
    {
       angularAccelerationToPack.setIncludingFrame(angularAcceleration);
    }
@@ -196,7 +199,7 @@ public class BlendedOrientationTrajectoryGenerator implements OrientationTraject
       initialConstraintOrientationError.difference(tempOrientation.getQuaternion(), initialOrientation.getQuaternion());
    }
 
-   private void computeInitialConstraintError(FrameOrientation initialOrientation, FrameVector initialAngularVelocity, double initialTime)
+   private void computeInitialConstraintError(FrameOrientation initialOrientation, FrameVector3D initialAngularVelocity, double initialTime)
    {
       computeInitialConstraintError(initialOrientation, initialTime);
       trajectoryFrame.checkReferenceFrameMatch(initialAngularVelocity.getReferenceFrame());
@@ -217,7 +220,7 @@ public class BlendedOrientationTrajectoryGenerator implements OrientationTraject
       finalConstraintOrientationError.difference(tempOrientation.getQuaternion(), finalOrientation.getQuaternion());
    }
 
-   private void computeFinalConstraintError(FrameOrientation finalOrientation, FrameVector finalAngularVelocity, double finalTime)
+   private void computeFinalConstraintError(FrameOrientation finalOrientation, FrameVector3D finalAngularVelocity, double finalTime)
    {
       computeFinalConstraintError(finalOrientation, finalTime);
       trajectoryFrame.checkReferenceFrameMatch(finalAngularVelocity.getReferenceFrame());
@@ -273,11 +276,7 @@ public class BlendedOrientationTrajectoryGenerator implements OrientationTraject
    private void computeInitialConstraintOffset(double time)
    {
       double startTime = initialBlendStartTime.getDoubleValue();
-      double endTime = initialBlendEndTime.getDoubleValue();
-      double blendDuration = endTime - startTime;
-      time = MathTools.clamp(time - startTime, 0.0, blendDuration);
-
-      initialConstraintTrajectory.compute(time);
+      initialConstraintTrajectory.compute(time - startTime);
       initialConstraintTrajectory.getOrientation(initialConstraintOrientationOffset);
       initialConstraintTrajectory.getAngularVelocity(initialConstraintAngularVelocityOffset);
       initialConstraintTrajectory.getAngularAcceleration(initialConstraintAngularAccelerationOffset);
@@ -286,11 +285,7 @@ public class BlendedOrientationTrajectoryGenerator implements OrientationTraject
    private void computeFinalConstraintOffset(double time)
    {
       double startTime = finalBlendStartTime.getDoubleValue();
-      double endTime = finalBlendEndTime.getDoubleValue();
-      double blendDuration = endTime - startTime;
-      time = MathTools.clamp(time - startTime, 0.0, blendDuration);
-
-      finalConstraintTrajectory.compute(time);
+      finalConstraintTrajectory.compute(time - startTime);
       finalConstraintTrajectory.getOrientation(finalConstraintOrientationOffset);
       finalConstraintTrajectory.getAngularVelocity(finalConstraintAngularVelocityOffset);
       finalConstraintTrajectory.getAngularAcceleration(finalConstraintAngularAccelerationOffset);

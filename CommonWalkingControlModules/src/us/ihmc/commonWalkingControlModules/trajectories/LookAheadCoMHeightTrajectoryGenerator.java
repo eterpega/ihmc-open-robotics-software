@@ -1,7 +1,8 @@
 package us.ihmc.commonWalkingControlModules.trajectories;
 
-import static us.ihmc.communication.packets.Packet.INVALID_MESSAGE_ID;
+import static us.ihmc.communication.packets.Packet.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import us.ihmc.commonWalkingControlModules.desiredFootStep.TransferToAndNextFootstepsData;
@@ -9,6 +10,9 @@ import us.ihmc.commons.PrintTools;
 import us.ihmc.communication.packets.Packet;
 import us.ihmc.euclid.geometry.Line2D;
 import us.ihmc.euclid.geometry.LineSegment2D;
+import us.ihmc.euclid.referenceFrame.FramePoint3D;
+import us.ihmc.euclid.referenceFrame.FrameVector3D;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.graphicsDescription.appearance.YoAppearance;
@@ -21,24 +25,21 @@ import us.ihmc.humanoidRobotics.communication.controllerAPI.command.StopAllTraje
 import us.ihmc.humanoidRobotics.communication.packets.ExecutionMode;
 import us.ihmc.humanoidRobotics.footstep.Footstep;
 import us.ihmc.robotics.MathTools;
-import us.ihmc.yoVariables.listener.VariableChangedListener;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
-import us.ihmc.yoVariables.variable.YoBoolean;
-import us.ihmc.yoVariables.variable.YoDouble;
-import us.ihmc.yoVariables.variable.YoLong;
-import us.ihmc.yoVariables.variable.YoVariable;
 import us.ihmc.robotics.geometry.FrameOrientation;
-import us.ihmc.robotics.geometry.FramePoint;
-import us.ihmc.robotics.geometry.FrameVector;
 import us.ihmc.robotics.geometry.StringStretcher2d;
 import us.ihmc.robotics.lists.RecyclingArrayDeque;
 import us.ihmc.robotics.math.frames.YoFramePoint;
 import us.ihmc.robotics.math.trajectories.providers.YoVariableDoubleProvider;
 import us.ihmc.robotics.math.trajectories.waypoints.FrameEuclideanTrajectoryPoint;
 import us.ihmc.robotics.math.trajectories.waypoints.MultipleWaypointsTrajectoryGenerator;
-import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
+import us.ihmc.yoVariables.listener.VariableChangedListener;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoLong;
+import us.ihmc.yoVariables.variable.YoVariable;
 
 /**
  * TODO There is not enough HumanoidReferenceFrames in that class, it is pretty fragile
@@ -86,7 +87,7 @@ public class LookAheadCoMHeightTrajectoryGenerator
    private final YoDouble desiredCoMHeight = new YoDouble("desiredCoMHeight", registry);
    private final YoFramePoint desiredCoMPosition = new YoFramePoint("desiredCoMPosition", ReferenceFrame.getWorldFrame(), registry);
 
-   private LineSegment2D projectionSegment;
+   private final LineSegment2D projectionSegment = new LineSegment2D();
 
    private final YoFramePoint contactFrameZeroPosition = new YoFramePoint("contactFrameZeroPosition", worldFrame, registry);
    private final YoFramePoint contactFrameOnePosition = new YoFramePoint("contactFrameOnePosition", worldFrame, registry);
@@ -106,7 +107,7 @@ public class LookAheadCoMHeightTrajectoryGenerator
    private final ReferenceFrame pelvisFrame;
    private final ReferenceFrame centerOfMassFrame;
    private final SideDependentList<? extends ReferenceFrame> ankleZUpFrames;
-   
+
    private final SideDependentList<RigidBodyTransform> transformsFromAnkleToSole;
 
    private final YoLong lastCommandId;
@@ -325,14 +326,22 @@ public class LookAheadCoMHeightTrajectoryGenerator
    private final Point2D sF = new Point2D();
    private final Point2D sNext = new Point2D();
 
-   private final FramePoint framePointS0 = new FramePoint();
-   private final FramePoint framePointD0 = new FramePoint();
-   private final FramePoint framePointDF = new FramePoint();
-   private final FramePoint framePointSF = new FramePoint();
-   private final FramePoint framePointSNext = new FramePoint();
+   private final FramePoint3D framePointS0 = new FramePoint3D();
+   private final FramePoint3D framePointD0 = new FramePoint3D();
+   private final FramePoint3D framePointDF = new FramePoint3D();
+   private final FramePoint3D framePointSF = new FramePoint3D();
+   private final FramePoint3D framePointSNext = new FramePoint3D();
 
-   private final FramePoint tempFramePointForViz1 = new FramePoint();
-   private final FramePoint tempFramePointForViz2 = new FramePoint();
+   private final FramePoint3D tempFramePointForViz1 = new FramePoint3D();
+   private final FramePoint3D tempFramePointForViz2 = new FramePoint3D();
+
+   private final FramePoint3D transferFromContactFramePosition = new FramePoint3D();
+   private final FramePoint3D transferToContactFramePosition = new FramePoint3D();
+   private final FramePoint3D transferFromDesiredContactFramePosition = new FramePoint3D();
+
+   private final FrameVector3D fromContactFrameDrift = new FrameVector3D();
+   private final CoMHeightPartialDerivativesData coMHeightPartialDerivativesData = new CoMHeightPartialDerivativesData();
+   private final Point2D queryPoint = new Point2D();
 
    public void initialize(TransferToAndNextFootstepsData transferToAndNextFootstepsData, double extraToeOffHeight)
    {
@@ -355,13 +364,10 @@ public class LookAheadCoMHeightTrajectoryGenerator
       else
          hasBeenInitializedWithNextStep.set(false);
 
-      FramePoint transferFromContactFramePosition = new FramePoint();
-      FramePoint transferToContactFramePosition = new FramePoint();
       transferFromFootstep.getAnklePosition(transferFromContactFramePosition, transformsFromAnkleToSole.get(transferFromFootstep.getRobotSide()));
       transferToFootstep.getAnklePosition(transferToContactFramePosition, transformsFromAnkleToSole.get(transferToFootstep.getRobotSide()));
 
-      FrameVector fromContactFrameDrift = null;
-
+      boolean frameDrifted = false;
       if (correctForCoMHeightDrift.getBooleanValue() && transferToFootstep.getTrustHeight() && (transferFromDesiredFootstep != null))
       {
          if (transferFromDesiredFootstep.getRobotSide() != transferFromFootstep.getRobotSide())
@@ -374,27 +380,27 @@ public class LookAheadCoMHeightTrajectoryGenerator
          }
          else
          {
-            FramePoint transferFromDesiredContactFramePosition = new FramePoint();
             transferFromDesiredFootstep.getAnklePosition(transferFromDesiredContactFramePosition, transformsFromAnkleToSole.get(transferFromDesiredFootstep.getRobotSide()));
             transferFromDesiredContactFramePosition.changeFrame(transferFromContactFramePosition.getReferenceFrame());
 
-            fromContactFrameDrift = new FrameVector(transferFromContactFramePosition.getReferenceFrame());
+            fromContactFrameDrift.setToZero(transferFromContactFramePosition.getReferenceFrame());
             fromContactFrameDrift.sub(transferFromContactFramePosition, transferFromDesiredContactFramePosition);
             fromContactFrameDrift.changeFrame(transferToContactFramePosition.getReferenceFrame());
             transferToContactFramePosition.setZ(transferToContactFramePosition.getZ() + fromContactFrameDrift.getZ());
+            frameDrifted = true;
          }
       }
 
       transferFromContactFramePosition.changeFrame(worldFrame);
       transferToContactFramePosition.changeFrame(worldFrame);
 
-      FramePoint nextContactFramePosition = null;
+      FramePoint3D nextContactFramePosition = null;
       if (nextFootstep != null)
       {
-         nextContactFramePosition = new FramePoint();
+         nextContactFramePosition = new FramePoint3D();
          nextFootstep.getAnklePosition(nextContactFramePosition, transformsFromAnkleToSole.get(nextFootstep.getRobotSide()));
 
-         if (fromContactFrameDrift != null)
+         if (frameDrifted)
          {
             fromContactFrameDrift.changeFrame(nextContactFramePosition.getReferenceFrame());
             nextContactFramePosition.setZ(nextContactFramePosition.getZ() + fromContactFrameDrift.getZ());
@@ -409,7 +415,7 @@ public class LookAheadCoMHeightTrajectoryGenerator
       getPoint2d(tempPoint2dA, transferFromContactFramePosition);
       getPoint2d(tempPoint2dB, transferToContactFramePosition);
 
-      projectionSegment = new LineSegment2D(tempPoint2dA, tempPoint2dB);
+      projectionSegment.set(tempPoint2dA, tempPoint2dB);
       setPointXValues(nextContactFramePosition);
 
       transferFromContactFramePosition.changeFrame(frameOfLastFoostep);
@@ -540,13 +546,13 @@ public class LookAheadCoMHeightTrajectoryGenerator
 
          bagOfBalls.reset();
          int numberOfPoints = 30;
-         CoMHeightPartialDerivativesData coMHeightPartialDerivativesData = new CoMHeightPartialDerivativesData();
+
          for (int i = 0; i < numberOfPoints; i++)
          {
             tempFramePointForViz1.setToZero(transferFromContactFramePosition.getReferenceFrame());
             tempFramePointForViz1.interpolate(transferFromContactFramePosition, transferToContactFramePosition, ((double) i) / ((double) numberOfPoints));
             tempFramePointForViz1.changeFrame(worldFrame);
-            Point2D queryPoint = new Point2D(tempFramePointForViz1.getX(), tempFramePointForViz1.getY());
+            queryPoint.set(tempFramePointForViz1);
             this.solve(coMHeightPartialDerivativesData, queryPoint, false);
             coMHeightPartialDerivativesData.getCoMHeight(tempFramePointForViz2);
             tempFramePointForViz2.setX(tempFramePointForViz1.getX());
@@ -559,13 +565,15 @@ public class LookAheadCoMHeightTrajectoryGenerator
 
    private Point2D tempPoint2dForStringStretching = new Point2D();
 
+   private final StringStretcher2d stringStretcher2d = new StringStretcher2d();
+   private final List<Point2D> stretchedStringWaypoints = new ArrayList<>();
    private void computeHeightsToUseByStretchingString(RobotSide transferFromSide)
    {
+      stringStretcher2d.reset();
       // s0 is at previous
       double z0 = MathTools.clamp(previousZFinals.get(transferFromSide).getDoubleValue(), s0Min.getY(), s0Max.getY());
       s0.setY(z0);
 
-      StringStretcher2d stringStretcher2d = new StringStretcher2d();
       stringStretcher2d.setStartPoint(s0);
 
       if (!Double.isNaN(sNext.getX()))
@@ -619,14 +627,18 @@ public class LookAheadCoMHeightTrajectoryGenerator
          stringStretcher2d.addMinMaxPoints(dFMin, dFMax);
       }
 
-      List<Point2D> stretchedString = stringStretcher2d.stretchString();
+      stringStretcher2d.stretchString(stretchedStringWaypoints);
 
-      d0.set(stretchedString.get(1));
-      dF.set(stretchedString.get(2));
-      sF.set(stretchedString.get(3));
+      d0.set(stretchedStringWaypoints.get(1));
+      dF.set(stretchedStringWaypoints.get(2));
+      sF.set(stretchedStringWaypoints.get(3));
    }
 
-   private void setPointXValues(FramePoint nextContactFramePosition)
+
+   private final Point2D nextPoint2d = new Point2D();
+   private final Point2D projectedPoint = new Point2D();
+   private final Line2D line2d = new Line2D();
+   private void setPointXValues(FramePoint3D nextContactFramePosition)
    {
       double length = projectionSegment.length();
 
@@ -638,10 +650,11 @@ public class LookAheadCoMHeightTrajectoryGenerator
       double xSNext = Double.NaN;
       if (nextContactFramePosition != null)
       {
-         Line2D line2d = new Line2D(projectionSegment.getFirstEndpointCopy(), projectionSegment.getSecondEndpointCopy());
-         Point2D nextPoint2d = new Point2D(nextContactFramePosition.getX(), nextContactFramePosition.getY());
-         line2d.orthogonalProjectionCopy(nextPoint2d);
-         xSNext = projectionSegment.percentageAlongLineSegment(nextPoint2d) * projectionSegment.length();
+         //need to double check this
+         line2d.set(projectionSegment.getFirstEndpoint(), projectionSegment.getSecondEndpoint());
+         nextPoint2d.set(nextContactFramePosition.getX(), nextContactFramePosition.getY());
+         line2d.orthogonalProjection(nextPoint2d, projectedPoint);
+         xSNext = projectionSegment.percentageAlongLineSegment(projectedPoint) * projectionSegment.length();
       }
 
       s0.setX(xS0);
@@ -693,27 +706,25 @@ public class LookAheadCoMHeightTrajectoryGenerator
       return z_d0;
    }
 
-   private void getPoint2d(Point2D point2dToPack, FramePoint point)
+   private void getPoint2d(Point2D point2dToPack, FramePoint3D point)
    {
       point2dToPack.set(point.getX(), point.getY());
    }
 
-   private final FramePoint tempFramePoint = new FramePoint();
-   private final Point2D queryPoint = new Point2D();
+   private final FramePoint3D tempFramePoint = new FramePoint3D();
    private final Point2D solutionPoint = new Point2D();
 
    public void solve(CoMHeightPartialDerivativesData coMHeightPartialDerivativesDataToPack, boolean isInDoubleSupport)
    {
-      getCenterOfMass2d(queryPoint, centerOfMassFrame);
-      solutionPoint.set(queryPoint);
+      getCenterOfMass2d(solutionPoint, centerOfMassFrame);
       solve(coMHeightPartialDerivativesDataToPack, solutionPoint, isInDoubleSupport);
 
       coMHeightPartialDerivativesDataToPack.getCoMHeight(tempFramePoint);
-      desiredCoMPosition.set(queryPoint.getX(), queryPoint.getY(), tempFramePoint.getZ());
+      desiredCoMPosition.set(solutionPoint.getX(), solutionPoint.getY(), tempFramePoint.getZ());
    }
 
-   private final FramePoint height = new FramePoint();
-   private final FramePoint desiredPosition = new FramePoint();
+   private final FramePoint3D height = new FramePoint3D();
+   private final FramePoint3D desiredPosition = new FramePoint3D();
    private final double[] partialDerivativesWithRespectToS = new double[2];
 
    private void solve(CoMHeightPartialDerivativesData coMHeightPartialDerivativesDataToPack, Point2D queryPoint, boolean isInDoubleSupport)
@@ -732,7 +743,11 @@ public class LookAheadCoMHeightTrajectoryGenerator
       if (!isTrajectoryOffsetStopped.getBooleanValue())
       {
          double deltaTime = yoTime.getDoubleValue() - offsetHeightAboveGroundChangedTime.getDoubleValue();
-         offsetHeightTrajectoryGenerator.compute(deltaTime);
+
+         if (!offsetHeightTrajectoryGenerator.isEmpty())
+         {
+            offsetHeightTrajectoryGenerator.compute(deltaTime);
+         }
 
          if (offsetHeightTrajectoryGenerator.isDone() && !commandQueue.isEmpty())
          {
@@ -964,7 +979,7 @@ public class LookAheadCoMHeightTrajectoryGenerator
       partialDerivativesToPack[1] = dsdy;
    }
 
-   private final FramePoint coM = new FramePoint();
+   private final FramePoint3D coM = new FramePoint3D();
 
    private void getCenterOfMass2d(Point2D point2dToPack, ReferenceFrame centerOfMassFrame)
    {
@@ -1012,7 +1027,7 @@ public class LookAheadCoMHeightTrajectoryGenerator
    private void printFootstepConstructor(Footstep footstep)
    {
       RobotSide robotSide = footstep.getRobotSide();
-      FramePoint position = new FramePoint();
+      FramePoint3D position = new FramePoint3D();
       FrameOrientation orientation = new FrameOrientation();
       footstep.getPose(position, orientation);
       position.changeFrame(worldFrame);
@@ -1023,7 +1038,7 @@ public class LookAheadCoMHeightTrajectoryGenerator
             + ", " + orientation.getQuaternion().getY() + ", " + orientation.getQuaternion().getZ() + ")));");
    }
 
-   public void getCurrentDesiredHeight(FramePoint positionToPack)
+   public void getCurrentDesiredHeight(FramePoint3D positionToPack)
    {
       desiredCoMPosition.getFrameTupleIncludingFrame(positionToPack);
    }

@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 import us.ihmc.euclid.matrix.Matrix3D;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.robotics.partNames.JointNameMap;
@@ -17,7 +18,6 @@ import us.ihmc.robotics.partNames.JointRole;
 import us.ihmc.robotics.partNames.NeckJointName;
 import us.ihmc.robotics.partNames.RobotSpecificJointNames;
 import us.ihmc.robotics.partNames.SpineJointName;
-import us.ihmc.robotics.referenceFrames.ReferenceFrame;
 import us.ihmc.robotics.robotDescription.CameraSensorDescription;
 import us.ihmc.robotics.robotDescription.FloatingJointDescription;
 import us.ihmc.robotics.robotDescription.ForceSensorDescription;
@@ -38,15 +38,14 @@ import us.ihmc.robotics.screwTheory.SixDoFJoint;
 import us.ihmc.robotics.sensors.ContactSensorDefinition;
 import us.ihmc.robotics.sensors.ForceSensorDefinition;
 import us.ihmc.robotics.sensors.IMUDefinition;
-import us.ihmc.tools.containers.ContainerTools;
 
 public class FullRobotModelFromDescription implements FullRobotModel
 {
    protected final RobotDescription description;
 
    protected final JointNameMap sdfJointNameMap;
-   protected final EnumMap<NeckJointName, OneDoFJoint> neckJoints = ContainerTools.createEnumMap(NeckJointName.class);
-   protected final EnumMap<SpineJointName, OneDoFJoint> spineJoints = ContainerTools.createEnumMap(SpineJointName.class);
+   protected final EnumMap<NeckJointName, OneDoFJoint> neckJoints = new EnumMap<>(NeckJointName.class);
+   protected final EnumMap<SpineJointName, OneDoFJoint> spineJoints = new EnumMap<>(SpineJointName.class);
    protected final String[] sensorLinksToTrack;
 //   protected final SDFLinkHolder rootLink;
    protected RigidBody chest;
@@ -398,6 +397,7 @@ public class FullRobotModelFromDescription implements FullRobotModel
       }
 
       inverseDynamicsJoint.setEffortLimits(-joint.getEffortLimit(), joint.getEffortLimit());
+      inverseDynamicsJoint.setVelocityLimit(-joint.getVelocityLimit(), joint.getVelocityLimit());
 
       if (joint.containsLimitStops())
       {

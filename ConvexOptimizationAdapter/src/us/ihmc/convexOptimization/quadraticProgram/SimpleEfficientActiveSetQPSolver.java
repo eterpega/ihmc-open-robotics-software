@@ -6,27 +6,25 @@ import org.ejml.interfaces.linsol.LinearSolver;
 import org.ejml.ops.CommonOps;
 
 import gnu.trove.list.array.TIntArrayList;
-import us.ihmc.robotics.linearAlgebra.MatrixTools;
 
 /**
  * Solves a Quadratic Program using a simple active set method.
- * Does not work for problems where having multiple inequality constraints 
- * in the active set make the problem infeasible. Seems to work well for 
+ * Does not work for problems where having multiple inequality constraints
+ * in the active set make the problem infeasible. Seems to work well for
  * problems with benign inequality constraints, such as variable bounds.
- * 
+ *
  *  Algorithm is very fast when it can find a solution.
- * 
+ *
  * Uses the algorithm and naming convention found in MIT Paper
  * "An efficiently solvable quadratic program for stabilizing dynamic locomotion"
  * by Scott Kuindersma, Frank Permenter, and Russ Tedrake.
- * 
+ *
  * @author JerryPratt
  *
  */
 public class SimpleEfficientActiveSetQPSolver implements SimpleActiveSetQPSolverInterface
 {
-   private static final double epsilon = 1e-10;
-
+   private double convergenceThreshold = 1e-10;
    private int maxNumberOfIterations = 10;
 
    private final DenseMatrix64F quadraticCostQMatrix = new DenseMatrix64F(0, 0);
@@ -101,13 +99,19 @@ public class SimpleEfficientActiveSetQPSolver implements SimpleActiveSetQPSolver
 
    private final LinearSolver<DenseMatrix64F> solver = LinearSolverFactory.linear(0);
 
-   private boolean useWarmStart = false;
+   private boolean useWarmStart = true;
 
    private int previousNumberOfVariables = 0;
    private int previousNumberOfEqualityConstraints = 0;
    private int previousNumberOfInequalityConstraints = 0;
    private int previousNumberOfLowerBoundConstraints = 0;
    private int previousNumberOfUpperBoundConstraints = 0;
+
+   @Override
+   public void setConvergenceThreshold(double convergenceThreshold)
+   {
+      this.convergenceThreshold = convergenceThreshold;
+   }
 
    @Override
    public void setMaxNumberOfIterations(int maxNumberOfIterations)
@@ -132,27 +136,21 @@ public class SimpleEfficientActiveSetQPSolver implements SimpleActiveSetQPSolver
    }
 
    @Override
-   public void setVariableBounds(DenseMatrix64F variableLowerBounds, DenseMatrix64F variableUpperBounds)
+   public void setLowerBounds(DenseMatrix64F variableLowerBounds)
    {
       if (variableLowerBounds.getNumRows() != quadraticCostQMatrix.getNumRows())
          throw new RuntimeException("variableLowerBounds.getNumRows() != quadraticCostQMatrix.getNumRows()");
+
+      this.variableLowerBounds.set(variableLowerBounds);
+   }
+
+   @Override
+   public void setUpperBounds(DenseMatrix64F variableUpperBounds)
+   {
       if (variableUpperBounds.getNumRows() != quadraticCostQMatrix.getNumRows())
          throw new RuntimeException("variableUpperBounds.getNumRows() != quadraticCostQMatrix.getNumRows()");
 
-      this.variableLowerBounds.set(variableLowerBounds);
       this.variableUpperBounds.set(variableUpperBounds);
-   }
-
-   @Override
-   public void setVariableBounds(double[] variableLowerBounds, double[] variableUpperBounds)
-   {
-      setVariableBounds(MatrixTools.createVector(variableLowerBounds), MatrixTools.createVector(variableUpperBounds));
-   }
-
-   @Override
-   public void setQuadraticCostFunction(double[][] quadraticCostFunctionQMatrix, double[] quadraticCostFunctionQVector, double quadraticCostScalar)
-   {
-      setQuadraticCostFunction(new DenseMatrix64F(quadraticCostFunctionQMatrix), MatrixTools.createVector(quadraticCostFunctionQVector), quadraticCostScalar);
    }
 
    @Override
@@ -194,12 +192,6 @@ public class SimpleEfficientActiveSetQPSolver implements SimpleActiveSetQPSolver
    }
 
    @Override
-   public void setLinearEqualityConstraints(double[][] linearEqualityConstraintsAMatrix, double[] linearEqualityConstraintsBVector)
-   {
-      setLinearEqualityConstraints(new DenseMatrix64F(linearEqualityConstraintsAMatrix), MatrixTools.createVector(linearEqualityConstraintsBVector));
-   }
-
-   @Override
    public void setLinearEqualityConstraints(DenseMatrix64F linearEqualityConstraintsAMatrix, DenseMatrix64F linearEqualityConstraintsBVector)
    {
       if (linearEqualityConstraintsBVector.getNumCols() != 1)
@@ -211,12 +203,6 @@ public class SimpleEfficientActiveSetQPSolver implements SimpleActiveSetQPSolver
 
       this.linearEqualityConstraintsBVector.set(linearEqualityConstraintsBVector);
       this.linearEqualityConstraintsAMatrix.set(linearEqualityConstraintsAMatrix);
-   }
-
-   @Override
-   public void setLinearInequalityConstraints(double[][] linearInequalityConstraintsCMatrix, double[] linearInqualityConstraintsDVector)
-   {
-      setLinearInequalityConstraints(new DenseMatrix64F(linearInequalityConstraintsCMatrix), MatrixTools.createVector(linearInqualityConstraintsDVector));
    }
 
    @Override
@@ -576,7 +562,7 @@ public class SimpleEfficientActiveSetQPSolver implements SimpleActiveSetQPSolver
          {
             if (activeInequalityIndices.contains(i))
                continue; // Only check violation on those that are not active. Otherwise check should just return 0.0, but roundoff could cause problems.
-            if (linearInequalityConstraintsCheck.get(i, 0) > epsilon)
+            if (linearInequalityConstraintsCheck.get(i, 0) > convergenceThreshold)
             {
                activeSetWasModified = true;
                inequalityIndicesToAddToActiveSet.add(i);
@@ -605,7 +591,7 @@ public class SimpleEfficientActiveSetQPSolver implements SimpleActiveSetQPSolver
 
          double solutionVariable = solutionToPack.get(i, 0);
          double lowerBound = this.variableLowerBounds.get(i, 0);
-         if (solutionVariable < lowerBound - epsilon)
+         if (solutionVariable < lowerBound - convergenceThreshold)
          {
             activeSetWasModified = true;
             lowerBoundIndicesToAddToActiveSet.add(i);
@@ -620,7 +606,7 @@ public class SimpleEfficientActiveSetQPSolver implements SimpleActiveSetQPSolver
 
          double solutionVariable = solutionToPack.get(i, 0);
          double upperBound = this.variableUpperBounds.get(i, 0);
-         if (solutionVariable > upperBound + epsilon)
+         if (solutionVariable > upperBound + convergenceThreshold)
          {
             activeSetWasModified = true;
             upperBoundIndicesToAddToActiveSet.add(i);
