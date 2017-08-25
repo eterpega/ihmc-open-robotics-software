@@ -16,6 +16,7 @@ import javax.swing.JPanel;
 import us.ihmc.yoGraphs.graphInterfaces.GraphIndicesHolder;
 import us.ihmc.yoGraphs.graphInterfaces.SelectedVariableHolder;
 import us.ihmc.javaFXToolkit.graphing.JavaFX3DGraph;
+import us.ihmc.yoVariables.dataBuffer.IndexChangedListener;
 import us.ihmc.yoVariables.variable.YoVariable;
 import us.ihmc.yoVariables.dataBuffer.DataBuffer;
 import us.ihmc.yoVariables.dataBuffer.DataBufferEntry;
@@ -211,6 +212,21 @@ public class GraphArrayPanel extends JPanel implements GraphIndicesHolder, YoGra
    public boolean isIndexAtOutPoint()
    {
       return (getIndex() == getOutPoint());
+   }
+
+   @Override public void attachIndexChangeListener(IndexChangedListener listener)
+   {
+      // TODO: NOT IMPLEMENTED FOR OLD SCS
+   }
+
+   @Override public void detachIndexChangeListener(IndexChangedListener listener)
+   {
+      // TODO: NOT IMPLEMENTED FOR OLD SCS
+   }
+
+   @Override public void notifyIndexChangeListeners()
+   {
+      // TODO: NOT IMPLEMENTED FOR OLD SCS
    }
 
    @Override
