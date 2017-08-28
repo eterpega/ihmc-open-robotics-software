@@ -3,6 +3,7 @@ package us.ihmc.simulationconstructionset.gui;
 import java.util.ArrayList;
 
 import us.ihmc.yoGraphs.graphInterfaces.GraphIndicesHolder;
+import us.ihmc.yoVariables.dataBuffer.IndexChangedListener;
 
 public class MinimalGraphIndicesHolder implements GraphIndicesHolder
 {
@@ -85,5 +86,20 @@ public class MinimalGraphIndicesHolder implements GraphIndicesHolder
    public boolean isIndexAtOutPoint()
    {
       return (getIndex() == getOutPoint());
+   }
+
+   @Override public void attachIndexChangeListener(IndexChangedListener listener)
+   {
+      // TODO: should minimal have listeners?
+   }
+
+   @Override public void detachIndexChangeListener(IndexChangedListener listener)
+   {
+      // TODO: should minimal have listeners?
+   }
+
+   @Override public void notifyIndexChangeListeners()
+   {
+      // TODO: should minimal have listeners?
    }
 }
