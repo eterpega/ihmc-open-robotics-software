@@ -108,8 +108,6 @@ public class YoTrajectory
          coefficients[index] = polynomial.getCoefficient(index);
       for(; index < coefficients.length; index++)
          coefficients[index] = 0;
-//      for(index = 0; index < coefficients.length; index++)
-//         PrintTools.debug(coefficients[index] + "");      
       return coefficients;
    }
 
@@ -439,5 +437,23 @@ public class YoTrajectory
    public YoPolynomial getPolynomial()
    {
       return polynomial;
+   }
+
+   public boolean isValidTrajectory()
+   {
+      boolean retVal = (getInitialTime() < getFinalTime()) && Double.isFinite(getInitialTime()) && Double.isFinite(getFinalTime());
+      double[] coeffs = getCoefficients();
+      for(int i = 0; retVal && i < coeffs.length; i++)
+         retVal &= Double.isFinite(coeffs[i]);
+      return retVal;
+   }
+
+   public void set(Trajectory trajectory)
+   {
+      reshape(trajectory.getNumberOfCoefficients());
+      this.tInitial.set(trajectory.getInitialTime());
+      this.tInitial.set(trajectory.getInitialTime());
+      for(int i = 0; i < getNumberOfCoefficients(); i++)
+         polynomial.setDirectly(i, trajectory.getCoefficient(i));
    }
 }
