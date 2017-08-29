@@ -175,10 +175,10 @@ public class AtlasSimpleAutomatedStepAdjustmentDemo
       }
    }
 
-   private static void addPushDirectionHeaders(WritableSheet sheet)
+   private static void addPushDirectionHeaders(WritableSheet sheet, List<PushDirection> pushDirections)
    {
       int colNumber = 1;
-      for (PushDirection pushDirection : PushDirection.values())
+      for (PushDirection pushDirection : pushDirections)
       {
          addStringToSheet(sheet, colNumber, 0, pushDirection.toString());
          colNumber++;
@@ -246,6 +246,19 @@ public class AtlasSimpleAutomatedStepAdjustmentDemo
       testTypes.add(TestType.ADJUSTMENT_WITH_ANGULAR);
       testTypes.add(TestType.BIG_ADJUSTMENT);
       testTypes.add(TestType.SPEED_UP_ADJUSTMENT_WITH_ANGULAR);
+//
+      List<PushDirection> pushDirections = new ArrayList<>();
+      //pushDirections.add(PushDirection.FORWARD_30);
+      //pushDirections.add(PushDirection.FORWARD_45);
+      //pushDirections.add(PushDirection.FORWARD_60);
+      //pushDirections.add(PushDirection.OUTWARD);
+      //pushDirections.add(PushDirection.BACKWARD_60);
+      //pushDirections.add(PushDirection.BACKWARD_45);
+      //pushDirections.add(PushDirection.BACKWARD_30);
+      //pushDirections.add(PushDirection.BACKWARD);
+      //pushDirections.add(PushDirection.BACKWARD_IN_30);
+      pushDirections.add(PushDirection.BACKWARD_IN_45);
+      pushDirections.add(PushDirection.INWARD);
 
       StepScriptType stepScriptType = StepScriptType.FORWARD_FAST;
       File forwardFastFile = new File("/home/robert/Simple_StepAdjustmentForwardFast.xls");
@@ -253,11 +266,11 @@ public class AtlasSimpleAutomatedStepAdjustmentDemo
       WritableSheet forwardFastSheet = forwardFastWorkbook.createSheet(stepScriptType.toString(), forwardFastWorkbook.getNumberOfSheets());
 
       // setup name headers
-      addPushDirectionHeaders(forwardFastSheet);
+      addPushDirectionHeaders(forwardFastSheet, pushDirections);
       addControlTypeRowName(forwardFastSheet, testTypes);
 
       int colNumber = 1;
-      for (PushDirection pushDirection : PushDirection.values())
+      for (PushDirection pushDirection : pushDirections)
       {
          int rowNumber = 1;
          for (TestType testType : testTypes)

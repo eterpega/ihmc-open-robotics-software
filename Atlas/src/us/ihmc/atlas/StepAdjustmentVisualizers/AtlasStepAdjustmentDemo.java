@@ -17,8 +17,8 @@ import us.ihmc.simulationconstructionset.util.simulationRunner.BlockingSimulatio
 public class AtlasStepAdjustmentDemo
 {
    private static StepScriptType stepScriptType = StepScriptType.FORWARD_FAST;
-   private static TestType testType = TestType.FEEDBACK_WITH_ANGULAR;
-   private static PushDirection pushDirection = PushDirection.FORWARD;
+   private static TestType testType = TestType.ADJUSTMENT_WITH_ANGULAR;
+   private static PushDirection pushDirection = PushDirection.BACKWARD_IN_45;
 
    private static String forwardFastScript = "scripts/stepAdjustment_forwardWalkingFast.xml";
    private static String forwardSlowScript = "scripts/stepAdjustment_forwardWalkingSlow.xml";
@@ -117,6 +117,9 @@ public class AtlasStepAdjustmentDemo
             case SPEED_UP_ONLY:
                percentWeight = 0.62;
                break;
+            case FEEDBACK_WITH_ANGULAR:
+               percentWeight = 0.49;
+               break;
             default: // doesn't allow speed up or step adjustment
                percentWeight = 0.39;
                break;
@@ -202,6 +205,9 @@ public class AtlasStepAdjustmentDemo
                break;
             case SPEED_UP_ONLY:
                percentWeight = 0.86;
+               break;
+            case FEEDBACK_WITH_ANGULAR:
+               percentWeight = 0.69;
                break;
             case TIMING_WITH_ANGULAR:
                percentWeight = 1.07;
@@ -296,8 +302,11 @@ public class AtlasStepAdjustmentDemo
             case SPEED_UP_ONLY:
                percentWeight = 0.46;
                break;
+            case FEEDBACK_WITH_ANGULAR:
+               percentWeight = 0.44;
+               break;
             case ADJUSTMENT_WITH_ANGULAR:
-               percentWeight = 1.5; //1.35;
+               percentWeight = 1.8; //1.7;
                break;
             default: // doesn't allow speed up or step adjustment
                percentWeight = 0.3;
@@ -386,6 +395,12 @@ public class AtlasStepAdjustmentDemo
             case SPEED_UP_ONLY:
                percentWeight = 0.39;
                break;
+            case FEEDBACK_WITH_ANGULAR:
+               percentWeight = 0.33;
+               break;
+            case ADJUSTMENT_WITH_ANGULAR:
+               percentWeight = 1.3;
+               break;
             default: // doesn't allow speed up or step adjustment
                percentWeight = 0.25;
                break;
@@ -470,8 +485,14 @@ public class AtlasStepAdjustmentDemo
             case ADJUSTMENT_ONLY:
                percentWeight = 1.12;
                break;
+            case ADJUSTMENT_WITH_ANGULAR:
+               percentWeight = 1.52; //1.5;
+               break;
             case SPEED_UP_ONLY:
                percentWeight = 0.48;
+               break;
+            case FEEDBACK_WITH_ANGULAR:
+               percentWeight = 0.44;
                break;
             default: // doesn't allow speed up or step adjustment
                percentWeight = 0.33;
@@ -557,8 +578,14 @@ public class AtlasStepAdjustmentDemo
             case ADJUSTMENT_ONLY:
                percentWeight = 0.9;
                break;
+            case ADJUSTMENT_WITH_ANGULAR:
+               percentWeight = 1.25;
+               break;
             case SPEED_UP_ONLY:
                percentWeight = 0.62;
+               break;
+            case FEEDBACK_WITH_ANGULAR:
+               percentWeight = 0.92;
                break;
             default: // doesn't allow speed up or step adjustment
                percentWeight = 0.41;
@@ -585,6 +612,9 @@ public class AtlasStepAdjustmentDemo
                break;
             case SPEED_UP_ONLY:
                percentWeight = 0.24;
+               break;
+            case FEEDBACK_WITH_ANGULAR:
+               percentWeight = 0.5; // 0.4;
                break;
             default: // doesn't allow speed up or step adjustment
                percentWeight = 0.24;
@@ -645,6 +675,9 @@ public class AtlasStepAdjustmentDemo
                break;
             case SPEED_UP_ONLY:
                percentWeight = 0.3;
+               break;
+            case FEEDBACK_WITH_ANGULAR:
+               percentWeight = 0.33;
                break;
             default: // doesn't allow speed up or step adjustment
                percentWeight = 0.31;
@@ -731,6 +764,9 @@ public class AtlasStepAdjustmentDemo
                percentWeight = 0.51;//0.54;
                break;
             case SPEED_UP_ONLY:
+               percentWeight = 0.28;
+               break;
+            case FEEDBACK_WITH_ANGULAR:
                percentWeight = 0.28;
                break;
             default: // doesn't allow speed up or step adjustment
@@ -901,8 +937,14 @@ public class AtlasStepAdjustmentDemo
             case ADJUSTMENT_ONLY:
                percentWeight = 0.95;
                break;
+            case ADJUSTMENT_WITH_ANGULAR:
+               percentWeight = 1.2; //1.1;
+               break;
             case SPEED_UP_ONLY:
                percentWeight = 0.43;
+               break;
+            case FEEDBACK_WITH_ANGULAR:
+               percentWeight = 0.36;
                break;
             default: // doesn't allow speed up or step adjustment
                percentWeight = 0.26;
@@ -988,8 +1030,14 @@ public class AtlasStepAdjustmentDemo
             case ADJUSTMENT_ONLY:
                percentWeight = 1.45;
                break;
+            case ADJUSTMENT_WITH_ANGULAR:
+               percentWeight = 1.78; //1.75;
+               break;
             case SPEED_UP_ONLY:
                percentWeight = 0.52;
+               break;
+            case FEEDBACK_WITH_ANGULAR:
+               percentWeight = 0.54;
                break;
             default: // doesn't allow speed up or step adjustment
                percentWeight = 0.46;
@@ -1075,7 +1123,13 @@ public class AtlasStepAdjustmentDemo
             case ADJUSTMENT_ONLY:
                percentWeight = 0.62;
                break;
+            case ADJUSTMENT_WITH_ANGULAR:
+               percentWeight = 0.75;
+               break;
             case SPEED_UP_ONLY:
+               percentWeight = 0.5;
+               break;
+            case FEEDBACK_WITH_ANGULAR:
                percentWeight = 0.5;
                break;
             default: // doesn't allow speed up or step adjustment
@@ -1162,8 +1216,14 @@ public class AtlasStepAdjustmentDemo
             case ADJUSTMENT_ONLY:
                percentWeight = 1.01;
                break;
+            case ADJUSTMENT_WITH_ANGULAR:
+               percentWeight = 1.15;
+               break;
             case SPEED_UP_ONLY:
                percentWeight = 1.15; //0.77;
+               break;
+            case FEEDBACK_WITH_ANGULAR:
+               percentWeight = 1.11; //0.77;
                break;
             default: // doesn't allow speed up or step adjustment
                percentWeight = 0.83;
@@ -1250,6 +1310,12 @@ public class AtlasStepAdjustmentDemo
                break;
             case SPEED_UP_ONLY:
                percentWeight = 0.40;
+               break;
+            case FEEDBACK_WITH_ANGULAR:
+               percentWeight = 0.30;
+               break;
+            case ADJUSTMENT_WITH_ANGULAR:
+               percentWeight = 1.2;
                break;
             default: // doesn't allow speed up or step adjustment
                percentWeight = 0.22;
