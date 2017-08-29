@@ -98,6 +98,7 @@ public class Test
       public void doTransitionIntoAction()
       {
          System.out.println("transit into A");
+         
       }
 
       @Override
