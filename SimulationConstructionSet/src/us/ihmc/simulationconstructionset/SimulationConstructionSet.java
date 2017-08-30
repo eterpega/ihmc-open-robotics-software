@@ -32,6 +32,8 @@ import javax.swing.JTextField;
 
 import com.jme3.renderer.Camera;
 
+import javafx.application.Platform;
+import javafx.embed.swing.JFXPanel;
 import us.ihmc.commons.PrintTools;
 import us.ihmc.communication.producers.VideoDataServer;
 import us.ihmc.euclid.tuple3D.interfaces.Tuple3DBasics;
@@ -2259,6 +2261,10 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
    @Override
    public void run()
    {
+      new JFXPanel();
+
+      Platform.setImplicitExit(false);
+
       // myGUI.setupConfiguration("all", "all", "all", "all");
 
       if (!TESTING_LOAD_STUFF)
