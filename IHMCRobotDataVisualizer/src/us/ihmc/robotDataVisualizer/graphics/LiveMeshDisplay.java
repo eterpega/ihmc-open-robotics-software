@@ -18,8 +18,16 @@ public class LiveMeshDisplay extends Pane
 {
    private Property<List<MeshView>> updateMeshes = new SimpleObjectProperty<>();
 
+   private LiveMeshUpdater updater;
+
    public void update(List<MeshView> meshes) {
       updateMeshes.setValue(meshes);
+   }
+
+   public void close() {
+      updater.halt();
+
+      Platform.runLater(this.getChildren()::clear);
    }
 
    public LiveMeshDisplay(Paint backgroundColor, MeshProvider provider) {
@@ -29,14 +37,14 @@ public class LiveMeshDisplay extends Pane
 
       this.setBackground(new Background(new BackgroundFill(backgroundColor, CornerRadii.EMPTY, Insets.EMPTY)));
 
-      updateMeshes.addListener((prop, old, nw) -> {
-         Platform.runLater(() -> {
-            getChildren().clear();
-            getChildren().addAll(nw);
-         });
-      });
+      updateMeshes.addListener((prop, old, nw) ->
+            Platform.runLater(() -> {
+               getChildren().clear();
+               getChildren().addAll(nw);
+            }
+      ));
 
-      new LiveMeshUpdater(this, provider).start();
+      (updater = new LiveMeshUpdater(this, provider)).start();
    }
 
    public LiveMeshDisplay(MeshProvider provider) {
