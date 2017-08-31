@@ -9,7 +9,7 @@ public class YoGraphicMeshProvider extends MeshProvider
 {
    private AtomicReference<List<MeshView>> asyncMeshes = new AtomicReference<>();
 
-   public void setLater(List<MeshView> meshes) {
+   public void provideLater(List<MeshView> meshes) {
       this.asyncMeshes.set(meshes);
    }
 
