@@ -47,23 +47,6 @@ public class YoGraphicServerVisualizer extends Application implements YoVariable
 
    private volatile boolean recording = true;
 
-   @Override public void start(Stage stage) throws Exception
-   {
-      buffer = new DataBuffer(BUFFER_SIZE);
-
-      stage.setScene(new Scene(display = new LiveMeshDisplay()));
-
-      stage.show();
-
-      new LiveMeshUpdater(display, yoGraphicMeshProvider).start();
-
-      yoVariableClient = new YoVariableClient(this);
-   }
-
-   public static void main(String[] args) {
-      launch(args);
-   }
-
    @Override public void clearLog(String guid)
    {
       // TODO
@@ -87,41 +70,6 @@ public class YoGraphicServerVisualizer extends Application implements YoVariable
    @Override public void setShowOverheadView(boolean showOverheadView)
    {
       // TODO
-   }
-
-   @Override public void start(LogHandshake handshake, YoVariableHandshakeParser handshakeParser)
-   {
-      // Load robot through LogHandshake using YoVariableHandshakeParser
-
-      Robot robot = new Robot("DummyRobot");
-      if (handshake.getModelLoaderClass() != null)
-      {
-         LogModelLoader modelLoader;
-         try
-         {
-            modelLoader = (LogModelLoader) Class.forName(handshake.getModelLoaderClass()).newInstance();
-         }
-         catch (Exception e)
-         {
-            System.err.println("Could not instantiate LogModelLoader: " + handshake.getModelLoaderClass() + ". Defaulting to SDFModelLoader.");
-            modelLoader = new SDFModelLoader();
-         }
-         modelLoader.load(handshake.getModelName(), handshake.getModel(), handshake.getResourceDirectories(), handshake.getResourceZip(), null);
-         robot = new RobotFromDescription(modelLoader.createRobot());
-      }
-
-      // Initialize YoVariableRegistry, YoGraphicsListRegistry, and JointUpdaters
-
-      this.variableRegistry = new YoVariableRegistry("default");
-
-      YoVariableRegistry yoVariableRegistry = handshakeParser.getRootRegistry();
-      this.variableRegistry.addChild(yoVariableRegistry);
-      this.variableRegistry.addChild(yoVariableClient.getDebugRegistry());
-
-      List<JointState> jointStates = handshakeParser.getJointStates();
-      JointUpdater.getJointUpdaterList(robot.getRootJoints(), jointStates, jointUpdaters);
-
-      graphicsRegistry = handshakeParser.getYoGraphicsListRegistry();
    }
 
    @Override public void disconnected()
@@ -177,5 +125,57 @@ public class YoGraphicServerVisualizer extends Application implements YoVariable
    @Override public boolean executeVariableChangedListeners()
    {
       return recording;
+   }
+
+   @Override public void start(LogHandshake handshake, YoVariableHandshakeParser handshakeParser)
+   {
+      // Load robot through LogHandshake using YoVariableHandshakeParser
+
+      Robot robot = new Robot("DummyRobot");
+      if (handshake.getModelLoaderClass() != null)
+      {
+         LogModelLoader modelLoader;
+         try
+         {
+            modelLoader = (LogModelLoader) Class.forName(handshake.getModelLoaderClass()).newInstance();
+         }
+         catch (Exception e)
+         {
+            System.err.println("Could not instantiate LogModelLoader: " + handshake.getModelLoaderClass() + ". Defaulting to SDFModelLoader.");
+            modelLoader = new SDFModelLoader();
+         }
+         modelLoader.load(handshake.getModelName(), handshake.getModel(), handshake.getResourceDirectories(), handshake.getResourceZip(), null);
+         robot = new RobotFromDescription(modelLoader.createRobot());
+      }
+
+      // Initialize YoVariableRegistry, YoGraphicsListRegistry, and JointUpdaters
+
+      this.variableRegistry = new YoVariableRegistry("default");
+
+      YoVariableRegistry yoVariableRegistry = handshakeParser.getRootRegistry();
+      this.variableRegistry.addChild(yoVariableRegistry);
+      this.variableRegistry.addChild(yoVariableClient.getDebugRegistry());
+
+      List<JointState> jointStates = handshakeParser.getJointStates();
+      JointUpdater.getJointUpdaterList(robot.getRootJoints(), jointStates, jointUpdaters);
+
+      graphicsRegistry = handshakeParser.getYoGraphicsListRegistry();
+   }
+
+   @Override public void start(Stage stage) throws Exception
+   {
+      buffer = new DataBuffer(BUFFER_SIZE);
+
+      stage.setScene(new Scene(display = new LiveMeshDisplay()));
+
+      stage.show();
+
+      new LiveMeshUpdater(display, yoGraphicMeshProvider).start();
+
+      yoVariableClient = new YoVariableClient(this);
+   }
+
+   public static void main(String[] args) {
+      launch(args);
    }
 }
