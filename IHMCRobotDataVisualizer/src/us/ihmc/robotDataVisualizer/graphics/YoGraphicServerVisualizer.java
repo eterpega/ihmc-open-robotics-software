@@ -37,7 +37,7 @@ public class YoGraphicServerVisualizer extends Application implements YoVariable
 
    private YoVariableClient yoVariableClient;
 
-   private YoGraphicMeshProvider yoGraphicMeshProvider = new YoGraphicMeshProvider();
+   private YoGraphicMeshProvider yoGraphicMeshProvider;
 
    private final ArrayList<JointUpdater> jointUpdaters = new ArrayList<>();
 
@@ -166,11 +166,9 @@ public class YoGraphicServerVisualizer extends Application implements YoVariable
    {
       buffer = new DataBuffer(BUFFER_SIZE);
 
-      stage.setScene(new Scene(display = new LiveMeshDisplay()));
+      stage.setScene(new Scene(display = new LiveMeshDisplay(yoGraphicMeshProvider = new YoGraphicMeshProvider())));
 
       stage.show();
-
-      new LiveMeshUpdater(display, yoGraphicMeshProvider).start();
 
       yoVariableClient = new YoVariableClient(this);
    }
