@@ -7,7 +7,6 @@ import javafx.stage.Stage;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphic;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsList;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
-import us.ihmc.javaFXToolkit.graphics.JavaFXMeshDataInterpreter;
 import us.ihmc.multicastLogDataProtocol.modelLoaders.LogModelLoader;
 import us.ihmc.multicastLogDataProtocol.modelLoaders.SDFModelLoader;
 import us.ihmc.robotDataLogger.YoVariableClient;
@@ -41,6 +40,12 @@ public class YoGraphicServerVisualizer extends Application implements YoVariable
    private YoGraphicMeshProvider yoGraphicMeshProvider = new YoGraphicMeshProvider();
 
    private final ArrayList<JointUpdater> jointUpdaters = new ArrayList<>();
+
+   private int displayOneInNPackets = 1;
+
+   private long counter = 0;
+
+   private volatile boolean recording = true;
 
    @Override public void start(Stage stage) throws Exception
    {
@@ -81,11 +86,13 @@ public class YoGraphicServerVisualizer extends Application implements YoVariable
 
    @Override public void setShowOverheadView(boolean showOverheadView)
    {
-
+      // TODO
    }
 
    @Override public void start(LogHandshake handshake, YoVariableHandshakeParser handshakeParser)
    {
+      // Load robot through LogHandshake using YoVariableHandshakeParser
+
       Robot robot = new Robot("DummyRobot");
       if (handshake.getModelLoaderClass() != null)
       {
@@ -103,6 +110,8 @@ public class YoGraphicServerVisualizer extends Application implements YoVariable
          robot = new RobotFromDescription(modelLoader.createRobot());
       }
 
+      // Initialize YoVariableRegistry, YoGraphicsListRegistry, and JointUpdaters
+
       this.variableRegistry = new YoVariableRegistry("default");
 
       YoVariableRegistry yoVariableRegistry = handshakeParser.getRootRegistry();
@@ -117,34 +126,56 @@ public class YoGraphicServerVisualizer extends Application implements YoVariable
 
    @Override public void disconnected()
    {
-
+      // TODO
    }
 
    @Override public void setYoVariableClient(YoVariableClient client)
    {
-
+      // TODO
    }
 
    @Override public int getDisplayOneInNPackets()
    {
-      return 0;
+      return displayOneInNPackets;
    }
 
    @Override public void receivedTimestampAndData(long timestamp)
    {
-      List<MeshView> meshes = new ArrayList<>();
+      if(++counter % displayOneInNPackets == 0 && recording)
+      {
+         // Update JointUpdaters, YoGraphicsListRegistry, and DataBuffer
 
-      for (YoGraphicsList list : graphicsRegistry.getYoGraphicsLists()) {
-         for (YoGraphic graphic : list.getYoGraphics()) {
-            meshes.add((MeshView) new JavaFX3DInstructionExecutor(graphic.getLinkGraphics().getGraphics3DInstructions()).getResult());
+         for (int i = 0; i < jointUpdaters.size(); i++)
+         {
+            jointUpdaters.get(i).update();
          }
-      }
 
-      yoGraphicMeshProvider.setLater(meshes);
+         for (YoGraphicsList list : graphicsRegistry.getYoGraphicsLists()) {
+            for (YoGraphic graphic : list.getYoGraphics()) {
+               graphic.update();
+            }
+         }
+
+         graphicsRegistry.update();
+
+         buffer.tickAndUpdate();
+
+         // Now, update LiveMeshDisplay through YoGraphicMeshProvider
+
+         List<MeshView> meshes = new ArrayList<>();
+
+         for (YoGraphicsList list : graphicsRegistry.getYoGraphicsLists()) {
+            for (YoGraphic graphic : list.getYoGraphics()) {
+               meshes.add((MeshView) new JavaFX3DInstructionExecutor(graphic.getLinkGraphics().getGraphics3DInstructions()).getResult());
+            }
+         }
+
+         yoGraphicMeshProvider.provideLater(meshes);
+      }
    }
 
    @Override public boolean executeVariableChangedListeners()
    {
-      return false;
+      return recording;
    }
 }
