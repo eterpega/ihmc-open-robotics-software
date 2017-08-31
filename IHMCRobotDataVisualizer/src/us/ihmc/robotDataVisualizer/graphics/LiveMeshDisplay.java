@@ -13,14 +13,10 @@ import javafx.scene.paint.Paint;
 import javafx.scene.shape.MeshView;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class LiveMeshDisplay extends Pane
 {
-
    private Property<List<MeshView>> updateMeshes = new SimpleObjectProperty<>();
-
-   private AtomicBoolean updating = new AtomicBoolean(false);
 
    public void update(List<MeshView> meshes) {
       updateMeshes.setValue(meshes);
@@ -30,19 +26,10 @@ public class LiveMeshDisplay extends Pane
       this.setBackground(new Background(new BackgroundFill(backgroundColor, CornerRadii.EMPTY, Insets.EMPTY)));
 
       updateMeshes.addListener((prop, old, nw) -> {
-         if (!updating.get())
-         {
-            updating.set(true);
-
-            Platform.runLater(() ->
-            {
-               getChildren().clear();
-
-               getChildren().addAll(nw);
-
-               updating.set(false);
-            });
-         }
+         Platform.runLater(() -> {
+            getChildren().clear();
+            getChildren().addAll(nw);
+         });
       });
    }
 

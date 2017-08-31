@@ -1,13 +1,13 @@
 package us.ihmc.robotDataVisualizer.graphics;
 
-import javafx.scene.shape.MeshView;
-
-import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class LiveMeshUpdater extends Thread {
    private LiveMeshDisplay display;
 
    private MeshProvider provider;
+
+   private AtomicBoolean running = new AtomicBoolean(false);
 
    public LiveMeshUpdater(LiveMeshDisplay display, MeshProvider provider) {
       if (display == null || provider == null) {
@@ -20,13 +20,16 @@ public class LiveMeshUpdater extends Thread {
    }
 
    @Override public void run() {
-      MeshStream stream = new MeshStream(this.provider);
+      running.set(true);
 
-      for (List<MeshView> meshViews : stream)
-      {
-         this.display.update(meshViews);
+      while (running.get()) {
+         if (provider.hasMeshes()) {
+            display.update(provider.getMeshes());
+         }
       }
+   }
 
-      this.display.update(null);
+   public void halt() {
+      running.set(false);
    }
 }

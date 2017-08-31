@@ -3,15 +3,14 @@ package us.ihmc.robotDataVisualizer.graphics;
 import javafx.scene.shape.MeshView;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-abstract public class MeshProvider extends Thread {
+abstract public class MeshProvider {
    private AtomicReference<List<MeshView>> meshes = new AtomicReference<>();
 
-   private AtomicBoolean generating = new AtomicBoolean(false);
-
    final boolean hasMeshes() {
+      updateMeshes();
+
       return meshes.get() != null;
    }
 
@@ -23,21 +22,13 @@ abstract public class MeshProvider extends Thread {
       return meshes.getAndSet(null);
    }
 
-   final synchronized boolean isGenerating() {
-      return generating.get();
+   public void updateMeshes() {
+      List<MeshView> meshes;
+
+      if ((meshes = provideMeshes()) != null) {
+         setMeshes(meshes);
+      }
    }
 
-   final synchronized void setGenerating(boolean b) {
-      generating.set(b);
-   }
-
-   @Override final public void run() {
-      do {
-         setGenerating(true);
-      } while(provideMeshes());
-
-      setGenerating(false);
-   }
-
-   abstract boolean provideMeshes();
+   protected abstract List<MeshView> provideMeshes();
 }
