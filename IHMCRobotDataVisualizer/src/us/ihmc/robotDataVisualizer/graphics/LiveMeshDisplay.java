@@ -22,7 +22,11 @@ public class LiveMeshDisplay extends Pane
       updateMeshes.setValue(meshes);
    }
 
-   public LiveMeshDisplay(Paint backgroundColor) {
+   public LiveMeshDisplay(Paint backgroundColor, MeshProvider provider) {
+      if (backgroundColor == null || provider == null) {
+         throw new NullPointerException("Background color and provider cannot be null for LiveMeshDisplay");
+      }
+
       this.setBackground(new Background(new BackgroundFill(backgroundColor, CornerRadii.EMPTY, Insets.EMPTY)));
 
       updateMeshes.addListener((prop, old, nw) -> {
@@ -31,9 +35,11 @@ public class LiveMeshDisplay extends Pane
             getChildren().addAll(nw);
          });
       });
+
+      new LiveMeshUpdater(this, provider).start();
    }
 
-   public LiveMeshDisplay() {
-      this(Color.BLACK);
+   public LiveMeshDisplay(MeshProvider provider) {
+      this(Color.BLACK, provider);
    }
 }
