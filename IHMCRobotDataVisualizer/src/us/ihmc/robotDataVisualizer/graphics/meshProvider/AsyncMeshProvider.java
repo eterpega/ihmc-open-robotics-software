@@ -1,4 +1,4 @@
-package us.ihmc.robotDataVisualizer.graphics;
+package us.ihmc.robotDataVisualizer.graphics.meshProvider;
 
 import javafx.scene.shape.MeshView;
 

@@ -12,6 +12,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.MeshView;
+import us.ihmc.robotDataVisualizer.graphics.meshProvider.MeshProvider;
 
 import java.util.ArrayList;
 import java.util.Arrays;

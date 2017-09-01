@@ -1,6 +1,7 @@
 package us.ihmc.robotDataVisualizer.graphics;
 
 import org.junit.Test;
+import us.ihmc.robotDataVisualizer.graphics.meshProvider.NullMeshProvider;
 
 import static org.junit.Assert.fail;
 
