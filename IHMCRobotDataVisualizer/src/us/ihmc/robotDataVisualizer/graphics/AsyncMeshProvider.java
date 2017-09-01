@@ -5,7 +5,7 @@ import javafx.scene.shape.MeshView;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class YoGraphicMeshProvider extends MeshProvider
+public class AsyncMeshProvider extends MeshProvider
 {
    private AtomicReference<List<MeshView>> asyncMeshes = new AtomicReference<>();
 

@@ -12,7 +12,10 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.MeshView;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class LiveMeshDisplay extends Pane
 {
@@ -20,34 +23,82 @@ public class LiveMeshDisplay extends Pane
 
    private LiveMeshUpdater updater;
 
-   public void update(List<MeshView> meshes) {
+   private ArrayList<LiveMeshDisplayUpdateListener> updateListeners = new ArrayList<>();
+
+   private AtomicBoolean updating = new AtomicBoolean(false);
+
+   public void update(List<MeshView> meshes)
+   {
       updateMeshes.setValue(meshes);
+
+      if (meshes == null) {
+         Platform.runLater(getChildren()::clear);
+      }
    }
 
-   public void close() {
+   public void close()
+   {
       updater.halt();
 
       Platform.runLater(this.getChildren()::clear);
    }
 
-   public LiveMeshDisplay(Paint backgroundColor, MeshProvider provider) {
-      if (backgroundColor == null || provider == null) {
+   public void attachUpdateListener(LiveMeshDisplayUpdateListener listener)
+   {
+      updateListeners.add(listener);
+   }
+
+   public void detachUpdateListener(LiveMeshDisplayUpdateListener listener)
+   {
+      updateListeners.remove(listener);
+   }
+
+   private void notifyUpdateListeners()
+   {
+      for (LiveMeshDisplayUpdateListener listener : updateListeners)
+      {
+         listener.notifyOfLiveMeshDisplayUpdate(this);
+      }
+   }
+
+   public LiveMeshDisplay(Paint backgroundColor, MeshProvider provider, LiveMeshDisplayUpdateListener... listeners)
+   {
+      if (backgroundColor == null || provider == null)
+      {
          throw new NullPointerException("Background color and provider cannot be null for LiveMeshDisplay");
       }
 
       this.setBackground(new Background(new BackgroundFill(backgroundColor, CornerRadii.EMPTY, Insets.EMPTY)));
 
+      updateListeners.addAll(Arrays.asList(listeners));
+
       updateMeshes.addListener((prop, old, nw) ->
-            Platform.runLater(() -> {
+      {
+         if (!updating.get())
+         {
+            updating.set(true);
+
+            Platform.runLater(() ->
+            {
                getChildren().clear();
-               getChildren().addAll(nw);
-            }
-      ));
+
+               if (nw != null)
+               {
+                  getChildren().addAll(nw);
+               }
+
+               notifyUpdateListeners();
+
+               updating.set(false);
+            });
+         }
+      });
 
       (updater = new LiveMeshUpdater(this, provider)).start();
    }
 
-   public LiveMeshDisplay(MeshProvider provider) {
-      this(Color.BLACK, provider);
+   public LiveMeshDisplay(MeshProvider provider, LiveMeshDisplayUpdateListener... listeners)
+   {
+      this(Color.BLACK, provider, listeners);
    }
 }

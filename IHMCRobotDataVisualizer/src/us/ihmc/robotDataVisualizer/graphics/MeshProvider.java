@@ -5,27 +5,33 @@ import javafx.scene.shape.MeshView;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-abstract public class MeshProvider {
+abstract public class MeshProvider
+{
    private AtomicReference<List<MeshView>> meshes = new AtomicReference<>();
 
-   final boolean hasMeshes() {
+   final public boolean hasMeshes()
+   {
       updateMeshes();
 
       return meshes.get() != null;
    }
 
-   final void setMeshes(List<MeshView> meshes) {
-      this.meshes.set(meshes);
-   }
-
-   final List<MeshView> getMeshes() {
+   final public List<MeshView> getMeshes()
+   {
       return meshes.getAndSet(null);
    }
 
-   public void updateMeshes() {
+   final void setMeshes(List<MeshView> meshes)
+   {
+      this.meshes.set(meshes);
+   }
+
+   protected void updateMeshes()
+   {
       List<MeshView> meshes;
 
-      if ((meshes = provideMeshes()) != null) {
+      if ((meshes = provideMeshes()) != null)
+      {
          setMeshes(meshes);
       }
    }
