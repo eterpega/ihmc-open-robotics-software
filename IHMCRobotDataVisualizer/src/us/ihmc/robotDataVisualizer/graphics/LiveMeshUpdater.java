@@ -25,6 +25,8 @@ public class LiveMeshUpdater extends Thread {
       while (running.get()) {
          if (provider.hasMeshes()) {
             display.update(provider.getMeshes());
+         } else {
+            display.update(null);
          }
       }
    }
