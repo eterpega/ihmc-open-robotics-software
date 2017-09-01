@@ -2,7 +2,9 @@ package us.ihmc.robotDataVisualizer.graphics;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
-import javafx.scene.shape.MeshView;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.PhongMaterial;
+import javafx.scene.shape.*;
 import javafx.stage.Stage;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphic;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsList;
@@ -115,7 +117,12 @@ public class YoGraphicServerVisualizer extends Application implements YoVariable
 
          for (YoGraphicsList list : graphicsRegistry.getYoGraphicsLists()) {
             for (YoGraphic graphic : list.getYoGraphics()) {
-               meshes.add((MeshView) new JavaFX3DInstructionExecutor(graphic.getLinkGraphics().getGraphics3DInstructions()).getResult());
+               MeshView meshView = (MeshView) new JavaFX3DInstructionExecutor(graphic.getLinkGraphics().getGraphics3DInstructions()).getResult();
+
+               // TODO: needed to make anything appear - something wrong with JavaFX3DInstructionExecutor's parsing of materials
+               meshView.setMaterial(new PhongMaterial(Color.ALICEBLUE));
+
+               meshes.add(meshView);
             }
          }
 
@@ -172,6 +179,8 @@ public class YoGraphicServerVisualizer extends Application implements YoVariable
       stage.show();
 
       yoVariableClient = new YoVariableClient(this);
+
+      yoVariableClient.start();
    }
 
    public static void main(String[] args) {

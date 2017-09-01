@@ -4,6 +4,7 @@ import javafx.scene.Node;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Material;
 import javafx.scene.paint.PhongMaterial;
+import javafx.scene.shape.DrawMode;
 import javafx.scene.shape.MeshView;
 import javafx.scene.shape.TriangleMesh;
 import javafx.scene.shape.VertexFormat;
@@ -93,9 +94,9 @@ public class JavaFX3DInstructionExecutor extends Graphics3DInstructionExecutor {
     public Node getResult() {
         MeshView result = new MeshView();
         result.setMesh(outputMesh);
-        result.getTransforms().addAll(outputRotation, outputScale, outputTranslation);
+        //result.getTransforms().addAll(outputRotation, outputScale, outputTranslation);
         result.setMaterial(outputMaterial);
-        //result.setDrawMode(DrawMode.LINE);
+        result.setDrawMode(DrawMode.FILL);
         return result;
     }
 
@@ -125,7 +126,7 @@ public class JavaFX3DInstructionExecutor extends Graphics3DInstructionExecutor {
         mesh.getTexCoords().addAll(texCoordBuffer);
 
         float[] normalBuffer = Arrays.stream(normals).flatMap(n -> Stream.of(n.getX(), n.getY(), n.getZ())).collect(FloatArrayCollector.create());
-        mesh.getPoints().addAll(normalBuffer);
+        mesh.getNormals().addAll(normalBuffer);
 
         return mesh;
     }
