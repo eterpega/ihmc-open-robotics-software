@@ -14,6 +14,7 @@ import us.ihmc.robotDataLogger.YoVariablesUpdatedListener;
 import us.ihmc.robotDataLogger.handshake.LogHandshake;
 import us.ihmc.robotDataLogger.handshake.YoVariableHandshakeParser;
 import us.ihmc.robotDataLogger.jointState.JointState;
+import us.ihmc.robotDataVisualizer.graphics.meshProvider.AsyncMeshProvider;
 import us.ihmc.robotDataVisualizer.visualizer.JointUpdater;
 import us.ihmc.simulationconstructionset.Robot;
 import us.ihmc.simulationconstructionset.RobotFromDescription;

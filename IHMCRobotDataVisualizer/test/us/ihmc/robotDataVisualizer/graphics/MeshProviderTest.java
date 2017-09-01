@@ -7,6 +7,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javafx.scene.shape.MeshView;
+import us.ihmc.robotDataVisualizer.graphics.meshProvider.AsyncMeshProvider;
+import us.ihmc.robotDataVisualizer.graphics.meshProvider.CachedMeshProvider;
+import us.ihmc.robotDataVisualizer.graphics.meshProvider.NullMeshProvider;
 
 public class MeshProviderTest
 {
@@ -26,7 +29,6 @@ public class MeshProviderTest
 
       assertFalse(provider.hasMeshes());
       assertNull(provider.getMeshes());
-      assertNull(provider.provideMeshes());
    }
 
    @Test public void TestCachedMeshProviderProvidesCache() {
