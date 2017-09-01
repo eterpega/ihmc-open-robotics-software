@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public abstract class CachedMeshProvider extends MeshProvider
 {
-   private AtomicReference<List<MeshView>> cache = new AtomicReference<>();
+   private List<MeshView> cache = null;
 
    @Override protected void updateMeshes() {
       List<MeshView> meshes;
@@ -15,9 +15,9 @@ public abstract class CachedMeshProvider extends MeshProvider
       if ((meshes = provideMeshes()) != null)
       {
          setMeshes(meshes);
-         cache.set(meshes);
+         cache = meshes;
       } else {
-         setMeshes(cache.get());
+         setMeshes(cache);
       }
    }
 }

@@ -1,7 +1,8 @@
 package us.ihmc.robotDataVisualizer.graphics;
 
-import javafx.application.Platform;
+import javafx.animation.AnimationTimer;
 import javafx.beans.property.Property;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Insets;
 import javafx.scene.layout.Background;
@@ -15,49 +16,71 @@ import javafx.scene.shape.MeshView;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class LiveMeshDisplay extends Pane
 {
    private Property<List<MeshView>> updateMeshes = new SimpleObjectProperty<>();
 
-   private LiveMeshUpdater updater;
+   private Property<Boolean> running = new SimpleBooleanProperty(false);
 
    private ArrayList<LiveMeshDisplayUpdateListener> updateListeners = new ArrayList<>();
 
-   private AtomicBoolean updating = new AtomicBoolean(false);
+   private MeshProvider provider;
+
+   private LiveMeshAnimator animator;
+
+   public void halt() {
+      running.setValue(false);
+   }
+
+   public void resume() {
+      if (running.getValue()) {
+         throw new UnsupportedOperationException("Cannot resume LiveMeshDisplay animating while already running");
+      }
+
+      running.setValue(true);
+   }
 
    public void update(List<MeshView> meshes)
    {
       updateMeshes.setValue(meshes);
-
-      if (meshes == null) {
-         Platform.runLater(getChildren()::clear);
-      }
    }
 
-   public void close()
-   {
-      updater.halt();
-
-      Platform.runLater(this.getChildren()::clear);
-   }
-
-   public void attachUpdateListener(LiveMeshDisplayUpdateListener listener)
-   {
+   public void attachUpdateListener(LiveMeshDisplayUpdateListener listener) {
       updateListeners.add(listener);
    }
 
-   public void detachUpdateListener(LiveMeshDisplayUpdateListener listener)
-   {
+   public void detachUpdateListener(LiveMeshDisplayUpdateListener listener) {
       updateListeners.remove(listener);
    }
 
-   private void notifyUpdateListeners()
-   {
-      for (LiveMeshDisplayUpdateListener listener : updateListeners)
-      {
+   public void notifyUpdateListeners() {
+      for (LiveMeshDisplayUpdateListener listener : updateListeners) {
          listener.notifyOfLiveMeshDisplayUpdate(this);
+      }
+   }
+
+   private class LiveMeshAnimator extends AnimationTimer
+   {
+      @Override public void handle(long l)
+      {
+         if (running.getValue())
+         {
+            getChildren().clear();
+
+            if (provider.hasMeshes()) {
+               update(provider.getMeshes());
+            }
+
+            List<MeshView> updateWith;
+
+            if ((updateWith = updateMeshes.getValue()) != null)
+            {
+               getChildren().addAll(updateWith);
+
+               notifyUpdateListeners();
+            }
+         }
       }
    }
 
@@ -68,33 +91,15 @@ public class LiveMeshDisplay extends Pane
          throw new NullPointerException("Background color and provider cannot be null for LiveMeshDisplay");
       }
 
+      this.provider = provider;
+
       this.setBackground(new Background(new BackgroundFill(backgroundColor, CornerRadii.EMPTY, Insets.EMPTY)));
 
       updateListeners.addAll(Arrays.asList(listeners));
 
-      updateMeshes.addListener((prop, old, nw) ->
-      {
-         if (!updating.get())
-         {
-            updating.set(true);
+      running.setValue(true);
 
-            Platform.runLater(() ->
-            {
-               getChildren().clear();
-
-               if (nw != null)
-               {
-                  getChildren().addAll(nw);
-               }
-
-               notifyUpdateListeners();
-
-               updating.set(false);
-            });
-         }
-      });
-
-      (updater = new LiveMeshUpdater(this, provider)).start();
+      (animator = new LiveMeshAnimator()).start();
    }
 
    public LiveMeshDisplay(MeshProvider provider, LiveMeshDisplayUpdateListener... listeners)
