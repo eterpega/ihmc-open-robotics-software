@@ -11,7 +11,10 @@ abstract public class MeshProvider
 
    final public boolean hasMeshes()
    {
-      updateMeshes();
+      if (meshes.get() == null)
+      {
+         updateMeshes();
+      }
 
       return meshes.get() != null;
    }
