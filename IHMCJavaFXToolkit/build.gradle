@@ -72,4 +72,5 @@ dependencies {
     compile ihmc.getProjectDependency(":IHMCGraphicsDescription")
     //compile ihmc.getProjectDependency(":IHMCJavaToolkit")
     compile ihmc.getProjectDependency(":IHMCRoboticsToolkit")
+    compile ihmc.getProjectDependency(":IHMCYoGraphs")
 }

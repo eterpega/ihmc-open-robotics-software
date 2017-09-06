@@ -1,6 +1,6 @@
 package us.ihmc.simulationconstructionset.gui;
 
-import us.ihmc.graphicsDescription.graphInterfaces.SelectedVariableHolder;
+import us.ihmc.yoGraphs.graphInterfaces.SelectedVariableHolder;
 import us.ihmc.tools.thread.CloseableAndDisposable;
 import us.ihmc.tools.thread.CloseableAndDisposableRegistry;
 
