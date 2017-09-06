@@ -332,7 +332,7 @@ public class DRCOutputProcessorWithAccelerationIntegration implements DRCOutputP
          doAccelerationIntegration.addVariableChangedListener(new VariableChangedListener()
          {
             @Override
-            public void variableChanged(YoVariable<?> v)
+            public void notifyOfVariableChange(YoVariable<?> v)
             {
                oneDoFJoint.setIntegrateDesiredAccelerations(doAccelerationIntegration.getBooleanValue());
             }

@@ -78,7 +78,7 @@ public class FullRobotModelCorruptor
 //      VariableChangedListener hipYawOffsetChangedListener = new VariableChangedListener()
 //      {
 //         @Override
-//         public void variableChanged(YoVariable<?> v)
+//         public void notifyOfVariableChange(YoVariable<?> v)
 //         {
 //            for (RobotSide robotSide : RobotSide.values)
 //            {
@@ -134,7 +134,7 @@ public class FullRobotModelCorruptor
 //      VariableChangedListener jointOffsetChangedListener = new VariableChangedListener()
 //      {
 //         @Override
-//         public void variableChanged(YoVariable<?> v)
+//         public void notifyOfVariableChange(YoVariable<?> v)
 //         {
 //            AxisAngle axisAngle = new AxisAngle(jointAxis, offset.getDoubleValue());
 //            preCorruptionTransform.setRotationAndZeroTranslation(axisAngle);
@@ -154,7 +154,7 @@ public class FullRobotModelCorruptor
       VariableChangedListener massVariableChangedListener = new VariableChangedListener()
       {
          @Override
-         public void variableChanged(YoVariable<?> v)
+         public void notifyOfVariableChange(YoVariable<?> v)
          {
             rigidBody.getInertia().setMass(massVariable.getDoubleValue());
          }
@@ -172,7 +172,7 @@ public class FullRobotModelCorruptor
          private final FramePoint3D tempFramePoint = new FramePoint3D();
 
          @Override
-         public void variableChanged(YoVariable<?> v)
+         public void notifyOfVariableChange(YoVariable<?> v)
          {
             rigidBodyCoMOffset.getFrameTupleIncludingFrame(tempFramePoint);
             tempFramePoint.changeFrame(rigidBody.getBodyFixedFrame());
@@ -187,7 +187,7 @@ public class FullRobotModelCorruptor
    {
       for (VariableChangedListener variableChangedListener : variableChangedListeners)
       {
-         variableChangedListener.variableChanged(null);
+         variableChangedListener.notifyOfVariableChange(null);
       }
    }
 
