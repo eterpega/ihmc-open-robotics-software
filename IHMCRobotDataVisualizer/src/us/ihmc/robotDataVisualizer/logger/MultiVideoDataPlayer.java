@@ -70,7 +70,7 @@ public class MultiVideoDataPlayer implements PlaybackListener, RewoundListener
    }
 
    @Override
-   public void wasRewound()
+   public void notifyOfRewind()
    {
       if (activePlayer != null)
       {

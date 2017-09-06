@@ -1897,7 +1897,7 @@ public class SimulationConstructionSetUsingDirectCallsTest
       RewoundListener ret = new RewoundListener()
       {
          @Override
-         public void wasRewound()
+         public void notifyOfRewind()
          {
             simulationRewoundListenerHasBeenNotified.set(true);
          }

@@ -314,7 +314,7 @@ public class YoVariableLogPlaybackRobot extends VisualizerRobot implements Rewou
       currentRecordTick.addVariableChangedListener(listener);
    }
 
-   public void wasRewound()
+   public void notifyOfRewind()
    {
       int position = currentRecordTick.getIntegerValue();
       try
