@@ -8,7 +8,7 @@ import us.ihmc.euclid.tuple2D.Vector2D32;
 
 public class WalkingControllerFailureStatusMessage extends StatusPacket<WalkingControllerFailureStatusMessage>
 {
-   public Vector2D32 fallingDirection;
+   public Vector2D32 fallingDirection = new Vector2D32();
 
    public WalkingControllerFailureStatusMessage()
    {
@@ -16,26 +16,22 @@ public class WalkingControllerFailureStatusMessage extends StatusPacket<WalkingC
 
    public WalkingControllerFailureStatusMessage(Vector2D fallingDirection)
    {
-      this.fallingDirection = new Vector2D32(fallingDirection);
+      setFallingDirection(fallingDirection);
    }
 
    public void setFallingDirection(Vector2D32 fallingDirection)
    {
-      this.fallingDirection = fallingDirection;
+      this.fallingDirection.set(fallingDirection);
    }
 
    public void setFallingDirection(Vector2D fallingDirection)
    {
-      if (this.fallingDirection == null)
-         this.fallingDirection = new Vector2D32();
       this.fallingDirection.set(fallingDirection);
    }
-   
+
    public void setFallingDirection(FrameVector2D fallingDirection)
    {
       fallingDirection.checkReferenceFrameMatch(ReferenceFrame.getWorldFrame());
-      if (this.fallingDirection == null)
-         this.fallingDirection = new Vector2D32();
       this.fallingDirection.set(fallingDirection);
    }
 
@@ -47,12 +43,7 @@ public class WalkingControllerFailureStatusMessage extends StatusPacket<WalkingC
    @Override
    public void set(WalkingControllerFailureStatusMessage other)
    {
-      if (other.fallingDirection != null)
-      {
-         if (fallingDirection == null)
-            fallingDirection = new Vector2D32();
-         fallingDirection.set(other.fallingDirection);
-      }
+      fallingDirection.set(other.fallingDirection);
    }
 
    @Override
