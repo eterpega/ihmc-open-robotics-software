@@ -135,6 +135,7 @@ public class WalkingControllerTest
 
       // measure multiple ticks
       PrintTools.info("Starting to loop.");
+      long startTime = System.currentTimeMillis();
       int tickCount = 0;
       while (yoTime.getDoubleValue() < totalTime || profile)
       {
@@ -145,17 +146,14 @@ public class WalkingControllerTest
          {
             if (tickCount % (int) (4.0 / controlDT) == 0)
             {
-               PrintTools.info("Sending Steps");
                sendFootsteps();
             }
             if (tickCount % (int) (4.0 / controlDT) == (int) (2.0 / controlDT))
             {
-               PrintTools.info("Sending Chest Trajectory");
                sendChestTrajectory();
             }
             if (tickCount % (int) (4.0 / controlDT) == (int) (3.0 / controlDT))
             {
-               PrintTools.info("Sending Arm Trajectory");
                sendArmTrajectory();
             }
          }
@@ -169,6 +167,12 @@ public class WalkingControllerTest
             scs.tickAndUpdate();
          }
       }
+
+      long endTime = System.currentTimeMillis();
+      long timeTaken = endTime - startTime;
+      double seconds = timeTaken / 1000.0;
+      double rate = seconds / totalTime;
+      PrintTools.info("Simulated for " + totalTime + " seconds with real time rate of " + String.format("%.2f", rate));
    }
 
    private void sendFootsteps()
