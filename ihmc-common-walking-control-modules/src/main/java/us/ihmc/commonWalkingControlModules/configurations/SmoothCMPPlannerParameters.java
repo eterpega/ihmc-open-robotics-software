@@ -93,7 +93,7 @@ public class SmoothCMPPlannerParameters extends ICPWithTimeFreezingPlannerParame
 
    public boolean planWithAngularMomentum()
    {
-      return false;
+      return true;
    }
 
    @Override
