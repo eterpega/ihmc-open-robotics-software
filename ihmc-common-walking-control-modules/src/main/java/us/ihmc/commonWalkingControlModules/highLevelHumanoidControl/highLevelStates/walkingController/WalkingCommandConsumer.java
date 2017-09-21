@@ -81,6 +81,8 @@ public class WalkingCommandConsumer
    private final RigidBodyControlManager headManager;
    private final SideDependentList<RigidBodyControlManager> handManagers = new SideDependentList<>();
 
+   private final ManipulationAbortedStatus manipulationAbortedStatus = new ManipulationAbortedStatus();
+
    public WalkingCommandConsumer(CommandInputManager commandInputManager, StatusMessageOutputManager statusMessageOutputManager, HighLevelHumanoidControllerToolbox controllerToolbox, HighLevelControlManagerFactory managerFactory,
          WalkingControllerParameters walkingControllerParameters, YoVariableRegistry parentRegistry)
    {
@@ -96,9 +98,17 @@ public class WalkingCommandConsumer
       Collection<ReferenceFrame> trajectoryFrames = controllerToolbox.getTrajectoryFrames();
 
       ReferenceFrame pelvisZUpFrame = controllerToolbox.getPelvisZUpFrame();
-      ReferenceFrame chestBodyFrame = chest.getBodyFixedFrame();
 
-      this.chestManager = managerFactory.getOrCreateRigidBodyManager(chest, pelvis, chestBodyFrame, pelvisZUpFrame, trajectoryFrames);
+      ReferenceFrame chestBodyFrame = null;
+      if(chest != null)
+      {
+         chestBodyFrame = chest.getBodyFixedFrame();
+         this.chestManager = managerFactory.getOrCreateRigidBodyManager(chest, pelvis, chestBodyFrame, pelvisZUpFrame, trajectoryFrames);
+      }
+      else
+      {
+         chestManager = null;
+      }
 
       if (head != null)
       {
@@ -113,9 +123,12 @@ public class WalkingCommandConsumer
       for (RobotSide robotSide : RobotSide.values)
       {
          RigidBody hand = controllerToolbox.getFullRobotModel().getHand(robotSide);
-         ReferenceFrame handControlFrame = controllerToolbox.getFullRobotModel().getHandControlFrame(robotSide);
-         RigidBodyControlManager handManager = managerFactory.getOrCreateRigidBodyManager(hand, chest, handControlFrame, chestBodyFrame, trajectoryFrames);
-         handManagers.put(robotSide, handManager);
+         if(hand != null)
+         {
+            ReferenceFrame handControlFrame = controllerToolbox.getFullRobotModel().getHandControlFrame(robotSide);
+            RigidBodyControlManager handManager = managerFactory.getOrCreateRigidBodyManager(hand, chest, handControlFrame, chestBodyFrame, trajectoryFrames);
+            handManagers.put(robotSide, handManager);
+         }
       }
 
       pelvisOrientationManager = managerFactory.getOrCreatePelvisOrientationManager();
@@ -218,7 +231,13 @@ public class WalkingCommandConsumer
          for (RobotSide robotSide : RobotSide.values)
          {
             if (command.getRequest(robotSide, BodyPart.ARM))
-               handManagers.get(robotSide).goHome(command.getTrajectoryTime());
+            {
+               RigidBodyControlManager handManager = handManagers.get(robotSide);
+               if(handManager != null)
+               {
+                  handManager.goHome(command.getTrajectoryTime());
+               }
+            }
          }
 
          if (command.getRequest(BodyPart.PELVIS))
@@ -350,7 +369,7 @@ public class WalkingCommandConsumer
 
          timeOfLastManipulationAbortRequest.set(yoTime.getDoubleValue());
 
-         statusMessageOutputManager.reportStatusMessage(new ManipulationAbortedStatus());
+         statusMessageOutputManager.reportStatusMessage(manipulationAbortedStatus);
       }
       else
       {

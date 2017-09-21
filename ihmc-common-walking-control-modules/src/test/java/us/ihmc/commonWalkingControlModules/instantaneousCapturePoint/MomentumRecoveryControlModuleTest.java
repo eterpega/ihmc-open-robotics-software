@@ -324,7 +324,7 @@ public class MomentumRecoveryControlModuleTest
       RobotSide stepSide = RobotSide.RIGHT;
       FrameConvexPolygon2d supportPolygon = makeSupportPolygon(stepSide == RobotSide.RIGHT, stepSide == RobotSide.LEFT);
       FramePose stepPose = new FramePose(worldFrame, rightFootPosition, new Quaternion());
-      Footstep footStep = new Footstep(feet.get(stepSide), stepSide, stepPose);
+      Footstep footStep = new Footstep(stepSide, stepPose);
 
       momentumRecoveryControlModule.setSupportSide(RobotSide.LEFT);
       momentumRecoveryControlModule.setICPError(new FrameVector2D(worldFrame));
@@ -364,7 +364,7 @@ public class MomentumRecoveryControlModuleTest
       RobotSide stepSide = RobotSide.RIGHT;
       FrameConvexPolygon2d supportPolygon = makeSupportPolygon(stepSide == RobotSide.RIGHT, stepSide == RobotSide.LEFT);
       FramePose stepPose = new FramePose(worldFrame, rightFootPosition, new Quaternion());
-      Footstep footStep = new Footstep(feet.get(stepSide), stepSide, stepPose);
+      Footstep footStep = new Footstep(stepSide, stepPose);
 
       momentumRecoveryControlModule.setSupportSide(RobotSide.LEFT);
       momentumRecoveryControlModule.setICPError(new FrameVector2D(worldFrame));

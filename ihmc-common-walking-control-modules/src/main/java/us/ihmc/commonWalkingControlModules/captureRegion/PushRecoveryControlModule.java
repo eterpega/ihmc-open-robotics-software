@@ -9,18 +9,16 @@ import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.humanoidRobotics.bipedSupportPolygons.ContactablePlaneBody;
 import us.ihmc.humanoidRobotics.footstep.Footstep;
+import us.ihmc.robotics.geometry.FrameConvexPolygon2d;
 import us.ihmc.robotics.math.filters.GlitchFilteredYoBoolean;
+import us.ihmc.robotics.robotSide.RobotSide;
+import us.ihmc.robotics.robotSide.SideDependentList;
+import us.ihmc.robotics.screwTheory.MovingReferenceFrame;
+import us.ihmc.sensorProcessing.frames.CommonHumanoidReferenceFrames;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.yoVariables.variable.YoEnum;
-import us.ihmc.robotics.geometry.FrameConvexPolygon2d;
-import us.ihmc.robotics.geometry.FramePose;
-import us.ihmc.robotics.robotSide.RobotSide;
-import us.ihmc.robotics.robotSide.SideDependentList;
-import us.ihmc.robotics.screwTheory.MovingReferenceFrame;
-import us.ihmc.robotics.screwTheory.RigidBody;
-import us.ihmc.sensorProcessing.frames.CommonHumanoidReferenceFrames;
 
 public class PushRecoveryControlModule
 {
@@ -272,14 +270,15 @@ public class PushRecoveryControlModule
       return footstepWasProjectedInCaptureRegion.getBooleanValue();
    }
 
-   public Footstep createFootstepForRecoveringFromDisturbance(RobotSide swingSide, double swingTimeRemaining)
+   public void packFootstepForRecoveringFromDisturbance(RobotSide swingSide, double swingTimeRemaining, Footstep footstepToPack)
    {
-      if (!enablePushRecovery.getBooleanValue())
-         return null;
+      footstepToPack.clear();
 
-      Footstep footstepForPushRecovery = createFootstepAtCurrentLocation(swingSide);
-      checkAndUpdateFootstep(swingTimeRemaining, footstepForPushRecovery);
-      return footstepForPushRecovery;
+      if (!enablePushRecovery.getBooleanValue())
+         return;
+
+      packFootstepAtCurrentLocation(swingSide, footstepToPack);
+      checkAndUpdateFootstep(swingTimeRemaining, footstepToPack);
    }
 
    public void reset()
@@ -291,16 +290,12 @@ public class PushRecoveryControlModule
       recoveringFromDoubleSupportFall.set(false);
    }
 
-   private Footstep createFootstepAtCurrentLocation(RobotSide robotSide)
+   private void packFootstepAtCurrentLocation(RobotSide robotSide, Footstep footstepToPack)
    {
-      RigidBody foot = feet.get(robotSide).getRigidBody();
-      FramePose framePose = new FramePose(soleFrames.get(robotSide));
-      framePose.changeFrame(worldFrame);
-
-      boolean trustHeight = true;
-      Footstep footstep = new Footstep(foot, robotSide, framePose, trustHeight);
-
-      return footstep;
+      footstepToPack.setRobotSide(robotSide);
+      footstepToPack.setTrustHeight(true);
+      footstepToPack.getFootstepPose().setToZero(soleFrames.get(robotSide));
+      footstepToPack.getFootstepPose().changeFrame(worldFrame);
    }
 
    public boolean isEnabled()

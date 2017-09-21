@@ -1,14 +1,16 @@
 package us.ihmc.humanoidRobotics.footstep;
 
-import java.util.ArrayList;
 import java.util.List;
 
+import us.ihmc.euclid.interfaces.Settable;
 import us.ihmc.euclid.referenceFrame.FramePoint2D;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple2D.Point2D;
+import us.ihmc.euclid.tuple2D.interfaces.Point2DReadOnly;
+import us.ihmc.humanoidRobotics.communication.controllerAPI.command.FootstepDataCommand;
 import us.ihmc.robotics.MathTools;
 import us.ihmc.robotics.geometry.FrameOrientation;
 import us.ihmc.robotics.geometry.FramePose;
@@ -16,90 +18,170 @@ import us.ihmc.robotics.lists.RecyclingArrayList;
 import us.ihmc.robotics.math.trajectories.waypoints.FrameSE3TrajectoryPoint;
 import us.ihmc.robotics.referenceFrames.PoseReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
-import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.robotics.trajectories.TrajectoryType;
 
-public class Footstep
+public class Footstep implements Settable<Footstep>
 {
-   public static enum FootstepType {FULL_FOOTSTEP, PARTIAL_FOOTSTEP, BAD_FOOTSTEP}
-
    public static final int maxNumberOfSwingWaypoints = 100;
 
-   private static int counter = 0;
-   private final String id;
-   private final RigidBody endEffector;
-   private RobotSide robotSide;
-   private FootstepType footstepType = FootstepType.FULL_FOOTSTEP;
+   // --- TODO: GW nuke this:
+   public static enum FootstepType
+   {
+      FULL_FOOTSTEP, PARTIAL_FOOTSTEP, BAD_FOOTSTEP
+   }
 
+   private FootstepType footstepType = FootstepType.FULL_FOOTSTEP;
+   private static int counter = 0;
+   private final PoseReferenceFrame footstepSoleFrame = new PoseReferenceFrame(counter++ + "_FootstepSoleFrame", ReferenceFrame.getWorldFrame());
+   private boolean scriptedFootstep = false;
+   // ---
+
+   private RobotSide robotSide;
    private final FramePose footstepPose = new FramePose();
+
+   private final RecyclingArrayList<Point2D> predictedContactPoints = new RecyclingArrayList<>(6, Point2D.class);
+   private final RecyclingArrayList<FramePoint3D> customPositionWaypoints = new RecyclingArrayList<>(2, FramePoint3D.class);
+   private final RecyclingArrayList<FrameSE3TrajectoryPoint> swingTrajectory = new RecyclingArrayList<>(maxNumberOfSwingWaypoints,
+                                                                                                        FrameSE3TrajectoryPoint.class);
+
+   private TrajectoryType trajectoryType = TrajectoryType.DEFAULT;
+   private double swingHeight = 0.0;
+   private double swingTrajectoryBlendDuration = 0.0;
+   private boolean trustHeight = true;
 
    private final FramePose tempPose = new FramePose();
    private final RigidBodyTransform tempTransform = new RigidBodyTransform();
-   private final PoseReferenceFrame footstepSoleFrame;
 
-   private final List<Point2D> predictedContactPoints = new ArrayList<>();
-
-   private final RecyclingArrayList<FramePoint3D> customPositionWaypoints = new RecyclingArrayList<>(2, FramePoint3D.class);
-   private final RecyclingArrayList<FrameSE3TrajectoryPoint> swingTrajectory = new RecyclingArrayList<>(maxNumberOfSwingWaypoints, FrameSE3TrajectoryPoint.class);
-   private double swingTrajectoryBlendDuration = 0.0;
-
-   private final boolean trustHeight;
-   private boolean scriptedFootstep;
-
-   // foot trajectory generation
-   public TrajectoryType trajectoryType = TrajectoryType.DEFAULT;
-   public double swingHeight = 0;
-
-   public Footstep(RigidBody endEffector, RobotSide robotSide, FramePose footstepPose, boolean trustHeight)
+   public Footstep()
    {
-      this(createAutomaticID(endEffector), endEffector, robotSide, footstepPose, trustHeight);
+      predictedContactPoints.clear();
+      customPositionWaypoints.clear();
+      swingTrajectory.clear();
    }
 
-   public Footstep(String id, RigidBody endEffector, RobotSide robotSide, FramePose footstepPose, boolean trustHeight)
+   public Footstep(RobotSide robotSide, FramePose footstepPose, boolean trustHeight)
    {
-      this(id, endEffector, robotSide, footstepPose, trustHeight, null);
+      this(robotSide, footstepPose, trustHeight, null);
    }
 
-   public Footstep(RigidBody endEffector, RobotSide robotSide)
+   public Footstep(RobotSide robotSide)
    {
-      this(endEffector, robotSide, new FramePose());
+      this(robotSide, new FramePose());
    }
 
-   public Footstep(RigidBody endEffector, RobotSide robotSide, FramePose footstepPose)
+   public Footstep(RobotSide robotSide, FramePose footstepPose)
    {
-      this(createAutomaticID(endEffector), endEffector, robotSide, footstepPose, true);
+      this(robotSide, footstepPose, true);
    }
 
-   public Footstep(Footstep footstep)
+   public Footstep(RobotSide robotSide, FramePose footstepPose, boolean trustHeight, List<Point2D> predictedContactPoints)
    {
-      this(footstep.endEffector, footstep.robotSide, footstep.footstepPose, footstep.trustHeight);
-      this.trajectoryType = footstep.trajectoryType;
-      this.swingHeight = footstep.swingHeight;
-      this.swingTrajectoryBlendDuration = footstep.swingTrajectoryBlendDuration;
+      this(robotSide, footstepPose, trustHeight, predictedContactPoints, TrajectoryType.DEFAULT, 0.0);
    }
 
-   public Footstep(RigidBody endEffector, RobotSide robotSide, FramePose footstepPose, boolean trustHeight, List<Point2D> predictedContactPoints)
+   public Footstep(RobotSide robotSide, FramePose footstepPose, boolean trustHeight, List<Point2D> predictedContactPoints, TrajectoryType trajectoryType,
+                   double swingHeight)
    {
-      this(createAutomaticID(endEffector), endEffector, robotSide, footstepPose, trustHeight, predictedContactPoints, TrajectoryType.DEFAULT, 0.0);
-   }
-
-   public Footstep(String id, RigidBody endEffector, RobotSide robotSide, FramePose footstepPose, boolean trustHeight, List<Point2D> predictedContactPoints)
-   {
-      this(id, endEffector, robotSide, footstepPose, trustHeight, predictedContactPoints, TrajectoryType.DEFAULT, 0.0);
-   }
-
-   public Footstep(String id, RigidBody endEffector, RobotSide robotSide, FramePose footstepPose, boolean trustHeight, List<Point2D> predictedContactPoints,
-                   TrajectoryType trajectoryType, double swingHeight)
-   {
-      this.id = id;
-      this.endEffector = endEffector;
       this.robotSide = robotSide;
       this.trustHeight = trustHeight;
       this.footstepPose.setIncludingFrame(footstepPose);
-      setPredictedContactPointsFromPoint2ds(predictedContactPoints);
+      setPredictedContactPoints(predictedContactPoints);
       this.trajectoryType = trajectoryType;
       this.swingHeight = swingHeight;
-      footstepSoleFrame = new PoseReferenceFrame(id + "_FootstepSoleFrame", ReferenceFrame.getWorldFrame());
+   }
+
+   @Override
+   public void set(Footstep other)
+   {
+      this.robotSide = other.robotSide;
+      this.footstepType = other.footstepType;
+      this.swingTrajectoryBlendDuration = other.swingTrajectoryBlendDuration;
+      this.trustHeight = other.trustHeight;
+      this.scriptedFootstep = other.scriptedFootstep;
+      this.trajectoryType = other.trajectoryType;
+      this.swingHeight = other.swingHeight;
+
+      this.footstepPose.setIncludingFrame(other.footstepPose);
+
+      this.predictedContactPoints.clear();
+      for (int i = 0; i < other.predictedContactPoints.size(); i++)
+      {
+         this.predictedContactPoints.add().set(other.predictedContactPoints.get(i));
+      }
+
+      this.customPositionWaypoints.clear();
+      for (int i = 0; i < other.customPositionWaypoints.size(); i++)
+      {
+         this.customPositionWaypoints.add().set(other.customPositionWaypoints.get(i));
+      }
+
+      this.swingTrajectory.clear();
+      for (int i = 0; i < other.swingTrajectory.size(); i++)
+      {
+         this.swingTrajectory.add().set(other.swingTrajectory.get(i));
+      }
+   }
+
+   /**
+    * Sets all properties of the footstep to the values provided.
+    */
+   public void set(FootstepDataCommand command, boolean trustHeight)
+   {
+      this.robotSide = command.getRobotSide();
+      this.swingTrajectoryBlendDuration = command.getSwingTrajectoryBlendDuration();
+      this.trajectoryType = command.getTrajectoryType();
+      this.swingHeight = command.getSwingHeight();
+      this.trustHeight = trustHeight;
+
+      this.footstepPose.setPoseIncludingFrame(command.getPosition(), command.getOrientation());
+
+      this.predictedContactPoints.clear();
+      RecyclingArrayList<Point2D> commandPredictedContactPoints = command.getPredictedContactPoints();
+      if (commandPredictedContactPoints != null)
+      {
+         for (int i = 0; i < commandPredictedContactPoints.size(); i++)
+         {
+            this.predictedContactPoints.add().set(commandPredictedContactPoints.get(i));
+         }
+      }
+
+      this.customPositionWaypoints.clear();
+      RecyclingArrayList<FramePoint3D> commandCustomPositionWaypoints = command.getCustomPositionWaypoints();
+      if (commandCustomPositionWaypoints != null)
+      {
+         for (int i = 0; i < commandCustomPositionWaypoints.size(); i++)
+         {
+            this.customPositionWaypoints.add().set(commandCustomPositionWaypoints.get(i));
+         }
+      }
+
+      this.swingTrajectory.clear();
+      RecyclingArrayList<FrameSE3TrajectoryPoint> commandSwingTrajectory = command.getSwingTrajectory();
+      if (commandSwingTrajectory != null)
+      {
+         for (int i = 0; i < commandSwingTrajectory.size(); i++)
+         {
+            this.swingTrajectory.add().set(commandSwingTrajectory.get(i));
+         }
+      }
+   }
+
+   /**
+    * Resets this footstep to the default values and clears all data contained in it.
+    */
+   public void clear()
+   {
+      robotSide = null;
+      footstepType = FootstepType.FULL_FOOTSTEP;
+      footstepPose.setToZero(ReferenceFrame.getWorldFrame());
+      predictedContactPoints.clear();
+      customPositionWaypoints.clear();
+      swingTrajectory.clear();
+      swingTrajectoryBlendDuration = 0.0;
+      trustHeight = true;
+      scriptedFootstep = false;
+      trajectoryType = TrajectoryType.DEFAULT;
+      swingHeight = 0.0;
    }
 
    public TrajectoryType getTrajectoryType()
@@ -156,93 +238,25 @@ public class Footstep
       this.swingHeight = swingHeight;
    }
 
-   public void setPredictedContactPointsFromPoint2ds(List<Point2D> contactPointList)
+   public void setTrustHeight(boolean trustHeight)
    {
-      efficientlyResizeContactPointList(contactPointList);
+      this.trustHeight = trustHeight;
+   }
 
-      if ((contactPointList == null) || contactPointList.isEmpty())
+   public void setPredictedContactPoints(List<? extends Point2DReadOnly> contactPointList)
+   {
+      predictedContactPoints.clear();
+
+      if (contactPointList == null)
       {
-         if ((footstepType != FootstepType.FULL_FOOTSTEP) && (footstepType != FootstepType.BAD_FOOTSTEP))
-         {
-            footstepType = FootstepType.FULL_FOOTSTEP;
-         }
-
-         predictedContactPoints.clear();
-
          return;
       }
-
-      footstepType = FootstepType.PARTIAL_FOOTSTEP;
 
       for (int i = 0; i < contactPointList.size(); i++)
       {
-         Point2D point = contactPointList.get(i);
-         this.predictedContactPoints.get(i).set(point.getX(), point.getY());
+         Point2DReadOnly point = contactPointList.get(i);
+         this.predictedContactPoints.add().set(point);
       }
-   }
-
-   public void setPredictedContactPointsFromFramePoint2ds(List<FramePoint2D> contactPointList)
-   {
-      efficientlyResizeContactPointList(contactPointList);
-
-      if ((contactPointList == null) || contactPointList.isEmpty())
-      {
-         if ((footstepType != FootstepType.FULL_FOOTSTEP) && (footstepType != FootstepType.BAD_FOOTSTEP))
-         {
-            footstepType = FootstepType.FULL_FOOTSTEP;
-         }
-
-         predictedContactPoints.clear();
-
-         return;
-      }
-
-      footstepType = FootstepType.PARTIAL_FOOTSTEP;
-
-      for (int i = 0; i < contactPointList.size(); i++)
-      {
-         FramePoint2D point = contactPointList.get(i);
-         this.predictedContactPoints.get(i).set(point.getX(), point.getY());
-      }
-
-   }
-
-   private void efficientlyResizeContactPointList(List<?> contactPointList)
-   {
-      if ((contactPointList == null) || contactPointList.isEmpty())
-      {
-         this.predictedContactPoints.clear();
-
-         return;
-      }
-
-      footstepType = FootstepType.PARTIAL_FOOTSTEP;
-
-      int newSize = contactPointList.size();
-      int currentSize = this.predictedContactPoints.size();
-
-      if (currentSize > newSize)
-      {
-         for (int i = 0; i < currentSize - newSize; i++)
-         {
-            this.predictedContactPoints.remove(0);
-         }
-
-         currentSize = this.predictedContactPoints.size();
-      }
-
-      if (currentSize < newSize)
-      {
-         for (int i = 0; i < newSize - currentSize; i++)
-         {
-            this.predictedContactPoints.add(new Point2D());
-         }
-      }
-   }
-
-   private static String createAutomaticID(RigidBody endEffector)
-   {
-      return endEffector.getName() + "_" + counter++;
    }
 
    public List<Point2D> getPredictedContactPoints()
@@ -284,15 +298,10 @@ public class Footstep
       return footstepPose.getZ();
    }
 
-   public void setPose(RigidBodyTransform transformFromAnkleToWorldFrame)
+   public void setPose(RigidBodyTransform transformFromSoleToWorldFrame)
    {
       footstepPose.setToNaN(ReferenceFrame.getWorldFrame());
-      footstepPose.setPose(transformFromAnkleToWorldFrame);
-   }
-
-   public void setPose(Footstep newFootstep)
-   {
-      footstepPose.setIncludingFrame(newFootstep.getFootstepPose());
+      footstepPose.setPose(transformFromSoleToWorldFrame);
    }
 
    public void setPose(FramePose footstepPose)
@@ -312,19 +321,9 @@ public class Footstep
       setY(position2d.getY());
    }
 
-   public String getId()
-   {
-      return id;
-   }
-
    public boolean getTrustHeight()
    {
       return trustHeight;
-   }
-
-   public RigidBody getBody()
-   {
-      return endEffector;
    }
 
    public RobotSide getRobotSide()
@@ -367,11 +366,6 @@ public class Footstep
       footstepPose.getOrientationIncludingFrame(orientationToPack);
    }
 
-   public ReferenceFrame getTrajectoryFrame()
-   {
-      return footstepPose.getReferenceFrame();
-   }
-
    public void setFootstepType(FootstepType footstepType)
    {
       this.footstepType = footstepType;
@@ -379,7 +373,14 @@ public class Footstep
 
    public FootstepType getFootstepType()
    {
-      return footstepType;
+      if (predictedContactPoints.isEmpty())
+      {
+         return FootstepType.FULL_FOOTSTEP;
+      }
+      else
+      {
+         return FootstepType.PARTIAL_FOOTSTEP;
+      }
    }
 
    public boolean isScriptedFootstep()
@@ -395,7 +396,6 @@ public class Footstep
    public boolean epsilonEquals(Footstep otherFootstep, double epsilon)
    {
       boolean arePosesEqual = footstepPose.epsilonEquals(otherFootstep.footstepPose, epsilon);
-      boolean bodiesHaveTheSameName = endEffector.getName().equals(otherFootstep.endEffector.getName());
       boolean sameRobotSide = robotSide == otherFootstep.robotSide;
       boolean isTrustHeightTheSame = trustHeight == otherFootstep.trustHeight;
 
@@ -412,15 +412,23 @@ public class Footstep
 
       boolean sameBlendDuration = MathTools.epsilonEquals(swingTrajectoryBlendDuration, otherFootstep.swingTrajectoryBlendDuration, epsilon);
 
-      return arePosesEqual && bodiesHaveTheSameName && sameRobotSide && isTrustHeightTheSame && sameWaypoints && sameBlendDuration;
+      return arePosesEqual && sameRobotSide && isTrustHeightTheSame && sameWaypoints && sameBlendDuration;
    }
 
    @Override
    public String toString()
    {
-      return "id: " + id + " - pose: " + footstepPose + " - trustHeight = " + trustHeight;
+      StringBuilder builder = new StringBuilder();
+      builder.append("Footstep:\n");
+      builder.append(" Side: " + robotSide + "\n");
+      builder.append(" Position: " + footstepPose.getPosition() + "\n");
+      builder.append(" Orientation: " + footstepPose.getOrientation() + "\n");
+      builder.append(" Trust Height: " + trustHeight + "\n");
+      return builder.toString();
    }
 
+   // Going to be removed soon. Is duplicate information.
+   @Deprecated
    public ReferenceFrame getSoleReferenceFrame()
    {
       tempPose.setIncludingFrame(footstepPose);
@@ -487,6 +495,16 @@ public class Footstep
          tempPose.prependTranslation(offset.getVector());
          trajectoryPoint.setPosition(tempPose.getPosition());
       }
+   }
+
+   public static Footstep[] createFootsteps(int numberOfSteps)
+   {
+      Footstep[] footsteps = new Footstep[numberOfSteps];
+      for (int i = 0; i < numberOfSteps; i++)
+      {
+         footsteps[i] = new Footstep();
+      }
+      return footsteps;
    }
 
 }

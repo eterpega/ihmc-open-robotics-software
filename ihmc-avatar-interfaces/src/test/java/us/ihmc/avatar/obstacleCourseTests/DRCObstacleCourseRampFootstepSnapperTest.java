@@ -7,14 +7,12 @@ import java.util.Random;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Test;
 
 import us.ihmc.avatar.DRCObstacleCourseStartingLocation;
 import us.ihmc.avatar.MultiRobotTestInterface;
 import us.ihmc.avatar.testTools.DRCSimulationTestHelper;
 import us.ihmc.avatar.testTools.ScriptedFootstepGenerator;
 import us.ihmc.commons.RandomNumbers;
-import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
 import us.ihmc.euclid.geometry.BoundingBox2D;
 import us.ihmc.euclid.geometry.BoundingBox3D;
 import us.ihmc.euclid.matrix.RotationMatrix;
@@ -29,8 +27,8 @@ import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataListMe
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage;
 import us.ihmc.humanoidRobotics.footstep.Footstep;
 import us.ihmc.humanoidRobotics.footstep.footstepSnapper.BasicFootstepMask;
-import us.ihmc.humanoidRobotics.footstep.footstepSnapper.QuadTreeFootstepSnappingParameters;
 import us.ihmc.humanoidRobotics.footstep.footstepSnapper.GenericFootstepSnappingParameters;
+import us.ihmc.humanoidRobotics.footstep.footstepSnapper.QuadTreeFootstepSnappingParameters;
 import us.ihmc.humanoidRobotics.footstep.footstepSnapper.SimpleFootstepSnapper;
 import us.ihmc.humanoidRobotics.frames.HumanoidReferenceFrames;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
@@ -40,7 +38,6 @@ import us.ihmc.robotics.geometry.FramePose;
 import us.ihmc.robotics.quadTree.Box;
 import us.ihmc.robotics.quadTree.QuadTreeForGroundParameters;
 import us.ihmc.robotics.robotSide.RobotSide;
-import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.sensorProcessing.frames.ReferenceFrameHashCodeResolver;
 import us.ihmc.sensorProcessing.pointClouds.combinationQuadTreeOctTree.QuadTreeForGroundHeightMap;
 import us.ihmc.simulationConstructionSetTools.bambooTools.BambooTools;
@@ -85,8 +82,6 @@ public abstract class DRCObstacleCourseRampFootstepSnapperTest implements MultiR
 //   private final ComHeightPacket comHeightPacket = new ComHeightPacket(0.05, 1.0);
    private final Random random = new Random(165163L);
 
-	@ContinuousIntegrationTest(estimatedDuration = 50.0)
-   @Test(timeout = 250000)
    public void testWalkingUpRampUsingSnapFootsteps() throws SimulationExceededMaximumTimeException
    {
       BambooTools.reportTestStartedMessage(simulationTestingParameters.getShowWindows());
@@ -144,10 +139,9 @@ public abstract class DRCObstacleCourseRampFootstepSnapperTest implements MultiR
       {
          FootstepDataMessage footstepData = corruptedFootstepDataList.getDataList().get(i);
          RobotSide robotSide = footstepData.getRobotSide();
-         RigidBody endEffector = fullRobotModel.getFoot(robotSide);
          FramePose pose = new FramePose(ReferenceFrame.getWorldFrame());
          pose.setPose(footstepData.getLocation(), footstepData.getOrientation());
-         corruptedFootstepList.add(new Footstep(endEffector, robotSide, pose));
+         corruptedFootstepList.add(new Footstep(robotSide, pose));
       }
 
       // Build the BoundingBox2D containing all the footsteps
