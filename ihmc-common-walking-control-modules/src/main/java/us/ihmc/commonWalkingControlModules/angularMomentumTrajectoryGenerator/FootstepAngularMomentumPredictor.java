@@ -35,7 +35,7 @@ import us.ihmc.yoVariables.variable.YoVariable;
  */
 public class FootstepAngularMomentumPredictor implements AngularMomentumTrajectoryGeneratorInterface
 {
-   private static final boolean USE_ITERATIVE_SOLUTION = true;
+   private static final boolean USE_ITERATIVE_SOLUTION = false;
    private static final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
    private static final FrameVector3D zeroVector = new FrameVector3D();
    private static final int maxNumberOfTrajectoryCoefficients = 7;

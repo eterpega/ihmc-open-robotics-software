@@ -24,7 +24,13 @@ public class AtlasFlatGroundForwardWalkingTest extends AvatarFlatGroundForwardWa
       @Override
       public ICPWithTimeFreezingPlannerParameters getCapturePointPlannerParameters()
       {
-         return new AtlasSmoothCMPPlannerParameters(new AtlasPhysicalProperties());
+         return new AtlasSmoothCMPPlannerParameters(new AtlasPhysicalProperties())
+         {
+            public boolean planWithAngularMomentum()
+            {
+               return true;
+            };
+         };
       }
 
       @Override
@@ -40,7 +46,6 @@ public class AtlasFlatGroundForwardWalkingTest extends AvatarFlatGroundForwardWa
          };
       }
    };
-
 
    private final int numberOfSteps = 8;
    private final double stepWidth = 0.25;
@@ -161,6 +166,6 @@ public class AtlasFlatGroundForwardWalkingTest extends AvatarFlatGroundForwardWa
    @Override
    protected boolean keepSCSUp()
    {
-      return false;
+      return true;
    }
 }

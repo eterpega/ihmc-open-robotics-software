@@ -24,7 +24,13 @@ public class AtlasFlatGroundSideSteppingTest extends AvatarFlatGroundSideSteppin
       @Override
       public ICPWithTimeFreezingPlannerParameters getCapturePointPlannerParameters()
       {
-         return new AtlasSmoothCMPPlannerParameters(new AtlasPhysicalProperties());
+         return new AtlasSmoothCMPPlannerParameters(new AtlasPhysicalProperties())
+         {
+            public boolean planWithAngularMomentum()
+            {
+               return true;
+            };
+         };
       }
 
       @Override
@@ -160,6 +166,6 @@ public class AtlasFlatGroundSideSteppingTest extends AvatarFlatGroundSideSteppin
    @Override
    protected boolean keepSCSUp()
    {
-      return false;
+      return true;
    }
 }

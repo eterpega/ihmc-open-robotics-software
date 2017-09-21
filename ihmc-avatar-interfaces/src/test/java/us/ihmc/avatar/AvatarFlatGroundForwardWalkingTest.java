@@ -215,7 +215,7 @@ public abstract class AvatarFlatGroundForwardWalkingTest implements MultiRobotTe
       success = drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(2.0);
       assertTrue(success);
 
-      magnitude2 = 50; //TODO:overwritten
+      magnitude2 = 90; //TODO:overwritten
       PrintTools.info("Force magnitude = " + magnitude2 + "N along " + forceDirection2.toString());
       pushRobotController.applyForceDelayed(secondPushCondition, delay2, forceDirection2, magnitude2, duration2);
       success = drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(2.0);
