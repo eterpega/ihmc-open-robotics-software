@@ -28,7 +28,7 @@ public class AtlasFlatGroundForwardWalkingTest extends AvatarFlatGroundForwardWa
          {
             public boolean planWithAngularMomentum()
             {
-               return true;
+               return false;
             };
          };
       }
@@ -62,7 +62,7 @@ public class AtlasFlatGroundForwardWalkingTest extends AvatarFlatGroundForwardWa
 
    private final double forcePercentageOfWeight2 = 0.025;
    private final double forceDuration2 = 1;
-   private final double forceDelay2 = 0.5 * swingTime;
+   private final double forceDelay2 = 1.0 * swingTime;
    private final Vector3D forceDirection2 = new Vector3D(1.0, 0.0, 0.0);
 
    @Override

@@ -179,8 +179,8 @@ public class SmoothCMPBasedICPPlanner extends AbstractICPPlanner
       artifactList.setVisible(VISUALIZE);
       yoGraphicsList.setVisible(VISUALIZE);
 
-      yoGraphicsListRegistry.registerYoGraphicsList(yoGraphicsList);
-      yoGraphicsListRegistry.registerArtifactList(artifactList);
+      //yoGraphicsListRegistry.registerYoGraphicsList(yoGraphicsList);
+      //yoGraphicsListRegistry.registerArtifactList(artifactList);
    }
 
    @Override
