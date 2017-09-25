@@ -17,7 +17,7 @@ public class YoLowLevelJointData implements LowLevelJointDataReadOnly
    private final YoDouble desiredAcceleration;
    private final YoDouble desiredCurrent;
    private final YoBoolean resetIntegrators;
-   
+
    private final YoDouble kp;
    private final YoDouble kd;
 
@@ -32,7 +32,7 @@ public class YoLowLevelJointData implements LowLevelJointDataReadOnly
       desiredAcceleration = new YoDouble(namePrefix + "DesiredAcceleration" + suffixString, registry);
       desiredCurrent = new YoDouble(namePrefix + "DesiredCurrent" + suffixString, registry);
       resetIntegrators = new YoBoolean(namePrefix + "ResetIntegrators" + suffixString, registry);
-      
+
       kp = new YoDouble(namePrefix + "Kp" + suffixString, registry);
       kd = new YoDouble(namePrefix + "Kd" + suffixString, registry);
 
@@ -54,15 +54,24 @@ public class YoLowLevelJointData implements LowLevelJointDataReadOnly
 
    public void set(LowLevelJointDataReadOnly other)
    {
-      controlMode.set(other.getControlMode());
-      desiredTorque.set(other.getDesiredTorque());
-      desiredPosition.set(other.getDesiredPosition());
-      desiredVelocity.set(other.getDesiredVelocity());
-      desiredAcceleration.set(other.getDesiredAcceleration());
-      desiredCurrent.set(other.getDesiredCurrent());
+      clear();
+      if (other.hasControlMode())
+         controlMode.set(other.getControlMode());
+      if (other.hasDesiredTorque())
+         desiredTorque.set(other.getDesiredTorque());
+      if (other.hasDesiredPosition())
+         desiredPosition.set(other.getDesiredPosition());
+      if (other.hasDesiredVelocity())
+         desiredVelocity.set(other.getDesiredVelocity());
+      if (other.hasDesiredAcceleration())
+         desiredAcceleration.set(other.getDesiredAcceleration());
+      if (other.hasDesiredCurrent())
+         desiredCurrent.set(other.getDesiredCurrent());
+      if (other.hasKp())
+         kp.set(other.getKp());
+      if (other.hasKd())
+         kd.set(other.getKd());
       resetIntegrators.set(other.peekResetIntegratorsRequest());
-      kp.set(other.getKp());
-      kd.set(other.getKd());
    }
 
    /**
@@ -71,26 +80,26 @@ public class YoLowLevelJointData implements LowLevelJointDataReadOnly
     */
    public void completeWith(LowLevelJointDataReadOnly other)
    {
-      if (!hasControlMode())
+      if (!hasControlMode() && other.hasControlMode())
          controlMode.set(other.getControlMode());
-      if (!hasDesiredTorque())
+      if (!hasDesiredTorque() && other.hasDesiredTorque())
          desiredTorque.set(other.getDesiredTorque());
-      if (!hasDesiredPosition())
+      if (!hasDesiredPosition() && other.hasDesiredPosition())
          desiredPosition.set(other.getDesiredPosition());
-      if (!hasDesiredVelocity())
+      if (!hasDesiredVelocity() && other.hasDesiredVelocity())
          desiredVelocity.set(other.getDesiredVelocity());
-      if (!hasDesiredAcceleration())
+      if (!hasDesiredAcceleration() && other.hasDesiredAcceleration())
          desiredAcceleration.set(other.getDesiredAcceleration());
-      if (!hasDesiredCurrent())
+      if (!hasDesiredCurrent() && other.hasDesiredCurrent())
          desiredCurrent.set(other.getDesiredCurrent());
+      if (!hasKp() && other.hasKp())
+         kp.set(other.getKp());
+      if (!hasKd() && other.hasKd())
+         kd.set(other.getKd());
       if (!peekResetIntegratorsRequest())
          resetIntegrators.set(other.peekResetIntegratorsRequest());
-      if(!hasKp())
-         kp.set(other.getKp());
-      if(!hasKd())
-         kd.set(other.getKd());
    }
-   
+
    public void setDesiredsFromOneDoFJoint(OneDoFJoint jointToExtractDesiredsFrom)
    {
       setDesiredTorque(jointToExtractDesiredsFrom.getTau());
@@ -258,7 +267,7 @@ public class YoLowLevelJointData implements LowLevelJointDataReadOnly
    {
       return kd.getValue();
    }
-   
+
    public void setKp(double kp)
    {
       this.kp.set(kp);

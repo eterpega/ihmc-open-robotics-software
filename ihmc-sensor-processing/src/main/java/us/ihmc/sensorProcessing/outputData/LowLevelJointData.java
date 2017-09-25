@@ -11,7 +11,7 @@ public class LowLevelJointData implements LowLevelJointDataReadOnly
    private double desiredAcceleration = Double.NaN;
    private double desiredCurrent = Double.NaN;
    private boolean resetIntegrators = false;
-   
+
    private double kp = Double.NaN;
    private double kd = Double.NaN;
 
@@ -29,22 +29,31 @@ public class LowLevelJointData implements LowLevelJointDataReadOnly
       desiredAcceleration = Double.NaN;
       desiredCurrent = Double.NaN;
       resetIntegrators = false;
-      
+
       kp = Double.NaN;
       kd = Double.NaN;
    }
 
    public void set(LowLevelJointDataReadOnly other)
    {
-      controlMode = other.getControlMode();
-      desiredTorque = other.getDesiredTorque();
-      desiredPosition = other.getDesiredPosition();
-      desiredVelocity = other.getDesiredVelocity();
-      desiredAcceleration = other.getDesiredAcceleration();
-      desiredCurrent = other.getDesiredCurrent();
+      clear();
+      if (other.hasControlMode())
+         controlMode = other.getControlMode();
+      if (other.hasDesiredTorque())
+         desiredTorque = other.getDesiredTorque();
+      if (other.hasDesiredPosition())
+         desiredPosition = other.getDesiredPosition();
+      if (other.hasDesiredVelocity())
+         desiredVelocity = other.getDesiredVelocity();
+      if (other.hasDesiredAcceleration())
+         desiredAcceleration = other.getDesiredAcceleration();
+      if (other.hasDesiredCurrent())
+         desiredCurrent = other.getDesiredCurrent();
+      if (other.hasKp())
+         kp = other.getKp();
+      if (other.hasKd())
+         kd = other.getKd();
       resetIntegrators = other.peekResetIntegratorsRequest();
-      kp = other.getKp();
-      kd = other.getKd();
    }
 
    /**
@@ -53,26 +62,26 @@ public class LowLevelJointData implements LowLevelJointDataReadOnly
     */
    public void completeWith(LowLevelJointDataReadOnly other)
    {
-      if (!hasControlMode())
+      if (!hasControlMode() && other.hasControlMode())
          controlMode = other.getControlMode();
-      if (!hasDesiredTorque())
+      if (!hasDesiredTorque() && other.hasDesiredTorque())
          desiredTorque = other.getDesiredTorque();
-      if (!hasDesiredPosition())
+      if (!hasDesiredPosition() && other.hasDesiredPosition())
          desiredPosition = other.getDesiredPosition();
-      if (!hasDesiredVelocity())
+      if (!hasDesiredVelocity() && other.hasDesiredVelocity())
          desiredVelocity = other.getDesiredVelocity();
-      if (!hasDesiredAcceleration())
+      if (!hasDesiredAcceleration() && other.hasDesiredAcceleration())
          desiredAcceleration = other.getDesiredAcceleration();
-      if (!hasDesiredCurrent())
+      if (!hasDesiredCurrent() && other.hasDesiredCurrent())
          desiredCurrent = other.getDesiredCurrent();
+      if (!hasKp() && other.hasKp())
+         kp = other.getKp();
+      if (!hasKd() && other.hasKd())
+         kd = other.getKd();
       if (!peekResetIntegratorsRequest())
          resetIntegrators = other.peekResetIntegratorsRequest();
-      if(!hasKp())
-         kp = other.getKp();
-      if(!hasKd())
-         kd = other.getKd();
    }
-   
+
    public void setDesiredsFromOneDoFJoint(OneDoFJoint jointToExtractDesiredsFrom)
    {
       setDesiredTorque(jointToExtractDesiredsFrom.getTau());
@@ -158,30 +167,40 @@ public class LowLevelJointData implements LowLevelJointDataReadOnly
    @Override
    public LowLevelJointControlMode getControlMode()
    {
+      if (!hasControlMode())
+         throw new RuntimeException("This " + getClass().getSimpleName() + " does not have a control mode.");
       return controlMode;
    }
 
    @Override
    public double getDesiredTorque()
    {
+      if (!hasDesiredTorque())
+         throw new RuntimeException("This " + getClass().getSimpleName() + " does not have a desired torque.");
       return desiredTorque;
    }
 
    @Override
    public double getDesiredPosition()
    {
+      if (!hasDesiredPosition())
+         throw new RuntimeException("This " + getClass().getSimpleName() + " does not have a desired position.");
       return desiredPosition;
    }
 
    @Override
    public double getDesiredVelocity()
    {
+      if (!hasDesiredVelocity())
+         throw new RuntimeException("This " + getClass().getSimpleName() + " does not have a desired velocity.");
       return desiredVelocity;
    }
 
    @Override
    public double getDesiredAcceleration()
    {
+      if (!hasDesiredAcceleration())
+         throw new RuntimeException("This " + getClass().getSimpleName() + " does not have a desired acceleration.");
       return desiredAcceleration;
    }
 
@@ -197,7 +216,6 @@ public class LowLevelJointData implements LowLevelJointDataReadOnly
       boolean resetIntegrators = this.resetIntegrators;
       this.resetIntegrators = false;
       return resetIntegrators;
-      
    }
 
    @Override
@@ -233,15 +251,19 @@ public class LowLevelJointData implements LowLevelJointDataReadOnly
    @Override
    public double getKp()
    {
+      if (!hasKp())
+         throw new RuntimeException("This " + getClass().getSimpleName() + " does not have a kp.");
       return kp;
    }
 
    @Override
    public double getKd()
    {
+      if (!hasKd())
+         throw new RuntimeException("This " + getClass().getSimpleName() + " does not have a kd.");
       return kd;
    }
-   
+
    public void setKp(double kp)
    {
       this.kp = kp;
