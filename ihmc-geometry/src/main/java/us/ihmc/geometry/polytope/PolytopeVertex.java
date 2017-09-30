@@ -1,16 +1,27 @@
 package us.ihmc.geometry.polytope;
 
 import java.util.ArrayList;
+import java.util.List;
 
-import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.interfaces.GeometryObject;
+import us.ihmc.euclid.transform.interfaces.Transform;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 
-public class PolytopeVertex
+/**
+ * This class stores the location of a point which is the vertex of a polytope
+ * A list of polytope edges originating from this vertex is also stored for ease of algorithm design 
+ * Faces to which this vertex belongs can be accessed by iterating through the list of edges
+ * 
+ * Based on original class by Jerry Pratt
+ * @author Apoorv S
+ *
+ */
+public class PolytopeVertex implements GeometryObject<PolytopeVertex>
 {
    private final Point3D position = new Point3D();
-   private final ArrayList<PolytopeVertex> connectingVertices = new ArrayList<>();
-
+   private final ArrayList<PolytopeHalfEdge> associatedEdges = new ArrayList<>();
+   
    public PolytopeVertex(double x, double y, double z)
    {
       position.set(x, y, z);
@@ -24,38 +35,79 @@ public class PolytopeVertex
    public PolytopeVertex(PolytopeVertex vertex)
    {
       this.position.set(vertex.position);
-      //      TODO: Copy connecting vertices..getClass().
+      copyEdges(vertex.getAssociatedEdges());
    }
 
-   public void setPosition(PolytopeVertex vertex)
+   @Override
+   public void set(PolytopeVertex vertex)
    {
       this.position.set(vertex.position);
+      clearEdgeList();
+      copyEdges(vertex.getAssociatedEdges());
    }
 
-   public void addConnectingVertex(PolytopeVertex vertex)
+   public List<PolytopeHalfEdge> getAssociatedEdges()
    {
-      if (!connectingVertices.contains(vertex))
-         connectingVertices.add(vertex);
+      return associatedEdges;
+   }
+   
+   public void removeAssociatedEdge(PolytopeHalfEdge edgeToRemove)
+   {
+      associatedEdges.remove(edgeToRemove);
+   }
+   
+   public void addAssociatedEdge(PolytopeHalfEdge edgeToAdd)
+   {
+      associatedEdges.add(edgeToAdd);
+   }
+   
+   public void clearEdgeList()
+   {
+      associatedEdges.clear();
    }
 
-   public int getNumberOfConnectingVertices()
+   public void copyEdges(List<PolytopeHalfEdge> edgeList)
    {
-      return connectingVertices.size();
+      for(int i = 0; i < edgeList.size(); i++)
+      {
+         addEdge(edgeList.get(i));
+      }
    }
 
-   public PolytopeVertex getConnectingVertex(int index)
+   public void addEdge(PolytopeHalfEdge edge)
    {
-      return connectingVertices.get(index);
+      if (!containsEdge(edge))
+         associatedEdges.add(edge);
+   }
+   
+   public boolean containsEdge(PolytopeHalfEdge edgeToCheck)
+   {
+      return associatedEdges.contains(edgeToCheck);
+   }
+
+   public boolean containsEdge(PolytopeHalfEdge edgeToCheck, double epsilon)
+   {
+      boolean result = associatedEdges.size() > 0;
+      for(int i = 0; result && i < associatedEdges.size(); i++)
+      {
+         result &= associatedEdges.get(i).epsilonEquals(edgeToCheck, epsilon);
+      }
+      return result;
+   }
+
+   public int getNumberOfAssociatedEdges()
+   {
+      return associatedEdges.size();
+   }
+
+   public PolytopeHalfEdge getEdge(int index)
+   {
+      return associatedEdges.get(index);
    }
 
    public Point3D getPosition()
    {
       return position;
-   }
-
-   public void applyTransform(RigidBodyTransform transform)
-   {
-      transform.transform(position);
    }
 
    public double dot(Vector3D vector)
@@ -81,6 +133,42 @@ public class PolytopeVertex
    public double getZ()
    {
       return position.getZ();
+   }
+   
+   @Override
+   public void applyTransform(Transform transform)
+   {
+      transform.transform(position);
+   }
+
+   @Override
+   public void applyInverseTransform(Transform transform)
+   {
+      transform.inverseTransform(position);
+   }
+
+   @Override
+   public boolean epsilonEquals(PolytopeVertex other, double epsilon)
+   {
+      return position.epsilonEquals(other.position, epsilon);
+   }
+
+   @Override
+   public boolean containsNaN()
+   {
+      return position.containsNaN();
+   }
+
+   @Override
+   public void setToNaN()
+   {
+      position.setToNaN();
+   }
+
+   @Override
+   public void setToZero()
+   {
+      position.setToZero();
    }
 
 }
