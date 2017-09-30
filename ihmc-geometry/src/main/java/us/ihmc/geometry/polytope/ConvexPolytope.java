@@ -1,31 +1,39 @@
 package us.ihmc.geometry.polytope;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import us.ihmc.euclid.geometry.BoundingBox3D;
-import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.interfaces.Clearable;
+import us.ihmc.euclid.interfaces.GeometryObject;
+import us.ihmc.euclid.transform.interfaces.Transform;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 
-public class ConvexPolytope implements SupportingVertexHolder
+/**
+ * This class is a data structure for storing a polytope in the DCEL notation (ref: https://en.wikipedia.org/wiki/Doubly_connected_edge_list).
+ * Based on the original implementation by Jerry Pratt
+ * @author Apoorv S
+ */
+
+public class ConvexPolytope implements GeometryObject<ConvexPolytope>, SupportingVertexHolder
 {
    private final ArrayList<PolytopeVertex> vertices = new ArrayList<>();
-
+   private final ArrayList<PolytopeHalfEdge> edges = new ArrayList<>();
+   private final ArrayList<PolytopeFace> faces = new ArrayList<>();
+   
    private boolean boundingBoxNeedsUpdating = false;
    private final BoundingBox3D boundingBox = new BoundingBox3D(Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY,
                                                                Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY);
 
    public ConvexPolytope()
    {
+      
    }
 
    public ConvexPolytope(ConvexPolytope polytope)
    {
-      for (PolytopeVertex vertex : polytope.vertices)
-      {
-         this.vertices.add(new PolytopeVertex(vertex));
-      }
-
+      set(polytope);
       boundingBoxNeedsUpdating = true;
    }
 
@@ -75,71 +83,14 @@ public class ConvexPolytope implements SupportingVertexHolder
       boundingBox.set(xMin, yMin, zMin, xMax, yMax, zMax);
    }
 
-   public void copyVerticesFrom(ConvexPolytope polytope)
-   {
-      int numberOfVertices = this.vertices.size();
-
-      if (numberOfVertices != polytope.vertices.size())
-      {
-         throw new RuntimeException("Vertices are not same size!");
-      }
-
-      for (int i = 0; i < numberOfVertices; i++)
-      {
-         this.vertices.get(i).setPosition(polytope.vertices.get(i));
-      }
-
-      boundingBoxNeedsUpdating = true;
-   }
-
-   public ArrayList<PolytopeVertex> getVertices()
-   {
-      return vertices;
-   }
-
-   public void addVertices(Point3D[] polytopePoints)
-   {
-      for (int i = 0; i < polytopePoints.length; i++)
-      {
-         addVertex(polytopePoints[i]);
-      }
-
-      boundingBoxNeedsUpdating = true;
-   }
-
-   public PolytopeVertex addVertex(Point3D position)
-   {
-      PolytopeVertex vertex = new PolytopeVertex(position);
-      vertices.add(vertex);
-      boundingBoxNeedsUpdating = true;
-      return vertex;
-   }
-
-   public PolytopeVertex addVertex(double x, double y, double z)
-   {
-      PolytopeVertex vertex = new PolytopeVertex(x, y, z);
-      vertices.add(vertex);
-      boundingBoxNeedsUpdating = true;
-      return vertex;
-   }
-
-   public PolytopeVertex addVertex(double[] xyzValues)
-   {
-      PolytopeVertex vertex = new PolytopeVertex(xyzValues[0], xyzValues[1], xyzValues[2]);
-      vertices.add(vertex);
-      boundingBoxNeedsUpdating = true;
-      return vertex;
-   }
-
-   public void addEdge(PolytopeVertex vertexOne, PolytopeVertex vertexTwo)
-   {
-      vertexOne.addConnectingVertex(vertexTwo);
-      vertexTwo.addConnectingVertex(vertexOne);
-   }
-
    public int getNumberOfVertices()
    {
       return vertices.size();
+   }
+   
+   public List<PolytopeVertex> getVertices()
+   {
+      return vertices;
    }
 
    public PolytopeVertex getVertex(int index)
@@ -149,66 +100,71 @@ public class ConvexPolytope implements SupportingVertexHolder
 
    public int getNumberOfEdges()
    {
-      int numberOfEdges = 0;
-
-      for (int i = 0; i < vertices.size(); i++)
-      {
-         numberOfEdges = numberOfEdges + vertices.get(i).getNumberOfConnectingVertices();
-      }
-
-      numberOfEdges = numberOfEdges / 2;
-
-      return numberOfEdges;
+      return edges.size();
    }
 
-   public ArrayList<PolytopeVertex[]> getEdges()
+   public List<PolytopeHalfEdge> getEdges()
    {
-      //TODO: Make this more efficient, and the representation of edges in a Polytope in general.
-      ArrayList<PolytopeVertex[]> edgesToReturn = new ArrayList<>();
-
-      for (int i = 0; i < vertices.size(); i++)
-      {
-         PolytopeVertex vertex = vertices.get(i);
-         int numberOfConnectingVertices = vertex.getNumberOfConnectingVertices();
-         for (int j = 0; j < numberOfConnectingVertices; j++)
-         {
-            PolytopeVertex connectingVertex = vertex.getConnectingVertex(j);
-
-            if (!alreadyHaveEdgeInList(edgesToReturn, vertex, connectingVertex))
-            {
-               edgesToReturn.add(new PolytopeVertex[] {vertex, connectingVertex});
-            }
-         }
-      }
-
-      return edgesToReturn;
+      return edges;
+   }
+   
+   public PolytopeHalfEdge getEdge(int index)
+   {
+      return edges.get(index);
+   }
+  
+   public int getNumberOfFaces()
+   {
+      return faces.size();
    }
 
-   private boolean alreadyHaveEdgeInList(ArrayList<PolytopeVertex[]> listOfEdges, PolytopeVertex vertexOne, PolytopeVertex vertexTwo)
+   public List<PolytopeFace> getFaces()
    {
-      for (int k = 0; k < listOfEdges.size(); k++)
-      {
-         PolytopeVertex[] edgeToReturn = listOfEdges.get(k);
-         if (((edgeToReturn[0] == vertexOne) && (edgeToReturn[1] == vertexTwo)) || ((edgeToReturn[0] == vertexTwo) && (edgeToReturn[1] == vertexOne)))
-         {
-            return true;
-         }
-      }
-
-      return false;
+      return faces;
    }
-
-   public void applyTransform(RigidBodyTransform transform)
+   
+   public PolytopeFace getFace(int index)
    {
+      return faces.get(index);
+   }
+   
+   @Override
+   public void applyTransform(Transform transform)
+   {
+      // Applying the transform to the vertices is less expensive computationally
       for (int i = 0; i < vertices.size(); i++)
       {
-         PolytopeVertex polytopeVertex = vertices.get(i);
-         polytopeVertex.applyTransform(transform);
+         vertices.get(i).applyTransform(transform);
       }
-
       boundingBoxNeedsUpdating = true;
    }
 
+   @Override
+   public void applyInverseTransform(Transform transform)
+   {
+      // Applying the transform to the vertices is less expensive computationally
+      for (int i = 0; i < vertices.size(); i++)
+      {
+         vertices.get(i).applyInverseTransform(transform);
+      }
+      boundingBoxNeedsUpdating = true;
+   }
+
+   public PolytopeVertex addVertex(double x, double y, double z)
+   {
+      return addVertex(new PolytopeVertex(x, y, z));
+   }
+   
+   public PolytopeVertex addVertex(Point3D vertexToAdd)
+   {
+      return addVertex(new PolytopeVertex(vertexToAdd));
+   }
+   
+   public PolytopeVertex addVertex(PolytopeVertex vertexToAdd)
+   {
+      return null;
+   }
+   
    @Override
    public Point3D getSupportingVertex(Vector3D supportDirection)
    {
@@ -229,7 +185,6 @@ public class ConvexPolytope implements SupportingVertexHolder
             bestVertex = vertex;
          }
       }
-
       return bestVertex.getPosition();
    }
 
@@ -245,4 +200,74 @@ public class ConvexPolytope implements SupportingVertexHolder
       return string;
    }
 
+   @Override
+   public boolean epsilonEquals(ConvexPolytope other, double epsilon)
+   {
+      // TODO Auto-generated method stub
+      return false;
+   }
+
+   @Override
+   public boolean containsNaN()
+   {
+      boolean result = false;
+      for(int i = 0; i < vertices.size(); i++)
+      {
+         result |= vertices.get(i).containsNaN();
+      }
+      return result;
+   }
+
+   @Override
+   public void setToNaN()
+   {
+      // This should also set all the edges and faces to NaN assuming all relationships are intact
+      for (int i = 0; i < vertices.size(); i++)
+      {
+         vertices.get(i).setToNaN();;
+      }
+   }
+
+   @Override
+   public void setToZero()
+   {
+      // This should also set all the edges and faces to zero assuming all relationships are intact
+      for (int i = 0; i < vertices.size(); i++)
+      {
+         vertices.get(i).setToZero();;
+      }
+   }
+
+   @Override
+   public void set(ConvexPolytope other)
+   {
+      setVertices(other.getVertices());
+      setEdges(other.getEdges());
+      setFaces(other.getFaces());
+   }
+   
+   public void setVertices(List<PolytopeVertex> vertices)
+   {
+      this.vertices.clear();
+      this.vertices.addAll(vertices);
+   }
+   
+   public void setEdges(List<PolytopeHalfEdge> edges)
+   {
+      this.edges.clear();
+      this.edges.addAll(edges);
+   }
+   
+   public void setFaces(List<PolytopeFace> faces)
+   {
+      this.faces.clear();
+      this.faces.addAll(faces);
+   }
+   
+   public void clear()
+   {
+      vertices.clear();
+      edges.clear();
+      faces.clear();
+   }
 }

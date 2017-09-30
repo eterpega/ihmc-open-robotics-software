@@ -57,14 +57,14 @@ public class ConvexPolytopeTest
       assertEquals(8, polytope.getNumberOfVertices());
       assertEquals(12, polytope.getNumberOfEdges());
 
-      assertEquals(3, vertexOne.getNumberOfConnectingVertices());
-      assertEquals(3, vertexTwo.getNumberOfConnectingVertices());
-      assertEquals(3, vertexThree.getNumberOfConnectingVertices());
-      assertEquals(3, vertexFour.getNumberOfConnectingVertices());
-      assertEquals(3, vertexFive.getNumberOfConnectingVertices());
-      assertEquals(3, vertexSix.getNumberOfConnectingVertices());
-      assertEquals(3, vertexSeven.getNumberOfConnectingVertices());
-      assertEquals(3, vertexEight.getNumberOfConnectingVertices());
+      assertEquals(3, vertexOne.getNumberOfAssociatedEdges());
+      assertEquals(3, vertexTwo.getNumberOfAssociatedEdges());
+      assertEquals(3, vertexThree.getNumberOfAssociatedEdges());
+      assertEquals(3, vertexFour.getNumberOfAssociatedEdges());
+      assertEquals(3, vertexFive.getNumberOfAssociatedEdges());
+      assertEquals(3, vertexSix.getNumberOfAssociatedEdges());
+      assertEquals(3, vertexSeven.getNumberOfAssociatedEdges());
+      assertEquals(3, vertexEight.getNumberOfAssociatedEdges());
 
       RigidBodyTransform transform = new RigidBodyTransform();
       transform.setTranslation(1.0, 2.0, 3.0);
