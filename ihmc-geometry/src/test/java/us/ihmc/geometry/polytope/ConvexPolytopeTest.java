@@ -1,11 +1,13 @@
 package us.ihmc.geometry.polytope;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Test;
 
+import us.ihmc.commons.Epsilons;
 import us.ihmc.commons.MutationTestFacilitator;
 import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
 import us.ihmc.euclid.geometry.BoundingBox3D;
@@ -26,33 +28,14 @@ public class ConvexPolytopeTest
       PolytopeVertex vertexTwo = polytope.addVertex(1.0, 0.0, 0.0);
       PolytopeVertex vertexThree = polytope.addVertex(1.0, 1.0, 0.0);
       PolytopeVertex vertexFour = polytope.addVertex(0.0, 1.0, 0.0);
-
       PolytopeVertex vertexFive = polytope.addVertex(new Point3D(0.0, 0.0, 1.0));
       PolytopeVertex vertexSix = polytope.addVertex(new Point3D(1.0, 0.0, 1.0));
       PolytopeVertex vertexSeven = polytope.addVertex(new Point3D(1.0, 1.0, 1.0));
       PolytopeVertex vertexEight = polytope.addVertex(new Point3D(0.0, 1.0, 1.0));
 
-      EuclidCoreTestTools.assertTuple3DEquals("", new Point3D(0.0, 0.0, 0.0), vertexOne.getPosition(), 1e-7);
-      EuclidCoreTestTools.assertTuple3DEquals("", new Point3D(1.0, 1.0, 0.0), vertexThree.getPosition(), 1e-7);
-      EuclidCoreTestTools.assertTuple3DEquals("", new Point3D(1.0, 0.0, 1.0), vertexSix.getPosition(), 1e-7);
-
-      polytope.addEdge(vertexOne, vertexTwo);
-      polytope.addEdge(vertexTwo, vertexThree);
-      polytope.addEdge(vertexThree, vertexFour);
-      polytope.addEdge(vertexFour, vertexOne);
-
-      polytope.addEdge(vertexFive, vertexSix);
-      polytope.addEdge(vertexSix, vertexSeven);
-      polytope.addEdge(vertexSeven, vertexEight);
-      polytope.addEdge(vertexEight, vertexFive);
-
-      polytope.addEdge(vertexOne, vertexFive);
-      polytope.addEdge(vertexTwo, vertexSix);
-      polytope.addEdge(vertexThree, vertexSeven);
-      polytope.addEdge(vertexFour, vertexEight);
-
-      // Redundant edges should be ignored.
-      polytope.addEdge(vertexFour, vertexEight);
+      EuclidCoreTestTools.assertTuple3DEquals("", new Point3D(0.0, 0.0, 0.0), vertexOne.getPosition(), Epsilons.ONE_TEN_BILLIONTH);
+      EuclidCoreTestTools.assertTuple3DEquals("", new Point3D(1.0, 1.0, 0.0), vertexThree.getPosition(), Epsilons.ONE_TEN_BILLIONTH);
+      EuclidCoreTestTools.assertTuple3DEquals("", new Point3D(1.0, 0.0, 1.0), vertexSix.getPosition(), Epsilons.ONE_TEN_BILLIONTH);
 
       assertEquals(8, polytope.getNumberOfVertices());
       assertEquals(12, polytope.getNumberOfEdges());
@@ -70,24 +53,24 @@ public class ConvexPolytopeTest
       transform.setTranslation(1.0, 2.0, 3.0);
       polytope.applyTransform(transform);
 
-      EuclidCoreTestTools.assertTuple3DEquals("", new Point3D(1.0, 2.0, 3.0), vertexOne.getPosition(), 1e-7);
-      EuclidCoreTestTools.assertTuple3DEquals("", new Point3D(2.0, 3.0, 3.0), vertexThree.getPosition(), 1e-7);
-      EuclidCoreTestTools.assertTuple3DEquals("", new Point3D(2.0, 2.0, 4.0), vertexSix.getPosition(), 1e-7);
+      EuclidCoreTestTools.assertTuple3DEquals("", new Point3D(1.0, 2.0, 3.0), vertexOne.getPosition(), Epsilons.ONE_TEN_BILLIONTH);
+      EuclidCoreTestTools.assertTuple3DEquals("", new Point3D(2.0, 3.0, 3.0), vertexThree.getPosition(), Epsilons.ONE_TEN_BILLIONTH);
+      EuclidCoreTestTools.assertTuple3DEquals("", new Point3D(2.0, 2.0, 4.0), vertexSix.getPosition(), Epsilons.ONE_TEN_BILLIONTH);
 
       transform.setRotationEulerAndZeroTranslation(0.0, 0.0, Math.PI / 2.0);
       polytope.applyTransform(transform);
-      EuclidCoreTestTools.assertTuple3DEquals("", new Point3D(-2.0, 1.0, 3.0), vertexOne.getPosition(), 1e-7);
-      EuclidCoreTestTools.assertTuple3DEquals("", new Point3D(-3.0, 2.0, 3.0), vertexThree.getPosition(), 1e-7);
-      EuclidCoreTestTools.assertTuple3DEquals("", new Point3D(-2.0, 2.0, 4.0), vertexSix.getPosition(), 1e-7);
+      EuclidCoreTestTools.assertTuple3DEquals("", new Point3D(-2.0, 1.0, 3.0), vertexOne.getPosition(), Epsilons.ONE_TEN_BILLIONTH);
+      EuclidCoreTestTools.assertTuple3DEquals("", new Point3D(-3.0, 2.0, 3.0), vertexThree.getPosition(), Epsilons.ONE_TEN_BILLIONTH);
+      EuclidCoreTestTools.assertTuple3DEquals("", new Point3D(-2.0, 2.0, 4.0), vertexSix.getPosition(), Epsilons.ONE_TEN_BILLIONTH);
 
       // Apply in reverse order to get back to unit box at origin.
       transform.setRotationEulerAndZeroTranslation(0.0, 0.0, -Math.PI / 2.0);
       polytope.applyTransform(transform);
       transform.setTranslationAndIdentityRotation(-1.0, -2.0, -3.0);
       polytope.applyTransform(transform);
-      EuclidCoreTestTools.assertTuple3DEquals("", new Point3D(0.0, 0.0, 0.0), vertexOne.getPosition(), 1e-7);
-      EuclidCoreTestTools.assertTuple3DEquals("", new Point3D(1.0, 1.0, 0.0), vertexThree.getPosition(), 1e-7);
-      EuclidCoreTestTools.assertTuple3DEquals("", new Point3D(1.0, 0.0, 1.0), vertexSix.getPosition(), 1e-7);
+      EuclidCoreTestTools.assertTuple3DEquals("", new Point3D(0.0, 0.0, 0.0), vertexOne.getPosition(), Epsilons.ONE_TEN_BILLIONTH);
+      EuclidCoreTestTools.assertTuple3DEquals("", new Point3D(1.0, 1.0, 0.0), vertexThree.getPosition(), Epsilons.ONE_TEN_BILLIONTH);
+      EuclidCoreTestTools.assertTuple3DEquals("", new Point3D(1.0, 0.0, 1.0), vertexSix.getPosition(), Epsilons.ONE_TEN_BILLIONTH);
 
       Vector3D supportDirection = new Vector3D(1.0, 1.0, 1.0);
       Point3D supportingVertex = polytope.getSupportingVertex(supportDirection);
@@ -109,8 +92,7 @@ public class ConvexPolytopeTest
       ConvexPolytope cubeOne = ConvexPolytopeConstructor.constructBoxWithCenterAtZero(100.0, 100.0, 0.5);
       assertEquals(8, cubeOne.getNumberOfVertices());
       assertEquals(12, cubeOne.getNumberOfEdges());
-      ArrayList<PolytopeVertex[]> edges = cubeOne.getEdges();
-
+      List<PolytopeHalfEdge> edges = cubeOne.getEdges();
       assertEquals(12, edges.size());
    }
    
@@ -139,21 +121,6 @@ public class ConvexPolytopeTest
       PolytopeVertex vertexSeven = polytope.addVertex(new Point3D(1.0, 1.0, 1.0));
       PolytopeVertex vertexEight = polytope.addVertex(new Point3D(0.0, 1.0, 1.0));
 
-      polytope.addEdge(vertexOne, vertexTwo);
-      polytope.addEdge(vertexTwo, vertexThree);
-      polytope.addEdge(vertexThree, vertexFour);
-      polytope.addEdge(vertexFour, vertexOne);
-
-      polytope.addEdge(vertexFive, vertexSix);
-      polytope.addEdge(vertexSix, vertexSeven);
-      polytope.addEdge(vertexSeven, vertexEight);
-      polytope.addEdge(vertexEight, vertexFive);
-
-      polytope.addEdge(vertexOne, vertexFive);
-      polytope.addEdge(vertexTwo, vertexSix);
-      polytope.addEdge(vertexThree, vertexSeven);
-      polytope.addEdge(vertexFour, vertexEight);
-      
       polytope.getBoundingBox(boundingBox);
       
       Point3D minimumPoint = new Point3D();
