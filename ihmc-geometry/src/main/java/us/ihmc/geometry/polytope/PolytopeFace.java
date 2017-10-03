@@ -121,6 +121,8 @@ public class PolytopeFace implements GeometryObject<PolytopeFace>
          updateFaceNormal();
          PolytopeVertex vertexCandidate = null;
          PolytopeHalfEdge newHalfEdgeCandidate = edges.get(0);
+         
+         // Figure out if this point is an internal point. If it is not then which edge should be expanded to include it 
          int index = 0;
          for(; index < edges.size(); index++)
          {
@@ -156,6 +158,7 @@ public class PolytopeFace implements GeometryObject<PolytopeFace>
             additionalEdge.setPreviousHalfEdge(newHalfEdge);
             edges.add(index + 1, additionalEdge);
          }
+         // Handle the standard case where edges must be removed / re-purposed to add this point
          else
          {
             // If this loop does not break then something is very wrong
@@ -265,7 +268,7 @@ public class PolytopeFace implements GeometryObject<PolytopeFace>
    {
       if(other.getNumberOfEdges() == this.getNumberOfEdges())
       {
-         int index = findMatchingEdge(other.getEdge(0), epsilon);
+         int index = findMatchingEdgeIndex(other.getEdge(0), epsilon);
          if(index !=-1)
          {
             boolean result = true;
@@ -286,7 +289,7 @@ public class PolytopeFace implements GeometryObject<PolytopeFace>
          return false;
    }
 
-   public int findMatchingEdge(PolytopeHalfEdge edgeToSearch, double epsilon)
+   public int findMatchingEdgeIndex(PolytopeHalfEdge edgeToSearch, double epsilon)
    {
       for(int i = 0; i < edges.size(); i++)
       {
@@ -294,6 +297,11 @@ public class PolytopeFace implements GeometryObject<PolytopeFace>
             return i;
       }
       return -1;
+   }
+   
+   public PolytopeHalfEdge findMatchingEdge(PolytopeHalfEdge edgeToSearch, double epsilon)
+   {
+      return edges.get(findMatchingEdgeIndex(edgeToSearch, epsilon));
    }
    
    public void reverseFaceNormal()
