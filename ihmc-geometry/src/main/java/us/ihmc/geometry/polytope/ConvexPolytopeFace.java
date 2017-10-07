@@ -39,7 +39,7 @@ public class ConvexPolytopeFace implements GeometryObject<ConvexPolytopeFace>
    // Temporary variables for calculations
    private final Vector3D tempVector = new Vector3D();
    private final ArrayList<PolytopeHalfEdge> visibleEdgeList = new ArrayList<>();
-
+   private boolean marked = false;
    /**
     * Default constructor. Does not initialize anything
     */
@@ -284,14 +284,14 @@ public class ConvexPolytopeFace implements GeometryObject<ConvexPolytopeFace>
    public void applyTransform(Transform transform)
    {
       for (int i = 0; i < getNumberOfEdges(); i++)
-         edges.get(i).applyTransform(transform);
+         edges.get(i).getOriginVertex().applyTransform(transform);
    }
 
    @Override
    public void applyInverseTransform(Transform transform)
    {
       for (int i = 0; i < getNumberOfEdges(); i++)
-         edges.get(i).applyInverseTransform(transform);
+         edges.get(i).getOriginVertex().applyInverseTransform(transform);
    }
 
    @Override
@@ -478,6 +478,21 @@ public class ConvexPolytopeFace implements GeometryObject<ConvexPolytopeFace>
          else
             bestVertex = bestVertexCandidate;
       }
+   }
+   
+   public void mark()
+   {
+      this.marked = true;
+   }
+   
+   public void unmark()
+   {
+      this.marked = false;
+   }
+   
+   public boolean isMarked()
+   {
+      return this.marked;
    }
    
    @Override
