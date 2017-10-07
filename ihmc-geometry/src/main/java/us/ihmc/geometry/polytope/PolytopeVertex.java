@@ -3,12 +3,10 @@ package us.ihmc.geometry.polytope;
 import java.util.ArrayList;
 import java.util.List;
 
-import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.interfaces.GeometryObject;
 import us.ihmc.euclid.transform.interfaces.Transform;
 import us.ihmc.euclid.tuple3D.Point3D;
-import us.ihmc.euclid.tuple3D.Vector3D;
-import us.ihmc.euclid.tuple3D.interfaces.Point3DBasics;
+import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 
 /**
  * This class stores the location of a point which is the vertex of a polytope
@@ -19,7 +17,7 @@ import us.ihmc.euclid.tuple3D.interfaces.Point3DBasics;
  * @author Apoorv S
  *
  */
-public class PolytopeVertex implements Point3DBasics, GeometryObject<PolytopeVertex>
+public class PolytopeVertex implements GeometryObject<PolytopeVertex>, PolytopeVertexBasics
 {
    private final Point3D position = new Point3D();
    private final ArrayList<PolytopeHalfEdge> associatedEdges = new ArrayList<>();
@@ -44,11 +42,11 @@ public class PolytopeVertex implements Point3DBasics, GeometryObject<PolytopeVer
    public void set(PolytopeVertex vertex)
    {
       this.position.set(vertex.position);
-      clearEdgeList();
+      clearAssociatedEdgeList();
       copyEdges(vertex.getAssociatedEdges());
    }
 
-   public List<PolytopeHalfEdge> getAssociatedEdges()
+   public List<? extends PolytopeHalfEdge> getAssociatedEdges()
    {
       return associatedEdges;
    }
@@ -58,41 +56,36 @@ public class PolytopeVertex implements Point3DBasics, GeometryObject<PolytopeVer
       return associatedEdges.get(index);
    }
    
-   public void removeAssociatedEdge(PolytopeHalfEdge edgeToRemove)
+   public void removeAssociatedEdge(PolytopeHalfEdge edgeToAdd)
    {
-      associatedEdges.remove(edgeToRemove);
+      associatedEdges.remove(edgeToAdd);
    }
    
-   public void addAssociatedEdge(PolytopeHalfEdge edgeToAdd)
-   {
-      associatedEdges.add(edgeToAdd);
-   }
-   
-   public void clearEdgeList()
+   public void clearAssociatedEdgeList()
    {
       associatedEdges.clear();
    }
 
-   public void copyEdges(List<PolytopeHalfEdge> edgeList)
+   public void copyEdges(List<? extends PolytopeHalfEdge> edgeList)
    {
       for(int i = 0; i < edgeList.size(); i++)
       {
-         addEdge(edgeList.get(i));
+         addAssociatedEdge(edgeList.get(i));
       }
    }
 
-   public void addEdge(PolytopeHalfEdge edge)
+   public void addAssociatedEdge(PolytopeHalfEdge edge)
    {
-      if (!containsEdge(edge))
+      if (!isAssociatedWithEdge(edge))
          associatedEdges.add(edge);
    }
    
-   public boolean containsEdge(PolytopeHalfEdge edgeToCheck)
+   public boolean isAssociatedWithEdge(PolytopeHalfEdge edgeToCheck)
    {
       return associatedEdges.contains(edgeToCheck);
    }
 
-   public boolean containsEdge(PolytopeHalfEdge edgeToCheck, double epsilon)
+   public boolean isAssociatedWithEdge(PolytopeHalfEdge edgeToCheck, double epsilon)
    {
       boolean result = associatedEdges.size() > 0;
       for(int i = 0; result && i < associatedEdges.size(); i++)
@@ -112,7 +105,7 @@ public class PolytopeVertex implements Point3DBasics, GeometryObject<PolytopeVer
       return position;
    }
 
-   public double dot(Vector3D vector)
+   public double dot(Vector3DReadOnly vector)
    {
       return position.getX() * vector.getX() + position.getY() * vector.getY() + position.getZ() * vector.getZ();
    }
@@ -206,4 +199,5 @@ public class PolytopeVertex implements Point3DBasics, GeometryObject<PolytopeVer
    {
       position.setZ(z);
    }
+
 }

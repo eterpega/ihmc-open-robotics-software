@@ -19,7 +19,7 @@ import us.ihmc.robotics.MathTools;
  * @author Apoorv S
  *
  */
-public class ConvexPolytopeFace implements GeometryObject<ConvexPolytopeFace>
+public class ConvexPolytopeFace implements GeometryObject<ConvexPolytopeFace>, ConvexPolytopeFaceBasics
 {
    private final double EPSILON = Epsilons.ONE_MILLIONTH;
    
@@ -470,7 +470,7 @@ public class ConvexPolytopeFace implements GeometryObject<ConvexPolytopeFace>
             if(maxDot < dotCandidate)
             {
                maxDot = dotCandidate;
-               bestVertexCandidate = bestVertex.getAssociatedEdges().get(i).getDestinationVertex();
+               bestVertexCandidate = bestVertex.getAssociatedEdge(i).getDestinationVertex();
             }
          }
          if(bestVertexCandidate == bestVertex)
