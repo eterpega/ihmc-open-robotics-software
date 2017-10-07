@@ -1,6 +1,5 @@
 package us.ihmc.geometry.polytope;
 
-import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.interfaces.GeometryObject;
 import us.ihmc.euclid.transform.interfaces.Transform;
 import us.ihmc.euclid.tuple3D.Vector3D;
@@ -273,9 +272,9 @@ public class PolytopeHalfEdge implements GeometryObject<PolytopeHalfEdge>
 
    public void clear()
    {
+      setTwinHalfEdge(null);
       setOriginVertex(null);
       setDestinationVertex(null);
-      setTwinHalfEdge(null);
       setNextHalfEdge(null);
       setPreviousHalfEdge(null);
       setFace(null);

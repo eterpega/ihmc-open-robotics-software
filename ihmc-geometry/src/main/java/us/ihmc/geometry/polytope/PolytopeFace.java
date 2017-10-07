@@ -1,14 +1,15 @@
 package us.ihmc.geometry.polytope;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import us.ihmc.commons.Epsilons;
-import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.interfaces.GeometryObject;
 import us.ihmc.euclid.transform.interfaces.Transform;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple3D.interfaces.Point3DBasics;
+import us.ihmc.euclid.tuple3D.interfaces.Vector3DBasics;
 import us.ihmc.robotics.MathTools;
 
 /**
@@ -24,7 +25,7 @@ public class PolytopeFace implements GeometryObject<PolytopeFace>
    /**
     * Ordered list of half edges that bound the face
     */
-   private final LinkedList<PolytopeHalfEdge> edges = new LinkedList<>();
+   private final ArrayList<PolytopeHalfEdge> edges = new ArrayList<>();
    /**
     * Do not access directly since this is updated only when the getter is called
     */
@@ -126,7 +127,7 @@ public class PolytopeFace implements GeometryObject<PolytopeFace>
          int index = 0;
          for(; index < edges.size(); index++)
          {
-            tempVector.sub(vertexToAdd.getPosition(), newHalfEdgeCandidate.getOriginVertex().getPosition());
+            tempVector.sub(vertexToAdd, newHalfEdgeCandidate.getOriginVertex());
             tempVector.cross(newHalfEdgeCandidate.getEdgeVector());
             if(tempVector.dot(faceNormal) > 0)
             {
@@ -146,7 +147,7 @@ public class PolytopeFace implements GeometryObject<PolytopeFace>
          newHalfEdgeCandidate = newHalfEdgeCandidate.getNextHalfEdge();
          
          // Handle the one case in which a new edge must be created here to minimize garbage
-         tempVector.sub(vertexCandidate.getPosition(), vertexToAdd.getPosition());
+         tempVector.sub(vertexCandidate, vertexToAdd);
          tempVector.cross(newHalfEdgeCandidate.getEdgeVector());
          if(tempVector.dot(faceNormal) > 0)
          {
@@ -165,7 +166,7 @@ public class PolytopeFace implements GeometryObject<PolytopeFace>
             while(true)
             {
                vertexCandidate = newHalfEdgeCandidate.getDestinationVertex();
-               tempVector.sub(vertexCandidate.getPosition(), vertexToAdd.getPosition());
+               tempVector.sub(vertexCandidate, vertexToAdd);
                tempVector.cross(newHalfEdgeCandidate.getNextHalfEdge().getEdgeVector());
                if(tempVector.dot(faceNormal) > 0)
                {
@@ -183,10 +184,10 @@ public class PolytopeFace implements GeometryObject<PolytopeFace>
       }
    }
 
-   public boolean isPointInFacePlane(PolytopeVertex vertexToCheck, double epsilon)
+   public boolean isPointInFacePlane(Point3DBasics vertexToCheck, double epsilon)
    {
       updateFaceNormal();
-      tempVector.sub(vertexToCheck.getPosition(), edges.get(0).getOriginVertex().getPosition());
+      tempVector.sub(vertexToCheck, edges.get(0).getOriginVertex());
       return MathTools.epsilonEquals(tempVector.dot(faceNormal), 0.0, epsilon);
    }
    
@@ -206,7 +207,7 @@ public class PolytopeFace implements GeometryObject<PolytopeFace>
       boolean result = true;
       for(int i = 0; result && i < edges.size(); i++)
       {
-         tempVector.sub(vertexToCheck.getPosition(), edges.get(i).getOriginVertex().getPosition());
+         tempVector.sub(vertexToCheck, edges.get(i).getOriginVertex());
          tempVector.cross(edges.get(i).getEdgeVector());
          result &= (tempVector.dot(faceNormal) < 0); 
       }
@@ -223,7 +224,7 @@ public class PolytopeFace implements GeometryObject<PolytopeFace>
    {
       faceCentroid.setToZero();
       for(int i = 0; i < edges.size(); i++)
-         faceCentroid.add(edges.get(i).getOriginVertex().getPosition());
+         faceCentroid.add(edges.get(i).getOriginVertex());
       faceCentroid.scale(1.0 / edges.size());
    }
    
@@ -239,7 +240,7 @@ public class PolytopeFace implements GeometryObject<PolytopeFace>
          faceNormal.setToZero();
       else
       {
-         faceNormal.cross(edges.get(0).getEdgeVector(), edges.get(1).getEdgeVector());
+         faceNormal.cross(edges.get(0).getEdgeVector(), edges.get(0).getNextHalfEdge().getEdgeVector());
          faceNormal.normalize();
       }
    }
@@ -340,11 +341,125 @@ public class PolytopeFace implements GeometryObject<PolytopeFace>
       for (int i = 0; i < edges.size(); i++)
          edges.get(i).setToNaN();
    }
+   
+   public double dotFaceNormal(Vector3DBasics direction)
+   {
+      updateFaceNormal();
+      return direction.dot(faceNormal);
+   }
+   
+   public boolean isFaceVisible(Point3DBasics point)
+   {
+      tempVector.sub(point, edges.get(0).getOriginVertex());
+      return dotFaceNormal(tempVector) > 0;
+   }
 
    @Override
    public void setToZero()
    {
       for (int i = 0; i < edges.size(); i++)
          edges.get(i).setToZero();
+   }
+   
+   public double getMaxElement(int index)
+   {
+      PolytopeHalfEdge edgeReference = edges.get(0);
+      double maxElement = edgeReference.getOriginVertex().getElement(index);
+      for(int i = 0; i < edges.size(); i++)
+      {
+         if(maxElement < edgeReference.getDestinationVertex().getElement(index))
+            maxElement = edgeReference.getDestinationVertex().getElement(index);
+         edgeReference = edgeReference.getNextHalfEdge();
+      }
+      return maxElement;
+   }
+
+   public double getMinElement(int index)
+   {
+      PolytopeHalfEdge edgeReference = edges.get(0);
+      double minElement = edgeReference.getOriginVertex().getElement(index);
+      for(int i = 0; i < edges.size(); i++)
+      {
+         if(minElement > edgeReference.getDestinationVertex().getElement(index))
+            minElement = edgeReference.getDestinationVertex().getElement(index);
+         edgeReference = edgeReference.getNextHalfEdge();
+      }
+      return minElement;
+   }
+   
+   public double getMaxX()
+   {
+      return getMaxElement(0);
+   }
+
+   public double getMaxY()
+   {
+      return getMaxElement(1);
+   }
+
+   public double getMaxZ()
+   {
+      return getMaxElement(2);
+   }
+
+   public double getMinX()
+   {
+      return getMinElement(0);
+   }
+
+   public double getMinY()
+   {
+      return getMinElement(1);
+   }
+
+   public double getMinZ()
+   {
+      return getMinElement(2);
+   }
+   
+   public PolytopeFace getNeighbouringFace(int index)
+   {
+      if(index > edges.size() || edges.get(index).getTwinHalfEdge() == null)
+         return null;
+      else
+         return edges.get(index).getTwinHalfEdge().getFace();
+               
+   }
+   
+   public Point3D getSupportingVertex(Vector3D supportVector)
+   {
+      PolytopeVertex bestVertex = edges.get(0).getOriginVertex();
+      double maxDot = bestVertex.dot(supportVector);
+      PolytopeVertex bestVertexCandidate = bestVertex;
+      while(true)
+      {
+         bestVertexCandidate = bestVertex;
+         for(int i = 0; i < bestVertex.getNumberOfAssociatedEdges(); i++)
+         {
+            double dotCandidate = bestVertex.getAssociatedEdges().get(i).getDestinationVertex().dot(supportVector);
+            if(maxDot < dotCandidate)
+            {
+               maxDot = dotCandidate;
+               bestVertexCandidate = bestVertex.getAssociatedEdges().get(i).getDestinationVertex();
+            }
+         }
+         if(bestVertexCandidate == bestVertex)
+            return bestVertex.getPosition();
+         else
+            bestVertex = bestVertexCandidate;
+      }
+   }
+   
+   @Override
+   public String toString()
+   {
+      String string = "";
+      PolytopeHalfEdge edge = edges.get(0);
+      for(int i = 0; i < edges.size(); i++)
+      {
+         string += "\n" + edge.toString();
+         edge = edge.getNextHalfEdge();
+      }
+      return string;
    }
 }
