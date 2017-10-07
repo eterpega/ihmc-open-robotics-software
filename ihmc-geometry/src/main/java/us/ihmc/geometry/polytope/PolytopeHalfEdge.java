@@ -12,7 +12,7 @@ import us.ihmc.euclid.tuple3D.Vector3D;
  * An attempt is made to update the twin in case the edge is modified to ensure that the relation remains consistent
  * @author Apoorv S
  */
-public class PolytopeHalfEdge implements GeometryObject<PolytopeHalfEdge>
+public class PolytopeHalfEdge implements GeometryObject<PolytopeHalfEdge>, PolytopeHalfEdgeBasics
 {
    private PolytopeHalfEdge twinEdge;
    private PolytopeHalfEdge nextHalfEdge;
