@@ -19,7 +19,7 @@ import us.ihmc.robotics.MathTools;
  * @author Apoorv S
  *
  */
-public class PolytopeFace implements GeometryObject<PolytopeFace>
+public class ConvexPolytopeFace implements GeometryObject<ConvexPolytopeFace>
 {
    private final double EPSILON = Epsilons.ONE_MILLIONTH;
    
@@ -38,27 +38,43 @@ public class PolytopeFace implements GeometryObject<PolytopeFace>
    
    // Temporary variables for calculations
    private final Vector3D tempVector = new Vector3D();
+   private final ArrayList<PolytopeHalfEdge> visibleEdgeList = new ArrayList<>();
 
    /**
     * Default constructor. Does not initialize anything
     */
-   public PolytopeFace()
+   public ConvexPolytopeFace()
    {
 
    }
 
-   public PolytopeFace(PolytopeFace other)
+   public ConvexPolytopeFace(ConvexPolytopeFace other)
    {
       this(other.getEdgeList());
    }
 
-   public PolytopeFace(List<PolytopeHalfEdge> edgeList)
+   public ConvexPolytopeFace(List<PolytopeHalfEdge> edgeList)
    {
       this.copyEdgeList(edgeList);
    }
 
+   public ConvexPolytopeFace(PolytopeHalfEdge[] edgeListArray)
+   {
+      this.copyEdgeList(edgeListArray);
+   }
+
+   public void copyEdgeList(PolytopeHalfEdge[] edgeListArray)
+   {
+      edges.clear();
+      for (int i = 0; i < edgeListArray.length; i++)
+      {
+         this.edges.add(edgeListArray[i]);
+      }
+   }
+
    public void copyEdgeList(List<PolytopeHalfEdge> edgeList)
    {
+      this.edges.clear();
       this.edges.addAll(edgeList);
    }
 
@@ -78,7 +94,6 @@ public class PolytopeFace implements GeometryObject<PolytopeFace>
       {
       case 0:
       {
-         // Create a fake edge of zero length and assign to the face
          PolytopeHalfEdge newEdge = new PolytopeHalfEdge(vertexToAdd, vertexToAdd);
          newEdge.setFace(this);
          edges.add(newEdge);
@@ -115,11 +130,14 @@ public class PolytopeFace implements GeometryObject<PolytopeFace>
          // Now a ordering is available and all new vertices to add must be done accordingly. Also points must lie in the same plane
          if(!isPointInFacePlane(vertexToAdd, EPSILON))
             return;
+         
+         getVisibleEdgeListInternal(vertexToAdd, visibleEdgeList);
+         
          updateFaceNormal();
          PolytopeVertex vertexCandidate = null;
          PolytopeHalfEdge newHalfEdgeCandidate = edges.get(0);
          
-         // Figure out if this point is an internal point. If it is not then which edge should be expanded to include it 
+         // Figure out if this point is an internal point. If it is not then which edge should be expanded to include it
          int index = 0;
          for(; index < edges.size(); index++)
          {
@@ -180,6 +198,58 @@ public class PolytopeFace implements GeometryObject<PolytopeFace>
       }
    }
 
+   public void getVisibleEdgeList(PolytopeVertex vertex, List<PolytopeHalfEdge> edgeList)
+   {
+      edgeList.clear();
+      PolytopeHalfEdge edgeUnderConsideration = getFirstVisibleEdge(vertex);
+      for(int i = 0; i < edges.size(); i++)
+      {
+         edgeList.add(edgeUnderConsideration);
+         edgeUnderConsideration = edgeUnderConsideration.getNextHalfEdge();
+         if(isPointOnInteriorSideOfEdgeInternal(vertex, edgeUnderConsideration))
+            break;
+      }
+   }
+
+   public PolytopeHalfEdge getFirstVisibleEdge(Point3DBasics vertex)
+   {
+      PolytopeHalfEdge edgeUnderConsideration = edges.get(0);
+      updateFaceNormal();
+      double previousDotProduct = Double.NaN;
+      for(int i = 0 ; i < getNumberOfEdges(); i++)
+      {
+         double dotProduct = getVisibilityProduct(vertex, edgeUnderConsideration);
+         if(dotProduct <= 0) 
+            edgeUnderConsideration = edgeUnderConsideration.getNextHalfEdge();
+         else
+            edgeUnderConsideration = edgeUnderConsideration.getPreviousHalfEdge();
+         
+         if(previousDotProduct * dotProduct <= 0)
+            return edgeUnderConsideration;
+         else
+            previousDotProduct = dotProduct;
+      }
+      return null;
+   }
+   
+   public boolean isPointOnInteriorSideOfEdgeInternal(Point3DBasics point, int index)
+   {
+      updateFaceNormal();
+      return isPointOnInteriorSideOfEdgeInternal(point, edges.get(index));
+   }
+   
+   private boolean isPointOnInteriorSideOfEdgeInternal(Point3DBasics point, PolytopeHalfEdge halfEdge)
+   {
+      return getVisibilityProduct(point, halfEdge) < 0; 
+   }
+
+   private double getVisibilityProduct(Point3DBasics point, PolytopeHalfEdge halfEdge)
+   {
+      tempVector.sub(point, halfEdge.getOriginVertex());
+      tempVector.cross(halfEdge.getEdgeVector());
+      return tempVector.dot(faceNormal);
+   }
+   
    public boolean isPointInFacePlane(Point3DBasics vertexToCheck, double epsilon)
    {
       updateFaceNormal();
@@ -194,18 +264,17 @@ public class PolytopeFace implements GeometryObject<PolytopeFace>
    
    private boolean isInteriorPointInternal(PolytopeVertex vertexToCheck)
    {
-      // Handle the case where the face is ill - defined 
       if(edges.size() < 3)
          return false;
       
       updateFaceNormal();
       
       boolean result = true;
+      PolytopeHalfEdge halfEdge = edges.get(0);
       for(int i = 0; result && i < edges.size(); i++)
       {
-         tempVector.sub(vertexToCheck, edges.get(i).getOriginVertex());
-         tempVector.cross(edges.get(i).getEdgeVector());
-         result &= (tempVector.dot(faceNormal) < 0); 
+         result &= isPointOnInteriorSideOfEdgeInternal(vertexToCheck, halfEdge); 
+         halfEdge = halfEdge.getNextHalfEdge();
       }
       return result;
    }
@@ -261,7 +330,7 @@ public class PolytopeFace implements GeometryObject<PolytopeFace>
    }
 
    @Override
-   public boolean epsilonEquals(PolytopeFace other, double epsilon)
+   public boolean epsilonEquals(ConvexPolytopeFace other, double epsilon)
    {
       if(other.getNumberOfEdges() == this.getNumberOfEdges())
       {
@@ -311,7 +380,7 @@ public class PolytopeFace implements GeometryObject<PolytopeFace>
    }
    
    @Override
-   public void set(PolytopeFace other)
+   public void set(ConvexPolytopeFace other)
    {
       clearEdgeList();
       copyEdgeList(other.edges);
@@ -413,7 +482,7 @@ public class PolytopeFace implements GeometryObject<PolytopeFace>
       return getMinElement(2);
    }
    
-   public PolytopeFace getNeighbouringFace(int index)
+   public ConvexPolytopeFace getNeighbouringFace(int index)
    {
       if(index > edges.size() || edges.get(index).getTwinHalfEdge() == null)
          return null;

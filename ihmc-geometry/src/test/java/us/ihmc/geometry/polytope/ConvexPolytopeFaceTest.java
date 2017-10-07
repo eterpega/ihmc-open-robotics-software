@@ -1,18 +1,22 @@
 package us.ihmc.geometry.polytope;
 
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Test;
 
 import us.ihmc.commons.Epsilons;
+import us.ihmc.commons.PrintTools;
 
-public class PolytopeFaceTest
+public class ConvexPolytopeFaceTest
 {
    @Test
    public void testConstructorAndAddVertex()
    {
-      PolytopeFace face = new PolytopeFace();
+      ConvexPolytopeFace face = new ConvexPolytopeFace();
       PolytopeVertex vertex1 = new PolytopeVertex(0.0, 0.0, 0.0);
       PolytopeVertex vertex2 = new PolytopeVertex(0.0, 1.0, 0.0);
       PolytopeVertex vertex3 = new PolytopeVertex(1.0, 0.0, 0.0);
@@ -115,5 +119,89 @@ public class PolytopeFaceTest
       assertTrue(face.getEdge(3).getDestinationVertex() == vertex3);
       assertTrue(face.getEdge(4).getOriginVertex() == vertex3);
       assertTrue(face.getEdge(4).getDestinationVertex() == vertex1);
+   }
+   
+   @Test
+   public void testGetFirstVisibleEdge()
+   {
+      PolytopeVertex vertex1 = new PolytopeVertex(0.0, 0.0, 0.0);
+      PolytopeVertex vertex2 = new PolytopeVertex(1.0, 0.0, 0.0);
+      PolytopeVertex vertex3 = new PolytopeVertex(1.0, 1.0, 0.0);
+      PolytopeVertex vertex4 = new PolytopeVertex(0.0, 1.0, 0.0);
+      PolytopeVertex vertex5 = new PolytopeVertex(-1.0, 0.5, 0.0);
+      PolytopeHalfEdge halfEdge1 = new PolytopeHalfEdge(vertex1, vertex2);
+      PolytopeHalfEdge halfEdge2 = new PolytopeHalfEdge(vertex2, vertex3);
+      PolytopeHalfEdge halfEdge3 = new PolytopeHalfEdge(vertex3, vertex4);
+      PolytopeHalfEdge halfEdge4 = new PolytopeHalfEdge(vertex4, vertex5);
+      PolytopeHalfEdge halfEdge5 = new PolytopeHalfEdge(vertex5, vertex1);
+      halfEdge1.setNextHalfEdge(halfEdge2);
+      halfEdge2.setNextHalfEdge(halfEdge3);
+      halfEdge3.setNextHalfEdge(halfEdge4);
+      halfEdge4.setNextHalfEdge(halfEdge5);
+      halfEdge5.setNextHalfEdge(halfEdge1);
+      halfEdge1.setPreviousHalfEdge(halfEdge5);
+      halfEdge2.setPreviousHalfEdge(halfEdge1);
+      halfEdge3.setPreviousHalfEdge(halfEdge2);
+      halfEdge4.setPreviousHalfEdge(halfEdge3);
+      halfEdge5.setPreviousHalfEdge(halfEdge4);
+      ConvexPolytopeFace face = new ConvexPolytopeFace(new PolytopeHalfEdge[]{halfEdge1, halfEdge2, halfEdge3, halfEdge4, halfEdge5});
+      
+      PolytopeVertex vertex6 = new PolytopeVertex(-1.0, -1.0, 0.0);
+      PolytopeHalfEdge firstVisibleEdge = face.getFirstVisibleEdge(vertex6);
+      PrintTools.debug(firstVisibleEdge.toString());
+      assertTrue(firstVisibleEdge == halfEdge5);
+      
+      PolytopeVertex vertex7 = new PolytopeVertex(2.0, -1.0, 0.0);
+      firstVisibleEdge = face.getFirstVisibleEdge(vertex7);
+      PrintTools.debug(firstVisibleEdge.toString());
+      assertTrue(firstVisibleEdge == halfEdge1);
+   }
+   
+   @Test
+   public void testGetVisibleEdgeList()
+   {
+      PolytopeVertex vertex1 = new PolytopeVertex(0.0, 0.0, 0.0);
+      PolytopeVertex vertex2 = new PolytopeVertex(1.0, 0.0, 0.0);
+      PolytopeVertex vertex3 = new PolytopeVertex(1.0, 1.0, 0.0);
+      PolytopeVertex vertex4 = new PolytopeVertex(0.0, 1.0, 0.0);
+      PolytopeVertex vertex5 = new PolytopeVertex(-1.0, 0.5, 0.0);
+      PolytopeHalfEdge halfEdge1 = new PolytopeHalfEdge(vertex1, vertex2);
+      PolytopeHalfEdge halfEdge2 = new PolytopeHalfEdge(vertex2, vertex3);
+      PolytopeHalfEdge halfEdge3 = new PolytopeHalfEdge(vertex3, vertex4);
+      PolytopeHalfEdge halfEdge4 = new PolytopeHalfEdge(vertex4, vertex5);
+      PolytopeHalfEdge halfEdge5 = new PolytopeHalfEdge(vertex5, vertex1);
+      halfEdge1.setNextHalfEdge(halfEdge2);
+      halfEdge2.setNextHalfEdge(halfEdge3);
+      halfEdge3.setNextHalfEdge(halfEdge4);
+      halfEdge4.setNextHalfEdge(halfEdge5);
+      halfEdge5.setNextHalfEdge(halfEdge1);
+      halfEdge1.setPreviousHalfEdge(halfEdge5);
+      halfEdge2.setPreviousHalfEdge(halfEdge1);
+      halfEdge3.setPreviousHalfEdge(halfEdge2);
+      halfEdge4.setPreviousHalfEdge(halfEdge3);
+      halfEdge5.setPreviousHalfEdge(halfEdge4);
+      ConvexPolytopeFace face = new ConvexPolytopeFace(new PolytopeHalfEdge[]{halfEdge1, halfEdge2, halfEdge3, halfEdge4, halfEdge5});
+      
+      List<PolytopeHalfEdge> visibleEdgeList = new ArrayList<>();
+      PolytopeVertex vertex6 = new PolytopeVertex(-1.0, -1.0, 0.0);
+      face.getVisibleEdgeList(vertex6, visibleEdgeList);
+      for(int i = 0; i < visibleEdgeList.size(); i++)
+      {
+         PrintTools.debug(visibleEdgeList.get(i).toString());
+      }
+      assertTrue(visibleEdgeList.size() == 2);
+      assertTrue(visibleEdgeList.get(0) == halfEdge5);
+      assertTrue(visibleEdgeList.get(1) == halfEdge1);
+
+      PolytopeVertex vertex7 = new PolytopeVertex(2.0, -1.0, 0.0);
+      face.getVisibleEdgeList(vertex7, visibleEdgeList);
+      for(int i = 0; i < visibleEdgeList.size(); i++)
+      {
+         PrintTools.debug(visibleEdgeList.get(i).toString());
+      }
+      assertTrue(visibleEdgeList.size() == 2);
+      assertTrue(visibleEdgeList.get(0) == halfEdge1);
+      assertTrue(visibleEdgeList.get(1) == halfEdge2);
+   
    }
 }

@@ -37,10 +37,10 @@ public class ConvexPolytopeTest
       assertTrue(polytope.getNumberOfEdges() == 6);
       assertTrue(polytope.getNumberOfVertices() == 4);
 
-      PolytopeFace firstFace = polytope.getFace(0);
-      PolytopeFace secondFace = polytope.getFace(1);
-      PolytopeFace thirdFace = polytope.getFace(2);
-      PolytopeFace fourthFace = polytope.getFace(3);
+      ConvexPolytopeFace firstFace = polytope.getFace(0);
+      ConvexPolytopeFace secondFace = polytope.getFace(1);
+      ConvexPolytopeFace thirdFace = polytope.getFace(2);
+      ConvexPolytopeFace fourthFace = polytope.getFace(3);
       assertTrue(firstFace.getNumberOfEdges() == 3);
       assertTrue(secondFace.getNumberOfEdges() == 3);
       assertTrue(thirdFace.getNumberOfEdges() == 3);
@@ -84,10 +84,10 @@ public class ConvexPolytopeTest
       assertTrue(polytope.getNumberOfEdges() == 8);
       assertTrue(polytope.getNumberOfVertices() == 5);
 
-      PolytopeFace firstFace = polytope.getFace(0);
-      PolytopeFace secondFace = polytope.getFace(1);
-      PolytopeFace thirdFace = polytope.getFace(2);
-      PolytopeFace fourthFace = polytope.getFace(3);
+      ConvexPolytopeFace firstFace = polytope.getFace(0);
+      ConvexPolytopeFace secondFace = polytope.getFace(1);
+      ConvexPolytopeFace thirdFace = polytope.getFace(2);
+      ConvexPolytopeFace fourthFace = polytope.getFace(3);
       assertTrue(firstFace.getNumberOfEdges() == 4);
       assertTrue(secondFace.getNumberOfEdges() == 3);
       assertTrue(thirdFace.getNumberOfEdges() == 3);

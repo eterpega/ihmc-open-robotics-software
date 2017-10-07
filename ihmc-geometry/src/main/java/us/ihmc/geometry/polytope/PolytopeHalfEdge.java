@@ -17,7 +17,7 @@ public class PolytopeHalfEdge implements GeometryObject<PolytopeHalfEdge>
    private PolytopeHalfEdge twinEdge;
    private PolytopeHalfEdge nextHalfEdge;
    private PolytopeHalfEdge previousHalfEdge;
-   private PolytopeFace face;
+   private ConvexPolytopeFace face;
    private PolytopeVertex originVertex;
    private PolytopeVertex destinationVertex;
    /**
@@ -59,7 +59,7 @@ public class PolytopeHalfEdge implements GeometryObject<PolytopeHalfEdge>
    }
 
    
-   public PolytopeHalfEdge createTwinHalfEdge(PolytopeFace twinEdgeFace)
+   public PolytopeHalfEdge createTwinHalfEdge(ConvexPolytopeFace twinEdgeFace)
    {
       return new PolytopeHalfEdge(this, face);
    }
@@ -68,7 +68,7 @@ public class PolytopeHalfEdge implements GeometryObject<PolytopeHalfEdge>
     * Function for creating the twin edge and storing its value. Generates garbage. Use {@code getTwinHalfEdge()} to get the twin half edge
     * @return
     */
-   public PolytopeHalfEdge setAndCreateTwinHalfEdge(PolytopeFace face)
+   public PolytopeHalfEdge setAndCreateTwinHalfEdge(ConvexPolytopeFace face)
    {
       this.twinEdge = createTwinHalfEdge(face);
       return this.twinEdge;
@@ -87,7 +87,7 @@ public class PolytopeHalfEdge implements GeometryObject<PolytopeHalfEdge>
       twinEdge.setTwinHalfEdge(this);
    }
 
-   public PolytopeHalfEdge(PolytopeHalfEdge twinEdge, PolytopeFace face)
+   public PolytopeHalfEdge(PolytopeHalfEdge twinEdge, ConvexPolytopeFace face)
    {
       setTwinHalfEdge(twinEdge);
       setOriginVertex(twinEdge.getDestinationVertex());
@@ -96,7 +96,7 @@ public class PolytopeHalfEdge implements GeometryObject<PolytopeHalfEdge>
    }
 
    public PolytopeHalfEdge(PolytopeVertex originVertex, PolytopeVertex destinationVertex, PolytopeHalfEdge twinEdge, PolytopeHalfEdge nextHalfEdge,
-                           PolytopeHalfEdge previousHalfEdge, PolytopeFace face)
+                           PolytopeHalfEdge previousHalfEdge, ConvexPolytopeFace face)
    {
       setOriginVertex(originVertex);
       setDestinationVertex(destinationVertex);
@@ -198,12 +198,12 @@ public class PolytopeHalfEdge implements GeometryObject<PolytopeHalfEdge>
       return previousHalfEdge;
    }
 
-   public void setFace(PolytopeFace face)
+   public void setFace(ConvexPolytopeFace face)
    {
       this.face = face;
    }
 
-   public PolytopeFace getFace()
+   public ConvexPolytopeFace getFace()
    {
       return face;
    }
