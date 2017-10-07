@@ -292,7 +292,7 @@ public class PolytopeHalfEdge implements GeometryObject<PolytopeHalfEdge>
 
    public String toString()
    {
-      return "From: " + originVertex.toString() + ", To: " + destinationVertex.toString();
+      return "From: " + ((originVertex == null)? "null" : originVertex.toString()) + ", To: " + ((destinationVertex == null)? "null" : destinationVertex.toString());
    }
 
 }

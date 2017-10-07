@@ -66,6 +66,52 @@ public class ConvexPolytopeTest
    
    @ContinuousIntegrationTest(estimatedDuration = 0.0)
    @Test(timeout = 100000)
+   public void testConvexPolytopeWithSquarePyramid()
+   {
+      ConvexPolytope polytope = new ConvexPolytope();
+      PolytopeVertex vertexOne = new PolytopeVertex(0.0, 0.0, 0.0);
+      PolytopeVertex vertexTwo = new PolytopeVertex(1.0, 0.0, 0.0);
+      PolytopeVertex vertexThree = new PolytopeVertex(1.0, 1.0, 0.0);
+      PolytopeVertex vertexFour = new PolytopeVertex(0.0, 1.0, 0.0);
+      PolytopeVertex vertexFive = new PolytopeVertex(0.5, 0.5, 1.0);
+      polytope.addVertex(vertexOne);
+      polytope.addVertex(vertexTwo);
+      polytope.addVertex(vertexThree);
+      polytope.addVertex(vertexFour);
+      polytope.addVertex(vertexFive);
+      PrintTools.debug(polytope.toString());
+      assertTrue(polytope.getNumberOfFaces() == 5);
+      assertTrue(polytope.getNumberOfEdges() == 8);
+      assertTrue(polytope.getNumberOfVertices() == 5);
+
+      PolytopeFace firstFace = polytope.getFace(0);
+      PolytopeFace secondFace = polytope.getFace(1);
+      PolytopeFace thirdFace = polytope.getFace(2);
+      PolytopeFace fourthFace = polytope.getFace(3);
+      assertTrue(firstFace.getNumberOfEdges() == 4);
+      assertTrue(secondFace.getNumberOfEdges() == 3);
+      assertTrue(thirdFace.getNumberOfEdges() == 3);
+      assertTrue(fourthFace.getNumberOfEdges() == 3);
+      for(int i = 0; i < 4; i++)
+      {
+         assertTrue(firstFace.getEdge(i).getTwinHalfEdge() != null);
+      }
+      for(int i = 0; i < 3; i++)
+      {
+         assertTrue(secondFace.getEdge(i).getTwinHalfEdge() != null);
+      }
+      for(int i = 0; i < 3; i++)
+      {
+         assertTrue(thirdFace.getEdge(i).getTwinHalfEdge() != null);
+      }
+      for(int i = 0; i < 3; i++)
+      {
+         assertTrue(fourthFace.getEdge(i).getTwinHalfEdge() != null);
+      }
+   }
+   
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test(timeout = 100000)
    public void testConvexPolytopeWithWeirdShape()
    {
       ConvexPolytope polytope = new ConvexPolytope();
@@ -98,9 +144,9 @@ public class ConvexPolytopeTest
       PolytopeVertex vertexSix = new PolytopeVertex(1.0, 0.0, 1.0);
       PolytopeVertex vertexSeven = new PolytopeVertex(1.0, 1.0, 1.0);
       PolytopeVertex vertexEight = new PolytopeVertex(0.0, 1.0, 1.0);
+
       polytope.addVertex(vertexOne);
       polytope.addVertex(vertexTwo);
-      
       polytope.addVertex(vertexThree);
       polytope.addVertex(vertexFour);
       polytope.addVertex(vertexFive);

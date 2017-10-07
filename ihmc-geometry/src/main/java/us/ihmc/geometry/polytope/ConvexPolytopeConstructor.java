@@ -22,15 +22,14 @@ public class ConvexPolytopeConstructor
    {
       ConvexPolytope polytope = new ConvexPolytope();
 
-      PolytopeVertex vertex0 = polytope.addVertex(-halfLengthX, -halfWidthY, -halfHeightZ);
-      PolytopeVertex vertex1 = polytope.addVertex(halfLengthX, -halfWidthY, -halfHeightZ);
-      PolytopeVertex vertex2 = polytope.addVertex(halfLengthX, halfWidthY, -halfHeightZ);
-      PolytopeVertex vertex3 = polytope.addVertex(-halfLengthX, halfWidthY, -halfHeightZ);
-
-      PolytopeVertex vertex4 = polytope.addVertex(new Point3D(-halfLengthX, -halfWidthY, halfHeightZ));
-      PolytopeVertex vertex5 = polytope.addVertex(new Point3D(halfLengthX, -halfWidthY, halfHeightZ));
-      PolytopeVertex vertex6 = polytope.addVertex(new Point3D(halfLengthX, halfWidthY, halfHeightZ));
-      PolytopeVertex vertex7 = polytope.addVertex(new Point3D(-halfLengthX, halfWidthY, halfHeightZ));
+      polytope.addVertex(new PolytopeVertex(-halfLengthX, -halfWidthY, -halfHeightZ));
+      polytope.addVertex(new PolytopeVertex(halfLengthX, -halfWidthY, -halfHeightZ));
+      polytope.addVertex(new PolytopeVertex(halfLengthX, halfWidthY, -halfHeightZ));
+      polytope.addVertex(new PolytopeVertex(-halfLengthX, halfWidthY, -halfHeightZ));
+      polytope.addVertex(new PolytopeVertex(-halfLengthX, -halfWidthY, halfHeightZ));
+      polytope.addVertex(new PolytopeVertex(halfLengthX, -halfWidthY, halfHeightZ));
+      polytope.addVertex(new PolytopeVertex(halfLengthX, halfWidthY, halfHeightZ));
+      polytope.addVertex(new PolytopeVertex(-halfLengthX, halfWidthY, halfHeightZ));
 
       return polytope;
    }
