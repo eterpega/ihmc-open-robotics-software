@@ -36,7 +36,7 @@ public class PolytopeShapeDescription<T extends PolytopeShapeDescription<T>> imp
    @Override
    public void setFrom(T polytopeShapeDescription)
    {
-      this.polytope.copyVerticesFrom(polytopeShapeDescription.getPolytope());
+      this.polytope.set(polytopeShapeDescription.getPolytope());
    }
 
    @Override

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import us.ihmc.commons.Epsilons;
+import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.interfaces.GeometryObject;
 import us.ihmc.euclid.transform.interfaces.Transform;
 import us.ihmc.euclid.tuple3D.Point3D;
@@ -69,11 +70,6 @@ public class PolytopeFace implements GeometryObject<PolytopeFace>
    public PolytopeHalfEdge getEdge(int index)
    {
       return edges.get(index);
-   }
-
-   public void addVertex(Point3D vertexToAdd)
-   {
-      addVertex(new PolytopeVertex(vertexToAdd));
    }
 
    public void addVertex(PolytopeVertex vertexToAdd)
