@@ -26,7 +26,8 @@ public class ConvexPolytopeFromExpandingPolytopeEntryGenerator
 
             if (!pointsToPolytopeVertices.containsKey(vertex))
             {
-               PolytopeVertex polytopeVertex = convexPolytope.addVertex(vertex);
+               PolytopeVertex polytopeVertex = new PolytopeVertex(vertex);
+               convexPolytope.addVertex(polytopeVertex);
                pointsToPolytopeVertices.put(vertex, polytopeVertex);
             }
          }
@@ -42,7 +43,8 @@ public class ConvexPolytopeFromExpandingPolytopeEntryGenerator
             PolytopeVertex polytopeVertex = pointsToPolytopeVertices.get(vertex);
             PolytopeVertex nextPolytopeVertex = pointsToPolytopeVertices.get(nextVertex);
 
-            convexPolytope.addEdge(polytopeVertex, nextPolytopeVertex);
+            convexPolytope.addVertex(polytopeVertex);
+            convexPolytope.addVertex(nextPolytopeVertex);
          }
       }
 

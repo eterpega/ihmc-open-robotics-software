@@ -112,7 +112,7 @@ public class ConvexPolytopeTest
    
    @ContinuousIntegrationTest(estimatedDuration = 0.0)
    @Test(timeout = 100000)
-   public void testConvexPolytopeWithWeirdShape()
+   public void testConvexPolytopeWithWierdShape()
    {
       ConvexPolytope polytope = new ConvexPolytope();
       PolytopeVertex vertexOne = new PolytopeVertex(0.0, 0.0, 0.0);

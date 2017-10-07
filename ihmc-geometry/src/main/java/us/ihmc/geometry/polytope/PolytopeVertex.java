@@ -3,6 +3,7 @@ package us.ihmc.geometry.polytope;
 import java.util.ArrayList;
 import java.util.List;
 
+import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.interfaces.GeometryObject;
 import us.ihmc.euclid.transform.interfaces.Transform;
 import us.ihmc.euclid.tuple3D.Point3D;
@@ -153,6 +154,17 @@ public class PolytopeVertex implements Point3DBasics, GeometryObject<PolytopeVer
       transform.inverseTransform(position);
    }
 
+   public boolean isAnyFaceMarked()
+   {
+      boolean isMarked = false;
+      for(int i = 0; !isMarked && i < associatedEdges.size(); i++)
+      {
+         isMarked |= associatedEdges.get(i).getFace().isMarked();
+      }
+      //PrintTools.debug(toString() + " " +isMarked);
+      return isMarked;
+   }
+   
    @Override
    public boolean epsilonEquals(PolytopeVertex other, double epsilon)
    {

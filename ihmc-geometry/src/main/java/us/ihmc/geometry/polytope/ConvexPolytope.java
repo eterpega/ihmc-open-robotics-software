@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import us.ihmc.commons.Epsilons;
-import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.geometry.BoundingBox3D;
 import us.ihmc.euclid.interfaces.GeometryObject;
 import us.ihmc.euclid.transform.interfaces.Transform;
@@ -22,6 +21,7 @@ import us.ihmc.euclid.tuple3D.interfaces.Point3DBasics;
 
 public class ConvexPolytope implements GeometryObject<ConvexPolytope>, SupportingVertexHolder
 {
+   private final ArrayList<PolytopeVertex> vertices = new ArrayList<>();
    private final ArrayList<PolytopeHalfEdge> edges = new ArrayList<>();
    private final ArrayList<ConvexPolytopeFace> faces = new ArrayList<>();
    /**
@@ -103,14 +103,32 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
 
    public List<PolytopeVertex> getVertices()
    {
-      // TODO implement
-      throw new RuntimeException("Method not implemented and may never be");
+      updateVertices();
+      return vertices;
+   }
+
+   private void updateVertices()
+   {
+      unmarkAllFaces();
+      vertices.clear();
+      vertices.add(faces.get(0).getEdge(0).getDestinationVertex());
+      for (int i = 0; i < faces.size(); i++)
+      {
+         for(int j = 0; j < faces.get(j).getNumberOfEdges(); j++)
+         {
+            if(!faces.get(i).getEdge(j).getOriginVertex().isAnyFaceMarked())
+            {
+               vertices.add(faces.get(i).getEdge(j).getOriginVertex());
+            }
+         }
+         faces.get(i).mark();
+      }
    }
 
    public PolytopeVertex getVertex(int index)
    {
-      // TODO implement 
-      throw new RuntimeException("Method not implemented and may never be");
+      updateVertices();
+      return vertices.get(index);
    }
 
    public int getNumberOfEdges()
@@ -156,23 +174,60 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
    @Override
    public void applyTransform(Transform transform)
    {
-      // Applying the transform to the vertices is less expensive computationally
+      // Applying the transform to the vertices is less expensive computationally but getting the vertices is hard
+      unmarkAllFaces();
+      faces.get(0).getEdge(0).getDestinationVertex().applyTransform(transform);
       for (int i = 0; i < faces.size(); i++)
       {
-         faces.get(i).applyTransform(transform);
+         for(int j = 0; j < faces.get(j).getNumberOfEdges(); j++)
+         {
+            if(!faces.get(i).getEdge(j).getOriginVertex().isAnyFaceMarked())
+            {
+               faces.get(i).getEdge(j).getOriginVertex().applyTransform(transform);
+            }
+         }
+         faces.get(i).mark();
       }
       boundingBoxNeedsUpdating = true;
    }
-
+   
    @Override
    public void applyInverseTransform(Transform transform)
    {
-      // Applying the transform to the vertices is less expensive computationally
+      // Applying the transform to the vertices is less expensive computationally but getting the vertices is hard
+      unmarkAllFaces();
+      faces.get(0).getEdge(0).getDestinationVertex().applyInverseTransform(transform);
       for (int i = 0; i < faces.size(); i++)
       {
-         faces.get(i).applyInverseTransform(transform);
+         for(int j = 0; j < faces.get(j).getNumberOfEdges(); j++)
+         {
+            if(!faces.get(i).getEdge(j).getOriginVertex().isAnyFaceMarked())
+            {
+               faces.get(i).getEdge(j).getOriginVertex().applyInverseTransform(transform);
+            }
+         }
+         faces.get(i).mark();
       }
       boundingBoxNeedsUpdating = true;
+   }
+   
+   private void unmarkAllFaces()
+   {
+      for(int i = 0; i < faces.size(); i++)
+         faces.get(i).unmark();
+   }
+
+   public void addVertices(Point3D... vertices)
+   {
+      for(int i = 0; i < vertices.length; i++)
+         addVertex(vertices[i]);
+   }
+
+   
+   public void addVertices(List<PolytopeVertex> vertices)
+   {
+      for(int i = 0; i < vertices.size(); i++)
+         addVertex(vertices.get(i));
    }
 
    public void addVertex(double... coordinates)
@@ -205,6 +260,7 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
          ConvexPolytopeFace newFace = new ConvexPolytopeFace();
          newFace.addVertex(vertexToAdd);
          faces.add(newFace);
+         boundingBoxNeedsUpdating = true;
          return;
       }
       else if (faces.size() == 1)
@@ -225,6 +281,7 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
             visibleSilhouetteList.addAll(faces.get(0).getEdgeList());
             createFacesFromVisibleSilhouette(vertexToAdd);
          }
+         boundingBoxNeedsUpdating = true;
          return;
       }
 
@@ -274,9 +331,9 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
          if(halfEdgeUnderConsideration == firstHalfEdgeForSilhouette)
             break;
       }
-      
       removeMarkedFaces();
       createFacesFromVisibleSilhouette(vertexToAdd);
+      boundingBoxNeedsUpdating = true;
    }
 
    private void createFacesFromVisibleSilhouette(PolytopeVertex vertexToAdd)
@@ -433,7 +490,6 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
       for (int i = 0; i < faces.size(); i++)
       {
          faces.get(i).setToNaN();
-         ;
       }
    }
 
@@ -444,7 +500,6 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
       for (int i = 0; i < faces.size(); i++)
       {
          faces.get(i).setToZero();
-         ;
       }
    }
 
