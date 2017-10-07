@@ -131,67 +131,28 @@ public class ConvexPolytopeFace implements GeometryObject<ConvexPolytopeFace>
          if(!isPointInFacePlane(vertexToAdd, EPSILON))
             return;
          
-         getVisibleEdgeListInternal(vertexToAdd, visibleEdgeList);
-         
-         updateFaceNormal();
-         PolytopeVertex vertexCandidate = null;
-         PolytopeHalfEdge newHalfEdgeCandidate = edges.get(0);
-         
-         // Figure out if this point is an internal point. If it is not then which edge should be expanded to include it
-         int index = 0;
-         for(; index < edges.size(); index++)
+         getVisibleEdgeList(vertexToAdd, visibleEdgeList);
+         switch (visibleEdgeList.size())
          {
-            tempVector.sub(vertexToAdd, newHalfEdgeCandidate.getOriginVertex());
-            tempVector.cross(newHalfEdgeCandidate.getEdgeVector());
-            if(tempVector.dot(faceNormal) > 0)
-            {
-               vertexCandidate = newHalfEdgeCandidate.getDestinationVertex();
-               newHalfEdgeCandidate.setDestinationVertex(vertexToAdd);
-               break;
-            }
-            newHalfEdgeCandidate = newHalfEdgeCandidate.getNextHalfEdge();
-         }
-         
-         // handle the case that the point is an interior point 
-         if(vertexCandidate == null)
-            return;
-         
-         // Begin searching for the new connections that must be made
-         PolytopeHalfEdge newHalfEdge = newHalfEdgeCandidate;
-         newHalfEdgeCandidate = newHalfEdgeCandidate.getNextHalfEdge();
-         
-         // Handle the one case in which a new edge must be created here to minimize garbage
-         tempVector.sub(vertexCandidate, vertexToAdd);
-         tempVector.cross(newHalfEdgeCandidate.getEdgeVector());
-         if(tempVector.dot(faceNormal) > 0)
-         {
-            PolytopeHalfEdge additionalEdge = new PolytopeHalfEdge(vertexToAdd, vertexCandidate);
+         case 0: return; // Case where the point is internal
+         case 1: 
+            PolytopeHalfEdge additionalEdge = new PolytopeHalfEdge(vertexToAdd, visibleEdgeList.get(0).getDestinationVertex());
             additionalEdge.setFace(this);
-            additionalEdge.setNextHalfEdge(newHalfEdge.getNextHalfEdge());
-            newHalfEdge.getNextHalfEdge().setPreviousHalfEdge(additionalEdge);
-            newHalfEdge.setNextHalfEdge(additionalEdge);
-            additionalEdge.setPreviousHalfEdge(newHalfEdge);
-            edges.add(index + 1, additionalEdge);
-         }
-         // Handle the standard case where edges must be removed / re-purposed to add this point
-         else
-         {
-            // If this loop does not break then something is very wrong
-            while(true)
-            {
-               vertexCandidate = newHalfEdgeCandidate.getDestinationVertex();
-               tempVector.sub(vertexCandidate, vertexToAdd);
-               tempVector.cross(newHalfEdgeCandidate.getNextHalfEdge().getEdgeVector());
-               if(tempVector.dot(faceNormal) > 0)
-               {
-                  newHalfEdgeCandidate.setOriginVertex(vertexToAdd);
-                  newHalfEdgeCandidate.setPreviousHalfEdge(newHalfEdge);
-                  newHalfEdge.setNextHalfEdge(newHalfEdgeCandidate);
-                  break;
-               }
-               newHalfEdgeCandidate = newHalfEdgeCandidate.getNextHalfEdge();
-               edges.remove(newHalfEdgeCandidate.getPreviousHalfEdge());
-            }
+            visibleEdgeList.get(0).setDestinationVertex(vertexToAdd);
+            additionalEdge.setNextHalfEdge(visibleEdgeList.get(0).getNextHalfEdge());
+            visibleEdgeList.get(0).getNextHalfEdge().setPreviousHalfEdge(additionalEdge);
+            visibleEdgeList.get(0).setNextHalfEdge(additionalEdge);
+            additionalEdge.setPreviousHalfEdge(visibleEdgeList.get(0));
+            edges.add(additionalEdge);
+            break;
+         default:
+            visibleEdgeList.get(0).setDestinationVertex(vertexToAdd);
+            visibleEdgeList.get(visibleEdgeList.size() - 1).setOriginVertex(vertexToAdd);
+            visibleEdgeList.get(0).setNextHalfEdge(visibleEdgeList.get(visibleEdgeList.size() - 1));
+            visibleEdgeList.get(visibleEdgeList.size() - 1).setPreviousHalfEdge(visibleEdgeList.get(0));
+            for(int i = 1; i < visibleEdgeList.size() - 1; i++)
+               edges.remove(visibleEdgeList.get(i));
+            break;
          }
          break;
       }
@@ -202,7 +163,7 @@ public class ConvexPolytopeFace implements GeometryObject<ConvexPolytopeFace>
    {
       edgeList.clear();
       PolytopeHalfEdge edgeUnderConsideration = getFirstVisibleEdge(vertex);
-      for(int i = 0; i < edges.size(); i++)
+      for(int i = 0; edgeUnderConsideration != null && i < edges.size(); i++)
       {
          edgeList.add(edgeUnderConsideration);
          edgeUnderConsideration = edgeUnderConsideration.getNextHalfEdge();
@@ -225,7 +186,11 @@ public class ConvexPolytopeFace implements GeometryObject<ConvexPolytopeFace>
             edgeUnderConsideration = edgeUnderConsideration.getPreviousHalfEdge();
          
          if(previousDotProduct * dotProduct <= 0)
+         {
+            if(previousDotProduct < 0)
+               edgeUnderConsideration = edgeUnderConsideration.getNextHalfEdge();
             return edgeUnderConsideration;
+         }
          else
             previousDotProduct = dotProduct;
       }
