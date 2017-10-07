@@ -23,15 +23,15 @@ import us.ihmc.euclid.tuple3D.interfaces.Point3DBasics;
 public class ConvexPolytope implements GeometryObject<ConvexPolytope>, SupportingVertexHolder
 {
    private final ArrayList<PolytopeHalfEdge> edges = new ArrayList<>();
-   private final ArrayList<PolytopeFace> faces = new ArrayList<>();
+   private final ArrayList<ConvexPolytopeFace> faces = new ArrayList<>();
    /**
     * Bounding box for the polytope
     */
    private boolean boundingBoxNeedsUpdating = false;
    private final BoundingBox3D boundingBox = new BoundingBox3D(Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY,
                                                                Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY);
-   private final ArrayList<PolytopeFace> markedList = new ArrayList<>();
-   private final ArrayList<PolytopeFace> onFaceList = new ArrayList<>();
+   private final ArrayList<ConvexPolytopeFace> markedList = new ArrayList<>();
+   private final ArrayList<ConvexPolytopeFace> onFaceList = new ArrayList<>();
    private final ArrayList<PolytopeHalfEdge> visibleSilhouetteList = new ArrayList<>();
 
    // Temporary variables for intermediate results
@@ -143,12 +143,12 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
       return faces.size();
    }
 
-   public List<PolytopeFace> getFaces()
+   public List<ConvexPolytopeFace> getFaces()
    {
       return faces;
    }
 
-   public PolytopeFace getFace(int index)
+   public ConvexPolytopeFace getFace(int index)
    {
       return faces.get(index);
    }
@@ -202,7 +202,7 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
       if (faces.size() == 0)
       {
          // Polytope is empty. Creating face and adding the vertex
-         PolytopeFace newFace = new PolytopeFace();
+         ConvexPolytopeFace newFace = new ConvexPolytopeFace();
          newFace.addVertex(vertexToAdd);
          faces.add(newFace);
          return;
@@ -234,7 +234,7 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
       // Delete faces that have all surrounding faces in the marking list. These are not useful now 
       for (int i = 0; i < markedList.size();)
       {
-         PolytopeFace candidateFace = markedList.get(i);
+         ConvexPolytopeFace candidateFace = markedList.get(i);
 
          boolean allNeighbouringFacesAreMarkedForDeletion = true;
          for (int j = 0; j < candidateFace.getNumberOfEdges(); j++)
@@ -248,10 +248,9 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
          else
             i++;
       }
-      // Now marking list contains the faces whose edges will create the visible silhouette. Get that edge list
 
       // Smartly get one silhouette edge that is after a half edge whose twin we just removed
-      PolytopeFace faceUnderConsideration = markedList.get(0);
+      ConvexPolytopeFace faceUnderConsideration = markedList.get(0);
       PolytopeHalfEdge firstHalfEdgeForSilhouette = faceUnderConsideration.getEdge(0);
       for (int i = 0; i < faceUnderConsideration.getNumberOfEdges(); i++)
       {
@@ -276,23 +275,13 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
             break;
       }
       
-//      for (int i = 0; i < markedList.size(); i++)
-//      {
-//         for(int j = 0; j < markedList.get(i).getNumberOfEdges() && !markedList.contains(halfEdgeUnderConsideration.getTwinHalfEdge().getFace()); j++) 
-//         {
-//            PrintTools.debug(halfEdgeUnderConsideration.getTwinHalfEdge().toString());
-//            visibleSilhouetteList.add(halfEdgeUnderConsideration.getTwinHalfEdge());
-//            halfEdgeUnderConsideration = halfEdgeUnderConsideration.getNextHalfEdge();
-//         }
-//         halfEdgeUnderConsideration = halfEdgeUnderConsideration.getTwinHalfEdge().getNextHalfEdge();
-//      }
       removeMarkedFaces();
       createFacesFromVisibleSilhouette(vertexToAdd);
    }
 
    private void createFacesFromVisibleSilhouette(PolytopeVertex vertexToAdd)
    {
-      PolytopeFace firstNewFace = new PolytopeFace();
+      ConvexPolytopeFace firstNewFace = new ConvexPolytopeFace();
       firstNewFace.addVertex(visibleSilhouetteList.get(0).getDestinationVertex());
       firstNewFace.addVertex(visibleSilhouetteList.get(0).getOriginVertex());
       firstNewFace.addVertex(vertexToAdd);
@@ -301,7 +290,7 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
       faces.add(firstNewFace);
       for (int i = 1; i < visibleSilhouetteList.size(); i++)
       {
-         PolytopeFace newFace = new PolytopeFace();
+         ConvexPolytopeFace newFace = new ConvexPolytopeFace();
          faces.add(newFace);
          newFace.addVertex(visibleSilhouetteList.get(i).getDestinationVertex());
          newFace.addVertex(visibleSilhouetteList.get(i).getOriginVertex());
@@ -327,7 +316,7 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
       }
    }
 
-   public void getVisibleFaces(Point3DBasics vertexUnderConsideration, List<PolytopeFace> faceReferencesToPack)
+   public void getVisibleFaces(Point3DBasics vertexUnderConsideration, List<ConvexPolytopeFace> faceReferencesToPack)
    {
       faceReferencesToPack.clear();
       for (int i = 0; i < faces.size(); i++)
@@ -339,7 +328,7 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
       }
    }
 
-   public void getFacesWhichPointIsOn(Point3DBasics vertexUnderConsideration, List<PolytopeFace> faceReferenceToPack, double epsilon)
+   public void getFacesWhichPointIsOn(Point3DBasics vertexUnderConsideration, List<ConvexPolytopeFace> faceReferenceToPack, double epsilon)
    {
       faceReferenceToPack.clear();
       for (int i = 0; i < faces.size(); i++)
@@ -351,7 +340,7 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
       }
    }
 
-   public void removeFace(PolytopeFace faceToRemove)
+   public void removeFace(ConvexPolytopeFace faceToRemove)
    {
       for (int i = 0; i < faceToRemove.getNumberOfEdges(); i++)
       {
@@ -364,7 +353,7 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
       faces.remove(faceToRemove);
    }
 
-   private PolytopeFace isInteriorPointInternal(Point3D pointToCheck, double epsilon)
+   private ConvexPolytopeFace isInteriorPointInternal(Point3D pointToCheck, double epsilon)
    {
       for (int i = 0; i < faces.size(); i++)
       {
@@ -386,8 +375,8 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
    @Override
    public Point3D getSupportingVertex(Vector3D supportDirection)
    {
-      PolytopeFace bestFace = faces.get(0);
-      PolytopeFace bestFaceCandidate = faces.get(0);
+      ConvexPolytopeFace bestFace = faces.get(0);
+      ConvexPolytopeFace bestFaceCandidate = faces.get(0);
       double maxDot = supportDirection.dot(bestFaceCandidate.getFaceNormal());
       while (true)
       {
@@ -465,7 +454,7 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
       setFaces(other.getFaces());
    }
 
-   private void setFaces(List<PolytopeFace> faces)
+   private void setFaces(List<ConvexPolytopeFace> faces)
    {
       this.faces.clear();
       this.faces.addAll(faces);
