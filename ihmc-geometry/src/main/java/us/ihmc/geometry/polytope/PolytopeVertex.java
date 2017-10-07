@@ -7,6 +7,7 @@ import us.ihmc.euclid.interfaces.GeometryObject;
 import us.ihmc.euclid.transform.interfaces.Transform;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple3D.interfaces.Point3DBasics;
 
 /**
  * This class stores the location of a point which is the vertex of a polytope
@@ -17,7 +18,7 @@ import us.ihmc.euclid.tuple3D.Vector3D;
  * @author Apoorv S
  *
  */
-public class PolytopeVertex implements GeometryObject<PolytopeVertex>
+public class PolytopeVertex implements Point3DBasics, GeometryObject<PolytopeVertex>
 {
    private final Point3D position = new Point3D();
    private final ArrayList<PolytopeHalfEdge> associatedEdges = new ArrayList<>();
@@ -49,6 +50,11 @@ public class PolytopeVertex implements GeometryObject<PolytopeVertex>
    public List<PolytopeHalfEdge> getAssociatedEdges()
    {
       return associatedEdges;
+   }
+   
+   public PolytopeHalfEdge getAssociatedEdge(int index)
+   {
+      return associatedEdges.get(index);
    }
    
    public void removeAssociatedEdge(PolytopeHalfEdge edgeToRemove)
@@ -100,11 +106,6 @@ public class PolytopeVertex implements GeometryObject<PolytopeVertex>
       return associatedEdges.size();
    }
 
-   public PolytopeHalfEdge getEdge(int index)
-   {
-      return associatedEdges.get(index);
-   }
-
    public Point3D getPosition()
    {
       return position;
@@ -135,6 +136,11 @@ public class PolytopeVertex implements GeometryObject<PolytopeVertex>
       return position.getZ();
    }
    
+   public double getElement(int index)
+   {
+      return position.getElement(index);
+   }
+
    @Override
    public void applyTransform(Transform transform)
    {
@@ -171,4 +177,21 @@ public class PolytopeVertex implements GeometryObject<PolytopeVertex>
       position.setToZero();
    }
 
+   @Override
+   public void setX(double x)
+   {
+      position.setX(x);
+   }
+
+   @Override
+   public void setY(double y)
+   {
+      position.setY(y);
+   }
+
+   @Override
+   public void setZ(double z)
+   {
+      position.setZ(z);
+   }
 }

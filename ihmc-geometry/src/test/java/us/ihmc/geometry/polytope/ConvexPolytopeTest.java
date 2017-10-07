@@ -9,6 +9,7 @@ import org.junit.Test;
 
 import us.ihmc.commons.Epsilons;
 import us.ihmc.commons.MutationTestFacilitator;
+import us.ihmc.commons.PrintTools;
 import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
 import us.ihmc.euclid.geometry.BoundingBox3D;
 import us.ihmc.euclid.tools.EuclidCoreTestTools;
@@ -17,22 +18,96 @@ import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 
 public class ConvexPolytopeTest
-{
+{   
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test(timeout = 100000)
+   public void testConvexPolytopeWithPyramid()
+   {
+      ConvexPolytope polytope = new ConvexPolytope();
+      PolytopeVertex vertexOne = new PolytopeVertex(0.0, 0.0, 0.0);
+      PolytopeVertex vertexTwo = new PolytopeVertex(1.0, 0.0, 0.0);
+      PolytopeVertex vertexThree = new PolytopeVertex(1.0, 1.0, 0.0);
+      PolytopeVertex vertexFour = new PolytopeVertex(0.5, 0.5, 1.0);
+      polytope.addVertex(vertexOne);
+      polytope.addVertex(vertexTwo);
+      polytope.addVertex(vertexThree);
+      polytope.addVertex(vertexFour);
+      PrintTools.debug(polytope.toString());
+      assertTrue(polytope.getNumberOfFaces() == 4);
+      assertTrue(polytope.getNumberOfEdges() == 6);
+      assertTrue(polytope.getNumberOfVertices() == 4);
 
+      PolytopeFace firstFace = polytope.getFace(0);
+      PolytopeFace secondFace = polytope.getFace(1);
+      PolytopeFace thirdFace = polytope.getFace(2);
+      PolytopeFace fourthFace = polytope.getFace(3);
+      assertTrue(firstFace.getNumberOfEdges() == 3);
+      assertTrue(secondFace.getNumberOfEdges() == 3);
+      assertTrue(thirdFace.getNumberOfEdges() == 3);
+      assertTrue(fourthFace.getNumberOfEdges() == 3);
+      for(int i = 0; i < 3; i++)
+      {
+         assertTrue(firstFace.getEdge(i).getTwinHalfEdge() != null);
+      }
+      for(int i = 0; i < 3; i++)
+      {
+         assertTrue(secondFace.getEdge(i).getTwinHalfEdge() != null);
+      }
+      for(int i = 0; i < 3; i++)
+      {
+         assertTrue(thirdFace.getEdge(i).getTwinHalfEdge() != null);
+      }
+      for(int i = 0; i < 3; i++)
+      {
+         assertTrue(fourthFace.getEdge(i).getTwinHalfEdge() != null);
+      }
+      
+   }
+   
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test(timeout = 100000)
+   public void testConvexPolytopeWithWeirdShape()
+   {
+      ConvexPolytope polytope = new ConvexPolytope();
+      PolytopeVertex vertexOne = new PolytopeVertex(0.0, 0.0, 0.0);
+      PolytopeVertex vertexTwo = new PolytopeVertex(1.0, 0.0, 0.0);
+      PolytopeVertex vertexThree = new PolytopeVertex(1.0, 1.0, 0.0);
+      PolytopeVertex vertexFour = new PolytopeVertex(0.5, 0.5, 1.0);
+      PolytopeVertex vertexFive = new PolytopeVertex(0.0, 1.0, 1.0);
+      polytope.addVertex(vertexOne);
+      polytope.addVertex(vertexTwo);
+      polytope.addVertex(vertexThree);
+      polytope.addVertex(vertexFour);
+      polytope.addVertex(vertexFive);
+      PrintTools.debug(polytope.toString());
+      assertTrue(polytope.getNumberOfFaces() == 6);
+      assertTrue(polytope.getNumberOfEdges() == 9);
+      assertTrue(polytope.getNumberOfVertices() == 5);
+   }
+   
    @ContinuousIntegrationTest(estimatedDuration = 0.0)
    @Test(timeout = 30000)
    public void testConvexPolytopeWithAUnitCube()
    {
       ConvexPolytope polytope = new ConvexPolytope();
-      PolytopeVertex vertexOne = polytope.addVertex(0.0, 0.0, 0.0);
-      PolytopeVertex vertexTwo = polytope.addVertex(1.0, 0.0, 0.0);
-      PolytopeVertex vertexThree = polytope.addVertex(1.0, 1.0, 0.0);
-      PolytopeVertex vertexFour = polytope.addVertex(0.0, 1.0, 0.0);
-      PolytopeVertex vertexFive = polytope.addVertex(new Point3D(0.0, 0.0, 1.0));
-      PolytopeVertex vertexSix = polytope.addVertex(new Point3D(1.0, 0.0, 1.0));
-      PolytopeVertex vertexSeven = polytope.addVertex(new Point3D(1.0, 1.0, 1.0));
-      PolytopeVertex vertexEight = polytope.addVertex(new Point3D(0.0, 1.0, 1.0));
-
+      PolytopeVertex vertexOne = new PolytopeVertex(0.0, 0.0, 0.0);
+      PolytopeVertex vertexTwo = new PolytopeVertex(1.0, 0.0, 0.0);
+      PolytopeVertex vertexThree = new PolytopeVertex(1.0, 1.0, 0.0);
+      PolytopeVertex vertexFour = new PolytopeVertex(0.0, 1.0, 0.0);
+      PolytopeVertex vertexFive = new PolytopeVertex(0.0, 0.0, 1.0);
+      PolytopeVertex vertexSix = new PolytopeVertex(1.0, 0.0, 1.0);
+      PolytopeVertex vertexSeven = new PolytopeVertex(1.0, 1.0, 1.0);
+      PolytopeVertex vertexEight = new PolytopeVertex(0.0, 1.0, 1.0);
+      polytope.addVertex(vertexOne);
+      polytope.addVertex(vertexTwo);
+      
+      polytope.addVertex(vertexThree);
+      polytope.addVertex(vertexFour);
+      polytope.addVertex(vertexFive);
+      polytope.addVertex(vertexSix);
+      polytope.addVertex(vertexSeven);
+      polytope.addVertex(vertexEight);
+      
       EuclidCoreTestTools.assertTuple3DEquals("", new Point3D(0.0, 0.0, 0.0), vertexOne.getPosition(), Epsilons.ONE_TEN_BILLIONTH);
       EuclidCoreTestTools.assertTuple3DEquals("", new Point3D(1.0, 1.0, 0.0), vertexThree.getPosition(), Epsilons.ONE_TEN_BILLIONTH);
       EuclidCoreTestTools.assertTuple3DEquals("", new Point3D(1.0, 0.0, 1.0), vertexSix.getPosition(), Epsilons.ONE_TEN_BILLIONTH);
@@ -111,15 +186,24 @@ public class ConvexPolytopeTest
       assertTrue(boundingBox.getMaxY() == Double.POSITIVE_INFINITY);
       assertTrue(boundingBox.getMaxZ() == Double.POSITIVE_INFINITY);
       
-      PolytopeVertex vertexOne = polytope.addVertex(0.0, 0.0, 0.0);
-      PolytopeVertex vertexTwo = polytope.addVertex(1.0, 0.0, 0.0);
-      PolytopeVertex vertexThree = polytope.addVertex(1.0, 1.0, 0.0);
-      PolytopeVertex vertexFour = polytope.addVertex(0.0, 1.0, 0.0);
+      PolytopeVertex vertexOne = new PolytopeVertex(0.0, 0.0, 0.0);
+      PolytopeVertex vertexTwo = new PolytopeVertex(1.0, 0.0, 0.0);
+      PolytopeVertex vertexThree = new PolytopeVertex(1.0, 1.0, 0.0);
+      PolytopeVertex vertexFour = new PolytopeVertex(0.0, 1.0, 0.0);
 
-      PolytopeVertex vertexFive = polytope.addVertex(new Point3D(0.0, 0.0, 1.0));
-      PolytopeVertex vertexSix = polytope.addVertex(new Point3D(1.0, 0.0, 1.0));
-      PolytopeVertex vertexSeven = polytope.addVertex(new Point3D(1.0, 1.0, 1.0));
-      PolytopeVertex vertexEight = polytope.addVertex(new Point3D(0.0, 1.0, 1.0));
+      PolytopeVertex vertexFive = new PolytopeVertex(new Point3D(0.0, 0.0, 1.0));
+      PolytopeVertex vertexSix = new PolytopeVertex(new Point3D(1.0, 0.0, 1.0));
+      PolytopeVertex vertexSeven = new PolytopeVertex(new Point3D(1.0, 1.0, 1.0));
+      PolytopeVertex vertexEight = new PolytopeVertex(new Point3D(0.0, 1.0, 1.0));
+
+      polytope.addVertex(vertexOne);
+      polytope.addVertex(vertexTwo);
+      polytope.addVertex(vertexThree);
+      polytope.addVertex(vertexFour);
+      polytope.addVertex(vertexFive);
+      polytope.addVertex(vertexSix);
+      polytope.addVertex(vertexSeven);
+      polytope.addVertex(vertexEight);
 
       polytope.getBoundingBox(boundingBox);
       
