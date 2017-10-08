@@ -9,11 +9,13 @@ import us.ihmc.commons.Epsilons;
 import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.geometry.BoundingBox3D;
 import us.ihmc.euclid.interfaces.GeometryObject;
+import us.ihmc.euclid.tools.EuclidCoreIOTools;
 import us.ihmc.euclid.transform.interfaces.Transform;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DBasics;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
+import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 
 /**
  * A convex polytope is a collection of faces that describe it 
@@ -39,6 +41,8 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
    private final ArrayList<ConvexPolytopeFace> nonSilhouetteFaces = new ArrayList<>();
    private final ArrayList<ConvexPolytopeFace> onFaceList = new ArrayList<>();
    private final ArrayList<PolytopeHalfEdge> visibleSilhouetteList = new ArrayList<>();
+   private List<PolytopeHalfEdge> visibleFaceEdgeList1 = new ArrayList<>();
+   private List<PolytopeHalfEdge> visibleFaceEdgeList2 = new ArrayList<>();
 
    // Temporary variables for intermediate results
    private Vector3D tempVector = new Vector3D();
@@ -322,29 +326,52 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
          createFacesFromVisibleSilhouette(vertexToAdd.getAssociatedEdge(0).getPreviousHalfEdge(), vertexToAdd.getAssociatedEdge(0), visibleSilhouetteList);
          break;
       case 2:
-         List<PolytopeHalfEdge> visibleEdgeListFace1 = new ArrayList<>();
-         List<PolytopeHalfEdge> visibleEdgeListFace2 = new ArrayList<>();
-         onFaceList.get(0).getVisibleEdgeList(vertexToAdd, visibleEdgeListFace1);
-         onFaceList.get(1).getVisibleEdgeList(vertexToAdd, visibleEdgeListFace2);
-         visibleSilhouetteList.removeAll(visibleEdgeListFace1);
-         visibleSilhouetteList.removeAll(visibleEdgeListFace2);
+         onFaceList.get(0).getVisibleEdgeList(vertexToAdd, visibleFaceEdgeList1);
+         onFaceList.get(1).getVisibleEdgeList(vertexToAdd, visibleFaceEdgeList2);
+         visibleSilhouetteList.removeAll(visibleFaceEdgeList1);
+         visibleSilhouetteList.removeAll(visibleFaceEdgeList2);
          onFaceList.get(0).addVertex(vertexToAdd);
          onFaceList.get(1).addVertex(vertexToAdd);
-         if (visibleEdgeListFace2.get(0).getDestinationVertex() != visibleEdgeListFace1.get(0).getDestinationVertex())
+         if (visibleFaceEdgeList2.get(0).getDestinationVertex() != visibleFaceEdgeList1.get(0).getDestinationVertex())
          {
-            List<PolytopeHalfEdge> tempListReference = visibleEdgeListFace1;
-            visibleEdgeListFace1 = visibleEdgeListFace2;
-            visibleEdgeListFace2 = tempListReference;
+            List<PolytopeHalfEdge> tempListReference = visibleFaceEdgeList1;
+            visibleFaceEdgeList1 = visibleFaceEdgeList2;
+            visibleFaceEdgeList2 = tempListReference;
          }
-         twinEdges(visibleEdgeListFace1.get(0).getNextHalfEdge(), visibleEdgeListFace2.get(0));
-         createFacesFromVisibleSilhouette(visibleEdgeListFace1.get(0), visibleEdgeListFace2.get(0).getNextHalfEdge(), visibleSilhouetteList);
+         twinEdges(visibleFaceEdgeList1.get(0).getNextHalfEdge(), visibleFaceEdgeList2.get(0));
+         createFacesFromVisibleSilhouette(visibleFaceEdgeList1.get(0), visibleFaceEdgeList2.get(0).getNextHalfEdge(), visibleSilhouetteList);
          break;
       case 3:
+         visibleFaceEdgeList1.clear();
+         for (int i = 0; i < onFaceList.size(); i++)
+            visibleFaceEdgeList1.add(onFaceList.get(i).getFirstVisibleEdge(vertexToAdd).getPreviousHalfEdge());
+         for (int i = 0; i < onFaceList.size(); i++)
+            onFaceList.get(i).addVertex(vertexToAdd);
+         double tripleProduct = getTripleProduct(visibleFaceEdgeList1.get(0).getNextHalfEdge(), visibleFaceEdgeList1.get(1).getNextHalfEdge(),
+                                                 visibleFaceEdgeList1.get(2).getNextHalfEdge());
+         if (tripleProduct > 0.0)
+         {
+            twinEdges(visibleFaceEdgeList1.get(0).getNextHalfEdge(), visibleFaceEdgeList1.get(1).getNextHalfEdge().getNextHalfEdge());
+            twinEdges(visibleFaceEdgeList1.get(1).getNextHalfEdge(), visibleFaceEdgeList1.get(2).getNextHalfEdge().getNextHalfEdge());
+            twinEdges(visibleFaceEdgeList1.get(2).getNextHalfEdge(), visibleFaceEdgeList1.get(0).getNextHalfEdge().getNextHalfEdge());
+         }
+         else
+         {
+            twinEdges(visibleFaceEdgeList1.get(0).getNextHalfEdge(), visibleFaceEdgeList1.get(2).getNextHalfEdge().getNextHalfEdge());
+            twinEdges(visibleFaceEdgeList1.get(1).getNextHalfEdge(), visibleFaceEdgeList1.get(0).getNextHalfEdge().getNextHalfEdge());
+            twinEdges(visibleFaceEdgeList1.get(2).getNextHalfEdge(), visibleFaceEdgeList1.get(1).getNextHalfEdge().getNextHalfEdge());
+         }
          break;
       default:
-         break;
+         throw new RuntimeException("Unhandled case - Sorry didnt know this cae existed");
       }
       boundingBoxNeedsUpdating = true;
+   }
+
+   private double getTripleProduct(Vector3DReadOnly v1, Vector3DReadOnly v2, Vector3DReadOnly v3)
+   {
+      tempVector.cross(v1, v2);
+      return tempVector.dot(v3);
    }
 
    private PolytopeHalfEdge getCommonEdge(ConvexPolytopeFace face1, ConvexPolytopeFace face2)
