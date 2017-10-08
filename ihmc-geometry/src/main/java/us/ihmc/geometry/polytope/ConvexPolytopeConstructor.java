@@ -2,6 +2,8 @@ package us.ihmc.geometry.polytope;
 
 import java.util.Random;
 
+import us.ihmc.commons.Epsilons;
+import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.geometry.tools.EuclidGeometryRandomTools;
 import us.ihmc.euclid.tools.EuclidCoreRandomTools;
 import us.ihmc.euclid.tuple3D.Point3D;
@@ -9,7 +11,8 @@ import us.ihmc.euclid.tuple3D.Vector3D;
 
 public class ConvexPolytopeConstructor
 {
-
+   private static final double EPSILON = Epsilons.ONE_MILLIONTH;
+   
    public static ConvexPolytope constructUnitCube()
    {
       ConvexPolytope polytope = new ConvexPolytope();
@@ -22,14 +25,22 @@ public class ConvexPolytopeConstructor
    {
       ConvexPolytope polytope = new ConvexPolytope();
 
-      polytope.addVertex(new PolytopeVertex(-halfLengthX, -halfWidthY, -halfHeightZ));
-      polytope.addVertex(new PolytopeVertex(halfLengthX, -halfWidthY, -halfHeightZ));
-      polytope.addVertex(new PolytopeVertex(halfLengthX, halfWidthY, -halfHeightZ));
-      polytope.addVertex(new PolytopeVertex(-halfLengthX, halfWidthY, -halfHeightZ));
-      polytope.addVertex(new PolytopeVertex(-halfLengthX, -halfWidthY, halfHeightZ));
-      polytope.addVertex(new PolytopeVertex(halfLengthX, -halfWidthY, halfHeightZ));
-      polytope.addVertex(new PolytopeVertex(halfLengthX, halfWidthY, halfHeightZ));
-      polytope.addVertex(new PolytopeVertex(-halfLengthX, halfWidthY, halfHeightZ));
+      polytope.addVertex(new PolytopeVertex(-halfLengthX, -halfWidthY, -halfHeightZ), EPSILON);
+      PrintTools.debug(polytope.toString());
+      polytope.addVertex(new PolytopeVertex(halfLengthX, -halfWidthY, -halfHeightZ), EPSILON);
+      PrintTools.debug(polytope.toString());
+      polytope.addVertex(new PolytopeVertex(halfLengthX, halfWidthY, -halfHeightZ), EPSILON);
+      PrintTools.debug(polytope.toString());
+      polytope.addVertex(new PolytopeVertex(-halfLengthX, halfWidthY, -halfHeightZ), EPSILON);
+      PrintTools.debug(polytope.toString());
+      polytope.addVertex(new PolytopeVertex(-halfLengthX, -halfWidthY, halfHeightZ), EPSILON);
+      PrintTools.debug(polytope.toString());
+      polytope.addVertex(new PolytopeVertex(halfLengthX, -halfWidthY, halfHeightZ), EPSILON);
+      PrintTools.debug(polytope.toString());
+      polytope.addVertex(new PolytopeVertex(halfLengthX, halfWidthY, halfHeightZ), EPSILON);
+      PrintTools.debug(polytope.toString());
+      polytope.addVertex(new PolytopeVertex(-halfLengthX, halfWidthY, halfHeightZ), EPSILON);
+      PrintTools.debug(polytope.toString());
 
       return polytope;
    }
@@ -47,7 +58,7 @@ public class ConvexPolytopeConstructor
          point.add(randomVector);
 
          //TODO: Need to connect the edges later once they are used in the algorithm!!
-         polytope.addVertex(point);
+         polytope.addVertex(point, EPSILON);
       }
 
       return polytope;
@@ -56,7 +67,7 @@ public class ConvexPolytopeConstructor
    public static ConvexPolytope constructSinglePointPolytope(Point3D singlePoint)
    {
       ConvexPolytope polytope = new ConvexPolytope();
-      polytope.addVertex(singlePoint);
+      polytope.addVertex(singlePoint, EPSILON);
       return polytope;
    }
 
@@ -65,7 +76,7 @@ public class ConvexPolytopeConstructor
       ConvexPolytope polytope = new ConvexPolytope();
       for (double[] vertex : vertices)
       {
-         polytope.addVertex(vertex);
+         polytope.addVertex(EPSILON, vertex);
       }
 
       return polytope;

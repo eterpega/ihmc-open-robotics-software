@@ -20,6 +20,7 @@ import us.ihmc.euclid.tuple3D.Vector3D;
 
 public class ConvexPolytopeTest
 {
+   private final static double EPSILON = Epsilons.ONE_MILLIONTH;
    @ContinuousIntegrationTest(estimatedDuration = 0.0)
    @Test(timeout = 1000)
    public void testConvexPolytopeVisibleSilhouetteCalculation()
@@ -31,13 +32,13 @@ public class ConvexPolytopeTest
       PolytopeVertex vertexFour = new PolytopeVertex(0.0, 0.0, 1.0);
       PolytopeVertex vertexFive = new PolytopeVertex(0.0, 1.0, 1.0);
       PolytopeVertex vertexSix = new PolytopeVertex(1.0, 1.0, 1.0);
-      polytope.addVertex(vertexOne);
-      polytope.addVertex(vertexTwo);
-      polytope.addVertex(vertexThree);
-      polytope.addVertex(vertexFour);
-      polytope.addVertex(vertexFive);
+      polytope.addVertex(vertexOne, EPSILON);
+      polytope.addVertex(vertexTwo, EPSILON);
+      polytope.addVertex(vertexThree, EPSILON);
+      polytope.addVertex(vertexFour, EPSILON);
+      polytope.addVertex(vertexFive, EPSILON);
       List<PolytopeHalfEdge> visibleEdges = new ArrayList<>();
-      polytope.getVisibleSilhouette(vertexSix, visibleEdges);
+      polytope.getVisibleSilhouette(vertexSix, visibleEdges, EPSILON);
       for (int i = 0; i < visibleEdges.size(); i++)
          PrintTools.debug(visibleEdges.get(i).toString());
    }
@@ -55,14 +56,14 @@ public class ConvexPolytopeTest
       PolytopeVertex vertexSix = new PolytopeVertex(1.0, 1.0, 0.0);
       PolytopeVertex vertexSeven = new PolytopeVertex(1.0, 0.0, 1.0);
       PolytopeVertex vertexEight = new PolytopeVertex(1.0, 1.0, 1.0);
-      polytope.addVertex(vertexOne);
-      polytope.addVertex(vertexTwo);
-      polytope.addVertex(vertexThree);
-      polytope.addVertex(vertexFour);
-      polytope.addVertex(vertexFive);
-      polytope.addVertex(vertexSix);
-      polytope.addVertex(vertexSeven);
-      polytope.addVertex(vertexEight);
+      polytope.addVertex(vertexOne, EPSILON);
+      polytope.addVertex(vertexTwo, EPSILON);
+      polytope.addVertex(vertexThree, EPSILON);
+      polytope.addVertex(vertexFour, EPSILON);
+      polytope.addVertex(vertexFive, EPSILON);
+      polytope.addVertex(vertexSix, EPSILON);
+      polytope.addVertex(vertexSeven, EPSILON);
+      polytope.addVertex(vertexEight, EPSILON);
       PrintTools.debug(polytope.toString());
       assertTrue(polytope.getNumberOfFaces() == 6);
       assertTrue(polytope.getNumberOfEdges() == 12);
@@ -103,10 +104,10 @@ public class ConvexPolytopeTest
       PolytopeVertex vertexTwo = new PolytopeVertex(1.0, 0.0, 0.0);
       PolytopeVertex vertexThree = new PolytopeVertex(1.0, 1.0, 0.0);
       PolytopeVertex vertexFour = new PolytopeVertex(0.5, 0.5, 1.0);
-      polytope.addVertex(vertexOne);
-      polytope.addVertex(vertexTwo);
-      polytope.addVertex(vertexThree);
-      polytope.addVertex(vertexFour);
+      polytope.addVertex(vertexOne, EPSILON);
+      polytope.addVertex(vertexTwo, EPSILON);
+      polytope.addVertex(vertexThree, EPSILON);
+      polytope.addVertex(vertexFour, EPSILON);
       PrintTools.debug(polytope.toString());
       assertTrue(polytope.getNumberOfFaces() == 4);
       assertTrue(polytope.getNumberOfEdges() == 6);
@@ -156,11 +157,11 @@ public class ConvexPolytopeTest
       PolytopeVertex vertexThree = new PolytopeVertex(1.0, 1.0, 0.0);
       PolytopeVertex vertexFour = new PolytopeVertex(0.0, 1.0, 0.0);
       PolytopeVertex vertexFive = new PolytopeVertex(0.5, 0.5, 1.0);
-      polytope.addVertex(vertexOne);
-      polytope.addVertex(vertexTwo);
-      polytope.addVertex(vertexThree);
-      polytope.addVertex(vertexFour);
-      polytope.addVertex(vertexFive);
+      polytope.addVertex(vertexOne, EPSILON);
+      polytope.addVertex(vertexTwo, EPSILON);
+      polytope.addVertex(vertexThree, EPSILON);
+      polytope.addVertex(vertexFour, EPSILON);
+      polytope.addVertex(vertexFive, EPSILON);
       PrintTools.debug(polytope.toString());
       assertTrue(polytope.getNumberOfFaces() == 5);
       assertTrue(polytope.getNumberOfEdges() == 8);
@@ -201,11 +202,11 @@ public class ConvexPolytopeTest
       PolytopeVertex vertexThree = new PolytopeVertex(1.0, 1.0, 0.0);
       PolytopeVertex vertexFour = new PolytopeVertex(0.5, 0.5, 1.0);
       PolytopeVertex vertexFive = new PolytopeVertex(0.0, 1.0, 1.0);
-      polytope.addVertex(vertexOne);
-      polytope.addVertex(vertexTwo);
-      polytope.addVertex(vertexThree);
-      polytope.addVertex(vertexFour);
-      polytope.addVertex(vertexFive);
+      polytope.addVertex(vertexOne, EPSILON);
+      polytope.addVertex(vertexTwo, EPSILON);
+      polytope.addVertex(vertexThree, EPSILON);
+      polytope.addVertex(vertexFour, EPSILON);
+      polytope.addVertex(vertexFive, EPSILON);
       PrintTools.debug(polytope.toString());
       assertTrue(polytope.getNumberOfFaces() == 6);
       assertTrue(polytope.getNumberOfEdges() == 9);
@@ -226,14 +227,14 @@ public class ConvexPolytopeTest
       PolytopeVertex vertexSeven = new PolytopeVertex(1.0, 1.0, 1.0);
       PolytopeVertex vertexEight = new PolytopeVertex(0.0, 1.0, 1.0);
 
-      polytope.addVertex(vertexOne);
-      polytope.addVertex(vertexTwo);
-      polytope.addVertex(vertexThree);
-      polytope.addVertex(vertexFour);
-      polytope.addVertex(vertexFive);
-      polytope.addVertex(vertexSix);
-      polytope.addVertex(vertexSeven);
-      polytope.addVertex(vertexEight);
+      polytope.addVertex(vertexOne, EPSILON);
+      polytope.addVertex(vertexTwo, EPSILON);
+      polytope.addVertex(vertexThree, EPSILON);
+      polytope.addVertex(vertexFour, EPSILON);
+      polytope.addVertex(vertexFive, EPSILON);
+      polytope.addVertex(vertexSix, EPSILON);
+      polytope.addVertex(vertexSeven, EPSILON);
+      polytope.addVertex(vertexEight, EPSILON);
 
       PrintTools.debug(polytope.toString());
 
@@ -252,6 +253,10 @@ public class ConvexPolytopeTest
       assertEquals(3, vertexSix.getNumberOfAssociatedEdges());
       assertEquals(3, vertexSeven.getNumberOfAssociatedEdges());
       assertEquals(3, vertexEight.getNumberOfAssociatedEdges());
+
+      List<PolytopeVertex> vertices = polytope.getVertices();
+      for (int i = 0; i < vertices.size(); i++)
+         PrintTools.debug(vertices.get(i).toString());
 
       RigidBodyTransform transform = new RigidBodyTransform();
       transform.setTranslation(1.0, 2.0, 3.0);
@@ -297,9 +302,9 @@ public class ConvexPolytopeTest
       assertEquals(8, cubeOne.getNumberOfVertices());
       assertEquals(12, cubeOne.getNumberOfEdges());
       List<PolytopeHalfEdge> edges = cubeOne.getEdges();
-      assertEquals(12, edges.size());
+      assertEquals(24, edges.size());
    }
-
+   
    @ContinuousIntegrationTest(estimatedDuration = 0.0)
    @Test(timeout = 30000)
    public void testBoundingBoxes()
@@ -325,14 +330,14 @@ public class ConvexPolytopeTest
       PolytopeVertex vertexSeven = new PolytopeVertex(new Point3D(1.0, 1.0, 1.0));
       PolytopeVertex vertexEight = new PolytopeVertex(new Point3D(0.0, 1.0, 1.0));
 
-      polytope.addVertex(vertexOne);
-      polytope.addVertex(vertexTwo);
-      polytope.addVertex(vertexThree);
-      polytope.addVertex(vertexFour);
-      polytope.addVertex(vertexFive);
-      polytope.addVertex(vertexSix);
-      polytope.addVertex(vertexSeven);
-      polytope.addVertex(vertexEight);
+      polytope.addVertex(vertexOne, EPSILON);
+      polytope.addVertex(vertexTwo, EPSILON);
+      polytope.addVertex(vertexThree, EPSILON);
+      polytope.addVertex(vertexFour, EPSILON);
+      polytope.addVertex(vertexFive, EPSILON);
+      polytope.addVertex(vertexSix, EPSILON);
+      polytope.addVertex(vertexSeven, EPSILON);
+      polytope.addVertex(vertexEight, EPSILON);
 
       polytope.getBoundingBox(boundingBox);
 

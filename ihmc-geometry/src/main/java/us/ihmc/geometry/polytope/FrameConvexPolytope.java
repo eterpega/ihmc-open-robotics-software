@@ -13,9 +13,9 @@ public class FrameConvexPolytope extends FrameGeometryObject<FrameConvexPolytope
       this.convexPolytope = geometryObject;
    }
    
-   public void addVertex(FramePolytopeVertex vertexToAdd)
+   public void addVertex(FramePolytopeVertex vertexToAdd, double epsilon)
    {
       checkReferenceFrameMatch(vertexToAdd);
-      convexPolytope.addVertex(vertexToAdd.getGeometryObject());
+      convexPolytope.addVertex(vertexToAdd.getGeometryObject(), epsilon);
    }
 }

@@ -3,13 +3,10 @@ package us.ihmc.geometry.polytope;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sun.javafx.iio.png.PNGImageLoaderFactory;
-
 import us.ihmc.commons.Epsilons;
 import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.geometry.BoundingBox3D;
 import us.ihmc.euclid.interfaces.GeometryObject;
-import us.ihmc.euclid.tools.EuclidCoreIOTools;
 import us.ihmc.euclid.transform.interfaces.Transform;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
@@ -107,7 +104,7 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
 
    public int getNumberOfVertices()
    {
-      // Polyhedron formula
+      // Polyhedron formula for quick calc
       return getNumberOfEdges() - getNumberOfFaces() + 2;
    }
 
@@ -121,7 +118,6 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
    {
       unmarkAllFaces();
       vertices.clear();
-      vertices.add(faces.get(0).getEdge(0).getDestinationVertex());
       for (int i = 0; i < faces.size(); i++)
       {
          for (int j = 0; j < faces.get(j).getNumberOfEdges(); j++)
@@ -185,19 +181,9 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
    public void applyTransform(Transform transform)
    {
       // Applying the transform to the vertices is less expensive computationally but getting the vertices is hard
-      unmarkAllFaces();
-      faces.get(0).getEdge(0).getDestinationVertex().applyTransform(transform);
-      for (int i = 0; i < faces.size(); i++)
-      {
-         for (int j = 0; j < faces.get(j).getNumberOfEdges(); j++)
-         {
-            if (!faces.get(i).getEdge(j).getOriginVertex().isAnyFaceMarked())
-            {
-               faces.get(i).getEdge(j).getOriginVertex().applyTransform(transform);
-            }
-         }
-         faces.get(i).mark();
-      }
+      updateVertices();
+      for (int i = 0; i < vertices.size(); i++)
+         vertices.get(i).applyTransform(transform);
       boundingBoxNeedsUpdating = true;
    }
 
@@ -205,19 +191,9 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
    public void applyInverseTransform(Transform transform)
    {
       // Applying the transform to the vertices is less expensive computationally but getting the vertices is hard
-      unmarkAllFaces();
-      faces.get(0).getEdge(0).getDestinationVertex().applyInverseTransform(transform);
-      for (int i = 0; i < faces.size(); i++)
-      {
-         for (int j = 0; j < faces.get(j).getNumberOfEdges(); j++)
-         {
-            if (!faces.get(i).getEdge(j).getOriginVertex().isAnyFaceMarked())
-            {
-               faces.get(i).getEdge(j).getOriginVertex().applyInverseTransform(transform);
-            }
-         }
-         faces.get(i).mark();
-      }
+      updateVertices();
+      for (int i = 0; i < vertices.size(); i++)
+         vertices.get(i).applyInverseTransform(transform);
       boundingBoxNeedsUpdating = true;
    }
 
@@ -227,31 +203,31 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
          faces.get(i).unmark();
    }
 
-   public void addVertices(Point3D... vertices)
+   public void addVertices(double epsilon, Point3D... vertices)
    {
       for (int i = 0; i < vertices.length; i++)
-         addVertex(vertices[i]);
+         addVertex(vertices[i], epsilon);
    }
 
-   public void addVertices(List<PolytopeVertex> vertices)
+   public void addVertices(List<PolytopeVertex> vertices, double epsilon)
    {
       for (int i = 0; i < vertices.size(); i++)
-         addVertex(vertices.get(i));
+         addVertex(vertices.get(i), epsilon);
    }
 
-   public void addVertex(double... coordinates)
+   public void addVertex(double epsilon, double... coordinates)
    {
-      addVertex(new PolytopeVertex(coordinates[0], coordinates[1], coordinates[2]));
+      addVertex(new PolytopeVertex(coordinates[0], coordinates[1], coordinates[2]), epsilon);
    }
 
-   public void addVertex(double x, double y, double z)
+   public void addVertex(double x, double y, double z, double epsilon)
    {
-      addVertex(new PolytopeVertex(x, y, z));
+      addVertex(new PolytopeVertex(x, y, z), epsilon);
    }
 
-   public void addVertex(Point3D vertexToAdd)
+   public void addVertex(Point3D vertexToAdd, double epsilon)
    {
-      addVertex(new PolytopeVertex(vertexToAdd));
+      addVertex(new PolytopeVertex(vertexToAdd), epsilon);
    }
 
    /**
@@ -261,7 +237,7 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
     * @param epsilon
     * @return
     */
-   public void addVertex(PolytopeVertex vertexToAdd)
+   public void addVertex(PolytopeVertex vertexToAdd, double epsilon)
    {
       if (faces.size() == 0)
       {
@@ -283,7 +259,7 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
          }
          else
          {
-            if (faces.get(0).isFaceVisible(vertexToAdd))
+            if (faces.get(0).isFaceVisible(vertexToAdd, epsilon))
                faces.get(0).reverseFaceNormal();
 
             visibleSilhouetteList.clear();
@@ -302,7 +278,7 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
          return;
       }
 
-      getVisibleFaces(vertexToAdd, visibleFaces);
+      getVisibleFaces(visibleFaces, vertexToAdd, epsilon);
       if (visibleFaces.isEmpty())
          return;
       getFacesWhichPointIsOn(vertexToAdd, onFaceList, Epsilons.ONE_BILLIONTH);
@@ -326,6 +302,8 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
          createFacesFromVisibleSilhouette(vertexToAdd.getAssociatedEdge(0).getPreviousHalfEdge(), vertexToAdd.getAssociatedEdge(0), visibleSilhouetteList);
          break;
       case 2:
+         PrintTools.debug("0\n"+onFaceList.get(0).toString());
+         PrintTools.debug("1\n"+onFaceList.get(1).toString());
          onFaceList.get(0).getVisibleEdgeList(vertexToAdd, visibleFaceEdgeList1);
          onFaceList.get(1).getVisibleEdgeList(vertexToAdd, visibleFaceEdgeList2);
          visibleSilhouetteList.removeAll(visibleFaceEdgeList1);
@@ -415,9 +393,9 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
       }
    }
 
-   public void getVisibleSilhouette(Point3DReadOnly vertex, List<PolytopeHalfEdge> visibleSilhouetteToPack)
+   public void getVisibleSilhouette(Point3DReadOnly vertex, List<PolytopeHalfEdge> visibleSilhouetteToPack, double epsilon)
    {
-      getVisibleFaces(vertex, visibleFaces);
+      getVisibleFaces(visibleFaces, vertex, epsilon);
       if (visibleFaces.isEmpty())
          return;
       getSilhouetteFaces(silhouetteFaces, null, visibleFaces);
@@ -507,12 +485,12 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
       }
    }
 
-   public void getVisibleFaces(Point3DReadOnly vertexUnderConsideration, List<ConvexPolytopeFace> faceReferencesToPack)
+   public void getVisibleFaces(List<ConvexPolytopeFace> faceReferencesToPack, Point3DReadOnly vertexUnderConsideration, double epsilon)
    {
       faceReferencesToPack.clear();
       for (int i = 0; i < faces.size(); i++)
       {
-         if (faces.get(i).isFaceVisible(vertexUnderConsideration))
+         if (faces.get(i).isFaceVisible(vertexUnderConsideration, epsilon))
          {
             faceReferencesToPack.add(faces.get(i));
          }
@@ -533,6 +511,7 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
 
    public void removeFace(ConvexPolytopeFace faceToRemove)
    {
+      PrintTools.debug("Removing: " + faceToRemove.toString());
       for (int i = 0; i < faceToRemove.getNumberOfEdges(); i++)
       {
          PolytopeHalfEdge twinHalfEdge = faceToRemove.getEdge(i).getTwinHalfEdge();
@@ -591,7 +570,7 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
 
    public String toString()
    {
-      String string = "Number of faces: " + faces.size();
+      String string = "\n\nNumber of faces: " + faces.size();
       for (int i = 0; i < faces.size(); i++)
       {
          string = string + "\n" + faces.get(i).toString();
