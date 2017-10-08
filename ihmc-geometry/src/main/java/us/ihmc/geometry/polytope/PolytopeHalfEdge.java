@@ -3,6 +3,7 @@ package us.ihmc.geometry.polytope;
 import us.ihmc.euclid.interfaces.GeometryObject;
 import us.ihmc.euclid.transform.interfaces.Transform;
 import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 
 /**
  * This class implements a doubly connected edge list (https://en.wikipedia.org/wiki/Doubly_connected_edge_list)
@@ -213,7 +214,14 @@ public class PolytopeHalfEdge implements GeometryObject<PolytopeHalfEdge>, Polyt
       edgeVector.sub(this.destinationVertex.getPosition(), this.originVertex.getPosition());
       return edgeVector;
    }
-
+   
+   public Vector3DReadOnly getNormalizedEdgeVector()
+   {
+      getEdgeVector();
+      edgeVector.normalize();
+      return edgeVector;
+   }
+   
    @Override
    public void applyTransform(Transform transform)
    {
@@ -294,5 +302,4 @@ public class PolytopeHalfEdge implements GeometryObject<PolytopeHalfEdge>, Polyt
    {
       return "From: " + ((originVertex == null)? "null" : originVertex.toString()) + ", To: " + ((destinationVertex == null)? "null" : destinationVertex.toString());
    }
-
 }

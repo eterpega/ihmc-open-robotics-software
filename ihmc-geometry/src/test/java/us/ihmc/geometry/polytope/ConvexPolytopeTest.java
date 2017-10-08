@@ -52,7 +52,7 @@ public class ConvexPolytopeTest
       PolytopeVertex vertexThree = new PolytopeVertex(0.0, 1.0, 0.0);
       PolytopeVertex vertexFour = new PolytopeVertex(0.0, 0.0, 1.0);
       PolytopeVertex vertexFive = new PolytopeVertex(0.0, 1.0, 1.0);
-      PolytopeVertex vertexSix = new PolytopeVertex(1.0, 1.0, 1.0);
+      PolytopeVertex vertexSix = new PolytopeVertex(1.0, 1.0, 0.0);
       polytope.addVertex(vertexOne);
       polytope.addVertex(vertexTwo);
       polytope.addVertex(vertexThree);
@@ -61,13 +61,25 @@ public class ConvexPolytopeTest
       polytope.addVertex(vertexSix);
       PrintTools.debug(polytope.toString());
       assertTrue(polytope.getNumberOfFaces() == 5);
-      assertTrue(polytope.getNumberOfEdges() == 8);
-      assertTrue(polytope.getNumberOfVertices() == 5);
+      assertTrue(polytope.getNumberOfEdges() == 9);
+      assertTrue(polytope.getNumberOfVertices() == 6);
       ConvexPolytopeFace firstFace = polytope.getFace(0);
       ConvexPolytopeFace secondFace = polytope.getFace(1);
       ConvexPolytopeFace thirdFace = polytope.getFace(2);
       ConvexPolytopeFace fourthFace = polytope.getFace(3);
       ConvexPolytopeFace fifthFace = polytope.getFace(4);
+      for (int j = 0; j < polytope.getNumberOfFaces(); j++)
+      {
+         ConvexPolytopeFace face = polytope.getFace(j);
+         for (int i = 0; i < face.getNumberOfEdges(); i++)
+         {
+            assertTrue("Null twin edge for edge: " + face.getEdge(i).toString() + " on face: " + face.toString(), face.getEdge(i).getTwinHalfEdge() != null);
+            assertTrue("Twin edge: " + face.getEdge(i).getTwinHalfEdge().toString() + " mismatch for edge: " + face.getEdge(i).toString() + " on face: "
+                  + face.toString(), face.getEdge(i).getTwinHalfEdge().getOriginVertex() == face.getEdge(i).getDestinationVertex());
+            assertTrue("Twin edge: " + face.getEdge(i).getTwinHalfEdge().toString() + " mismatch for edge: " + face.getEdge(i).toString() + " on face: "
+                  + face.toString(), face.getEdge(i).getTwinHalfEdge().getDestinationVertex() == face.getEdge(i).getOriginVertex());
+         }
+      }
       assertTrue(firstFace.getNumberOfEdges() == 3);
       assertTrue(secondFace.getNumberOfEdges() == 3);
       assertTrue(thirdFace.getNumberOfEdges() == 4);
