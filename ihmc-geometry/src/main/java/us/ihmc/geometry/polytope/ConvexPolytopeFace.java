@@ -158,6 +158,15 @@ public class ConvexPolytopeFace implements GeometryObject<ConvexPolytopeFace>, C
       }
       }
    }
+   
+   /**
+    * You have been given power. Do not abuse it (just ensure that the additions are all consistent)
+    * @param newEdge
+    */
+   public void addEdge(PolytopeHalfEdge newEdge)
+   {
+      edges.add(newEdge);
+   }
 
    public void getVisibleEdgeList(PolytopeVertex vertex, List<PolytopeHalfEdge> edgeList)
    {
