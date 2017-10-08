@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import us.ihmc.commons.Epsilons;
+import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.interfaces.GeometryObject;
 import us.ihmc.euclid.transform.interfaces.Transform;
 import us.ihmc.euclid.tuple3D.Point3D;
@@ -183,6 +184,8 @@ public class ConvexPolytopeFace implements GeometryObject<ConvexPolytopeFace>, C
 
    public PolytopeHalfEdge getFirstVisibleEdge(Point3DBasics vertex)
    {
+      if(edges.size() == 0)
+         return null;
       PolytopeHalfEdge edgeUnderConsideration = edges.get(0);
       updateFaceNormal();
       double previousDotProduct = Double.NaN;
@@ -387,10 +390,11 @@ public class ConvexPolytopeFace implements GeometryObject<ConvexPolytopeFace>, C
       return direction.dot(faceNormal);
    }
    
-   public boolean isFaceVisible(Point3DReadOnly point)
+   public boolean isFaceVisible(Point3DReadOnly point, double epsilon)
    {
       tempVector.sub(point, edges.get(0).getOriginVertex());
-      return dotFaceNormal(tempVector) > 0;
+      PrintTools.debug(dotFaceNormal(tempVector) + "");
+      return dotFaceNormal(tempVector) > epsilon;
    }
 
    @Override
@@ -511,7 +515,7 @@ public class ConvexPolytopeFace implements GeometryObject<ConvexPolytopeFace>, C
       PolytopeHalfEdge edge = edges.get(0);
       for(int i = 0; i < edges.size(); i++)
       {
-         string += "\n" + edge.toString();
+         string += "\n" + edge.toString() + " Twin: " + (edge.getTwinHalfEdge() == null ? "null" : edge.getTwinHalfEdge().toString());
          edge = edge.getNextHalfEdge();
       }
       return string;

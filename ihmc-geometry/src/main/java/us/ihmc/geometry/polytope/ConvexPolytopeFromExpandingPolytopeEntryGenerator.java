@@ -2,13 +2,14 @@ package us.ihmc.geometry.polytope;
 
 import java.util.ArrayList;
 
+import us.ihmc.commons.Epsilons;
 import us.ihmc.euclid.tuple3D.Point3D;
 
 import gnu.trove.map.hash.THashMap;
 
 public class ConvexPolytopeFromExpandingPolytopeEntryGenerator
 {
-
+   private static final double EPSILON = Epsilons.ONE_MILLIONTH;
    public ConvexPolytope generateConvexPolytope(ExpandingPolytopeEntry expandingPolytope)
    {
       ConvexPolytope convexPolytope = new ConvexPolytope();
@@ -27,7 +28,7 @@ public class ConvexPolytopeFromExpandingPolytopeEntryGenerator
             if (!pointsToPolytopeVertices.containsKey(vertex))
             {
                PolytopeVertex polytopeVertex = new PolytopeVertex(vertex);
-               convexPolytope.addVertex(polytopeVertex);
+               convexPolytope.addVertex(polytopeVertex, EPSILON);
                pointsToPolytopeVertices.put(vertex, polytopeVertex);
             }
          }
@@ -43,8 +44,8 @@ public class ConvexPolytopeFromExpandingPolytopeEntryGenerator
             PolytopeVertex polytopeVertex = pointsToPolytopeVertices.get(vertex);
             PolytopeVertex nextPolytopeVertex = pointsToPolytopeVertices.get(nextVertex);
 
-            convexPolytope.addVertex(polytopeVertex);
-            convexPolytope.addVertex(nextPolytopeVertex);
+            convexPolytope.addVertex(polytopeVertex, EPSILON);
+            convexPolytope.addVertex(nextPolytopeVertex, EPSILON);
          }
       }
 
