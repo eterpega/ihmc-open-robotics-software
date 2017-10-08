@@ -4,12 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import us.ihmc.commons.Epsilons;
-import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.interfaces.GeometryObject;
 import us.ihmc.euclid.transform.interfaces.Transform;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DBasics;
+import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DBasics;
 import us.ihmc.robotics.MathTools;
 
@@ -378,7 +378,7 @@ public class ConvexPolytopeFace implements GeometryObject<ConvexPolytopeFace>, C
       return direction.dot(faceNormal);
    }
    
-   public boolean isFaceVisible(Point3DBasics point)
+   public boolean isFaceVisible(Point3DReadOnly point)
    {
       tempVector.sub(point, edges.get(0).getOriginVertex());
       return dotFaceNormal(tempVector) > 0;

@@ -3,6 +3,7 @@ package us.ihmc.geometry.polytope;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
@@ -21,6 +22,28 @@ public class ConvexPolytopeTest
 {
    @ContinuousIntegrationTest(estimatedDuration = 0.0)
    @Test(timeout = 1000)
+   public void testConvexPolytopeVisibleSilhouetteCalculation()
+   {
+      ConvexPolytope polytope = new ConvexPolytope();
+      PolytopeVertex vertexOne = new PolytopeVertex(0.0, 0.0, 0.0);
+      PolytopeVertex vertexTwo = new PolytopeVertex(1.0, 0.0, 0.0);
+      PolytopeVertex vertexThree = new PolytopeVertex(0.0, 1.0, 0.0);
+      PolytopeVertex vertexFour = new PolytopeVertex(0.0, 0.0, 1.0);
+      PolytopeVertex vertexFive = new PolytopeVertex(0.0, 1.0, 1.0);
+      PolytopeVertex vertexSix = new PolytopeVertex(1.0, 1.0, 1.0);
+      polytope.addVertex(vertexOne);
+      polytope.addVertex(vertexTwo);
+      polytope.addVertex(vertexThree);
+      polytope.addVertex(vertexFour);
+      polytope.addVertex(vertexFive);
+      List<PolytopeHalfEdge> visibleEdges = new ArrayList<>();
+      polytope.getVisibleSilhouette(vertexSix, visibleEdges);
+      for(int i = 0; i < visibleEdges.size(); i++)
+         PrintTools.debug(visibleEdges.get(i).toString());
+   }
+   
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test(timeout = 100000)
    public void testConvexPolytopeWithUnitCube()
    {
       ConvexPolytope polytope = new ConvexPolytope();
@@ -29,11 +52,13 @@ public class ConvexPolytopeTest
       PolytopeVertex vertexThree = new PolytopeVertex(0.0, 1.0, 0.0);
       PolytopeVertex vertexFour = new PolytopeVertex(0.0, 0.0, 1.0);
       PolytopeVertex vertexFive = new PolytopeVertex(0.0, 1.0, 1.0);
+      PolytopeVertex vertexSix = new PolytopeVertex(1.0, 1.0, 1.0);
       polytope.addVertex(vertexOne);
       polytope.addVertex(vertexTwo);
       polytope.addVertex(vertexThree);
       polytope.addVertex(vertexFour);
       polytope.addVertex(vertexFive);
+      polytope.addVertex(vertexSix);
       PrintTools.debug(polytope.toString());
       assertTrue(polytope.getNumberOfFaces() == 5);
       assertTrue(polytope.getNumberOfEdges() == 8);
@@ -60,9 +85,6 @@ public class ConvexPolytopeTest
                   + face.toString(), face.getEdge(i).getTwinHalfEdge().getDestinationVertex() == face.getEdge(i).getOriginVertex());
          }
       }
-
-      
-      
       for (int i = 0; i < 3; i++)
       {
          assertTrue(firstFace.getEdge(i).getTwinHalfEdge() != null);
