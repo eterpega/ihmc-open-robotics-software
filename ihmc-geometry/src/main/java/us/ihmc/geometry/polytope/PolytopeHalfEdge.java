@@ -302,4 +302,22 @@ public class PolytopeHalfEdge implements GeometryObject<PolytopeHalfEdge>, Polyt
    {
       return "From: " + ((originVertex == null)? "null" : originVertex.toString()) + ", To: " + ((destinationVertex == null)? "null" : destinationVertex.toString());
    }
+
+   @Override
+   public double getX()
+   {
+      return getEdgeVector().getX();
+   }
+
+   @Override
+   public double getY()
+   {
+      return getEdgeVector().getY();
+   }
+
+   @Override
+   public double getZ()
+   {
+      return getEdgeVector().getZ();
+   }
 }

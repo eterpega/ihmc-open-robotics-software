@@ -52,6 +52,27 @@ public class FramePolytopeHalfEdge extends FrameGeometryObject<FramePolytopeHalf
    {
       return polytopeHalfEdge.getFace();
    }
+
+   @Override
+   public double getX()
+   {
+      // TODO Auto-generated method stub
+      return 0;
+   }
+
+   @Override
+   public double getY()
+   {
+      // TODO Auto-generated method stub
+      return 0;
+   }
+
+   @Override
+   public double getZ()
+   {
+      // TODO Auto-generated method stub
+      return 0;
+   }
    
    
 }

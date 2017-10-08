@@ -38,10 +38,10 @@ public class ConvexPolytopeTest
       polytope.addVertex(vertexFive);
       List<PolytopeHalfEdge> visibleEdges = new ArrayList<>();
       polytope.getVisibleSilhouette(vertexSix, visibleEdges);
-      for(int i = 0; i < visibleEdges.size(); i++)
+      for (int i = 0; i < visibleEdges.size(); i++)
          PrintTools.debug(visibleEdges.get(i).toString());
    }
-   
+
    @ContinuousIntegrationTest(estimatedDuration = 0.0)
    @Test(timeout = 100000)
    public void testConvexPolytopeWithUnitCube()
@@ -53,38 +53,33 @@ public class ConvexPolytopeTest
       PolytopeVertex vertexFour = new PolytopeVertex(0.0, 0.0, 1.0);
       PolytopeVertex vertexFive = new PolytopeVertex(0.0, 1.0, 1.0);
       PolytopeVertex vertexSix = new PolytopeVertex(1.0, 1.0, 0.0);
+      PolytopeVertex vertexSeven = new PolytopeVertex(1.0, 0.0, 1.0);
+      PolytopeVertex vertexEight = new PolytopeVertex(1.0, 1.0, 1.0);
       polytope.addVertex(vertexOne);
       polytope.addVertex(vertexTwo);
       polytope.addVertex(vertexThree);
       polytope.addVertex(vertexFour);
       polytope.addVertex(vertexFive);
       polytope.addVertex(vertexSix);
+      polytope.addVertex(vertexSeven);
+      polytope.addVertex(vertexEight);
       PrintTools.debug(polytope.toString());
-      assertTrue(polytope.getNumberOfFaces() == 5);
-      assertTrue(polytope.getNumberOfEdges() == 9);
-      assertTrue(polytope.getNumberOfVertices() == 6);
+      assertTrue(polytope.getNumberOfFaces() == 6);
+      assertTrue(polytope.getNumberOfEdges() == 12);
+      assertTrue(polytope.getNumberOfVertices() == 8);
       ConvexPolytopeFace firstFace = polytope.getFace(0);
       ConvexPolytopeFace secondFace = polytope.getFace(1);
       ConvexPolytopeFace thirdFace = polytope.getFace(2);
       ConvexPolytopeFace fourthFace = polytope.getFace(3);
       ConvexPolytopeFace fifthFace = polytope.getFace(4);
-      for (int j = 0; j < polytope.getNumberOfFaces(); j++)
-      {
-         ConvexPolytopeFace face = polytope.getFace(j);
-         for (int i = 0; i < face.getNumberOfEdges(); i++)
-         {
-            assertTrue("Null twin edge for edge: " + face.getEdge(i).toString() + " on face: " + face.toString(), face.getEdge(i).getTwinHalfEdge() != null);
-            assertTrue("Twin edge: " + face.getEdge(i).getTwinHalfEdge().toString() + " mismatch for edge: " + face.getEdge(i).toString() + " on face: "
-                  + face.toString(), face.getEdge(i).getTwinHalfEdge().getOriginVertex() == face.getEdge(i).getDestinationVertex());
-            assertTrue("Twin edge: " + face.getEdge(i).getTwinHalfEdge().toString() + " mismatch for edge: " + face.getEdge(i).toString() + " on face: "
-                  + face.toString(), face.getEdge(i).getTwinHalfEdge().getDestinationVertex() == face.getEdge(i).getOriginVertex());
-         }
-      }
-      assertTrue(firstFace.getNumberOfEdges() == 3);
-      assertTrue(secondFace.getNumberOfEdges() == 3);
+      ConvexPolytopeFace sixthFace = polytope.getFace(5);
+
+      assertTrue(firstFace.getNumberOfEdges() == 4);
+      assertTrue(secondFace.getNumberOfEdges() == 4);
       assertTrue(thirdFace.getNumberOfEdges() == 4);
-      assertTrue(fourthFace.getNumberOfEdges() == 3);
-      assertTrue(fifthFace.getNumberOfEdges() == 3);
+      assertTrue(fourthFace.getNumberOfEdges() == 4);
+      assertTrue(fifthFace.getNumberOfEdges() == 4);
+      assertTrue(sixthFace.getNumberOfEdges() == 4);
       for (int j = 0; j < polytope.getNumberOfFaces(); j++)
       {
          ConvexPolytopeFace face = polytope.getFace(j);
@@ -96,41 +91,6 @@ public class ConvexPolytopeTest
             assertTrue("Twin edge: " + face.getEdge(i).getTwinHalfEdge().toString() + " mismatch for edge: " + face.getEdge(i).toString() + " on face: "
                   + face.toString(), face.getEdge(i).getTwinHalfEdge().getDestinationVertex() == face.getEdge(i).getOriginVertex());
          }
-      }
-      for (int i = 0; i < 3; i++)
-      {
-         assertTrue(firstFace.getEdge(i).getTwinHalfEdge() != null);
-         PrintTools.debug("E: " + firstFace.getEdge(i).toString() + " T: " + firstFace.getEdge(i).getTwinHalfEdge().toString());
-         assertTrue(firstFace.getEdge(i).getTwinHalfEdge().getOriginVertex() == firstFace.getEdge(i).getDestinationVertex());
-         assertTrue(firstFace.getEdge(i).getTwinHalfEdge().getDestinationVertex() == firstFace.getEdge(i).getOriginVertex());
-      }
-      for (int i = 0; i < 3; i++)
-      {
-         assertTrue(secondFace.getEdge(i).getTwinHalfEdge() != null);
-         PrintTools.debug("E: " + secondFace.getEdge(i).toString() + " T: " + secondFace.getEdge(i).getTwinHalfEdge().toString());
-         assertTrue(secondFace.getEdge(i).getTwinHalfEdge().getOriginVertex() == secondFace.getEdge(i).getDestinationVertex());
-         assertTrue(secondFace.getEdge(i).getTwinHalfEdge().getDestinationVertex() == secondFace.getEdge(i).getOriginVertex());
-      }
-      for (int i = 0; i < 4; i++)
-      {
-         assertTrue(thirdFace.getEdge(i).getTwinHalfEdge() != null);
-         PrintTools.debug("E: " + thirdFace.getEdge(i).toString() + " T: " + thirdFace.getEdge(i).getTwinHalfEdge().toString());
-         assertTrue(thirdFace.getEdge(i).getTwinHalfEdge().getOriginVertex() == thirdFace.getEdge(i).getDestinationVertex());
-         assertTrue(thirdFace.getEdge(i).getTwinHalfEdge().getDestinationVertex() == thirdFace.getEdge(i).getOriginVertex());
-      }
-      for (int i = 0; i < 3; i++)
-      {
-         assertTrue(fourthFace.getEdge(i).getTwinHalfEdge() != null);
-         PrintTools.debug("E: " + fourthFace.getEdge(i).toString() + " T: " + fourthFace.getEdge(i).getTwinHalfEdge().toString());
-         assertTrue(fourthFace.getEdge(i).getTwinHalfEdge().getOriginVertex() == fourthFace.getEdge(i).getDestinationVertex());
-         assertTrue(fourthFace.getEdge(i).getTwinHalfEdge().getDestinationVertex() == fourthFace.getEdge(i).getOriginVertex());
-      }
-      for (int i = 0; i < 3; i++)
-      {
-         assertTrue(fifthFace.getEdge(i).getTwinHalfEdge() != null);
-         PrintTools.debug("E: " + fifthFace.getEdge(i).toString() + " T: " + fifthFace.getEdge(i).getTwinHalfEdge().toString());
-         assertTrue(fifthFace.getEdge(i).getTwinHalfEdge().getOriginVertex() == fifthFace.getEdge(i).getDestinationVertex());
-         assertTrue(fifthFace.getEdge(i).getTwinHalfEdge().getDestinationVertex() == fifthFace.getEdge(i).getOriginVertex());
       }
    }
 
@@ -274,6 +234,8 @@ public class ConvexPolytopeTest
       polytope.addVertex(vertexSix);
       polytope.addVertex(vertexSeven);
       polytope.addVertex(vertexEight);
+
+      PrintTools.debug(polytope.toString());
 
       EuclidCoreTestTools.assertTuple3DEquals("", new Point3D(0.0, 0.0, 0.0), vertexOne.getPosition(), Epsilons.ONE_TEN_BILLIONTH);
       EuclidCoreTestTools.assertTuple3DEquals("", new Point3D(1.0, 1.0, 0.0), vertexThree.getPosition(), Epsilons.ONE_TEN_BILLIONTH);
