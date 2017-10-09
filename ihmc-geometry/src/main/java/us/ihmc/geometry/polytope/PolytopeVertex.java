@@ -22,6 +22,11 @@ public class PolytopeVertex implements GeometryObject<PolytopeVertex>, PolytopeV
    private final Point3D position = new Point3D();
    private final ArrayList<PolytopeHalfEdge> associatedEdges = new ArrayList<>();
    
+   public PolytopeVertex()
+   {
+      
+   }
+   
    public PolytopeVertex(double x, double y, double z)
    {
       position.set(x, y, z);
