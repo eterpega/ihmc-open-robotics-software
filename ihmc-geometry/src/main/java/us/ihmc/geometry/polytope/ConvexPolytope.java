@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import us.ihmc.commons.Epsilons;
-import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.geometry.BoundingBox3D;
 import us.ihmc.euclid.interfaces.GeometryObject;
 import us.ihmc.euclid.transform.interfaces.Transform;
@@ -302,8 +301,6 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
          createFacesFromVisibleSilhouette(vertexToAdd.getAssociatedEdge(0).getPreviousHalfEdge(), vertexToAdd.getAssociatedEdge(0), visibleSilhouetteList);
          break;
       case 2:
-         PrintTools.debug("0\n"+onFaceList.get(0).toString());
-         PrintTools.debug("1\n"+onFaceList.get(1).toString());
          onFaceList.get(0).getVisibleEdgeList(vertexToAdd, visibleFaceEdgeList1);
          onFaceList.get(1).getVisibleEdgeList(vertexToAdd, visibleFaceEdgeList2);
          visibleSilhouetteList.removeAll(visibleFaceEdgeList1);
@@ -320,6 +317,9 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
          createFacesFromVisibleSilhouette(visibleFaceEdgeList1.get(0), visibleFaceEdgeList2.get(0).getNextHalfEdge(), visibleSilhouetteList);
          break;
       case 3:
+         // TODO change this case to default by following the visible edge list 
+         // Notes 1) Instead on getting the list of first visible edges the onFaceList use the visibleSilhouette by marking faces
+         // Notes 2) Now the onFaceList had an order associated with it and can be used for twinning edges created
          visibleFaceEdgeList1.clear();
          for (int i = 0; i < onFaceList.size(); i++)
             visibleFaceEdgeList1.add(onFaceList.get(i).getFirstVisibleEdge(vertexToAdd).getPreviousHalfEdge());
@@ -341,7 +341,7 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
          }
          break;
       default:
-         throw new RuntimeException("Unhandled case - Sorry didnt know this cae existed");
+         throw new RuntimeException("Unhandled case - needs to be added. Refer notes for case 3");
       }
       boundingBoxNeedsUpdating = true;
    }
@@ -356,15 +356,12 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
    {
       PolytopeHalfEdge edgeCandidate = null;
       tempVector.cross(face1.getFaceNormal(), face2.getFaceNormal());
-      PrintTools.debug(face1.toString() + "\n" + face2.toString());
       tempVector.normalize();
-      PrintTools.debug("Looking for ege along " + tempVector.toString());
       for (int i = 0; i < face1.getNumberOfEdges(); i++)
       {
          if (tempVector.dot(face1.getEdge(i).getNormalizedEdgeVector()) >= 1.0)
          {
             edgeCandidate = face1.getEdge(i);
-            PrintTools.debug("Common edge: " + edgeCandidate.toString());
             break;
          }
       }
@@ -511,7 +508,6 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
 
    public void removeFace(ConvexPolytopeFace faceToRemove)
    {
-      PrintTools.debug("Removing: " + faceToRemove.toString());
       for (int i = 0; i < faceToRemove.getNumberOfEdges(); i++)
       {
          PolytopeHalfEdge twinHalfEdge = faceToRemove.getEdge(i).getTwinHalfEdge();
