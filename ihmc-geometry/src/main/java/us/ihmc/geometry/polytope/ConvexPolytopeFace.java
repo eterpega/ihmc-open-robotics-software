@@ -393,7 +393,6 @@ public class ConvexPolytopeFace implements GeometryObject<ConvexPolytopeFace>, C
    public boolean isFaceVisible(Point3DReadOnly point, double epsilon)
    {
       tempVector.sub(point, edges.get(0).getOriginVertex());
-      PrintTools.debug(dotFaceNormal(tempVector) + "");
       return dotFaceNormal(tempVector) > epsilon;
    }
 

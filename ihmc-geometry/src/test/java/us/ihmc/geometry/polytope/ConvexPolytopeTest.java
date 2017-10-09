@@ -10,7 +10,6 @@ import org.junit.Test;
 
 import us.ihmc.commons.Epsilons;
 import us.ihmc.commons.MutationTestFacilitator;
-import us.ihmc.commons.PrintTools;
 import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
 import us.ihmc.euclid.geometry.BoundingBox3D;
 import us.ihmc.euclid.tools.EuclidCoreTestTools;
@@ -39,8 +38,6 @@ public class ConvexPolytopeTest
       polytope.addVertex(vertexFive, EPSILON);
       List<PolytopeHalfEdge> visibleEdges = new ArrayList<>();
       polytope.getVisibleSilhouette(vertexSix, visibleEdges, EPSILON);
-      for (int i = 0; i < visibleEdges.size(); i++)
-         PrintTools.debug(visibleEdges.get(i).toString());
    }
 
    @ContinuousIntegrationTest(estimatedDuration = 0.0)
@@ -64,7 +61,6 @@ public class ConvexPolytopeTest
       polytope.addVertex(vertexSix, EPSILON);
       polytope.addVertex(vertexSeven, EPSILON);
       polytope.addVertex(vertexEight, EPSILON);
-      PrintTools.debug(polytope.toString());
       assertTrue(polytope.getNumberOfFaces() == 6);
       assertTrue(polytope.getNumberOfEdges() == 12);
       assertTrue(polytope.getNumberOfVertices() == 8);
@@ -108,7 +104,6 @@ public class ConvexPolytopeTest
       polytope.addVertex(vertexTwo, EPSILON);
       polytope.addVertex(vertexThree, EPSILON);
       polytope.addVertex(vertexFour, EPSILON);
-      PrintTools.debug(polytope.toString());
       assertTrue(polytope.getNumberOfFaces() == 4);
       assertTrue(polytope.getNumberOfEdges() == 6);
       assertTrue(polytope.getNumberOfVertices() == 4);
@@ -162,7 +157,6 @@ public class ConvexPolytopeTest
       polytope.addVertex(vertexThree, EPSILON);
       polytope.addVertex(vertexFour, EPSILON);
       polytope.addVertex(vertexFive, EPSILON);
-      PrintTools.debug(polytope.toString());
       assertTrue(polytope.getNumberOfFaces() == 5);
       assertTrue(polytope.getNumberOfEdges() == 8);
       assertTrue(polytope.getNumberOfVertices() == 5);
@@ -207,7 +201,6 @@ public class ConvexPolytopeTest
       polytope.addVertex(vertexThree, EPSILON);
       polytope.addVertex(vertexFour, EPSILON);
       polytope.addVertex(vertexFive, EPSILON);
-      PrintTools.debug(polytope.toString());
       assertTrue(polytope.getNumberOfFaces() == 6);
       assertTrue(polytope.getNumberOfEdges() == 9);
       assertTrue(polytope.getNumberOfVertices() == 5);
@@ -236,8 +229,6 @@ public class ConvexPolytopeTest
       polytope.addVertex(vertexSeven, EPSILON);
       polytope.addVertex(vertexEight, EPSILON);
 
-      PrintTools.debug(polytope.toString());
-
       EuclidCoreTestTools.assertTuple3DEquals("", new Point3D(0.0, 0.0, 0.0), vertexOne.getPosition(), Epsilons.ONE_TEN_BILLIONTH);
       EuclidCoreTestTools.assertTuple3DEquals("", new Point3D(1.0, 1.0, 0.0), vertexThree.getPosition(), Epsilons.ONE_TEN_BILLIONTH);
       EuclidCoreTestTools.assertTuple3DEquals("", new Point3D(1.0, 0.0, 1.0), vertexSix.getPosition(), Epsilons.ONE_TEN_BILLIONTH);
@@ -255,8 +246,6 @@ public class ConvexPolytopeTest
       assertEquals(3, vertexEight.getNumberOfAssociatedEdges());
 
       List<PolytopeVertex> vertices = polytope.getVertices();
-      for (int i = 0; i < vertices.size(); i++)
-         PrintTools.debug(vertices.get(i).toString());
 
       RigidBodyTransform transform = new RigidBodyTransform();
       transform.setTranslation(1.0, 2.0, 3.0);

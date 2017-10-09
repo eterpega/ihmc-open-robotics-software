@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Random;
 
 import us.ihmc.commons.Epsilons;
-import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tools.EuclidCoreRandomTools;
 import us.ihmc.euclid.tuple3D.Point3D;
@@ -134,21 +133,13 @@ public class ConvexPolytopeConstructor
       ConvexPolytope polytope = new ConvexPolytope();
 
       polytope.addVertex(new PolytopeVertex(-halfLengthX, -halfWidthY, -halfHeightZ), EPSILON);
-      PrintTools.debug(polytope.toString());
       polytope.addVertex(new PolytopeVertex(halfLengthX, -halfWidthY, -halfHeightZ), EPSILON);
-      PrintTools.debug(polytope.toString());
       polytope.addVertex(new PolytopeVertex(halfLengthX, halfWidthY, -halfHeightZ), EPSILON);
-      PrintTools.debug(polytope.toString());
       polytope.addVertex(new PolytopeVertex(-halfLengthX, halfWidthY, -halfHeightZ), EPSILON);
-      PrintTools.debug(polytope.toString());
       polytope.addVertex(new PolytopeVertex(-halfLengthX, -halfWidthY, halfHeightZ), EPSILON);
-      PrintTools.debug(polytope.toString());
       polytope.addVertex(new PolytopeVertex(halfLengthX, -halfWidthY, halfHeightZ), EPSILON);
-      PrintTools.debug(polytope.toString());
       polytope.addVertex(new PolytopeVertex(halfLengthX, halfWidthY, halfHeightZ), EPSILON);
-      PrintTools.debug(polytope.toString());
       polytope.addVertex(new PolytopeVertex(-halfLengthX, halfWidthY, halfHeightZ), EPSILON);
-      PrintTools.debug(polytope.toString());
 
       return polytope;
    }
