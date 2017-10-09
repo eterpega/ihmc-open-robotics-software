@@ -10,6 +10,7 @@ import org.junit.Test;
 
 import us.ihmc.commons.Epsilons;
 import us.ihmc.commons.MutationTestFacilitator;
+import us.ihmc.commons.PrintTools;
 import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
 import us.ihmc.euclid.geometry.BoundingBox3D;
 import us.ihmc.euclid.tools.EuclidCoreTestTools;
@@ -351,6 +352,16 @@ public class ConvexPolytopeTest
       EuclidCoreTestTools.assertTuple3DEquals(new Point3D(10.0, 20.0, 30.0), minimumPoint, 1e-10);
       EuclidCoreTestTools.assertTuple3DEquals(new Point3D(11.0, 21.0, 31.0), maximumPoint, 1e-10);
 
+   }
+   
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test (timeout = 1000)
+   public void testSupportingVectorCalculation()
+   {
+      ConvexPolytope cubeOne = ConvexPolytopeConstructor.constructBoxWithCenterAtZero(100.0, 100.0, 0.5);
+      Vector3D supportDirection = new Vector3D(1.0, -1.0, 0.0);
+      Point3D supportVertex = cubeOne.getSupportingVertex(supportDirection);
+      PrintTools.debug(supportVertex.toString());
    }
 
    public static void main(String[] args)
