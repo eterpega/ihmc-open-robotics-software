@@ -21,6 +21,129 @@ import us.ihmc.euclid.tuple3D.Vector3D;
 public class ConvexPolytopeTest
 {
    private final static double EPSILON = Epsilons.ONE_MILLIONTH;
+
+   @Test(timeout = 1000)
+   public void testAdditionWithSquarePyramid()
+   {
+      ConvexPolytope polytope = new ConvexPolytope();
+      PolytopeVertex vertexOne = new PolytopeVertex(0.0, 0.0, 0.0);
+      PolytopeVertex vertexTwo = new PolytopeVertex(1.0, 0.0, 0.0);
+      PolytopeVertex vertexThree = new PolytopeVertex(1.0, 1.0, 0.0);
+      PolytopeVertex vertexFour = new PolytopeVertex(0.0, 1.0, 0.0);
+      PolytopeVertex vertexFive = new PolytopeVertex(0.0, 0.0, 1.0);
+      PolytopeVertex vertexSix = new PolytopeVertex(0.0, 1.0, 1.0);
+      polytope.addVertex(vertexOne, EPSILON);
+      polytope.addVertex(vertexTwo, EPSILON);
+      polytope.addVertex(vertexThree, EPSILON);
+      polytope.addVertex(vertexFour, EPSILON);
+      polytope.addVertex(vertexFive, EPSILON);
+      polytope.addVertex(vertexSix, EPSILON);
+      assertTrue(polytope.getNumberOfFaces() == 5);
+      assertTrue(polytope.getNumberOfEdges() == 9);
+      assertTrue(polytope.getNumberOfVertices() == 6);
+      for (int j = 0; j < polytope.getNumberOfFaces(); j++)
+      {
+         ConvexPolytopeFace face = polytope.getFace(j);
+         for (int i = 0; i < face.getNumberOfEdges(); i++)
+         {
+            assertTrue("Null twin edge for edge: " + face.getEdge(i).toString() + " on face: " + face.toString(), face.getEdge(i).getTwinHalfEdge() != null);
+            assertTrue("Twin edge: " + face.getEdge(i).getTwinHalfEdge().toString() + " mismatch for edge: " + face.getEdge(i).toString() + " on face: "
+                  + face.toString(), face.getEdge(i).getTwinHalfEdge().getOriginVertex() == face.getEdge(i).getDestinationVertex());
+            assertTrue("Twin edge: " + face.getEdge(i).getTwinHalfEdge().toString() + " mismatch for edge: " + face.getEdge(i).toString() + " on face: "
+                  + face.toString(), face.getEdge(i).getTwinHalfEdge().getDestinationVertex() == face.getEdge(i).getOriginVertex());
+         }
+      }
+
+   }
+
+   @Test(timeout = 10000)
+   public void testPartialCylinder()
+   {
+      ConvexPolytope polytope = new ConvexPolytope();
+      polytope.addVertex(0.0, 0.0, 0.0, EPSILON);
+      polytope.addVertex(0.0, 1.0, 0.0, EPSILON);
+      polytope.addVertex(1.0, 2.0, 0.0, EPSILON);
+      polytope.addVertex(2.0, 2.0, 0.0, EPSILON);
+
+      PolytopeVertex newVertex = new PolytopeVertex(3.0, 1.0, 0.0);
+      polytope.addVertex(newVertex, EPSILON);
+      polytope.addVertex(3.0, 0.0, 0.0, EPSILON);
+      polytope.addVertex(2.0, -1.0, 0.0, EPSILON);
+      polytope.addVertex(1.0, -1.0, 0.0, EPSILON);
+
+      polytope.addVertex(0.0, 0.0, 1.0, EPSILON);
+      polytope.addVertex(0.0, 1.0, 1.0, EPSILON);
+      polytope.addVertex(1.0, 2.0, 1.0, EPSILON);
+      polytope.addVertex(2.0, 2.0, 1.0, EPSILON);
+
+      polytope.addVertex(3.0, 1.0, 1.0, EPSILON);
+      polytope.addVertex(3.0, 0.0, 1.0, EPSILON);
+      polytope.addVertex(2.0, -1.0, 1.0, EPSILON);
+      polytope.addVertex(1.0, -1.0, 1.0, EPSILON);
+
+      PrintTools.debug(" *** " +polytope.toString());
+
+      for (int j = 0; j < polytope.getNumberOfFaces(); j++)
+      {
+         ConvexPolytopeFace face = polytope.getFace(j);
+         for (int i = 0; i < face.getNumberOfEdges(); i++)
+         {
+            assertTrue("Null twin edge for edge: " + face.getEdge(i).toString() + " on face: " + face.toString(), face.getEdge(i).getTwinHalfEdge() != null);
+            assertTrue("Twin edge: " + face.getEdge(i).getTwinHalfEdge().toString() + " mismatch for edge: " + face.getEdge(i).toString() + " on face: "
+                  + face.toString(), face.getEdge(i).getTwinHalfEdge().getOriginVertex() == face.getEdge(i).getDestinationVertex());
+            assertTrue("Twin edge: " + face.getEdge(i).getTwinHalfEdge().toString() + " mismatch for edge: " + face.getEdge(i).toString() + " on face: "
+                  + face.toString(), face.getEdge(i).getTwinHalfEdge().getDestinationVertex() == face.getEdge(i).getOriginVertex());
+         }
+      }
+
+      //      PrintTools.debug(newVertex.getNumberOfAssociatedEdges() + "");
+      //      for(int i = 0; i < newVertex.getNumberOfAssociatedEdges(); i++)
+      //      {
+      //         PrintTools.debug("AVertex: " + newVertex.getAssociatedEdge(i).toString());
+      //         PrintTools.debug("AVertexFace: " + newVertex.getAssociatedEdge(i).getTwinHalfEdge().toString());
+      //      }
+      //      polytope.addVertex(1.0, 2.0, 1.0, EPSILON);
+      //      PrintTools.debug(" *** " +polytope.toString());
+      //      polytope.addVertex(2.0, 2.0, 1.0, EPSILON);
+      //      PrintTools.debug(" *** " +polytope.toString());
+      //      
+      //      polytope.addVertex(3.0, 1.0, 1.0, EPSILON);
+      //      polytope.addVertex(3.0, 0.0, 1.0, EPSILON);
+      //      polytope.addVertex(2.0, -1.0, 1.0, EPSILON);
+      //      polytope.addVertex(1.0, -1.0, 1.0, EPSILON);
+
+      //      polytope.addVertex(new PolytopeVertex(center.getX() + enclosingRadius, 0.0, center.getZ() + length / 2.0),
+      //                            EPSILON);
+      //      PolytopeVertex newVertex = new PolytopeVertex(center.getX() + enclosingRadius * Math.cos(vertexAngle),
+      //                                            center.getY() + enclosingRadius * Math.sin(vertexAngle), center.getZ() + length / 2.0);
+      //      List<ConvexPolytopeFace> visibleFaces = new ArrayList<>();
+      //      List<ConvexPolytopeFace> visibleSilhouetteFaces = new ArrayList<>();
+      //      List<ConvexPolytopeFace> faces = new ArrayList<>();
+      //      List<PolytopeHalfEdge> silhouette = new ArrayList<>();
+      //      polytope.getFacesWhichPointIsOn(newVertex, faces, EPSILON);
+      //      polytope.getVisibleFaces(visibleFaces, newVertex, EPSILON);
+      //      polytope.getSilhouetteFaces(visibleSilhouetteFaces, null, visibleFaces);
+      //      PrintTools.debug("On faces: ");
+      //      for(int i = 0; i < faces.size(); i++)
+      //         PrintTools.debug(faces.get(i).toString());
+      //      
+      //      PrintTools.debug("Visible faces: ");
+      //      for(int i = 0; i < visibleFaces.size(); i++)
+      //         PrintTools.debug(visibleFaces.get(i).toString());
+      //
+      //      PrintTools.debug("Silhouette faces: ");
+      //      for(int i = 0; i < visibleSilhouetteFaces.size(); i++)
+      //         PrintTools.debug(visibleSilhouetteFaces.get(i).toString());
+      //      
+      //      PolytopeHalfEdge seedEdge = faces.get(0).getFirstVisibleEdge(newVertex).getTwinHalfEdge();
+      //      PrintTools.debug("Seed edge: " + seedEdge.toString());
+      //      polytope.getVisibleSilhouetteUsingSeed(silhouette, seedEdge, visibleSilhouetteFaces, newVertex);
+      //      PrintTools.debug("Silhouette edges: ");
+      //      for(int i = 0; i < silhouette.size(); i++)
+      //         PrintTools.debug(silhouette.get(i).toString());
+
+   }
+
    @ContinuousIntegrationTest(estimatedDuration = 0.0)
    @Test(timeout = 1000)
    public void testConvexPolytopeVisibleSilhouetteCalculation()
@@ -273,6 +396,8 @@ public class ConvexPolytopeTest
 
       Vector3D supportDirection = new Vector3D(1.0, 1.0, 1.0);
       Point3D supportingVertex = polytope.getSupportingVertex(supportDirection);
+      PrintTools.debug(supportingVertex.toString());
+      PrintTools.debug(vertexSeven.toString());
       assertTrue(supportingVertex == vertexSeven.getPosition());
 
       supportDirection = new Vector3D(-1.0, -1.0, -1.0);
@@ -294,7 +419,7 @@ public class ConvexPolytopeTest
       List<PolytopeHalfEdge> edges = cubeOne.getEdges();
       assertEquals(24, edges.size());
    }
-   
+
    @ContinuousIntegrationTest(estimatedDuration = 0.0)
    @Test(timeout = 30000)
    public void testBoundingBoxes()
@@ -353,9 +478,9 @@ public class ConvexPolytopeTest
       EuclidCoreTestTools.assertTuple3DEquals(new Point3D(11.0, 21.0, 31.0), maximumPoint, 1e-10);
 
    }
-   
+
    @ContinuousIntegrationTest(estimatedDuration = 0.0)
-   @Test (timeout = 1000)
+   @Test(timeout = 1000)
    public void testSupportingVectorCalculation()
    {
       ConvexPolytope cubeOne = ConvexPolytopeConstructor.constructBoxWithCenterAtZero(100.0, 100.0, 0.5);
