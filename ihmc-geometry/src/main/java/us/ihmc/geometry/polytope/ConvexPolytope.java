@@ -3,7 +3,12 @@ package us.ihmc.geometry.polytope;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.text.html.parser.DocumentParser;
+
+import com.sun.media.jfxmedia.events.NewFrameEvent;
+
 import us.ihmc.commons.Epsilons;
+import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.geometry.BoundingBox3D;
 import us.ihmc.euclid.interfaces.GeometryObject;
 import us.ihmc.euclid.transform.interfaces.Transform;
@@ -238,6 +243,7 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
     */
    public void addVertex(PolytopeVertex vertexToAdd, double epsilon)
    {
+      PrintTools.debug(" ******* Adding vertex ***** ");
       if (faces.size() == 0)
       {
          // Polytope is empty. Creating face and adding the vertex
@@ -268,81 +274,33 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
                visibleSilhouetteList.add(halfEdge);
                halfEdge = halfEdge.getPreviousHalfEdge();
             }
-            ConvexPolytopeFace firstNewFace = createFaceFromTwinEdgeAndVertex(vertexToAdd, visibleSilhouetteList.get(0));
-            twinEdges(visibleSilhouetteList.get(0), firstNewFace.getEdge(0));
-            visibleSilhouetteList.remove(0);
-            createFacesFromVisibleSilhouette(firstNewFace.getEdge(0).getNextHalfEdge(), firstNewFace.getEdge(0).getPreviousHalfEdge(), visibleSilhouetteList);
+            onFaceList.clear();
+            createFacesFromVisibleSilhouetteAndOnFaceList(visibleSilhouetteList, onFaceList, vertexToAdd);
          }
          boundingBoxNeedsUpdating = true;
          return;
       }
 
       getVisibleFaces(visibleFaces, vertexToAdd, epsilon);
+//      for (int i = 0; i < visibleFaces.size(); i++)
+//         PrintTools.debug("Visible Face: " + visibleFaces.get(i).toString());
       if (visibleFaces.isEmpty())
          return;
+      else
+         PrintTools.debug("Got visible faces");
       getFacesWhichPointIsOn(vertexToAdd, onFaceList, Epsilons.ONE_BILLIONTH);
       getSilhouetteFaces(silhouetteFaces, nonSilhouetteFaces, visibleFaces);
+      PrintTools.debug("Got silhouette faces");
       removeFaces(nonSilhouetteFaces);
-      PolytopeHalfEdge firstHalfEdgeForSilhouette = onFaceList.size() > 0 ? onFaceList.get(0).getFirstVisibleEdge(vertexToAdd).getTwinHalfEdge()
-            : getSeedEdgeForSilhouetteCalculation(silhouetteFaces);
+      PrintTools.debug(onFaceList.size() + " ");
+      // onFaceList.size() > 0 ? onFaceList.get(0).getFirstVisibleEdge(vertexToAdd).getTwinHalfEdge()      : 
+      PolytopeHalfEdge firstHalfEdgeForSilhouette = getSeedEdgeForSilhouetteCalculation(silhouetteFaces);
+      PrintTools.debug("Silhouette seed: " + firstHalfEdgeForSilhouette == null ? "null" : firstHalfEdgeForSilhouette.toString());
       getVisibleSilhouetteUsingSeed(visibleSilhouetteList, firstHalfEdgeForSilhouette, silhouetteFaces);
+      PrintTools.debug("Got silhouette");
       removeFaces(silhouetteFaces);
-      switch (onFaceList.size())
-      {
-      case 0:
-         ConvexPolytopeFace firstNewFace = createFaceFromTwinEdgeAndVertex(vertexToAdd, visibleSilhouetteList.get(0));
-         twinEdges(visibleSilhouetteList.get(0), firstNewFace.getEdge(0));
-         visibleSilhouetteList.remove(0);
-         createFacesFromVisibleSilhouette(firstNewFace.getEdge(0).getNextHalfEdge(), firstNewFace.getEdge(0).getPreviousHalfEdge(), visibleSilhouetteList);
-         break;
-      case 1:
-         onFaceList.get(0).addVertex(vertexToAdd);
-         visibleSilhouetteList.remove(0);
-         createFacesFromVisibleSilhouette(vertexToAdd.getAssociatedEdge(0).getPreviousHalfEdge(), vertexToAdd.getAssociatedEdge(0), visibleSilhouetteList);
-         break;
-      case 2:
-         onFaceList.get(0).getVisibleEdgeList(vertexToAdd, visibleFaceEdgeList1);
-         onFaceList.get(1).getVisibleEdgeList(vertexToAdd, visibleFaceEdgeList2);
-         visibleSilhouetteList.removeAll(visibleFaceEdgeList1);
-         visibleSilhouetteList.removeAll(visibleFaceEdgeList2);
-         onFaceList.get(0).addVertex(vertexToAdd);
-         onFaceList.get(1).addVertex(vertexToAdd);
-         if (visibleFaceEdgeList2.get(0).getDestinationVertex() != visibleFaceEdgeList1.get(0).getDestinationVertex())
-         {
-            List<PolytopeHalfEdge> tempListReference = visibleFaceEdgeList1;
-            visibleFaceEdgeList1 = visibleFaceEdgeList2;
-            visibleFaceEdgeList2 = tempListReference;
-         }
-         twinEdges(visibleFaceEdgeList1.get(0).getNextHalfEdge(), visibleFaceEdgeList2.get(0));
-         createFacesFromVisibleSilhouette(visibleFaceEdgeList1.get(0), visibleFaceEdgeList2.get(0).getNextHalfEdge(), visibleSilhouetteList);
-         break;
-      case 3:
-         // TODO change this case to default by following the visible edge list 
-         // Notes 1) Instead on getting the list of first visible edges the onFaceList use the visibleSilhouette by marking faces
-         // Notes 2) Now the onFaceList had an order associated with it and can be used for twinning edges created
-         visibleFaceEdgeList1.clear();
-         for (int i = 0; i < onFaceList.size(); i++)
-            visibleFaceEdgeList1.add(onFaceList.get(i).getFirstVisibleEdge(vertexToAdd).getPreviousHalfEdge());
-         for (int i = 0; i < onFaceList.size(); i++)
-            onFaceList.get(i).addVertex(vertexToAdd);
-         double tripleProduct = getTripleProduct(visibleFaceEdgeList1.get(0).getNextHalfEdge(), visibleFaceEdgeList1.get(1).getNextHalfEdge(),
-                                                 visibleFaceEdgeList1.get(2).getNextHalfEdge());
-         if (tripleProduct > 0.0)
-         {
-            twinEdges(visibleFaceEdgeList1.get(0).getNextHalfEdge(), visibleFaceEdgeList1.get(1).getNextHalfEdge().getNextHalfEdge());
-            twinEdges(visibleFaceEdgeList1.get(1).getNextHalfEdge(), visibleFaceEdgeList1.get(2).getNextHalfEdge().getNextHalfEdge());
-            twinEdges(visibleFaceEdgeList1.get(2).getNextHalfEdge(), visibleFaceEdgeList1.get(0).getNextHalfEdge().getNextHalfEdge());
-         }
-         else
-         {
-            twinEdges(visibleFaceEdgeList1.get(0).getNextHalfEdge(), visibleFaceEdgeList1.get(2).getNextHalfEdge().getNextHalfEdge());
-            twinEdges(visibleFaceEdgeList1.get(1).getNextHalfEdge(), visibleFaceEdgeList1.get(0).getNextHalfEdge().getNextHalfEdge());
-            twinEdges(visibleFaceEdgeList1.get(2).getNextHalfEdge(), visibleFaceEdgeList1.get(1).getNextHalfEdge().getNextHalfEdge());
-         }
-         break;
-      default:
-         throw new RuntimeException("Unhandled case - needs to be added. Refer notes for case 3");
-      }
+      createFacesFromVisibleSilhouetteAndOnFaceList(visibleSilhouetteList, onFaceList, vertexToAdd);
+      PrintTools.debug(" ******** Done adding vertex ********");
       boundingBoxNeedsUpdating = true;
    }
 
@@ -368,8 +326,8 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
       return edgeCandidate;
    }
 
-   private void getSilhouetteFaces(List<ConvexPolytopeFace> silhouetteFacesToPack, List<ConvexPolytopeFace> nonSilhouetteFacesToPack,
-                                   List<ConvexPolytopeFace> visibleFaceList)
+   public void getSilhouetteFaces(List<ConvexPolytopeFace> silhouetteFacesToPack, List<ConvexPolytopeFace> nonSilhouetteFacesToPack,
+                                  List<ConvexPolytopeFace> visibleFaceList)
    {
       if (silhouetteFacesToPack != null)
          silhouetteFacesToPack.clear();
@@ -399,25 +357,41 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
       getVisibleSilhouetteUsingSeed(visibleSilhouetteToPack, getSeedEdgeForSilhouetteCalculation(silhouetteFaces), silhouetteFaces);
    }
 
-   private void getVisibleSilhouetteUsingSeed(List<PolytopeHalfEdge> visibleSilhouetteToPack, PolytopeHalfEdge seedHalfEdge,
-                                              List<ConvexPolytopeFace> silhouetteFaceList)
+   public void getVisibleSilhouetteUsingSeed(List<PolytopeHalfEdge> visibleSilhouetteToPack, PolytopeHalfEdge seedHalfEdge,
+                                             List<ConvexPolytopeFace> silhouetteFaceList)
    {
+      int iteration = 0;
       PolytopeHalfEdge halfEdgeUnderConsideration = seedHalfEdge;
       visibleSilhouetteToPack.clear();
+      PrintTools.debug("Seed edge: " + seedHalfEdge.toString());
+//      for(int i = 0; i < silhouetteFaceList.size(); i++)
+//      {
+//         PrintTools.debug(silhouetteFaceList.get(i).toString());
+//      }
       while (true)
       {
+         iteration++;
          visibleSilhouetteToPack.add(halfEdgeUnderConsideration.getTwinHalfEdge());
-         if (halfEdgeUnderConsideration.getNextHalfEdge().getTwinHalfEdge() != null
-               && silhouetteFaceList.contains(halfEdgeUnderConsideration.getNextHalfEdge().getTwinHalfEdge().getFace()))
-            halfEdgeUnderConsideration = halfEdgeUnderConsideration.getNextHalfEdge().getTwinHalfEdge().getNextHalfEdge();
-         else
-            halfEdgeUnderConsideration = halfEdgeUnderConsideration.getNextHalfEdge();
-         if (halfEdgeUnderConsideration == seedHalfEdge)
+         //PrintTools.debug("Adding: " + halfEdgeUnderConsideration.toString());
+         PolytopeVertex destinationVertex = halfEdgeUnderConsideration.getDestinationVertex();
+         for (int i = 0; i < destinationVertex.getNumberOfAssociatedEdges(); i++)
+         {
+            //PrintTools.debug("Edge: " + destinationVertex.getAssociatedEdge(i).toString() + " "
+            //      + silhouetteFaceList.contains(destinationVertex.getAssociatedEdge(i).getFace()) + " asdasd "
+            //            + silhouetteFaceList.contains(destinationVertex.getAssociatedEdge(i).getTwinHalfEdge().getFace()) );
+            if (silhouetteFaceList.contains(destinationVertex.getAssociatedEdge(i).getFace())
+                  && !silhouetteFaceList.contains(destinationVertex.getAssociatedEdge(i).getTwinHalfEdge().getFace()))
+            {
+               halfEdgeUnderConsideration = destinationVertex.getAssociatedEdge(i);
+               break;
+            }
+         }
+         if (halfEdgeUnderConsideration == seedHalfEdge || iteration > 10)
             break;
       }
    }
 
-   private PolytopeHalfEdge getSeedEdgeForSilhouetteCalculation(List<ConvexPolytopeFace> silhouetteFaceList)
+   public PolytopeHalfEdge getSeedEdgeForSilhouetteCalculation(List<ConvexPolytopeFace> silhouetteFaceList)
    {
       ConvexPolytopeFace seedFaceCandidate = silhouetteFaceList.get(0);
       PolytopeHalfEdge seedEdgeCandidate = seedFaceCandidate.getEdge(0);
@@ -444,15 +418,43 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
    //      twinEdges(visibleSilhouetteList.get(visibleSilhouetteList.size() - 1).getTwinHalfEdge().getNextHalfEdge(), firstNewFace.getEdge(0).getPreviousHalfEdge());
    //   }
 
-   private void createFacesFromVisibleSilhouette(PolytopeHalfEdge leadingEdge, PolytopeHalfEdge trailingEdge, List<PolytopeHalfEdge> silhouetteEdges)
+   private void createFacesFromVisibleSilhouetteAndOnFaceList(List<PolytopeHalfEdge> silhouetteEdges, List<ConvexPolytopeFace> onFaceList, PolytopeVertex vertexToAdd)
    {
-      PolytopeHalfEdge previousLeadingEdge = leadingEdge;
-      for (int i = 0; i < silhouetteEdges.size(); i++)
+      //for(int i = 0; i < silhouetteEdges.size(); i++)
+      //PrintTools.debug("Sil: " + silhouetteEdges.get(i));
+      //PrintTools.debug(silhouetteEdges.get(0).getFace().toString());
+      PolytopeHalfEdge previousLeadingEdge = null, trailingEdge = null;
+      if(onFaceList.contains(silhouetteEdges.get(0).getFace()))
+      {
+         previousLeadingEdge = silhouetteEdges.get(0).getFace().getFirstVisibleEdge(vertexToAdd);
+         silhouetteEdges.get(0).getFace().addVertex(vertexToAdd);
+         trailingEdge = previousLeadingEdge.getNextHalfEdge();
+      }
+      else
+      {
+         ConvexPolytopeFace firstFace = createFaceFromTwinEdgeAndVertex(vertexToAdd, silhouetteEdges.get(0));
+         previousLeadingEdge = firstFace.getEdge(0).getNextHalfEdge();
+         trailingEdge = firstFace.getEdge(0).getPreviousHalfEdge();
+         //PrintTools.debug("This happened");
+      }
+      //PrintTools.debug("PrevLeadEdge: "  + ((previousLeadingEdge == null )? "null" : previousLeadingEdge.toString()));
+      //PrintTools.debug("TrailEdge: "  + ((trailingEdge == null) ? "null" : trailingEdge.toString() ));
+      for (int i = 1; i < silhouetteEdges.size(); i++)
       {
          //PrintTools.debug("Previous leading: " + previousLeadingEdge.toString() + " Visible : " + visibleSilhouetteList.get(i).toString());
-         ConvexPolytopeFace newFace = createFaceFromTwinEdgeAndVertex(leadingEdge.getDestinationVertex(), silhouetteEdges.get(i));
-         twinEdges(previousLeadingEdge, newFace.getEdge(0).getPreviousHalfEdge());
-         previousLeadingEdge = newFace.getEdge(0).getNextHalfEdge();
+         if(onFaceList.contains(silhouetteEdges.get(i).getFace()))
+         {
+            PolytopeHalfEdge tempEdge = silhouetteEdges.get(i).getFace().getFirstVisibleEdge(vertexToAdd);
+            silhouetteEdges.get(i).getFace().addVertex(vertexToAdd);
+            twinEdges(previousLeadingEdge, tempEdge.getNextHalfEdge());
+            previousLeadingEdge = tempEdge;
+         }
+         else
+         {
+            ConvexPolytopeFace newFace = createFaceFromTwinEdgeAndVertex(vertexToAdd, silhouetteEdges.get(i));
+            twinEdges(previousLeadingEdge, newFace.getEdge(0).getPreviousHalfEdge());
+            previousLeadingEdge = newFace.getEdge(0).getNextHalfEdge();
+         }
       }
       twinEdges(previousLeadingEdge, trailingEdge);
    }
@@ -541,26 +543,26 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
    @Override
    public Point3D getSupportingVertex(Vector3D supportDirection)
    {
-      ConvexPolytopeFace bestFace = faces.get(0);
-      ConvexPolytopeFace bestFaceCandidate = faces.get(0);
-      double maxDot = supportDirection.dot(bestFaceCandidate.getFaceNormal());
+      PolytopeVertex bestVertex = faces.get(0).getEdge(0).getOriginVertex();
+      tempVector.set(bestVertex);
+      double maxDotProduct = supportDirection.dot(tempVector);
+      PolytopeVertex vertexCandidate = bestVertex;
       while (true)
       {
-         for (int i = 0; i < bestFace.getNumberOfEdges(); i++)
+         for (int i = 0; i < bestVertex.getNumberOfAssociatedEdges(); i++)
          {
-            double dotCandidate = supportDirection.dot(bestFace.getNeighbouringFace(i).getFaceNormal());
-            if (maxDot < dotCandidate)
+            tempVector.set(bestVertex.getAssociatedEdge(i).getDestinationVertex());
+            double dotProduct = supportDirection.dot(tempVector);
+            if (dotProduct > maxDotProduct)
             {
-               maxDot = dotCandidate;
-               bestFaceCandidate = bestFace.getNeighbouringFace(i);
+               vertexCandidate = bestVertex.getAssociatedEdge(i).getDestinationVertex();
+               maxDotProduct = dotProduct;
             }
          }
-         if (bestFace == bestFaceCandidate)
-         {
-            return bestFace.getSupportingVertex(supportDirection);
-         }
+         if (bestVertex == vertexCandidate)
+            return bestVertex.getPosition();
          else
-            bestFace = bestFaceCandidate;
+            bestVertex = vertexCandidate;
       }
    }
 

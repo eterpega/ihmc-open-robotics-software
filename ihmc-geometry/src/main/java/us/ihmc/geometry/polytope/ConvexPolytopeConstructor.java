@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Random;
 
 import us.ihmc.commons.Epsilons;
+import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tools.EuclidCoreRandomTools;
 import us.ihmc.euclid.tuple3D.Point3D;
@@ -57,7 +58,7 @@ public class ConvexPolytopeConstructor
       double scale = radius / Math.sqrt(t1 * t1 + t2 * t2);
       t1 *= scale;
       t2 *= scale;
-      
+
       polytope.addVertex(center.getX() - t1, center.getY() + t2, center.getZ(), EPSILON);
       polytope.addVertex(center.getX() + t1, center.getY() + t2, center.getZ(), EPSILON);
       polytope.addVertex(center.getX() - t1, center.getY() - t2, center.getZ(), EPSILON);
@@ -73,17 +74,18 @@ public class ConvexPolytopeConstructor
       polytope.addVertex(center.getX() - t2, center.getY(), center.getZ() - t1, EPSILON);
       polytope.addVertex(center.getX() - t2, center.getY(), center.getZ() + t1, EPSILON);
 
-      List<PolytopeHalfEdge> edges = new ArrayList<>((int)(120 * Math.pow(4, recursionLevel)));
+      List<PolytopeHalfEdge> edges = new ArrayList<>((int) (120 * Math.pow(4, recursionLevel)));
       for (int i = 0; i < recursionLevel; i++)
       {
          edges.clear();
          edges.addAll(polytope.getEdges());
-         scale = radius / Math.sqrt( radius * radius - edges.get(0).getEdgeVector().dot(edges.get(0).getEdgeVector()) ) / 2.0;
-         for(int j = 0; j < edges.size(); )
+         scale = radius / Math.sqrt(radius * radius - edges.get(0).getEdgeVector().dot(edges.get(0).getEdgeVector())) / 2.0;
+         for (int j = 0; j < edges.size();)
          {
             PolytopeVertex origin = edges.get(j).getOriginVertex();
             PolytopeVertex destination = edges.get(j).getDestinationVertex();
-            PolytopeVertex newVertex = new PolytopeVertex((origin.getX() + destination.getX()) * scale, (origin.getY() + destination.getY()) * scale, (origin.getZ() + destination.getZ()) * scale);
+            PolytopeVertex newVertex = new PolytopeVertex((origin.getX() + destination.getX()) * scale, (origin.getY() + destination.getY()) * scale,
+                                                          (origin.getZ() + destination.getZ()) * scale);
             polytope.addVertex(newVertex, EPSILON);
             edges.remove(edges.get(j));
             edges.remove(edges.get(j).getTwinHalfEdge());
@@ -112,13 +114,16 @@ public class ConvexPolytopeConstructor
       double vertexAngle = 2 * Math.PI / numberOfDivisionsForCurvedSurface;
       double enclosingRadius = radius / Math.cos(vertexAngle / 2.0);
       for (int i = 0; i < numberOfDivisionsForCurvedSurface; i++)
-         polytope.addVertex(new PolytopeVertex(center.getX() + enclosingRadius * Math.cos(i * vertexAngle), center.getY() + Math.sin(i * vertexAngle),
-                                               center.getZ() - length / 2.0),
+         polytope.addVertex(new PolytopeVertex(center.getX() + enclosingRadius * Math.cos(i * vertexAngle),
+                                               center.getY() + enclosingRadius * Math.sin(i * vertexAngle), center.getZ() - length / 2.0),
                             EPSILON);
+      PrintTools.debug(polytope.toString());
       for (int i = 0; i < numberOfDivisionsForCurvedSurface; i++)
-         polytope.addVertex(new PolytopeVertex(center.getX() + enclosingRadius * Math.cos(i * vertexAngle), center.getY() + Math.sin(i * vertexAngle),
-                                               center.getZ() + length / 2.0),
+      {
+         polytope.addVertex(new PolytopeVertex(center.getX() + enclosingRadius * Math.cos(i * vertexAngle),
+                                               center.getY() + enclosingRadius * Math.sin(i * vertexAngle), center.getZ() + length / 2.0),
                             EPSILON);
+      }
       return polytope;
    }
 
