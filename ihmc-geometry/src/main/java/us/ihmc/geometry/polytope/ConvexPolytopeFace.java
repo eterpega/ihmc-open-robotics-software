@@ -182,7 +182,7 @@ public class ConvexPolytopeFace implements GeometryObject<ConvexPolytopeFace>, C
       }
    }
 
-   public PolytopeHalfEdge getFirstVisibleEdge(Point3DBasics vertex)
+   public PolytopeHalfEdge getFirstVisibleEdge(Point3DReadOnly vertex)
    {
       if(edges.size() == 0)
          return null;
@@ -215,19 +215,19 @@ public class ConvexPolytopeFace implements GeometryObject<ConvexPolytopeFace>, C
       return isPointOnInteriorSideOfEdgeInternal(point, edges.get(index));
    }
    
-   private boolean isPointOnInteriorSideOfEdgeInternal(Point3DBasics point, PolytopeHalfEdge halfEdge)
+   private boolean isPointOnInteriorSideOfEdgeInternal(Point3DReadOnly point, PolytopeHalfEdge halfEdge)
    {
       return getVisibilityProduct(point, halfEdge) < 0; 
    }
 
-   private double getVisibilityProduct(Point3DBasics point, PolytopeHalfEdge halfEdge)
+   private double getVisibilityProduct(Point3DReadOnly point, PolytopeHalfEdge halfEdge)
    {
       tempVector.sub(point, halfEdge.getOriginVertex());
       tempVector.cross(halfEdge.getEdgeVector());
       return tempVector.dot(faceNormal);
    }
    
-   public boolean isPointInFacePlane(Point3DBasics vertexToCheck, double epsilon)
+   public boolean isPointInFacePlane(Point3DReadOnly vertexToCheck, double epsilon)
    {
       updateFaceNormal();
       tempVector.sub(vertexToCheck, edges.get(0).getOriginVertex());

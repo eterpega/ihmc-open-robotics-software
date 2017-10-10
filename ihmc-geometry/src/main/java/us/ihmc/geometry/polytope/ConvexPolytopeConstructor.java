@@ -13,7 +13,7 @@ import us.ihmc.euclid.tuple3D.Vector3D;
 
 public class ConvexPolytopeConstructor
 {
-   private static final double EPSILON = Epsilons.ONE_TEN_THOUSANDTH;
+   private static final double EPSILON = Epsilons.ONE_BILLIONTH;
 
    public static ConvexPolytope constructUnitCube()
    {
@@ -74,24 +74,76 @@ public class ConvexPolytopeConstructor
       polytope.addVertex(center.getX() - t2, center.getY(), center.getZ() - t1, EPSILON);
       polytope.addVertex(center.getX() - t2, center.getY(), center.getZ() + t1, EPSILON);
 
-      List<PolytopeHalfEdge> edges = new ArrayList<>((int) (120 * Math.pow(4, recursionLevel)));
-      for (int i = 0; i < recursionLevel; i++)
+      // FIXME add the recursion level code here. Mostly need to precompute the points and then add to polytope. But then whats the point of having the polytope class
+      //      List<PolytopeHalfEdge> edges = new ArrayList<>((int) (120 * Math.pow(4, recursionLevel)));
+      //      for (int i = 0; i < recursionLevel; i++)
+      //      {
+      //         edges.clear();
+      //         edges.addAll(polytope.getEdges());
+      //         scale = radius / Math.sqrt(radius * radius - edges.get(0).getEdgeVector().dot(edges.get(0).getEdgeVector())) / 2.0;
+      //         for (int j = 0; j < edges.size();)
+      //         {
+      //            PrintTools.debug(j + "");
+      //            PolytopeVertex origin = edges.get(j).getOriginVertex();
+      //            PolytopeVertex destination = edges.get(j).getDestinationVertex();
+      //            PrintTools.debug(origin == null ? "null" : origin.toString());
+      //            PrintTools.debug(destination == null ? "null" : origin.toString());
+      //            PolytopeVertex newVertex = new PolytopeVertex((origin.getX() + destination.getX()) * scale, (origin.getY() + destination.getY()) * scale,
+      //                                                          (origin.getZ() + destination.getZ()) * scale);
+      //            polytope.addVertex(newVertex, EPSILON);
+      //            edges.remove(edges.get(j));
+      //         }
+      //      }
+      return polytope;
+   }
+
+   public static ConvexPolytope constructSphere(Point3D center, double radius, int cubeDivisions)
+   {
+      ConvexPolytope polytope = new ConvexPolytope();
+      List<PolytopeVertex> vertices = new ArrayList<>();
+      for (int i = 0; i < cubeDivisions; i++)
       {
-         edges.clear();
-         edges.addAll(polytope.getEdges());
-         scale = radius / Math.sqrt(radius * radius - edges.get(0).getEdgeVector().dot(edges.get(0).getEdgeVector())) / 2.0;
-         for (int j = 0; j < edges.size();)
+         for (int j = 0; j < cubeDivisions; j++)
          {
-            PolytopeVertex origin = edges.get(j).getOriginVertex();
-            PolytopeVertex destination = edges.get(j).getDestinationVertex();
-            PolytopeVertex newVertex = new PolytopeVertex((origin.getX() + destination.getX()) * scale, (origin.getY() + destination.getY()) * scale,
-                                                          (origin.getZ() + destination.getZ()) * scale);
-            polytope.addVertex(newVertex, EPSILON);
-            edges.remove(edges.get(j));
-            edges.remove(edges.get(j).getTwinHalfEdge());
+            PolytopeVertex vertex = new PolytopeVertex( (2.0 * (float) i / (float)cubeDivisions - 1) * radius, (2.0 * (float) j / (float)cubeDivisions - 1) * radius, -radius);
+            vertices.add(vertex);
          }
       }
-
+      
+      for (int i = 1; i < cubeDivisions; i++)
+      {
+         for (int j = 0; j < cubeDivisions; j++)
+         {
+            PolytopeVertex vertex = new PolytopeVertex( -radius, (2.0 * (float) j / (float)cubeDivisions - 1) * radius, (2.0 * (float) i / (float)cubeDivisions - 1) * radius);
+            vertices.add(vertex);
+            vertex = new PolytopeVertex( (2.0 * (float) j / (float)cubeDivisions - 1) * radius, -radius, (2.0 * (float) i / (float)cubeDivisions - 1) * radius);
+            vertices.add(vertex);
+            vertex = new PolytopeVertex( (2.0 * (float) j / (float)cubeDivisions - 1) * radius, radius, (2.0 * (float) i / (float)cubeDivisions - 1) * radius);
+            vertices.add(vertex);
+            vertex = new PolytopeVertex( radius, (2.0 * (float) j / (float)cubeDivisions - 1) * radius, (2.0 * (float) i / (float)cubeDivisions - 1) * radius);
+            vertices.add(vertex);
+         }
+      }
+      
+      for (int i = 1; i < cubeDivisions -1; i++)
+      {
+         for (int j = 1; j < cubeDivisions -1; j++)
+         {
+            PolytopeVertex vertex = new PolytopeVertex( (2.0 * (float) i / (float)cubeDivisions - 1) * radius, (2.0 * (float) j / (float)cubeDivisions - 1) * radius, radius);
+            vertices.add(vertex);
+         }
+      }
+      
+      for(int i = 0; i < vertices.size(); i++)
+      {
+         PrintTools.debug("" + i);
+         PolytopeVertex vertex = vertices.get(i);
+         double mag = Math.sqrt(vertex.getX() * vertex.getX() + vertex.getY() * vertex.getY() + vertex.getZ() * vertex.getZ());
+         vertex.setX(vertex.getX() * radius / mag);
+         vertex.setY(vertex.getY() * radius / mag);
+         vertex.setZ(vertex.getZ() * radius / mag);
+         polytope.addVertex(vertex, EPSILON);
+      }
       return polytope;
    }
 
@@ -117,7 +169,6 @@ public class ConvexPolytopeConstructor
          polytope.addVertex(new PolytopeVertex(center.getX() + enclosingRadius * Math.cos(i * vertexAngle),
                                                center.getY() + enclosingRadius * Math.sin(i * vertexAngle), center.getZ() - length / 2.0),
                             EPSILON);
-      PrintTools.debug(polytope.toString());
       for (int i = 0; i < numberOfDivisionsForCurvedSurface; i++)
       {
          polytope.addVertex(new PolytopeVertex(center.getX() + enclosingRadius * Math.cos(i * vertexAngle),
