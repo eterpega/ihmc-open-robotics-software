@@ -1,9 +1,8 @@
 package us.ihmc.geometry.polytope;
 
-import us.ihmc.euclid.tuple3D.interfaces.Vector3DBasics;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 
-public interface PolytopeHalfEdgeBasics extends Vector3DReadOnly
+public interface PolytopeHalfEdgeBasics extends Vector3DReadOnly, Simplex
 {
    PolytopeHalfEdgeBasics getTwinHalfEdge();
    PolytopeHalfEdgeBasics getNextHalfEdge();
@@ -11,5 +10,4 @@ public interface PolytopeHalfEdgeBasics extends Vector3DReadOnly
    PolytopeVertexBasics getOriginVertex();
    PolytopeVertexBasics getDestinationVertex();
    ConvexPolytopeFaceBasics getFace();
-   
 }

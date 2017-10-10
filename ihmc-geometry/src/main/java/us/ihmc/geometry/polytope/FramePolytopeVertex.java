@@ -3,11 +3,15 @@ package us.ihmc.geometry.polytope;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.ejml.data.DenseMatrix64F;
+
 import us.ihmc.euclid.referenceFrame.FrameGeometryObject;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 
 public class FramePolytopeVertex extends FrameGeometryObject<FramePolytopeVertex, PolytopeVertex> implements PolytopeVertexBasics
@@ -154,5 +158,33 @@ public class FramePolytopeVertex extends FrameGeometryObject<FramePolytopeVertex
    public void setZ(double z)
    {
       polytopeVertex.setZ(z);
+   }
+
+   @Override
+   public double getShortestDistanceTo(Point3DReadOnly point)
+   {
+      // TODO Auto-generated method stub
+      return 0;
+   }
+
+   @Override
+   public void getSupportVectorDirectionTo(Point3DReadOnly point, Vector3D supportVectorToPack)
+   {
+      // TODO Auto-generated method stub
+      
+   }
+
+   @Override
+   public void getSupportVectorJacobianTo(Point3DReadOnly point, DenseMatrix64F jacobianToPack)
+   {
+      // TODO Auto-generated method stub
+      
+   }
+
+   @Override
+   public Simplex getSmallestSimplexMemberReference(Point3DReadOnly point)
+   {
+      // TODO Auto-generated method stub
+      return null;
    }
 }

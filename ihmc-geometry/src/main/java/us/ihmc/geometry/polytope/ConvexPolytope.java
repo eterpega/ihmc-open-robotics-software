@@ -3,6 +3,8 @@ package us.ihmc.geometry.polytope;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.ejml.data.DenseMatrix64F;
+
 import us.ihmc.commons.Epsilons;
 import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.geometry.BoundingBox3D;
@@ -21,7 +23,7 @@ import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
  * @author Apoorv S
  */
 
-public class ConvexPolytope implements GeometryObject<ConvexPolytope>, SupportingVertexHolder
+public class ConvexPolytope implements GeometryObject<ConvexPolytope>, SupportingVertexHolder, Simplex
 {
    private final ArrayList<PolytopeVertex> vertices = new ArrayList<>();
    private final ArrayList<PolytopeHalfEdge> edges = new ArrayList<>();
@@ -523,7 +525,7 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
    {
       return isInteriorPointInternal(pointToCheck, epsilon) == null;
    }
-
+   
    @Override
    public Point3D getSupportingVertex(Vector3D supportDirection)
    {
@@ -549,7 +551,7 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
             bestVertex = vertexCandidate;
       }
    }
-
+   
    public String toString()
    {
       String string = "\n\nNumber of faces: " + faces.size();
@@ -615,5 +617,59 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
       vertices.clear();
       edges.clear();
       faces.clear();
+   }
+
+   @Override
+   public double getShortestDistanceTo(Point3DReadOnly point)
+   {
+      return getFaceContainingPointClosestTo(point).getShortestDistanceTo(point);
+   }
+
+   public ConvexPolytopeFace getFaceContainingPointClosestTo(Point3DReadOnly point)
+   {
+      unmarkAllFaces();
+      ConvexPolytopeFace bestFace = faces.get(0);
+      ConvexPolytopeFace faceUnderConsideration = bestFace;
+      double maxDotProduct = faceUnderConsideration.getFaceVisibilityProduct(point);
+      faceUnderConsideration.mark();
+      for(int i = 0; i < faces.size(); i++)
+      {
+         for(int j = 0; j < faceUnderConsideration.getNumberOfEdges(); j++)
+         {
+            if(faceUnderConsideration.getNeighbouringFace(j).isNotMarked())
+            {
+               double dotProduct = faceUnderConsideration.getNeighbouringFace(j).getFaceVisibilityProduct(point);
+               if(dotProduct > maxDotProduct)
+               {
+                  maxDotProduct = dotProduct;
+                  faceUnderConsideration = faceUnderConsideration.getNeighbouringFace(j);
+               }
+               faceUnderConsideration.getNeighbouringFace(j).mark();
+            }
+         }
+         if(faceUnderConsideration == bestFace)
+            break;
+         else
+            faceUnderConsideration = bestFace;
+      }
+      return bestFace;
+   }
+   
+   @Override
+   public void getSupportVectorDirectionTo(Point3DReadOnly point, Vector3D supportVectorToPack)
+   {
+      getFaceContainingPointClosestTo(point).getSupportVectorDirectionTo(point, supportVectorToPack);
+   }
+
+   @Override
+   public void getSupportVectorJacobianTo(Point3DReadOnly point, DenseMatrix64F jacobianToPack)
+   {
+      getFaceContainingPointClosestTo(point).getSupportVectorJacobianTo(point, jacobianToPack);
+   }
+
+   @Override
+   public Simplex getSmallestSimplexMemberReference(Point3DReadOnly point)
+   {
+      return getFaceContainingPointClosestTo(point).getSmallestSimplexMemberReference(point);
    }
 }

@@ -1,8 +1,14 @@
 package us.ihmc.geometry.polytope;
 
+import org.ejml.data.DenseMatrix64F;
+import org.ejml.ops.CommonOps;
+
+import us.ihmc.euclid.geometry.tools.EuclidGeometryTools;
 import us.ihmc.euclid.interfaces.GeometryObject;
 import us.ihmc.euclid.transform.interfaces.Transform;
+import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 
 /**
@@ -25,6 +31,7 @@ public class PolytopeHalfEdge implements GeometryObject<PolytopeHalfEdge>, Polyt
     * Not recomputed on change of values. Only recomputed when called through its getter
     */
    private Vector3D edgeVector = new Vector3D();
+   private Point3D tempPoint = new Point3D();
 
    /**
     * Default constructor. Does not initialize anything
@@ -319,5 +326,52 @@ public class PolytopeHalfEdge implements GeometryObject<PolytopeHalfEdge>, Polyt
    public double getZ()
    {
       return getEdgeVector().getZ();
+   }
+
+   @Override
+   public double getShortestDistanceTo(Point3DReadOnly point)
+   {
+      return EuclidGeometryTools.distanceFromPoint3DToLineSegment3D(point, this.originVertex, this.destinationVertex);
+   }
+
+   @Override
+   public void getSupportVectorDirectionTo(Point3DReadOnly point, Vector3D supportVectorToPack)
+   {
+      double percentage = EuclidGeometryTools.percentageAlongLineSegment3D(point, this.originVertex, this.destinationVertex);
+      if(percentage <= 0.0)
+         this.originVertex.getSupportVectorDirectionTo(point, supportVectorToPack);
+      else if(percentage >= 1.0)
+         this.destinationVertex.getSupportVectorDirectionTo(point, supportVectorToPack);
+      else
+      {
+         tempPoint.interpolate(this.originVertex, this.destinationVertex, percentage);
+         supportVectorToPack.sub(point, tempPoint);
+      }
+   }
+
+   @Override
+   public void getSupportVectorJacobianTo(Point3DReadOnly point, DenseMatrix64F jacobianToPack)
+   {
+      double percentage = EuclidGeometryTools.percentageAlongLineSegment3D(point, this.originVertex, this.destinationVertex);
+      if(percentage <= 0.0)
+         this.originVertex.getSupportVectorJacobianTo(point, jacobianToPack);
+      else if(percentage >= 1.0)
+         this.destinationVertex.getSupportVectorJacobianTo(point, jacobianToPack);
+      else
+      {
+         throw new RuntimeException("Unimplemented case");
+      }
+   }
+
+   @Override
+   public Simplex getSmallestSimplexMemberReference(Point3DReadOnly point)
+   {
+      double percentage = EuclidGeometryTools.percentageAlongLineSegment3D(point, this.originVertex, this.destinationVertex);
+      if(percentage <= 0.0)
+         return this.originVertex;
+      else if(percentage >= 1.0)
+         return this.destinationVertex;
+      else
+         return this;
    }
 }

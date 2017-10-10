@@ -3,8 +3,11 @@ package us.ihmc.geometry.polytope;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.ejml.data.DenseMatrix64F;
+
 import us.ihmc.commons.Epsilons;
 import us.ihmc.commons.PrintTools;
+import us.ihmc.euclid.geometry.tools.EuclidGeometryTools;
 import us.ihmc.euclid.interfaces.GeometryObject;
 import us.ihmc.euclid.transform.interfaces.Transform;
 import us.ihmc.euclid.tuple3D.Point3D;
@@ -39,6 +42,7 @@ public class ConvexPolytopeFace implements GeometryObject<ConvexPolytopeFace>, C
    
    // Temporary variables for calculations
    private final Vector3D tempVector = new Vector3D();
+   private final Point3D tempPoint = new Point3D();
    private final ArrayList<PolytopeHalfEdge> visibleEdgeList = new ArrayList<>();
    private boolean marked = false;
    /**
@@ -169,7 +173,7 @@ public class ConvexPolytopeFace implements GeometryObject<ConvexPolytopeFace>, C
       edges.add(newEdge);
    }
 
-   public void getVisibleEdgeList(PolytopeVertex vertex, List<PolytopeHalfEdge> edgeList)
+   public void getVisibleEdgeList(Point3DReadOnly vertex, List<PolytopeHalfEdge> edgeList)
    {
       edgeList.clear();
       PolytopeHalfEdge edgeUnderConsideration = getFirstVisibleEdge(vertex);
@@ -191,7 +195,7 @@ public class ConvexPolytopeFace implements GeometryObject<ConvexPolytopeFace>, C
       double previousDotProduct = Double.NaN;
       for(int i = 0 ; i < getNumberOfEdges(); i++)
       {
-         double dotProduct = getVisibilityProduct(vertex, edgeUnderConsideration);
+         double dotProduct = getEdgeVisibilityProduct(vertex, edgeUnderConsideration);
          if(dotProduct <= 0) 
             edgeUnderConsideration = edgeUnderConsideration.getNextHalfEdge();
          else
@@ -217,34 +221,37 @@ public class ConvexPolytopeFace implements GeometryObject<ConvexPolytopeFace>, C
    
    private boolean isPointOnInteriorSideOfEdgeInternal(Point3DReadOnly point, PolytopeHalfEdge halfEdge)
    {
-      return getVisibilityProduct(point, halfEdge) < 0; 
+      return getEdgeVisibilityProduct(point, halfEdge) < 0; 
+   }
+   
+   public double getFaceVisibilityProduct(Point3DReadOnly point)
+   {
+      tempVector.sub(point, getEdge(0).getOriginVertex());
+      return dotFaceNormal(tempVector);
    }
 
-   private double getVisibilityProduct(Point3DReadOnly point, PolytopeHalfEdge halfEdge)
+   private double getEdgeVisibilityProduct(Point3DReadOnly point, PolytopeHalfEdge halfEdge)
    {
       tempVector.sub(point, halfEdge.getOriginVertex());
       tempVector.cross(halfEdge.getEdgeVector());
-      return tempVector.dot(faceNormal);
+      return tempVector.dot(getFaceNormal());
    }
    
    public boolean isPointInFacePlane(Point3DReadOnly vertexToCheck, double epsilon)
    {
-      updateFaceNormal();
       tempVector.sub(vertexToCheck, edges.get(0).getOriginVertex());
-      return MathTools.epsilonEquals(tempVector.dot(faceNormal), 0.0, epsilon);
+      return MathTools.epsilonEquals(tempVector.dot(getFaceNormal()), 0.0, epsilon);
    }
    
-   public boolean isInteriorPoint(PolytopeVertex vertexToCheck)
+   public boolean isInteriorPoint(Point3DReadOnly vertexToCheck)
    {
       return (isPointInFacePlane(vertexToCheck, EPSILON) && isInteriorPointInternal(vertexToCheck));
    }
    
-   private boolean isInteriorPointInternal(PolytopeVertex vertexToCheck)
+   private boolean isInteriorPointInternal(Point3DReadOnly vertexToCheck)
    {
       if(edges.size() < 3)
          return false;
-      
-      updateFaceNormal();
       
       boolean result = true;
       PolytopeHalfEdge halfEdge = edges.get(0);
@@ -273,6 +280,13 @@ public class ConvexPolytopeFace implements GeometryObject<ConvexPolytopeFace>, C
    public Vector3D getFaceNormal()
    {
       updateFaceNormal();
+      return faceNormal;
+   }
+
+   public Vector3D getNormailizedFaceNormal()
+   {
+      updateFaceNormal();
+      faceNormal.normalize();
       return faceNormal;
    }
    
@@ -507,6 +521,11 @@ public class ConvexPolytopeFace implements GeometryObject<ConvexPolytopeFace>, C
       return this.marked;
    }
    
+   public boolean isNotMarked()
+   {
+      return !this.marked;
+   }
+   
    @Override
    public String toString()
    {
@@ -518,5 +537,60 @@ public class ConvexPolytopeFace implements GeometryObject<ConvexPolytopeFace>, C
          edge = edge.getNextHalfEdge();
       }
       return string;
+   }
+
+   @Override
+   public double getShortestDistanceTo(Point3DReadOnly point)
+   {
+      EuclidGeometryTools.orthogonalProjectionOnPlane3D(point, edges.get(0).getOriginVertex(), getNormailizedFaceNormal(), tempPoint);
+      if(isInteriorPointInternal(tempPoint))
+         return point.distance(tempPoint);
+      else
+         return getEdgeClosestTo(tempPoint).getShortestDistanceTo(point);
+   }
+   
+   public PolytopeHalfEdge getEdgeClosestTo(Point3DReadOnly point)
+   {
+      PolytopeHalfEdge edge = getFirstVisibleEdge(tempPoint);
+      double shortestDistance = edge.getShortestDistanceTo(tempPoint);
+      double shortestDistanceCandidate = Double.NEGATIVE_INFINITY;
+      while(shortestDistanceCandidate <= shortestDistance)
+      {
+         edge = edge.getNextHalfEdge();
+         shortestDistanceCandidate = edge.getShortestDistanceTo(tempPoint);
+      }
+      return edge.getPreviousHalfEdge();
+   }
+
+   @Override
+   public void getSupportVectorDirectionTo(Point3DReadOnly point, Vector3D supportVectorToPack)
+   {
+      EuclidGeometryTools.orthogonalProjectionOnPlane3D(point, edges.get(0).getOriginVertex(), getNormailizedFaceNormal(), tempPoint);
+      if(isInteriorPointInternal(tempPoint))
+         supportVectorToPack.sub(point, tempPoint);
+      else
+         getEdgeClosestTo(tempPoint).getSupportVectorDirectionTo(point, supportVectorToPack);
+   }
+
+   @Override
+   public void getSupportVectorJacobianTo(Point3DReadOnly point, DenseMatrix64F jacobianToPack)
+   {
+      EuclidGeometryTools.orthogonalProjectionOnPlane3D(point, edges.get(0).getOriginVertex(), getNormailizedFaceNormal(), tempPoint);
+      if(isInteriorPointInternal(tempPoint))
+      {
+         throw new RuntimeException("Unimplemented case");
+      }
+      else
+         getEdgeClosestTo(tempPoint).getSupportVectorJacobianTo(point, jacobianToPack);
+   }
+
+   @Override
+   public Simplex getSmallestSimplexMemberReference(Point3DReadOnly point)
+   {
+      EuclidGeometryTools.orthogonalProjectionOnPlane3D(point, edges.get(0).getOriginVertex(), getNormailizedFaceNormal(), tempPoint);
+      if(isInteriorPointInternal(tempPoint))
+         return this;
+      else
+         return getEdgeClosestTo(tempPoint).getSmallestSimplexMemberReference(point);
    }
 }
