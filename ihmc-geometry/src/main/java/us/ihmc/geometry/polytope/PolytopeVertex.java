@@ -3,9 +3,13 @@ package us.ihmc.geometry.polytope;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.ejml.data.DenseMatrix64F;
+
 import us.ihmc.euclid.interfaces.GeometryObject;
 import us.ihmc.euclid.transform.interfaces.Transform;
 import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 
 /**
@@ -21,6 +25,7 @@ public class PolytopeVertex implements GeometryObject<PolytopeVertex>, PolytopeV
 {
    private final Point3D position = new Point3D();
    private final ArrayList<PolytopeHalfEdge> associatedEdges = new ArrayList<>();
+   private DenseMatrix64F jacobian;
    
    public PolytopeVertex()
    {
@@ -205,4 +210,30 @@ public class PolytopeVertex implements GeometryObject<PolytopeVertex>, PolytopeV
       position.setZ(z);
    }
 
+   @Override
+   public double getShortestDistanceTo(Point3DReadOnly point)
+   {
+      double dx = getX() - point.getX();
+      double dy = getX() - point.getX();
+      double dz = getX() - point.getX();
+      return Math.sqrt( (dx * dx) + (dy * dy) + (dz * dz));
+   }
+
+   @Override
+   public void getSupportVectorDirectionTo(Point3DReadOnly point, Vector3D supportVectorToPack)
+   {
+      supportVectorToPack.sub(this, point);
+   }
+
+   @Override
+   public void getSupportVectorJacobianTo(Point3DReadOnly point, DenseMatrix64F jacobianToPack)
+   {
+      jacobianToPack.set(jacobian);
+   }
+
+   @Override
+   public Simplex getSmallestSimplexMemberReference(Point3DReadOnly point)
+   {
+      return this;
+   }
 }

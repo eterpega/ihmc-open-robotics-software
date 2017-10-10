@@ -974,5 +974,4 @@ public class SimplexPolytope
 
       return false;
    }
-
 }
