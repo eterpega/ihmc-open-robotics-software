@@ -8,8 +8,10 @@ import us.ihmc.commons.Epsilons;
 import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tools.EuclidCoreRandomTools;
+import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple4D.Quaternion;
 
 public class ConvexPolytopeConstructor
 {
@@ -36,13 +38,23 @@ public class ConvexPolytopeConstructor
       return polytope;
    }
 
-   public static ConvexPolytope constructCuboid(double lengthX, double lengthY, double lengthZ)
+   public static ConvexPolytope constructBox(Point3D center, Quaternion orientation, double edgeLengthX, double edgeLengthY, double edgeLengthZ)
    {
       ConvexPolytope polytope = new ConvexPolytope();
-
+      RigidBodyTransform transform = new RigidBodyTransform();
+      transform.setRotation(orientation);
+      polytope.addVertex(center.getX() - edgeLengthX/2, center.getY() - edgeLengthY/2, center.getZ() - edgeLengthZ/2, EPSILON);
+      polytope.addVertex(center.getX() + edgeLengthX/2, center.getY() - edgeLengthY/2, center.getZ() - edgeLengthZ/2, EPSILON);
+      polytope.addVertex(center.getX() + edgeLengthX/2, center.getY() + edgeLengthY/2, center.getZ() - edgeLengthZ/2, EPSILON);
+      polytope.addVertex(center.getX() - edgeLengthX/2, center.getY() + edgeLengthY/2, center.getZ() - edgeLengthZ/2, EPSILON);
+      polytope.addVertex(center.getX() - edgeLengthX/2, center.getY() - edgeLengthY/2, center.getZ() + edgeLengthZ/2, EPSILON);
+      polytope.addVertex(center.getX() + edgeLengthX/2, center.getY() - edgeLengthY/2, center.getZ() + edgeLengthZ/2, EPSILON);
+      polytope.addVertex(center.getX() + edgeLengthX/2, center.getY() + edgeLengthY/2, center.getZ() + edgeLengthZ/2, EPSILON);
+      polytope.addVertex(center.getX() - edgeLengthX/2, center.getY() + edgeLengthY/2, center.getZ() + edgeLengthZ/2, EPSILON);
+      polytope.applyTransform(transform);
       return polytope;
    }
-
+   
    /**
     * Constructs a icosahedron that envelops the sphere to be created
     * @param radius

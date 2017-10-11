@@ -65,8 +65,8 @@ public class HybridGJKEPACollisionDetector
                                                  Vector3D initialDirectionForSearch)
    {
       simplex.clear();
-      initialDirectionForSearch.negate();
-      simplex.addVertex(polytopeA.getSupportingVertexHack(initialDirectionForSearch), polytopeB.getSupportingVertexHack(initialDirectionForSearch));
+      setSupportVectorDirection(initialDirectionForSearch);
+      simplex.addVertex(polytopeA.getSupportingVertexHack(supportVectorDirection), polytopeB.getSupportingVertexHack(supportVectorDirectionNegative));
       simplex.getSupportVectorDirectionTo(origin, supportVectorDirection);
       double prevDistanceToGo = Double.NaN;
       for (int i = 0; i < iterations;)

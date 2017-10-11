@@ -12,9 +12,7 @@ public class SimplexVertex extends PolytopeVertex
    
    public SimplexVertex(PolytopeVertex vertexOnPolytopeA, PolytopeVertex vertexOnPolytopeB)
    {
-      this.polytopeAVertexReference = vertexOnPolytopeA;
-      this.polytopeBVertexReference = vertexOnPolytopeB;
-      sub(vertexOnPolytopeA, vertexOnPolytopeB);
+      set(vertexOnPolytopeA, vertexOnPolytopeB);
    }
    
    public void set(PolytopeVertex vertexOnPolytopeA, PolytopeVertex vertexOnPolytopeB)

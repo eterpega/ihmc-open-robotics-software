@@ -5,12 +5,13 @@ import org.ejml.data.DenseMatrix64F;
 import us.ihmc.commons.Epsilons;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
+import us.ihmc.robotics.lists.RecyclingArrayList;
 
 public class ExtendedSimplexPolytope implements Simplex
 {
    private double epsilon = Epsilons.ONE_TEN_THOUSANDTH;
    private ConvexPolytope polytope = new ConvexPolytope();
-   
+   RecyclingArrayList<SimplexVertex> vertices = new RecyclingArrayList<>(SimplexVertex.class);
    public ExtendedSimplexPolytope()
    {
       super();
@@ -28,7 +29,8 @@ public class ExtendedSimplexPolytope implements Simplex
    
    public void addVertex(PolytopeVertex vertexOnPolytopeA, PolytopeVertex vertexOnPolytopeB, double epsilon)
    {
-      SimplexVertex newVertex = new SimplexVertex(vertexOnPolytopeA, vertexOnPolytopeB);
+      SimplexVertex newVertex = vertices.add();
+      newVertex.set(vertexOnPolytopeA, vertexOnPolytopeB);
       polytope.addVertex(newVertex, epsilon);
    }
 

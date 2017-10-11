@@ -507,7 +507,7 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
       faces.remove(faceToRemove);
    }
 
-   private ConvexPolytopeFace isInteriorPointInternal(Point3D pointToCheck, double epsilon)
+   private ConvexPolytopeFace isInteriorPointInternal(Point3DReadOnly pointToCheck, double epsilon)
    {
       for (int i = 0; i < faces.size(); i++)
       {
@@ -521,7 +521,7 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
       return null;
    }
 
-   public boolean isInteriorPoint(Point3D pointToCheck, double epsilon)
+   public boolean isInteriorPoint(Point3DReadOnly pointToCheck, double epsilon)
    {
       return isInteriorPointInternal(pointToCheck, epsilon) == null;
    }
@@ -649,37 +649,44 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
    @Override
    public double getShortestDistanceTo(Point3DReadOnly point)
    {
-      return getFaceContainingPointClosestTo(point).getShortestDistanceTo(point);
+      if(isInteriorPoint(point, Epsilons.ONE_BILLIONTH))
+      {
+         return -getFaceContainingPointClosestTo(point).getShortestDistanceTo(point);
+      }
+      else
+      {
+         return getFaceContainingPointClosestTo(point).getShortestDistanceTo(point);
+      }
    }
 
    public ConvexPolytopeFace getFaceContainingPointClosestTo(Point3DReadOnly point)
    {
       unmarkAllFaces();
-      ConvexPolytopeFace bestFace = faces.get(0);
-      ConvexPolytopeFace faceUnderConsideration = bestFace;
+      ConvexPolytopeFace currentBestFace = faces.get(0);
+      ConvexPolytopeFace faceUnderConsideration = currentBestFace;
       double maxDotProduct = faceUnderConsideration.getFaceVisibilityProduct(point);
       faceUnderConsideration.mark();
       for(int i = 0; i < faces.size(); i++)
       {
-         for(int j = 0; j < faceUnderConsideration.getNumberOfEdges(); j++)
+         for(int j = 0; j < currentBestFace.getNumberOfEdges(); j++)
          {
-            if(faceUnderConsideration.getNeighbouringFace(j).isNotMarked())
+            if(currentBestFace.getNeighbouringFace(j).isNotMarked())
             {
-               double dotProduct = faceUnderConsideration.getNeighbouringFace(j).getFaceVisibilityProduct(point);
+               double dotProduct = currentBestFace.getNeighbouringFace(j).getFaceVisibilityProduct(point);
                if(dotProduct > maxDotProduct)
                {
                   maxDotProduct = dotProduct;
-                  faceUnderConsideration = faceUnderConsideration.getNeighbouringFace(j);
+                  faceUnderConsideration = currentBestFace.getNeighbouringFace(j);
                }
-               faceUnderConsideration.getNeighbouringFace(j).mark();
+               currentBestFace.getNeighbouringFace(j).mark();
             }
          }
-         if(faceUnderConsideration == bestFace)
+         if(faceUnderConsideration == currentBestFace)
             break;
          else
-            faceUnderConsideration = bestFace;
+            currentBestFace = faceUnderConsideration;
       }
-      return bestFace;
+      return currentBestFace;
    }
    
    @Override
