@@ -19,4 +19,10 @@ public class HybridGJKEPACollisionDetectorTest
       assertTrue(vectorToGet.getY() == 1);
       assertTrue(vectorToGet.getZ() == -10);
    }  
+   
+   @Test(timeout = 1000)
+   public void testCollisionDetection()
+   {
+      ConvexPolytope polytope1 = ConvexPolytopeConstructor
+   }
 }
