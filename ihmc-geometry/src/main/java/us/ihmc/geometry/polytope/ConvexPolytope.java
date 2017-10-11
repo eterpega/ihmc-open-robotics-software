@@ -551,6 +551,33 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
             bestVertex = vertexCandidate;
       }
    }
+
+   // TODO Hacking this for the new collision detector. #FIXME fix this and the related interfaces and all that depends on those interfaces so that there dont need to be two versions of the getSupportinVertex function
+   public PolytopeVertex getSupportingVertexHack(Vector3DReadOnly supportDirection)
+   {
+      PolytopeVertex bestVertex = faces.get(0).getEdge(0).getOriginVertex();
+      tempVector.set(bestVertex);
+      double maxDotProduct = supportDirection.dot(tempVector);
+      PolytopeVertex vertexCandidate = bestVertex;
+      while (true)
+      {
+         for (int i = 0; i < bestVertex.getNumberOfAssociatedEdges(); i++)
+         {
+            tempVector.set(bestVertex.getAssociatedEdge(i).getDestinationVertex());
+            double dotProduct = supportDirection.dot(tempVector);
+            if (dotProduct > maxDotProduct)
+            {
+               vertexCandidate = bestVertex.getAssociatedEdge(i).getDestinationVertex();
+               maxDotProduct = dotProduct;
+            }
+         }
+         if (bestVertex == vertexCandidate)
+            return bestVertex;
+         else
+            bestVertex = vertexCandidate;
+      }
+   }
+
    
    public String toString()
    {
