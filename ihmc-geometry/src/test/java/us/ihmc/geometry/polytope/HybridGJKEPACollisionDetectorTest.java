@@ -4,7 +4,9 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
+import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple4D.Quaternion;
 
 public class HybridGJKEPACollisionDetectorTest
 {
@@ -23,6 +25,6 @@ public class HybridGJKEPACollisionDetectorTest
    @Test(timeout = 1000)
    public void testCollisionDetection()
    {
-      ConvexPolytope polytope1 = ConvexPolytopeConstructor
+      ConvexPolytope polytope1 = ConvexPolytopeConstructor.constructBox(new Point3D(), new Quaternion(), 5, 5, 4);
    }
 }

@@ -42,6 +42,7 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
 
    // Temporary variables for intermediate results
    private Vector3D tempVector = new Vector3D();
+   private Point3D centroid = new Point3D();
 
    public ConvexPolytope()
    {
@@ -509,12 +510,18 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
 
    private ConvexPolytopeFace isInteriorPointInternal(Point3DReadOnly pointToCheck, double epsilon)
    {
+      if(faces.size() == 0)
+         return null;
+      else if(faces.size() == 1)
+         return faces.get(0).isInteriorPoint(pointToCheck) ? null : faces.get(0);
+      
       for (int i = 0; i < faces.size(); i++)
       {
          tempVector.sub(pointToCheck, faces.get(i).getEdge(0).getOriginVertex().getPosition());
          double dotProduct = tempVector.dot(faces.get(i).getFaceNormal());
-         if (dotProduct >= -epsilon)
+         if (dotProduct >= epsilon)
          {
+            //PrintTools.debug("Val: " + dotProduct + " Point: " + pointToCheck + " Vector: " + tempVector);
             return faces.get(i);
          }
       }
@@ -649,8 +656,9 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
    @Override
    public double getShortestDistanceTo(Point3DReadOnly point)
    {
-      if(isInteriorPoint(point, Epsilons.ONE_BILLIONTH))
+      if(isInteriorPoint(point, Epsilons.ONE_TRILLIONTH))
       {
+         //PrintTools.debug("Interior point: " + point.toString());
          return -getFaceContainingPointClosestTo(point).getShortestDistanceTo(point);
       }
       else
@@ -661,16 +669,22 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
 
    public ConvexPolytopeFace getFaceContainingPointClosestTo(Point3DReadOnly point)
    {
+      if(faces.size() == 0)
+         throw new RuntimeException();
+      else if (faces.size() == 1)
+         return faces.get(0);
+      
       unmarkAllFaces();
       ConvexPolytopeFace currentBestFace = faces.get(0);
       ConvexPolytopeFace faceUnderConsideration = currentBestFace;
       double maxDotProduct = faceUnderConsideration.getFaceVisibilityProduct(point);
       faceUnderConsideration.mark();
+      
       for(int i = 0; i < faces.size(); i++)
       {
          for(int j = 0; j < currentBestFace.getNumberOfEdges(); j++)
          {
-            if(currentBestFace.getNeighbouringFace(j).isNotMarked())
+            if(currentBestFace.getNeighbouringFace(j) != null && currentBestFace.getNeighbouringFace(j).isNotMarked())
             {
                double dotProduct = currentBestFace.getNeighbouringFace(j).getFaceVisibilityProduct(point);
                if(dotProduct > maxDotProduct)
@@ -687,6 +701,21 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
             currentBestFace = faceUnderConsideration;
       }
       return currentBestFace;
+   }
+   
+   private void updateCentroid()
+   {
+      updateVertices();
+      centroid.setToZero();
+      for(int i = 0; i < vertices.size(); i++)
+         centroid.add(vertices.get(i));
+      centroid.scale(1.0 / vertices.size());
+   }
+   
+   public Point3DReadOnly getCentroid()
+   {
+      updateCentroid();
+      return centroid;
    }
    
    @Override

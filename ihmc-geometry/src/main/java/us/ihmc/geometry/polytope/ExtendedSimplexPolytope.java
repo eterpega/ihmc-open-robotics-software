@@ -58,5 +58,15 @@ public class ExtendedSimplexPolytope implements Simplex
    {
       return polytope.getSmallestSimplexMemberReference(point);
    }
+   
+   public String toString()
+   {
+      return polytope.toString();
+   }
+
+   public ConvexPolytope getPolytope()
+   {
+      return polytope;
+   }
 
 }
