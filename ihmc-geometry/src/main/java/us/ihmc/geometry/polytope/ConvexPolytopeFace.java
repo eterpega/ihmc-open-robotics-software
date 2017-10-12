@@ -101,6 +101,8 @@ public class ConvexPolytopeFace implements GeometryObject<ConvexPolytopeFace>, C
       {
          PolytopeHalfEdge newEdge = new PolytopeHalfEdge(vertexToAdd, vertexToAdd);
          newEdge.setFace(this);
+         newEdge.setNextHalfEdge(newEdge);
+         newEdge.setPreviousHalfEdge(newEdge);
          edges.add(newEdge);
          break;
       }
@@ -190,8 +192,10 @@ public class ConvexPolytopeFace implements GeometryObject<ConvexPolytopeFace>, C
    {
       if(edges.size() == 0)
          return null;
+      else if (edges.size() == 1 || edges.size() == 2)         
+         return edges.get(0);
+      
       PolytopeHalfEdge edgeUnderConsideration = edges.get(0);
-      updateFaceNormal();
       double previousDotProduct = Double.NaN;
       for(int i = 0 ; i < getNumberOfEdges(); i++)
       {
@@ -210,7 +214,8 @@ public class ConvexPolytopeFace implements GeometryObject<ConvexPolytopeFace>, C
          else
             previousDotProduct = dotProduct;
       }
-      return null;
+      PrintTools.debug("Reaching here");
+      return edgeUnderConsideration;
    }
    
    public boolean isPointOnInteriorSideOfEdgeInternal(Point3DBasics point, int index)
@@ -567,7 +572,7 @@ public class ConvexPolytopeFace implements GeometryObject<ConvexPolytopeFace>, C
    {
       EuclidGeometryTools.orthogonalProjectionOnPlane3D(point, edges.get(0).getOriginVertex(), getNormailizedFaceNormal(), tempPoint);
       if(isInteriorPointInternal(tempPoint))
-         supportVectorToPack.sub(point, tempPoint);
+         supportVectorToPack.set(getFaceNormal());
       else
          getEdgeClosestTo(tempPoint).getSupportVectorDirectionTo(point, supportVectorToPack);
    }

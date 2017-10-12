@@ -11,7 +11,7 @@ public class HybridGJKEPACollisionDetector
    private static final Point3D origin = new Point3D();
    private double epsilon = Epsilons.ONE_TEN_THOUSANDTH;
 
-   private final SimplexPolytope simplex = new SimplexPolytope();
+   private final ExtendedSimplexPolytope simplex = new ExtendedSimplexPolytope();
    private Vector3D supportVectorDirectionNegative = new Vector3D();
    private Vector3D supportVectorDirection = new Vector3D()
    {
@@ -34,6 +34,8 @@ public class HybridGJKEPACollisionDetector
          supportVectorDirectionNegative.setZ(-x);
       };
    };
+   private Vector3D previousSupportVectorDirection = new Vector3D();
+
    private final int iterations = 10;
 
    public void setSupportVectorDirection(Vector3DReadOnly vectorToSet)
@@ -61,27 +63,61 @@ public class HybridGJKEPACollisionDetector
       this.epsilon = epsilon;
    }
 
-   public void checkCollisionBetweenTwoPolytopes(ConvexPolytope polytopeA, ConvexPolytope polytopeB, ExtendedSimplexPolytope simplex,
-                                                 Vector3D initialDirectionForSearch)
+   public boolean checkCollisionBetweenTwoPolytopes(ConvexPolytope polytopeA, ConvexPolytope polytopeB, Vector3D initialDirectionForSearch)
    {
       simplex.clear();
       setSupportVectorDirection(initialDirectionForSearch);
       simplex.addVertex(polytopeA.getSupportingVertexHack(supportVectorDirection), polytopeB.getSupportingVertexHack(supportVectorDirectionNegative));
       simplex.getSupportVectorDirectionTo(origin, supportVectorDirection);
+      previousSupportVectorDirection.set(supportVectorDirection);
       double prevDistanceToGo = Double.NaN;
       for (int i = 0; i < iterations;)
       {
          simplex.addVertex(polytopeA.getSupportingVertexHack(supportVectorDirection), polytopeB.getSupportingVertexHack(supportVectorDirectionNegative));
-         double distanceToGo = simplex.getShortestDistanceTo(origin) ;
+         double distanceToGo = simplex.getShortestDistanceTo(origin);
          if(distanceToGo <= epsilon)
          {
-            PrintTools.debug("Got collision");
-            break;
+            //PrintTools.debug("Distance to go: " + distanceToGo + "\n" + simplex.toString());
+            return true;
          }
          else
             simplex.getSupportVectorDirectionTo(origin, supportVectorDirection);
          if(prevDistanceToGo - distanceToGo < epsilon)
             i++;
+         if(previousSupportVectorDirection.epsilonEquals(supportVectorDirection, epsilon))
+            return false;
+         else
+            previousSupportVectorDirection.set(supportVectorDirection);
       }
+      return false;
+   }
+   
+   public void runEPAExpansion(ConvexPolytope polytopeA, ConvexPolytope polytopeB, Vector3D collisionVectorToPack)
+   {
+      //PrintTools.debug(supportVectorDirection.toString());
+      runEPAExpansion(polytopeA, polytopeB, simplex, supportVectorDirection, collisionVectorToPack);
+   }
+
+   public void runEPAExpansion(ConvexPolytope polytopeA, ConvexPolytope polytopeB, ExtendedSimplexPolytope simplex, Vector3D initialSupportVectorDirection, Vector3D collisionVectorToPack)
+   {
+      supportVectorDirection.set(initialSupportVectorDirection);
+      previousSupportVectorDirection.set(initialSupportVectorDirection);
+      while(true)
+      {
+         simplex.addVertex(polytopeA.getSupportingVertexHack(supportVectorDirection), polytopeB.getSupportingVertexHack(supportVectorDirectionNegative));
+         simplex.getSupportVectorDirectionTo(origin, supportVectorDirection);
+         if(supportVectorDirection.epsilonEquals(previousSupportVectorDirection, epsilon))
+            break;
+         else
+            previousSupportVectorDirection.set(supportVectorDirection);
+      }
+      collisionVectorToPack.set(supportVectorDirection);
+      collisionVectorToPack.normalize();
+      collisionVectorToPack.scale(simplex.getSmallestSimplexMemberReference(origin).getShortestDistanceTo(origin));
+   }
+   
+   public ConvexPolytope getSimplex()
+   {
+      return simplex.getPolytope();
    }
 }

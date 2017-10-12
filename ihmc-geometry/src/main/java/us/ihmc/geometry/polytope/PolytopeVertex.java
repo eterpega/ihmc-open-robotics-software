@@ -222,7 +222,7 @@ public class PolytopeVertex implements GeometryObject<PolytopeVertex>, PolytopeV
    @Override
    public void getSupportVectorDirectionTo(Point3DReadOnly point, Vector3D supportVectorToPack)
    {
-      supportVectorToPack.sub(this, point);
+      supportVectorToPack.sub(point, this);
    }
 
    @Override

@@ -117,7 +117,7 @@ public class ConvexPolytopeConstructor
       {
          for (int j = 0; j < cubeDivisions; j++)
          {
-            PolytopeVertex vertex = new PolytopeVertex( (2.0 * (float) i / (float)cubeDivisions - 1) * radius, (2.0 * (float) j / (float)cubeDivisions - 1) * radius, -radius);
+            PolytopeVertex vertex = new PolytopeVertex( (2.0 * (float) i / (float)(cubeDivisions -1)- 1) * radius, (2.0 * (float) j / (float)(cubeDivisions -1) - 1) * radius, -radius);
             vertices.add(vertex);
          }
       }
@@ -126,13 +126,13 @@ public class ConvexPolytopeConstructor
       {
          for (int j = 0; j < cubeDivisions; j++)
          {
-            PolytopeVertex vertex = new PolytopeVertex( -radius, (2.0 * (float) j / (float)cubeDivisions - 1) * radius, (2.0 * (float) i / (float)cubeDivisions - 1) * radius);
+            PolytopeVertex vertex = new PolytopeVertex( -radius, (2.0 * (float) j / (float)(cubeDivisions -1) - 1) * radius, (2.0 * (float) i / (float)(cubeDivisions -1) - 1) * radius);
             vertices.add(vertex);
-            vertex = new PolytopeVertex( (2.0 * (float) j / (float)cubeDivisions - 1) * radius, -radius, (2.0 * (float) i / (float)cubeDivisions - 1) * radius);
+            vertex = new PolytopeVertex( (2.0 * (float) j / (float)(cubeDivisions -1) - 1) * radius, -radius, (2.0 * (float) i / (float)(cubeDivisions -1) - 1) * radius);
             vertices.add(vertex);
-            vertex = new PolytopeVertex( (2.0 * (float) j / (float)cubeDivisions - 1) * radius, radius, (2.0 * (float) i / (float)cubeDivisions - 1) * radius);
+            vertex = new PolytopeVertex( (2.0 * (float) j / (float)(cubeDivisions -1) - 1) * radius, radius, (2.0 * (float) i / (float)(cubeDivisions -1) - 1) * radius);
             vertices.add(vertex);
-            vertex = new PolytopeVertex( radius, (2.0 * (float) j / (float)cubeDivisions - 1) * radius, (2.0 * (float) i / (float)cubeDivisions - 1) * radius);
+            vertex = new PolytopeVertex( radius, (2.0 * (float) j / (float)(cubeDivisions -1)- 1) * radius, (2.0 * (float) i / (float)(cubeDivisions -1) - 1) * radius);
             vertices.add(vertex);
          }
       }
@@ -141,7 +141,7 @@ public class ConvexPolytopeConstructor
       {
          for (int j = 1; j < cubeDivisions -1; j++)
          {
-            PolytopeVertex vertex = new PolytopeVertex( (2.0 * (float) i / (float)cubeDivisions - 1) * radius, (2.0 * (float) j / (float)cubeDivisions - 1) * radius, radius);
+            PolytopeVertex vertex = new PolytopeVertex( (2.0 * (float) i / (float)(cubeDivisions -1) - 1) * radius, (2.0 * (float) j / (float)(cubeDivisions -1)- 1) * radius, radius);
             vertices.add(vertex);
          }
       }
