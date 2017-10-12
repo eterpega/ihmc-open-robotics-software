@@ -1,20 +1,16 @@
 package us.ihmc.footstepPlanning.graphSearch.footstepSnapping;
 
+import java.util.ArrayList;
+
 import us.ihmc.euclid.geometry.ConvexPolygon2D;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.footstepPlanning.graphSearch.graph.FootstepNode;
-import us.ihmc.footstepPlanning.graphSearch.footstepSnapping.FootstepNodeSnapper;
 import us.ihmc.footstepPlanning.polygonSnapping.PlanarRegionsListPolygonSnapper;
 import us.ihmc.robotics.geometry.PlanarRegion;
-import us.ihmc.robotics.geometry.PlanarRegionsList;
 import us.ihmc.robotics.robotSide.SideDependentList;
 
-import java.util.ArrayList;
-
-public class SimplePlanarRegionFootstepNodeSnapper implements FootstepNodeSnapper
+public class SimplePlanarRegionFootstepNodeSnapper extends FootstepNodeSnapper
 {
-   private PlanarRegionsList planarRegionsList = null;
-
    private final SideDependentList<ConvexPolygon2D> footPolygons;
    private final RigidBodyTransform footstepPose = new RigidBodyTransform();
 
@@ -24,16 +20,10 @@ public class SimplePlanarRegionFootstepNodeSnapper implements FootstepNodeSnappe
    }
 
    @Override
-   public void setPlanarRegions(PlanarRegionsList planarRegionsList)
-   {
-      this.planarRegionsList = planarRegionsList;
-   }
-
-   @Override
-   public RigidBodyTransform snapFootstepNode(FootstepNode footstepNode, ConvexPolygon2D footholdIntersectionToPack)
+   public FootstepNodeSnapData snapInternal(FootstepNode footstepNode)
    {
       if (planarRegionsList == null)
-         return null;
+         return FootstepNodeSnapData.emptyData();
 
       PlanarRegion planarRegionToPack = new PlanarRegion();
       ConvexPolygon2D footPolygon = new ConvexPolygon2D(footPolygons.get(footstepNode.getRobotSide()));
@@ -43,16 +33,27 @@ public class SimplePlanarRegionFootstepNodeSnapper implements FootstepNodeSnappe
       RigidBodyTransform snapTransform = PlanarRegionsListPolygonSnapper.snapPolygonToPlanarRegionsList(footPolygon, planarRegionsList, planarRegionToPack);
 
       if (snapTransform == null)
-         return null;
+         return FootstepNodeSnapData.emptyData();
 
       ArrayList<ConvexPolygon2D> intersections = new ArrayList<>();
       planarRegionToPack.getPolygonIntersectionsWhenProjectedVertically(footPolygon, intersections);
-      if (intersections.size() != 1)
-         return null;
+      if (intersections.size() == 0)
+         return FootstepNodeSnapData.emptyData();
+      else
+      {
+         return new FootstepNodeSnapData(snapTransform, combineIntersectionPolygons(intersections));
+      }
+   }
 
-      if(footholdIntersectionToPack != null)
-         footholdIntersectionToPack.set(intersections.get(0));
-
-      return snapTransform;
+   private static ConvexPolygon2D combineIntersectionPolygons(ArrayList<ConvexPolygon2D> intersections)
+   {
+      ConvexPolygon2D combinedFootholdIntersection = new ConvexPolygon2D();
+      for (int i = 0; i < intersections.size(); i++)
+      {
+         combinedFootholdIntersection.addVertices(intersections.get(i));
+      }
+      
+      combinedFootholdIntersection.update();
+      return combinedFootholdIntersection;
    }
 }
