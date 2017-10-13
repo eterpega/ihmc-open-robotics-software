@@ -11,7 +11,7 @@ import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
 import us.ihmc.graphicsDescription.Graphics3DObject;
 import us.ihmc.graphicsDescription.input.SelectedListener;
-import us.ihmc.robotics.Axis;
+import us.ihmc.euclid.Axis;
 import us.ihmc.robotics.geometry.TransformTools;
 import us.ihmc.tools.inputDevices.keyboard.ModifierKeyInterface;
 

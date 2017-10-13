@@ -17,7 +17,7 @@ import us.ihmc.euclid.tools.EuclidCoreTestTools;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.graphicsDescription.Graphics3DObject;
-import us.ihmc.robotics.Axis;
+import us.ihmc.euclid.Axis;
 import us.ihmc.robotics.testing.JUnitTools;
 
 public class RobotDescriptionTest

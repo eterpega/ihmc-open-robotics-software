@@ -7,7 +7,7 @@ import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
-import us.ihmc.robotics.Axis;
+import us.ihmc.euclid.Axis;
 
 /**
  * {@code YoPolynomial3D} is the simplest 3D wrapper around the 1D {@link YoPolynomial}.

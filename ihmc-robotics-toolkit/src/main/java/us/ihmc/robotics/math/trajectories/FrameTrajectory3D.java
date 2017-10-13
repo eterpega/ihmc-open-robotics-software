@@ -11,7 +11,7 @@ import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.referenceFrame.exceptions.ReferenceFrameMismatchException;
 import us.ihmc.euclid.referenceFrame.interfaces.ReferenceFrameHolder;
-import us.ihmc.robotics.Axis;
+import us.ihmc.euclid.Axis;
 
 public class FrameTrajectory3D extends Trajectory3D implements ReferenceFrameHolder
 {
