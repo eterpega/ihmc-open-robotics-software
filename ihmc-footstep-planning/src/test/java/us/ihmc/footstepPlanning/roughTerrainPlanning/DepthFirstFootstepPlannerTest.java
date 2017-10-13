@@ -15,6 +15,7 @@ import us.ihmc.footstepPlanning.graphSearch.YoFootstepPlannerParameters;
 import us.ihmc.footstepPlanning.graphSearch.footstepSnapping.FootstepNodeSnapAndWiggler;
 import us.ihmc.footstepPlanning.graphSearch.graph.visualization.PlanarRegionBipedalFootstepPlannerVisualizer;
 import us.ihmc.footstepPlanning.graphSearch.nodeChecking.SnapAndWiggleBasedNodeChecker;
+import us.ihmc.footstepPlanning.graphSearch.nodeChecking.SnapBasedNodeChecker;
 import us.ihmc.footstepPlanning.graphSearch.planners.DepthFirstFootstepPlanner;
 import us.ihmc.footstepPlanning.graphSearch.stepCost.ConstantFootstepCost;
 import us.ihmc.footstepPlanning.testTools.PlanningTestTools;
@@ -163,6 +164,14 @@ public class DepthFirstFootstepPlannerTest extends FootstepPlannerOnRoughTerrain
       super.testWalkingAroundBox();
    }
 
+   public void testSteppingStones()
+   {
+      planner.setMaximumNumberOfNodesToExpand(Integer.MAX_VALUE);
+      planner.setExitAfterInitialSolution(false);
+      planner.setTimeout(15.0);
+      super.testSteppingStones(!visualize);
+   }
+
    @Before
    public void setupPlanner()
    {
@@ -175,7 +184,7 @@ public class DepthFirstFootstepPlannerTest extends FootstepPlannerOnRoughTerrain
          visualizer = SCSPlanarRegionBipedalFootstepPlannerVisualizer.createWithSimulationConstructionSet(1.0, footPolygonsInSoleFrame, registry);
 
       FootstepNodeSnapAndWiggler snapper = new FootstepNodeSnapAndWiggler(footPolygonsInSoleFrame, parameters, visualizer);
-      SnapAndWiggleBasedNodeChecker nodeChecker = new SnapAndWiggleBasedNodeChecker(footPolygonsInSoleFrame, visualizer, parameters, null);
+      SnapBasedNodeChecker nodeChecker = new SnapBasedNodeChecker(parameters, footPolygonsInSoleFrame, snapper);
       ConstantFootstepCost stepCostCalculator = new ConstantFootstepCost(1.0);
 
       planner = new DepthFirstFootstepPlanner(parameters, snapper, nodeChecker, stepCostCalculator, registry);

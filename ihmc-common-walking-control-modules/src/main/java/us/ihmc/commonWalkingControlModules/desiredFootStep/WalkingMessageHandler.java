@@ -5,6 +5,8 @@ import java.util.List;
 
 import us.ihmc.commons.PrintTools;
 import us.ihmc.communication.controllerAPI.StatusMessageOutputManager;
+import us.ihmc.communication.packets.ExecutionMode;
+import us.ihmc.communication.packets.ExecutionTiming;
 import us.ihmc.communication.packets.TextToSpeechPacket;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FrameVector2D;
@@ -22,8 +24,6 @@ import us.ihmc.humanoidRobotics.communication.controllerAPI.command.FootstepData
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.FootstepDataListCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.MomentumTrajectoryCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.PauseWalkingCommand;
-import us.ihmc.communication.packets.ExecutionMode;
-import us.ihmc.communication.packets.ExecutionTiming;
 import us.ihmc.humanoidRobotics.communication.packets.momentum.TrajectoryPoint3D;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepStatus;
 import us.ihmc.humanoidRobotics.communication.packets.walking.PlanOffsetStatus;
@@ -42,6 +42,7 @@ import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.yoVariables.variable.YoEnum;
 import us.ihmc.yoVariables.variable.YoInteger;
+import us.ihmc.yoVariables.variable.YoLong;
 
 public class WalkingMessageHandler
 {
@@ -71,6 +72,7 @@ public class WalkingMessageHandler
    private final YoDouble defaultSwingTime = new YoDouble("defaultSwingTime", registry);
    private final YoDouble defaultInitialTransferTime = new YoDouble("defaultInitialTransferTime", registry);
    private final YoDouble defaultFinalTransferTime = new YoDouble("defaultFinalTransferTime", registry);
+   private final YoLong lastCommandID = new YoLong("lastFootStepDataListCommandID", registry);
 
    private final YoBoolean isWalking = new YoBoolean("isWalking", registry);
 
@@ -159,7 +161,21 @@ public class WalkingMessageHandler
          case QUEUE:
             if (currentNumberOfFootsteps.getIntegerValue() < 1 && !executingFootstep.getBooleanValue())
             {
-               PrintTools.warn("Can not queue footsteps if no footsteps are present. Send an override message instead. Command ignored.");
+               //if we queued a command and the previous already finished, just treat it as an override
+               if(command.getPreviousCommandId() == lastCommandID.getValue())
+               {
+                  clearFootsteps();
+                  clearFootTrajectory();
+                  if (yoTime != null)
+                  {
+                     footstepDataListRecievedTime.set(yoTime.getDoubleValue());
+                  }
+                  break;
+               }
+               else
+               {
+                  PrintTools.warn("Can not queue footsteps if no footsteps are present. Send an override message instead. Command ignored.");
+               }
                return;
             }
             break;
@@ -176,6 +192,7 @@ public class WalkingMessageHandler
          return;
       }
 
+      lastCommandID.set(command.getCommandId());
       isWalkingPaused.set(false);
       double commandDefaultTransferTime = command.getDefaultTransferDuration();
       double commandDefaultSwingTime = command.getDefaultSwingDuration();
