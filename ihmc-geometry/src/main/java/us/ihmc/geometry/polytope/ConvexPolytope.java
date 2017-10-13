@@ -374,7 +374,7 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
 
    public PolytopeHalfEdge getSeedEdgeForSilhouetteCalculation(List<ConvexPolytopeFace> visibleFaceList, ConvexPolytopeFace leastVisibleFace)
    {
-      if(faces.size() == 1)
+      if (faces.size() == 1)
          return faces.get(0).getEdge(0);
       PolytopeHalfEdge seedEdge = null;
       PolytopeHalfEdge seedEdgeCandidate = leastVisibleFace.getEdge(0);
@@ -387,20 +387,20 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
       return seedEdge;
    }
 
-   public PolytopeHalfEdge getSeedEdgeForSilhouetteCalculation(List<ConvexPolytopeFace> silhouetteFaceList)
-   {
-      ConvexPolytopeFace seedFaceCandidate = silhouetteFaceList.get(0);
-      PolytopeHalfEdge seedEdgeCandidate = seedFaceCandidate.getEdge(0);
-      for (int i = 0; i < seedFaceCandidate.getNumberOfEdges(); i++)
-      {
-         if (silhouetteFaceList.contains(seedEdgeCandidate.getTwinHalfEdge().getFace())
-               && !silhouetteFaceList.contains(seedEdgeCandidate.getNextHalfEdge().getTwinHalfEdge().getFace()))
-            break;
-         seedEdgeCandidate = seedEdgeCandidate.getNextHalfEdge();
-      }
-      seedEdgeCandidate = seedEdgeCandidate.getNextHalfEdge();
-      return seedEdgeCandidate;
-   }
+   //   public PolytopeHalfEdge getSeedEdgeForSilhouetteCalculation(List<ConvexPolytopeFace> silhouetteFaceList)
+   //   {
+   //      ConvexPolytopeFace seedFaceCandidate = silhouetteFaceList.get(0);
+   //      PolytopeHalfEdge seedEdgeCandidate = seedFaceCandidate.getEdge(0);
+   //      for (int i = 0; i < seedFaceCandidate.getNumberOfEdges(); i++)
+   //      {
+   //         if (silhouetteFaceList.contains(seedEdgeCandidate.getTwinHalfEdge().getFace())
+   //               && !silhouetteFaceList.contains(seedEdgeCandidate.getNextHalfEdge().getTwinHalfEdge().getFace()))
+   //            break;
+   //         seedEdgeCandidate = seedEdgeCandidate.getNextHalfEdge();
+   //      }
+   //      seedEdgeCandidate = seedEdgeCandidate.getNextHalfEdge();
+   //      return seedEdgeCandidate;
+   //   }
 
    //   private void createFacesFromVisibleSilhouette(PolytopeVertex vertexToAdd)
    //   {
