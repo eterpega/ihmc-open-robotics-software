@@ -148,7 +148,6 @@ public class ConvexPolytopeConstructor
       
       for(int i = 0; i < vertices.size(); i++)
       {
-         PrintTools.debug("" + i);
          PolytopeVertex vertex = vertices.get(i);
          double mag = Math.sqrt(vertex.getX() * vertex.getX() + vertex.getY() * vertex.getY() + vertex.getZ() * vertex.getZ());
          vertex.setX(vertex.getX() * radius / mag);

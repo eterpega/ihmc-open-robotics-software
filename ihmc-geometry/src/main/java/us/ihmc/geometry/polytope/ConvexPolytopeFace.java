@@ -582,7 +582,7 @@ public class ConvexPolytopeFace implements GeometryObject<ConvexPolytopeFace>, C
       EuclidGeometryTools.orthogonalProjectionOnPlane3D(point, edges.get(0).getOriginVertex(), getNormailizedFaceNormal(), tempPoint);
       if(isInteriorPointInternal(tempPoint))
       {
-         throw new RuntimeException("Unimplemented case");
+         
       }
       else
          getEdgeClosestTo(tempPoint).getSupportVectorJacobianTo(point, jacobianToPack);

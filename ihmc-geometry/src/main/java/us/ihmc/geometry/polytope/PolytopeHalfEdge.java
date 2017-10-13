@@ -32,7 +32,7 @@ public class PolytopeHalfEdge implements GeometryObject<PolytopeHalfEdge>, Polyt
     */
    private Vector3D edgeVector = new Vector3D();
    private Point3D tempPoint = new Point3D();
-
+   private DenseMatrix64F jacobian = new DenseMatrix64F();
    /**
     * Default constructor. Does not initialize anything
     */
@@ -359,7 +359,10 @@ public class PolytopeHalfEdge implements GeometryObject<PolytopeHalfEdge>, Polyt
          this.destinationVertex.getSupportVectorJacobianTo(point, jacobianToPack);
       else
       {
-         throw new RuntimeException("Unimplemented case");
+         this.originVertex.getSupportVectorJacobianTo(point, jacobian);
+         CommonOps.scale((1.0 - percentage), jacobian, jacobianToPack);
+         this.destinationVertex.getSupportVectorJacobianTo(point, jacobian);
+         CommonOps.addEquals(jacobianToPack, percentage, jacobian);
       }
    }
 

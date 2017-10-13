@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.ejml.data.DenseMatrix64F;
+import org.ejml.ops.CommonOps;
 
 import us.ihmc.euclid.interfaces.GeometryObject;
 import us.ihmc.euclid.transform.interfaces.Transform;
@@ -229,8 +230,19 @@ public class PolytopeVertex implements GeometryObject<PolytopeVertex>, PolytopeV
    public void getSupportVectorJacobianTo(Point3DReadOnly point, DenseMatrix64F jacobianToPack)
    {
       jacobianToPack.set(jacobian);
+      CommonOps.scale(-1.0, jacobianToPack);
    }
 
+   public void setJacobian(DenseMatrix64F jacobian)
+   {
+      this.jacobian.set(jacobian);
+   }
+   
+   public DenseMatrix64F getJacobian()
+   {
+      return jacobian;
+   }
+   
    @Override
    public Simplex getSmallestSimplexMemberReference(Point3DReadOnly point)
    {
