@@ -126,11 +126,12 @@ public class ConvexPolytopeFaceTest
       assertTrue(edge.getOriginVertex() == vertex3);
       assertTrue(edge.getDestinationVertex() == vertex1);
       
+      PrintTools.debug(face.toString());
       PolytopeVertex vertex9 = new PolytopeVertex(1.0, 1.0, 0.0);
       assertTrue(face.isPointInFacePlane(vertex9, Epsilons.ONE_MILLIONTH));
       assertTrue(face.isInteriorPoint(vertex9));
       face.addVertex(vertex9);
-      assertTrue("Number of edges: " + face.getNumberOfEdges() + ", needed: " + 5, face.getNumberOfEdges() == 5);
+      assertTrue(face.toString() + "\nNumber of edges: " + face.getNumberOfEdges() + ", needed: " + 5, face.getNumberOfEdges() == 5);
       edge = face.getEdge(0);
       assertTrue(edge.getOriginVertex() == vertex1);
       assertTrue(edge.getDestinationVertex() == vertex2);

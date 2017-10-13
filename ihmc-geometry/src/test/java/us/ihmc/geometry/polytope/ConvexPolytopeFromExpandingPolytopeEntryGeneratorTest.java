@@ -44,7 +44,7 @@ public class ConvexPolytopeFromExpandingPolytopeEntryGeneratorTest
       List<PolytopeVertex> vertices = convexPolytope.getVertices();
 
       assertEquals(numberOfVertices, vertices.size());
-      assertEquals(30, edges.size());
+      assertEquals(60, edges.size());
 
       // Bigger One:
       recursionLevel = 1;
@@ -72,7 +72,7 @@ public class ConvexPolytopeFromExpandingPolytopeEntryGeneratorTest
       vertices = convexPolytope.getVertices();
 
       assertEquals(numberOfVertices, vertices.size());
-      assertEquals(120, edges.size());
+      assertEquals(240, edges.size());
    }
 
 }

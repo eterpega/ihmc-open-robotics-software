@@ -215,7 +215,7 @@ public class ConvexPolytopeFace implements GeometryObject<ConvexPolytopeFace>, C
             previousDotProduct = dotProduct;
       }
       PrintTools.debug("Reaching here");
-      return edgeUnderConsideration;
+      return null;
    }
    
    public boolean isPointOnInteriorSideOfEdgeInternal(Point3DBasics point, int index)
