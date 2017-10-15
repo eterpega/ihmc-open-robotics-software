@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.ejml.data.DenseMatrix64F;
+import org.ejml.ops.CommonOps;
 
 import us.ihmc.commons.Epsilons;
 import us.ihmc.commons.PrintTools;
@@ -45,6 +46,8 @@ public class ConvexPolytopeFace implements GeometryObject<ConvexPolytopeFace>, C
    private final Point3D tempPoint = new Point3D();
    private final ArrayList<PolytopeHalfEdge> visibleEdgeList = new ArrayList<>();
    private boolean marked = false;
+   private DenseMatrix64F jacobian = new DenseMatrix64F();
+   
    /**
     * Default constructor. Does not initialize anything
     */
@@ -214,7 +217,6 @@ public class ConvexPolytopeFace implements GeometryObject<ConvexPolytopeFace>, C
          else
             previousDotProduct = dotProduct;
       }
-      PrintTools.debug("Reaching here");
       return null;
    }
    
@@ -582,7 +584,15 @@ public class ConvexPolytopeFace implements GeometryObject<ConvexPolytopeFace>, C
       EuclidGeometryTools.orthogonalProjectionOnPlane3D(point, edges.get(0).getOriginVertex(), getNormailizedFaceNormal(), tempPoint);
       if(isInteriorPointInternal(tempPoint))
       {
-         
+         Vector3D edge0 = edges.get(0).getEdgeVector();
+         Vector3D edge1 = edges.get(1).getEdgeVector();
+         double magnitude = edge0.getX() * edge1.getY() - edge1.getX() * edge0.getY();
+         // Compute the multipliers for the face basis (edges 0 and 1)
+         double alpha = (tempPoint.getX() * edge1.getY() - edge1.getX() * tempPoint.getY()) / magnitude;
+         double beta = (- tempPoint.getX() * edge0.getY() + edge0.getX() * tempPoint.getY()) / magnitude;
+         CommonOps.subtract(edges.get(0).getDestinationVertex().getJacobian(), edges.get(0).getOriginVertex().getJacobian(), this.jacobian);
+         CommonOps.subtract(edges.get(1).getDestinationVertex().getJacobian(), edges.get(1).getOriginVertex().getJacobian(), jacobianToPack);
+         CommonOps.add(-alpha, this.jacobian, -beta, jacobianToPack, jacobianToPack);
       }
       else
          getEdgeClosestTo(tempPoint).getSupportVectorJacobianTo(point, jacobianToPack);
