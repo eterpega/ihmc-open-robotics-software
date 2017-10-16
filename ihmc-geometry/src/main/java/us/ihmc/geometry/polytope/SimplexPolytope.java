@@ -56,7 +56,7 @@ public class SimplexPolytope
    private void addPointsContribution(Point3D pointToContribute, Point3D pointOnAToPack, Point3D pointOnBToPack)
    {
       double lambda = lambdas.get(pointToContribute);
-      PrintTools.debug("Lambda: " + lambda + " Point: " + pointToContribute.toString());
+
       tempVector1.set(simplexPointToPolytopePointA.get(pointToContribute));
       tempVector1.scale(lambda);
       pointOnAToPack.add(tempVector1);
@@ -255,7 +255,6 @@ public class SimplexPolytope
          else
          {
             projectOriginOntoEdge(pointOne, pointTwo, closestPointToOrigin);
-            PrintTools.debug("This should print" + closestPointToOrigin.toString());
             retainPoints(pointOne, pointTwo);
          }
       }

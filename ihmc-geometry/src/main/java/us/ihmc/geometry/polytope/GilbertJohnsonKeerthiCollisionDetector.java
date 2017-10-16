@@ -113,7 +113,6 @@ public class GilbertJohnsonKeerthiCollisionDetector
                listener.foundCollision(simplex, pointOnAToPack, pointOnBToPack);
             }
             simplex.getClosestPointsOnAAndB(pointOnAToPack, pointOnBToPack);
-            PrintTools.debug("Breaking on collision");
             return true;
          }
 
@@ -135,7 +134,6 @@ public class GilbertJohnsonKeerthiCollisionDetector
             {
                listener.metStoppingConditionForNoIntersection(pointOnAToPack, pointOnBToPack);
             }
-            PrintTools.debug("Breaking on readdinng same points");
             return false;
          }
          supportingVertexOnSimplex.sub(supportingVertexOnA, supportingVertexOnB);
@@ -175,7 +173,6 @@ public class GilbertJohnsonKeerthiCollisionDetector
             {
                listener.metStoppingConditionForNoIntersection(pointOnAToPack, pointOnBToPack);
             }
-            PrintTools.debug("Breaking on stopping condition");
             return false;
          }
 
@@ -194,7 +191,6 @@ public class GilbertJohnsonKeerthiCollisionDetector
             {
                listener.tooManyIterationsStopping(simplex, pointOnAToPack, pointOnBToPack);
             }
-            PrintTools.debug("Breaking on iterations");
             return false;
          }
 
@@ -211,7 +207,6 @@ public class GilbertJohnsonKeerthiCollisionDetector
             {
                listener.metStoppingConditionForNoIntersection(pointOnAToPack, pointOnBToPack);
             }
-            PrintTools.debug("Breaking on unsuccessful vertex addition \n" + simplex.toString() + "\nPoint: " + pointToAddToSimplex.toString());
             return false;
          }
 
