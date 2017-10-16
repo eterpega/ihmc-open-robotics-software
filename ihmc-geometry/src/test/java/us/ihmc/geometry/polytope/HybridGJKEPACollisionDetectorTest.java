@@ -25,6 +25,6 @@ public class HybridGJKEPACollisionDetectorTest
    @Test(timeout = 1000)
    public void testCollisionDetection()
    {
-      ConvexPolytope polytope1 = ConvexPolytopeConstructor.constructBox(new Point3D(), new Quaternion(), 5, 5, 4);
+      ExtendedConvexPolytope polytope1 = ConvexPolytopeConstructor.constructExtendedBox(new Point3D(), new Quaternion(), 5, 5, 4);
    }
 }

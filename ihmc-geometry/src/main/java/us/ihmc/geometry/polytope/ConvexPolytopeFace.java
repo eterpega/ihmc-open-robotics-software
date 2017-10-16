@@ -96,7 +96,7 @@ public class ConvexPolytopeFace implements GeometryObject<ConvexPolytopeFace>, C
       return edges.get(index);
    }
 
-   public void addVertex(PolytopeVertex vertexToAdd)
+   public void addVertex(ExtendedPolytopeVertex vertexToAdd)
    {
       switch (edges.size())
       {
@@ -492,9 +492,9 @@ public class ConvexPolytopeFace implements GeometryObject<ConvexPolytopeFace>, C
 
    public Point3D getSupportingVertex(Vector3D supportVector)
    {
-      PolytopeVertex bestVertex = edges.get(0).getOriginVertex();
+      ExtendedPolytopeVertex bestVertex = edges.get(0).getOriginVertex();
       double maxDot = bestVertex.dot(supportVector);
-      PolytopeVertex bestVertexCandidate = bestVertex;
+      ExtendedPolytopeVertex bestVertexCandidate = bestVertex;
       while (true)
       {
          bestVertexCandidate = bestVertex;

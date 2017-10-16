@@ -25,8 +25,8 @@ public class PolytopeHalfEdge implements GeometryObject<PolytopeHalfEdge>, Polyt
    private PolytopeHalfEdge nextHalfEdge;
    private PolytopeHalfEdge previousHalfEdge;
    private ConvexPolytopeFace face;
-   private PolytopeVertex originVertex;
-   private PolytopeVertex destinationVertex;
+   private ExtendedPolytopeVertex originVertex;
+   private ExtendedPolytopeVertex destinationVertex;
    /**
     * Not recomputed on change of values. Only recomputed when called through its getter
     */
@@ -46,7 +46,7 @@ public class PolytopeHalfEdge implements GeometryObject<PolytopeHalfEdge>, Polyt
     * @param originVertex
     * @param destinationVertex
     */
-   public PolytopeHalfEdge(PolytopeVertex originVertex, PolytopeVertex destinationVertex)
+   public PolytopeHalfEdge(ExtendedPolytopeVertex originVertex, ExtendedPolytopeVertex destinationVertex)
    {
       setOriginVertex(originVertex);
       setDestinationVertex(destinationVertex);
@@ -103,7 +103,7 @@ public class PolytopeHalfEdge implements GeometryObject<PolytopeHalfEdge>, Polyt
       setFace(face);
    }
 
-   public PolytopeHalfEdge(PolytopeVertex originVertex, PolytopeVertex destinationVertex, PolytopeHalfEdge twinEdge, PolytopeHalfEdge nextHalfEdge,
+   public PolytopeHalfEdge(ExtendedPolytopeVertex originVertex, ExtendedPolytopeVertex destinationVertex, PolytopeHalfEdge twinEdge, PolytopeHalfEdge nextHalfEdge,
                            PolytopeHalfEdge previousHalfEdge, ConvexPolytopeFace face)
    {
       setOriginVertex(originVertex);
@@ -114,7 +114,7 @@ public class PolytopeHalfEdge implements GeometryObject<PolytopeHalfEdge>, Polyt
       setFace(face);
    }
 
-   public void setOriginVertex(PolytopeVertex originVertex)
+   public void setOriginVertex(ExtendedPolytopeVertex originVertex)
    {
       if (this.originVertex != null)
          this.originVertex.removeAssociatedEdge(this);
@@ -142,18 +142,18 @@ public class PolytopeHalfEdge implements GeometryObject<PolytopeHalfEdge>, Polyt
          twinEdge.destinationVertex = this.originVertex;
    }
 
-   public PolytopeVertex getOriginVertex()
+   public ExtendedPolytopeVertex getOriginVertex()
    {
       return originVertex;
    }
 
-   public void setDestinationVertex(PolytopeVertex destinationVertex)
+   public void setDestinationVertex(ExtendedPolytopeVertex destinationVertex)
    {
       this.destinationVertex = destinationVertex;
       updateTwinOrigin();
    }
 
-   public PolytopeVertex getDestinationVertex()
+   public ExtendedPolytopeVertex getDestinationVertex()
    {
       return destinationVertex;
    }
@@ -297,7 +297,7 @@ public class PolytopeHalfEdge implements GeometryObject<PolytopeHalfEdge>, Polyt
 
    public void reverseEdge()
    {
-      PolytopeVertex newDestinationVertex = this.originVertex;
+      ExtendedPolytopeVertex newDestinationVertex = this.originVertex;
       setOriginVertex(destinationVertex);
       setDestinationVertex(newDestinationVertex);
       PolytopeHalfEdge newNextHalfEdge = this.previousHalfEdge;

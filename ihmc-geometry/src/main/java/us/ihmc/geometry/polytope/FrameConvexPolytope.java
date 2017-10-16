@@ -3,11 +3,11 @@ package us.ihmc.geometry.polytope;
 import us.ihmc.euclid.referenceFrame.FrameGeometryObject;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 
-public class FrameConvexPolytope extends FrameGeometryObject<FrameConvexPolytope, ConvexPolytope>
+public class FrameConvexPolytope extends FrameGeometryObject<FrameConvexPolytope, ExtendedConvexPolytope>
 {
-   ConvexPolytope convexPolytope;
+   ExtendedConvexPolytope convexPolytope;
    
-   public FrameConvexPolytope(ReferenceFrame referenceFrame, ConvexPolytope geometryObject)
+   public FrameConvexPolytope(ReferenceFrame referenceFrame, ExtendedConvexPolytope geometryObject)
    {
       super(referenceFrame, geometryObject);
       this.convexPolytope = geometryObject;

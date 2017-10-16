@@ -14,27 +14,27 @@ import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 
-public class FramePolytopeVertex extends FrameGeometryObject<FramePolytopeVertex, PolytopeVertex> implements PolytopeVertexBasics
+public class FramePolytopeVertex extends FrameGeometryObject<FramePolytopeVertex, ExtendedPolytopeVertex> implements PolytopeVertexBasics
 {
-   private final PolytopeVertex polytopeVertex;
+   private final ExtendedPolytopeVertex polytopeVertex;
    private final FramePoint3D framePosition;
    
    public FramePolytopeVertex(ReferenceFrame referenceFrame, double x, double y, double z)
    {
-      this(referenceFrame, new PolytopeVertex(x,y,z));
+      this(referenceFrame, new ExtendedPolytopeVertex(x,y,z));
    }
    
    public FramePolytopeVertex(FramePoint3D vertex)
    {
-      this(vertex.getReferenceFrame(), new PolytopeVertex(vertex.getPoint()));
+      this(vertex.getReferenceFrame(), new ExtendedPolytopeVertex(vertex.getPoint()));
    }
 
    public FramePolytopeVertex(ReferenceFrame referenceFrame, Point3D vertex)
    {
-      this(referenceFrame, new PolytopeVertex(vertex));
+      this(referenceFrame, new ExtendedPolytopeVertex(vertex));
    }
    
-   public FramePolytopeVertex(ReferenceFrame referenceFrame, PolytopeVertex vertex)
+   public FramePolytopeVertex(ReferenceFrame referenceFrame, ExtendedPolytopeVertex vertex)
    {
       super(referenceFrame, vertex);
       this.polytopeVertex = vertex;

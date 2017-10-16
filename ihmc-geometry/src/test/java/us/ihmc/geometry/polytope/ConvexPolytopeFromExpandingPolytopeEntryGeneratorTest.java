@@ -40,7 +40,7 @@ public class ConvexPolytopeFromExpandingPolytopeEntryGeneratorTest
       ConvexPolytopeFromExpandingPolytopeEntryGenerator generatorTwo = new ConvexPolytopeFromExpandingPolytopeEntryGenerator();
       ConvexPolytope convexPolytope = generatorTwo.generateConvexPolytope(expandingPolytope);
 
-      List<PolytopeHalfEdge> edges = convexPolytope.getEdges();
+      List<PolytopeVertex[]> edges = convexPolytope.getEdges();
       List<PolytopeVertex> vertices = convexPolytope.getVertices();
 
       assertEquals(numberOfVertices, vertices.size());

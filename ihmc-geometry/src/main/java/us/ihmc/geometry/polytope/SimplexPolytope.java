@@ -5,6 +5,7 @@ import org.ejml.ops.CommonOps;
 
 import gnu.trove.map.hash.THashMap;
 import gnu.trove.map.hash.TObjectDoubleHashMap;
+import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 
@@ -55,7 +56,7 @@ public class SimplexPolytope
    private void addPointsContribution(Point3D pointToContribute, Point3D pointOnAToPack, Point3D pointOnBToPack)
    {
       double lambda = lambdas.get(pointToContribute);
-
+      PrintTools.debug("Lambda: " + lambda + " Point: " + pointToContribute.toString());
       tempVector1.set(simplexPointToPolytopePointA.get(pointToContribute));
       tempVector1.scale(lambda);
       pointOnAToPack.add(tempVector1);
@@ -254,6 +255,7 @@ public class SimplexPolytope
          else
          {
             projectOriginOntoEdge(pointOne, pointTwo, closestPointToOrigin);
+            PrintTools.debug("This should print" + closestPointToOrigin.toString());
             retainPoints(pointOne, pointTwo);
          }
       }
