@@ -538,9 +538,8 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
       {
          tempVector.sub(pointToCheck, faces.get(i).getEdge(0).getOriginVertex().getPosition());
          double dotProduct = tempVector.dot(faces.get(i).getFaceNormal());
-         if (dotProduct >= epsilon)
+         if (dotProduct >= epsilon || faces.get(i).getNumberOfEdges() < 3)
          {
-            //PrintTools.debug("Val: " + dotProduct + " Point: " + pointToCheck + " Vector: " + tempVector);
             return faces.get(i);
          }
       }
@@ -676,7 +675,6 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
    {
       if (isInteriorPoint(point, Epsilons.ONE_TRILLIONTH))
       {
-         //PrintTools.debug("Interior point: " + point.toString());
          return -getFaceContainingPointClosestTo(point).getShortestDistanceTo(point);
       }
       else
@@ -690,7 +688,9 @@ public class ConvexPolytope implements GeometryObject<ConvexPolytope>, Supportin
       if (faces.size() == 0)
          throw new RuntimeException();
       else if (faces.size() == 1)
+      {
          return faces.get(0);
+      }
 
       unmarkAllFaces();
       ConvexPolytopeFace currentBestFace = faces.get(0);

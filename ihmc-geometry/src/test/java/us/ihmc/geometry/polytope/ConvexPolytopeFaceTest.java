@@ -9,7 +9,6 @@ import java.util.List;
 import org.junit.Test;
 
 import us.ihmc.commons.Epsilons;
-import us.ihmc.commons.PrintTools;
 
 public class ConvexPolytopeFaceTest
 {
@@ -126,7 +125,6 @@ public class ConvexPolytopeFaceTest
       assertTrue(edge.getOriginVertex() == vertex3);
       assertTrue(edge.getDestinationVertex() == vertex1);
       
-      PrintTools.debug(face.toString());
       PolytopeVertex vertex9 = new PolytopeVertex(1.0, 1.0, 0.0);
       assertTrue(face.isPointInFacePlane(vertex9, Epsilons.ONE_MILLIONTH));
       assertTrue(face.isInteriorPoint(vertex9));
@@ -176,12 +174,10 @@ public class ConvexPolytopeFaceTest
       
       PolytopeVertex vertex6 = new PolytopeVertex(-1.0, -1.0, 0.0);
       PolytopeHalfEdge firstVisibleEdge = face.getFirstVisibleEdge(vertex6);
-      PrintTools.debug(firstVisibleEdge.toString());
       assertTrue(firstVisibleEdge == halfEdge5);
       
       PolytopeVertex vertex7 = new PolytopeVertex(2.0, -1.0, 0.0);
       firstVisibleEdge = face.getFirstVisibleEdge(vertex7);
-      PrintTools.debug(firstVisibleEdge.toString());
       assertTrue(firstVisibleEdge == halfEdge1);
    }
    
@@ -213,20 +209,12 @@ public class ConvexPolytopeFaceTest
       List<PolytopeHalfEdge> visibleEdgeList = new ArrayList<>();
       PolytopeVertex vertex6 = new PolytopeVertex(-1.0, -1.0, 0.0);
       face.getVisibleEdgeList(vertex6, visibleEdgeList);
-      for(int i = 0; i < visibleEdgeList.size(); i++)
-      {
-         PrintTools.debug(visibleEdgeList.get(i).toString());
-      }
       assertTrue(visibleEdgeList.size() == 2);
       assertTrue(visibleEdgeList.get(0) == halfEdge5);
       assertTrue(visibleEdgeList.get(1) == halfEdge1);
 
       PolytopeVertex vertex7 = new PolytopeVertex(2.0, -1.0, 0.0);
       face.getVisibleEdgeList(vertex7, visibleEdgeList);
-      for(int i = 0; i < visibleEdgeList.size(); i++)
-      {
-         PrintTools.debug(visibleEdgeList.get(i).toString());
-      }
       assertTrue(visibleEdgeList.size() == 2);
       assertTrue(visibleEdgeList.get(0) == halfEdge1);
       assertTrue(visibleEdgeList.get(1) == halfEdge2);
