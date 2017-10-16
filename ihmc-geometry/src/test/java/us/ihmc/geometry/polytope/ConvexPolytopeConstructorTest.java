@@ -4,7 +4,6 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.tuple3D.Point3D;
 
 public class ConvexPolytopeConstructorTest
@@ -15,8 +14,7 @@ public class ConvexPolytopeConstructorTest
       int numberOfSide = 20;
       ConvexPolytope cylinder = ConvexPolytopeConstructor.constructCylinder(new Point3D(), 10.0, 2.0, numberOfSide);
       assertTrue(cylinder != null);
-      PrintTools.debug(cylinder.toString());
-      //assertTrue(cylinder.getNumberOfFaces() == numberOfSide + 2);
+      assertTrue(cylinder.getNumberOfFaces() == numberOfSide + 2);
       for (int j = 0; j < cylinder.getNumberOfFaces(); j++)
       {
          ConvexPolytopeFace face = cylinder.getFace(j);
@@ -37,7 +35,6 @@ public class ConvexPolytopeConstructorTest
       int recursionLevel = 0;
       ConvexPolytope sphere = ConvexPolytopeConstructor.constructSphere(1.0, new Point3D(), recursionLevel);
       assertTrue(sphere != null);
-      PrintTools.debug(sphere.toString());
       for (int j = 0; j < sphere.getNumberOfFaces(); j++)
       {
          ConvexPolytopeFace face = sphere.getFace(j);

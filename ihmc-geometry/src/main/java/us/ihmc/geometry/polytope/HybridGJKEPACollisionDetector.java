@@ -77,7 +77,6 @@ public class HybridGJKEPACollisionDetector
          double distanceToGo = simplex.getShortestDistanceTo(origin);
          if(distanceToGo <= epsilon)
          {
-            //PrintTools.debug("Distance to go: " + distanceToGo + "\n" + simplex.toString());
             return true;
          }
          else
@@ -94,7 +93,6 @@ public class HybridGJKEPACollisionDetector
    
    public void runEPAExpansion(ConvexPolytope polytopeA, ConvexPolytope polytopeB, Vector3D collisionVectorToPack)
    {
-      //PrintTools.debug(supportVectorDirection.toString());
       runEPAExpansion(polytopeA, polytopeB, simplex, supportVectorDirection, collisionVectorToPack);
    }
 

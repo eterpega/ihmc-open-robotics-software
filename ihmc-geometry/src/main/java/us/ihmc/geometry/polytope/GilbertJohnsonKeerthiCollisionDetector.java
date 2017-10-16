@@ -51,7 +51,7 @@ public class GilbertJohnsonKeerthiCollisionDetector
    }
 
    public boolean arePolytopesColliding(Vector3D initialGuessOfSeparatingVector, SupportingVertexHolder polytopeA, SupportingVertexHolder polytopeB,
-         Point3D pointOnAToPack, Point3D pointOnBToPack)
+                                        Point3D pointOnAToPack, Point3D pointOnBToPack)
    {
       poolOfPoints.clear();
 
@@ -111,7 +111,6 @@ public class GilbertJohnsonKeerthiCollisionDetector
             {
                listener.foundCollision(simplex, pointOnAToPack, pointOnBToPack);
             }
-
             simplex.getClosestPointsOnAAndB(pointOnAToPack, pointOnBToPack);
             return true;
          }
@@ -134,7 +133,6 @@ public class GilbertJohnsonKeerthiCollisionDetector
             {
                listener.metStoppingConditionForNoIntersection(pointOnAToPack, pointOnBToPack);
             }
-
             return false;
          }
          supportingVertexOnSimplex.sub(supportingVertexOnA, supportingVertexOnB);
@@ -174,7 +172,6 @@ public class GilbertJohnsonKeerthiCollisionDetector
             {
                listener.metStoppingConditionForNoIntersection(pointOnAToPack, pointOnBToPack);
             }
-
             return false;
          }
 
@@ -193,7 +190,6 @@ public class GilbertJohnsonKeerthiCollisionDetector
             {
                listener.tooManyIterationsStopping(simplex, pointOnAToPack, pointOnBToPack);
             }
-
             return false;
          }
 

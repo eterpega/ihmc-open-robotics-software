@@ -10,7 +10,6 @@ import org.junit.Test;
 
 import us.ihmc.commons.Epsilons;
 import us.ihmc.commons.MutationTestFacilitator;
-import us.ihmc.commons.PrintTools;
 import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
 import us.ihmc.euclid.geometry.BoundingBox3D;
 import us.ihmc.euclid.tools.EuclidCoreTestTools;
@@ -80,8 +79,6 @@ public class ConvexPolytopeTest
       polytope.addVertex(3.0, 0.0, 1.0, EPSILON);
       polytope.addVertex(2.0, -1.0, 1.0, EPSILON);
       polytope.addVertex(1.0, -1.0, 1.0, EPSILON);
-
-      PrintTools.debug(" *** " +polytope.toString());
 
       for (int j = 0; j < polytope.getNumberOfFaces(); j++)
       {
@@ -396,8 +393,6 @@ public class ConvexPolytopeTest
 
       Vector3D supportDirection = new Vector3D(1.0, 1.0, 1.0);
       Point3D supportingVertex = polytope.getSupportingVertex(supportDirection);
-      PrintTools.debug(supportingVertex.toString());
-      PrintTools.debug(vertexSeven.toString());
       assertTrue(supportingVertex == vertexSeven.getPosition());
 
       supportDirection = new Vector3D(-1.0, -1.0, -1.0);
@@ -486,7 +481,6 @@ public class ConvexPolytopeTest
       ConvexPolytope cubeOne = ConvexPolytopeConstructor.constructBoxWithCenterAtZero(100.0, 100.0, 0.5);
       Vector3D supportDirection = new Vector3D(1.0, -1.0, 0.0);
       Point3D supportVertex = cubeOne.getSupportingVertex(supportDirection);
-      PrintTools.debug(supportVertex.toString());
    }
 
    public static void main(String[] args)
