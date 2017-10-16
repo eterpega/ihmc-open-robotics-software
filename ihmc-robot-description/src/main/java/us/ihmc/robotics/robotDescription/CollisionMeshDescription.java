@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import us.ihmc.euclid.geometry.LineSegment3D;
 import us.ihmc.euclid.matrix.RotationMatrix;
 import us.ihmc.euclid.tuple3D.Vector3D;
-import us.ihmc.geometry.polytope.ConvexPolytope;
+import us.ihmc.geometry.polytope.ExtendedConvexPolytope;
 import us.ihmc.robotics.Axis;
 import us.ihmc.robotics.geometry.RigidBodyTransformGenerator;
 
@@ -86,7 +86,7 @@ public class CollisionMeshDescription implements CollisionMaskHolder
       transformGenerator.translate(0.0, 0.0, -height / 2.0);
    }
 
-   public void addConvexPolytope(ConvexPolytope polytope)
+   public void addConvexPolytope(ExtendedConvexPolytope polytope)
    {
       ConvexPolytopeDescriptionReadOnly polytopeReadOnly = new ConvexPolytopeDescriptionReadOnly(polytope, transformGenerator.getRigidBodyTransformCopy());
       convexShapeDescriptions.add(polytopeReadOnly);
