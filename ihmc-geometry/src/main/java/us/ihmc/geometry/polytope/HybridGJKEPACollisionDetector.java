@@ -63,7 +63,7 @@ public class HybridGJKEPACollisionDetector
       this.epsilon = epsilon;
    }
 
-   public boolean checkCollisionBetweenTwoPolytopes(ConvexPolytope polytopeA, ConvexPolytope polytopeB, Vector3D initialDirectionForSearch)
+   public boolean checkCollisionBetweenTwoPolytopes(ExtendedConvexPolytope polytopeA, ExtendedConvexPolytope polytopeB, Vector3D initialDirectionForSearch)
    {
       simplex.clear();
       setSupportVectorDirection(initialDirectionForSearch);
@@ -91,12 +91,12 @@ public class HybridGJKEPACollisionDetector
       return false;
    }
    
-   public void runEPAExpansion(ConvexPolytope polytopeA, ConvexPolytope polytopeB, Vector3D collisionVectorToPack)
+   public void runEPAExpansion(ExtendedConvexPolytope polytopeA, ExtendedConvexPolytope polytopeB, Vector3D collisionVectorToPack)
    {
       runEPAExpansion(polytopeA, polytopeB, simplex, supportVectorDirection, collisionVectorToPack);
    }
 
-   public void runEPAExpansion(ConvexPolytope polytopeA, ConvexPolytope polytopeB, ExtendedSimplexPolytope simplex, Vector3D initialSupportVectorDirection, Vector3D collisionVectorToPack)
+   public void runEPAExpansion(ExtendedConvexPolytope polytopeA, ExtendedConvexPolytope polytopeB, ExtendedSimplexPolytope simplex, Vector3D initialSupportVectorDirection, Vector3D collisionVectorToPack)
    {
       supportVectorDirection.set(initialSupportVectorDirection);
       previousSupportVectorDirection.set(initialSupportVectorDirection);
@@ -114,7 +114,7 @@ public class HybridGJKEPACollisionDetector
       collisionVectorToPack.scale(simplex.getSmallestSimplexMemberReference(origin).getShortestDistanceTo(origin));
    }
    
-   public ConvexPolytope getSimplex()
+   public ExtendedConvexPolytope getSimplex()
    {
       return simplex.getPolytope();
    }

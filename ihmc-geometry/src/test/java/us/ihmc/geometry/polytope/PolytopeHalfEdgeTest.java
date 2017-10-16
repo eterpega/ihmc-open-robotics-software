@@ -12,8 +12,8 @@ public class PolytopeHalfEdgeTest
    @Test
    public void testConstructor()
    {
-      PolytopeVertex vertex1 = getRandomPolytopeVertex();
-      PolytopeVertex vertex2 = getRandomPolytopeVertex();
+      ExtendedPolytopeVertex vertex1 = getRandomPolytopeVertex();
+      ExtendedPolytopeVertex vertex2 = getRandomPolytopeVertex();
       PolytopeHalfEdge halfEdge1 = new PolytopeHalfEdge(vertex1, vertex2);
       assertTrue(halfEdge1.getOriginVertex() == vertex1);
       assertTrue(halfEdge1.getDestinationVertex() == vertex2);
@@ -30,7 +30,7 @@ public class PolytopeHalfEdgeTest
       assertTrue(halfEdge2.getNextHalfEdge() == null);
       assertTrue(halfEdge2.getTwinHalfEdge() == halfEdge1);
       
-      PolytopeVertex vertex3 = getRandomPolytopeVertex();
+      ExtendedPolytopeVertex vertex3 = getRandomPolytopeVertex();
       PolytopeHalfEdge halfEdge3 = new PolytopeHalfEdge(vertex2, vertex3, null, null, halfEdge1, null);
       assertTrue(halfEdge3.getOriginVertex() == vertex2);
       assertTrue(halfEdge3.getDestinationVertex() == vertex3);
@@ -43,9 +43,9 @@ public class PolytopeHalfEdgeTest
    @Test
    public void testEdgeReverse()
    {
-      PolytopeVertex vertex1 = getRandomPolytopeVertex();
-      PolytopeVertex vertex2 = getRandomPolytopeVertex();
-      PolytopeVertex vertex3 = getRandomPolytopeVertex();
+      ExtendedPolytopeVertex vertex1 = getRandomPolytopeVertex();
+      ExtendedPolytopeVertex vertex2 = getRandomPolytopeVertex();
+      ExtendedPolytopeVertex vertex3 = getRandomPolytopeVertex();
       
       PolytopeHalfEdge halfEdge1 = new PolytopeHalfEdge(vertex1, vertex2);
       PolytopeHalfEdge halfEdge2 = new PolytopeHalfEdge(vertex2, vertex3, null, null, halfEdge1, null);
@@ -61,16 +61,16 @@ public class PolytopeHalfEdgeTest
       assertTrue(halfEdge2.getPreviousHalfEdge() == halfEdge3);
    }
 
-   private PolytopeVertex getRandomPolytopeVertex()
+   private ExtendedPolytopeVertex getRandomPolytopeVertex()
    {
-      return new PolytopeVertex(Math.random(), Math.random(), Math.random());
+      return new ExtendedPolytopeVertex(Math.random(), Math.random(), Math.random());
    }
    
    @Test 
    public void testCreateTwinEdge()
    {
-      PolytopeVertex vertex1 = getRandomPolytopeVertex();
-      PolytopeVertex vertex2 = getRandomPolytopeVertex();
+      ExtendedPolytopeVertex vertex1 = getRandomPolytopeVertex();
+      ExtendedPolytopeVertex vertex2 = getRandomPolytopeVertex();
       PolytopeHalfEdge halfEdge1 = new PolytopeHalfEdge(vertex1, vertex2);
       PolytopeHalfEdge twinOfHalfEdge1 = halfEdge1.createTwinHalfEdge();
       assertTrue(twinOfHalfEdge1.getTwinHalfEdge() == halfEdge1);
@@ -81,8 +81,8 @@ public class PolytopeHalfEdgeTest
    @Test
    public void testSetAndCreateTwinEdge()
    {
-      PolytopeVertex vertex1 = getRandomPolytopeVertex();
-      PolytopeVertex vertex2 = getRandomPolytopeVertex();
+      ExtendedPolytopeVertex vertex1 = getRandomPolytopeVertex();
+      ExtendedPolytopeVertex vertex2 = getRandomPolytopeVertex();
       PolytopeHalfEdge halfEdge1 = new PolytopeHalfEdge(vertex1, vertex2);
       PolytopeHalfEdge twinOfHalfEdge1 = halfEdge1.setAndCreateTwinHalfEdge();
       assertTrue(twinOfHalfEdge1.getTwinHalfEdge() == halfEdge1);
@@ -94,12 +94,12 @@ public class PolytopeHalfEdgeTest
    @Test
    public void testEpsilonEquals()
    {
-      PolytopeVertex vertex1 = getRandomPolytopeVertex();
-      PolytopeVertex vertex2 = getRandomPolytopeVertex();
+      ExtendedPolytopeVertex vertex1 = getRandomPolytopeVertex();
+      ExtendedPolytopeVertex vertex2 = getRandomPolytopeVertex();
       PolytopeHalfEdge halfEdge1 = new PolytopeHalfEdge(vertex1, vertex2);
       assertTrue(halfEdge1.epsilonEquals(halfEdge1, 0.0));
-      PolytopeVertex vertex3 = new PolytopeVertex(vertex1.getX() + Epsilons.ONE_THOUSANDTH, vertex1.getY() - Epsilons.ONE_THOUSANDTH, vertex1.getZ() + Epsilons.ONE_THOUSANDTH);
-      PolytopeVertex vertex4 = new PolytopeVertex(vertex2.getX() - Epsilons.ONE_THOUSANDTH, vertex2.getY() - Epsilons.ONE_THOUSANDTH, vertex2.getZ() + Epsilons.ONE_THOUSANDTH);
+      ExtendedPolytopeVertex vertex3 = new ExtendedPolytopeVertex(vertex1.getX() + Epsilons.ONE_THOUSANDTH, vertex1.getY() - Epsilons.ONE_THOUSANDTH, vertex1.getZ() + Epsilons.ONE_THOUSANDTH);
+      ExtendedPolytopeVertex vertex4 = new ExtendedPolytopeVertex(vertex2.getX() - Epsilons.ONE_THOUSANDTH, vertex2.getY() - Epsilons.ONE_THOUSANDTH, vertex2.getZ() + Epsilons.ONE_THOUSANDTH);
       PolytopeHalfEdge halfEdge2 = new PolytopeHalfEdge(vertex3, vertex4);
       assertTrue(halfEdge1.epsilonEquals(halfEdge2, Epsilons.ONE_THOUSANDTH*2));
    }
@@ -107,8 +107,8 @@ public class PolytopeHalfEdgeTest
    @Test 
    public void testEdgeVector()
    {
-      PolytopeVertex vertex1 = getRandomPolytopeVertex();
-      PolytopeVertex vertex2 = getRandomPolytopeVertex();
+      ExtendedPolytopeVertex vertex1 = getRandomPolytopeVertex();
+      ExtendedPolytopeVertex vertex2 = getRandomPolytopeVertex();
       
       PolytopeHalfEdge edge = new PolytopeHalfEdge(vertex1, vertex2);
       Vector3D edgeVector = edge.getEdgeVector();

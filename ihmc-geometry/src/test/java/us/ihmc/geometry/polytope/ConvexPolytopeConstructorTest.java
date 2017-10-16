@@ -12,7 +12,7 @@ public class ConvexPolytopeConstructorTest
    public void testCylinderConstructor()
    {
       int numberOfSide = 20;
-      ConvexPolytope cylinder = ConvexPolytopeConstructor.constructCylinder(new Point3D(), 10.0, 2.0, numberOfSide);
+      ExtendedConvexPolytope cylinder = ConvexPolytopeConstructor.constructCylinder(new Point3D(), 10.0, 2.0, numberOfSide);
       assertTrue(cylinder != null);
       assertTrue(cylinder.getNumberOfFaces() == numberOfSide + 2);
       for (int j = 0; j < cylinder.getNumberOfFaces(); j++)
@@ -33,7 +33,7 @@ public class ConvexPolytopeConstructorTest
    public void testSphereConstructor()
    {
       int recursionLevel = 0;
-      ConvexPolytope sphere = ConvexPolytopeConstructor.constructSphere(1.0, new Point3D(), recursionLevel);
+      ExtendedConvexPolytope sphere = ConvexPolytopeConstructor.constructSphere(1.0, new Point3D(), recursionLevel);
       assertTrue(sphere != null);
       for (int j = 0; j < sphere.getNumberOfFaces(); j++)
       {

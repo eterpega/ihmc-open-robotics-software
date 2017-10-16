@@ -8,6 +8,7 @@ import org.junit.Test;
 
 import us.ihmc.commons.Epsilons;
 import us.ihmc.commons.MutationTestFacilitator;
+import us.ihmc.commons.PrintTools;
 import us.ihmc.commons.RandomNumbers;
 import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
 import us.ihmc.euclid.geometry.LineSegment3D;
@@ -662,19 +663,21 @@ public class GilbertJohnsonKeerthiCollisionDetectorTest
 
       ConvexPolytope polytope = new ConvexPolytope();
 
-      polytope.addVertices(EPSILON, polytopePoints);
+      polytope.addVertices(polytopePoints);
 
       ConvexPolytope singlePointPolygon = ConvexPolytopeConstructor.constructSinglePointPolytope(pointToProject);
 
       Point3D closestPointOnPolytope = new Point3D();
       Point3D pointOnAToPack = new Point3D();
 
+      PrintTools.debug("Checking Collision");
       boolean areColliding = detector.arePolytopesColliding(singlePointPolygon, polytope, pointOnAToPack, closestPointOnPolytope);
       assertFalse(areColliding);
 
       // Make sure the projection projects to itself:
       ConvexPolytope closestPointCheckPolytope = ConvexPolytopeConstructor.constructSinglePointPolytope(closestPointOnPolytope);
       Point3D projectItselfCheckProjection = new Point3D();
+      PrintTools.debug("Checking self collision");
       boolean projectItselfCheck = detector.arePolytopesColliding(polytope, closestPointCheckPolytope, projectItselfCheckProjection, new Point3D());
       assertTrue(projectItselfCheck);
       EuclidCoreTestTools.assertTuple3DEquals(closestPointOnPolytope, projectItselfCheckProjection, 1e-7);

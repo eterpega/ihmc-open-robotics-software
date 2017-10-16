@@ -10,7 +10,7 @@ import us.ihmc.robotics.lists.RecyclingArrayList;
 public class ExtendedSimplexPolytope implements Simplex
 {
    private double epsilon = Epsilons.ONE_TEN_THOUSANDTH;
-   private ConvexPolytope polytope = new ConvexPolytope();
+   private ExtendedConvexPolytope polytope = new ExtendedConvexPolytope();
    RecyclingArrayList<SimplexVertex> vertices = new RecyclingArrayList<>(SimplexVertex.class);
    public ExtendedSimplexPolytope()
    {
@@ -22,12 +22,12 @@ public class ExtendedSimplexPolytope implements Simplex
       this.epsilon = epsilon;
    }
    
-   public void addVertex(PolytopeVertex vertexOnPolytopeA, PolytopeVertex vertexOnPolytopeB)
+   public void addVertex(ExtendedPolytopeVertex vertexOnPolytopeA, ExtendedPolytopeVertex vertexOnPolytopeB)
    {
       addVertex(vertexOnPolytopeA, vertexOnPolytopeB, epsilon);
    }
    
-   public void addVertex(PolytopeVertex vertexOnPolytopeA, PolytopeVertex vertexOnPolytopeB, double epsilon)
+   public void addVertex(ExtendedPolytopeVertex vertexOnPolytopeA, ExtendedPolytopeVertex vertexOnPolytopeB, double epsilon)
    {
       SimplexVertex newVertex = vertices.add();
       newVertex.set(vertexOnPolytopeA, vertexOnPolytopeB);
@@ -64,7 +64,7 @@ public class ExtendedSimplexPolytope implements Simplex
       return polytope.toString();
    }
 
-   public ConvexPolytope getPolytope()
+   public ExtendedConvexPolytope getPolytope()
    {
       return polytope;
    }

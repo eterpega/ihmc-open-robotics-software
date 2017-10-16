@@ -1,33 +1,33 @@
 package us.ihmc.geometry.polytope;
 
-public class SimplexVertex extends PolytopeVertex
+public class SimplexVertex extends ExtendedPolytopeVertex
 {
-   PolytopeVertex polytopeAVertexReference;
-   PolytopeVertex polytopeBVertexReference;
+   ExtendedPolytopeVertex polytopeAVertexReference;
+   ExtendedPolytopeVertex polytopeBVertexReference;
    
    public SimplexVertex()
    {
       super();
    }
    
-   public SimplexVertex(PolytopeVertex vertexOnPolytopeA, PolytopeVertex vertexOnPolytopeB)
+   public SimplexVertex(ExtendedPolytopeVertex vertexOnPolytopeA, ExtendedPolytopeVertex vertexOnPolytopeB)
    {
       set(vertexOnPolytopeA, vertexOnPolytopeB);
    }
    
-   public void set(PolytopeVertex vertexOnPolytopeA, PolytopeVertex vertexOnPolytopeB)
+   public void set(ExtendedPolytopeVertex vertexOnPolytopeA, ExtendedPolytopeVertex vertexOnPolytopeB)
    {
       this.polytopeAVertexReference = vertexOnPolytopeA;
       this.polytopeBVertexReference = vertexOnPolytopeB;
       sub(vertexOnPolytopeA, vertexOnPolytopeB);
    }
    
-   public PolytopeVertex getVertexOnPolytopeA()
+   public ExtendedPolytopeVertex getVertexOnPolytopeA()
    {
       return polytopeAVertexReference;
    }
    
-   public PolytopeVertex getVertexOnPolytopeB()
+   public ExtendedPolytopeVertex getVertexOnPolytopeB()
    {
       return polytopeBVertexReference;
    }
