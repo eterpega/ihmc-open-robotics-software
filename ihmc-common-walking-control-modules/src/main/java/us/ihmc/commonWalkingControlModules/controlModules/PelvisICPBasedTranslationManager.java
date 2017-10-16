@@ -5,6 +5,7 @@ import static us.ihmc.communication.packets.Packet.INVALID_MESSAGE_ID;
 import us.ihmc.commonWalkingControlModules.bipedSupportPolygons.BipedSupportPolygons;
 import us.ihmc.commonWalkingControlModules.momentumBasedController.HighLevelHumanoidControllerToolbox;
 import us.ihmc.commons.PrintTools;
+import us.ihmc.communication.packets.ExecutionMode;
 import us.ihmc.communication.packets.Packet;
 import us.ihmc.euclid.referenceFrame.FramePoint2D;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
@@ -13,17 +14,20 @@ import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.PelvisTrajectoryCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.StopAllTrajectoryCommand;
-import us.ihmc.communication.packets.ExecutionMode;
 import us.ihmc.robotics.geometry.ConvexPolygonScaler;
 import us.ihmc.robotics.geometry.FrameConvexPolygon2d;
 import us.ihmc.robotics.lists.RecyclingArrayDeque;
 import us.ihmc.robotics.math.frames.YoFramePoint2d;
 import us.ihmc.robotics.math.frames.YoFrameVector2d;
+import us.ihmc.robotics.math.trajectories.waypoints.FrameSE3TrajectoryPoint;
 import us.ihmc.robotics.math.trajectories.waypoints.MultipleWaypointsPositionTrajectoryGenerator;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
+import us.ihmc.robotics.screwTheory.CenterOfMassJacobian;
+import us.ihmc.robotics.screwTheory.FloatingInverseDynamicsJoint;
 import us.ihmc.robotics.screwTheory.MovingReferenceFrame;
 import us.ihmc.robotics.screwTheory.SelectionMatrix3D;
+import us.ihmc.robotics.screwTheory.Twist;
 import us.ihmc.yoVariables.listener.VariableChangedListener;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
@@ -41,19 +45,21 @@ public class PelvisICPBasedTranslationManager
    private final YoDouble frozenOffsetDecayAlpha = new YoDouble("frozenOffsetDecayAlpha", registry);
 
    private final YoFramePoint2d desiredPelvisPosition = new YoFramePoint2d("desiredPelvis", worldFrame, registry);
+   private final YoFrameVector2d desiredPelvisLinearVelocity = new YoFrameVector2d("desiredPelvisLinearVelocity", worldFrame, registry);
+   private final YoFrameVector2d desiredPelvisLinearAcceleration = new YoFrameVector2d("desiredPelvisLinearAcceleration", worldFrame, registry);
+
+   private final YoFrameVector2d pelvisLinearVelocity = new YoFrameVector2d("pelvisLinearVelocity", worldFrame, registry);
 
    private final YoDouble initialPelvisPositionTime = new YoDouble("initialPelvisPositionTime", registry);
 
    private final MultipleWaypointsPositionTrajectoryGenerator positionTrajectoryGenerator;
 
    private final YoFrameVector2d pelvisPositionError = new YoFrameVector2d("pelvisPositionError", worldFrame, registry);
+   private final YoDouble derivativeGain = new YoDouble("pelvisPositionDerivativeGain", registry);
    private final YoDouble proportionalGain = new YoDouble("pelvisPositionProportionalGain", registry);
-   private final YoFrameVector2d proportionalTerm = new YoFrameVector2d("pelvisPositionProportionalTerm", worldFrame, registry);
 
-   private final YoFrameVector2d pelvisPositionCumulatedError = new YoFrameVector2d("pelvisPositionCumulatedError", worldFrame, registry);
-   private final YoDouble integralGain = new YoDouble("pelvisPositionIntegralGain", registry);
-   private final YoFrameVector2d integralTerm = new YoFrameVector2d("pelvisPositionIntegralTerm", worldFrame, registry);
-   private final YoDouble maximumIntegralError = new YoDouble("maximumPelvisPositionIntegralError", registry);
+   private final YoDouble maxCMPRate = new YoDouble("pelvisPositionMaxCMPRate", registry);
+   private final YoDouble maxICPError = new YoDouble("pelvisPositionMaxICPError", registry);
 
    private final YoFrameVector2d desiredICPOffset = new YoFrameVector2d("desiredICPOffset", worldFrame, registry);
 
@@ -65,19 +71,25 @@ public class PelvisICPBasedTranslationManager
 
    private final YoDouble yoTime;
    private final double controlDT;
+   private final double omega0;
 
    private final YoBoolean isTrajectoryStopped = new YoBoolean("isPelvisTranslationalTrajectoryStopped", registry);
 
+   private final CenterOfMassJacobian centerOfMassJacobian;
+
    private ReferenceFrame supportFrame;
+   private final ReferenceFrame centerOfMassFrame;
    private final ReferenceFrame pelvisZUpFrame;
    private final ReferenceFrame midFeetZUpFrame;
    private final SideDependentList<MovingReferenceFrame> ankleZUpFrames;
 
+   private final FloatingInverseDynamicsJoint rootJoint;
    private final BipedSupportPolygons bipedSupportPolygons;
    private FrameConvexPolygon2d supportPolygon;
 
    private final FramePoint3D tempPosition = new FramePoint3D();
    private final FrameVector3D tempVelocity = new FrameVector3D();
+   private final FrameVector3D tempAcceleration = new FrameVector3D();
    private final FramePoint2D tempPosition2d = new FramePoint2D();
    private final FrameVector2D tempError2d = new FrameVector2D();
    private final FrameVector2D tempICPOffset = new FrameVector2D();
@@ -89,17 +101,23 @@ public class PelvisICPBasedTranslationManager
    private final YoLong numberOfQueuedCommands;
    private final RecyclingArrayDeque<PelvisTrajectoryCommand> commandQueue = new RecyclingArrayDeque<>(PelvisTrajectoryCommand.class);
 
-   public PelvisICPBasedTranslationManager(HighLevelHumanoidControllerToolbox controllerToolbox, double pelvisTranslationICPSupportPolygonSafeMargin, BipedSupportPolygons bipedSupportPolygons, YoVariableRegistry parentRegistry)
+   public PelvisICPBasedTranslationManager(HighLevelHumanoidControllerToolbox controllerToolbox, double pelvisTranslationICPSupportPolygonSafeMargin,
+                                           BipedSupportPolygons bipedSupportPolygons, YoVariableRegistry parentRegistry)
    {
       supportPolygonSafeMargin.set(pelvisTranslationICPSupportPolygonSafeMargin);
       frozenOffsetDecayAlpha.set(0.998);
-      
+
       yoTime = controllerToolbox.getYoTime();
       controlDT = controllerToolbox.getControlDT();
+      omega0 = controllerToolbox.getOmega0();
+
       pelvisZUpFrame = controllerToolbox.getPelvisZUpFrame();
       midFeetZUpFrame = controllerToolbox.getReferenceFrames().getMidFeetZUpFrame();
       ankleZUpFrames = controllerToolbox.getReferenceFrames().getAnkleZUpReferenceFrames();
 
+      centerOfMassFrame = controllerToolbox.getCenterOfMassFrame();
+      centerOfMassJacobian = controllerToolbox.getCenterOfMassJacobian();
+      rootJoint = controllerToolbox.getFullRobotModel().getRootJoint();
       this.bipedSupportPolygons = bipedSupportPolygons;
 
       boolean allowMultipleFrames = true;
@@ -108,9 +126,10 @@ public class PelvisICPBasedTranslationManager
       for (RobotSide robotSide : RobotSide.values)
          positionTrajectoryGenerator.registerNewTrajectoryFrame(ankleZUpFrames.get(robotSide));
 
-      proportionalGain.set(0.5);
-      integralGain.set(1.5);
-      maximumIntegralError.set(0.08);
+      proportionalGain.set(10.0);
+      derivativeGain.set(10.0);
+      maxCMPRate.set(1.0);
+      maxICPError.set(0.015);
 
       manualMode.addVariableChangedListener(new VariableChangedListener()
       {
@@ -131,14 +150,8 @@ public class PelvisICPBasedTranslationManager
       parentRegistry.addChild(registry);
    }
 
-   public void compute(RobotSide supportLeg, FramePoint2D actualICP)
+   public void setSupportLeg(RobotSide supportLeg)
    {
-      if (isFrozen.getBooleanValue())
-      {
-         icpOffsetForFreezing.scale(frozenOffsetDecayAlpha.getDoubleValue());
-         return;
-      }
-
       if (supportLeg == null)
       {
          supportFrame = midFeetZUpFrame;
@@ -149,45 +162,173 @@ public class PelvisICPBasedTranslationManager
          supportFrame = ankleZUpFrames.get(supportLeg);
          supportPolygon = bipedSupportPolygons.getFootPolygonInAnkleZUp(supportLeg);
       }
+   }
 
-      if (!isEnabled.getBooleanValue())
+   public void computeICPOffset(FramePoint2D previousCMP, FramePoint2D capturePoint2d, FramePoint2D desiredICPToModify,
+                                FrameVector2D desiredICPVelocityToModify)
+   {
+      if (!isEnabled.getBooleanValue() || (!isRunning.getBooleanValue() && !manualMode.getBooleanValue()))
       {
          desiredICPOffset.setToZero();
+         icpOffsetForFreezing.setToZero();
+         desiredICPToModify.changeFrame(worldFrame);
+         desiredICPVelocityToModify.changeFrame(worldFrame);
          return;
       }
 
-      if (manualMode.getBooleanValue())
-         return;
+      convexPolygonScaler.scaleConvexPolygon(supportPolygon, supportPolygonSafeMargin.getDoubleValue(), safeSupportPolygonToConstrainICPOffset);
 
-      if (isRunning.getBooleanValue())
+      if (manualMode.getBooleanValue())
+      {
+         // Ignore the desiredICPOffset frame assuming the user wants to control the ICP in the supportFrame
+         tempICPOffset.setIncludingFrame(supportFrame, desiredICPOffset.getX(), desiredICPOffset.getY());
+      }
+      else if (isRunning.getBooleanValue())
       {
          if (!isTrajectoryStopped.getBooleanValue())
          {
-            double deltaTime = yoTime.getDoubleValue() - initialPelvisPositionTime.getDoubleValue();
-            positionTrajectoryGenerator.compute(deltaTime);
-
             if (positionTrajectoryGenerator.isDone() && !commandQueue.isEmpty())
             {
+               double deltaTime = yoTime.getDoubleValue() - initialPelvisPositionTime.getDoubleValue();
                double firstTrajectoryPointTime = positionTrajectoryGenerator.getLastWaypointTime();
                PelvisTrajectoryCommand command = commandQueue.poll();
                numberOfQueuedCommands.decrement();
-               initializeTrajectoryGenerator(command, firstTrajectoryPointTime);
+               initializeTrajectoryGenerator(command, firstTrajectoryPointTime, true);
                positionTrajectoryGenerator.compute(deltaTime);
             }
          }
-         positionTrajectoryGenerator.getPosition(tempPosition);
-         tempPosition.changeFrame(desiredPelvisPosition.getReferenceFrame());
-         desiredPelvisPosition.setByProjectionOntoXYPlane(tempPosition);
+         
+         computeDesiredICPForPelvisPositionControl(capturePoint2d, desiredICP);
+         desiredICPOffset.sub(desiredICP, desiredICPToModify);
+         desiredICPOffset.getFrameTuple2dIncludingFrame(tempICPOffset);
       }
 
       if (!isRunning.getBooleanValue())
       {
-         desiredICPOffset.setToZero();
-         return;
+         this.desiredCMPPrevious.set(previousCMP);
       }
 
-      computeDesiredICPOffset();
+      if (isFrozen.getBooleanValue())
+      {
+         icpOffsetForFreezing.scale(frozenOffsetDecayAlpha.getDoubleValue());
+         icpOffsetForFreezing.changeFrame(desiredICPToModify.getReferenceFrame());
+
+         desiredICPOffset.setAndMatchFrame(icpOffsetForFreezing);
+         desiredICPToModify.changeFrame(icpOffsetForFreezing.getReferenceFrame());
+         desiredICPToModify.add(icpOffsetForFreezing);
+      }
+      else
+      {
+         updateDesiredICPAndOffsetForFrozenState(desiredICPToModify, tempICPOffset);
+         desiredICPVelocityToModify.set(desiredICPVelocity);
+      }
+
+      desiredICPPrevious.set(desiredICPToModify);
    }
+
+   private final FramePoint2D desiredICP = new FramePoint2D();
+   private final FramePoint2D desiredICPPrevious = new FramePoint2D();
+   private final FrameVector2D icpError = new FrameVector2D();
+   private final Twist rootJointTwist = new Twist();
+
+   private final FramePoint2D desiredCMP = new FramePoint2D();
+   private final FramePoint2D desiredCMPPrevious = new FramePoint2D();
+   private final FrameVector2D desiredCMPDisplacement = new FrameVector2D();
+   private final FrameVector2D desiredCoMAcceleration2d = new FrameVector2D();
+   private final FramePoint2D comPosition2d = new FramePoint2D();
+   private final FrameVector2D comVelocity2d = new FrameVector2D();
+   private final FrameVector2D desiredICPVelocity = new FrameVector2D();
+
+   private final FrameVector2D tempProportionalPart = new FrameVector2D();
+   private final FrameVector2D tempDerivativePart = new FrameVector2D();
+
+   private void computeDesiredICPForPelvisPositionControl(FramePoint2D capturePoint2d, FramePoint2D desiredICPToPack)
+   {
+      if (!isTrajectoryStopped.getBooleanValue())
+      {
+         double deltaTime = yoTime.getDoubleValue() - initialPelvisPositionTime.getDoubleValue();
+         positionTrajectoryGenerator.compute(deltaTime);
+      }
+      positionTrajectoryGenerator.getLinearData(tempPosition, tempVelocity, tempAcceleration);
+      tempPosition.changeFrame(worldFrame);
+      tempVelocity.changeFrame(worldFrame);
+      tempAcceleration.changeFrame(worldFrame);
+      desiredPelvisPosition.setByProjectionOntoXYPlane(tempPosition);
+      desiredPelvisLinearVelocity.setByProjectionOntoXYPlane(tempVelocity);
+      desiredPelvisLinearAcceleration.setByProjectionOntoXYPlane(tempAcceleration);
+
+      rootJoint.getJointTwist(rootJointTwist);
+      rootJointTwist.getLinearPart(tempVelocity);
+      tempVelocity.changeFrame(worldFrame);
+      pelvisLinearVelocity.setByProjectionOntoXYPlane(tempVelocity);
+
+      pelvisPositionError.set(desiredPelvisPosition);
+      tempPosition2d.setToZero(pelvisZUpFrame);
+      tempPosition2d.changeFrame(worldFrame);
+      pelvisPositionError.sub(tempPosition2d);
+
+      pelvisPositionError.getFrameTuple2dIncludingFrame(tempError2d);
+
+      comPosition2d.setToZero(centerOfMassFrame);
+      comPosition2d.changeFrameAndProjectToXYPlane(worldFrame);
+      centerOfMassJacobian.getCenterOfMassVelocity(tempVelocity);
+      tempVelocity.changeFrame(worldFrame);
+      comVelocity2d.set(tempVelocity);
+
+      pelvisPositionError.getFrameTuple2dIncludingFrame(tempProportionalPart);
+      tempProportionalPart.scale(proportionalGain.getDoubleValue());
+
+      desiredPelvisLinearVelocity.getFrameTuple2dIncludingFrame(tempDerivativePart);
+//      tempDerivativePart.sub(comVelocity2d);
+      tempDerivativePart.sub(pelvisLinearVelocity.getFrameTuple2d());
+      tempDerivativePart.scale(derivativeGain.getDoubleValue());
+
+      desiredPelvisLinearAcceleration.getFrameTuple2dIncludingFrame(desiredCoMAcceleration2d);
+      desiredCoMAcceleration2d.add(tempProportionalPart);
+      desiredCoMAcceleration2d.add(tempDerivativePart);
+
+      desiredCMP.set(desiredCoMAcceleration2d);
+      desiredCMP.scale(-1.0 / (omega0 * omega0));
+      desiredCMP.add(comPosition2d);
+//      desiredCMPDisplacement.sub(desiredCMP, desiredCMPPrevious);
+//      desiredCMPDisplacement.clipToMaxLength(maxCMPRate.getDoubleValue() * controlDT);
+//      desiredCMP.add(desiredCMPPrevious, desiredCMPDisplacement);
+
+      bipedSupportPolygons.getSupportPolygonInWorld().orthogonalProjection(desiredCMP);
+
+      desiredICPVelocity.sub(desiredICPPrevious, desiredCMP);
+      desiredICPVelocity.scale(omega0 / (1.0 - controlDT * omega0));
+
+      desiredICP.scaleAdd(controlDT, desiredICPVelocity, desiredICPPrevious);
+
+//      icpError.sub(desiredICP, capturePoint2d);
+//      icpError.clipToMaxLength(maxICPError.getDoubleValue());
+//      desiredICP.add(capturePoint2d, icpError);
+      desiredICP.changeFrame(supportFrame);
+      safeSupportPolygonToConstrainICPOffset.orthogonalProjection(desiredICP);
+      desiredICP.changeFrame(worldFrame);
+      desiredICPVelocity.sub(desiredICP, desiredICPPrevious);
+      desiredICPVelocity.scale(1.0 / controlDT);
+
+      desiredCMPPrevious.setAndScale(-1.0 / omega0, desiredICPVelocity);
+      desiredCMPPrevious.add(desiredICP);
+   }
+
+   private void updateDesiredICPAndOffsetForFrozenState(FramePoint2D desiredICP, FrameVector2D desiredICPOffset)
+   {
+      icpOffsetForFreezing.setIncludingFrame(desiredICP);
+      desiredICPOffset.changeFrame(worldFrame);
+      desiredICP.add(desiredICPOffset);
+
+      desiredICP.changeFrame(supportFrame);
+      safeSupportPolygonToConstrainICPOffset.orthogonalProjection(desiredICP);
+      desiredICP.changeFrame(worldFrame);
+
+      icpOffsetForFreezing.sub(desiredICP, icpOffsetForFreezing);
+   }
+
+   private final ConvexPolygonScaler convexPolygonScaler = new ConvexPolygonScaler();
+   private final FrameConvexPolygon2d safeSupportPolygonToConstrainICPOffset = new FrameConvexPolygon2d();
 
    public boolean isEnabled()
    {
@@ -228,7 +369,7 @@ public class PelvisICPBasedTranslationManager
          isReadyToHandleQueuedCommands.set(true);
          clearCommandQueue(command.getCommandId());
          initialPelvisPositionTime.set(yoTime.getDoubleValue());
-         initializeTrajectoryGenerator(command, 0.0);
+         initializeTrajectoryGenerator(command, 0.0, false);
          return;
       case QUEUE:
          boolean success = queuePelvisTrajectoryCommand(command);
@@ -249,7 +390,8 @@ public class PelvisICPBasedTranslationManager
    {
       if (!isReadyToHandleQueuedCommands.getBooleanValue())
       {
-         PrintTools.warn(this, "The very first " + command.getClass().getSimpleName() + " of a series must be " + ExecutionMode.OVERRIDE + ". Aborting motion.");
+         PrintTools.warn(this,
+                         "The very first " + command.getClass().getSimpleName() + " of a series must be " + ExecutionMode.OVERRIDE + ". Aborting motion.");
          return false;
       }
 
@@ -274,23 +416,39 @@ public class PelvisICPBasedTranslationManager
 
       return true;
    }
-
-   private void initializeTrajectoryGenerator(PelvisTrajectoryCommand command, double firstTrajectoryPointTime)
+   
+   private final FrameSE3TrajectoryPoint lastPointAdded = new FrameSE3TrajectoryPoint();
+   
+   private void initializeTrajectoryGenerator(PelvisTrajectoryCommand command, double firstTrajectoryPointTime, Boolean useLastTrajectoryPointAsInitial)
    {
       command.addTimeOffset(firstTrajectoryPointTime);
 
       if (command.getTrajectoryPoint(0).getTime() > 1.0e-5)
       {
-         if (isRunning.getBooleanValue())
-            positionTrajectoryGenerator.getPosition(tempPosition);
-         else
-            tempPosition.setToZero(pelvisZUpFrame);
-         tempPosition.changeFrame(worldFrame);
-         tempVelocity.setToZero(worldFrame);
+         if(useLastTrajectoryPointAsInitial)
+         {
+            positionTrajectoryGenerator.clear();
+            positionTrajectoryGenerator.changeFrame(worldFrame);
+            positionTrajectoryGenerator.appendWaypoint(lastPointAdded);
+         }
+         else 
+         {
+            if (isRunning.getBooleanValue())
+            {
+               positionTrajectoryGenerator.getPosition(tempPosition);
+            }
+            else
+            {
+               tempPosition.setToZero(pelvisZUpFrame);
+            }
+            
+            tempPosition.changeFrame(worldFrame);
+            tempVelocity.setToZero(worldFrame);
 
-         positionTrajectoryGenerator.clear();
-         positionTrajectoryGenerator.changeFrame(worldFrame);
-         positionTrajectoryGenerator.appendWaypoint(0.0, tempPosition, tempVelocity);
+            positionTrajectoryGenerator.clear();
+            positionTrajectoryGenerator.changeFrame(worldFrame);
+            positionTrajectoryGenerator.appendWaypoint(0.0, tempPosition, tempVelocity);
+         }
       }
       else
       {
@@ -302,7 +460,9 @@ public class PelvisICPBasedTranslationManager
 
       for (int trajectoryPointIndex = 0; trajectoryPointIndex < numberOfTrajectoryPoints; trajectoryPointIndex++)
       {
-         positionTrajectoryGenerator.appendWaypoint(command.getTrajectoryPoint(trajectoryPointIndex));
+         FrameSE3TrajectoryPoint trajectoryPoint = command.getTrajectoryPoint(trajectoryPointIndex);
+         positionTrajectoryGenerator.appendWaypoint(trajectoryPoint);
+         lastPointAdded.setIncludingFrame(trajectoryPoint);
       }
 
       if (supportFrame != null)
@@ -352,88 +512,6 @@ public class PelvisICPBasedTranslationManager
       isTrajectoryStopped.set(command.isStopAllTrajectory());
    }
 
-   private void computeDesiredICPOffset()
-   {
-      pelvisPositionError.set(desiredPelvisPosition);
-      tempPosition2d.setToZero(pelvisZUpFrame);
-      tempPosition2d.changeFrame(worldFrame);
-      pelvisPositionError.sub(tempPosition2d);
-
-      pelvisPositionError.getFrameTuple2dIncludingFrame(tempError2d);
-      tempError2d.scale(controlDT);
-      pelvisPositionCumulatedError.add(tempError2d);
-
-      double cumulativeErrorMagnitude = pelvisPositionCumulatedError.length();
-      if (cumulativeErrorMagnitude > maximumIntegralError.getDoubleValue())
-      {
-         pelvisPositionCumulatedError.scale(maximumIntegralError.getDoubleValue() / cumulativeErrorMagnitude);
-      }
-
-      proportionalTerm.set(pelvisPositionError);
-      proportionalTerm.scale(proportionalGain.getDoubleValue());
-
-      integralTerm.set(pelvisPositionCumulatedError);
-      integralTerm.scale(integralGain.getDoubleValue());
-
-      desiredICPOffset.set(proportionalTerm);
-      desiredICPOffset.add(integralTerm);
-   }
-
-   private final ConvexPolygonScaler convexPolygonShrinker = new ConvexPolygonScaler();
-   private final FrameConvexPolygon2d safeSupportPolygonToConstrainICPOffset = new FrameConvexPolygon2d();
-
-   private final FramePoint2D originalICPToModify = new FramePoint2D();
-
-   public void addICPOffset(FramePoint2D desiredICPToModify, FrameVector2D desiredICPVelocityToModify)
-   {
-      desiredICPToModify.changeFrame(supportPolygon.getReferenceFrame());
-      desiredICPVelocityToModify.changeFrame(supportPolygon.getReferenceFrame());
-
-      originalICPToModify.setIncludingFrame(desiredICPToModify);
-
-      if (!isEnabled.getBooleanValue() || (!isRunning.getBooleanValue() && !manualMode.getBooleanValue()))
-      {
-         desiredICPOffset.setToZero();
-         icpOffsetForFreezing.setToZero();
-         desiredICPToModify.changeFrame(worldFrame);
-         desiredICPVelocityToModify.changeFrame(worldFrame);
-         return;
-      }
-
-      if (manualMode.getBooleanValue())
-      {
-         // Ignore the desiredICPOffset frame assuming the user wants to control the ICP in the supportFrame
-         tempICPOffset.setIncludingFrame(supportFrame, desiredICPOffset.getX(), desiredICPOffset.getY());
-      }
-
-      else
-      {
-         desiredICPOffset.getFrameTuple2dIncludingFrame(tempICPOffset);
-         tempICPOffset.changeFrame(supportFrame);
-      }
-
-      if (isFrozen.getBooleanValue())
-      {
-         desiredICPOffset.setAndMatchFrame(icpOffsetForFreezing);
-         desiredICPToModify.changeFrame(icpOffsetForFreezing.getReferenceFrame());
-         desiredICPToModify.add(icpOffsetForFreezing);
-      }
-
-      else
-      {
-         desiredICPToModify.add(tempICPOffset);
-
-         convexPolygonShrinker.scaleConvexPolygon(supportPolygon, supportPolygonSafeMargin.getDoubleValue(), safeSupportPolygonToConstrainICPOffset);
-         safeSupportPolygonToConstrainICPOffset.orthogonalProjection(desiredICPToModify);
-
-         icpOffsetForFreezing.setIncludingFrame(desiredICPToModify);
-         icpOffsetForFreezing.sub(originalICPToModify);
-      }
-
-      desiredICPToModify.changeFrame(worldFrame);
-      desiredICPVelocityToModify.changeFrame(worldFrame);
-   }
-
    public void disable()
    {
       isEnabled.set(false);
@@ -442,10 +520,6 @@ public class PelvisICPBasedTranslationManager
       isTrajectoryStopped.set(false);
 
       pelvisPositionError.setToZero();
-      pelvisPositionCumulatedError.setToZero();
-
-      proportionalTerm.setToZero();
-      integralTerm.setToZero();
 
       desiredICPOffset.setToZero();
    }
