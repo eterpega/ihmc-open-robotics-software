@@ -670,14 +670,12 @@ public class GilbertJohnsonKeerthiCollisionDetectorTest
       Point3D closestPointOnPolytope = new Point3D();
       Point3D pointOnAToPack = new Point3D();
 
-      PrintTools.debug("Checking Collision");
       boolean areColliding = detector.arePolytopesColliding(singlePointPolygon, polytope, pointOnAToPack, closestPointOnPolytope);
       assertFalse(areColliding);
 
       // Make sure the projection projects to itself:
       ConvexPolytope closestPointCheckPolytope = ConvexPolytopeConstructor.constructSinglePointPolytope(closestPointOnPolytope);
       Point3D projectItselfCheckProjection = new Point3D();
-      PrintTools.debug("Checking self collision");
       boolean projectItselfCheck = detector.arePolytopesColliding(polytope, closestPointCheckPolytope, projectItselfCheckProjection, new Point3D());
       assertTrue(projectItselfCheck);
       EuclidCoreTestTools.assertTuple3DEquals(closestPointOnPolytope, projectItselfCheckProjection, 1e-7);
