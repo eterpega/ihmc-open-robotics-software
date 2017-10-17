@@ -1,6 +1,9 @@
 package us.ihmc.geometry.polytope.DCELPolytope;
 
 import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
+import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeVertexBasics;
 
 /**
@@ -13,35 +16,31 @@ import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeVertexBasics;
  */
 public class ExtendedPolytopeVertex extends PolytopeVertexBasics<ExtendedPolytopeVertex, PolytopeHalfEdge, ConvexPolytopeFace, Simplex> implements Simplex
 {
+   private Point3D point = new Point3D();
+   
+   @Override
+   public Point3D getPosition()
+   {
+      return point;
+   }
+   
    public ExtendedPolytopeVertex()
    {
-      super(new Point3D());
+      
    }
    
    public ExtendedPolytopeVertex(double x, double y, double z)
    {
-      super(new Point3D(x,y,z));
+      this.point.set(x, y, z);
    }
 
-   public ExtendedPolytopeVertex(Point3D position)
+   public ExtendedPolytopeVertex(Point3DReadOnly position)
    {
-      super(new Point3D(position));
+      this.point.set(position);
    }
 
    public ExtendedPolytopeVertex(ExtendedPolytopeVertex vertex)
    {
-      super(new Point3D());
       set(vertex);
-   }
-   
-   @Override
-   public PolytopeHalfEdge getAssociatedEdge(int index)
-   {
-      return (PolytopeHalfEdge) super.getAssociatedEdge(index);
-   }
-
-   public void set(ExtendedPolytopeVertex other)
-   {
-      
    }
 }

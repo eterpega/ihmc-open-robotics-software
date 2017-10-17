@@ -14,6 +14,6 @@ public class RobotCollisionBoxProvider
    
    public static ExtendedConvexPolytope getCollisionMesh()
    {
-      
+      return null;
    }
 }

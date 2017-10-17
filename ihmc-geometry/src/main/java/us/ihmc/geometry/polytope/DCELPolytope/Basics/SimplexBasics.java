@@ -10,5 +10,5 @@ public interface SimplexBasics<Q extends SimplexBasics<Q>>
    double getShortestDistanceTo(Point3DReadOnly point);
    void getSupportVectorDirectionTo(Point3DReadOnly point, Vector3D supportVectorToPack);
    void getSupportVectorJacobianTo(Point3DReadOnly point, DenseMatrix64F jacobianToPack);
-   //Q getSmallestSimplexMemberReference(Point3DReadOnly point);
+   SimplexBasics<Q> getSmallestSimplexMemberReference(Point3DReadOnly point);
 }

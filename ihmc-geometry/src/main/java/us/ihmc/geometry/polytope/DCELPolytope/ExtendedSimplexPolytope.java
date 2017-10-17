@@ -3,6 +3,7 @@ package us.ihmc.geometry.polytope.DCELPolytope;
 import org.ejml.data.DenseMatrix64F;
 
 import us.ihmc.commons.Epsilons;
+import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.robotics.lists.RecyclingArrayList;
@@ -56,7 +57,7 @@ public class ExtendedSimplexPolytope implements Simplex
 
    public Simplex getSmallestSimplexMemberReference(Point3DReadOnly point)
    {
-      return polytope.getSmallestSimplexMemberReference(point);
+      return (Simplex) polytope.getSmallestSimplexMemberReference(point);
    }
    
    public String toString()
@@ -68,5 +69,4 @@ public class ExtendedSimplexPolytope implements Simplex
    {
       return polytope;
    }
-
 }

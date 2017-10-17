@@ -1,69 +1,45 @@
 package us.ihmc.geometry.polytope.DCELPolytope.Frame;
 
-import org.ejml.data.DenseMatrix64F;
-
-import us.ihmc.euclid.referenceFrame.FrameGeometryObject;
-import us.ihmc.euclid.referenceFrame.FramePoint3D;
-import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
-import us.ihmc.euclid.referenceFrame.interfaces.FramePoint3DReadOnly;
-import us.ihmc.euclid.tuple3D.Point3D;
-import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.referenceFrame.interfaces.ReferenceFrameHolder;
 import us.ihmc.geometry.polytope.DCELPolytope.ExtendedConvexPolytope;
+import us.ihmc.geometry.polytope.DCELPolytope.Basics.ConvexPolytopeBasics;
+import us.ihmc.geometry.polytope.DCELPolytope.Providers.ConvexPolytopeFaceProvider;
+import us.ihmc.geometry.polytope.DCELPolytope.Providers.FrameConvexPolytopeFaceBuilder;
+import us.ihmc.geometry.polytope.DCELPolytope.Providers.FramePolytopeVertexBuilder;
+import us.ihmc.geometry.polytope.DCELPolytope.Providers.PolytopeVertexProvider;
 
-public class FrameConvexPolytope extends FrameGeometryObject<FrameConvexPolytope, ExtendedConvexPolytope> implements FrameSupportingVertexHolder, FrameSimplex
+public class FrameConvexPolytope extends ConvexPolytopeBasics<FramePolytopeVertex, FramePolytopeHalfEdge, FrameConvexPolytopeFace, FrameConvexPolytope, FrameSimplex> implements ReferenceFrameHolder
 {
-   ExtendedConvexPolytope convexPolytope;
-   Vector3D tempVector = new Vector3D();
-   FramePoint3D framePoint = new FramePoint3D();
+   private final ReferenceFrame referenceFrame;
+   private final FrameConvexPolytopeFaceBuilder faceBuilder = new FrameConvexPolytopeFaceBuilder(this);
+   private final FramePolytopeVertexBuilder vertexBuilder = new FramePolytopeVertexBuilder(this);
+
+   public FrameConvexPolytope()
+   {
+      this.referenceFrame = ReferenceFrame.getWorldFrame();
+   }
    
-   public FrameConvexPolytope(ReferenceFrame referenceFrame, ExtendedConvexPolytope geometryObject)
+   public FrameConvexPolytope(ReferenceFrame frame, ExtendedConvexPolytope polytope)
    {
-      super(referenceFrame, geometryObject);
-      this.convexPolytope = geometryObject;
+      this();
    }
    
-   public void addVertex(FramePolytopeVertex vertexToAdd, double epsilon)
+   @Override
+   public ReferenceFrame getReferenceFrame()
    {
-      checkReferenceFrameMatch(vertexToAdd);
-      convexPolytope.addVertex(vertexToAdd.getGeometryObject(), epsilon);
+      return referenceFrame;
    }
 
    @Override
-   public double getShortestDistanceTo(FramePoint3DReadOnly point)
+   protected PolytopeVertexProvider<FramePolytopeVertex, FramePolytopeHalfEdge, FrameConvexPolytopeFace, FrameSimplex> getVertexProvider()
    {
-      checkReferenceFrameMatch(point);
-      return convexPolytope.getShortestDistanceTo(point);
+      return vertexBuilder;
    }
 
    @Override
-   public void getSupportVectorJacobianTo(FramePoint3DReadOnly point, DenseMatrix64F jacobianToPack)
+   protected ConvexPolytopeFaceProvider<FramePolytopeVertex, FramePolytopeHalfEdge, FrameConvexPolytopeFace, FrameSimplex> getConvexFaceProvider()
    {
-      checkReferenceFrameMatch(point);
-      convexPolytope.getSupportVectorJacobianTo(point, jacobianToPack);
-   }
-
-   @Override
-   public FrameSimplex getSmallestSimplexMemberReference(FramePoint3DReadOnly point)
-   {
-      checkReferenceFrameMatch(point);
-      return (FrameSimplex) convexPolytope.getSmallestSimplexMemberReference(point);
-   }
-
-   @Override
-   public void getSupportVectorDirectionTo(FramePoint3DReadOnly point, FrameVector3D supportVectorToPack)
-   {
-      checkReferenceFrameMatch(point);
-      convexPolytope.getSupportVectorDirectionTo(point, tempVector);
-      supportVectorToPack.setIncludingFrame(getReferenceFrame(), tempVector);
-   }
-
-   @Override
-   public FramePoint3D getSupportingVertex(FrameVector3D supportDirection)
-   {
-      checkReferenceFrameMatch(supportDirection);
-      Point3D tempPoint = convexPolytope.getSupportingVertex(supportDirection.getVector());
-      framePoint.setIncludingFrame(getReferenceFrame(), tempPoint);
-      return framePoint;
+      return faceBuilder;
    }
 }
