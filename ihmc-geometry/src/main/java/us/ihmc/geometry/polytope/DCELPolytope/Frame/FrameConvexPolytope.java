@@ -1,5 +1,6 @@
 package us.ihmc.geometry.polytope.DCELPolytope.Frame;
 
+import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.referenceFrame.interfaces.ReferenceFrameHolder;
 import us.ihmc.geometry.polytope.DCELPolytope.ExtendedConvexPolytope;
@@ -20,9 +21,14 @@ public class FrameConvexPolytope extends ConvexPolytopeBasics<FramePolytopeVerte
       this.referenceFrame = ReferenceFrame.getWorldFrame();
    }
    
-   public FrameConvexPolytope(ReferenceFrame frame, ExtendedConvexPolytope polytope)
+   public FrameConvexPolytope(ReferenceFrame referenceFrame)
    {
-      this();
+      this.referenceFrame = referenceFrame;
+   }
+   
+   public FrameConvexPolytope(ReferenceFrame referenceFrame, ExtendedConvexPolytope polytope)
+   {
+      this(referenceFrame);
    }
    
    @Override
@@ -41,5 +47,24 @@ public class FrameConvexPolytope extends ConvexPolytopeBasics<FramePolytopeVerte
    protected ConvexPolytopeFaceProvider<FramePolytopeVertex, FramePolytopeHalfEdge, FrameConvexPolytopeFace, FrameSimplex> getConvexFaceProvider()
    {
       return faceBuilder;
+   }
+   
+   @Override
+   public void addVertex(FramePolytopeVertex vertexToAdd, double epsilon)
+   {
+      checkReferenceFrameMatch(vertexToAdd);
+      super.addVertex(vertexToAdd, epsilon);
+   }
+   
+   public void addVertex(FramePoint3D verteToAdd, double epsilon)
+   {
+      checkReferenceFrameMatch(verteToAdd);
+      super.addVertex(vertexBuilder.getVertex(verteToAdd), epsilon);
+   }
+   
+   @Override
+   public String toString()
+   {
+      return super.toString() + " - " + referenceFrame.toString();
    }
 }
