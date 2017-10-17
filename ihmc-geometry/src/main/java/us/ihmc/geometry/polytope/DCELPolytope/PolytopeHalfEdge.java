@@ -1,8 +1,8 @@
 package us.ihmc.geometry.polytope.DCELPolytope;
 
 import us.ihmc.euclid.interfaces.GeometryObject;
+import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
-import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeHalfEdgeBasics;
 
 /**
@@ -25,19 +25,21 @@ public class PolytopeHalfEdge extends PolytopeHalfEdgeBasics<ExtendedPolytopeVer
    {
       super(origin, destination);
    }
-
-//   @Override
-//   public Simplex getSmallestSimplexMemberReference(Point3DReadOnly point)
-//   {
-//      // TODO Auto-generated method stub
-//      return null;
-//   }
-
-   @Override
-   public Point3DReadOnly getSupportingVertex(Vector3D supportDirection)
+   
+   public PolytopeHalfEdge(ExtendedPolytopeVertex originVertex, ExtendedPolytopeVertex destinationVertex, PolytopeHalfEdge twinEdge, PolytopeHalfEdge nextHalfEdge, PolytopeHalfEdge previousHalfEdge, ConvexPolytopeFace face)
    {
-      // TODO Auto-generated method stub
-      return null;
+      super(originVertex, destinationVertex, twinEdge, nextHalfEdge, previousHalfEdge, face);
+   }
+
+   public PolytopeHalfEdge(PolytopeHalfEdge twinEdge, ConvexPolytopeFace face)
+   {
+      super(twinEdge, face);
+   }
+   
+   @Override
+   public PolytopeHalfEdge getThis()
+   {
+      return this;
    }
 
    @Override
@@ -45,11 +47,5 @@ public class PolytopeHalfEdge extends PolytopeHalfEdgeBasics<ExtendedPolytopeVer
    {
       // TODO Auto-generated method stub
       return null;
-   }
-
-   @Override
-   public PolytopeHalfEdge getThis()
-   {
-      return this;
    }
 }

@@ -1,41 +1,57 @@
 package us.ihmc.geometry.polytope.DCELPolytope.Frame;
 
+import us.ihmc.euclid.referenceFrame.FramePoint3D;
+import us.ihmc.euclid.referenceFrame.FrameVector3D;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.referenceFrame.interfaces.ReferenceFrameHolder;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.geometry.polytope.DCELPolytope.ConvexPolytopeFace;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeHalfEdgeBasics;
+import us.ihmc.geometry.polytope.DCELPolytope.Providers.FramePolytopeHalfEdgeBuilder;
 
-public class FramePolytopeHalfEdge extends PolytopeHalfEdgeBasics<FramePolytopeVertex, FramePolytopeHalfEdge, FrameConvexPolytopeFace, FrameSimplex> implements FrameSimplex
+public class FramePolytopeHalfEdge extends PolytopeHalfEdgeBasics<FramePolytopeVertex, FramePolytopeHalfEdge, FrameConvexPolytopeFace, FrameSimplex> implements FrameSimplex, ReferenceFrameHolder
 {
-   public FramePolytopeHalfEdge()
+   private final ReferenceFrame referenceFrame;
+   private final FramePolytopeHalfEdgeBuilder halfEdgeBuilder = new FramePolytopeHalfEdgeBuilder(this);
+
+   public FramePolytopeHalfEdge(ReferenceFrame referenceFrame)
    {
-      
+      this(referenceFrame, null, null);
    }
 
-   public FramePolytopeHalfEdge(FramePolytopeVertex origin, FramePolytopeVertex destination)
+   public FramePolytopeHalfEdge(ReferenceFrame referenceFrame, FramePolytopeVertex origin, FramePolytopeVertex destination)
    {
-      origin.checkReferenceFrameMatch(destination);
+      super(origin, destination);
+      this.referenceFrame = referenceFrame;
    }
 
    @Override
-   public Point3DReadOnly getSupportingVertex(Vector3D supportDirection)
+   public void setOriginVertex(FramePolytopeVertex originVertex)
    {
-      // TODO Auto-generated method stub
-      return null;
+      checkReferenceFrameMatch(originVertex);
+      super.setOriginVertex(originVertex);
    }
-
-//   @Override
-//   public FrameSimplex getSmallestSimplexMemberReference(Point3DReadOnly point)
-//   {
-//      // TODO Auto-generated method stub
-//      return null;
-//   }
-
+   
    @Override
-   public FramePolytopeHalfEdge createTwinHalfEdge(ConvexPolytopeFace twinEdgeFace)
+   public void setOriginVertexUnsafe(FramePolytopeVertex originVertex)
    {
-      // TODO Auto-generated method stub
-      return null;
+      checkReferenceFrameMatch(originVertex);
+      super.setOriginVertexUnsafe(originVertex);
+   }
+   
+   @Override
+   public void setDestinationVertex(FramePolytopeVertex destinationVertex)
+   {
+      checkReferenceFrameMatch(destinationVertex);
+      super.setDestinationVertex(destinationVertex);
+   }
+   
+   @Override
+   public void setDestinationVertexUnsafe(FramePolytopeVertex destinationVertex)
+   {
+      checkReferenceFrameMatch(destinationVertex);
+      super.setDestinationVertexUnsafe(destinationVertex);
    }
    
    @Override
@@ -43,4 +59,18 @@ public class FramePolytopeHalfEdge extends PolytopeHalfEdgeBasics<FramePolytopeV
    {
       return this;
    }
+
+   @Override
+   public ReferenceFrame getReferenceFrame()
+   {
+      return referenceFrame;
+   }
+
+   @Override
+   public FramePolytopeHalfEdge createTwinHalfEdge(FrameConvexPolytopeFace twinEdgeFace)
+   {
+      // TODO Auto-generated method stub
+      return null;
+   }
+   
 }

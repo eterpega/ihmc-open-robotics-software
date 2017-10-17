@@ -10,10 +10,10 @@ import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
-import us.ihmc.geometry.polytope.DCELPolytope.ConvexPolytopeFace;
+import us.ihmc.geometry.polytope.SupportingVertexHolder;
 
 public abstract class PolytopeHalfEdgeBasics<T extends PolytopeVertexBasics<T, S, U, Q>, S extends PolytopeHalfEdgeBasics<T, S, U, Q>, U extends ConvexPolytopeFaceBasics<T, S, U, Q>, Q extends SimplexBasics<Q>>
-      implements GeometryObject<S>, SimplexBasics<Q>, SupportingVertexHolderBasics, Vector3DReadOnly
+      implements GeometryObject<S>, SimplexBasics<Q>, Vector3DReadOnly
 {
    private S twinEdge;
    private S nextHalfEdge;
@@ -58,13 +58,13 @@ public abstract class PolytopeHalfEdgeBasics<T extends PolytopeVertexBasics<T, S
       return createTwinHalfEdge(null);
    }
 
-   public abstract S createTwinHalfEdge(ConvexPolytopeFace twinEdgeFace);
+   public abstract S createTwinHalfEdge(U twinEdgeFace);
 
    /**
     * Function for creating the twin edge and storing its value. Generates garbage. Use {@code getTwinHalfEdge()} to get the twin half edge
     * @return
     */
-   public S setAndCreateTwinHalfEdge(ConvexPolytopeFace face)
+   public S setAndCreateTwinHalfEdge(U face)
    {
       this.twinEdge = createTwinHalfEdge(face);
       return this.twinEdge;
@@ -82,16 +82,6 @@ public abstract class PolytopeHalfEdgeBasics<T extends PolytopeVertexBasics<T, S
       twinEdge.setDestinationVertex(this.originVertex);
       twinEdge.setTwinHalfEdge(getThis());
    }
-   // @Override
-   // public Q getSmallestSimplexMemberReference(Point3DReadOnly point)
-   // {
-   //    double percentage = EuclidGeometryTools.percentageAlongLineSegment3D(point, this.originVertex, this.destinationVertex);
-   //    if (percentage <= 0.0)
-   //       return this.originVertex;
-   //    else if (percentage >= 1.0)
-   //       return this.destinationVertex;
-   //    else
-   //       return this;
 
    public PolytopeHalfEdgeBasics(S twinEdge, U face)
    {
@@ -121,7 +111,7 @@ public abstract class PolytopeHalfEdgeBasics<T extends PolytopeVertexBasics<T, S
       updateTwinDestination();
    }
 
-   private void setOriginVertexInternal(T originVertex)
+   public void setOriginVertexUnsafe(T originVertex)
    {
       this.originVertex = originVertex;
    }
@@ -132,7 +122,7 @@ public abstract class PolytopeHalfEdgeBasics<T extends PolytopeVertexBasics<T, S
       {
          if (twinEdge.getOriginVertex() != null)
             twinEdge.getOriginVertex().removeAssociatedEdge(twinEdge);
-         twinEdge.setOriginVertexInternal(this.destinationVertex);
+         twinEdge.setOriginVertexUnsafe(this.destinationVertex);
          if (twinEdge.getOriginVertex() != null)
             twinEdge.getOriginVertex().addAssociatedEdge(twinEdge);
       }
@@ -141,7 +131,7 @@ public abstract class PolytopeHalfEdgeBasics<T extends PolytopeVertexBasics<T, S
    private void updateTwinDestination()
    {
       if (twinEdge != null)
-         twinEdge.setDestinationVertexInternal(this.originVertex);
+         twinEdge.setDestinationVertexUnsafe(this.originVertex);
    }
 
    public T getOriginVertex()
@@ -153,6 +143,11 @@ public abstract class PolytopeHalfEdgeBasics<T extends PolytopeVertexBasics<T, S
    {
       this.destinationVertex = destinationVertex;
       updateTwinOrigin();
+   }
+
+   public void setDestinationVertexUnsafe(T destinationVertex)
+   {
+      this.destinationVertex = destinationVertex;
    }
 
    public T getDestinationVertex()
@@ -371,15 +366,15 @@ public abstract class PolytopeHalfEdgeBasics<T extends PolytopeVertexBasics<T, S
 
    public abstract S getThis();
 
-   //   @Override
-   //   public Q getSmallestSimplexMemberReference(Point3DReadOnly point)
-   //   {
-   //      double percentage = EuclidGeometryTools.percentageAlongLineSegment3D(point, this.originVertex, this.destinationVertex);
-   //      if (percentage <= 0.0)
-   //         return this.originVertex;
-   //      else if (percentage >= 1.0)
-   //         return this.destinationVertex;
-   //      else
-   //         return this;
-   //   }
+   @Override
+   public SimplexBasics<Q> getSmallestSimplexMemberReference(Point3DReadOnly point)
+   {
+      double percentage = EuclidGeometryTools.percentageAlongLineSegment3D(point, this.originVertex, this.destinationVertex);
+      if (percentage <= 0.0)
+         return this.originVertex;
+      else if (percentage >= 1.0)
+         return this.destinationVertex;
+      else
+         return this;
+   }
 }

@@ -16,6 +16,7 @@ import us.ihmc.euclid.tools.EuclidCoreTestTools;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.geometry.polytope.DCELPolytope.ConvexPolytopeFace;
 import us.ihmc.geometry.polytope.DCELPolytope.ExtendedConvexPolytope;
 import us.ihmc.geometry.polytope.DCELPolytope.ExtendedPolytopeVertex;
@@ -396,7 +397,7 @@ public class ConvexPolytopeTest
       EuclidCoreTestTools.assertTuple3DEquals("", new Point3D(1.0, 0.0, 1.0), vertexSix.getPosition(), Epsilons.ONE_TEN_BILLIONTH);
 
       Vector3D supportDirection = new Vector3D(1.0, 1.0, 1.0);
-      Point3D supportingVertex = polytope.getSupportingVertex(supportDirection);
+      Point3DReadOnly supportingVertex = polytope.getSupportingVertex(supportDirection);
       assertTrue(supportingVertex == vertexSeven.getPosition());
 
       supportDirection = new Vector3D(-1.0, -1.0, -1.0);
@@ -484,7 +485,7 @@ public class ConvexPolytopeTest
    {
       ExtendedConvexPolytope cubeOne = ConvexPolytopeConstructor.constructExtendedBoxWithCenterAtZero(100.0, 100.0, 0.5);
       Vector3D supportDirection = new Vector3D(1.0, -1.0, 0.0);
-      Point3D supportVertex = cubeOne.getSupportingVertex(supportDirection);
+      Point3DReadOnly supportVertex = cubeOne.getSupportingVertex(supportDirection);
    }
 
    public static void main(String[] args)

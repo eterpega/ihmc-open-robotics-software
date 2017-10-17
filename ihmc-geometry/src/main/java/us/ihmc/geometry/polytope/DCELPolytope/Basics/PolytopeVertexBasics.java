@@ -18,19 +18,18 @@ import us.ihmc.geometry.polytope.DCELPolytope.Simplex;
 public abstract class PolytopeVertexBasics<T extends PolytopeVertexBasics<T, S, U, Q>, S extends PolytopeHalfEdgeBasics<T, S, U, Q>, U extends ConvexPolytopeFaceBasics<T, S, U, Q>, Q extends SimplexBasics<Q>>
       implements GeometryObject<T>, Point3DBasics, SimplexBasics<Q>
 {
-   private final Point3DBasics position;
+   protected abstract Point3DBasics getPosition();
    private final ArrayList<S> associatedEdges = new ArrayList<>();
    private DenseMatrix64F jacobian;
 
-   public PolytopeVertexBasics(Point3DBasics position)
+   public PolytopeVertexBasics()
    {
-      this.position = position;
    }
 
    @Override
    public void set(T vertex)
    {
-      this.position.set(vertex.getPosition());
+      getPosition().set(vertex.getPosition());
       clearAssociatedEdgeList();
       copyEdges(vertex.getAssociatedEdges());
    }
@@ -89,11 +88,6 @@ public abstract class PolytopeVertexBasics<T extends PolytopeVertexBasics<T, S, 
       return associatedEdges.size();
    }
 
-   public Point3DReadOnly getPosition()
-   {
-      return position;
-   }
-
    public double dot(Vector3DReadOnly vector)
    {
       return getX() * vector.getX() + getY() * vector.getY() + getZ() * vector.getZ();
@@ -107,36 +101,36 @@ public abstract class PolytopeVertexBasics<T extends PolytopeVertexBasics<T, S, 
    @Override
    public double getX()
    {
-      return position.getX();
+      return getPosition().getX();
    }
 
    @Override
    public double getY()
    {
-      return position.getY();
+      return getPosition().getY();
    }
 
    @Override
    public double getZ()
    {
-      return position.getZ();
+      return getPosition().getZ();
    }
 
    public double getElement(int index)
    {
-      return position.getElement(index);
+      return getPosition().getElement(index);
    }
 
    @Override
    public void applyTransform(Transform transform)
    {
-      transform.transform(position);
+      transform.transform(getPosition());
    }
 
    @Override
    public void applyInverseTransform(Transform transform)
    {
-      transform.inverseTransform(position);
+      transform.inverseTransform(getPosition());
    }
 
    public boolean isAnyFaceMarked()
@@ -153,43 +147,43 @@ public abstract class PolytopeVertexBasics<T extends PolytopeVertexBasics<T, S, 
    @Override
    public boolean epsilonEquals(T other, double epsilon)
    {
-      return position.epsilonEquals(other, epsilon);
+      return getPosition().epsilonEquals(other.getPosition(), epsilon);
    }
 
    @Override
    public boolean containsNaN()
    {
-      return position.containsNaN();
+      return getPosition().containsNaN();
    }
 
    @Override
    public void setToNaN()
    {
-      position.setToNaN();
+      getPosition().setToNaN();
    }
 
    @Override
    public void setToZero()
    {
-      position.setToZero();
+      getPosition().setToZero();
    }
 
    @Override
    public void setX(double x)
    {
-      position.setX(x);
+      getPosition().setX(x);
    }
 
    @Override
    public void setY(double y)
    {
-      position.setY(y);
+      getPosition().setY(y);
    }
 
    @Override
    public void setZ(double z)
    {
-      position.setZ(z);
+      getPosition().setZ(z);
    }
 
    @Override
@@ -224,9 +218,9 @@ public abstract class PolytopeVertexBasics<T extends PolytopeVertexBasics<T, S, 
       return jacobian;
    }
 
-   //   @Override
-   //   public Q getSmallestSimplexMemberReference(Point3DReadOnly point)
-   //   {
-   //      return this;
-   //   }
+   @Override
+   public SimplexBasics<Q> getSmallestSimplexMemberReference(Point3DReadOnly point)
+   {
+      return this;
+   }
 }
