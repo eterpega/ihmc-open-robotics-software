@@ -27,7 +27,6 @@ import us.ihmc.tools.thread.ThreadTools;
 import us.ihmc.util.PeriodicThreadScheduler;
 import us.ihmc.util.PeriodicThreadSchedulerFactory;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
-import us.ihmc.yoVariables.variable.YoLong;
 import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoVariableServer implements RobotVisualizer, TickAndUpdatable, VariableChangedListener
@@ -58,6 +57,7 @@ public class YoVariableServer implements RobotVisualizer, TickAndUpdatable, Vari
    private boolean sendKeepAlive = false;
 
    private volatile long latestTimestamp;
+   private volatile boolean storeLog = true;
    
    private final SummaryProvider summaryProvider = new SummaryProvider();
    private final PeriodicThreadScheduler timestampScheduler;
@@ -258,7 +258,7 @@ public class YoVariableServer implements RobotVisualizer, TickAndUpdatable, Vari
       }
 
       RegistryPublisher publisher = publishers.get(registry);
-      publisher.update(timestamp);
+      publisher.update(timestamp, storeLog);
       updateChangedVariables(registry);
 
    }
@@ -360,6 +360,18 @@ public class YoVariableServer implements RobotVisualizer, TickAndUpdatable, Vari
    public long getLatestTimestamp()
    {
       return latestTimestamp;
+   }
+   
+   /**
+    * Function to enable/disable writing logging data to disk.
+    * 
+    * If set to false, variable data is still published but gets discarded by the logger. 
+    * 
+    * @param storeLog true if the log should be stored by the logger. Default: true
+    */
+   public void setStoreLog(boolean storeLog)
+   {
+      this.storeLog = storeLog;
    }
 
 }

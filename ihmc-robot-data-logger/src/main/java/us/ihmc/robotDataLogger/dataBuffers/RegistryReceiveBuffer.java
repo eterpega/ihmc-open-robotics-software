@@ -9,6 +9,7 @@ public class RegistryReceiveBuffer extends RegistryBuffer
    private final long receivedTimestamp;
    private ByteBuffer compressedVariableDataBuffer;
    private double[] jointStates;
+   private boolean storeInLog;
 
    
    public RegistryReceiveBuffer(long receivedTimestamp)
@@ -49,6 +50,17 @@ public class RegistryReceiveBuffer extends RegistryBuffer
       return "RegistryReceiveBuffer [receivedTimestamp=" + receivedTimestamp + ", compressedVariableDataBuffer=" + compressedVariableDataBuffer + ", registryID=" + registryID + ", jointStates=" + Arrays.toString(jointStates) + ", timestamp="
             + timestamp + ", uid=" + uid + "]";
    }
+
+   public void setStoreInLog(boolean storeInLog)
+   {
+      this.storeInLog = storeInLog;
+   }
+
+   public boolean getStoreInLog()
+   {
+      return storeInLog;
+   }
+   
    
    
 }

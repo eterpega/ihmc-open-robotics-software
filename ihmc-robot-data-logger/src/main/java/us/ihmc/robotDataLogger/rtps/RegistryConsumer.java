@@ -13,6 +13,7 @@ import us.ihmc.pubsub.subscriber.Subscriber;
 import us.ihmc.pubsub.subscriber.SubscriberListener;
 import us.ihmc.robotDataLogger.LogDataType;
 import us.ihmc.robotDataLogger.YoVariableClient;
+import us.ihmc.robotDataLogger.YoVariablesUpdatedListener;
 import us.ihmc.robotDataLogger.dataBuffers.RegistryDecompressor;
 import us.ihmc.robotDataLogger.dataBuffers.RegistryReceiveBuffer;
 import us.ihmc.robotDataLogger.handshake.IDLYoVariableHandshakeParser;
@@ -35,7 +36,8 @@ public class RegistryConsumer extends Thread implements SubscriberListener
 
    private final IDLYoVariableHandshakeParser parser;
    private final RegistryDecompressor registryDecompressor;
-   private final YoVariableClient listener;
+   private final YoVariablesUpdatedListener listener;
+   private final YoVariableClient client;
    
    private final TIntLongHashMap lastRegistryUid = new TIntLongHashMap();
    private final TObjectLongHashMap<Guid> sampleIdentities = new TObjectLongHashMap<>();
@@ -63,11 +65,12 @@ public class RegistryConsumer extends Thread implements SubscriberListener
    
    private long lastPacketReceived;
    
-   public RegistryConsumer(IDLYoVariableHandshakeParser parser, YoVariableClient yoVariableClient, YoVariableRegistry loggerDebugRegistry)
+   public RegistryConsumer(IDLYoVariableHandshakeParser parser, YoVariablesUpdatedListener listener, YoVariableClient client, YoVariableRegistry loggerDebugRegistry)
    {
       this.parser = parser;
       this.registryDecompressor = new RegistryDecompressor(parser.getYoVariablesList(), parser.getJointStates());
-      this.listener = yoVariableClient;
+      this.listener = listener;
+      this.client = client;
       
       this.skippedPackets = new YoInteger("skippedPackets", loggerDebugRegistry);
       this.skippedIncomingPackets = new YoInteger("skippedIncomingPackets", loggerDebugRegistry);
@@ -123,7 +126,7 @@ public class RegistryConsumer extends Thread implements SubscriberListener
          }
       }
       
-      listener.connectionClosed();
+      client.connectionClosed();
       
    }
    
@@ -170,6 +173,8 @@ public class RegistryConsumer extends Thread implements SubscriberListener
       if(buffer.getType() == LogDataType.DATA_PACKET)
       {
       
+         boolean storeLog = buffer.getStoreInLog();
+         
          long timestamp = buffer.getTimestamp();
          
          decompressBuffer(buffer);
@@ -184,6 +189,11 @@ public class RegistryConsumer extends Thread implements SubscriberListener
             RegistryReceiveBuffer next = orderedBuffers.take();
             decompressBuffer(next);
             mergedPackets.increment();
+            
+            if(!next.getStoreInLog())
+            {
+               storeLog = false;
+            }
          }
          
          if(previousTimestamp != -1 && previousTimestamp >= buffer.getTimestamp())
@@ -192,7 +202,10 @@ public class RegistryConsumer extends Thread implements SubscriberListener
          }
          previousTimestamp = buffer.getTimestamp();
          
-         listener.receivedTimestampAndData(timestamp);
+         if(!listener.isLogger() || storeLog)
+         {
+            listener.receivedTimestampAndData(timestamp);
+         }
       
       }
       else

@@ -26,6 +26,7 @@ public class LogData
         	timestamp_ = other.timestamp_;
         	transmitTime_ = other.transmitTime_;
         	type_ = other.type_;
+        	storeInLog_ = other.storeInLog_;
         	registry_ = other.registry_;
         	offset_ = other.offset_;
         	numberOfVariables_ = other.numberOfVariables_;
@@ -73,6 +74,17 @@ public class LogData
     public us.ihmc.robotDataLogger.LogDataType getType()
     {
         return type_;
+    }
+
+        
+    public void setStoreInLog(boolean storeInLog)
+    {
+        storeInLog_ = storeInLog;
+    }
+
+    public boolean getStoreInLog()
+    {
+        return storeInLog_;
     }
 
         
@@ -148,6 +160,9 @@ public class LogData
         returnedValue &= this.type_ == otherMyClass.type_;
 
                 
+        returnedValue &= this.storeInLog_ == otherMyClass.storeInLog_;
+
+                
         returnedValue &= this.registry_ == otherMyClass.registry_;
 
                 
@@ -187,6 +202,10 @@ public class LogData
         builder.append(this.type_);
 
                 builder.append(", ");
+        builder.append("storeInLog=");
+        builder.append(this.storeInLog_);
+
+                builder.append(", ");
         builder.append("registry=");
         builder.append(this.registry_);
 
@@ -215,6 +234,7 @@ public class LogData
     private long timestamp_; 
     private long transmitTime_; 
     private us.ihmc.robotDataLogger.LogDataType type_; 
+    private boolean storeInLog_; 
     private int registry_; 
     private int offset_; 
     private int numberOfVariables_; 

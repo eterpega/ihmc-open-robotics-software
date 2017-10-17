@@ -93,14 +93,18 @@ public class RegistrySendBufferTest
          // Test
          for(int segment = 0; segment < sizes.length; segment++)
          {
+            boolean storeInLog = random.nextBoolean();
+            
             RegistrySendBuffer sendBuffer = new RegistrySendBuffer(1, sendRegistry.getAllVariables(), sendJointHolders);
-            sendBuffer.updateBufferFromVariables(timestamp, uid, segment, offsets[segment], sizes[segment]);
+            sendBuffer.updateBufferFromVariables(timestamp, uid, segment, offsets[segment], sizes[segment], storeInLog);
             payload.getData().clear();
             publisherType.serialize(sendBuffer, payload);
             
             RegistryReceiveBuffer receiveBuffer = new RegistryReceiveBuffer(sendBuffer.getTimestamp());
             subscriberType.deserialize(payload, receiveBuffer);
             registryDecompressor.decompressSegment(receiveBuffer, 0);
+            
+            assertEquals(storeInLog, receiveBuffer.getStoreInLog());
 
          }
          

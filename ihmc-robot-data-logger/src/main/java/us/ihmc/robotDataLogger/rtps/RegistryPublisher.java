@@ -61,14 +61,14 @@ public class RegistryPublisher
       }
    }
 
-   public void update(long timestamp)
+   public void update(long timestamp, boolean storeInLog)
    {
       for(int segment = 0; segment < segmentSizes.length; segment++)
       {
          RegistrySendBuffer buffer = ringBuffer.next();
          if (buffer != null)
          {
-            buffer.updateBufferFromVariables(timestamp, uid, segment, segmentOffsets[segment], segmentSizes[segment]);
+            buffer.updateBufferFromVariables(timestamp, uid, segment, segmentOffsets[segment], segmentSizes[segment], storeInLog);
             ringBuffer.commit();
          }
          else

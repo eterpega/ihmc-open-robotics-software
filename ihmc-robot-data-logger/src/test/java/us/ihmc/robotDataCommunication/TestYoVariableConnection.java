@@ -39,6 +39,7 @@ public class TestYoVariableConnection
    private final YoBoolean startVariableSummary = new YoBoolean("startVariableSummary", registry);
    private final YoBoolean gc = new YoBoolean("gc", registry);
    
+   private final YoBoolean disableLog = new YoBoolean("disableLog", registry);
    
    private final DoubleParameter param1 = new DoubleParameter("param1", registry);
    private final DoubleParameter param2 = new DoubleParameter("param2", registry);
@@ -56,6 +57,8 @@ public class TestYoVariableConnection
    {
       new YoInteger("var5", registry);
       parameterReader = new XmlParameterReader(getClass().getResourceAsStream("TestParameters.xml"));
+      
+      disableLog.addVariableChangedListener((var) -> server.setStoreLog(!disableLog.getBooleanValue()) );
       
       server.setSendKeepAlive(true);
       server.setMainRegistry(registry, null, null);

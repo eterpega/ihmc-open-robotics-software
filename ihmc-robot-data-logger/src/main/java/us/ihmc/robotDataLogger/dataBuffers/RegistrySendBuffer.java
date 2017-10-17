@@ -17,6 +17,8 @@ public class RegistrySendBuffer extends RegistryBuffer
    private final YoVariable<?>[] variables;
 
    private final List<JointHolder> jointHolders;
+   
+   private boolean storeInLog;
 
    private double[] jointStates;
    private final double[] allocatedJointStates;
@@ -33,6 +35,7 @@ public class RegistrySendBuffer extends RegistryBuffer
       this.variables = null;
       this.jointHolders = null;
       this.allocatedJointStates = null;
+      this.storeInLog = false;
       
       setTimestamp(-1);
       setRegistryID(-1);
@@ -49,6 +52,7 @@ public class RegistrySendBuffer extends RegistryBuffer
 
       this.data = this.buffer.asLongBuffer();
       this.registryID = registeryID;
+      this.storeInLog = true;
 
       this.variables = variables.toArray(new YoVariable[variables.size()]);
 
@@ -63,13 +67,14 @@ public class RegistrySendBuffer extends RegistryBuffer
     * @param timestamp
     * @param uid
     */
-   public void updateBufferFromVariables(long timestamp, long uid, int segment, int offset, int numberOfVariables)
+   public void updateBufferFromVariables(long timestamp, long uid, int segment, int offset, int numberOfVariables, boolean storeInLog)
    {
       this.uid = uid;
       this.timestamp = timestamp;
       this.transmitTime = System.nanoTime();
       this.offset = offset;
       this.numberOfVariables = numberOfVariables;
+      this.storeInLog = storeInLog;
       this.data.clear();
       for (int i = offset; i < offset + numberOfVariables; i++)
       {
@@ -108,6 +113,11 @@ public class RegistrySendBuffer extends RegistryBuffer
    public ByteBuffer getBuffer()
    {
       return buffer;
+   }
+
+   public boolean getStoreInLog()
+   {
+      return storeInLog;
    }
 
 }

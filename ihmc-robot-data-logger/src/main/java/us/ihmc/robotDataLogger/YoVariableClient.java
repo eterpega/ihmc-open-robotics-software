@@ -165,7 +165,7 @@ public class YoVariableClient
       dataConsumerParticipant.createClearLogPubSub(announcement, yoVariablesUpdatedListener);
       dataConsumerParticipant.createTimestampListener(announcement, yoVariablesUpdatedListener);
 
-      dataConsumerParticipant.createDataConsumer(announcement, handshakeParser, this, debugRegistry);
+      dataConsumerParticipant.createDataConsumer(announcement, handshakeParser, this, yoVariablesUpdatedListener, debugRegistry);
 
       state = ClientState.RUNNING;
    }
@@ -202,9 +202,5 @@ public class YoVariableClient
       return debugRegistry;
    }
 
-   public void receivedTimestampAndData(long timestamp)
-   {
-      yoVariablesUpdatedListener.receivedTimestampAndData(timestamp);
-   }
 
 }

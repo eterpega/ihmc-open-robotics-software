@@ -45,4 +45,16 @@ public interface YoVariablesUpdatedListener extends TimestampListener, ClearLogL
    void receivedTimestampAndData(long timestamp);
 
    boolean executeVariableChangedListeners();
+   
+   /**
+    * Function to check if this is a logger. 
+    * 
+    * When true is returned, the handling of data can be suspended when storeToLog is false on the server side.
+    * 
+    * @return true when this is a logger
+    */
+   default boolean isLogger()
+   {
+      return false;
+   }
 }

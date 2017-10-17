@@ -37,6 +37,7 @@ import us.ihmc.robotDataLogger.TimestampPubSubType;
 import us.ihmc.robotDataLogger.VariableChangeRequest;
 import us.ihmc.robotDataLogger.VariableChangeRequestPubSubType;
 import us.ihmc.robotDataLogger.YoVariableClient;
+import us.ihmc.robotDataLogger.YoVariablesUpdatedListener;
 import us.ihmc.robotDataLogger.handshake.IDLYoVariableHandshakeParser;
 import us.ihmc.robotDataLogger.listeners.ClearLogListener;
 import us.ihmc.robotDataLogger.listeners.LogAnnouncementListener;
@@ -448,7 +449,7 @@ public class DataConsumerParticipant
     * @param loggerMainRegistry
     * @throws IOException
     */
-   public void createDataConsumer(Announcement announcement, IDLYoVariableHandshakeParser parser, YoVariableClient yoVariableClient, YoVariableRegistry loggerMainRegistry) throws IOException
+   public void createDataConsumer(Announcement announcement, IDLYoVariableHandshakeParser parser, YoVariableClient yoVariableClient, YoVariablesUpdatedListener listener, YoVariableRegistry loggerMainRegistry) throws IOException
    {
       if(registryConsumer != null)
       {
@@ -457,7 +458,7 @@ public class DataConsumerParticipant
       
       CustomLogDataSubscriberType pubSubType = new CustomLogDataSubscriberType(parser.getNumberOfVariables(), parser.getNumberOfJointStateVariables());
       SubscriberAttributes attributes = domain.createSubscriberAttributes(participant, pubSubType, LogParticipantSettings.dataTopic, ReliabilityKind.BEST_EFFORT, getPartition(announcement.getIdentifierAsString()));
-      registryConsumer = new RegistryConsumer(parser, yoVariableClient,loggerMainRegistry);
+      registryConsumer = new RegistryConsumer(parser, listener, yoVariableClient, loggerMainRegistry);
       domain.createSubscriber(participant, attributes, registryConsumer);
 
    }

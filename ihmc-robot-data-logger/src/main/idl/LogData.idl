@@ -16,6 +16,7 @@ module robotDataLogger{
 	   	long long timestamp;
 	   	long long transmitTime;
 	   	LogDataType type;
+	   	boolean storeInLog;
 	   	long registry;
 		long offset;
 		long numberOfVariables;

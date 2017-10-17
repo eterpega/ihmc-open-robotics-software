@@ -63,6 +63,8 @@ public class LogDataPubSubType implements TopicDataType<us.ihmc.robotDataLogger.
 
 	    current_alignment += 4 + CDR.alignment(current_alignment, 4);
 
+	    current_alignment += 1 + CDR.alignment(current_alignment, 1);
+
 	    current_alignment += 4 + CDR.alignment(current_alignment, 4);
 
 	    current_alignment += 4 + CDR.alignment(current_alignment, 4);
@@ -99,6 +101,8 @@ public class LogDataPubSubType implements TopicDataType<us.ihmc.robotDataLogger.
 
 	    current_alignment += 4 + CDR.alignment(current_alignment, 4);
 
+	    current_alignment += 1 + CDR.alignment(current_alignment, 1);
+
 	    current_alignment += 4 + CDR.alignment(current_alignment, 4);
 
 	    current_alignment += 4 + CDR.alignment(current_alignment, 4);
@@ -128,6 +132,8 @@ public class LogDataPubSubType implements TopicDataType<us.ihmc.robotDataLogger.
 
 	    cdr.write_type_c(data.getType().ordinal());
 
+
+	    cdr.write_type_7(data.getStoreInLog());
 
 	    cdr.write_type_2(data.getRegistry());
 
@@ -159,6 +165,9 @@ public class LogDataPubSubType implements TopicDataType<us.ihmc.robotDataLogger.
 	    	data.setType(us.ihmc.robotDataLogger.LogDataType.values[cdr.read_type_c()]);
 	    	
 
+	    	data.setStoreInLog(cdr.read_type_7());
+	    	
+
 	    	data.setRegistry(cdr.read_type_2());
 	    	
 
@@ -184,6 +193,8 @@ public class LogDataPubSubType implements TopicDataType<us.ihmc.robotDataLogger.
 			    
 			    ser.write_type_c("type", data.getType());
 			    
+			    ser.write_type_7("storeInLog", data.getStoreInLog());
+			    
 			    ser.write_type_2("registry", data.getRegistry());
 			    
 			    ser.write_type_2("offset", data.getOffset());
@@ -207,6 +218,8 @@ public class LogDataPubSubType implements TopicDataType<us.ihmc.robotDataLogger.
 	    	    
 	    			data.setType((us.ihmc.robotDataLogger.LogDataType)ser.read_type_c("type", us.ihmc.robotDataLogger.LogDataType.class));
 	    	
+	    	    
+	    			data.setStoreInLog(ser.read_type_7("storeInLog"));	
 	    	    
 	    			data.setRegistry(ser.read_type_2("registry"));	
 	    	    

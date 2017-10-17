@@ -469,4 +469,10 @@ public class YoVariableLoggerListener implements YoVariablesUpdatedListener
    {
       return false;
    }
+   
+   @Override
+   public boolean isLogger()
+   {
+      return true;
+   }
 }

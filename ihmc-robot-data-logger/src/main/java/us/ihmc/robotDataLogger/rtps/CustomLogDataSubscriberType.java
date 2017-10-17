@@ -58,6 +58,8 @@ public class CustomLogDataSubscriberType implements TopicDataType<RegistryReceiv
 
       data.setType(us.ihmc.robotDataLogger.LogDataType.values[deserializeCDR.read_type_c()]);
       
+      data.setStoreInLog(deserializeCDR.read_type_7());
+      
       data.setRegistryID(deserializeCDR.read_type_2());
       
       data.setOffset(deserializeCDR.read_type_2());
