@@ -94,7 +94,15 @@ public interface FootstepPlannerParameters
     */
    public default double getMinimumStepLength()
    {
-      return Double.NEGATIVE_INFINITY;
+      return -getMaximumStepReach();
+   }
+
+   /**
+    * Minimum step yaw.
+    */
+   public default double getMinimumStepYaw()
+   {
+      return 0.0;
    }
 
    /**
@@ -171,7 +179,10 @@ public interface FootstepPlannerParameters
     * z-value less than cos(minimumSurfaceInclineRadians), it will be rejected.
     * </p>
     */
-   public abstract double getMinimumSurfaceInclineRadians();
+   public default double getMinimumSurfaceInclineRadians()
+   {
+      return Math.toRadians(45.0);
+   }
 
    /**
     * There are two methods of wiggling a polygon into a planar region:
