@@ -9,6 +9,9 @@ import java.util.List;
 import org.junit.Test;
 
 import us.ihmc.commons.Epsilons;
+import us.ihmc.geometry.polytope.DCELPolytope.ConvexPolytopeFace;
+import us.ihmc.geometry.polytope.DCELPolytope.ExtendedPolytopeVertex;
+import us.ihmc.geometry.polytope.DCELPolytope.PolytopeHalfEdge;
 
 public class ConvexPolytopeFaceTest
 {

@@ -5,6 +5,8 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.geometry.polytope.DCELPolytope.ConvexPolytopeFace;
+import us.ihmc.geometry.polytope.DCELPolytope.ExtendedConvexPolytope;
 
 public class ConvexPolytopeConstructorTest
 {

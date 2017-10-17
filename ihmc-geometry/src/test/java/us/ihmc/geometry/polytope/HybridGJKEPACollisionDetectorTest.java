@@ -7,6 +7,8 @@ import org.junit.Test;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.geometry.polytope.DCELPolytope.ExtendedConvexPolytope;
+import us.ihmc.geometry.polytope.DCELPolytope.CollisionDetection.HybridGJKEPACollisionDetector;
 
 public class HybridGJKEPACollisionDetectorTest
 {

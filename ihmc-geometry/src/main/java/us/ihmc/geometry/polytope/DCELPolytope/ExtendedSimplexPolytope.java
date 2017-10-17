@@ -1,4 +1,4 @@
-package us.ihmc.geometry.polytope;
+package us.ihmc.geometry.polytope.DCELPolytope;
 
 import org.ejml.data.DenseMatrix64F;
 

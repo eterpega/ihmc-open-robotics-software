@@ -5,5 +5,5 @@ import us.ihmc.euclid.tuple3D.Vector3D;
 
 public interface SupportingVertexHolder
 {
-   public abstract Point3D getSupportingVertex(Vector3D supportDirection);
+   Point3D getSupportingVertex(Vector3D supportDirection);
 }

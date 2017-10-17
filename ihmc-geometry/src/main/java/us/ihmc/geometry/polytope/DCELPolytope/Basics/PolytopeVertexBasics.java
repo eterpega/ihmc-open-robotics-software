@@ -1,4 +1,4 @@
-package us.ihmc.geometry.polytope;
+package us.ihmc.geometry.polytope.DCELPolytope.Basics;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,98 +8,76 @@ import org.ejml.ops.CommonOps;
 
 import us.ihmc.euclid.interfaces.GeometryObject;
 import us.ihmc.euclid.transform.interfaces.Transform;
-import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple3D.interfaces.Point3DBasics;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
+import us.ihmc.geometry.polytope.SupportingVertexHolder;
+import us.ihmc.geometry.polytope.DCELPolytope.Simplex;
 
-/**
- * This class stores the location of a point which is the vertex of a polytope
- * A list of polytope edges originating from this vertex is also stored for ease of algorithm design 
- * Faces to which this vertex belongs can be accessed by iterating through the list of edges
- * 
- * Based on original class by Jerry Pratt
- * @author Apoorv S
- *
- */
-public class ExtendedPolytopeVertex implements GeometryObject<ExtendedPolytopeVertex>, PolytopeVertexBasics
+public abstract class PolytopeVertexBasics<T extends PolytopeVertexBasics<T, S, U, Q>, S extends PolytopeHalfEdgeBasics<T, S, U, Q>, U extends ConvexPolytopeFaceBasics<T, S, U, Q>, Q extends SimplexBasics<Q>>
+      implements GeometryObject<T>, Point3DBasics, SimplexBasics<Q>
 {
-   private final Point3D position = new Point3D();
-   private final ArrayList<PolytopeHalfEdge> associatedEdges = new ArrayList<>();
+   private final Point3DBasics position;
+   private final ArrayList<S> associatedEdges = new ArrayList<>();
    private DenseMatrix64F jacobian;
-   
-   public ExtendedPolytopeVertex()
-   {
-      
-   }
-   
-   public ExtendedPolytopeVertex(double x, double y, double z)
-   {
-      position.set(x, y, z);
-   }
 
-   public ExtendedPolytopeVertex(Point3D position)
+   public PolytopeVertexBasics(Point3DBasics position)
    {
-      this.position.set(position);
-   }
-
-   public ExtendedPolytopeVertex(ExtendedPolytopeVertex vertex)
-   {
-      this.position.set(vertex.position);
-      copyEdges(vertex.getAssociatedEdges());
+      this.position = position;
    }
 
    @Override
-   public void set(ExtendedPolytopeVertex vertex)
+   public void set(T vertex)
    {
-      this.position.set(vertex.position);
+      this.position.set(vertex.getPosition());
       clearAssociatedEdgeList();
       copyEdges(vertex.getAssociatedEdges());
    }
 
-   public List<? extends PolytopeHalfEdge> getAssociatedEdges()
+   public List<S> getAssociatedEdges()
    {
       return associatedEdges;
    }
-   
-   public PolytopeHalfEdge getAssociatedEdge(int index)
+
+   public S getAssociatedEdge(int index)
    {
       return associatedEdges.get(index);
    }
-   
-   public void removeAssociatedEdge(PolytopeHalfEdge edgeToAdd)
+
+   public void removeAssociatedEdge(S edgeToAdd)
    {
       associatedEdges.remove(edgeToAdd);
    }
-   
+
    public void clearAssociatedEdgeList()
    {
       associatedEdges.clear();
    }
 
-   public void copyEdges(List<? extends PolytopeHalfEdge> edgeList)
+   public void copyEdges(List<S> edgeList)
    {
-      for(int i = 0; i < edgeList.size(); i++)
+      for (int i = 0; i < edgeList.size(); i++)
       {
          addAssociatedEdge(edgeList.get(i));
       }
    }
 
-   public void addAssociatedEdge(PolytopeHalfEdge edge)
+   public void addAssociatedEdge(S edge)
    {
       if (!isAssociatedWithEdge(edge))
          associatedEdges.add(edge);
    }
-   
-   public boolean isAssociatedWithEdge(PolytopeHalfEdge edgeToCheck)
+
+   public boolean isAssociatedWithEdge(S edgeToCheck)
    {
       return associatedEdges.contains(edgeToCheck);
    }
 
-   public boolean isAssociatedWithEdge(PolytopeHalfEdge edgeToCheck, double epsilon)
+   public boolean isAssociatedWithEdge(S edgeToCheck, double epsilon)
    {
       boolean result = associatedEdges.size() > 0;
-      for(int i = 0; result && i < associatedEdges.size(); i++)
+      for (int i = 0; result && i < associatedEdges.size(); i++)
       {
          result &= associatedEdges.get(i).epsilonEquals(edgeToCheck, epsilon);
       }
@@ -111,36 +89,39 @@ public class ExtendedPolytopeVertex implements GeometryObject<ExtendedPolytopeVe
       return associatedEdges.size();
    }
 
-   public Point3D getPosition()
+   public Point3DReadOnly getPosition()
    {
       return position;
    }
 
    public double dot(Vector3DReadOnly vector)
    {
-      return position.getX() * vector.getX() + position.getY() * vector.getY() + position.getZ() * vector.getZ();
+      return getX() * vector.getX() + getY() * vector.getY() + getZ() * vector.getZ();
    }
 
    public String toString()
    {
-      return "{" + position.getX() + ", " + position.getY() + ", " + position.getZ() + "}";
+      return "( " + getX() + ", " + getY() + ", " + getZ() + ")";
    }
 
+   @Override
    public double getX()
    {
       return position.getX();
    }
 
+   @Override
    public double getY()
    {
       return position.getY();
    }
 
+   @Override
    public double getZ()
    {
       return position.getZ();
    }
-   
+
    public double getElement(int index)
    {
       return position.getElement(index);
@@ -161,18 +142,18 @@ public class ExtendedPolytopeVertex implements GeometryObject<ExtendedPolytopeVe
    public boolean isAnyFaceMarked()
    {
       boolean isMarked = false;
-      for(int i = 0; !isMarked && i < associatedEdges.size(); i++)
+      for (int i = 0; !isMarked && i < associatedEdges.size(); i++)
       {
          isMarked |= associatedEdges.get(i).getFace().isMarked();
       }
       //PrintTools.debug(toString() + " " +isMarked);
       return isMarked;
    }
-   
+
    @Override
-   public boolean epsilonEquals(ExtendedPolytopeVertex other, double epsilon)
+   public boolean epsilonEquals(T other, double epsilon)
    {
-      return position.epsilonEquals(other.position, epsilon);
+      return position.epsilonEquals(other, epsilon);
    }
 
    @Override
@@ -217,7 +198,7 @@ public class ExtendedPolytopeVertex implements GeometryObject<ExtendedPolytopeVe
       double dx = getX() - point.getX();
       double dy = getX() - point.getX();
       double dz = getX() - point.getX();
-      return Math.sqrt( (dx * dx) + (dy * dy) + (dz * dz));
+      return Math.sqrt((dx * dx) + (dy * dy) + (dz * dz));
    }
 
    @Override
@@ -237,15 +218,15 @@ public class ExtendedPolytopeVertex implements GeometryObject<ExtendedPolytopeVe
    {
       this.jacobian.set(jacobian);
    }
-   
+
    public DenseMatrix64F getJacobian()
    {
       return jacobian;
    }
-   
-   @Override
-   public Simplex getSmallestSimplexMemberReference(Point3DReadOnly point)
-   {
-      return this;
-   }
+
+   //   @Override
+   //   public Q getSmallestSimplexMemberReference(Point3DReadOnly point)
+   //   {
+   //      return this;
+   //   }
 }

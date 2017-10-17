@@ -1,4 +1,4 @@
-package us.ihmc.geometry.polytope;
+package us.ihmc.geometry.polytope.DCELPolytope;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +14,7 @@ import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
+import us.ihmc.geometry.polytope.SupportingVertexHolder;
 
 /**
  * A convex polytope is a collection of faces that describe it 

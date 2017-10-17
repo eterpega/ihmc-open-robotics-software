@@ -1,4 +1,4 @@
-package us.ihmc.geometry.polytope;
+package us.ihmc.geometry.polytope.DCELPolytope.Basics;
 
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
@@ -10,49 +10,41 @@ import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
+import us.ihmc.geometry.polytope.DCELPolytope.ConvexPolytopeFace;
 
-/**
- * This class implements a doubly connected edge list (https://en.wikipedia.org/wiki/Doubly_connected_edge_list)
- * for storing polytope information
- * A half edge is completely described by its origin, destination and twin edge
- * The face, previous half edge and next half edge are stored for readability of code and should not be used for any geometrical operations
- * An attempt is made to update the twin in case the edge is modified to ensure that the relation remains consistent
- * @author Apoorv S
- */
-public class PolytopeHalfEdge implements GeometryObject<PolytopeHalfEdge>, PolytopeHalfEdgeBasics
+public abstract class PolytopeHalfEdgeBasics<T extends PolytopeVertexBasics<T, S, U, Q>, S extends PolytopeHalfEdgeBasics<T, S, U, Q>, U extends ConvexPolytopeFaceBasics<T, S, U, Q>, Q extends SimplexBasics<Q>>
+      implements GeometryObject<S>, SimplexBasics<Q>, SupportingVertexHolderBasics, Vector3DReadOnly
 {
-   private PolytopeHalfEdge twinEdge;
-   private PolytopeHalfEdge nextHalfEdge;
-   private PolytopeHalfEdge previousHalfEdge;
-   private ConvexPolytopeFace face;
-   private ExtendedPolytopeVertex originVertex;
-   private ExtendedPolytopeVertex destinationVertex;
+   private S twinEdge;
+   private S nextHalfEdge;
+   private S previousHalfEdge;
+   private U face;
+   private T originVertex;
+   private T destinationVertex;
    /**
     * Not recomputed on change of values. Only recomputed when called through its getter
     */
    private Vector3D edgeVector = new Vector3D();
    private Point3D tempPoint = new Point3D();
    private DenseMatrix64F jacobian = new DenseMatrix64F();
-   /**
-    * Default constructor. Does not initialize anything
-    */
-   public PolytopeHalfEdge()
+
+   public PolytopeHalfEdgeBasics()
    {
 
    }
 
    /**
-    * Constructor for primary half edge
+    * Primary constructor for half edge
     * @param originVertex
     * @param destinationVertex
     */
-   public PolytopeHalfEdge(ExtendedPolytopeVertex originVertex, ExtendedPolytopeVertex destinationVertex)
+   public PolytopeHalfEdgeBasics(T originVertex, T destinationVertex)
    {
       setOriginVertex(originVertex);
       setDestinationVertex(destinationVertex);
    }
 
-   public PolytopeHalfEdge(PolytopeHalfEdge edge)
+   public PolytopeHalfEdgeBasics(S edge)
    {
       set(edge);
    }
@@ -61,41 +53,47 @@ public class PolytopeHalfEdge implements GeometryObject<PolytopeHalfEdge>, Polyt
     * Function for creating the twin edge. Generates garbage. Use {@code getTwinHalfEdge()} to get the twin half edge
     * @return
     */
-   public PolytopeHalfEdge createTwinHalfEdge()
+   public S createTwinHalfEdge()
    {
       return createTwinHalfEdge(null);
    }
 
-   
-   public PolytopeHalfEdge createTwinHalfEdge(ConvexPolytopeFace twinEdgeFace)
-   {
-      return new PolytopeHalfEdge(this, face);
-   }
+   public abstract S createTwinHalfEdge(ConvexPolytopeFace twinEdgeFace);
 
    /**
     * Function for creating the twin edge and storing its value. Generates garbage. Use {@code getTwinHalfEdge()} to get the twin half edge
     * @return
     */
-   public PolytopeHalfEdge setAndCreateTwinHalfEdge(ConvexPolytopeFace face)
+   public S setAndCreateTwinHalfEdge(ConvexPolytopeFace face)
    {
       this.twinEdge = createTwinHalfEdge(face);
       return this.twinEdge;
    }
 
-   public PolytopeHalfEdge setAndCreateTwinHalfEdge()
+   public S setAndCreateTwinHalfEdge()
    {
       return setAndCreateTwinHalfEdge(null);
    }
-   
-   public void setToTwinOf(PolytopeHalfEdge twinEdge)
+
+   public void setToTwinOf(S twinEdge)
    {
       twinEdge.clear();
       twinEdge.setOriginVertex(this.destinationVertex);
       twinEdge.setDestinationVertex(this.originVertex);
-      twinEdge.setTwinHalfEdge(this);
+      twinEdge.setTwinHalfEdge(getThis());
    }
+   // @Override
+   // public Q getSmallestSimplexMemberReference(Point3DReadOnly point)
+   // {
+   //    double percentage = EuclidGeometryTools.percentageAlongLineSegment3D(point, this.originVertex, this.destinationVertex);
+   //    if (percentage <= 0.0)
+   //       return this.originVertex;
+   //    else if (percentage >= 1.0)
+   //       return this.destinationVertex;
+   //    else
+   //       return this;
 
-   public PolytopeHalfEdge(PolytopeHalfEdge twinEdge, ConvexPolytopeFace face)
+   public PolytopeHalfEdgeBasics(S twinEdge, U face)
    {
       setTwinHalfEdge(twinEdge);
       setOriginVertex(twinEdge.getDestinationVertex());
@@ -103,8 +101,7 @@ public class PolytopeHalfEdge implements GeometryObject<PolytopeHalfEdge>, Polyt
       setFace(face);
    }
 
-   public PolytopeHalfEdge(ExtendedPolytopeVertex originVertex, ExtendedPolytopeVertex destinationVertex, PolytopeHalfEdge twinEdge, PolytopeHalfEdge nextHalfEdge,
-                           PolytopeHalfEdge previousHalfEdge, ConvexPolytopeFace face)
+   public PolytopeHalfEdgeBasics(T originVertex, T destinationVertex, S twinEdge, S nextHalfEdge, S previousHalfEdge, U face)
    {
       setOriginVertex(originVertex);
       setDestinationVertex(destinationVertex);
@@ -114,61 +111,66 @@ public class PolytopeHalfEdge implements GeometryObject<PolytopeHalfEdge>, Polyt
       setFace(face);
    }
 
-   public void setOriginVertex(ExtendedPolytopeVertex originVertex)
+   public void setOriginVertex(T originVertex)
    {
       if (this.originVertex != null)
-         this.originVertex.removeAssociatedEdge(this);
+         this.originVertex.removeAssociatedEdge(getThis());
       this.originVertex = originVertex;
       if (this.originVertex != null)
-         this.originVertex.addAssociatedEdge(this);
+         this.originVertex.addAssociatedEdge(getThis());
       updateTwinDestination();
+   }
+
+   private void setOriginVertexInternal(T originVertex)
+   {
+      this.originVertex = originVertex;
    }
 
    private void updateTwinOrigin()
    {
       if (twinEdge != null)
       {
-         if (twinEdge.originVertex != null)
-            twinEdge.originVertex.removeAssociatedEdge(twinEdge);
-         twinEdge.originVertex = this.destinationVertex;
-         if (twinEdge.originVertex != null)
-            twinEdge.originVertex.addAssociatedEdge(twinEdge);
+         if (twinEdge.getOriginVertex() != null)
+            twinEdge.getOriginVertex().removeAssociatedEdge(twinEdge);
+         twinEdge.setOriginVertexInternal(this.destinationVertex);
+         if (twinEdge.getOriginVertex() != null)
+            twinEdge.getOriginVertex().addAssociatedEdge(twinEdge);
       }
    }
 
    private void updateTwinDestination()
    {
       if (twinEdge != null)
-         twinEdge.destinationVertex = this.originVertex;
+         twinEdge.setDestinationVertexInternal(this.originVertex);
    }
 
-   public ExtendedPolytopeVertex getOriginVertex()
+   public T getOriginVertex()
    {
       return originVertex;
    }
 
-   public void setDestinationVertex(ExtendedPolytopeVertex destinationVertex)
+   public void setDestinationVertex(T destinationVertex)
    {
       this.destinationVertex = destinationVertex;
       updateTwinOrigin();
    }
 
-   public ExtendedPolytopeVertex getDestinationVertex()
+   public T getDestinationVertex()
    {
       return destinationVertex;
    }
 
-   public void setTwinHalfEdge(PolytopeHalfEdge twinEdge)
+   public void setTwinHalfEdge(S twinEdge)
    {
       this.twinEdge = twinEdge;
    }
 
-   public PolytopeHalfEdge getTwinHalfEdge()
+   public S getTwinHalfEdge()
    {
       return twinEdge;
    }
 
-   public void setNextHalfEdge(PolytopeHalfEdge nextHalfEdge)
+   public void setNextHalfEdge(S nextHalfEdge)
    {
       if (nextHalfEdge == null || (nextHalfEdge.getOriginVertex() == this.getDestinationVertex() && nextHalfEdge.getFace() == this.getFace()))
          setNextHalfEdgeUnsafe(nextHalfEdge);
@@ -177,17 +179,17 @@ public class PolytopeHalfEdge implements GeometryObject<PolytopeHalfEdge>, Polyt
                + nextHalfEdge.getOriginVertex().toString());
    }
 
-   private void setNextHalfEdgeUnsafe(PolytopeHalfEdge nextHalfEdge)
+   private void setNextHalfEdgeUnsafe(S nextHalfEdge)
    {
       this.nextHalfEdge = nextHalfEdge;
    }
 
-   public PolytopeHalfEdge getNextHalfEdge()
+   public S getNextHalfEdge()
    {
       return nextHalfEdge;
    }
 
-   public void setPreviousHalfEdge(PolytopeHalfEdge previousHalfEdge)
+   public void setPreviousHalfEdge(S previousHalfEdge)
    {
       if (previousHalfEdge == null || (previousHalfEdge.getDestinationVertex() == this.getOriginVertex() && previousHalfEdge.getFace() == this.getFace()))
          setPreviousHalfEdgeUnsafe(previousHalfEdge);
@@ -196,39 +198,39 @@ public class PolytopeHalfEdge implements GeometryObject<PolytopeHalfEdge>, Polyt
                + previousHalfEdge.getDestinationVertex().toString());
    }
 
-   private void setPreviousHalfEdgeUnsafe(PolytopeHalfEdge previousHalfEdge)
+   private void setPreviousHalfEdgeUnsafe(S previousHalfEdge)
    {
       this.previousHalfEdge = previousHalfEdge;
    }
 
-   public PolytopeHalfEdge getPreviousHalfEdge()
+   public S getPreviousHalfEdge()
    {
       return previousHalfEdge;
    }
 
-   public void setFace(ConvexPolytopeFace face)
+   public void setFace(U face)
    {
       this.face = face;
    }
 
-   public ConvexPolytopeFace getFace()
+   public U getFace()
    {
       return face;
    }
 
-   public Vector3D getEdgeVector()
+   public Vector3DReadOnly getEdgeVector()
    {
       edgeVector.sub(this.destinationVertex.getPosition(), this.originVertex.getPosition());
       return edgeVector;
    }
-   
+
    public Vector3DReadOnly getNormalizedEdgeVector()
    {
       getEdgeVector();
       edgeVector.normalize();
       return edgeVector;
    }
-   
+
    @Override
    public void applyTransform(Transform transform)
    {
@@ -244,18 +246,18 @@ public class PolytopeHalfEdge implements GeometryObject<PolytopeHalfEdge>, Polyt
    }
 
    @Override
-   public boolean epsilonEquals(PolytopeHalfEdge other, double epsilon)
+   public boolean epsilonEquals(S other, double epsilon)
    {
       return getOriginVertex().epsilonEquals(other.getOriginVertex(), epsilon) && getDestinationVertex().epsilonEquals(other.getDestinationVertex(), epsilon);
    }
 
-   public boolean isTwin(PolytopeHalfEdge twinEdge, double epsilon)
+   public boolean isTwin(PolytopeHalfEdgeBasics<T, S, U, Q> twinEdge, double epsilon)
    {
       return epsilonEquals(twinEdge.getTwinHalfEdge(), epsilon);
    }
 
    @Override
-   public void set(PolytopeHalfEdge other)
+   public void set(S other)
    {
       setOriginVertex(other.getOriginVertex());
       setDestinationVertex(other.getDestinationVertex());
@@ -297,17 +299,18 @@ public class PolytopeHalfEdge implements GeometryObject<PolytopeHalfEdge>, Polyt
 
    public void reverseEdge()
    {
-      ExtendedPolytopeVertex newDestinationVertex = this.originVertex;
+      T newDestinationVertex = this.originVertex;
       setOriginVertex(destinationVertex);
       setDestinationVertex(newDestinationVertex);
-      PolytopeHalfEdge newNextHalfEdge = this.previousHalfEdge;
+      S newNextHalfEdge = this.previousHalfEdge;
       setPreviousHalfEdgeUnsafe(nextHalfEdge);
       setNextHalfEdgeUnsafe(newNextHalfEdge);
    }
 
    public String toString()
    {
-      return "From: " + ((originVertex == null)? "null" : originVertex.toString()) + ", To: " + ((destinationVertex == null)? "null" : destinationVertex.toString());
+      return "From: " + ((originVertex == null) ? "null" : originVertex.toString()) + ", To: "
+            + ((destinationVertex == null) ? "null" : destinationVertex.toString());
    }
 
    @Override
@@ -338,9 +341,9 @@ public class PolytopeHalfEdge implements GeometryObject<PolytopeHalfEdge>, Polyt
    public void getSupportVectorDirectionTo(Point3DReadOnly point, Vector3D supportVectorToPack)
    {
       double percentage = EuclidGeometryTools.percentageAlongLineSegment3D(point, this.originVertex, this.destinationVertex);
-      if(percentage <= 0.0)
+      if (percentage <= 0.0)
          this.originVertex.getSupportVectorDirectionTo(point, supportVectorToPack);
-      else if(percentage >= 1.0)
+      else if (percentage >= 1.0)
          this.destinationVertex.getSupportVectorDirectionTo(point, supportVectorToPack);
       else
       {
@@ -353,9 +356,9 @@ public class PolytopeHalfEdge implements GeometryObject<PolytopeHalfEdge>, Polyt
    public void getSupportVectorJacobianTo(Point3DReadOnly point, DenseMatrix64F jacobianToPack)
    {
       double percentage = EuclidGeometryTools.percentageAlongLineSegment3D(point, this.originVertex, this.destinationVertex);
-      if(percentage <= 0.0)
+      if (percentage <= 0.0)
          this.originVertex.getSupportVectorJacobianTo(point, jacobianToPack);
-      else if(percentage >= 1.0)
+      else if (percentage >= 1.0)
          this.destinationVertex.getSupportVectorJacobianTo(point, jacobianToPack);
       else
       {
@@ -366,15 +369,17 @@ public class PolytopeHalfEdge implements GeometryObject<PolytopeHalfEdge>, Polyt
       }
    }
 
-   @Override
-   public Simplex getSmallestSimplexMemberReference(Point3DReadOnly point)
-   {
-      double percentage = EuclidGeometryTools.percentageAlongLineSegment3D(point, this.originVertex, this.destinationVertex);
-      if(percentage <= 0.0)
-         return this.originVertex;
-      else if(percentage >= 1.0)
-         return this.destinationVertex;
-      else
-         return this;
-   }
+   public abstract S getThis();
+
+   //   @Override
+   //   public Q getSmallestSimplexMemberReference(Point3DReadOnly point)
+   //   {
+   //      double percentage = EuclidGeometryTools.percentageAlongLineSegment3D(point, this.originVertex, this.destinationVertex);
+   //      if (percentage <= 0.0)
+   //         return this.originVertex;
+   //      else if (percentage >= 1.0)
+   //         return this.destinationVertex;
+   //      else
+   //         return this;
+   //   }
 }
