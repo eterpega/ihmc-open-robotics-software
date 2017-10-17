@@ -1,19 +1,13 @@
 package us.ihmc.geometry.polytope.DCELPolytope.Frame;
 
-import us.ihmc.euclid.referenceFrame.FramePoint3D;
-import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.referenceFrame.interfaces.ReferenceFrameHolder;
-import us.ihmc.euclid.tuple3D.Vector3D;
-import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
-import us.ihmc.geometry.polytope.DCELPolytope.ConvexPolytopeFace;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeHalfEdgeBasics;
-import us.ihmc.geometry.polytope.DCELPolytope.Providers.FramePolytopeHalfEdgeBuilder;
 
-public class FramePolytopeHalfEdge extends PolytopeHalfEdgeBasics<FramePolytopeVertex, FramePolytopeHalfEdge, FrameConvexPolytopeFace, FrameSimplex> implements FrameSimplex, ReferenceFrameHolder
+public class FramePolytopeHalfEdge extends PolytopeHalfEdgeBasics<FramePolytopeVertex, FramePolytopeHalfEdge, FrameConvexPolytopeFace, FrameSimplex>
+      implements FrameSimplex, ReferenceFrameHolder
 {
    private final ReferenceFrame referenceFrame;
-   private final FramePolytopeHalfEdgeBuilder halfEdgeBuilder = new FramePolytopeHalfEdgeBuilder(this);
 
    public FramePolytopeHalfEdge(ReferenceFrame referenceFrame)
    {
@@ -22,38 +16,86 @@ public class FramePolytopeHalfEdge extends PolytopeHalfEdgeBasics<FramePolytopeV
 
    public FramePolytopeHalfEdge(ReferenceFrame referenceFrame, FramePolytopeVertex origin, FramePolytopeVertex destination)
    {
-      super(origin, destination);
+      this(referenceFrame, origin, destination, null, null, null, null);
+   }
+
+   public FramePolytopeHalfEdge(ReferenceFrame referenceFrame, FramePolytopeVertex originVertex, FramePolytopeVertex destinationVertex,
+                                FramePolytopeHalfEdge twinHalfEdge, FramePolytopeHalfEdge nextHalfEdge, FramePolytopeHalfEdge previousHalfEdge,
+                                FrameConvexPolytopeFace face)
+   {
       this.referenceFrame = referenceFrame;
+      setOriginVertex(originVertex);
+      setDestinationVertex(destinationVertex);
+      setTwinHalfEdge(twinHalfEdge);
+      setNextHalfEdge(nextHalfEdge);
+      setPreviousHalfEdge(previousHalfEdge);
+      setFace(face);
    }
 
    @Override
    public void setOriginVertex(FramePolytopeVertex originVertex)
    {
-      checkReferenceFrameMatch(originVertex);
+      if (originVertex != null)
+         checkReferenceFrameMatch(originVertex);
       super.setOriginVertex(originVertex);
    }
-   
+
    @Override
    public void setOriginVertexUnsafe(FramePolytopeVertex originVertex)
    {
-      checkReferenceFrameMatch(originVertex);
+      if (originVertex != null)
+         checkReferenceFrameMatch(originVertex);
       super.setOriginVertexUnsafe(originVertex);
    }
-   
+
    @Override
    public void setDestinationVertex(FramePolytopeVertex destinationVertex)
    {
-      checkReferenceFrameMatch(destinationVertex);
+      if (destinationVertex!= null)
+         checkReferenceFrameMatch(destinationVertex);
       super.setDestinationVertex(destinationVertex);
    }
-   
+
    @Override
    public void setDestinationVertexUnsafe(FramePolytopeVertex destinationVertex)
    {
-      checkReferenceFrameMatch(destinationVertex);
+      if (destinationVertex != null)
+         checkReferenceFrameMatch(destinationVertex);
       super.setDestinationVertexUnsafe(destinationVertex);
    }
-   
+
+   @Override
+   public void setTwinHalfEdge(FramePolytopeHalfEdge twinEdge)
+   {
+      if (twinEdge != null)
+         checkReferenceFrameMatch(twinEdge);
+      super.setTwinHalfEdge(twinEdge);
+   }
+
+   @Override
+   public void setNextHalfEdge(FramePolytopeHalfEdge nextHalfEdge)
+   {
+      if (nextHalfEdge != null)
+         checkReferenceFrameMatch(nextHalfEdge);
+      super.setNextHalfEdge(nextHalfEdge);
+   }
+
+   @Override
+   public void setPreviousHalfEdge(FramePolytopeHalfEdge previousHalfEdge)
+   {
+      if (previousHalfEdge != null)
+         checkReferenceFrameMatch(previousHalfEdge);
+      super.setPreviousHalfEdge(previousHalfEdge);
+   }
+
+   @Override
+   public void setFace(FrameConvexPolytopeFace face)
+   {
+      if (face != null)
+         checkReferenceFrameMatch(face);
+      super.setFace(face);
+   }
+
    @Override
    public FramePolytopeHalfEdge getThis()
    {
@@ -69,8 +111,6 @@ public class FramePolytopeHalfEdge extends PolytopeHalfEdgeBasics<FramePolytopeV
    @Override
    public FramePolytopeHalfEdge createTwinHalfEdge(FrameConvexPolytopeFace twinEdgeFace)
    {
-      // TODO Auto-generated method stub
       return null;
    }
-   
 }
