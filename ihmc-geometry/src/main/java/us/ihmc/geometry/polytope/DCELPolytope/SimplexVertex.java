@@ -1,4 +1,4 @@
-package us.ihmc.geometry.polytope;
+package us.ihmc.geometry.polytope.DCELPolytope;
 
 public class SimplexVertex extends ExtendedPolytopeVertex
 {

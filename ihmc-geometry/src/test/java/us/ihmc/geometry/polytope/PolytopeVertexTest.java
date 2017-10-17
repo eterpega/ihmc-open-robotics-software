@@ -4,7 +4,17 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import us.ihmc.commons.Epsilons;
+import us.ihmc.euclid.referenceFrame.FramePoint3D;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.geometry.polytope.DCELPolytope.ExtendedPolytopeVertex;
+import us.ihmc.geometry.polytope.DCELPolytope.PolytopeHalfEdge;
+import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeHalfEdgeBasics;
+import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeVertexBasics;
+import us.ihmc.geometry.polytope.DCELPolytope.Basics.SimplexBasics;
+import us.ihmc.geometry.polytope.DCELPolytope.Frame.FramePolytopeHalfEdge;
+import us.ihmc.geometry.polytope.DCELPolytope.Frame.FramePolytopeVertex;
 
 public class PolytopeVertexTest
 {
@@ -44,5 +54,22 @@ public class PolytopeVertexTest
       PolytopeHalfEdge twinEdge1 = edge1.createTwinHalfEdge();
       assertTrue(vertex2.getAssociatedEdges().size() == 1);
       assertTrue(vertex2.getAssociatedEdges().get(0) == twinEdge1);
+   }
+   
+   public void testConstructor()
+   {
+      ExtendedPolytopeVertex vertex = new ExtendedPolytopeVertex();
+      PolytopeHalfEdge edge = vertex.getAssociatedEdge(0);
+   }
+   
+   public void testFrameConstructor()
+   {
+      ExtendedPolytopeVertex vertex = new ExtendedPolytopeVertex();
+      FramePolytopeVertex framevertex = new FramePolytopeVertex(ReferenceFrame.getWorldFrame(), new ExtendedPolytopeVertex());
+      FramePolytopeVertex framevertex2 = new FramePolytopeVertex(ReferenceFrame.getWorldFrame(), new ExtendedPolytopeVertex());
+      FramePolytopeHalfEdge edge = framevertex.getAssociatedEdge(0);
+      framevertex.epsilonEquals(framevertex2, Epsilons.ONE);
+      vertex.epsilonEquals(framevertex, Epsilons.ONE);
+      
    }
 }

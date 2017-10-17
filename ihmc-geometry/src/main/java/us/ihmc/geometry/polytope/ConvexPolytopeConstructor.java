@@ -12,6 +12,9 @@ import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.geometry.polytope.DCELPolytope.ExtendedConvexPolytope;
+import us.ihmc.geometry.polytope.DCELPolytope.ExtendedPolytopeVertex;
+import us.ihmc.geometry.polytope.DCELPolytope.Frame.FrameConvexPolytope;
 
 public class ConvexPolytopeConstructor
 {

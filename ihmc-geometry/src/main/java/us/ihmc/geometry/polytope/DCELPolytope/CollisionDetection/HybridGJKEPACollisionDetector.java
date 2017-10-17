@@ -1,10 +1,12 @@
-package us.ihmc.geometry.polytope;
+package us.ihmc.geometry.polytope.DCELPolytope.CollisionDetection;
 
 import us.ihmc.commons.Epsilons;
 import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
+import us.ihmc.geometry.polytope.DCELPolytope.ExtendedConvexPolytope;
+import us.ihmc.geometry.polytope.DCELPolytope.ExtendedSimplexPolytope;
 
 public class HybridGJKEPACollisionDetector
 {

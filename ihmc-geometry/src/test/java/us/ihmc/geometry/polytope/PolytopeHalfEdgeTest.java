@@ -6,6 +6,9 @@ import org.junit.Test;
 import us.ihmc.commons.Epsilons;
 import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
+import us.ihmc.geometry.polytope.DCELPolytope.ExtendedPolytopeVertex;
+import us.ihmc.geometry.polytope.DCELPolytope.PolytopeHalfEdge;
 
 public class PolytopeHalfEdgeTest
 {
@@ -111,7 +114,7 @@ public class PolytopeHalfEdgeTest
       ExtendedPolytopeVertex vertex2 = getRandomPolytopeVertex();
       
       PolytopeHalfEdge edge = new PolytopeHalfEdge(vertex1, vertex2);
-      Vector3D edgeVector = edge.getEdgeVector();
+      Vector3DReadOnly edgeVector = edge.getEdgeVector();
       assertTrue(edgeVector.getX() == vertex2.getX() - vertex1.getX());
       assertTrue(edgeVector.getY() == vertex2.getY() - vertex1.getY());
       assertTrue(edgeVector.getZ() == vertex2.getZ() - vertex1.getZ());
