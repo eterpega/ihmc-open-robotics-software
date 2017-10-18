@@ -29,6 +29,7 @@ public class FrameConvexPolytope extends ConvexPolytopeBasics<FramePolytopeVerte
    public FrameConvexPolytope(ReferenceFrame referenceFrame, ExtendedConvexPolytope polytope)
    {
       this(referenceFrame);
+      throw new RuntimeException("Unimplemented exception");
    }
    
    @Override

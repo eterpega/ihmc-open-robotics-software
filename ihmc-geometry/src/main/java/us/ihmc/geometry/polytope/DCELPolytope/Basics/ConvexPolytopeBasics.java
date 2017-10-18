@@ -109,6 +109,13 @@ public abstract class ConvexPolytopeBasics<T extends PolytopeVertexBasics<T, S, 
       updateVertices();
       return vertices;
    }
+   
+   public void getVertices(ArrayList<Point3D> verticesToPack)
+   {
+      updateVertices();
+      for(int i = 0; i < vertices.size(); i++)
+         verticesToPack.get(i).set(vertices.get(i));
+   }
 
    private void updateVertices()
    {
