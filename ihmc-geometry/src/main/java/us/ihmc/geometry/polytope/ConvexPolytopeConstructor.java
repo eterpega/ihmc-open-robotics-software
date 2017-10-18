@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Random;
 
 import us.ihmc.commons.Epsilons;
-import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tools.EuclidCoreRandomTools;
 import us.ihmc.euclid.transform.RigidBodyTransform;
@@ -18,6 +17,30 @@ import us.ihmc.geometry.polytope.DCELPolytope.Frame.FrameConvexPolytope;
 
 public class ConvexPolytopeConstructor
 {
+   public enum Axis
+   {
+      X, Y, Z;
+   }
+
+   public enum Direction
+   {
+      AlongAxis, OppositeAxis;
+
+      public double getSign()
+      {
+         switch (this)
+         {
+         case AlongAxis:
+            return 1.0;
+         case OppositeAxis:
+            return -1.0;
+         default:
+            throw new RuntimeException("Unknown case");
+         }
+      }
+
+   }
+
    private static final double EPSILON = Epsilons.ONE_BILLIONTH;
 
    public static ConvexPolytope constructUnitCube()
@@ -47,42 +70,41 @@ public class ConvexPolytopeConstructor
       polytope.addVertex(new ExtendedPolytopeVertex(1.0, 1.0, 1.0), EPSILON);
       return polytope;
    }
-   
+
    public static ConvexPolytope constructBox(Point3D center, Quaternion orientation, double edgeLengthX, double edgeLengthY, double edgeLengthZ)
    {
       ConvexPolytope polytope = new ConvexPolytope();
       RigidBodyTransform transform = new RigidBodyTransform();
       transform.setRotation(orientation);
-      polytope.addVertex(center.getX() - edgeLengthX/2, center.getY() - edgeLengthY/2, center.getZ() - edgeLengthZ/2);
-      polytope.addVertex(center.getX() + edgeLengthX/2, center.getY() - edgeLengthY/2, center.getZ() - edgeLengthZ/2);
-      polytope.addVertex(center.getX() + edgeLengthX/2, center.getY() + edgeLengthY/2, center.getZ() - edgeLengthZ/2);
-      polytope.addVertex(center.getX() - edgeLengthX/2, center.getY() + edgeLengthY/2, center.getZ() - edgeLengthZ/2);
-      polytope.addVertex(center.getX() - edgeLengthX/2, center.getY() - edgeLengthY/2, center.getZ() + edgeLengthZ/2);
-      polytope.addVertex(center.getX() + edgeLengthX/2, center.getY() - edgeLengthY/2, center.getZ() + edgeLengthZ/2);
-      polytope.addVertex(center.getX() + edgeLengthX/2, center.getY() + edgeLengthY/2, center.getZ() + edgeLengthZ/2);
-      polytope.addVertex(center.getX() - edgeLengthX/2, center.getY() + edgeLengthY/2, center.getZ() + edgeLengthZ/2);
+      polytope.addVertex(center.getX() - edgeLengthX / 2, center.getY() - edgeLengthY / 2, center.getZ() - edgeLengthZ / 2);
+      polytope.addVertex(center.getX() + edgeLengthX / 2, center.getY() - edgeLengthY / 2, center.getZ() - edgeLengthZ / 2);
+      polytope.addVertex(center.getX() + edgeLengthX / 2, center.getY() + edgeLengthY / 2, center.getZ() - edgeLengthZ / 2);
+      polytope.addVertex(center.getX() - edgeLengthX / 2, center.getY() + edgeLengthY / 2, center.getZ() - edgeLengthZ / 2);
+      polytope.addVertex(center.getX() - edgeLengthX / 2, center.getY() - edgeLengthY / 2, center.getZ() + edgeLengthZ / 2);
+      polytope.addVertex(center.getX() + edgeLengthX / 2, center.getY() - edgeLengthY / 2, center.getZ() + edgeLengthZ / 2);
+      polytope.addVertex(center.getX() + edgeLengthX / 2, center.getY() + edgeLengthY / 2, center.getZ() + edgeLengthZ / 2);
+      polytope.addVertex(center.getX() - edgeLengthX / 2, center.getY() + edgeLengthY / 2, center.getZ() + edgeLengthZ / 2);
       polytope.applyTransform(transform);
       return polytope;
    }
-   
-   
+
    public static ExtendedConvexPolytope constructExtendedBox(Point3D center, Quaternion orientation, double edgeLengthX, double edgeLengthY, double edgeLengthZ)
    {
       ExtendedConvexPolytope polytope = new ExtendedConvexPolytope();
       RigidBodyTransform transform = new RigidBodyTransform();
       transform.setRotation(orientation);
-      polytope.addVertex(center.getX() - edgeLengthX/2, center.getY() - edgeLengthY/2, center.getZ() - edgeLengthZ/2, EPSILON);
-      polytope.addVertex(center.getX() + edgeLengthX/2, center.getY() - edgeLengthY/2, center.getZ() - edgeLengthZ/2, EPSILON);
-      polytope.addVertex(center.getX() + edgeLengthX/2, center.getY() + edgeLengthY/2, center.getZ() - edgeLengthZ/2, EPSILON);
-      polytope.addVertex(center.getX() - edgeLengthX/2, center.getY() + edgeLengthY/2, center.getZ() - edgeLengthZ/2, EPSILON);
-      polytope.addVertex(center.getX() - edgeLengthX/2, center.getY() - edgeLengthY/2, center.getZ() + edgeLengthZ/2, EPSILON);
-      polytope.addVertex(center.getX() + edgeLengthX/2, center.getY() - edgeLengthY/2, center.getZ() + edgeLengthZ/2, EPSILON);
-      polytope.addVertex(center.getX() + edgeLengthX/2, center.getY() + edgeLengthY/2, center.getZ() + edgeLengthZ/2, EPSILON);
-      polytope.addVertex(center.getX() - edgeLengthX/2, center.getY() + edgeLengthY/2, center.getZ() + edgeLengthZ/2, EPSILON);
+      polytope.addVertex(center.getX() - edgeLengthX / 2, center.getY() - edgeLengthY / 2, center.getZ() - edgeLengthZ / 2, EPSILON);
+      polytope.addVertex(center.getX() + edgeLengthX / 2, center.getY() - edgeLengthY / 2, center.getZ() - edgeLengthZ / 2, EPSILON);
+      polytope.addVertex(center.getX() + edgeLengthX / 2, center.getY() + edgeLengthY / 2, center.getZ() - edgeLengthZ / 2, EPSILON);
+      polytope.addVertex(center.getX() - edgeLengthX / 2, center.getY() + edgeLengthY / 2, center.getZ() - edgeLengthZ / 2, EPSILON);
+      polytope.addVertex(center.getX() - edgeLengthX / 2, center.getY() - edgeLengthY / 2, center.getZ() + edgeLengthZ / 2, EPSILON);
+      polytope.addVertex(center.getX() + edgeLengthX / 2, center.getY() - edgeLengthY / 2, center.getZ() + edgeLengthZ / 2, EPSILON);
+      polytope.addVertex(center.getX() + edgeLengthX / 2, center.getY() + edgeLengthY / 2, center.getZ() + edgeLengthZ / 2, EPSILON);
+      polytope.addVertex(center.getX() - edgeLengthX / 2, center.getY() + edgeLengthY / 2, center.getZ() + edgeLengthZ / 2, EPSILON);
       polytope.applyTransform(transform);
       return polytope;
    }
-   
+
    /**
     * Constructs a icosahedron that envelops the sphere to be created
     * @param radius
@@ -90,7 +112,7 @@ public class ConvexPolytopeConstructor
     * @param edgeLengthForDiscretization
     * @return
     */
-   public static ExtendedConvexPolytope constructSphere(double radius, Point3D center, int recursionLevel)
+   public static ExtendedConvexPolytope constructIcoSphere(double radius, Point3D center, int recursionLevel)
    {
       ExtendedConvexPolytope polytope = new ExtendedConvexPolytope();
       int t1 = 1;
@@ -145,36 +167,42 @@ public class ConvexPolytopeConstructor
       {
          for (int j = 0; j < cubeDivisions; j++)
          {
-            ExtendedPolytopeVertex vertex = new ExtendedPolytopeVertex( (2.0 * (float) i / (float)(cubeDivisions -1)- 1) * radius, (2.0 * (float) j / (float)(cubeDivisions -1) - 1) * radius, -radius);
+            ExtendedPolytopeVertex vertex = new ExtendedPolytopeVertex((2.0 * (float) i / (float) (cubeDivisions - 1) - 1) * radius,
+                                                                       (2.0 * (float) j / (float) (cubeDivisions - 1) - 1) * radius, -radius);
             vertices.add(vertex);
          }
       }
-      
+
       for (int i = 1; i < cubeDivisions; i++)
       {
          for (int j = 0; j < cubeDivisions; j++)
          {
-            ExtendedPolytopeVertex vertex = new ExtendedPolytopeVertex( -radius, (2.0 * (float) j / (float)(cubeDivisions -1) - 1) * radius, (2.0 * (float) i / (float)(cubeDivisions -1) - 1) * radius);
+            ExtendedPolytopeVertex vertex = new ExtendedPolytopeVertex(-radius, (2.0 * (float) j / (float) (cubeDivisions - 1) - 1) * radius,
+                                                                       (2.0 * (float) i / (float) (cubeDivisions - 1) - 1) * radius);
             vertices.add(vertex);
-            vertex = new ExtendedPolytopeVertex( (2.0 * (float) j / (float)(cubeDivisions -1) - 1) * radius, -radius, (2.0 * (float) i / (float)(cubeDivisions -1) - 1) * radius);
+            vertex = new ExtendedPolytopeVertex((2.0 * (float) j / (float) (cubeDivisions - 1) - 1) * radius, -radius,
+                                                (2.0 * (float) i / (float) (cubeDivisions - 1) - 1) * radius);
             vertices.add(vertex);
-            vertex = new ExtendedPolytopeVertex( (2.0 * (float) j / (float)(cubeDivisions -1) - 1) * radius, radius, (2.0 * (float) i / (float)(cubeDivisions -1) - 1) * radius);
+            vertex = new ExtendedPolytopeVertex((2.0 * (float) j / (float) (cubeDivisions - 1) - 1) * radius, radius,
+                                                (2.0 * (float) i / (float) (cubeDivisions - 1) - 1) * radius);
             vertices.add(vertex);
-            vertex = new ExtendedPolytopeVertex( radius, (2.0 * (float) j / (float)(cubeDivisions -1)- 1) * radius, (2.0 * (float) i / (float)(cubeDivisions -1) - 1) * radius);
+            vertex = new ExtendedPolytopeVertex(radius, (2.0 * (float) j / (float) (cubeDivisions - 1) - 1) * radius,
+                                                (2.0 * (float) i / (float) (cubeDivisions - 1) - 1) * radius);
             vertices.add(vertex);
          }
       }
-      
-      for (int i = 1; i < cubeDivisions -1; i++)
+
+      for (int i = 1; i < cubeDivisions - 1; i++)
       {
-         for (int j = 1; j < cubeDivisions -1; j++)
+         for (int j = 1; j < cubeDivisions - 1; j++)
          {
-            ExtendedPolytopeVertex vertex = new ExtendedPolytopeVertex( (2.0 * (float) i / (float)(cubeDivisions -1) - 1) * radius, (2.0 * (float) j / (float)(cubeDivisions -1)- 1) * radius, radius);
+            ExtendedPolytopeVertex vertex = new ExtendedPolytopeVertex((2.0 * (float) i / (float) (cubeDivisions - 1) - 1) * radius,
+                                                                       (2.0 * (float) j / (float) (cubeDivisions - 1) - 1) * radius, radius);
             vertices.add(vertex);
          }
       }
-      
-      for(int i = 0; i < vertices.size(); i++)
+
+      for (int i = 0; i < vertices.size(); i++)
       {
          ExtendedPolytopeVertex vertex = vertices.get(i);
          double mag = Math.sqrt(vertex.getX() * vertex.getX() + vertex.getY() * vertex.getY() + vertex.getZ() * vertex.getZ());
@@ -188,7 +216,7 @@ public class ConvexPolytopeConstructor
 
    public static ExtendedConvexPolytope constructUnitSphere(int recursionLevel)
    {
-      return constructSphere(1.0, new Point3D(), recursionLevel);
+      return constructIcoSphere(1.0, new Point3D(), recursionLevel);
    }
 
    /**
@@ -206,12 +234,12 @@ public class ConvexPolytopeConstructor
       double enclosingRadius = radius / Math.cos(vertexAngle / 2.0);
       for (int i = 0; i < numberOfDivisionsForCurvedSurface; i++)
          polytope.addVertex(new ExtendedPolytopeVertex(center.getX() + enclosingRadius * Math.cos(i * vertexAngle),
-                                               center.getY() + enclosingRadius * Math.sin(i * vertexAngle), center.getZ() - length / 2.0),
+                                                       center.getY() + enclosingRadius * Math.sin(i * vertexAngle), center.getZ() - length / 2.0),
                             EPSILON);
       for (int i = 0; i < numberOfDivisionsForCurvedSurface; i++)
       {
          polytope.addVertex(new ExtendedPolytopeVertex(center.getX() + enclosingRadius * Math.cos(i * vertexAngle),
-                                               center.getY() + enclosingRadius * Math.sin(i * vertexAngle), center.getZ() + length / 2.0),
+                                                       center.getY() + enclosingRadius * Math.sin(i * vertexAngle), center.getZ() + length / 2.0),
                             EPSILON);
       }
       return polytope;
@@ -270,7 +298,7 @@ public class ConvexPolytopeConstructor
 
       return polytope;
    }
-   
+
    public static ExtendedConvexPolytope constructExtendedRandomSphereOutlinedPolytope(Random random, int numberOfPoints, double radius, double xyzBoundary)
    {
       ExtendedConvexPolytope polytope = new ExtendedConvexPolytope();
@@ -310,7 +338,7 @@ public class ConvexPolytopeConstructor
       }
       return polytope;
    }
-   
+
    public static ExtendedConvexPolytope constructExtendedFromVertices(double[][] vertices)
    {
       ExtendedConvexPolytope polytope = new ExtendedConvexPolytope();
@@ -319,5 +347,270 @@ public class ConvexPolytopeConstructor
          polytope.addVertex(EPSILON, vertex);
       }
       return polytope;
+   }
+
+   /////// All the code above this is a mess that exists for some reason that I dont want to get into right now 
+
+   public static ExtendedConvexPolytope getSphericalCollisionMeshByProjectingCube(Point3D centroid, double radius, int cubeDivisions)
+   {
+      return createPolytope(getCollisionMeshPointsForSphere(centroid, radius, cubeDivisions));
+   }
+   
+   public static ExtendedConvexPolytope createPolytope(ArrayList<Point3D> pointsToAdd)
+   {
+      ExtendedConvexPolytope polytope = new ExtendedConvexPolytope();
+      addVerticesToPolytope(polytope, pointsToAdd);
+      return polytope;
+   }
+   
+   public static void addVerticesToPolytope(ExtendedConvexPolytope polytope, ArrayList<Point3D> verticesToAdd)
+   {
+      for(int i = 0; i < verticesToAdd.size(); i++)
+         polytope.addVertex(verticesToAdd.get(i), EPSILON);
+   }
+   
+   public static ArrayList<Point3D> getCollisionMeshPointsForSphere(Point3D center, double radius, int cubeDivisions)
+   {
+      return getCollisionMeshPointsForSphere(center.getX(), center.getY(), center.getZ(), radius, cubeDivisions);
+   }
+   
+   public static ArrayList<Point3D> getCollisionMeshPointsForSphere(double centroidX, double centroidY, double centroidZ, double radius, int cubeDivisions)
+   {
+      ArrayList<Point3D> points = new ArrayList<>();
+      getCollisionMeshPointsForSphere(centroidX, centroidY, centroidZ, radius, cubeDivisions,points);
+      return points;
+   }
+   
+   public static void getCollisionMeshPointsForSphere(double centroidX, double centroidY, double centroidZ, double radius, int cubeDivisions,
+                                                      ArrayList<Point3D> pointsToPack)
+   {
+      getPointsOnUnitCubeForSphereGeneration(cubeDivisions, pointsToPack);
+      projectPointsToRadiusAndShiftCentroid(centroidX, centroidY, centroidZ, radius, pointsToPack);
+   }
+
+   public static void projectPointsToRadiusAndShiftCentroid(double centroidX, double centroidY, double centroidZ, double radius,
+                                                             ArrayList<Point3D> pointsToPack)
+   {
+      for (int i = 0; i < pointsToPack.size(); i++)
+      {
+         Point3D point = pointsToPack.get(i);
+         double scalar = radius / point.distanceFromOrigin();
+         point.scale(scalar);
+         point.add(centroidX, centroidY, centroidZ);
+      }
+   }
+
+   public static void getPointsOnUnitCubeForSphereGeneration(int cubeDivisions, ArrayList<Point3D> pointsToPack)
+   {
+      for (int i = 0; i < cubeDivisions; i++)
+      {
+         double x = (2.0 * (float) i / (float) (cubeDivisions - 1) - 1);
+         for (int j = 0; j < cubeDivisions; j++)
+         {
+            pointsToPack.add(new Point3D(x, (2.0 * (float) j / (float) (cubeDivisions - 1) - 1), -1.0));
+         }
+      }
+
+      for (int i = 1; i < cubeDivisions; i++)
+      {
+         double z = (2.0 * (float) i / (float) (cubeDivisions - 1) - 1);
+         for (int j = 0; j < cubeDivisions; j++)
+         {
+            double xy = (2.0 * (float) j / (float) (cubeDivisions - 1) - 1);
+            pointsToPack.add(new Point3D(-1.0, xy, z));
+            pointsToPack.add(new Point3D(xy, -1.0, z));
+            pointsToPack.add(new Point3D(xy, 1.0, z));
+            pointsToPack.add(new Point3D(1.0, xy, z));
+         }
+      }
+
+      for (int i = 1; i < cubeDivisions - 1; i++)
+      {
+         double x = (2.0 * (float) i / (float) (cubeDivisions - 1) - 1);
+         for (int j = 1; j < cubeDivisions - 1; j++)
+         {
+            pointsToPack.add(new Point3D(x, (2.0 * (float) j / (float) (cubeDivisions - 1) - 1), 1.0));
+         }
+      }
+   }
+
+   public static void getCollisionMeshPointsForIcoSphere(Point3D centroid, double radius, int cubeDivisions, ArrayList<Point3D> pointsToPack)
+   {
+      throw new RuntimeException("Not implemented");
+   }
+   
+   public static ExtendedConvexPolytope getCylindericalCollisionMesh(Point3D centroid, Axis axis, double radius, double length, int curvedSurfaceDivisions)
+   {
+      return createPolytope(getCollisionMeshPointsForCylinder(centroid, axis, radius, length, curvedSurfaceDivisions));
+   }
+   
+   public static ArrayList<Point3D> getCollisionMeshPointsForCylinder(Point3D centroid, Axis axis, double radius, double length,
+                                                                      int curvedSurfaceDivisions)
+   {
+      return getCollisionMeshPointsForCylinder(centroid.getX(), centroid.getY(), centroid.getZ(), axis, radius, length, curvedSurfaceDivisions);
+   }
+   
+   public static ArrayList<Point3D> getCollisionMeshPointsForCylinder(double centroidX, double centroidY, double centroidZ, Axis axis, double radius, double length,
+                                                        int curvedSurfaceDivisions)
+   {
+      ArrayList<Point3D> points = new ArrayList<>();
+      getCollisionMeshPointsForCylinder(centroidX, centroidY, centroidZ, axis, radius, length, curvedSurfaceDivisions, points);
+      return points;
+   }
+   
+   public static void getCollisionMeshPointsForCylinder(double centroidX, double centroidY, double centroidZ, Axis axis, double radius, double length,
+                                                        int curvedSurfaceDivisions, ArrayList<Point3D> pointsToPack)
+   {
+      double vertexAngle = 2 * Math.PI / curvedSurfaceDivisions;
+      double enclosingRadius = radius / Math.cos(vertexAngle / 2.0);
+      switch (axis)
+      {
+      case X:
+         for (int i = 0; i < curvedSurfaceDivisions; i++)
+            pointsToPack.add(new Point3D(centroidX - length / 2.0, centroidY + enclosingRadius * Math.sin(i * vertexAngle),
+                                         centroidZ + enclosingRadius * Math.cos(i * vertexAngle)));
+         for (int i = 0; i < curvedSurfaceDivisions; i++)
+            pointsToPack.add(new Point3D(centroidX + length / 2.0, centroidY + enclosingRadius * Math.sin(i * vertexAngle),
+                                         centroidZ + enclosingRadius * Math.cos(i * vertexAngle)));
+         break;
+      case Y:
+         for (int i = 0; i < curvedSurfaceDivisions; i++)
+            pointsToPack.add(new Point3D(centroidX + enclosingRadius * Math.cos(i * vertexAngle), centroidY - length / 2.0,
+                                         centroidZ + enclosingRadius * Math.sin(i * vertexAngle)));
+         for (int i = 0; i < curvedSurfaceDivisions; i++)
+            pointsToPack.add(new Point3D(centroidX + enclosingRadius * Math.cos(i * vertexAngle), centroidY + length / 2.0,
+                                         centroidZ + enclosingRadius * Math.sin(i * vertexAngle)));
+         break;
+      default:
+         for (int i = 0; i < curvedSurfaceDivisions; i++)
+            pointsToPack.add(new Point3D(centroidX + enclosingRadius * Math.cos(i * vertexAngle), centroidY + enclosingRadius * Math.sin(i * vertexAngle),
+                                         centroidZ - length / 2.0));
+         for (int i = 0; i < curvedSurfaceDivisions; i++)
+            pointsToPack.add(new Point3D(centroidX + enclosingRadius * Math.cos(i * vertexAngle), centroidY + enclosingRadius * Math.sin(i * vertexAngle),
+                                         centroidZ + length / 2.0));
+         break;
+      }
+   }
+
+   public static ExtendedConvexPolytope getCuboidCollisionMesh(Point3D centroid, double xLength, double yLength, double zLength)
+   {
+      return createPolytope(getCollisionMeshPointsForCuboid(centroid, xLength, yLength, zLength));
+   }
+   
+   public static ArrayList<Point3D> getCollisionMeshPointsForCuboid(Point3D centroid, double xLength, double yLength, double zLength)
+   {
+      return getCollisionMeshPointsForCuboid(centroid.getX(), centroid.getY(), centroid.getZ(), xLength, yLength, zLength);
+   }
+   public static ArrayList<Point3D> getCollisionMeshPointsForCuboid(double centroidX, double centroidY, double centroidZ, double xLength, double yLength, double zLength)
+   {
+      ArrayList<Point3D> points = new ArrayList<>();
+      getCollisionMeshPointsForCuboid(centroidX, centroidY, centroidZ, xLength, yLength, zLength, points);
+      return points;
+   }
+   
+   public static void getCollisionMeshPointsForCuboid(double centroidX, double centroidY, double centroidZ, double xLength, double yLength, double zLength,
+                                                      ArrayList<Point3D> pointsToPack)
+   {
+      double halfLengthX = xLength / 2.0;
+      double halfWidthY = yLength / 2.0;
+      double halfHeightZ = zLength / 2.0;
+      double negativeXCoord = -halfLengthX + centroidX;
+      double positiveXCoord = halfLengthX + centroidX;
+      double negativeYCoord = -halfWidthY + centroidY;
+      double positiveYCoord = halfWidthY + centroidY;
+      double negativeZCoord = -halfHeightZ + centroidZ;
+      double positiveZCoord = halfHeightZ + centroidZ;
+      pointsToPack.add(new Point3D(negativeXCoord, negativeYCoord, negativeZCoord));
+      pointsToPack.add(new Point3D(positiveXCoord, negativeYCoord, negativeZCoord));
+      pointsToPack.add(new Point3D(positiveXCoord, positiveYCoord, negativeZCoord));
+      pointsToPack.add(new Point3D(negativeXCoord, positiveYCoord, negativeZCoord));
+      pointsToPack.add(new Point3D(negativeXCoord, negativeYCoord, positiveZCoord));
+      pointsToPack.add(new Point3D(positiveXCoord, negativeYCoord, positiveZCoord));
+      pointsToPack.add(new Point3D(positiveXCoord, positiveYCoord, positiveZCoord));
+      pointsToPack.add(new Point3D(negativeXCoord, positiveYCoord, positiveZCoord));
+   }
+
+   public ExtendedConvexPolytope getCapsuleCollisionMesh(Point3D centeroid, Axis axis, double cylindericalLength,
+                                                                     double endRadius, int curvedSurfaceDivisions)
+   {
+      return createPolytope(getCollisionMeshPointsForCapsule(centeroid, axis, cylindericalLength, endRadius, curvedSurfaceDivisions));
+   }
+   
+   public static ArrayList<Point3D> getCollisionMeshPointsForCapsule(Point3D centeroid, Axis axis, double cylindericalLength,
+                                                                     double endRadius, int curvedSurfaceDivisions)
+   {
+      return getCollisionMeshPointsForCapsule(centeroid.getX(), centeroid.getX(), centeroid.getX(), axis, cylindericalLength, endRadius, curvedSurfaceDivisions);
+   }
+   
+   public static ArrayList<Point3D> getCollisionMeshPointsForCapsule(double centroidX, double centroidY, double centroidZ, Axis axis, double cylindericalLength,
+                                                       double endRadius, int curvedSurfaceDivisions)
+   {
+      ArrayList<Point3D> points = new ArrayList<>();
+      getCollisionMeshPointsForCapsule(centroidX, centroidY, centroidZ, axis, cylindericalLength, endRadius, curvedSurfaceDivisions, points);
+      return points;
+   }
+   
+   /**
+    * 
+    * @param centroid
+    * @param axis
+    * @param cylindericalLength
+    * @param endRadius
+    * @param pointsToPack
+    * @param curvedSurfaceDivisions will be rounded down up to the nearest multiple of four
+    */
+   public static void getCollisionMeshPointsForCapsule(double centroidX, double centroidY, double centroidZ, Axis axis, double cylindericalLength,
+                                                       double endRadius, int curvedSurfaceDivisions, ArrayList<Point3D> pointsToPack)
+   {
+      curvedSurfaceDivisions = curvedSurfaceDivisions + (4 - (curvedSurfaceDivisions % 4)) % 4;
+
+      switch (axis)
+      {
+      case X:
+         getCollisionMeshPointsForHemisphere(centroidX + cylindericalLength / 2.0, centroidY, centroidZ, axis, Direction.AlongAxis, endRadius, curvedSurfaceDivisions, pointsToPack);
+         getCollisionMeshPointsForHemisphere(centroidX - cylindericalLength / 2.0, centroidY, centroidZ, axis, Direction.OppositeAxis, endRadius, curvedSurfaceDivisions, pointsToPack);
+         break;
+      case Y:
+         getCollisionMeshPointsForHemisphere(centroidX, centroidY + cylindericalLength / 2.0, centroidZ, axis, Direction.AlongAxis, endRadius, curvedSurfaceDivisions, pointsToPack);
+         getCollisionMeshPointsForHemisphere(centroidX, centroidY - cylindericalLength / 2.0, centroidZ, axis, Direction.OppositeAxis, endRadius, curvedSurfaceDivisions, pointsToPack);
+         break;
+      default:
+         getCollisionMeshPointsForHemisphere(centroidX, centroidY, centroidZ + cylindericalLength / 2.0, axis, Direction.AlongAxis, endRadius, curvedSurfaceDivisions, pointsToPack);
+         getCollisionMeshPointsForHemisphere(centroidX, centroidY, centroidZ - cylindericalLength / 2.0, axis, Direction.OppositeAxis, endRadius, curvedSurfaceDivisions, pointsToPack);
+         break;
+      }
+      getCollisionMeshPointsForCylinder(centroidX, centroidY, centroidZ, axis, endRadius, cylindericalLength, curvedSurfaceDivisions, pointsToPack);
+   }
+
+   public static void getCollisionMeshPointsForHemisphere(double centroidX, double centroidY, double centroidZ, Axis axis, Direction direction, double radius,
+                                                          int cubeDivisions, ArrayList<Point3D> pointsToPack)
+   {
+      getPointsOnUnitCubeForHemisphereGeneration(cubeDivisions, pointsToPack);
+      projectPointsToRadiusAndShiftCentroid(centroidX, centroidY, centroidZ, radius, pointsToPack);
+   }
+   
+   public static void getPointsOnUnitCubeForHemisphereGeneration(int cubeDivisions, ArrayList<Point3D> pointsToPack)
+   {
+      for (int i = 0; i < cubeDivisions; i++)
+      {
+         double x = (2.0 * (float) i / (float) (cubeDivisions - 1) - 1);
+         for (int j = 0; j < cubeDivisions; j++)
+         {
+            pointsToPack.add(new Point3D(x, (2.0 * (float) j / (float) (cubeDivisions - 1) - 1), -1.0));
+         }
+      }
+
+      for (int i = 1; i < cubeDivisions / 2; i++)
+      {
+         double z = (2.0 * (float) i / (float) (cubeDivisions - 1) - 1);
+         for (int j = 0; j < cubeDivisions; j++)
+         {
+            double xy = (2.0 * (float) j / (float) (cubeDivisions - 1) - 1);
+            pointsToPack.add(new Point3D(-1.0, xy, z));
+            pointsToPack.add(new Point3D(xy, -1.0, z));
+            pointsToPack.add(new Point3D(xy, 1.0, z));
+            pointsToPack.add(new Point3D(1.0, xy, z));
+         }
+      }
    }
 }

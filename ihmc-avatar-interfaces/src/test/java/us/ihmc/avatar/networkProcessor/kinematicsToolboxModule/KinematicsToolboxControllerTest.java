@@ -23,7 +23,6 @@ import us.ihmc.communication.packets.KinematicsToolboxRigidBodyMessage;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.graphicsDescription.appearance.YoAppearanceRGBColor;
-import us.ihmc.graphicsDescription.instructions.Graphics3DAddModelFileInstruction;
 import us.ihmc.graphicsDescription.instructions.Graphics3DInstruction;
 import us.ihmc.graphicsDescription.instructions.Graphics3DPrimitiveInstruction;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;

@@ -611,7 +611,7 @@ public abstract class ConvexPolytopeBasics<T extends PolytopeVertexBasics<T, S, 
    @Override
    public boolean epsilonEquals(V other, double epsilon)
    {
-      // TODO Auto-generated method stub
+      // TODO imlepment this
       return false;
    }
 
