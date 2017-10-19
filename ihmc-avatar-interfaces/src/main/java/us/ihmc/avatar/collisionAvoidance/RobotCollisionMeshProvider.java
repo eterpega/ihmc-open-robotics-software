@@ -1,9 +1,9 @@
-package us.ihmc.manipulation.planning.collisionAvoidance;
+package us.ihmc.avatar.collisionAvoidance;
 
 import java.util.ArrayList;
 
-import com.jme3.math.LineSegment;
-
+import gnu.trove.map.hash.THashMap;
+import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.geometry.LineSegment3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.RigidBodyTransform;
@@ -19,8 +19,10 @@ import us.ihmc.robotics.robotDescription.CubeDescriptionReadOnly;
 import us.ihmc.robotics.robotDescription.CylinderDescriptionReadOnly;
 import us.ihmc.robotics.robotDescription.FloatingJointDescription;
 import us.ihmc.robotics.robotDescription.JointDescription;
+import us.ihmc.robotics.robotDescription.LinkDescription;
 import us.ihmc.robotics.robotDescription.RobotDescription;
 import us.ihmc.robotics.robotDescription.SphereDescriptionReadOnly;
+import us.ihmc.robotics.screwTheory.InverseDynamicsJoint;
 import us.ihmc.robotics.screwTheory.RigidBody;
 
 public class RobotCollisionMeshProvider
@@ -32,48 +34,72 @@ public class RobotCollisionMeshProvider
       this.defaultCurvedSurfaceDivisions = numberOfCurvedSurfaceDivisions;
    }
 
-   public void createCollisionMeshesFromRobotDescription(FullRobotModel robotModel, RobotDescription robotDescription)
+   public THashMap<RigidBody, FrameConvexPolytope> createCollisionMeshesFromRobotDescription(FullRobotModel fullRobotModel, RobotDescription robotDescription)
    {
-      ArrayList<JointDescription> rootJoints = robotDescription.getRootJoints();
-      if (rootJoints.size() > 1 || !(rootJoints.get(0) instanceof FloatingJointDescription))
+      ArrayList<JointDescription> rootJointDescriptions = robotDescription.getRootJoints();
+      if (rootJointDescriptions.size() > 1 || !(rootJointDescriptions.get(0) instanceof FloatingJointDescription))
          throw new RuntimeException("There should be only one floating joint");
+      FloatingJointDescription rootJointDescription = (FloatingJointDescription) rootJointDescriptions.get(0);
+      THashMap<RigidBody, FrameConvexPolytope> collisionMeshMap = new THashMap<>();
+      recursivelyAddCollisionMeshes(collisionMeshMap, rootJointDescription, fullRobotModel);
+      return collisionMeshMap;
+   }
+   
+   private void recursivelyAddCollisionMeshes(THashMap<RigidBody, FrameConvexPolytope> collisionMeshMap, JointDescription jointDescription, FullRobotModel fullRobotModel)
+   {
+      if(!(jointDescription.getName() == fullRobotModel.getRootJoint().getName()))
+      {
+         LinkDescription linkDescription = jointDescription.getLink();
+         InverseDynamicsJoint joint = fullRobotModel.getOneDoFJointByName(jointDescription.getName());
+         RigidBody rigidBody = joint.getSuccessor();
+         collisionMeshMap.put(rigidBody, createCollisionMesh(rigidBody, linkDescription.getCollisionMeshes()));
+      }
+      for (JointDescription childJointDescription : jointDescription.getChildrenJoints())
+      {
+         recursivelyAddCollisionMeshes(collisionMeshMap, childJointDescription, fullRobotModel);
+      }
    }
 
-   public FrameConvexPolytope createCollisionMesh(RigidBody rigidBody, CollisionMeshDescription meshDescription)
+   public FrameConvexPolytope createCollisionMesh(RigidBody rigidBody, ArrayList<CollisionMeshDescription> meshDescriptions)
    {
       ReferenceFrame bodyFixedFrame = rigidBody.getBodyFixedFrame();
       ArrayList<ConvexShapeDescription> collisionShapeDescriptions = new ArrayList<>();
-      meshDescription.getConvexShapeDescriptions(collisionShapeDescriptions);
+      for(int i = 0; i < meshDescriptions.size(); i++)
+         meshDescriptions.get(i).getConvexShapeDescriptions(collisionShapeDescriptions);
       ArrayList<Point3D> points = new ArrayList<>();
       for (ConvexShapeDescription shapeDescription : collisionShapeDescriptions)
       {
-         points.clear();
          if (shapeDescription instanceof SphereDescriptionReadOnly)
          {
+            PrintTools.debug("Creating spherical mesh");
             RigidBodyTransform transform = new RigidBodyTransform();
             ((SphereDescriptionReadOnly) shapeDescription).getRigidBodyTransform(transform);
             ConvexPolytopeConstructor.getCollisionMeshPointsForSphere(transform, ((SphereDescriptionReadOnly) shapeDescription).getRadius(), defaultCurvedSurfaceDivisions, points);
          }
          else if (shapeDescription instanceof CapsuleDescriptionReadOnly)
          {
+            PrintTools.debug("Creating capsule mesh");
             LineSegment3D lineSegment = new LineSegment3D();
             ((CapsuleDescriptionReadOnly) shapeDescription).getCapToCapLineSegment(lineSegment);
             ConvexPolytopeConstructor.getCollisionMeshPointsForCapsule(lineSegment, ((CapsuleDescriptionReadOnly) shapeDescription).getRadius(), defaultCurvedSurfaceDivisions, points);
          }
          else if (shapeDescription instanceof CylinderDescriptionReadOnly)
          {
+            PrintTools.debug("Creating cylinderical mesh");
             RigidBodyTransform transform = new RigidBodyTransform();
             ((CylinderDescriptionReadOnly) shapeDescription).getRigidBodyTransformToCenter(transform);
             ConvexPolytopeConstructor.getCylindericalCollisionMesh(transform, ((CylinderDescriptionReadOnly) shapeDescription).getRadius(), ((CylinderDescriptionReadOnly) shapeDescription).getHeight(), defaultCurvedSurfaceDivisions, points);
          }
          else if (shapeDescription instanceof CubeDescriptionReadOnly)
          {
+            PrintTools.debug("Creating cube mesh");
             RigidBodyTransform transform = new RigidBodyTransform();
             ((CubeDescriptionReadOnly) shapeDescription).getRigidBodyTransformToCenter(transform);
             ConvexPolytopeConstructor.getCuboidCollisionMesh(transform, ((CubeDescriptionReadOnly) shapeDescription).getLengthX(), ((CubeDescriptionReadOnly) shapeDescription).getWidthY(), ((CubeDescriptionReadOnly) shapeDescription).getHeightZ(), points);
          }
          else if (shapeDescription instanceof ConvexPolytopeDescriptionReadOnly)
          {
+            PrintTools.debug("Creating arbitrary mesh");
             ((ConvexPolytopeDescriptionReadOnly) shapeDescription).getConvexPolytope().getVertices(points);
          }
          else
