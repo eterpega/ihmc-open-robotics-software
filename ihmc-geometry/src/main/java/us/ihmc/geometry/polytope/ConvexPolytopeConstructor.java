@@ -31,17 +31,46 @@ public class ConvexPolytopeConstructor
       static final Vector3D xAxisVector = new Vector3D(1.0, 0.0, 0.0);
       static final Vector3D yAxisVector = new Vector3D(0.0, 1.0, 0.0);
       static final Vector3D zAxisVector = new Vector3D(0.0, 0.0, 1.0);
-      
+
       public Vector3DReadOnly getUnitVector()
       {
          switch (this)
          {
-         case X: return xAxisVector;
-         case Y: return yAxisVector;
-         default: return zAxisVector;
+         case X:
+            return xAxisVector;
+         case Y:
+            return yAxisVector;
+         default:
+            return zAxisVector;
          }
       }
-      
+
+      public int getElementIndex()
+      {
+         switch (this)
+         {
+         case X:
+            return 0;
+         case Y:
+            return 1;
+         default:
+            return 2;
+         }
+      }
+
+      public Axis getNextAntiClockwiseAxis()
+      {
+         switch (this)
+         {
+         case X:
+            return Y;
+         case Y:
+            return Z;
+         default:
+            return X;
+         }
+      }
+
    }
 
    public enum Direction
@@ -378,7 +407,7 @@ public class ConvexPolytopeConstructor
    }
 
    public static FrameConvexPolytope getFrameSphericalCollisionMeshByProjectingCube(ReferenceFrame referenceFrame, Point3D centroid, double radius,
-                                                                               int cubeDivisions)
+                                                                                    int cubeDivisions)
    {
       return createFramePolytope(referenceFrame, getCollisionMeshPointsForSphere(centroid, radius, cubeDivisions));
    }
@@ -509,14 +538,15 @@ public class ConvexPolytopeConstructor
       applyTransformToPoints(transform, pointsToPack);
    }
 
-   public static FrameConvexPolytope getFrameCylindericalCollisionMesh(FramePoint3D centroid, Axis axis, double radius, double length, int curvedSurfaceDivisions)
+   public static FrameConvexPolytope getFrameCylindericalCollisionMesh(FramePoint3D centroid, Axis axis, double radius, double length,
+                                                                       int curvedSurfaceDivisions)
    {
       return createFramePolytope(centroid.getReferenceFrame(),
                                  getCollisionMeshPointsForCylinder(centroid.getPoint(), axis, radius, length, curvedSurfaceDivisions));
    }
 
    public static FrameConvexPolytope getFrameCylindericalCollisionMesh(ReferenceFrame referenceFrame, Point3D centroid, Axis axis, double radius, double length,
-                                                                  int curvedSurfaceDivisions)
+                                                                       int curvedSurfaceDivisions)
    {
       return createFramePolytope(referenceFrame, getCollisionMeshPointsForCylinder(centroid, axis, radius, length, curvedSurfaceDivisions));
    }
@@ -542,8 +572,17 @@ public class ConvexPolytopeConstructor
    public static void getCollisionMeshPointsForCylinder(double centroidX, double centroidY, double centroidZ, Axis axis, double radius, double length,
                                                         int curvedSurfaceDivisions, ArrayList<Point3D> pointsToPack)
    {
+      getCollisionMeshPointsForCylinder(centroidX, centroidY, centroidZ, axis, radius, length, curvedSurfaceDivisions, false, pointsToPack);
+   }
+
+   public static void getCollisionMeshPointsForCylinder(double centroidX, double centroidY, double centroidZ, Axis axis, double radius, double length,
+                                                        int curvedSurfaceDivisions, boolean getEnclosingPoints, ArrayList<Point3D> pointsToPack)
+   {
       double vertexAngle = 2 * Math.PI / curvedSurfaceDivisions;
-      double enclosingRadius = radius / Math.cos(vertexAngle / 2.0);
+      double enclosingRadius = radius;
+      if (getEnclosingPoints)
+         enclosingRadius /= Math.cos(vertexAngle / 2.0);
+
       switch (axis)
       {
       case X:
@@ -584,7 +623,8 @@ public class ConvexPolytopeConstructor
       return createFramePolytope(centroid.getReferenceFrame(), getCollisionMeshPointsForCuboid(centroid.getPoint(), xLength, yLength, zLength));
    }
 
-   public static FrameConvexPolytope getFrameCuboidCollisionMesh(ReferenceFrame referenceFrame, Point3D centroid, double xLength, double yLength, double zLength)
+   public static FrameConvexPolytope getFrameCuboidCollisionMesh(ReferenceFrame referenceFrame, Point3D centroid, double xLength, double yLength,
+                                                                 double zLength)
    {
       return createFramePolytope(referenceFrame, getCollisionMeshPointsForCuboid(centroid, xLength, yLength, zLength));
    }
@@ -629,20 +669,20 @@ public class ConvexPolytopeConstructor
       pointsToPack.add(new Point3D(negativeXCoord, positiveYCoord, positiveZCoord));
    }
 
-   public FrameConvexPolytope getFrameCapsuleCollisionMesh(ReferenceFrame referenceFrame, Point3D centeroid, Axis axis, double cylindericalLength,
+   public static FrameConvexPolytope getFrameCapsuleCollisionMesh(ReferenceFrame referenceFrame, Point3D centeroid, Axis axis, double cylindericalLength,
                                                            double endRadius, int curvedSurfaceDivisions)
    {
       return createFramePolytope(referenceFrame, getCollisionMeshPointsForCapsule(centeroid, axis, cylindericalLength, endRadius, curvedSurfaceDivisions));
    }
 
-   public FrameConvexPolytope getFrameCapsuleCollisionMesh(FramePoint3D centeroid, Axis axis, double cylindericalLength, double endRadius,
-                                                      int curvedSurfaceDivisions)
+   public static FrameConvexPolytope getFrameCapsuleCollisionMesh(FramePoint3D centeroid, Axis axis, double cylindericalLength, double endRadius,
+                                                           int curvedSurfaceDivisions)
    {
       return createFramePolytope(centeroid.getReferenceFrame(),
                                  getCollisionMeshPointsForCapsule(centeroid.getPoint(), axis, cylindericalLength, endRadius, curvedSurfaceDivisions));
    }
 
-   public ExtendedConvexPolytope getCapsuleCollisionMesh(Point3D centeroid, Axis axis, double cylindericalLength, double endRadius, int curvedSurfaceDivisions)
+   public static ExtendedConvexPolytope getCapsuleCollisionMesh(Point3D centeroid, Axis axis, double cylindericalLength, double endRadius, int curvedSurfaceDivisions)
    {
       return createPolytope(getCollisionMeshPointsForCapsule(centeroid, axis, cylindericalLength, endRadius, curvedSurfaceDivisions));
    }
@@ -693,6 +733,9 @@ public class ConvexPolytopeConstructor
       return points;
    }
 
+   private static ArrayList<Point3D> tempList1 = new ArrayList<>();
+   private static ArrayList<Point3D> tempList2 = new ArrayList<>();
+   
    /**
     * 
     * @param centroid
@@ -706,59 +749,85 @@ public class ConvexPolytopeConstructor
                                                        double endRadius, int curvedSurfaceDivisions, ArrayList<Point3D> pointsToPack)
    {
       curvedSurfaceDivisions = curvedSurfaceDivisions + (4 - (curvedSurfaceDivisions % 4)) % 4;
-
+      tempList1.clear();
+      tempList2.clear();
       switch (axis)
       {
       case X:
-         getCollisionMeshPointsForHemisphere(centroidX + cylindericalLength / 2.0, centroidY, centroidZ, axis, Direction.AlongAxis, endRadius,
-                                             curvedSurfaceDivisions, pointsToPack);
-         getCollisionMeshPointsForHemisphere(centroidX - cylindericalLength / 2.0, centroidY, centroidZ, axis, Direction.OppositeAxis, endRadius,
-                                             curvedSurfaceDivisions, pointsToPack);
+         getCollisionMeshPointsForHemisphere(centroidX + cylindericalLength / 2.0, centroidY, centroidZ, axis, Direction.OppositeAxis, endRadius,
+                                             curvedSurfaceDivisions, tempList1);
+         getCollisionMeshPointsForHemisphere(centroidX - cylindericalLength / 2.0, centroidY, centroidZ, axis, Direction.AlongAxis, endRadius,
+                                             curvedSurfaceDivisions, tempList2);
          break;
       case Y:
-         getCollisionMeshPointsForHemisphere(centroidX, centroidY + cylindericalLength / 2.0, centroidZ, axis, Direction.AlongAxis, endRadius,
-                                             curvedSurfaceDivisions, pointsToPack);
-         getCollisionMeshPointsForHemisphere(centroidX, centroidY - cylindericalLength / 2.0, centroidZ, axis, Direction.OppositeAxis, endRadius,
-                                             curvedSurfaceDivisions, pointsToPack);
+         getCollisionMeshPointsForHemisphere(centroidX, centroidY + cylindericalLength / 2.0, centroidZ, axis, Direction.OppositeAxis, endRadius,
+                                             curvedSurfaceDivisions, tempList1);
+         getCollisionMeshPointsForHemisphere(centroidX, centroidY - cylindericalLength / 2.0, centroidZ, axis, Direction.AlongAxis, endRadius,
+                                             curvedSurfaceDivisions, tempList2);
          break;
       default:
-         getCollisionMeshPointsForHemisphere(centroidX, centroidY, centroidZ + cylindericalLength / 2.0, axis, Direction.AlongAxis, endRadius,
-                                             curvedSurfaceDivisions, pointsToPack);
-         getCollisionMeshPointsForHemisphere(centroidX, centroidY, centroidZ - cylindericalLength / 2.0, axis, Direction.OppositeAxis, endRadius,
-                                             curvedSurfaceDivisions, pointsToPack);
+         getCollisionMeshPointsForHemisphere(centroidX, centroidY, centroidZ + cylindericalLength / 2.0, axis, Direction.OppositeAxis, endRadius,
+                                             curvedSurfaceDivisions, tempList1);
+         getCollisionMeshPointsForHemisphere(centroidX, centroidY, centroidZ - cylindericalLength / 2.0, axis, Direction.AlongAxis, endRadius,
+                                             curvedSurfaceDivisions, tempList2);
          break;
       }
       getCollisionMeshPointsForCylinder(centroidX, centroidY, centroidZ, axis, endRadius, cylindericalLength, curvedSurfaceDivisions, pointsToPack);
+      pointsToPack.addAll(tempList1);
+      pointsToPack.addAll(tempList2);
    }
 
    public static void getCollisionMeshPointsForHemisphere(double centroidX, double centroidY, double centroidZ, Axis axis, Direction direction, double radius,
                                                           int cubeDivisions, ArrayList<Point3D> pointsToPack)
    {
-      getPointsOnUnitCubeForHemisphereGeneration(cubeDivisions, pointsToPack);
+      getPointsOnUnitCubeForHemisphereGeneration(axis, direction, cubeDivisions, pointsToPack);
       projectPointsToRadiusAndShiftCentroid(centroidX, centroidY, centroidZ, radius, pointsToPack);
    }
 
-   public static void getPointsOnUnitCubeForHemisphereGeneration(int cubeDivisions, ArrayList<Point3D> pointsToPack)
+   public static void getPointsOnUnitCubeForHemisphereGeneration(Axis axis, Direction direction, int cubeDivisions, ArrayList<Point3D> pointsToPack)
    {
       for (int i = 0; i < cubeDivisions; i++)
       {
          double x = (2.0 * (float) i / (float) (cubeDivisions - 1) - 1);
          for (int j = 0; j < cubeDivisions; j++)
          {
-            pointsToPack.add(new Point3D(x, (2.0 * (float) j / (float) (cubeDivisions - 1) - 1), -1.0));
+            Point3D point = new Point3D();
+            point.setElement(axis.getElementIndex(), -direction.getSign());
+            point.setElement(axis.getNextAntiClockwiseAxis().getElementIndex(), x);
+            point.setElement(axis.getNextAntiClockwiseAxis().getNextAntiClockwiseAxis().getElementIndex(), (2.0 * (float) j / (float) (cubeDivisions - 1) - 1));
+            pointsToPack.add(point);
          }
       }
 
       for (int i = 1; i < cubeDivisions / 2; i++)
       {
-         double z = (2.0 * (float) i / (float) (cubeDivisions - 1) - 1);
+         double z = direction.getSign() * (2.0 * (float) i / (float) (cubeDivisions - 1) - 1);
          for (int j = 0; j < cubeDivisions; j++)
          {
             double xy = (2.0 * (float) j / (float) (cubeDivisions - 1) - 1);
-            pointsToPack.add(new Point3D(-1.0, xy, z));
-            pointsToPack.add(new Point3D(xy, -1.0, z));
-            pointsToPack.add(new Point3D(xy, 1.0, z));
-            pointsToPack.add(new Point3D(1.0, xy, z));
+            Point3D point = new Point3D();
+            point.setElement(axis.getElementIndex(), z);
+            point.setElement(axis.getNextAntiClockwiseAxis().getElementIndex(), -1.0);
+            point.setElement(axis.getNextAntiClockwiseAxis().getNextAntiClockwiseAxis().getElementIndex(), xy);
+            pointsToPack.add(point);
+
+            point = new Point3D();
+            point.setElement(axis.getElementIndex(), z);
+            point.setElement(axis.getNextAntiClockwiseAxis().getElementIndex(), xy);
+            point.setElement(axis.getNextAntiClockwiseAxis().getNextAntiClockwiseAxis().getElementIndex(), -1.0);
+            pointsToPack.add(point);
+
+            point = new Point3D();
+            point.setElement(axis.getElementIndex(), z);
+            point.setElement(axis.getNextAntiClockwiseAxis().getElementIndex(), xy);
+            point.setElement(axis.getNextAntiClockwiseAxis().getNextAntiClockwiseAxis().getElementIndex(), 1.0);
+            pointsToPack.add(point);
+
+            point = new Point3D();
+            point.setElement(axis.getElementIndex(), z);
+            point.setElement(axis.getNextAntiClockwiseAxis().getElementIndex(), 1.0);
+            point.setElement(axis.getNextAntiClockwiseAxis().getNextAntiClockwiseAxis().getElementIndex(), xy);
+            pointsToPack.add(point);
          }
       }
    }
