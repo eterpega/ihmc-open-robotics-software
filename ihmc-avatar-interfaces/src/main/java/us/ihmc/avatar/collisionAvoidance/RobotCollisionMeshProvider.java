@@ -101,7 +101,7 @@ public class RobotCollisionMeshProvider
          }
          else if (shapeDescription instanceof ConvexPolytopeDescriptionReadOnly)
          {
-            PrintTools.debug("Creating arbitrary mesh");
+            PrintTools.debug("Adding arbitrary mesh");
             ((ConvexPolytopeDescriptionReadOnly) shapeDescription).getConvexPolytope().getVertices(pointForShapeDescription);
          }
          else
