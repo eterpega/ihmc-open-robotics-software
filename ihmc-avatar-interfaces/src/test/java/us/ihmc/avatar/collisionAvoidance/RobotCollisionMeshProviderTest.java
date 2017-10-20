@@ -7,7 +7,6 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Random;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
 
 import gnu.trove.map.hash.THashMap;
@@ -23,7 +22,6 @@ import us.ihmc.robotModels.FullRobotModelFromDescription;
 import us.ihmc.robotics.partNames.JointNameMap;
 import us.ihmc.robotics.robotDescription.CollisionMeshDescription;
 import us.ihmc.robotics.robotDescription.RobotDescription;
-import us.ihmc.robotics.screwTheory.FloatingInverseDynamicsJoint;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
 import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.robotics.screwTheory.ScrewTools;

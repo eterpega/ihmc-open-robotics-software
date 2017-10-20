@@ -22,6 +22,7 @@ import us.ihmc.graphicsDescription.appearance.YoAppearanceRGBColor;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicLineSegment;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.robotics.MathTools;
 import us.ihmc.robotics.robotDescription.CollisionMeshDescription;
 import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.simulationconstructionset.Robot;
@@ -72,6 +73,22 @@ public class FrameConvexPolytopeVisualizer
       setupSCS(robots);
    }
 
+   public void addPolytope(FrameConvexPolytope polytopeToAdd)
+   {
+      polytopes[numberOfPolytopes] = polytopeToAdd;
+      polytopeColors[numberOfPolytopes] = getNextColor();
+      numberOfPolytopes++;
+   }
+
+   private Color getNextColor()
+   {
+      double numberOfDivisionsPerColor = Math.pow(polytopes.length, 1.0/ 3.0);
+      double r = MathTools.clamp((numberOfPolytopes % numberOfDivisionsPerColor) / (numberOfDivisionsPerColor - 1), 0.0, 1.0);
+      double g = MathTools.clamp(((numberOfPolytopes / numberOfDivisionsPerColor) % numberOfDivisionsPerColor) / (numberOfDivisionsPerColor - 1), 0.0, 1.0);
+      double b = MathTools.clamp(((numberOfPolytopes / numberOfDivisionsPerColor / numberOfDivisionsPerColor) % numberOfDivisionsPerColor) / (numberOfDivisionsPerColor - 1), 0.0, 1.0);
+      return new Color((float)r, (float)g, (float)b);
+   }
+
    public void addPolytope(FrameConvexPolytope polytopeToAdd, Color color)
    {
       polytopes[numberOfPolytopes] = polytopeToAdd;
@@ -85,12 +102,11 @@ public class FrameConvexPolytopeVisualizer
       if (keepSCSUp)
          ThreadTools.sleepForever();
    }
-   
+
    public void updateNonBlocking()
    {
       updatePolytopeVisualization(polytopes);
    }
-
 
    private void setupSCS(Robot... robots)
    {

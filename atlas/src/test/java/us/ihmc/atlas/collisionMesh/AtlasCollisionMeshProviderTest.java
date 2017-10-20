@@ -31,7 +31,7 @@ public class AtlasCollisionMeshProviderTest
       for(RigidBody rigidBody : ScrewTools.computeRigidBodiesAfterThisJoint(atlasFullRobotModel.getRootJoint()))
       {
          if(atlasCollisionMesh.get(rigidBody) != null)
-            viz.addPolytope(atlasCollisionMesh.get(rigidBody), Color.BLUE);
+            viz.addPolytope(atlasCollisionMesh.get(rigidBody));
          else
             PrintTools.debug("Getting a null for rigid body " + rigidBody.getName());
       }
