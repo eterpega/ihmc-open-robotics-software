@@ -2,6 +2,7 @@ package us.ihmc.avatar.collisionAvoidance;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import us.ihmc.commons.Epsilons;
@@ -55,9 +56,10 @@ public class FrameConvexPolytopeVisualizer
 
    public FrameConvexPolytopeVisualizer(int maxNumberOfPolytopes)
    {
-      this(maxNumberOfPolytopes, false);
+      this(maxNumberOfPolytopes, false, null);
    }
-   public FrameConvexPolytopeVisualizer(int maxNumberOfPolytopes, boolean keepSCSUp)
+
+   public FrameConvexPolytopeVisualizer(int maxNumberOfPolytopes, boolean keepSCSUp, Robot... robots)
    {
       this.keepSCSUp = keepSCSUp;
       polytopeVerticesViz = new ArrayList<>(numberOfVizVertices);
@@ -67,7 +69,7 @@ public class FrameConvexPolytopeVisualizer
       polytopes = new FrameConvexPolytope[maxNumberOfPolytopes];
       polytopeColors = new Color[maxNumberOfPolytopes];
       createPolytopeVisualizationElements();
-      setupSCS();
+      setupSCS(robots);
    }
 
    public void addPolytope(FrameConvexPolytope polytopeToAdd, Color color)
@@ -80,20 +82,28 @@ public class FrameConvexPolytopeVisualizer
    public void update()
    {
       updatePolytopeVisualization(polytopes);
-      if(keepSCSUp)
+      if (keepSCSUp)
          ThreadTools.sleepForever();
    }
+   
+   public void updateNonBlocking()
+   {
+      updatePolytopeVisualization(polytopes);
+   }
 
-   private void setupSCS()
+
+   private void setupSCS(Robot... robots)
    {
       Robot robot = new Robot(getClass().getSimpleName() + "Robot");
       yoTime = robot.getYoTime();
       robot.addYoVariableRegistry(registry);
       robot.addYoGraphicsListRegistry(graphicsListRegistry);
       SimulationConstructionSetParameters parameters = new SimulationConstructionSetParameters();
-      scs = new SimulationConstructionSet(robot, parameters);
+      Robot[] robotList = Arrays.copyOf(robots, robots.length + 1);
+      robotList[robots.length] = robot;
+      scs = new SimulationConstructionSet(robotList, parameters);
       Graphics3DObject coordinateSystem = new Graphics3DObject();
-      coordinateSystem.addCoordinateSystem(1.0);
+      coordinateSystem.addCoordinateSystem(0.01);
       scs.addStaticLinkGraphics(coordinateSystem);
       scs.setGroundVisible(false);
       scs.setDT(1.0, 1);
@@ -166,6 +176,9 @@ public class FrameConvexPolytopeVisualizer
       graphicsListRegistry.registerYoGraphic("VisualPoint", position);
    }
 
+   private FramePoint3D tempFramePoint1 = new FramePoint3D();
+   private FramePoint3D tempFramePoint2 = new FramePoint3D();
+
    public void updatePolytopeVisualization(FrameConvexPolytope... polytopes)
    {
       int edgeIndex = 0;
@@ -178,14 +191,19 @@ public class FrameConvexPolytopeVisualizer
          int i = 0;
          for (i = 0; i < edges.size(); i++)
          {
-            polytopeEdgesViz.get(edgeIndex).setStartAndEnd(edges.get(i).getOriginVertex().getPosition().getPoint(),
-                                                           edges.get(i).getDestinationVertex().getPosition().getPoint());
+            tempFramePoint1.setIncludingFrame(edges.get(i).getOriginVertex().getPosition());
+            tempFramePoint1.changeFrame(worldFrame);
+            tempFramePoint2.setIncludingFrame(edges.get(i).getDestinationVertex().getPosition());
+            tempFramePoint2.changeFrame(worldFrame);
+            polytopeEdgesViz.get(edgeIndex).setStartAndEnd(tempFramePoint1.getPoint(), tempFramePoint2.getPoint());
             polytopeEdgesViz.get(edgeIndex).getAppearance().getColor().set(color);
             edgeIndex++;
          }
          for (i = 0; i < vertices.size(); i++)
          {
-            polytopeVerticesViz.get(vertexIndex).setPosition(vertices.get(i).getPosition());
+            tempFramePoint1.setIncludingFrame(vertices.get(i).getPosition());
+            tempFramePoint1.changeFrame(worldFrame);
+            polytopeVerticesViz.get(vertexIndex).setPosition(tempFramePoint1);
             vertexIndex++;
          }
       }
@@ -226,22 +244,22 @@ public class FrameConvexPolytopeVisualizer
       for (; index < visibleFaceViz.size(); index++)
          visibleFaceViz.get(index).setPositionToNaN();
    }
-   
+
    public void addVerticesForViz(ArrayList<Point3D> pointList)
    {
       int index;
-      for(index = 0; index < pointList.size(); index++)
+      for (index = 0; index < pointList.size(); index++)
       {
          polytopeVerticesViz.get(index).setPosition(pointList.get(index));
       }
-      for(; index < polytopeVerticesViz.size(); index++)
+      for (; index < polytopeVerticesViz.size(); index++)
       {
          polytopeVerticesViz.get(index).setPositionToNaN();
       }
-      
+
       tickSCS();
    }
-   
+
    public static void main(String args[])
    {
       FrameConvexPolytopeVisualizer viz = new FrameConvexPolytopeVisualizer(1);
