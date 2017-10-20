@@ -13,7 +13,6 @@ import us.ihmc.commonWalkingControlModules.controlModules.PelvisICPBasedTranslat
 import us.ihmc.commonWalkingControlModules.controlModules.foot.ToeSlippingDetector;
 import us.ihmc.commonWalkingControlModules.controlModules.pelvis.PelvisOffsetTrajectoryWhileWalking;
 import us.ihmc.commonWalkingControlModules.controlModules.rigidBody.RigidBodyControlMode;
-import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.JointAccelerationIntegrationSettings;
 import us.ihmc.commonWalkingControlModules.controllerCore.parameters.JointAccelerationIntegrationParametersReadOnly;
 import us.ihmc.commonWalkingControlModules.dynamicReachability.DynamicReachabilityCalculator;
 import us.ihmc.commonWalkingControlModules.instantaneousCapturePoint.ICPControlGains;
@@ -290,19 +289,6 @@ public abstract class WalkingControllerParameters
    public List<String> getOrCreatePositionControlledJoints()
    {
       return new ArrayList<String>();
-   }
-
-   /**
-    * The map returned contains the integration settings for position controlled joints. The settings
-    * define how the controller core integrated desired accelerations to find desired joint positions
-    * and velocities. The key of the map is the joint name as defined in the robot joint map. If a
-    * joint is not contained in the map, position control is not supported for that joint.
-    *
-    * @return map containing acceleration integration settings by joint name
-    */
-   public Map<String, JointAccelerationIntegrationSettings> getOrCreateIntegrationSettings()
-   {
-      return new HashMap<String, JointAccelerationIntegrationSettings>();
    }
 
    /**
