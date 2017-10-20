@@ -1,5 +1,6 @@
 package us.ihmc.geometry.polytope.DCELPolytope;
 
+import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.ConvexPolytopeFaceBasics;
 import us.ihmc.geometry.polytope.DCELPolytope.Providers.PolytopeHalfEdgeBuilder;
 import us.ihmc.geometry.polytope.DCELPolytope.Providers.PolytopeHalfEdgeProvider;
@@ -10,7 +11,7 @@ import us.ihmc.geometry.polytope.DCELPolytope.Providers.PolytopeHalfEdgeProvider
  * @author Apoorv S
  *
  */
-public class ConvexPolytopeFace extends ConvexPolytopeFaceBasics<ExtendedPolytopeVertex, PolytopeHalfEdge, ConvexPolytopeFace, Simplex>
+public class ConvexPolytopeFace extends ConvexPolytopeFaceBasics<ExtendedPolytopeVertex, PolytopeHalfEdge, ConvexPolytopeFace>
 {
    private final PolytopeHalfEdgeBuilder halfEdgeBuilder = new PolytopeHalfEdgeBuilder();
    
@@ -26,14 +27,20 @@ public class ConvexPolytopeFace extends ConvexPolytopeFaceBasics<ExtendedPolytop
    }
 
    @Override
-   protected ConvexPolytopeFace getThis()
-   {
-      return this;
-   }
-
-   @Override
-   protected PolytopeHalfEdgeProvider<ExtendedPolytopeVertex, PolytopeHalfEdge, ConvexPolytopeFace, Simplex> getHalfEdgeProvider()
+   protected PolytopeHalfEdgeProvider<ExtendedPolytopeVertex, PolytopeHalfEdge, ConvexPolytopeFace> getHalfEdgeProvider()
    {
       return halfEdgeBuilder;
+   }
+   
+   @Override
+   public PolytopeHalfEdge getEdge(int index)
+   {
+      return (PolytopeHalfEdge) super.getEdge(index);
+   }
+   
+   @Override
+   public PolytopeHalfEdge getFirstVisibleEdge(Point3DReadOnly vertex)
+   {
+      return (PolytopeHalfEdge) super.getFirstVisibleEdge(vertex);
    }
 }

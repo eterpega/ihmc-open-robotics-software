@@ -2,16 +2,27 @@ package us.ihmc.geometry.polytope.DCELPolytope.Frame;
 
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.referenceFrame.interfaces.ReferenceFrameHolder;
+import us.ihmc.geometry.polytope.DCELPolytope.PolytopeHalfEdge;
+import us.ihmc.geometry.polytope.DCELPolytope.Basics.ConvexPolytopeFaceBasics;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeHalfEdgeBasics;
+import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeHalfEdgeReadOnly;
+import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeVertexBasics;
+import us.ihmc.geometry.polytope.DCELPolytope.Providers.FramePolytopeHalfEdgeBuilder;
+import us.ihmc.geometry.polytope.DCELPolytope.Providers.PolytopeHalfEdgeProvider;
 
-public class FramePolytopeHalfEdge extends PolytopeHalfEdgeBasics<FramePolytopeVertex, FramePolytopeHalfEdge, FrameConvexPolytopeFace, FrameSimplex>
-      implements FrameSimplex, ReferenceFrameHolder
+public class FramePolytopeHalfEdge extends PolytopeHalfEdgeBasics<FramePolytopeVertex, FramePolytopeHalfEdge, FrameConvexPolytopeFace> implements FrameSimplex, ReferenceFrameHolder
 {
    private final ReferenceFrame referenceFrame;
+   private final FramePolytopeHalfEdgeBuilder halfEdgeProvider = new FramePolytopeHalfEdgeBuilder(this);
 
    public FramePolytopeHalfEdge(ReferenceFrame referenceFrame)
    {
       this(referenceFrame, null, null);
+   }
+   
+   public FramePolytopeHalfEdge(ReferenceFrame referenceFrame, PolytopeHalfEdgeReadOnly halfEdge)
+   {
+      this(referenceFrame, new FramePolytopeVertex(referenceFrame, halfEdge.getOriginVertex()), new FramePolytopeVertex(referenceFrame, halfEdge.getDestinationVertex()));
    }
 
    public FramePolytopeHalfEdge(ReferenceFrame referenceFrame, FramePolytopeVertex origin, FramePolytopeVertex destination)
@@ -51,7 +62,7 @@ public class FramePolytopeHalfEdge extends PolytopeHalfEdgeBasics<FramePolytopeV
    @Override
    public void setDestinationVertex(FramePolytopeVertex destinationVertex)
    {
-      if (destinationVertex!= null)
+      if (destinationVertex != null)
          checkReferenceFrameMatch(destinationVertex);
       super.setDestinationVertex(destinationVertex);
    }
@@ -68,7 +79,7 @@ public class FramePolytopeHalfEdge extends PolytopeHalfEdgeBasics<FramePolytopeV
    public void setTwinHalfEdge(FramePolytopeHalfEdge twinEdge)
    {
       if (twinEdge != null)
-         checkReferenceFrameMatch(twinEdge);
+         checkReferenceFrameMatch( twinEdge);
       super.setTwinHalfEdge(twinEdge);
    }
 
@@ -76,7 +87,7 @@ public class FramePolytopeHalfEdge extends PolytopeHalfEdgeBasics<FramePolytopeV
    public void setNextHalfEdge(FramePolytopeHalfEdge nextHalfEdge)
    {
       if (nextHalfEdge != null)
-         checkReferenceFrameMatch(nextHalfEdge);
+         checkReferenceFrameMatch( nextHalfEdge);
       super.setNextHalfEdge(nextHalfEdge);
    }
 
@@ -84,7 +95,7 @@ public class FramePolytopeHalfEdge extends PolytopeHalfEdgeBasics<FramePolytopeV
    public void setPreviousHalfEdge(FramePolytopeHalfEdge previousHalfEdge)
    {
       if (previousHalfEdge != null)
-         checkReferenceFrameMatch(previousHalfEdge);
+         checkReferenceFrameMatch( previousHalfEdge);
       super.setPreviousHalfEdge(previousHalfEdge);
    }
 
@@ -92,16 +103,10 @@ public class FramePolytopeHalfEdge extends PolytopeHalfEdgeBasics<FramePolytopeV
    public void setFace(FrameConvexPolytopeFace face)
    {
       if (face != null)
-         checkReferenceFrameMatch(face);
+         checkReferenceFrameMatch((FrameConvexPolytopeFace) face);
       super.setFace(face);
    }
-
-   @Override
-   public FramePolytopeHalfEdge getThis()
-   {
-      return this;
-   }
-
+   
    @Override
    public ReferenceFrame getReferenceFrame()
    {
@@ -109,8 +114,8 @@ public class FramePolytopeHalfEdge extends PolytopeHalfEdgeBasics<FramePolytopeV
    }
 
    @Override
-   public FramePolytopeHalfEdge createTwinHalfEdge(FrameConvexPolytopeFace twinEdgeFace)
+   protected PolytopeHalfEdgeProvider<FramePolytopeVertex, FramePolytopeHalfEdge, FrameConvexPolytopeFace> getHalfEdgeProvider()
    {
-      return null;
+      return halfEdgeProvider;
    }
 }

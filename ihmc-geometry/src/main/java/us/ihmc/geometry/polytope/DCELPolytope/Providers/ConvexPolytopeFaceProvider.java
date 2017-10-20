@@ -5,7 +5,7 @@ import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeHalfEdgeBasics;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeVertexBasics;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.SimplexBasics;
 
-public interface ConvexPolytopeFaceProvider<T extends PolytopeVertexBasics<T, S, U, Q>, S extends PolytopeHalfEdgeBasics<T, S, U, Q>, U extends ConvexPolytopeFaceBasics<T, S, U, Q>, Q extends SimplexBasics<Q>>
+public interface ConvexPolytopeFaceProvider<A extends PolytopeVertexBasics<A, B, C>, B extends PolytopeHalfEdgeBasics<A, B, C>, C extends ConvexPolytopeFaceBasics<A, B, C>> 
 {
-   U getFace();
+   C getFace();
 }  

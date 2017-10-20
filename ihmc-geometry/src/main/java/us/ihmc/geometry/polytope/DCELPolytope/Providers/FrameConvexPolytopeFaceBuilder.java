@@ -4,9 +4,8 @@ import us.ihmc.euclid.referenceFrame.interfaces.ReferenceFrameHolder;
 import us.ihmc.geometry.polytope.DCELPolytope.Frame.FrameConvexPolytopeFace;
 import us.ihmc.geometry.polytope.DCELPolytope.Frame.FramePolytopeHalfEdge;
 import us.ihmc.geometry.polytope.DCELPolytope.Frame.FramePolytopeVertex;
-import us.ihmc.geometry.polytope.DCELPolytope.Frame.FrameSimplex;
 
-public class FrameConvexPolytopeFaceBuilder implements ConvexPolytopeFaceProvider<FramePolytopeVertex, FramePolytopeHalfEdge, FrameConvexPolytopeFace, FrameSimplex>
+public class FrameConvexPolytopeFaceBuilder implements ConvexPolytopeFaceProvider<FramePolytopeVertex, FramePolytopeHalfEdge, FrameConvexPolytopeFace>
 {
    private final ReferenceFrameHolder referenceFrameHolder;
    

@@ -3,48 +3,44 @@ package us.ihmc.geometry.polytope.DCELPolytope.Basics;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.ejml.data.DenseMatrix64F;
-import org.ejml.ops.CommonOps;
-
-import us.ihmc.euclid.interfaces.GeometryObject;
+import us.ihmc.euclid.interfaces.Clearable;
+import us.ihmc.euclid.interfaces.Settable;
+import us.ihmc.euclid.interfaces.Transformable;
 import us.ihmc.euclid.transform.interfaces.Transform;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DBasics;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
-import us.ihmc.geometry.polytope.SupportingVertexHolder;
-import us.ihmc.geometry.polytope.DCELPolytope.Simplex;
 
-public abstract class PolytopeVertexBasics<T extends PolytopeVertexBasics<T, S, U, Q>, S extends PolytopeHalfEdgeBasics<T, S, U, Q>, U extends ConvexPolytopeFaceBasics<T, S, U, Q>, Q extends SimplexBasics<Q>>
-      implements GeometryObject<T>, Point3DBasics, SimplexBasics<Q>
+public abstract class PolytopeVertexBasics<A extends PolytopeVertexBasics<A, B, C>, B extends PolytopeHalfEdgeBasics<A, B, C>, C extends ConvexPolytopeFaceBasics<A, B, C>>
+      implements SimplexBasics, PolytopeVertexReadOnly, Clearable, Settable<A>, Transformable, Point3DBasics
 {
-   protected abstract Point3DBasics getPosition();
-   private final ArrayList<S> associatedEdges = new ArrayList<>();
-   private DenseMatrix64F jacobian;
+   private final ArrayList<B> associatedEdges = new ArrayList<>();
+
+   protected abstract Point3DBasics getPointObjectReference();
 
    public PolytopeVertexBasics()
    {
    }
 
-   @Override
-   public void set(T vertex)
+   public void set(A vertex)
    {
-      getPosition().set(vertex.getPosition());
+      getPointObjectReference().set(vertex.getPosition());
       clearAssociatedEdgeList();
       copyEdges(vertex.getAssociatedEdges());
    }
 
-   public List<S> getAssociatedEdges()
+   public List<B> getAssociatedEdges()
    {
       return associatedEdges;
    }
 
-   public S getAssociatedEdge(int index)
+   public B getAssociatedEdge(int index)
    {
       return associatedEdges.get(index);
    }
 
-   public void removeAssociatedEdge(S edgeToAdd)
+   public void removeAssociatedEdge(B edgeToAdd)
    {
       associatedEdges.remove(edgeToAdd);
    }
@@ -54,7 +50,7 @@ public abstract class PolytopeVertexBasics<T extends PolytopeVertexBasics<T, S, 
       associatedEdges.clear();
    }
 
-   public void copyEdges(List<S> edgeList)
+   public void copyEdges(List<B> edgeList)
    {
       for (int i = 0; i < edgeList.size(); i++)
       {
@@ -62,18 +58,18 @@ public abstract class PolytopeVertexBasics<T extends PolytopeVertexBasics<T, S, 
       }
    }
 
-   public void addAssociatedEdge(S edge)
+   public void addAssociatedEdge(B edge)
    {
       if (!isAssociatedWithEdge(edge))
          associatedEdges.add(edge);
    }
 
-   public boolean isAssociatedWithEdge(S edgeToCheck)
+   public boolean isAssociatedWithEdge(PolytopeHalfEdgeReadOnly edgeToCheck)
    {
       return associatedEdges.contains(edgeToCheck);
    }
 
-   public boolean isAssociatedWithEdge(S edgeToCheck, double epsilon)
+   public boolean isAssociatedWithEdge(PolytopeHalfEdgeReadOnly edgeToCheck, double epsilon)
    {
       boolean result = associatedEdges.size() > 0;
       for (int i = 0; result && i < associatedEdges.size(); i++)
@@ -124,13 +120,13 @@ public abstract class PolytopeVertexBasics<T extends PolytopeVertexBasics<T, S, 
    @Override
    public void applyTransform(Transform transform)
    {
-      transform.transform(getPosition());
+      getPointObjectReference().applyTransform(transform);
    }
 
    @Override
    public void applyInverseTransform(Transform transform)
    {
-      transform.inverseTransform(getPosition());
+      getPointObjectReference().applyInverseTransform(transform);
    }
 
    public boolean isAnyFaceMarked()
@@ -145,12 +141,6 @@ public abstract class PolytopeVertexBasics<T extends PolytopeVertexBasics<T, S, 
    }
 
    @Override
-   public boolean epsilonEquals(T other, double epsilon)
-   {
-      return getPosition().epsilonEquals(other.getPosition(), epsilon);
-   }
-
-   @Override
    public boolean containsNaN()
    {
       return getPosition().containsNaN();
@@ -159,40 +149,40 @@ public abstract class PolytopeVertexBasics<T extends PolytopeVertexBasics<T, S, 
    @Override
    public void setToNaN()
    {
-      getPosition().setToNaN();
+      getPointObjectReference().setToNaN();
    }
 
    @Override
    public void setToZero()
    {
-      getPosition().setToZero();
+      getPointObjectReference().setToZero();
    }
 
-   @Override
    public void setX(double x)
    {
-      getPosition().setX(x);
+      getPointObjectReference().setX(x);
    }
 
-   @Override
    public void setY(double y)
    {
-      getPosition().setY(y);
+      getPointObjectReference().setY(y);
+   }
+
+   public void setZ(double z)
+   {
+      getPointObjectReference().setZ(z);
    }
 
    @Override
-   public void setZ(double z)
+   public boolean epsilonEquals(PolytopeVertexReadOnly other, double epsilon)
    {
-      getPosition().setZ(z);
+      return getPointObjectReference().epsilonEquals(other, epsilon);
    }
 
    @Override
    public double getShortestDistanceTo(Point3DReadOnly point)
    {
-      double dx = getX() - point.getX();
-      double dy = getX() - point.getX();
-      double dz = getX() - point.getX();
-      return Math.sqrt((dx * dx) + (dy * dy) + (dz * dz));
+      return getPointObjectReference().distance(point);
    }
 
    @Override
@@ -202,24 +192,7 @@ public abstract class PolytopeVertexBasics<T extends PolytopeVertexBasics<T, S, 
    }
 
    @Override
-   public void getSupportVectorJacobianTo(Point3DReadOnly point, DenseMatrix64F jacobianToPack)
-   {
-      jacobianToPack.set(jacobian);
-      CommonOps.scale(-1.0, jacobianToPack);
-   }
-
-   public void setJacobian(DenseMatrix64F jacobian)
-   {
-      this.jacobian.set(jacobian);
-   }
-
-   public DenseMatrix64F getJacobian()
-   {
-      return jacobian;
-   }
-
-   @Override
-   public SimplexBasics<Q> getSmallestSimplexMemberReference(Point3DReadOnly point)
+   public SimplexBasics getSmallestSimplexMemberReference(Point3DReadOnly point)
    {
       return this;
    }

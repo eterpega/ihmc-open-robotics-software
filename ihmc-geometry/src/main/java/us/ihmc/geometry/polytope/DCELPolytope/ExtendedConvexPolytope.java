@@ -1,5 +1,7 @@
 package us.ihmc.geometry.polytope.DCELPolytope;
 
+import java.util.List;
+
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.ConvexPolytopeBasics;
 import us.ihmc.geometry.polytope.DCELPolytope.Providers.ConvexPolytopeFaceBuilder;
 import us.ihmc.geometry.polytope.DCELPolytope.Providers.ConvexPolytopeFaceProvider;
@@ -14,7 +16,7 @@ import us.ihmc.geometry.polytope.DCELPolytope.Providers.PolytopeVertexProvider;
  * @author Apoorv S
  */
 
-public class ExtendedConvexPolytope extends ConvexPolytopeBasics<ExtendedPolytopeVertex, PolytopeHalfEdge, ConvexPolytopeFace, ExtendedConvexPolytope, Simplex> 
+public class ExtendedConvexPolytope extends ConvexPolytopeBasics<ExtendedPolytopeVertex, PolytopeHalfEdge, ConvexPolytopeFace>
 {
    private final ConvexPolytopeFaceBuilder faceBuilder = new ConvexPolytopeFaceBuilder(); 
    private final PolytopeVertexBuilder vertexBuilder =  new PolytopeVertexBuilder();
@@ -29,14 +31,32 @@ public class ExtendedConvexPolytope extends ConvexPolytopeBasics<ExtendedPolytop
    }
 
    @Override
-   protected PolytopeVertexProvider<ExtendedPolytopeVertex, PolytopeHalfEdge, ConvexPolytopeFace, Simplex> getVertexProvider()
+   protected PolytopeVertexProvider<ExtendedPolytopeVertex, PolytopeHalfEdge, ConvexPolytopeFace> getVertexProvider()
    {
       return vertexBuilder;
    }
 
    @Override
-   protected ConvexPolytopeFaceProvider<ExtendedPolytopeVertex, PolytopeHalfEdge, ConvexPolytopeFace, Simplex> getConvexFaceProvider()
+   protected ConvexPolytopeFaceProvider<ExtendedPolytopeVertex, PolytopeHalfEdge, ConvexPolytopeFace> getConvexFaceProvider()
    {
       return faceBuilder;
+   }
+   
+   @Override
+   public ConvexPolytopeFace getFace(int index)
+   {
+      return (ConvexPolytopeFace) super.getFace(index);
+   }
+   
+   @Override
+   public List<ExtendedPolytopeVertex> getVertices()
+   {
+      return (List<ExtendedPolytopeVertex>) super.getVertices();
+   }
+   
+   @Override
+   public List<PolytopeHalfEdge> getEdges()
+   {
+      return (List<PolytopeHalfEdge>) super.getEdges();
    }
 }

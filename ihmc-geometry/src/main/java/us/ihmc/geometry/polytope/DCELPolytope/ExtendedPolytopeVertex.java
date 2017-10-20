@@ -1,9 +1,8 @@
 package us.ihmc.geometry.polytope.DCELPolytope;
 
 import us.ihmc.euclid.tuple3D.Point3D;
-import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple3D.interfaces.Point3DBasics;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
-import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeVertexBasics;
 
 /**
@@ -14,7 +13,7 @@ import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeVertexBasics;
  * @author Apoorv S
  *
  */
-public class ExtendedPolytopeVertex extends PolytopeVertexBasics<ExtendedPolytopeVertex, PolytopeHalfEdge, ConvexPolytopeFace, Simplex> implements Simplex
+public class ExtendedPolytopeVertex extends PolytopeVertexBasics<ExtendedPolytopeVertex, PolytopeHalfEdge, ConvexPolytopeFace>
 {
    private Point3D point = new Point3D();
    
@@ -42,5 +41,11 @@ public class ExtendedPolytopeVertex extends PolytopeVertexBasics<ExtendedPolytop
    public ExtendedPolytopeVertex(ExtendedPolytopeVertex vertex)
    {
       set(vertex);
+   }
+
+   @Override
+   protected Point3DBasics getPointObjectReference()
+   {
+      return point;
    }
 }

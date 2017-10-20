@@ -6,7 +6,7 @@ import us.ihmc.geometry.polytope.DCELPolytope.ExtendedPolytopeVertex;
 import us.ihmc.geometry.polytope.DCELPolytope.PolytopeHalfEdge;
 import us.ihmc.geometry.polytope.DCELPolytope.Simplex;
 
-public class PolytopeVertexBuilder implements PolytopeVertexProvider<ExtendedPolytopeVertex, PolytopeHalfEdge, ConvexPolytopeFace, Simplex>
+public class PolytopeVertexBuilder implements PolytopeVertexProvider
 {
 
    @Override

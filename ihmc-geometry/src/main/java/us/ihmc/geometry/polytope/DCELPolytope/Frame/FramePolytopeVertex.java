@@ -1,14 +1,13 @@
 package us.ihmc.geometry.polytope.DCELPolytope.Frame;
 
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
-import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
-import us.ihmc.euclid.tuple3D.Point3D;
-import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.referenceFrame.interfaces.ReferenceFrameHolder;
+import us.ihmc.euclid.tuple3D.interfaces.Point3DBasics;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeVertexBasics;
 
-public class FramePolytopeVertex extends PolytopeVertexBasics<FramePolytopeVertex, FramePolytopeHalfEdge, FrameConvexPolytopeFace, FrameSimplex> implements FrameSimplex
+public class FramePolytopeVertex extends PolytopeVertexBasics<FramePolytopeVertex, FramePolytopeHalfEdge, FrameConvexPolytopeFace>  implements FrameSimplex, ReferenceFrameHolder
 {
    private FramePoint3D point = new FramePoint3D();
    
@@ -50,5 +49,11 @@ public class FramePolytopeVertex extends PolytopeVertexBasics<FramePolytopeVerte
    public FramePoint3D getPosition()
    {
       return point;
+   }
+
+   @Override
+   protected Point3DBasics getPointObjectReference()
+   {
+      return getPosition();
    }
 }
