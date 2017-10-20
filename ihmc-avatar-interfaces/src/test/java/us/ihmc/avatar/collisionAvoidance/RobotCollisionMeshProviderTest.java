@@ -10,6 +10,7 @@ import org.junit.Test;
 
 import gnu.trove.map.hash.THashMap;
 import us.ihmc.avatar.networkProcessor.kinematicsToolboxModule.KinematicsToolboxControllerTestRobots;
+import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.geometry.polytope.DCELPolytope.Frame.FrameConvexPolytope;
@@ -38,10 +39,12 @@ public class RobotCollisionMeshProviderTest
       {
          if(collisionPolytopeMap.get(rigidBody) != null)
             viz.addPolytope(collisionPolytopeMap.get(rigidBody), Color.BLUE);
+         else
+            PrintTools.debug("Getting a null for rigid body " + rigidBody.getName());
       }
       viz.update();
    }
-   
+
    @Test
    public void testMeshCreationFromLinkDescription()
    {

@@ -67,32 +67,33 @@ public class RobotCollisionMeshProvider
       for(int i = 0; i < meshDescriptions.size(); i++)
          meshDescriptions.get(i).getConvexShapeDescriptions(collisionShapeDescriptions);
       ArrayList<Point3D> points = new ArrayList<>();
+      PrintTools.debug("Creating the mesh");
       for (ConvexShapeDescription shapeDescription : collisionShapeDescriptions)
       {
          if (shapeDescription instanceof SphereDescriptionReadOnly)
          {
-            PrintTools.debug("Creating spherical mesh");
+            PrintTools.debug("Adding spherical mesh");
             RigidBodyTransform transform = new RigidBodyTransform();
             ((SphereDescriptionReadOnly) shapeDescription).getRigidBodyTransform(transform);
             ConvexPolytopeConstructor.getCollisionMeshPointsForSphere(transform, ((SphereDescriptionReadOnly) shapeDescription).getRadius(), defaultCurvedSurfaceDivisions, points);
          }
          else if (shapeDescription instanceof CapsuleDescriptionReadOnly)
          {
-            PrintTools.debug("Creating capsule mesh");
+            PrintTools.debug("Adding capsule mesh");
             LineSegment3D lineSegment = new LineSegment3D();
             ((CapsuleDescriptionReadOnly) shapeDescription).getCapToCapLineSegment(lineSegment);
             ConvexPolytopeConstructor.getCollisionMeshPointsForCapsule(lineSegment, ((CapsuleDescriptionReadOnly) shapeDescription).getRadius(), defaultCurvedSurfaceDivisions, points);
          }
          else if (shapeDescription instanceof CylinderDescriptionReadOnly)
          {
-            PrintTools.debug("Creating cylinderical mesh");
+            PrintTools.debug("Adding cylinderical mesh");
             RigidBodyTransform transform = new RigidBodyTransform();
             ((CylinderDescriptionReadOnly) shapeDescription).getRigidBodyTransformToCenter(transform);
             ConvexPolytopeConstructor.getCylindericalCollisionMesh(transform, ((CylinderDescriptionReadOnly) shapeDescription).getRadius(), ((CylinderDescriptionReadOnly) shapeDescription).getHeight(), defaultCurvedSurfaceDivisions, points);
          }
          else if (shapeDescription instanceof CubeDescriptionReadOnly)
          {
-            PrintTools.debug("Creating cube mesh");
+            PrintTools.debug("Adding cube mesh");
             RigidBodyTransform transform = new RigidBodyTransform();
             ((CubeDescriptionReadOnly) shapeDescription).getRigidBodyTransformToCenter(transform);
             ConvexPolytopeConstructor.getCuboidCollisionMesh(transform, ((CubeDescriptionReadOnly) shapeDescription).getLengthX(), ((CubeDescriptionReadOnly) shapeDescription).getWidthY(), ((CubeDescriptionReadOnly) shapeDescription).getHeightZ(), points);
