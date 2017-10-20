@@ -372,7 +372,10 @@ public abstract class ConvexPolytopeBasics<T extends PolytopeVertexBasics<T, S, 
             break;
       }
       if (count == numberOfEdges)
+      {
          PrintTools.warn("Could not determine visible silhouette \n" + toString());
+         faces.clear();
+      }
    }
 
    public S getSeedEdgeForSilhouetteCalculation(List<U> visibleFaceList, U leastVisibleFace)
