@@ -1,7 +1,5 @@
 package us.ihmc.atlas.collisionMesh;
 
-import java.awt.Color;
-
 import org.junit.Test;
 
 import gnu.trove.map.hash.THashMap;
