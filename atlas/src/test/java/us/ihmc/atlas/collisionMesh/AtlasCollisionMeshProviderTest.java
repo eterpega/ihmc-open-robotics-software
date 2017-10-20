@@ -25,9 +25,9 @@ public class AtlasCollisionMeshProviderTest
       AtlasRobotModel atlasRobotModel = new AtlasRobotModel(AtlasRobotVersion.ATLAS_UNPLUGGED_V5_NO_HANDS, RobotTarget.SCS, false);
       RobotDescription atlasRobotDescription = atlasRobotModel.getRobotDescription();
       FullHumanoidRobotModel atlasFullRobotModel = atlasRobotModel.createFullRobotModel();
-      RobotCollisionMeshProvider meshProvider = new RobotCollisionMeshProvider(4);
+      RobotCollisionMeshProvider meshProvider = new RobotCollisionMeshProvider(8);
       THashMap<RigidBody, FrameConvexPolytope> atlasCollisionMesh = meshProvider.createCollisionMeshesFromRobotDescription(atlasFullRobotModel, atlasRobotDescription);
-      FrameConvexPolytopeVisualizer viz = new FrameConvexPolytopeVisualizer(atlasCollisionMesh.size(), true);
+      FrameConvexPolytopeVisualizer viz = new FrameConvexPolytopeVisualizer(atlasCollisionMesh.size(), true, atlasRobotModel.createHumanoidFloatingRootJointRobot(false));
       for(RigidBody rigidBody : ScrewTools.computeRigidBodiesAfterThisJoint(atlasFullRobotModel.getRootJoint()))
       {
          if(atlasCollisionMesh.get(rigidBody) != null)

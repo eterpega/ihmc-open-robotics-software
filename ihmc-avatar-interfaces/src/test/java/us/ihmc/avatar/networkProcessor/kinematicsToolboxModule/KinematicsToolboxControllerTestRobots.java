@@ -78,21 +78,21 @@ public class KinematicsToolboxControllerTestRobots
          scsRootLink.setMass(0.1);
          scsRootLink.setMomentOfInertia(createNullMOI());
          CollisionMeshDescription scsRootLinkMeshDescription = new CollisionMeshDescription();
-         scsRootLinkMeshDescription.addCubeReferencedAtCenter(1, 1, 1);
+         scsRootLinkMeshDescription.addCubeReferencedAtCenter(0.1, 0.1, 0.1);
          scsRootLink.addCollisionMesh(scsRootLinkMeshDescription);
 
          LinkDescription scsShoulderYawLink = new LinkDescription("shoulderYawLink");
          scsShoulderYawLink.setMass(0.1);
          scsShoulderYawLink.setMomentOfInertia(createNullMOI());
          CollisionMeshDescription scsShoulderYawLinkMeshDescription = new CollisionMeshDescription();
-         scsShoulderYawLinkMeshDescription.addCubeReferencedAtCenter(1, 1, 1);
+//         scsShoulderYawLinkMeshDescription.addCylinderReferencedAtBottomMiddle(0.1, 0.2);
          scsShoulderYawLink.addCollisionMesh(scsShoulderYawLinkMeshDescription);
 
          LinkDescription scsShoulderRollLink = new LinkDescription("shoulderRollLink");
          scsShoulderRollLink.setMass(0.1);
          scsShoulderRollLink.setMomentOfInertia(createNullMOI());
          CollisionMeshDescription scsShoulderRollLinkMeshDescription = new CollisionMeshDescription();
-         scsShoulderRollLinkMeshDescription.addCapsule(0.2, 1);
+//         scsShoulderRollLinkMeshDescription.addCapsule(0.05, 0.15);
          scsShoulderRollLink.addCollisionMesh(scsShoulderRollLinkMeshDescription);
 
          LinkDescription scsUpperArmLink = new LinkDescription("upperArmLink");
@@ -100,7 +100,7 @@ public class KinematicsToolboxControllerTestRobots
          scsUpperArmLink.setMomentOfInertia(createNullMOI());
          scsUpperArmLink.setLinkGraphics(createArmGraphic(upperArmLength, upperArmRadius, YoAppearance.Red()));
          CollisionMeshDescription scsUpperArmLinkMeshDescription = new CollisionMeshDescription();
-         scsUpperArmLinkMeshDescription.addSphere(1);
+         scsUpperArmLinkMeshDescription.addCylinderReferencedAtBottomMiddle(upperArmRadius, upperArmLength);
          scsUpperArmLink.addCollisionMesh(scsUpperArmLinkMeshDescription);
 
          LinkDescription scsLowerArmLink = new LinkDescription("lowerArmLink");
@@ -108,21 +108,21 @@ public class KinematicsToolboxControllerTestRobots
          scsLowerArmLink.setMomentOfInertia(createNullMOI());
          scsLowerArmLink.setLinkGraphics(createArmGraphic(lowerArmLength, lowerArmRadius, YoAppearance.Green()));
          CollisionMeshDescription scsLowerArmLinkMeshDescription = new CollisionMeshDescription();
-         scsLowerArmLinkMeshDescription.addCylinderReferencedAtCenter(1, 1);
+         scsLowerArmLinkMeshDescription.addCylinderReferencedAtBottomMiddle(lowerArmRadius, lowerArmLength);
          scsLowerArmLink.addCollisionMesh(scsLowerArmLinkMeshDescription);
 
          LinkDescription scsWristPitchLink = new LinkDescription("wristPitchLink");
          scsWristPitchLink.setMass(0.1);
          scsWristPitchLink.setMomentOfInertia(createNullMOI());
          CollisionMeshDescription scsWristPitchLinkMeshDescription = new CollisionMeshDescription();
-         scsWristPitchLinkMeshDescription.addSphere(1);
+//         scsWristPitchLinkMeshDescription.addSphere(0.05);
          scsWristPitchLink.addCollisionMesh(scsWristPitchLinkMeshDescription);
 
          LinkDescription scsWristRollLink = new LinkDescription("wristRollLink");
          scsWristRollLink.setMass(0.1);
          scsWristRollLink.setMomentOfInertia(createNullMOI());
          CollisionMeshDescription scsWristRollLinkMeshDescription = new CollisionMeshDescription();
-         scsWristRollLinkMeshDescription.addCylinderReferencedAtBottomMiddle(1, 1);
+//         scsWristRollLinkMeshDescription.addSphere(0.05);
          scsWristRollLink.addCollisionMesh(scsWristRollLinkMeshDescription);
 
          LinkDescription scsHandLink = new LinkDescription("handLink");
@@ -130,7 +130,7 @@ public class KinematicsToolboxControllerTestRobots
          scsHandLink.setMomentOfInertia(createNullMOI());
          scsHandLink.setLinkGraphics(createHandGraphics());
          CollisionMeshDescription scsHandLinkMeshDescription = new CollisionMeshDescription();
-         scsHandLinkMeshDescription.addSphere(1);
+         scsHandLinkMeshDescription.addSphere(0.05);
          scsHandLink.addCollisionMesh(scsHandLinkMeshDescription);
 
          addRootJoint(rootJoint);

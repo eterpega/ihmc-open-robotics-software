@@ -534,7 +534,7 @@ public class ConvexPolytopeConstructor
    public static void getCylindericalCollisionMesh(Transform transform, double radius, double length, int curvedSurfaceDivisions,
                                                    ArrayList<Point3D> pointsToPack)
    {
-      getCollisionMeshPointsForCylinder(0.0, 0.0, 0.0, Axis.X, radius, length, curvedSurfaceDivisions, pointsToPack);
+      getCollisionMeshPointsForCylinder(0.0, 0.0, 0.0, Axis.Z, radius, length, curvedSurfaceDivisions, pointsToPack);
       applyTransformToPoints(transform, pointsToPack);
    }
 

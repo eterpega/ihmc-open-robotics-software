@@ -285,6 +285,12 @@ public abstract class ConvexPolytopeBasics<T extends PolytopeVertexBasics<T, S, 
       getSilhouetteFaces(silhouetteFaces, nonSilhouetteFaces, visibleFaces);
       S firstHalfEdgeForSilhouette = onFaceList.size() > 0 ? onFaceList.get(0).getFirstVisibleEdge(vertexToAdd).getTwinHalfEdge()
             : getSeedEdgeForSilhouetteCalculation(visibleFaces, visibleFaceSeed);
+      // remove this hack
+      if(firstHalfEdgeForSilhouette == null)
+      {
+         PrintTools.warn("Got null seed for face construction. Skipping this point.");
+         return;
+      }
       getVisibleSilhouetteUsingSeed(visibleSilhouetteList, firstHalfEdgeForSilhouette, visibleFaces);
       removeFaces(nonSilhouetteFaces);
       removeFaces(silhouetteFaces);
@@ -357,6 +363,13 @@ public abstract class ConvexPolytopeBasics<T extends PolytopeVertexBasics<T, S, 
       int count;
       for (count = 0; count < numberOfEdges; count++)
       {
+         if(halfEdgeUnderConsideration == null)
+            PrintTools.debug("Half edge null " + faces.size());
+         if(visibleSilhouetteToPack == null)
+            PrintTools.debug("visible list null");
+         if(halfEdgeUnderConsideration.getTwinHalfEdge() == null)
+            PrintTools.debug("Twing half edge null");
+
          visibleSilhouetteToPack.add(halfEdgeUnderConsideration.getTwinHalfEdge());
          T destinationVertex = halfEdgeUnderConsideration.getDestinationVertex();
          for (int i = 0; i < destinationVertex.getNumberOfAssociatedEdges(); i++)

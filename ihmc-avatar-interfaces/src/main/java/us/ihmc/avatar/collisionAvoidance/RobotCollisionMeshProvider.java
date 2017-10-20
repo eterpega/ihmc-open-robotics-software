@@ -67,7 +67,7 @@ public class RobotCollisionMeshProvider
       for(int i = 0; i < meshDescriptions.size(); i++)
          meshDescriptions.get(i).getConvexShapeDescriptions(collisionShapeDescriptions);
       ArrayList<Point3D> points = new ArrayList<>();
-      PrintTools.debug("Creating the mesh");
+      PrintTools.debug("Creating mesh for " + rigidBody.getName() + ", have " + collisionShapeDescriptions.size() + " descriptions");
       for (ConvexShapeDescription shapeDescription : collisionShapeDescriptions)
       {
          if (shapeDescription instanceof SphereDescriptionReadOnly)
