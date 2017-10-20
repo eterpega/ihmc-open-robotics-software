@@ -1,9 +1,9 @@
 package us.ihmc.geometry.polytope.DCELPolytope;
 
-import us.ihmc.euclid.interfaces.GeometryObject;
-import us.ihmc.euclid.tuple3D.Point3D;
-import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeHalfEdgeBasics;
+import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeHalfEdgeReadOnly;
+import us.ihmc.geometry.polytope.DCELPolytope.Providers.PolytopeHalfEdgeBuilder;
+import us.ihmc.geometry.polytope.DCELPolytope.Providers.PolytopeHalfEdgeProvider;
 
 /**
  * This class implements a doubly connected edge list (https://en.wikipedia.org/wiki/Doubly_connected_edge_list)
@@ -13,12 +13,22 @@ import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeHalfEdgeBasics;
  * An attempt is made to update the twin in case the edge is modified to ensure that the relation remains consistent
  * @author Apoorv S
  */
-public class PolytopeHalfEdge extends PolytopeHalfEdgeBasics<ExtendedPolytopeVertex, PolytopeHalfEdge, ConvexPolytopeFace, Simplex> implements GeometryObject<PolytopeHalfEdge>, Simplex
+public class PolytopeHalfEdge extends PolytopeHalfEdgeBasics<ExtendedPolytopeVertex, PolytopeHalfEdge, ConvexPolytopeFace> implements Simplex
 {
+   private final PolytopeHalfEdgeBuilder halfEdgeBuilder = new PolytopeHalfEdgeBuilder();
    
    public PolytopeHalfEdge()
    {
       super();
+   }
+   
+   /**
+    * Creates a new edge at the same location. References to origin / destionation vertices, twin / next / previous edges and associated is not preserved
+    * @param edge
+    */
+   public PolytopeHalfEdge(PolytopeHalfEdgeReadOnly edge)
+   {
+      super(new ExtendedPolytopeVertex(edge.getOriginVertex()), new ExtendedPolytopeVertex(edge.getOriginVertex()));
    }
 
    public PolytopeHalfEdge(ExtendedPolytopeVertex origin, ExtendedPolytopeVertex destination)
@@ -37,15 +47,14 @@ public class PolytopeHalfEdge extends PolytopeHalfEdgeBasics<ExtendedPolytopeVer
    }
    
    @Override
-   public PolytopeHalfEdge getThis()
+   public PolytopeHalfEdge getNextHalfEdge()
    {
-      return this;
+      return (PolytopeHalfEdge) super.getNextHalfEdge();
    }
 
    @Override
-   public PolytopeHalfEdge createTwinHalfEdge(ConvexPolytopeFace twinEdgeFace)
+   protected PolytopeHalfEdgeProvider<ExtendedPolytopeVertex, PolytopeHalfEdge, ConvexPolytopeFace> getHalfEdgeProvider()
    {
-      // TODO Auto-generated method stub
-      return null;
+      return halfEdgeBuilder;
    }
 }

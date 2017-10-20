@@ -7,6 +7,7 @@ import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.geometry.polytope.DCELPolytope.ExtendedConvexPolytope;
 import us.ihmc.geometry.polytope.DCELPolytope.ExtendedSimplexPolytope;
+import us.ihmc.geometry.polytope.DCELPolytope.Basics.ConvexPolytopeReadOnly;
 
 public class HybridGJKEPACollisionDetector
 {
@@ -65,7 +66,7 @@ public class HybridGJKEPACollisionDetector
       this.epsilon = epsilon;
    }
 
-   public boolean checkCollisionBetweenTwoPolytopes(ExtendedConvexPolytope polytopeA, ExtendedConvexPolytope polytopeB, Vector3D initialDirectionForSearch)
+   public boolean checkCollisionBetweenTwoPolytopes(ConvexPolytopeReadOnly polytopeA, ConvexPolytopeReadOnly polytopeB, Vector3D initialDirectionForSearch)
    {
       simplex.clear();
       setSupportVectorDirection(initialDirectionForSearch);

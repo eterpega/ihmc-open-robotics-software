@@ -2,11 +2,12 @@ package us.ihmc.geometry.polytope.DCELPolytope.Providers;
 
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.ConvexPolytopeFaceBasics;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeHalfEdgeBasics;
+import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeHalfEdgeReadOnly;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeVertexBasics;
-import us.ihmc.geometry.polytope.DCELPolytope.Basics.SimplexBasics;
 
-public interface PolytopeHalfEdgeProvider<T extends PolytopeVertexBasics<T, S, U, Q>, S extends PolytopeHalfEdgeBasics<T, S, U, Q>, U extends ConvexPolytopeFaceBasics<T, S, U, Q>, Q extends SimplexBasics<Q>>
+public interface PolytopeHalfEdgeProvider<A extends PolytopeVertexBasics<A, B, C>, B extends PolytopeHalfEdgeBasics<A, B, C>, C extends ConvexPolytopeFaceBasics<A, B, C>>
 {
-   S getHalfEdge(T origin, T destination);
-   S getHalfEdge();
+   B getHalfEdge(A origin, A destination);
+   B getHalfEdge();
+   B getHalfEdge(PolytopeHalfEdgeReadOnly polytopeHalfEdge);
 }
