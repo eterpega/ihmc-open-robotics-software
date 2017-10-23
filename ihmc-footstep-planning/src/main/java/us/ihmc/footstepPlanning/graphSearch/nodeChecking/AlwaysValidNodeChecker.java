@@ -12,7 +12,7 @@ public class AlwaysValidNodeChecker implements FootstepNodeChecker
    }
 
    @Override
-   public boolean isNodeValid(FootstepNode node, FootstepNode previosNode)
+   public boolean isNodeValid(FootstepNode node, FootstepNode previousNode)
    {
       return true;
    }
@@ -20,5 +20,11 @@ public class AlwaysValidNodeChecker implements FootstepNodeChecker
    @Override
    public void addStartNode(FootstepNode startNode, RigidBodyTransform startNodeTransform)
    {
+   }
+
+   @Override
+   public RigidBodyTransform getSnapTransform(FootstepNode node)
+   {
+      return new RigidBodyTransform();
    }
 }

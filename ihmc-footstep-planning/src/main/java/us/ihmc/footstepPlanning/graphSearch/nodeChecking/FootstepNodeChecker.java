@@ -8,7 +8,9 @@ public interface FootstepNodeChecker
 {
    public void setPlanarRegions(PlanarRegionsList planarRegions);
 
-   public boolean isNodeValid(FootstepNode node, FootstepNode previosNode);
+   public boolean isNodeValid(FootstepNode node, FootstepNode previousNode);
 
    public void addStartNode(FootstepNode startNode, RigidBodyTransform startNodeTransform);
+
+   public RigidBodyTransform getSnapTransform(FootstepNode node);
 }

@@ -1,5 +1,6 @@
 package us.ihmc.footstepPlanning.graphSearch.stepCost;
 
+import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.footstepPlanning.graphSearch.graph.FootstepNode;
 
 public class ConstantFootstepCost implements FootstepCost
@@ -12,7 +13,7 @@ public class ConstantFootstepCost implements FootstepCost
    }
 
    @Override
-   public double compute(FootstepNode startNode, FootstepNode endNode)
+   public double compute(FootstepNode startNode, FootstepNode endNode, RigidBodyTransform endSnapTransform)
    {
       return cost;
    }

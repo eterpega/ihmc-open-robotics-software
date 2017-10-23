@@ -32,6 +32,7 @@ import us.ihmc.footstepPlanning.graphSearch.nodeExpansion.SimpleGridResolutionBa
 import us.ihmc.footstepPlanning.graphSearch.nodeExpansion.SimpleSideBasedExpansion;
 import us.ihmc.footstepPlanning.graphSearch.planners.AStarFootstepPlanner;
 import us.ihmc.footstepPlanning.graphSearch.stepCost.EuclideanBasedCost;
+import us.ihmc.footstepPlanning.graphSearch.stepCost.NominalStepBasedCost;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicCoordinateSystem;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.robotics.geometry.FramePose;

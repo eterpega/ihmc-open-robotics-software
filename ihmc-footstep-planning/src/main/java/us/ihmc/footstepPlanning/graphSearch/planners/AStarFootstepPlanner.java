@@ -36,6 +36,7 @@ import us.ihmc.footstepPlanning.graphSearch.nodeChecking.SnapBasedNodeChecker;
 import us.ihmc.footstepPlanning.graphSearch.nodeExpansion.FootstepNodeExpansion;
 import us.ihmc.footstepPlanning.graphSearch.stepCost.DistanceAndYawBasedCost;
 import us.ihmc.footstepPlanning.graphSearch.stepCost.FootstepCost;
+import us.ihmc.footstepPlanning.graphSearch.stepCost.NominalStepBasedCost;
 import us.ihmc.robotics.geometry.FramePose;
 import us.ihmc.robotics.geometry.PlanarRegionsList;
 import us.ihmc.robotics.referenceFrames.PoseReferenceFrame;
@@ -280,7 +281,9 @@ public class AStarFootstepPlanner implements FootstepPlanner
                continue;
             }
 
-            double cost = stepCostCalculator.compute(nodeToExpand, neighbor);
+            RigidBodyTransform snapTransform = nodeChecker.getSnapTransform(neighbor);
+            double cost = stepCostCalculator.compute(nodeToExpand, neighbor, snapTransform);
+
             graph.checkAndSetEdge(nodeToExpand, neighbor, cost);
             stack.add(neighbor);
          }
@@ -347,7 +350,8 @@ public class AStarFootstepPlanner implements FootstepPlanner
       SnapBasedNodeChecker nodeChecker = new SnapBasedNodeChecker(parameters, footPolygons, snapper);
 
       DistanceAndYawBasedHeuristics heuristics = new DistanceAndYawBasedHeuristics(parameters, registry);
-      DistanceAndYawBasedCost stepCostCalculator = new DistanceAndYawBasedCost(parameters);
+      //DistanceAndYawBasedCost stepCostCalculator = new DistanceAndYawBasedCost(parameters);
+      NominalStepBasedCost stepCostCalculator = new NominalStepBasedCost();
 
       heuristics.setWeight(1.5);
 

@@ -2,6 +2,7 @@ package us.ihmc.footstepPlanning.graphSearch.stepCost;
 
 import us.ihmc.euclid.referenceFrame.FramePoint2D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.footstepPlanning.graphSearch.FootstepPlannerParameters;
 import us.ihmc.footstepPlanning.graphSearch.graph.FootstepNode;
@@ -19,7 +20,7 @@ public class DistanceAndYawBasedCost implements FootstepCost
    }
 
    @Override
-   public double compute(FootstepNode startNode, FootstepNode endNode)
+   public double compute(FootstepNode startNode, FootstepNode endNode, RigidBodyTransform endSnapTransform)
    {
       Point2D startPoint = computeMidFootPoint(startNode, parameters.getIdealFootstepWidth());
       Point2D endPoint = computeMidFootPoint(endNode, parameters.getIdealFootstepWidth());

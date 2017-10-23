@@ -5,6 +5,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.ArrayList;
 import java.util.Random;
 
+import org.junit.Test;
 import us.ihmc.commons.RandomNumbers;
 import us.ihmc.euclid.Axis;
 import us.ihmc.euclid.axisAngle.AxisAngle;
@@ -441,6 +442,7 @@ public abstract class FootstepPlannerOnRoughTerrainTest implements PlanningTest
       assertTrue(PlanningTestTools.isGoalNextToLastStep(goalPose, footstepPlan));
    }
 
+   @Test
    public void testWalkingAroundBox()
    {
       PlanarRegionsListGenerator generator = new PlanarRegionsListGenerator();

@@ -1,5 +1,6 @@
 package us.ihmc.footstepPlanning.graphSearch.stepCost;
 
+import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.footstepPlanning.graphSearch.FootstepPlannerParameters;
 import us.ihmc.footstepPlanning.graphSearch.graph.FootstepNode;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
@@ -15,7 +16,7 @@ public class EuclideanBasedCost implements FootstepCost
    }
 
    @Override
-   public double compute(FootstepNode startNode, FootstepNode endNode)
+   public double compute(FootstepNode startNode, FootstepNode endNode, RigidBodyTransform endSnapTransform)
    {
       return startNode.euclideanDistance(endNode) + parameters.getCostPerStep();
    }

@@ -5,6 +5,8 @@ import java.util.List;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.footstepPlanning.graphSearch.graph.FootstepNode;
+import us.ihmc.footstepPlanning.polygonSnapping.PlanarRegionPolygonSnapper;
+import us.ihmc.footstepPlanning.polygonSnapping.PlanarRegionsListPolygonSnapper;
 import us.ihmc.robotics.geometry.PlanarRegion;
 import us.ihmc.robotics.geometry.PlanarRegionsList;
 
@@ -38,4 +40,10 @@ public class SimpleNodeChecker implements FootstepNodeChecker
    {
    }
 
+
+   @Override
+   public RigidBodyTransform getSnapTransform(FootstepNode nodeToExpand)
+   {
+      return new RigidBodyTransform();
+   }
 }

@@ -71,4 +71,10 @@ public class SnapBasedNodeChecker implements FootstepNodeChecker
    {
       snapper.addSnapData(startNode, new FootstepNodeSnapData(startNodeTransform));
    }
+
+   @Override
+   public RigidBodyTransform getSnapTransform(FootstepNode node)
+   {
+      return snapper.getSnapData(node).getSnapTransform();
+   }
 }

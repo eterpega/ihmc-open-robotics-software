@@ -3,6 +3,7 @@ package us.ihmc.footstepPlanning.bodyPath;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
@@ -44,7 +45,14 @@ import us.ihmc.yoVariables.registry.YoVariableRegistry;
 public class FootstepPlanningWithBodyPathTest
 {
    private static final SimulationTestingParameters simulationTestingParameters = SimulationTestingParameters.createFromEnvironmentVariables();
-   private static final boolean visualize = simulationTestingParameters.getKeepSCSUp();
+   //private static final boolean visualize = simulationTestingParameters.getKeepSCSUp();
+   private static final boolean visualize = true;
+
+   @Before
+   public void before()
+   {
+      simulationTestingParameters.setKeepSCSUp(true);
+   }
 
    @Rule
    public TestName name = new TestName();

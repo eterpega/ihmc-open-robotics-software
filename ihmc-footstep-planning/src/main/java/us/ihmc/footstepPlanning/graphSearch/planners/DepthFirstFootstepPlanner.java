@@ -244,7 +244,7 @@ public class DepthFirstFootstepPlanner implements FootstepPlanner
                continue;
 
             // if going to the node is more expensive then going to the goal there is no point in expanding it.
-            double stepCost = stepCostCalculator.compute(nodeToExpand, childNode);
+            double stepCost = stepCostCalculator.compute(nodeToExpand, childNode, snapper.snapFootstepNode(childNode).getSnapTransform());
             if (stepCost + footstepGraph.getCostFromStart(nodeToExpand) > smallestCostToGoal)
                continue;
 

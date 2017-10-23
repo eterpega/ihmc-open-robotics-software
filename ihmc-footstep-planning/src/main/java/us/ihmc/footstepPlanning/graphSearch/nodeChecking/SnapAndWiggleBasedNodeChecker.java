@@ -97,6 +97,11 @@ public class SnapAndWiggleBasedNodeChecker implements FootstepNodeChecker
       return true;
    }
 
+   public RigidBodyTransform getSnapTransform(FootstepNode nodeToExpand)
+   {
+      return snapAndWiggler.snapFootstepNode(nodeToExpand).getSnapTransform();
+   }
+
    private boolean checkIfEnoughArea(FootstepNode nodeToExpand, ConvexPolygon2D footholdIntersection)
    {
       totalArea.set(footholdIntersection.getArea());

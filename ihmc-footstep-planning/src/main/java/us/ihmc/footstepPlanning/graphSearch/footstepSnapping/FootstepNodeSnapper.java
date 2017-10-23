@@ -40,5 +40,10 @@ public abstract class FootstepNodeSnapper
       snapDataHolder.put(footstepNode, snapData);
    }
 
+   public FootstepNodeSnapData getSnapData(FootstepNode footstepNode)
+   {
+      return snapDataHolder.get(footstepNode);
+   }
+
    protected abstract FootstepNodeSnapData snapInternal(FootstepNode footstepNode);
 }
