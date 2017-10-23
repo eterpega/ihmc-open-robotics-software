@@ -13,6 +13,8 @@ public class FootstepNode
    private final int yawIndex;
    private final RobotSide robotSide;
 
+   private FootstepNode parentNode;
+
    public FootstepNode(double x, double y)
    {
       this(x, y, 0.0, RobotSide.LEFT);
@@ -24,6 +26,11 @@ public class FootstepNode
       yIndex = (int) Math.round(y / gridSizeXY);
       yawIndex = (int) Math.round(AngleTools.trimAngleMinusPiToPi(yaw) / gridSizeYaw);
       this.robotSide = robotSide;
+   }
+
+   public void setParentNode(FootstepNode parentNode)
+   {
+      this.parentNode = parentNode;
    }
 
    public double getX()
@@ -51,6 +58,11 @@ public class FootstepNode
       double dx = getX() - other.getX();
       double dy = getY() - other.getY();
       return Math.sqrt(dx * dx + dy * dy);
+   }
+
+   public FootstepNode getParentNode()
+   {
+      return parentNode;
    }
 
    @Override

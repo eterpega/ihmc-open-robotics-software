@@ -281,6 +281,8 @@ public class AStarFootstepPlanner implements FootstepPlanner
                continue;
             }
 
+            neighbor.setParentNode(nodeToExpand);
+
             RigidBodyTransform snapTransform = nodeChecker.getSnapTransform(neighbor);
             double cost = stepCostCalculator.compute(nodeToExpand, neighbor, snapTransform);
 
