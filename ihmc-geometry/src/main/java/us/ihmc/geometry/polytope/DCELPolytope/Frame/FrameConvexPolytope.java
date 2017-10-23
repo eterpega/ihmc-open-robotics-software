@@ -5,10 +5,10 @@ import java.util.List;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.referenceFrame.interfaces.ReferenceFrameHolder;
+import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.geometry.polytope.DCELPolytope.ExtendedConvexPolytope;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.ConvexPolytopeBasics;
-import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeHalfEdgeBasics;
-import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeVertexBasics;
+import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeVertexReadOnly;
 import us.ihmc.geometry.polytope.DCELPolytope.Providers.ConvexPolytopeFaceProvider;
 import us.ihmc.geometry.polytope.DCELPolytope.Providers.FrameConvexPolytopeFaceBuilder;
 import us.ihmc.geometry.polytope.DCELPolytope.Providers.FramePolytopeVertexBuilder;
@@ -17,6 +17,7 @@ import us.ihmc.geometry.polytope.DCELPolytope.Providers.PolytopeVertexProvider;
 public class FrameConvexPolytope extends ConvexPolytopeBasics<FramePolytopeVertex, FramePolytopeHalfEdge, FrameConvexPolytopeFace> implements ReferenceFrameHolder
 {
    private final ReferenceFrame referenceFrame;
+   private final ReferenceFrame frameToReturnStuffIn = ReferenceFrame.getWorldFrame();
    private final FrameConvexPolytopeFaceBuilder faceBuilder = new FrameConvexPolytopeFaceBuilder(this);
    private final FramePolytopeVertexBuilder vertexBuilder = new FramePolytopeVertexBuilder(this);
 
@@ -83,5 +84,13 @@ public class FrameConvexPolytope extends ConvexPolytopeBasics<FramePolytopeVerte
    public List<FramePolytopeHalfEdge> getEdges()
    {
       return (List<FramePolytopeHalfEdge>) super.getEdges();
+   }
+   
+   @Override
+   public FramePolytopeVertex getSupportingVertexHack(Vector3DReadOnly supportDirection)
+   {
+      FramePolytopeVertex polytopeVertex = super.getSupportingVertexHack(supportDirection);
+      polytopeVertex.changeFrame(frameToReturnStuffIn);
+      return polytopeVertex;
    }
 }

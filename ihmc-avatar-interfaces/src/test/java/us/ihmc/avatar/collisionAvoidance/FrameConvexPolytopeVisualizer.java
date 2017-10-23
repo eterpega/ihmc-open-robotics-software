@@ -57,7 +57,7 @@ public class FrameConvexPolytopeVisualizer
 
    public FrameConvexPolytopeVisualizer(int maxNumberOfPolytopes)
    {
-      this(maxNumberOfPolytopes, false, null);
+      this(maxNumberOfPolytopes, false);
    }
 
    public FrameConvexPolytopeVisualizer(int maxNumberOfPolytopes, boolean keepSCSUp, Robot... robots)
@@ -115,11 +115,20 @@ public class FrameConvexPolytopeVisualizer
       robot.addYoVariableRegistry(registry);
       robot.addYoGraphicsListRegistry(graphicsListRegistry);
       SimulationConstructionSetParameters parameters = new SimulationConstructionSetParameters();
-      Robot[] robotList = Arrays.copyOf(robots, robots.length + 1);
-      robotList[robots.length] = robot;
+      Robot[] robotList;
+      if(robots == null)
+      {
+         robotList = new Robot[1];
+         robotList[0] = robot;
+      }
+      else
+      {
+         robotList = Arrays.copyOf(robots, robots.length + 1);
+         robotList[robots.length] = robot;
+      }
       scs = new SimulationConstructionSet(robotList, parameters);
       Graphics3DObject coordinateSystem = new Graphics3DObject();
-      coordinateSystem.addCoordinateSystem(0.01);
+      coordinateSystem.addCoordinateSystem(1.0);
       scs.addStaticLinkGraphics(coordinateSystem);
       scs.setGroundVisible(false);
       scs.setDT(1.0, 1);
@@ -300,5 +309,13 @@ public class FrameConvexPolytopeVisualizer
       FrameConvexPolytope frameConvexPolytope = meshProvider.createCollisionMesh(rigidBody, collisionMeshDescriptionList);
       viz.addPolytope(frameConvexPolytope, Color.CYAN);
       viz.update();
+   }
+
+   public void updateColor(FrameConvexPolytope polytopeToChange, Color newColor)
+   {
+      for (int i = 0; i < numberOfPolytopes; i++)
+         if(polytopes[i] == polytopeToChange)
+            polytopeColors[i] = newColor;
+      updateNonBlocking();
    }
 }

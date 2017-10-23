@@ -29,6 +29,7 @@ import us.ihmc.communication.packets.HumanoidKinematicsToolboxConfigurationMessa
 import us.ihmc.communication.packets.KinematicsToolboxOutputStatus;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.geometry.polytope.DCELPolytope.Frame.FrameConvexPolytope;
 import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
 import us.ihmc.graphicsDescription.appearance.YoAppearance;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicCoordinateSystem;
@@ -199,6 +200,12 @@ public class KinematicsToolboxController extends ToolboxController
    private final Map<String, FeedbackControlCommand<?>> userFeedbackCommands = new HashMap<>();
 
    /**
+    * Map of the collision meshes that are attached to each controllable rigid body. It is used to determine detect collisions with objects 
+    * in the robot's surrounding and provide collision free inverse kinematic solutions
+    */
+   private final Map<RigidBody, FrameConvexPolytope> rigidBodyCollisionMeshes = new HashMap<>();
+
+   /**
     * This is mostly for visualization to be able to keep track of the number of commands that the
     * user submitted.
     */
@@ -208,12 +215,13 @@ public class KinematicsToolboxController extends ToolboxController
                                       FloatingInverseDynamicsJoint rootJoint, OneDoFJoint[] oneDoFJoints, YoGraphicsListRegistry yoGraphicsListRegistry,
                                       YoVariableRegistry parentRegistry)
    {
-      this(commandInputManager, statusOutputManager, rootJoint, oneDoFJoints, null, yoGraphicsListRegistry, parentRegistry);
+      this(commandInputManager, statusOutputManager, rootJoint, oneDoFJoints, null, null, yoGraphicsListRegistry, parentRegistry);
    }
 
    public KinematicsToolboxController(CommandInputManager commandInputManager, StatusMessageOutputManager statusOutputManager,
                                       FloatingInverseDynamicsJoint rootJoint, OneDoFJoint[] oneDoFJoints, Collection<RigidBody> controllableRigidBodies,
-                                      YoGraphicsListRegistry yoGraphicsListRegistry, YoVariableRegistry parentRegistry)
+                                      HashMap<RigidBody, FrameConvexPolytope> collisionMeshMap, YoGraphicsListRegistry yoGraphicsListRegistry,
+                                      YoVariableRegistry parentRegistry)
    {
       super(statusOutputManager, parentRegistry);
       this.commandInputManager = commandInputManager;
@@ -411,8 +419,9 @@ public class KinematicsToolboxController extends ToolboxController
       FeedbackControlCommandList allFeedbackControlCommands = new FeedbackControlCommandList(controllerCoreCommand.getFeedbackControlCommandList());
 
       /*
-       * Submitting and requesting the controller core to run the feedback controllers, formulate
-       * and solve the optimization problem for this control tick.
+       * Submitting and requesting the controller core to run the feedback
+       * controllers, formulate and solve the optimization problem for this
+       * control tick.
        */
       controllerCore.reset();
       controllerCore.submitControllerCoreCommand(controllerCoreCommand);
@@ -458,9 +467,9 @@ public class KinematicsToolboxController extends ToolboxController
          KinematicsToolboxConfigurationCommand command = commandInputManager.pollNewestCommand(KinematicsToolboxConfigurationCommand.class);
 
          /*
-          * If there is a new privileged configuration, the desired robot state is updated alongside
-          * with the privileged configuration and the initial center of mass position and foot
-          * poses.
+          * If there is a new privileged configuration, the desired robot state
+          * is updated alongside with the privileged configuration and the
+          * initial center of mass position and foot poses.
           */
          KinematicsToolboxHelper.setRobotStateFromPrivilegedConfigurationData(command, rootJoint, jointNameBasedHashCodeMap);
          if (command.hasPrivilegedJointAngles() || command.hasPrivilegedRootJointPosition() || command.hasPrivilegedRootJointOrientation())
@@ -488,9 +497,10 @@ public class KinematicsToolboxController extends ToolboxController
 
       FeedbackControlCommandList inputs = new FeedbackControlCommandList();
       /*
-       * By using the map, we ensure that there is only one command per end-effector (including the
-       * center of mass). The map is also useful for remembering commands received during the
-       * previous control ticks of the same run.
+       * By using the map, we ensure that there is only one command per
+       * end-effector (including the center of mass). The map is also useful for
+       * remembering commands received during the previous control ticks of the
+       * same run.
        */
       userFeedbackCommands.values().forEach(inputs::addCommand);
       return inputs;

@@ -1,6 +1,5 @@
 package us.ihmc.geometry.polytope.DCELPolytope;
 
-import us.ihmc.geometry.polytope.PolytopeVertex;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeVertexReadOnly;
 
 public class SimplexVertex extends ExtendedPolytopeVertex

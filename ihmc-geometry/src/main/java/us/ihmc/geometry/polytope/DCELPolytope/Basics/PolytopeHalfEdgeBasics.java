@@ -1,5 +1,6 @@
 package us.ihmc.geometry.polytope.DCELPolytope.Basics;
 
+import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.geometry.tools.EuclidGeometryTools;
 import us.ihmc.euclid.interfaces.Clearable;
 import us.ihmc.euclid.interfaces.Settable;
@@ -337,6 +338,7 @@ public abstract class PolytopeHalfEdgeBasics<A extends PolytopeVertexBasics<A, B
    @Override
    public SimplexBasics getSmallestSimplexMemberReference(Point3DReadOnly point)
    {
+      PrintTools.debug("Was here edge");
       double percentage = EuclidGeometryTools.percentageAlongLineSegment3D(point, this.originVertex, this.destinationVertex);
       if (percentage <= 0.0)
          return this.originVertex;

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Random;
 
 import us.ihmc.commons.Epsilons;
+import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.axisAngle.AxisAngle;
 import us.ihmc.euclid.geometry.LineSegment3D;
 import us.ihmc.euclid.geometry.tools.EuclidGeometryTools;
@@ -690,7 +691,7 @@ public class ConvexPolytopeConstructor
    public static ArrayList<Point3D> getCollisionMeshPointsForCapsule(Point3D centeroid, Axis axis, double cylindericalLength, double endRadius,
                                                                      int curvedSurfaceDivisions)
    {
-      return getCollisionMeshPointsForCapsule(centeroid.getX(), centeroid.getX(), centeroid.getX(), axis, cylindericalLength, endRadius,
+      return getCollisionMeshPointsForCapsule(centeroid.getX(), centeroid.getY(), centeroid.getZ(), axis, cylindericalLength, endRadius,
                                               curvedSurfaceDivisions);
    }
 
@@ -830,5 +831,10 @@ public class ConvexPolytopeConstructor
             pointsToPack.add(point);
          }
       }
+   }
+
+   public static void shiftCentroid(Vector3D centerOfMassOffset, ArrayList<Point3D> pointsForShapeDescription)
+   {
+      shiftCentroid(centerOfMassOffset.getX(), centerOfMassOffset.getY(), centerOfMassOffset.getZ(), pointsForShapeDescription);
    }
 }

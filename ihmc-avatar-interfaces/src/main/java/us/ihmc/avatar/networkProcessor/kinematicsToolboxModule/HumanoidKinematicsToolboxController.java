@@ -106,7 +106,7 @@ public class HumanoidKinematicsToolboxController extends KinematicsToolboxContro
                                               YoVariableRegistry parentRegistry)
    {
       super(commandInputManager, statusOutputManager, desiredFullRobotModel.getRootJoint(), getAllJointsExcludingHands(desiredFullRobotModel),
-            createListOfControllableRigidBodies(desiredFullRobotModel), yoGraphicsListRegistry, parentRegistry);
+            createListOfControllableRigidBodies(desiredFullRobotModel), null, yoGraphicsListRegistry, parentRegistry);
 
       this.desiredFullRobotModel = desiredFullRobotModel;
 

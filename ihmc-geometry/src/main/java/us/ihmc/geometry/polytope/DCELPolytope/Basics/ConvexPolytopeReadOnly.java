@@ -9,5 +9,13 @@ import us.ihmc.geometry.polytope.SupportingVertexHolder;
 public interface ConvexPolytopeReadOnly extends EpsilonComparable<ConvexPolytopeReadOnly>, SupportingVertexHolder 
 {
    List<? extends ConvexPolytopeFaceReadOnly> getFaces();
-   PolytopeVertexBasics getSupportingVertexHack(Vector3DReadOnly supportingVertexDirection);
+   PolytopeVertexReadOnly getSupportingVertexHack(Vector3DReadOnly supportingVertexDirection);
+   default boolean isEmpty()
+   {
+      List<? extends ConvexPolytopeFaceReadOnly> faces = getFaces();
+      for (int i = 0; i < faces.size(); i++)
+         if(faces.get(i).getNumberOfEdges() != 0)
+            return false;
+      return true;
+   }
 }

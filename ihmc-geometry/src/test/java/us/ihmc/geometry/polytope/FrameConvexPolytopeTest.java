@@ -11,6 +11,7 @@ import us.ihmc.commons.Epsilons;
 import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.geometry.polytope.DCELPolytope.CollisionDetection.HybridGJKEPACollisionDetector;
 import us.ihmc.geometry.polytope.DCELPolytope.Frame.FrameConvexPolytope;
 import us.ihmc.geometry.polytope.DCELPolytope.Frame.FramePolytopeVertex;
@@ -44,7 +45,7 @@ public class FrameConvexPolytopeTest
       FrameConvexPolytope polytope1 = new FrameConvexPolytope(polytope1Frame);
       FrameConvexPolytope polytope2 = new FrameConvexPolytope(polytope2Frame);
       HybridGJKEPACollisionDetector detector = new HybridGJKEPACollisionDetector();
-      //detector.checkCollisionBetweenTwoPolytopes(polytope1, polytope2);
+      //detector.checkCollisionBetweenTwoPolytopes(polytope1, polytope2, new Vector3D(0.0, 0.0, 1.0));
    }
    
    @Test
