@@ -55,6 +55,7 @@ public abstract class AvatarStraightLegWalkingTest implements MultiRobotTestInte
    {
       MemoryTools.printCurrentMemoryUsageAndReturnUsedMemoryInMB(getClass().getSimpleName() + " before test.");
       BambooTools.reportTestStartedMessage(simulationTestingParameters.getShowWindows());
+      simulationTestingParameters.setKeepSCSUp(keepSCSUp());
    }
 
    @After
@@ -740,6 +741,10 @@ public abstract class AvatarStraightLegWalkingTest implements MultiRobotTestInte
       return sideDependentColumns;
    }
 
+   protected boolean keepSCSUp()
+   {
+      return false;
+   }
 
    private void setupCamera()
    {

@@ -8,14 +8,7 @@ import org.junit.Test;
 import us.ihmc.atlas.AtlasJointMap;
 import us.ihmc.atlas.AtlasRobotModel;
 import us.ihmc.atlas.AtlasRobotVersion;
-import us.ihmc.atlas.parameters.AtlasContactPointParameters;
-import us.ihmc.atlas.parameters.AtlasContinuousCMPPlannerParameters;
-import us.ihmc.atlas.parameters.AtlasLegConfigurationParameters;
-import us.ihmc.atlas.parameters.AtlasMomentumOptimizationSettings;
-import us.ihmc.atlas.parameters.AtlasPhysicalProperties;
-import us.ihmc.atlas.parameters.AtlasSwingTrajectoryParameters;
-import us.ihmc.atlas.parameters.AtlasToeOffParameters;
-import us.ihmc.atlas.parameters.AtlasWalkingControllerParameters;
+import us.ihmc.atlas.parameters.*;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
 import us.ihmc.avatar.drcRobot.RobotTarget;
 import us.ihmc.commonWalkingControlModules.AvatarStraightLegWalkingTest;
@@ -158,13 +151,13 @@ public class AtlasStraightLegWalkingTest extends AvatarStraightLegWalkingTest
       @Override
       public boolean useOptimizationBasedICPController()
       {
-         return true;
+         return false;
       }
 
       @Override
       public boolean editStepTimingForReachability()
       {
-         return true;
+         return false;
       }
 
       @Override
@@ -287,7 +280,6 @@ public class AtlasStraightLegWalkingTest extends AvatarStraightLegWalkingTest
          return true;
       }
 
-
       @Override
       public boolean doToeTouchdownIfPossible()
       {
@@ -384,6 +376,7 @@ public class AtlasStraightLegWalkingTest extends AvatarStraightLegWalkingTest
       }
    }
 
+   /*
    private class TestICPPlannerParameters extends AtlasContinuousCMPPlannerParameters
    {
       public TestICPPlannerParameters(AtlasPhysicalProperties physicalProperties)
@@ -403,7 +396,6 @@ public class AtlasStraightLegWalkingTest extends AvatarStraightLegWalkingTest
          return true;
       }
 
-      /** {@inheritDoc} */
       @Override
       public List<Vector2D> getCoPOffsets()
       {
@@ -416,6 +408,48 @@ public class AtlasStraightLegWalkingTest extends AvatarStraightLegWalkingTest
 
          return copOffsets;
       }
+   }
+   */
+
+   private class TestICPPlannerParameters extends AtlasSmoothCMPPlannerParameters
+   {
+      public TestICPPlannerParameters(AtlasPhysicalProperties physicalProperties)
+      {
+         super(physicalProperties);
+      }
+
+      @Override
+      public double getExitCoPForwardSafetyMarginOnToes()
+      {
+         return 0.015;
+      }
+
+      @Override
+      public boolean putExitCoPOnToes()
+      {
+         return true;
+      }
+
+      /*
+      @Override
+      public List<Vector2D> getCoPOffsets()
+      {
+         Vector2D entryOffset = new Vector2D(0.0, -0.005);
+         Vector2D exitOffset = new Vector2D(0.0, 0.015);
+
+         List<Vector2D> copOffsets = new ArrayList<>();
+         copOffsets.add(entryOffset);
+         copOffsets.add(exitOffset);
+
+         return copOffsets;
+      }
+      */
+   }
+
+   @Override
+   protected boolean keepSCSUp()
+   {
+      return true;
    }
 
    public static void main(String[] args) throws Exception

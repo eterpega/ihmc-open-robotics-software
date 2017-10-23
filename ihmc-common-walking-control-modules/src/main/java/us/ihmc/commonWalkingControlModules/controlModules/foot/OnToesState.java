@@ -50,6 +50,7 @@ public class OnToesState extends AbstractFootControlState
    private final List<YoContactPoint> contactPointsInContact = new ArrayList<>();
 
    private final YoBoolean usePointContact;
+   private boolean usingPointContact = false;
    private final YoDouble toeOffDesiredPitchAngle, toeOffDesiredPitchVelocity, toeOffDesiredPitchAcceleration;
    private final YoDouble toeOffCurrentPitchAngle, toeOffCurrentPitchVelocity;
 
@@ -172,6 +173,11 @@ public class OnToesState extends AbstractFootControlState
       if (usePointContact.getBooleanValue())
       {
          setupSingleContactPoint();
+         if (!usingPointContact)
+         { // we just switched to using the point contact, so the contact state changed
+            controllerToolbox.getFootContactState(robotSide).notifyContactStateHasChanged();
+            usingPointContact = true;
+         }
       }
       else
       {
@@ -272,9 +278,14 @@ public class OnToesState extends AbstractFootControlState
       super.doTransitionIntoAction();
 
       if (usePointContact.getBooleanValue())
+      {
+         usingPointContact = true;
          setControlPointPositionFromContactPoint();
+      }
       else
+      {
          setControlPointPositionFromContactLine();
+      }
 
       YoPlaneContactState contactState = controllerToolbox.getFootContactState(robotSide);
       contactState.notifyContactStateHasChanged();
@@ -304,6 +315,8 @@ public class OnToesState extends AbstractFootControlState
       ToeSlippingDetector toeSlippingDetector = footControlHelper.getToeSlippingDetector();
       if (toeSlippingDetector != null)
          toeSlippingDetector.clear();
+
+      usingPointContact = false;
    }
 
    @Override
