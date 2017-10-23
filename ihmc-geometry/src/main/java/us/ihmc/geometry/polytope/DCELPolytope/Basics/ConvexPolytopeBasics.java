@@ -383,13 +383,13 @@ public abstract class ConvexPolytopeBasics<A extends PolytopeVertexBasics<A, B, 
       }
       if (count == numberOfEdges)
       {
-         PrintTools.warn("Could not determine visible silhouette \n" + toString());
-         PrintTools.warn("On face size: " + onFaceList.size());
-         for(int i = 0; i < onFaceList.size(); i++)
-            PrintTools.debug(onFaceList.get(i).toString());
-         PrintTools.warn("Visible face size: " + visibleFaces.size());
-         for(int i = 0; i < visibleFaces.size(); i++)
-            PrintTools.debug(visibleFaces.get(i).toString());
+         PrintTools.error("Could not determine visible silhouette \n" + toString());
+//         PrintTools.warn("On face size: " + onFaceList.size());
+//         for(int i = 0; i < onFaceList.size(); i++)
+//            PrintTools.debug(onFaceList.get(i).toString());
+//         PrintTools.warn("Visible face size: " + visibleFaces.size());
+//         for(int i = 0; i < visibleFaces.size(); i++)
+//            PrintTools.debug(visibleFaces.get(i).toString());
          faces.clear();
       }
    }
