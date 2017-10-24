@@ -114,7 +114,7 @@ public class RobotCollisionMeshProviderTest
       }
       Vector3D initialGuessDirection = new Vector3D(0.0, 0.0, 1.0);
       HybridGJKEPACollisionDetector collisionDetector = new HybridGJKEPACollisionDetector();
-      FrameConvexPolytope obstacle = ConvexPolytopeConstructor.getFrameCapsuleCollisionMesh(new FramePoint3D(worldFrame, 0.0, 0.0, 0.5), Axis.Y, 0.2, 0.05, 8);
+      FrameConvexPolytope obstacle = ConvexPolytopeConstructor.getFrameCapsuleCollisionMesh(new FramePoint3D(worldFrame, 0.033, 0.0, 0.75), Axis.Y, 0.2, 0.05, 8);
       viz.addPolytope(obstacle);
       viz.addPolytope(collisionDetector.getSimplex());
       viz.updateNonBlocking();
@@ -135,17 +135,15 @@ public class RobotCollisionMeshProviderTest
                PrintTools.debug("Colliding " + (rigidBody == null ? "null" : rigidBody.getName()) + " " + (rigidBodyMesh == null ? "null" : rigidBodyMesh.getNumberOfFaces()));
                //viz.updateColor(rigidBodyMesh, Color.RED);
                collisionDetector.runEPAExpansion(obstacle, rigidBodyMesh, pointOnObstacle, pointOnRobot);
-               collisionVector.sub(pointOnObstacle, pointOnRobot);;
-               if(norm(collisionVector) < Epsilons.ONE_TEN_THOUSANDTH)
+               collisionVector.sub(pointOnRobot, pointOnObstacle);
+               if (norm(collisionVector) < Epsilons.ONE_THOUSANDTH)
                {
-                  wasColliding = false;
-                  viz.showCollisionVector(collisionVector);
-                  viz.showCollisionVector(pointOnRobot, pointOnObstacle);
-                  viz.updateNonBlocking();
-                  continue;
+                  collisionVector.normalize();
+                  collisionVector.scale(Epsilons.ONE_THOUSANDTH);
                }
-               PrintTools.debug("Collision vector: " + collisionVector.toString());
-               viz.showCollisionVector(collisionVector);
+               Vector3DReadOnly direction = obstacle.getFaceNormalAt(pointOnObstacle);
+               if(direction.dot(collisionVector) < 0)
+                  collisionVector.negate();
                viz.showCollisionVector(pointOnRobot, pointOnObstacle);
                viz.updateNonBlocking();
                InverseDynamicsJoint[] controllableJoints = ScrewTools.computeSubtreeJoints(robotModel.getRootJoint().getSuccessor());
@@ -158,7 +156,7 @@ public class RobotCollisionMeshProviderTest
                //CommonOps.pinv(jacobianMatrix, jacobianInverse);
                CommonOps.transpose(jacobianMatrix, jacobianInverse);
                for(int i = 0; i < 3; i++)
-                  xDot.set(i + 3, 0, -collisionVector.getElement(i));
+                  xDot.set(i + 3, 0, collisionVector.getElement(i));
                CommonOps.mult(jacobianInverse, xDot, qDot);
                double scale = 1;
                for(int i = 0; i < controllableJoints.length; i++)
@@ -171,6 +169,8 @@ public class RobotCollisionMeshProviderTest
                viz.updateNonBlocking();
             }
          }
+         if(!wasColliding)
+            PrintTools.debug("No collisions!!");
       }
       viz.update();
    }

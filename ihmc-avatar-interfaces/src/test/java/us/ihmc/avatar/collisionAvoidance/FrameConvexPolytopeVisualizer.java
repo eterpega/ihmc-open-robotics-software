@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import us.ihmc.commons.Epsilons;
+import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.RigidBodyTransform;
@@ -104,7 +105,10 @@ public class FrameConvexPolytopeVisualizer
    {
       updatePolytopeVisualization(polytopes);
       if (keepSCSUp)
+      {
+         PrintTools.debug("Sleeping forever");
          ThreadTools.sleepForever();
+      }
    }
 
    public void updateNonBlocking()
@@ -150,9 +154,7 @@ public class FrameConvexPolytopeVisualizer
 
    public void showCollisionVector(Point3D startPoint, Point3D endPoint)
    {
-      tempPoint2.set(endPoint);
-      tempPoint2.sub(startPoint);
-      this.collisionPoints.setStartAndEnd(tempPoint1, tempPoint2);
+      this.collisionPoints.setStartAndEnd(startPoint, endPoint);
    }
 
    

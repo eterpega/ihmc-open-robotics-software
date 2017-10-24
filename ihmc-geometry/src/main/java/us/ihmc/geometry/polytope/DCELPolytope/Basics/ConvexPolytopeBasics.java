@@ -14,7 +14,6 @@ import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
-import us.ihmc.geometry.polytope.SupportingVertexHolder;
 import us.ihmc.geometry.polytope.DCELPolytope.Providers.ConvexPolytopeFaceProvider;
 import us.ihmc.geometry.polytope.DCELPolytope.Providers.PolytopeVertexProvider;
 
@@ -176,6 +175,11 @@ public abstract class ConvexPolytopeBasics<A extends PolytopeVertexBasics<A, B, 
    public C getFace(int index)
    {
       return faces.get(index);
+   }
+   
+   public Vector3DReadOnly getFaceNormalAt(Point3DReadOnly point)
+   {
+      return getFaceContainingPointClosestTo(point).getFaceNormal();
    }
 
    @Override
@@ -720,7 +724,7 @@ public abstract class ConvexPolytopeBasics<A extends PolytopeVertexBasics<A, B, 
       unmarkAllFaces();
       C currentBestFace = faces.get(0);
       C faceUnderConsideration = currentBestFace;
-      double maxDotProduct = faceUnderConsideration.getFaceVisibilityProduct(point);
+      double minDistance = faceUnderConsideration.getShortestDistanceTo(point);
       faceUnderConsideration.mark();
 
       for (int i = 0; i < faces.size(); i++)
@@ -729,10 +733,10 @@ public abstract class ConvexPolytopeBasics<A extends PolytopeVertexBasics<A, B, 
          {
             if (currentBestFace.getNeighbouringFace(j) != null && currentBestFace.getNeighbouringFace(j).isNotMarked())
             {
-               double dotProduct = currentBestFace.getNeighbouringFace(j).getFaceVisibilityProduct(point);
-               if (dotProduct > maxDotProduct)
+               double distance = currentBestFace.getNeighbouringFace(j).getShortestDistanceTo(point);
+               if (distance < minDistance)
                {
-                  maxDotProduct = dotProduct;
+                  minDistance = distance;
                   faceUnderConsideration = currentBestFace.getNeighbouringFace(j);
                }
                currentBestFace.getNeighbouringFace(j).mark();
