@@ -143,7 +143,7 @@ public class HybridGJKEPACollisionDetector
       getCollisionPoints(polytopeA, polytopeB, pointOnAToPack, pointOnBToPack);
    }
 
-   private void getCollisionPoints(ConvexPolytopeReadOnly polytopeA, ConvexPolytopeReadOnly polytopeB, Point3D pointOnAToPack, Point3D pointOnBToPack)
+   public void getCollisionPoints(ConvexPolytopeReadOnly polytopeA, ConvexPolytopeReadOnly polytopeB, Point3D pointOnAToPack, Point3D pointOnBToPack)
    {
       simplex.getCollidingPointsOnSimplex(origin, pointOnAToPack, pointOnBToPack);
    }
