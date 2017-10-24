@@ -113,7 +113,7 @@ public class RobotCollisionMeshProviderTest
             PrintTools.debug("Colliding " + (rigidBody == null ? "null" : rigidBody.getName()) + " " + (rigidBodyMesh == null ? "null" : rigidBodyMesh.getNumberOfFaces()));
             viz.updateColor(rigidBodyMesh, Color.RED);
             collisionDetector.runEPAExpansion(obstacle, rigidBodyMesh, collisionVector);
-            collisionDetector.runEPAExpansion(obstacle, rigidBodyMesh, pointOnObstacle, pointOnRobot);
+            collisionDetector.getCollisionPoints(obstacle, rigidBodyMesh, pointOnObstacle, pointOnRobot);
             collisionVector2.sub(pointOnObstacle, pointOnRobot);
             PrintTools.debug(collisionVector2.toString() + " " + collisionVector.toString());
             viz.showCollisionVector(collisionVector);
