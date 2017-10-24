@@ -338,7 +338,6 @@ public abstract class PolytopeHalfEdgeBasics<A extends PolytopeVertexBasics<A, B
    @Override
    public SimplexBasics getSmallestSimplexMemberReference(Point3DReadOnly point)
    {
-      PrintTools.debug("Was here edge");
       double percentage = EuclidGeometryTools.percentageAlongLineSegment3D(point, this.originVertex, this.destinationVertex);
       if (percentage <= 0.0)
          return this.originVertex;

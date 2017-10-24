@@ -17,7 +17,6 @@ import us.ihmc.geometry.polytope.DCELPolytope.Providers.PolytopeVertexProvider;
 public class FrameConvexPolytope extends ConvexPolytopeBasics<FramePolytopeVertex, FramePolytopeHalfEdge, FrameConvexPolytopeFace> implements ReferenceFrameHolder
 {
    private final ReferenceFrame referenceFrame;
-   private final ReferenceFrame frameToReturnStuffIn = ReferenceFrame.getWorldFrame();
    private final FrameConvexPolytopeFaceBuilder faceBuilder = new FrameConvexPolytopeFaceBuilder(this);
    private final FramePolytopeVertexBuilder vertexBuilder = new FramePolytopeVertexBuilder(this);
 
@@ -90,7 +89,6 @@ public class FrameConvexPolytope extends ConvexPolytopeBasics<FramePolytopeVerte
    public FramePolytopeVertex getSupportingVertexHack(Vector3DReadOnly supportDirection)
    {
       FramePolytopeVertex polytopeVertex = super.getSupportingVertexHack(supportDirection);
-      polytopeVertex.changeFrame(frameToReturnStuffIn);
       return polytopeVertex;
    }
 }

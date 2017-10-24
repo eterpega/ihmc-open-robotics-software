@@ -10,6 +10,7 @@ import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeVertexBasics;
 public class FramePolytopeVertex extends PolytopeVertexBasics<FramePolytopeVertex, FramePolytopeHalfEdge, FrameConvexPolytopeFace>  implements FrameSimplex, ReferenceFrameHolder
 {
    private FramePoint3D point = new FramePoint3D();
+   private FramePoint3D pointToReturn = new FramePoint3D();
    
    public FramePolytopeVertex()
    {
@@ -37,23 +38,27 @@ public class FramePolytopeVertex extends PolytopeVertexBasics<FramePolytopeVerte
    
    public ReferenceFrame getReferenceFrame()
    {
-      return getPosition().getReferenceFrame();
+      return point.getReferenceFrame();
    }
    
    public void changeFrame(ReferenceFrame referenceFrame)
    {
-      getPosition().changeFrame(referenceFrame);
+      point.changeFrame(referenceFrame);
    }
    
    @Override
    public FramePoint3D getPosition()
    {
-      return point;
+      pointToReturn.setIncludingFrame(point);
+      pointToReturn.changeFrame(ReferenceFrame.getWorldFrame());
+      return pointToReturn;
    }
 
    @Override
    protected Point3DBasics getPointObjectReference()
    {
-      return getPosition();
+      getPosition();
+      pointToReturn.changeFrame(ReferenceFrame.getWorldFrame());
+      return pointToReturn;
    }
 }

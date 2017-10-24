@@ -77,19 +77,15 @@ public class HybridGJKEPACollisionDetector
       simplex.addVertex(polytopeA.getSupportingVertexHack(supportVectorDirection), polytopeB.getSupportingVertexHack(supportVectorDirectionNegative));
       simplex.getSupportVectorDirectionTo(origin, supportVectorDirection);
       previousSupportVectorDirection.set(supportVectorDirection);
-      double prevDistanceToGo = Double.NaN;
       for (int i = 0; i < iterations;)
       {
          simplex.addVertex(polytopeA.getSupportingVertexHack(supportVectorDirection), polytopeB.getSupportingVertexHack(supportVectorDirectionNegative));
-         double distanceToGo = simplex.getShortestDistanceTo(origin);
-         if(distanceToGo <= epsilon)
+         if(simplex.isInteriorPoint(origin, epsilon))
          {
             return true;
          }
          else
             simplex.getSupportVectorDirectionTo(origin, supportVectorDirection);
-         if(prevDistanceToGo - distanceToGo < epsilon)
-            i++;
          if(previousSupportVectorDirection.epsilonEquals(supportVectorDirection, epsilon))
             return false;
          else
@@ -109,6 +105,11 @@ public class HybridGJKEPACollisionDetector
       getCollisionVector(simplex, collisionVectorToPack);
    }
 
+   public void getCollisionVector(Vector3D collisionVectorToPack)
+   {
+      getCollisionVector(simplex, collisionVectorToPack);
+   }
+   
    private void getCollisionVector(ExtendedSimplexPolytope simplex, Vector3D collisionVectorToPack)
    {
       collisionVectorToPack.set(supportVectorDirection);

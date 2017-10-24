@@ -13,7 +13,7 @@ import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeVertexBasics;
  * @author Apoorv S
  *
  */
-public class ExtendedPolytopeVertex extends PolytopeVertexBasics<ExtendedPolytopeVertex, PolytopeHalfEdge, ConvexPolytopeFace>
+public class ExtendedPolytopeVertex extends PolytopeVertexBasics<ExtendedPolytopeVertex, PolytopeHalfEdge, ConvexPolytopeFace> implements Simplex
 {
    private Point3D point = new Point3D();
    

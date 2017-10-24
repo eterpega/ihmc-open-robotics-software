@@ -9,6 +9,9 @@ import us.ihmc.geometry.polytope.SupportingVertexHolder;
 public interface ConvexPolytopeReadOnly extends EpsilonComparable<ConvexPolytopeReadOnly>, SupportingVertexHolder 
 {
    List<? extends ConvexPolytopeFaceReadOnly> getFaces();
+   List<? extends PolytopeHalfEdgeReadOnly> getEdges();
+   List<? extends PolytopeVertexReadOnly> getVertices();
+   
    PolytopeVertexReadOnly getSupportingVertexHack(Vector3DReadOnly supportingVertexDirection);
    default boolean isEmpty()
    {
