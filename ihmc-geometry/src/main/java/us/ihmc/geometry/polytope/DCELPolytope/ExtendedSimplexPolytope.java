@@ -56,6 +56,11 @@ public class ExtendedSimplexPolytope implements Simplex
       polytope.clear();
    }
 
+   public boolean isInteriorPoint(Point3DReadOnly pointToCheck, double epsilon)
+   {
+      return polytope.isInteriorPoint(pointToCheck, epsilon);
+   }
+   
    public double getShortestDistanceTo(Point3DReadOnly point)
    {
       return polytope.getShortestDistanceTo(point);
@@ -87,7 +92,6 @@ public class ExtendedSimplexPolytope implements Simplex
       // Assuming linearity between the simplex and polytope points 
       if(member instanceof ConvexPolytopeFace)
       {
-         PrintTools.debug("Smallest simplex is face");
          // TODO fix this nasty type casting 
          SimplexVertex simplexVertex1 = (SimplexVertex) ((ConvexPolytopeFace)member).getEdge(0).getOriginVertex();
          PolytopeVertexReadOnly polytopeAVertex1 = simplexVertex1.getVertexOnPolytopeA();
@@ -114,7 +118,6 @@ public class ExtendedSimplexPolytope implements Simplex
       }
       else if (member instanceof PolytopeHalfEdge)
       {
-         PrintTools.debug("Smallest simplex is edge");
          // TODO fix this nasty type casting 
          SimplexVertex simplexVertex1 = (SimplexVertex) ((PolytopeHalfEdge) member).getOriginVertex();
          PolytopeVertexReadOnly polytopeAVertex1 = simplexVertex1.getVertexOnPolytopeA();
@@ -128,7 +131,6 @@ public class ExtendedSimplexPolytope implements Simplex
       }
       else if (member instanceof SimplexVertex)
       {
-         PrintTools.debug("Smallest simplex is vertex");
          pointOnA.set(((SimplexVertex) member).getVertexOnPolytopeA());
          pointOnB.set(((SimplexVertex) member).getVertexOnPolytopeB());
       }

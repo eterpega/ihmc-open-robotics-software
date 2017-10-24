@@ -13,6 +13,9 @@ import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.geometry.polytope.ConvexPolytopeConstructor;
 import us.ihmc.geometry.polytope.ConvexPolytopeConstructor.Axis;
+import us.ihmc.geometry.polytope.DCELPolytope.Basics.ConvexPolytopeReadOnly;
+import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeHalfEdgeReadOnly;
+import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeVertexReadOnly;
 import us.ihmc.geometry.polytope.DCELPolytope.Frame.FrameConvexPolytope;
 import us.ihmc.geometry.polytope.DCELPolytope.Frame.FrameConvexPolytopeFace;
 import us.ihmc.geometry.polytope.DCELPolytope.Frame.FramePolytopeHalfEdge;
@@ -48,10 +51,11 @@ public class FrameConvexPolytopeVisualizer
    private ArrayList<YoGraphicPosition> visibleFaceViz;
    private YoGraphicPosition position;
    private YoDouble yoTime;
-   private final FrameConvexPolytope[] polytopes;
+   private final ConvexPolytopeReadOnly[] polytopes;
    private final Color[] polytopeColors;
    private int numberOfPolytopes = 0;
    private YoGraphicLineSegment collisionVector;
+   private YoGraphicLineSegment collisionPoints;
    private static final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
    private boolean keepSCSUp = false;
 
@@ -67,13 +71,13 @@ public class FrameConvexPolytopeVisualizer
       polytopeEdgesViz = new ArrayList<>(numberOfVizEdges);
       visibleSilhouetteViz = new ArrayList<>(numberOfVizVisibleSilhouetteEdges);
       visibleFaceViz = new ArrayList<>(numberOfVizVisiblePlanes);
-      polytopes = new FrameConvexPolytope[maxNumberOfPolytopes];
+      polytopes = new ConvexPolytopeReadOnly[maxNumberOfPolytopes];
       polytopeColors = new Color[maxNumberOfPolytopes];
       createPolytopeVisualizationElements();
       setupSCS(robots);
    }
 
-   public void addPolytope(FrameConvexPolytope polytopeToAdd)
+   public void addPolytope(ConvexPolytopeReadOnly polytopeToAdd)
    {
       polytopes[numberOfPolytopes] = polytopeToAdd;
       polytopeColors[numberOfPolytopes] = getNextColor();
@@ -128,8 +132,8 @@ public class FrameConvexPolytopeVisualizer
       }
       scs = new SimulationConstructionSet(robotList, parameters);
       Graphics3DObject coordinateSystem = new Graphics3DObject();
-      coordinateSystem.addCoordinateSystem(1.0);
-      scs.addStaticLinkGraphics(coordinateSystem);
+      coordinateSystem.addCoordinateSystem(.5);
+      //scs.addStaticLinkGraphics(coordinateSystem);
       scs.setGroundVisible(false);
       scs.setDT(1.0, 1);
       scs.startOnAThread();
@@ -144,12 +148,19 @@ public class FrameConvexPolytopeVisualizer
    private Point3D tempPoint1 = new Point3D();
    private Point3D tempPoint2 = new Point3D();
 
+   public void showCollisionVector(Point3D startPoint, Point3D endPoint)
+   {
+      tempPoint2.set(endPoint);
+      tempPoint2.sub(startPoint);
+      this.collisionPoints.setStartAndEnd(tempPoint1, tempPoint2);
+   }
+
+   
    public void showCollisionVector(Vector3D collisionVector)
    {
       tempPoint2.set(tempPoint1);
       tempPoint2.add(collisionVector);
       this.collisionVector.setStartAndEnd(tempPoint1, tempPoint2);
-      tickSCS();
    }
 
    public void createPolytopeVisualizationElements()
@@ -158,6 +169,11 @@ public class FrameConvexPolytopeVisualizer
       collisionVector.setDrawArrowhead(true);
       collisionVector.setToNaN();
       graphicsListRegistry.registerYoGraphic("CollisionVector", collisionVector);
+
+      collisionPoints = new YoGraphicLineSegment("CollisionPoints", "Viz", worldFrame, new YoAppearanceRGBColor(Color.GREEN, 0.0), registry);
+      collisionPoints.setDrawArrowhead(true);
+      collisionPoints.setToNaN();
+      graphicsListRegistry.registerYoGraphic("CollisionPoints", collisionPoints);
 
       visibleFaceViz.clear();
       for (int i = 0; i < numberOfVizVisiblePlanes; i++)
@@ -172,7 +188,7 @@ public class FrameConvexPolytopeVisualizer
       for (int i = 0; i < numberOfVizEdges; i++)
       {
          YoGraphicLineSegment edge = new YoGraphicLineSegment("PolytopeEdge" + i, "Viz", worldFrame, new YoAppearanceRGBColor(Color.BLACK, 0.5), registry);
-         edge.setDrawArrowhead(true);
+         edge.setDrawArrowhead(false);
          edge.setToNaN();
          polytopeEdgesViz.add(edge);
       }
@@ -182,7 +198,7 @@ public class FrameConvexPolytopeVisualizer
       for (int i = 0; i < numberOfVizVisibleSilhouetteEdges; i++)
       {
          YoGraphicLineSegment edge = new YoGraphicLineSegment("VisibleEdge" + i, "Viz", worldFrame, new YoAppearanceRGBColor(Color.GREEN, 0.0), registry);
-         edge.setDrawArrowhead(true);
+         edge.setDrawArrowhead(false);
          edge.setToNaN();
          visibleSilhouetteViz.add(edge);
       }
@@ -190,7 +206,7 @@ public class FrameConvexPolytopeVisualizer
 
       for (int i = 0; i < numberOfVizVertices; i++)
       {
-         YoGraphicPosition point = new YoGraphicPosition("PolytopeVertex" + i, "Viz", registry, 0.01, new YoAppearanceRGBColor(Color.BLACK, 0.5));
+         YoGraphicPosition point = new YoGraphicPosition("PolytopeVertex" + i, "Viz", registry, 0.001, new YoAppearanceRGBColor(Color.BLACK, 0.0));
          point.setPositionToNaN();
          polytopeVerticesViz.add(point);
       }
@@ -204,31 +220,25 @@ public class FrameConvexPolytopeVisualizer
    private FramePoint3D tempFramePoint1 = new FramePoint3D();
    private FramePoint3D tempFramePoint2 = new FramePoint3D();
 
-   public void updatePolytopeVisualization(FrameConvexPolytope... polytopes)
+   public void updatePolytopeVisualization(ConvexPolytopeReadOnly... polytopes)
    {
       int edgeIndex = 0;
       int vertexIndex = 0;
       for (int j = 0; j < numberOfPolytopes; j++)
       {
          Color color = polytopeColors[j];
-         List<FramePolytopeHalfEdge> edges = polytopes[j].getEdges();
-         List<FramePolytopeVertex> vertices = polytopes[j].getVertices();
+         List<? extends PolytopeHalfEdgeReadOnly> edges = polytopes[j].getEdges();
+         List<? extends PolytopeVertexReadOnly> vertices = polytopes[j].getVertices();
          int i = 0;
          for (i = 0; i < edges.size(); i++)
          {
-            tempFramePoint1.setIncludingFrame(edges.get(i).getOriginVertex().getPosition());
-            tempFramePoint1.changeFrame(worldFrame);
-            tempFramePoint2.setIncludingFrame(edges.get(i).getDestinationVertex().getPosition());
-            tempFramePoint2.changeFrame(worldFrame);
-            polytopeEdgesViz.get(edgeIndex).setStartAndEnd(tempFramePoint1.getPoint(), tempFramePoint2.getPoint());
+            polytopeEdgesViz.get(edgeIndex).setStartAndEnd(edges.get(i).getOriginVertex().getPosition(), edges.get(i).getDestinationVertex().getPosition());
             polytopeEdgesViz.get(edgeIndex).getAppearance().getColor().set(color);
             edgeIndex++;
          }
          for (i = 0; i < vertices.size(); i++)
          {
-            tempFramePoint1.setIncludingFrame(vertices.get(i).getPosition());
-            tempFramePoint1.changeFrame(worldFrame);
-            polytopeVerticesViz.get(vertexIndex).setPosition(tempFramePoint1);
+            polytopeVerticesViz.get(vertexIndex).setPosition(vertices.get(i).getPosition());
             vertexIndex++;
          }
       }

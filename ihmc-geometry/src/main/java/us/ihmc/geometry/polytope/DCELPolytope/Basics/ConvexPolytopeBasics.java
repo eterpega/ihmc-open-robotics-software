@@ -700,7 +700,7 @@ public abstract class ConvexPolytopeBasics<A extends PolytopeVertexBasics<A, B, 
    {
       if (isInteriorPoint(point, Epsilons.ONE_TRILLIONTH))
       {
-         return -getFaceContainingPointClosestTo(point).getShortestDistanceTo(point);
+         return getFaceContainingPointClosestTo(point).getShortestDistanceTo(point);
       }
       else
       {

@@ -23,7 +23,7 @@ public class FrameConvexPolytopeFace extends ConvexPolytopeFaceBasics<FramePolyt
    }
 
    @Override
-   protected PolytopeHalfEdgeProvider getHalfEdgeProvider()
+   protected PolytopeHalfEdgeProvider<FramePolytopeVertex, FramePolytopeHalfEdge, FrameConvexPolytopeFace> getHalfEdgeProvider()
    {
       return halfEdgeBuilder;
    }

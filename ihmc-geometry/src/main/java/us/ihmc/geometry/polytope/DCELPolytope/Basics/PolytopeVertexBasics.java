@@ -97,24 +97,24 @@ public abstract class PolytopeVertexBasics<A extends PolytopeVertexBasics<A, B, 
    @Override
    public double getX()
    {
-      return getPosition().getX();
+      return getPointObjectReference().getX();
    }
 
    @Override
    public double getY()
    {
-      return getPosition().getY();
+      return getPointObjectReference().getY();
    }
 
    @Override
    public double getZ()
    {
-      return getPosition().getZ();
+      return getPointObjectReference().getZ();
    }
 
    public double getElement(int index)
    {
-      return getPosition().getElement(index);
+      return getPointObjectReference().getElement(index);
    }
 
    @Override
