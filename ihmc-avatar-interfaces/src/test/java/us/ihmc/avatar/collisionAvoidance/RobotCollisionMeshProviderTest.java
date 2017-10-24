@@ -102,7 +102,7 @@ public class RobotCollisionMeshProviderTest
       GeometricJacobianCalculator jacobianCalculator = new GeometricJacobianCalculator();
       RigidBody[] rigidBodyList = ScrewTools.computeRigidBodiesAfterThisJoint(robotModel.getRootJoint());
       DenseMatrix64F jacobianMatrix = new DenseMatrix64F(6,7);
-      DenseMatrix64F jacobianInverse = new DenseMatrix64F(7,6);
+      DenseMatrix64F jacobianTranspose = new DenseMatrix64F(7,6);
       DenseMatrix64F xDot = new DenseMatrix64F(6, 1);
       DenseMatrix64F qDot = new DenseMatrix64F(7, 1);
       for (RigidBody rigidBody : rigidBodyList)
@@ -113,8 +113,8 @@ public class RobotCollisionMeshProviderTest
             PrintTools.debug("Getting a null for rigid body " + rigidBody.getName());
       }
       Vector3D initialGuessDirection = new Vector3D(0.0, 0.0, 1.0);
-      HybridGJKEPACollisionDetector collisionDetector = new HybridGJKEPACollisionDetector();
-      FrameConvexPolytope obstacle = ConvexPolytopeConstructor.getFrameCapsuleCollisionMesh(new FramePoint3D(worldFrame, 0.033, 0.0, 0.75), Axis.Y, 0.2, 0.05, 8);
+      HybridGJKEPACollisionDetector collisionDetector = new HybridGJKEPACollisionDetector(Epsilons.ONE_TRILLIONTH);
+      FrameConvexPolytope obstacle = ConvexPolytopeConstructor.getFrameCapsuleCollisionMesh(new FramePoint3D(worldFrame, 0.0, 0.0, 0.75), Axis.Z, 0.2, 0.05, 8);
       viz.addPolytope(obstacle);
       viz.addPolytope(collisionDetector.getSimplex());
       viz.updateNonBlocking();
@@ -123,7 +123,7 @@ public class RobotCollisionMeshProviderTest
       Point3D pointOnRobot = new Point3D();
       boolean wasColliding = true;
       int count = 0;
-      while (wasColliding && (count++ < 100))
+      while (wasColliding && (count++ < 1000))
       {
          wasColliding = false;
          for (RigidBody rigidBody : rigidBodyList)
@@ -135,15 +135,12 @@ public class RobotCollisionMeshProviderTest
                PrintTools.debug("Colliding " + (rigidBody == null ? "null" : rigidBody.getName()) + " " + (rigidBodyMesh == null ? "null" : rigidBodyMesh.getNumberOfFaces()));
                //viz.updateColor(rigidBodyMesh, Color.RED);
                collisionDetector.runEPAExpansion(obstacle, rigidBodyMesh, pointOnObstacle, pointOnRobot);
-               collisionVector.sub(pointOnRobot, pointOnObstacle);
+               collisionVector.sub(pointOnObstacle, pointOnRobot);
                if (norm(collisionVector) < Epsilons.ONE_THOUSANDTH)
                {
                   collisionVector.normalize();
                   collisionVector.scale(Epsilons.ONE_THOUSANDTH);
                }
-               Vector3DReadOnly direction = obstacle.getFaceNormalAt(pointOnObstacle);
-               if(direction.dot(collisionVector) < 0)
-                  collisionVector.negate();
                viz.showCollisionVector(pointOnRobot, pointOnObstacle);
                viz.updateNonBlocking();
                InverseDynamicsJoint[] controllableJoints = ScrewTools.computeSubtreeJoints(robotModel.getRootJoint().getSuccessor());
@@ -154,10 +151,10 @@ public class RobotCollisionMeshProviderTest
                jacobianCalculator.computeJacobianMatrix();
                jacobianCalculator.getJacobianMatrix(jacobianMatrix);
                //CommonOps.pinv(jacobianMatrix, jacobianInverse);
-               CommonOps.transpose(jacobianMatrix, jacobianInverse);
+               CommonOps.transpose(jacobianMatrix, jacobianTranspose);
                for(int i = 0; i < 3; i++)
                   xDot.set(i + 3, 0, collisionVector.getElement(i));
-               CommonOps.mult(jacobianInverse, xDot, qDot);
+               CommonOps.mult(jacobianTranspose, xDot, qDot);
                double scale = 1;
                for(int i = 0; i < controllableJoints.length; i++)
                {
