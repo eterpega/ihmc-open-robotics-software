@@ -233,7 +233,7 @@ public class KinematicsToolboxControllerTest
 
       for (int i = 0; i < numberOfTests; i++)
       {
-         randomizeJointPositions(random, randomizedFullRobotModel, 0.4);
+         randomizeJointPositions(random, randomizedFullRobotModel, 0.3);
          RigidBody hand = ScrewTools.findRigidBodiesWithNames(ScrewTools.computeRigidBodiesAfterThisJoint(randomizedFullRobotModel.getRight()), "handLink")[0];
          KinematicsToolboxRigidBodyMessage message = holdRigidBodyCurrentPose(hand);
          message.setWeight(20.0);
