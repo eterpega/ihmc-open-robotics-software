@@ -27,7 +27,7 @@ public class AtlasCollisionBoxProvider extends SDFCollisionBoxProvider
          RigidBodyTransform mittenPose = new RigidBodyTransform();
          mittenPose.setTranslation(0, robotSide.negateIfRightSide(0.27), -0.005);
          CollisionSphere hand = new CollisionSphere(mittenPose, 0.12 + extent);
-         //addCollisionShape(joint, hand);
+         addCollisionShape(joint, hand);
          
          // Add extra collision sphere around the knee, to avoid hitting points there on the real robot
          String kneeJoint = jointMap.getLegJointName(robotSide, LegJointName.KNEE_PITCH);
@@ -35,7 +35,7 @@ public class AtlasCollisionBoxProvider extends SDFCollisionBoxProvider
          kneePose.setRotationRollAndZeroTranslation(Math.PI / 2.0);
          kneePose.setTranslation(0.05, 0, 0.03);
          CollisionCylinder knee = new CollisionCylinder(kneePose, 0.11, 0.15 + 2.0 * extent);
-         //addCollisionShape(kneeJoint, knee);
+         addCollisionShape(kneeJoint, knee);
          
          // Add boxes for the stupid hose
          
@@ -43,7 +43,7 @@ public class AtlasCollisionBoxProvider extends SDFCollisionBoxProvider
          RigidBodyTransform elbowBoxTransform = new RigidBodyTransform();
          elbowBoxTransform.setTranslation(0, robotSide.negateIfLeftSide(0.1), -0.2);
          CollisionBox stupidHoseBox = new CollisionBox(elbowBoxTransform, 0.15, 0.3, 0.15);
-         //addCollisionShape(elbowJoint, stupidHoseBox);
+         addCollisionShape(elbowJoint, stupidHoseBox);
       }
       
       // Add wide backpack for hose
@@ -52,12 +52,12 @@ public class AtlasCollisionBoxProvider extends SDFCollisionBoxProvider
       RigidBodyTransform backPackTransform = new RigidBodyTransform();
       backPackTransform.setTranslation(-0.2, 0, 0.2);
       CollisionBox backPackHoseBox = new CollisionBox(backPackTransform, 0.2, 0.5, 0.3);
-      //addCollisionShape(backRollJoint, backPackHoseBox);
+      addCollisionShape(backRollJoint, backPackHoseBox);
       
       RigidBodyTransform haloTransform = new RigidBodyTransform();
       haloTransform.setTranslation(0, 0, 1);
       CollisionCylinder halo = new CollisionCylinder(haloTransform, 0.35, 1.0);
-      //addCollisionShape(backRollJoint, halo);
+      addCollisionShape(backRollJoint, halo);
 
    }
 
