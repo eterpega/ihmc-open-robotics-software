@@ -200,12 +200,6 @@ public class KinematicsToolboxController extends ToolboxController
    private final Map<String, FeedbackControlCommand<?>> userFeedbackCommands = new HashMap<>();
 
    /**
-    * Map of the collision meshes that are attached to each controllable rigid body. It is used to determine detect collisions with objects 
-    * in the robot's surrounding and provide collision free inverse kinematic solutions
-    */
-   private final Map<RigidBody, FrameConvexPolytope> rigidBodyCollisionMeshes = new HashMap<>();
-
-   /**
     * This is mostly for visualization to be able to keep track of the number of commands that the
     * user submitted.
     */
@@ -215,13 +209,12 @@ public class KinematicsToolboxController extends ToolboxController
                                       FloatingInverseDynamicsJoint rootJoint, OneDoFJoint[] oneDoFJoints, YoGraphicsListRegistry yoGraphicsListRegistry,
                                       YoVariableRegistry parentRegistry)
    {
-      this(commandInputManager, statusOutputManager, rootJoint, oneDoFJoints, null, null, yoGraphicsListRegistry, parentRegistry);
+      this(commandInputManager, statusOutputManager, rootJoint, oneDoFJoints, null, yoGraphicsListRegistry, parentRegistry);
    }
 
    public KinematicsToolboxController(CommandInputManager commandInputManager, StatusMessageOutputManager statusOutputManager,
                                       FloatingInverseDynamicsJoint rootJoint, OneDoFJoint[] oneDoFJoints, Collection<RigidBody> controllableRigidBodies,
-                                      HashMap<RigidBody, FrameConvexPolytope> collisionMeshMap, YoGraphicsListRegistry yoGraphicsListRegistry,
-                                      YoVariableRegistry parentRegistry)
+                                      YoGraphicsListRegistry yoGraphicsListRegistry, YoVariableRegistry parentRegistry)
    {
       super(statusOutputManager, parentRegistry);
       this.commandInputManager = commandInputManager;
