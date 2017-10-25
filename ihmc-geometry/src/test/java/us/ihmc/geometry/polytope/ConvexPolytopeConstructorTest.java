@@ -10,10 +10,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 import us.ihmc.commons.Epsilons;
+import us.ihmc.euclid.Axis;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
-import us.ihmc.geometry.polytope.ConvexPolytopeConstructor.Axis;
 import us.ihmc.geometry.polytope.DCELPolytope.ConvexPolytopeFace;
 import us.ihmc.geometry.polytope.DCELPolytope.ExtendedConvexPolytope;
 import us.ihmc.robotics.MathTools;
@@ -73,7 +73,7 @@ public class ConvexPolytopeConstructorTest
    private void testCylindericalPoints(double xCenter, double yCenter, double zCenter, Axis axis, double radius, double length, int curveDiscretization, ArrayList<? extends Point3DReadOnly> pointList)
    {
       assertEquals(pointList.size(), curveDiscretization * 2);
-      Vector3D axisVector = new Vector3D(axis.getUnitVector());
+      Vector3D axisVector = new Vector3D(axis.getAxisVector());
       axisVector.sub(1.0, 1.0, 1.0);
       axisVector.negate();
       Vector3D tempVectorForTesting = new Vector3D();
@@ -81,7 +81,7 @@ public class ConvexPolytopeConstructorTest
       for(int i = 0; i < pointList.size(); i++)
       {
          tempVectorForTesting.sub(pointList.get(i), center);
-         assertTrue("", MathTools.epsilonEquals(Math.abs(axis.getUnitVector().dot(tempVectorForTesting)), length / 2.0, Epsilons.ONE_BILLIONTH));
+         assertTrue("", MathTools.epsilonEquals(Math.abs(axis.getAxisVector().dot(tempVectorForTesting)), length / 2.0, Epsilons.ONE_BILLIONTH));
          tempVectorForTesting.scale(axisVector.getX(), axisVector.getY(), axisVector.getZ());
          double radiusToTest = Math.sqrt(tempVectorForTesting.dot(tempVectorForTesting));
          assertTrue("Wanted: " + radius + " Got: " + radiusToTest, MathTools.epsilonEquals(radius, radiusToTest, Epsilons.ONE_BILLIONTH));

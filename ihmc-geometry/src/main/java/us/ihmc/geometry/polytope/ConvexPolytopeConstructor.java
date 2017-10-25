@@ -5,10 +5,8 @@ import java.util.List;
 import java.util.Random;
 
 import us.ihmc.commons.Epsilons;
-import us.ihmc.commons.PrintTools;
-import us.ihmc.euclid.axisAngle.AxisAngle;
+import us.ihmc.euclid.Axis;
 import us.ihmc.euclid.geometry.LineSegment3D;
-import us.ihmc.euclid.geometry.tools.EuclidGeometryTools;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tools.EuclidCoreRandomTools;
@@ -26,54 +24,6 @@ import us.ihmc.geometry.polytope.DCELPolytope.Frame.FrameConvexPolytope;
 
 public class ConvexPolytopeConstructor
 {
-   public enum Axis
-   {
-      X, Y, Z;
-      static final Vector3D xAxisVector = new Vector3D(1.0, 0.0, 0.0);
-      static final Vector3D yAxisVector = new Vector3D(0.0, 1.0, 0.0);
-      static final Vector3D zAxisVector = new Vector3D(0.0, 0.0, 1.0);
-
-      public Vector3DReadOnly getUnitVector()
-      {
-         switch (this)
-         {
-         case X:
-            return xAxisVector;
-         case Y:
-            return yAxisVector;
-         default:
-            return zAxisVector;
-         }
-      }
-
-      public int getElementIndex()
-      {
-         switch (this)
-         {
-         case X:
-            return 0;
-         case Y:
-            return 1;
-         default:
-            return 2;
-         }
-      }
-
-      public Axis getNextAntiClockwiseAxis()
-      {
-         switch (this)
-         {
-         case X:
-            return Y;
-         case Y:
-            return Z;
-         default:
-            return X;
-         }
-      }
-
-   }
-
    public enum Direction
    {
       AlongAxis, OppositeAxis;
@@ -715,8 +665,8 @@ public class ConvexPolytopeConstructor
       RigidBodyTransform rigidBodyTransform = new RigidBodyTransform();
       Vector3D axisAngleVector = new Vector3D();
       lineSegment.getDirection(true, axisAngleVector);
-      double angle = axisAngleVector.angle(Axis.xAxisVector);
-      axisAngleVector.cross(Axis.xAxisVector);
+      double angle = axisAngleVector.angle(Axis.X.getAxisVector());
+      axisAngleVector.cross(Axis.X.getAxisVector());
       axisAngleVector.normalize();
       axisAngleVector.scale(angle);
       rigidBodyTransform.setRotation(axisAngleVector);
@@ -793,9 +743,9 @@ public class ConvexPolytopeConstructor
          for (int j = 0; j < cubeDivisions; j++)
          {
             Point3D point = new Point3D();
-            point.setElement(axis.getElementIndex(), -direction.getSign());
-            point.setElement(axis.getNextAntiClockwiseAxis().getElementIndex(), x);
-            point.setElement(axis.getNextAntiClockwiseAxis().getNextAntiClockwiseAxis().getElementIndex(), (2.0 * (float) j / (float) (cubeDivisions - 1) - 1));
+            point.setElement(axis.ordinal(), -direction.getSign());
+            point.setElement((axis.ordinal() + 1) % 3, x);
+            point.setElement((axis.ordinal() + 2) % 3, (2.0 * (float) j / (float) (cubeDivisions - 1) - 1));
             pointsToPack.add(point);
          }
       }
@@ -807,27 +757,27 @@ public class ConvexPolytopeConstructor
          {
             double xy = (2.0 * (float) j / (float) (cubeDivisions - 1) - 1);
             Point3D point = new Point3D();
-            point.setElement(axis.getElementIndex(), z);
-            point.setElement(axis.getNextAntiClockwiseAxis().getElementIndex(), -1.0);
-            point.setElement(axis.getNextAntiClockwiseAxis().getNextAntiClockwiseAxis().getElementIndex(), xy);
+            point.setElement(axis.ordinal(), z);
+            point.setElement((axis.ordinal() + 1) % 3, -1.0);
+            point.setElement((axis.ordinal() + 2) % 3, xy);
             pointsToPack.add(point);
 
             point = new Point3D();
-            point.setElement(axis.getElementIndex(), z);
-            point.setElement(axis.getNextAntiClockwiseAxis().getElementIndex(), xy);
-            point.setElement(axis.getNextAntiClockwiseAxis().getNextAntiClockwiseAxis().getElementIndex(), -1.0);
+            point.setElement(axis.ordinal(), z);
+            point.setElement((axis.ordinal() + 1) % 3, xy);
+            point.setElement((axis.ordinal() + 2) % 3, -1.0);
             pointsToPack.add(point);
 
             point = new Point3D();
-            point.setElement(axis.getElementIndex(), z);
-            point.setElement(axis.getNextAntiClockwiseAxis().getElementIndex(), xy);
-            point.setElement(axis.getNextAntiClockwiseAxis().getNextAntiClockwiseAxis().getElementIndex(), 1.0);
+            point.setElement(axis.ordinal(), z);
+            point.setElement((axis.ordinal() + 1) % 3, xy);
+            point.setElement((axis.ordinal() + 2) % 3, 1.0);
             pointsToPack.add(point);
 
             point = new Point3D();
-            point.setElement(axis.getElementIndex(), z);
-            point.setElement(axis.getNextAntiClockwiseAxis().getElementIndex(), 1.0);
-            point.setElement(axis.getNextAntiClockwiseAxis().getNextAntiClockwiseAxis().getElementIndex(), xy);
+            point.setElement(axis.ordinal(), z);
+            point.setElement((axis.ordinal() + 1) % 3, 1.0);
+            point.setElement((axis.ordinal() + 2) % 3, xy);
             pointsToPack.add(point);
          }
       }

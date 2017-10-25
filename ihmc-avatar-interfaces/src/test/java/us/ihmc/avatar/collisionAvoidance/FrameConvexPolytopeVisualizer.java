@@ -7,13 +7,13 @@ import java.util.List;
 
 import us.ihmc.commons.Epsilons;
 import us.ihmc.commons.PrintTools;
+import us.ihmc.euclid.Axis;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.geometry.polytope.ConvexPolytopeConstructor;
-import us.ihmc.geometry.polytope.ConvexPolytopeConstructor.Axis;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.ConvexPolytopeReadOnly;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeHalfEdgeReadOnly;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeVertexReadOnly;
