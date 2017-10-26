@@ -10,6 +10,7 @@ public class MotionQPInput
    private double taskWeightScalar;
    private boolean useWeightScalar = false;
    private boolean isMotionConstraint = false;
+   private boolean isEqualityConstraint = true;
    private final int numberOfDoFs;
 
    /**
@@ -58,6 +59,11 @@ public class MotionQPInput
    {
       this.isMotionConstraint = isMotionConstraint;
    }
+   
+   public void setIsEqualityConstraint(boolean isEqualityConstraint)
+   {
+      this.isEqualityConstraint = isEqualityConstraint;
+   }
 
    public void setUseWeightScalar(boolean useWeightScalar)
    {
@@ -84,6 +90,11 @@ public class MotionQPInput
       return isMotionConstraint;
    }
 
+   public boolean isEqualityConstraint()
+   {
+      return isEqualityConstraint;
+   }
+   
    @Override
    public String toString()
    {

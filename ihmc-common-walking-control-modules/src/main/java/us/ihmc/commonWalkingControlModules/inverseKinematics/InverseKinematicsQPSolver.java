@@ -103,7 +103,12 @@ public class InverseKinematicsQPSolver
    public void addMotionInput(MotionQPInput input)
    {
       if (input.isMotionConstraint())
-         addMotionConstraint(input.taskJacobian, input.taskObjective);
+      {
+         if(input.isEqualityConstraint())
+            addEqualityMotionConstraint(input.taskJacobian, input.taskObjective);
+         else
+            addInequalityMotionConstraint(input.taskJacobian, input.taskObjective);
+      }
       else if (input.useWeightScalar())
          addMotionTask(input.taskJacobian, input.taskObjective, input.getWeightScalar());
       else
@@ -145,7 +150,20 @@ public class InverseKinematicsQPSolver
       CommonOps.subtractEquals(solverInput_f, tempTask_f);
    }
 
-   public void addMotionConstraint(DenseMatrix64F taskJacobian, DenseMatrix64F taskObjective)
+   public void addInequalityMotionConstraint(DenseMatrix64F taskJacobian, DenseMatrix64F taskObjective)
+   {
+      int taskSize = taskJacobian.getNumRows();
+      int previousSize = solverInput_bin.getNumRows();
+
+      // Careful on that one, it works as long as matrices are row major and that the number of columns is not changed.
+      solverInput_Ain.reshape(previousSize + taskSize, numberOfDoFs, true);
+      solverInput_bin.reshape(previousSize + taskSize, 1, true);
+
+      CommonOps.insert(taskJacobian, solverInput_Ain, previousSize, 0);
+      CommonOps.insert(taskObjective, solverInput_bin, previousSize, 0);
+   }
+   
+   public void addEqualityMotionConstraint(DenseMatrix64F taskJacobian, DenseMatrix64F taskObjective)
    {
       int taskSize = taskJacobian.getNumRows();
       int previousSize = solverInput_beq.getNumRows();
