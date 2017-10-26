@@ -70,6 +70,11 @@ public class ExtendedSimplexPolytope implements Simplex
    {
       polytope.getSupportVectorDirectionTo(point, supportVectorToPack);
    }
+   
+   public boolean isEmpty()
+   {
+      return polytope.isEmpty();
+   }
 
    public Simplex getSmallestSimplexMemberReference(Point3DReadOnly point)
    {

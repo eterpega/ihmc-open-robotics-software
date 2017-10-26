@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.Timer;
 
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
@@ -26,6 +27,7 @@ import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.geometry.polytope.ConvexPolytopeConstructor;
+import us.ihmc.geometry.polytope.DCELPolytope.ExtendedSimplexPolytope;
 import us.ihmc.geometry.polytope.DCELPolytope.CollisionDetection.HybridGJKEPACollisionDetector;
 import us.ihmc.geometry.polytope.DCELPolytope.Frame.FrameConvexPolytope;
 import us.ihmc.robotModels.FullRobotModel;
@@ -40,6 +42,7 @@ import us.ihmc.robotics.screwTheory.InverseDynamicsJoint;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
 import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.robotics.screwTheory.ScrewTools;
+import us.ihmc.robotics.time.ExecutionTimer;
 import us.ihmc.simulationconstructionset.RobotFromDescription;
 
 public class RobotCollisionMeshProviderTest
@@ -114,33 +117,38 @@ public class RobotCollisionMeshProviderTest
       HybridGJKEPACollisionDetector collisionDetector = new HybridGJKEPACollisionDetector(Epsilons.ONE_TRILLIONTH);
       FrameConvexPolytope obstacle = ConvexPolytopeConstructor.getFrameCapsuleCollisionMesh(new FramePoint3D(worldFrame, 0.0, 0.0, 0.75), Axis.Z, 0.2, 0.05, 8);
       viz.addPolytope(obstacle);
-      viz.addPolytope(collisionDetector.getSimplex());
       viz.updateNonBlocking();
       Vector3D collisionVector = new Vector3D(1.0, 0.0, 0.0);
       Point3D pointOnObstacle = new Point3D();
       Point3D pointOnRobot = new Point3D();
       boolean wasColliding = true;
       int count = 0;
+      ExecutionTimer timer = new ExecutionTimer("Timer", null);
+      timer.startMeasurement();
       while (wasColliding && (count++ < 1000))
       {
          wasColliding = false;
          for (RigidBody rigidBody : rigidBodyList)
          {
             FrameConvexPolytope rigidBodyMesh = collisionPolytopeMap.get(rigidBody);
-            if (rigidBodyMesh != null && collisionDetector.checkCollisionBetweenTwoPolytopes(obstacle, rigidBodyMesh, initialGuessDirection))
+            collisionDetector.setPolytopeA(obstacle);
+            collisionDetector.setPolytopeB(rigidBodyMesh);
+            collisionDetector.setSimplex(new ExtendedSimplexPolytope());
+            if (rigidBodyMesh != null && collisionDetector.checkCollision())
             {
                wasColliding = true;
-               PrintTools.debug("Colliding " + (rigidBody == null ? "null" : rigidBody.getName()) + " " + (rigidBodyMesh == null ? "null" : rigidBodyMesh.getNumberOfFaces()));
+               //PrintTools.debug("Colliding " + (rigidBody == null ? "null" : rigidBody.getName()) + " " + (rigidBodyMesh == null ? "null" : rigidBodyMesh.getNumberOfFaces()));
                //viz.updateColor(rigidBodyMesh, Color.RED);
-               collisionDetector.runEPAExpansion(obstacle, rigidBodyMesh, pointOnObstacle, pointOnRobot);
+               collisionDetector.runEPAExpansion();
+               collisionDetector.getCollisionPoints(pointOnObstacle, pointOnRobot);
                collisionVector.sub(pointOnObstacle, pointOnRobot);
                if (norm(collisionVector) < Epsilons.ONE_THOUSANDTH)
                {
                   collisionVector.normalize();
                   collisionVector.scale(Epsilons.ONE_THOUSANDTH);
                }
-               viz.showCollisionVector(pointOnRobot, pointOnObstacle);
-               viz.updateNonBlocking();
+               //viz.showCollisionVector(pointOnRobot, pointOnObstacle);
+               //viz.updateNonBlocking();
                InverseDynamicsJoint[] controllableJoints = ScrewTools.computeSubtreeJoints(robotModel.getRootJoint().getSuccessor());
                updateCollisionFrameFromPoint(collisionPointReferenceFrame, pointOnRobot, collisionVector);
                jacobianCalculator.clearJacobianMatrix();
@@ -153,7 +161,7 @@ public class RobotCollisionMeshProviderTest
                for(int i = 0; i < 3; i++)
                   xDot.set(i + 3, 0, collisionVector.getElement(i));
                CommonOps.mult(jacobianTranspose, xDot, qDot);
-               double scale = 1;
+               double scale = 5;
                for(int i = 0; i < controllableJoints.length; i++)
                {
                   //PrintTools.debug("Moving " + controllableJoints[i].getName() + " by " + qDot.get(i, 0));
@@ -161,12 +169,14 @@ public class RobotCollisionMeshProviderTest
                   joint.setQ(joint.getQ() + qDot.get(i, 0) * scale);
                }
                new JointAnglesWriter(scsRobot, robotModel.getRootJoint(), robotModel.getOneDoFJoints()).updateRobotConfigurationBasedOnFullRobotModel();
-               viz.updateNonBlocking();
+               //viz.updateNonBlocking();
             }
          }
-         if(!wasColliding)
-            PrintTools.debug("No collisions!!");
+         //if(!wasColliding)
+         //   PrintTools.debug("No collisions!!");
       }
+      timer.stopMeasurement();
+      PrintTools.debug("Took: " + timer.getCurrentTime());
       viz.update();
    }
    

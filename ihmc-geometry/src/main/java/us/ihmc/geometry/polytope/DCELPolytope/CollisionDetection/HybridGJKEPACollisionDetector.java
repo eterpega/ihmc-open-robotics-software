@@ -8,12 +8,25 @@ import us.ihmc.geometry.polytope.DCELPolytope.ExtendedConvexPolytope;
 import us.ihmc.geometry.polytope.DCELPolytope.ExtendedSimplexPolytope;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.ConvexPolytopeReadOnly;
 
+/**
+ * Combines the GJK and EPA collision detection into a single class for improving the computational speed
+ * Unlike traditional GJK / EPA this leverages the ability of the polytope classes to automatically update 
+ * their internal structures when adding new vertices
+ * TODO allow for the simplices to be updated instead of recomputed each iteration. This needs the simplex 
+ * to be able to remove vertices to maintain convexity
+ * @author Apoorv S
+ *
+ */
 public class HybridGJKEPACollisionDetector
 {
-   private static final Point3D origin = new Point3D();
-   private double epsilon = Epsilons.ONE_TEN_THOUSANDTH;
+   private static final double defaultCollisionEpsilon = Epsilons.ONE_BILLIONTH;
 
-   private final ExtendedSimplexPolytope simplex = new ExtendedSimplexPolytope();
+   private static final Point3D origin = new Point3D();
+
+   private double epsilon;
+   private ExtendedSimplexPolytope simplex;
+   private ConvexPolytopeReadOnly polytopeA;
+   private ConvexPolytopeReadOnly polytopeB;
    private Vector3D supportVectorDirectionNegative = new Vector3D();
    private Vector3D supportVectorDirection = new Vector3D()
    {
@@ -30,14 +43,14 @@ public class HybridGJKEPACollisionDetector
          supportVectorDirectionNegative.setY(-y);
       };
       @Override
-      public final void setZ(double x)
+      public final void setZ(double z)
       {
-         super.setZ(x);
-         supportVectorDirectionNegative.setZ(-x);
+         super.setZ(z);
+         supportVectorDirectionNegative.setZ(-z);
       };
    };
+   
    private Vector3D previousSupportVectorDirection = new Vector3D();
-
    private final int iterations = 10;
 
    public void setSupportVectorDirection(Vector3DReadOnly vectorToSet)
@@ -55,37 +68,77 @@ public class HybridGJKEPACollisionDetector
       vectorToPack.set(supportVectorDirectionNegative);
    }
    
-   public HybridGJKEPACollisionDetector()
+   public ExtendedConvexPolytope getSimplex()
    {
-      this(Epsilons.ONE_BILLIONTH);
+      return simplex.getPolytope();
+   }
+   
+   public void setSimplex(ExtendedSimplexPolytope simplex)
+   {
+      this.simplex = simplex;
+   }
+   
+   public void setPolytopeA(ConvexPolytopeReadOnly polytopeA)
+   {
+      this.polytopeA = polytopeA;
    }
 
-   public HybridGJKEPACollisionDetector(double epsilon)
+   public void setPolytopeB(ConvexPolytopeReadOnly polytopeB)
+   {
+      this.polytopeB = polytopeB;
+   }
+   
+   public void setEpsilon(double epsilon)
    {
       this.epsilon = epsilon;
    }
    
-   public boolean checkCollisionBetweenTwoPolytopes(ConvexPolytopeReadOnly polytopeA, ConvexPolytopeReadOnly polytopeB, Vector3D initialDirectionForSearch)
+   public double getEpsilon()
    {
-      simplex.clear();
+      return epsilon;
+   }
+
+   public HybridGJKEPACollisionDetector()
+   {
+      this(null, defaultCollisionEpsilon);
+   }
+
+   public HybridGJKEPACollisionDetector(double epsilon)
+   {
+      this(null, epsilon);
+   }
+   
+   public HybridGJKEPACollisionDetector(ExtendedSimplexPolytope simplex)
+   {
+      this(simplex, defaultCollisionEpsilon);
+   }
+   
+   public HybridGJKEPACollisionDetector(ExtendedSimplexPolytope simplex, double epsilon)
+   {
+      setSimplex(simplex);
+      setEpsilon(epsilon);
+   }
+   
+   public boolean checkCollision()
+   {
       if(polytopeA.isEmpty() || polytopeB.isEmpty())
       {
          return false;
       }
-         
-      setSupportVectorDirection(initialDirectionForSearch);
-      simplex.addVertex(polytopeA.getSupportingVertexHack(supportVectorDirection), polytopeB.getSupportingVertexHack(supportVectorDirectionNegative));
-      simplex.getSupportVectorDirectionTo(origin, supportVectorDirection);
+
+      if(simplex.isEmpty())
+         supportVectorDirection.set(1.0,  0.0, 0.0);
+      else
+         simplex.getSupportVectorDirectionTo(origin, supportVectorDirection);
       previousSupportVectorDirection.set(supportVectorDirection);
       for (int i = 0; i < iterations;)
       {
          simplex.addVertex(polytopeA.getSupportingVertexHack(supportVectorDirection), polytopeB.getSupportingVertexHack(supportVectorDirectionNegative));
          if(simplex.isInteriorPoint(origin, epsilon))
-         {
             return true;
-         }
          else
             simplex.getSupportVectorDirectionTo(origin, supportVectorDirection);
+         
          if(previousSupportVectorDirection.epsilonEquals(supportVectorDirection, epsilon))
             return false;
          else
@@ -93,35 +146,11 @@ public class HybridGJKEPACollisionDetector
       }
       return false;
    }
-   
-   public void runEPAExpansion(ConvexPolytopeReadOnly polytopeA, ConvexPolytopeReadOnly polytopeB, Vector3D collisionVectorToPack)
-   {
-      runEPAExpansion(polytopeA, polytopeB, simplex, supportVectorDirection, collisionVectorToPack);
-   }
 
-   public void runEPAExpansion(ConvexPolytopeReadOnly polytopeA, ConvexPolytopeReadOnly polytopeB, ExtendedSimplexPolytope simplex, Vector3D initialSupportVectorDirection, Vector3D collisionVectorToPack)
+   public void runEPAExpansion()
    {
-      runEPAExpansion(polytopeA, polytopeB, simplex, initialSupportVectorDirection);
-      getCollisionVector(simplex, collisionVectorToPack);
-   }
-
-   public void getCollisionVector(Vector3D collisionVectorToPack)
-   {
-      getCollisionVector(simplex, collisionVectorToPack);
-   }
-   
-   private void getCollisionVector(ExtendedSimplexPolytope simplex, Vector3D collisionVectorToPack)
-   {
-      collisionVectorToPack.set(supportVectorDirection);
-      collisionVectorToPack.normalize();
-      collisionVectorToPack.scale(simplex.getSmallestSimplexMemberReference(origin).getShortestDistanceTo(origin));
-   }
-
-   private void runEPAExpansion(ConvexPolytopeReadOnly polytopeA, ConvexPolytopeReadOnly polytopeB, ExtendedSimplexPolytope simplex,
-                                Vector3D initialSupportVectorDirection)
-   {
-      supportVectorDirection.set(initialSupportVectorDirection);
-      previousSupportVectorDirection.set(initialSupportVectorDirection);
+      simplex.getSupportVectorDirectionTo(origin, supportVectorDirection);
+      previousSupportVectorDirection.set(supportVectorDirection);
       while(true)
       {
          simplex.addVertex(polytopeA.getSupportingVertexHack(supportVectorDirection), polytopeB.getSupportingVertexHack(supportVectorDirectionNegative));
@@ -133,24 +162,15 @@ public class HybridGJKEPACollisionDetector
       }
    }
    
-   public void runEPAExpansion(ConvexPolytopeReadOnly polytopeA, ConvexPolytopeReadOnly polytopeB, Point3D pointOnAToPack, Point3D pointOnBToPack)
+   public void getCollisionVector(Vector3D collisionVectorToPack)
    {
-      runEPAExpansion(polytopeA, polytopeB, simplex, supportVectorDirection, pointOnAToPack, pointOnBToPack);
-   }
-   
-   public void runEPAExpansion(ConvexPolytopeReadOnly polytopeA, ConvexPolytopeReadOnly polytopeB, ExtendedSimplexPolytope simplex, Vector3D initialSupportVectorDirection, Point3D pointOnAToPack, Point3D pointOnBToPack)
-   {
-      runEPAExpansion(polytopeA, polytopeB, simplex, initialSupportVectorDirection);
-      getCollisionPoints(polytopeA, polytopeB, pointOnAToPack, pointOnBToPack);
+      collisionVectorToPack.set(supportVectorDirection);
+      collisionVectorToPack.normalize();
+      collisionVectorToPack.scale(simplex.getSmallestSimplexMemberReference(origin).getShortestDistanceTo(origin));
    }
 
-   public void getCollisionPoints(ConvexPolytopeReadOnly polytopeA, ConvexPolytopeReadOnly polytopeB, Point3D pointOnAToPack, Point3D pointOnBToPack)
+   public void getCollisionPoints(Point3D pointOnAToPack, Point3D pointOnBToPack)
    {
       simplex.getCollidingPointsOnSimplex(origin, pointOnAToPack, pointOnBToPack);
-   }
-   
-   public ExtendedConvexPolytope getSimplex()
-   {
-      return simplex.getPolytope();
    }
 }
