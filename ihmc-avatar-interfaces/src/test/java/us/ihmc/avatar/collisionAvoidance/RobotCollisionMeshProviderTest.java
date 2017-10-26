@@ -93,7 +93,7 @@ public class RobotCollisionMeshProviderTest
       RobotDescription sevenDoFArm = new KinematicsToolboxControllerTestRobots.SevenDoFArm();
       JointNameMap sevenDoFArmJointNameMap = new KinematicsToolboxControllerTestRobots.SevenDoFArmJointMap();
       FullRobotModel robotModel = new FullRobotModelFromDescription(sevenDoFArm, sevenDoFArmJointNameMap, null);
-      RobotCollisionMeshProvider meshProvider = new RobotCollisionMeshProvider(4);
+      RobotCollisionMeshProvider meshProvider = new RobotCollisionMeshProvider(16);
       THashMap<RigidBody, FrameConvexPolytope> collisionPolytopeMap = meshProvider.createCollisionMeshesFromRobotDescription(robotModel, sevenDoFArm);
       RobotFromDescription scsRobot = new RobotFromDescription(sevenDoFArm);
       FrameConvexPolytopeVisualizer viz = new FrameConvexPolytopeVisualizer(collisionPolytopeMap.size() + 2, true, scsRobot);
@@ -131,7 +131,7 @@ public class RobotCollisionMeshProviderTest
             {
                wasColliding = true;
                PrintTools.debug("Colliding " + (rigidBody == null ? "null" : rigidBody.getName()) + " " + (rigidBodyMesh == null ? "null" : rigidBodyMesh.getNumberOfFaces()));
-               //viz.updateColor(rigidBodyMesh, Color.RED);
+               viz.updateColor(rigidBodyMesh, Color.RED);
                collisionDetector.runEPAExpansion(obstacle, rigidBodyMesh, pointOnObstacle, pointOnRobot);
                collisionVector.sub(pointOnObstacle, pointOnRobot);
                if (norm(collisionVector) < Epsilons.ONE_THOUSANDTH)
@@ -139,7 +139,8 @@ public class RobotCollisionMeshProviderTest
                   collisionVector.normalize();
                   collisionVector.scale(Epsilons.ONE_THOUSANDTH);
                }
-               viz.showCollisionVector(pointOnRobot, pointOnObstacle);
+               viz.showCollisionVector(pointOnObstacle,pointOnRobot);
+               viz.showCollisionVector(collisionVector);
                viz.updateNonBlocking();
                InverseDynamicsJoint[] controllableJoints = ScrewTools.computeSubtreeJoints(robotModel.getRootJoint().getSuccessor());
                updateCollisionFrameFromPoint(collisionPointReferenceFrame, pointOnRobot, collisionVector);
@@ -175,14 +176,13 @@ public class RobotCollisionMeshProviderTest
    private void updateCollisionFrameFromPoint(PoseReferenceFrame poseFrame, Point3D collisionPoint, Vector3D collisionVector)
    {
       //TODO: Generate the frame axis using Gram-Schmidt orthogonalization on collision vector 
-      
       // Set the pose 
       poseFrame.setPoseAndUpdate(collisionPoint, worldOrientation);
    }
    
    private double norm(Vector3DReadOnly vector)
    {
-      return vector.getX() * vector.getX() + vector.getY() * vector.getY() + vector.getZ() * vector.getZ();
+      return Math.sqrt(vector.getX() * vector.getX() + vector.getY() * vector.getY() + vector.getZ() * vector.getZ());
    }
 
    @Test

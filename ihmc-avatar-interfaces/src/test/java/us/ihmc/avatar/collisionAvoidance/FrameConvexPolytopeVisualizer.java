@@ -40,7 +40,7 @@ import us.ihmc.yoVariables.variable.YoDouble;
 public class FrameConvexPolytopeVisualizer
 {
    private static final int numberOfVizEdges = 5000;
-   private static final int numberOfVizVertices = 1000;
+   private static final int numberOfVizVertices = 2000;
    private static final int numberOfVizVisiblePlanes = 50;
    private static final int numberOfVizVisibleSilhouetteEdges = 50;
    private final YoVariableRegistry registry = new YoVariableRegistry("PolytopeVisualizer");
@@ -169,11 +169,13 @@ public class FrameConvexPolytopeVisualizer
    {
       collisionVector = new YoGraphicLineSegment("CollisionVector", "Viz", worldFrame, new YoAppearanceRGBColor(Color.PINK, 0.0), registry);
       collisionVector.setDrawArrowhead(true);
+      collisionVector.setLineRadiusWhenOneMeterLong(0.001);
       collisionVector.setToNaN();
       graphicsListRegistry.registerYoGraphic("CollisionVector", collisionVector);
 
       collisionPoints = new YoGraphicLineSegment("CollisionPoints", "Viz", worldFrame, new YoAppearanceRGBColor(Color.GREEN, 0.0), registry);
       collisionPoints.setDrawArrowhead(true);
+      collisionPoints.setLineRadiusWhenOneMeterLong(0.001);
       collisionPoints.setToNaN();
       graphicsListRegistry.registerYoGraphic("CollisionPoints", collisionPoints);
 
@@ -189,7 +191,7 @@ public class FrameConvexPolytopeVisualizer
       polytopeEdgesViz.clear();
       for (int i = 0; i < numberOfVizEdges; i++)
       {
-         YoGraphicLineSegment edge = new YoGraphicLineSegment("PolytopeEdge" + i, "Viz", worldFrame, new YoAppearanceRGBColor(Color.BLACK, 0.5), registry);
+         YoGraphicLineSegment edge = new YoGraphicLineSegment("PolytopeEdge" + i, "Viz", worldFrame, new YoAppearanceRGBColor(Color.BLACK, 0.0), registry);
          edge.setDrawArrowhead(false);
          edge.setToNaN();
          polytopeEdgesViz.add(edge);
@@ -234,13 +236,14 @@ public class FrameConvexPolytopeVisualizer
          int i = 0;
          for (i = 0; i < edges.size(); i++)
          {
-            polytopeEdgesViz.get(edgeIndex).setStartAndEnd(edges.get(i).getOriginVertex().getPosition(), edges.get(i).getDestinationVertex().getPosition());
-            polytopeEdgesViz.get(edgeIndex).getAppearance().getColor().set(color);
+            //polytopeEdgesViz.get(edgeIndex).setStartAndEnd(edges.get(i).getOriginVertex().getPosition(), edges.get(i).getDestinationVertex().getPosition());
+            //polytopeEdgesViz.get(edgeIndex).getAppearance().getColor().set(color);
             edgeIndex++;
          }
          for (i = 0; i < vertices.size(); i++)
          {
             polytopeVerticesViz.get(vertexIndex).setPosition(vertices.get(i).getPosition());
+            polytopeVerticesViz.get(vertexIndex).setAppearance(new YoAppearanceRGBColor(color, 0.0));
             vertexIndex++;
          }
       }
@@ -304,22 +307,6 @@ public class FrameConvexPolytopeVisualizer
       //viz.addVerticesForViz(pointList);
       FrameConvexPolytope capsule = ConvexPolytopeConstructor.getFrameCapsuleCollisionMesh(new FramePoint3D(), Axis.Z, 1, 0.5, 4);
       viz.addPolytope(capsule, Color.BLUE);
-      viz.update();
-   }
-
-   private static void testRobotMeshProvider()
-   {
-      FrameConvexPolytopeVisualizer viz = new FrameConvexPolytopeVisualizer(1);
-      RobotCollisionMeshProvider meshProvider = new RobotCollisionMeshProvider(10);
-      RigidBodyTransform transform = new RigidBodyTransform();
-      RigidBody rigidBody = new RigidBody("RigidBody", transform, worldFrame);
-      ArrayList<CollisionMeshDescription> collisionMeshDescriptionList = new ArrayList<>();
-      CollisionMeshDescription collisionMesh = new CollisionMeshDescription();
-      collisionMesh.addCylinderReferencedAtCenter(0.5, 2);
-      collisionMesh.addCubeReferencedAtCenter(1, 1, 1);
-      collisionMeshDescriptionList.add(collisionMesh);
-      FrameConvexPolytope frameConvexPolytope = meshProvider.createCollisionMesh(rigidBody, collisionMeshDescriptionList);
-      viz.addPolytope(frameConvexPolytope, Color.CYAN);
       viz.update();
    }
 
