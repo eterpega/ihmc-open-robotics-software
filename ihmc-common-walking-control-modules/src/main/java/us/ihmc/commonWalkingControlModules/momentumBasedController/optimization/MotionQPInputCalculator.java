@@ -593,6 +593,36 @@ public class MotionQPInputCalculator
       recordTaskJacobian(motionQPInputToPack.taskJacobian);
       return true;
    }
+   
+   public boolean convertCollisionAvoidanceCommand(CollisionAvoidanceCommand commandToConvert, MotionQPInput motionQPInputToPack)
+   {
+      int taskSize = commandToConvert.getTaskSize();
+      if (taskSize == 0)
+         return false;
+
+      motionQPInputToPack.reshape(taskSize);
+      motionQPInputToPack.setIsMotionConstraint(!commandToConvert.getIsEqualityConstraint());
+      motionQPInputToPack.setIsEqualityConstraint(commandToConvert.getIsEqualityConstraint());
+      
+      for (int jointIndex = 0; jointIndex < commandToConvert.getNumberOfJoints(); jointIndex++)
+      {
+         InverseDynamicsJoint joint = commandToConvert.getJoint(jointIndex);
+         int[] columns = jointIndexHandler.getJointIndices(joint);
+         if (columns == null)
+            return false;
+         // For each joint find the correct columns to update
+         for (int dofNumber = 0; dofNumber < columns.length; dofNumber++)
+         {
+            // Copy all the avoidance task objectives for each joint DoF
+            for(int row = 0; row < taskSize; row++)
+            {
+               motionQPInputToPack.taskJacobian.set(row, columns[dofNumber], commandToConvert.getTaskJacobianEntry(joint, row, dofNumber));
+            }
+         }
+      }
+      recordTaskJacobian(motionQPInputToPack.taskJacobian);
+      return true;
+   }
 
    private void recordTaskJacobian(DenseMatrix64F taskJacobian)
    {
