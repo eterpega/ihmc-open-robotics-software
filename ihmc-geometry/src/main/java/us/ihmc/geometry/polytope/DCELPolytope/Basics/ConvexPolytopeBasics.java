@@ -298,29 +298,7 @@ public abstract class ConvexPolytopeBasics<A extends PolytopeVertexBasics<A, B, 
       createFacesFromVisibleSilhouetteAndOnFaceList(visibleSilhouetteList, onFaceList, vertexToAdd);
       boundingBoxNeedsUpdating = true;
    }
-
-   private double getTripleProduct(Vector3DReadOnly v1, Vector3DReadOnly v2, Vector3DReadOnly v3)
-   {
-      tempVector.cross(v1, v2);
-      return tempVector.dot(v3);
-   }
-
-   private B getCommonEdge(C face1, C face2)
-   {
-      B edgeCandidate = null;
-      tempVector.cross(face1.getFaceNormal(), face2.getFaceNormal());
-      tempVector.normalize();
-      for (int i = 0; i < face1.getNumberOfEdges(); i++)
-      {
-         if (tempVector.dot(face1.getEdge(i).getNormalizedEdgeVector()) >= 1.0)
-         {
-            edgeCandidate = face1.getEdge(i);
-            break;
-         }
-      }
-      return edgeCandidate;
-   }
-
+   
    public void getSilhouetteFaces(List<C> silhouetteFacesToPack, List<C> nonSilhouetteFacesToPack,
                                   List<C> visibleFaceList)
    {
@@ -715,7 +693,7 @@ public abstract class ConvexPolytopeBasics<A extends PolytopeVertexBasics<A, B, 
    public C getFaceContainingPointClosestTo(Point3DReadOnly point)
    {
       if (faces.size() == 0)
-         throw new RuntimeException();
+         return null;
       else if (faces.size() == 1)
       {
          return faces.get(0);

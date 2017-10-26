@@ -40,7 +40,7 @@ import us.ihmc.yoVariables.variable.YoDouble;
 public class FrameConvexPolytopeVisualizer
 {
    private static final int numberOfVizEdges = 5000;
-   private static final int numberOfVizVertices = 1000;
+   private static final int numberOfVizVertices = 2000;
    private static final int numberOfVizVisiblePlanes = 50;
    private static final int numberOfVizVisibleSilhouetteEdges = 50;
    private final YoVariableRegistry registry = new YoVariableRegistry("PolytopeVisualizer");
