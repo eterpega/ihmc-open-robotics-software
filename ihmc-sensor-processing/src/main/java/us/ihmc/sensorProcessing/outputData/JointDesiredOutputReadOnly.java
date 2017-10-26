@@ -78,4 +78,28 @@ public interface JointDesiredOutputReadOnly
     * from the whole body controller to the joint control level.
     */
    public abstract double getMasterGain();
+
+   public default String getDescription()
+   {
+      String ret = "";
+      if (hasControlMode())
+         ret += "controlMode = " + getControlMode() + "\n";
+      if (hasDesiredTorque())
+         ret += "desiredTorque = " + getDesiredTorque() + "\n";
+      if (hasDesiredPosition())
+         ret += "desiredPosition = " + getDesiredPosition() + "\n";
+      if (hasDesiredVelocity())
+         ret += "desiredVelocity = " + getDesiredVelocity() + "\n";
+      if (hasDesiredAcceleration())
+         ret += "desiredAcceleration = " + getDesiredAcceleration() + "\n";
+      if (hasStiffness())
+         ret += "stiffness = " + getStiffness() + "\n";
+      if (hasDamping())
+         ret += "damping = " + getDamping() + "\n";
+      if (hasMasterGain())
+         ret += "masterGain = " + getMasterGain() + "\n";
+      if (ret.isEmpty())
+         ret += "Data holder is empty.";
+      return ret;
+   }
 }

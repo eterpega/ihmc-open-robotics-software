@@ -198,26 +198,7 @@ public class JointDesiredOutput implements JointDesiredOutputReadOnly
    @Override
    public String toString()
    {
-      String ret = "";
-      if (hasControlMode())
-         ret += "controlMode = " + getControlMode() + "\n";
-      if (hasDesiredTorque())
-         ret += "desiredTorque = " + getDesiredTorque() + "\n";
-      if (hasDesiredPosition())
-         ret += "desiredPosition = " + getDesiredPosition() + "\n";
-      if (hasDesiredVelocity())
-         ret += "desiredVelocity = " + getDesiredVelocity() + "\n";
-      if (hasDesiredAcceleration())
-         ret += "desiredAcceleration = " + getDesiredAcceleration() + "\n";
-      if (hasStiffness())
-         ret += "masterGain = " + getStiffness() + "\n";
-      if (hasDamping())
-         ret += "masterGain = " + getDamping() + "\n";
-      if (hasMasterGain())
-         ret += "masterGain = " + getMasterGain() + "\n";
-      if (ret.isEmpty())
-         ret += "Data holder is empty.";
-      return ret;
+      return getDescription();
    }
 
    @Override
