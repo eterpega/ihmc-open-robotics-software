@@ -6,7 +6,6 @@ import static org.junit.Assert.assertTrue;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Random;
-import java.util.Timer;
 
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;

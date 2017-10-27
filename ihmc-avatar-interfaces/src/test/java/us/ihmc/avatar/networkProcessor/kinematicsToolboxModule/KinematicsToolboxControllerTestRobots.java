@@ -268,7 +268,7 @@ public class KinematicsToolboxControllerTestRobots
       RigidBody rootBody = new RigidBody("rootBody", ReferenceFrame.getWorldFrame());
       FloatingInverseDynamicsJoint rootJoint;
 
-      if (robotDescription.getRootJoints().get(0) instanceof FloatingInverseDynamicsJoint)
+      if (robotDescription.getRootJoints().get(0) instanceof FloatingJointDescription)
       {
          FloatingJointDescription rootJointDescription = (FloatingJointDescription) robotDescription.getRootJoints().get(0);
          rootJoint = new SixDoFJoint(rootJointDescription.getName(), rootBody);

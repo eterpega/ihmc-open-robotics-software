@@ -13,14 +13,23 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import gnu.trove.map.hash.THashMap;
+import us.ihmc.avatar.collisionAvoidance.FrameConvexPolytopeVisualizer;
+import us.ihmc.avatar.collisionAvoidance.RobotCollisionMeshProvider;
 import us.ihmc.avatar.jointAnglesWriter.JointAnglesWriter;
+import us.ihmc.commons.PrintTools;
 import us.ihmc.communication.controllerAPI.CommandInputManager;
 import us.ihmc.communication.controllerAPI.StatusMessageOutputManager;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.geometry.polytope.ConvexPolytopeConstructor;
+import us.ihmc.geometry.polytope.DCELPolytope.Frame.FrameConvexPolytope;
 import us.ihmc.graphicsDescription.appearance.YoAppearanceRGBColor;
 import us.ihmc.graphicsDescription.instructions.Graphics3DInstruction;
 import us.ihmc.graphicsDescription.instructions.Graphics3DPrimitiveInstruction;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.robotModels.FullRobotModel;
+import us.ihmc.robotModels.FullRobotModelFromDescription;
 import us.ihmc.robotics.robotController.RobotController;
 import us.ihmc.robotics.robotDescription.JointDescription;
 import us.ihmc.robotics.robotDescription.LinkDescription;
@@ -77,6 +86,7 @@ public class KinematicsToolboxCollisionDetectionTest
    @Before
    public void setup()
    {
+      simulationTestingParameters.setKeepSCSUp(true);
       mainRegistry = new YoVariableRegistry("main");
       initializationSucceeded = new YoBoolean("initializationSucceeded", mainRegistry);
       numberOfIterations = new YoInteger("numberOfIterations", mainRegistry);
@@ -84,15 +94,25 @@ public class KinematicsToolboxCollisionDetectionTest
       yoGraphicsListRegistry = new YoGraphicsListRegistry();
 
       RobotDescription robotDescription = new KinematicsToolboxControllerTestRobots.SevenDoFArm();
-      Pair<FloatingInverseDynamicsJoint, OneDoFJoint[]> desiredFullRobotModel = KinematicsToolboxControllerTestRobots.createInverseDynamicsRobot(robotDescription);
+      FullRobotModel desiredFullRobotModel = new FullRobotModelFromDescription(robotDescription,
+                                                                               new KinematicsToolboxControllerTestRobots.SevenDoFArmJointMap(),
+                                                                               null);
       commandInputManager = new CommandInputManager(KinematicsToolboxModule.supportedCommands());
-      commandInputManager.registerConversionHelper(new KinematicsToolboxCommandConverter(ScrewTools.getRootBody(desiredFullRobotModel.getRight()[0].getSuccessor())));
+      commandInputManager.registerConversionHelper(new KinematicsToolboxCommandConverter(ScrewTools.getRootBody(desiredFullRobotModel.getOneDoFJoints()[0].getSuccessor())));
 
       StatusMessageOutputManager statusOutputManager = new StatusMessageOutputManager(KinematicsToolboxModule.supportedStatus());
 
-      toolboxController = new KinematicsToolboxController(commandInputManager, statusOutputManager, desiredFullRobotModel.getLeft(),
-                                                          desiredFullRobotModel.getRight(), yoGraphicsListRegistry, mainRegistry);
+      toolboxController = new KinematicsToolboxController(commandInputManager, statusOutputManager, desiredFullRobotModel.getRootJoint(),
+                                                          desiredFullRobotModel.getOneDoFJoints(), yoGraphicsListRegistry, mainRegistry);
 
+      THashMap<RigidBody, FrameConvexPolytope> collisionMeshes = (new RobotCollisionMeshProvider(8)).createCollisionMeshesFromRobotDescription(desiredFullRobotModel,
+                                                                                    robotDescription);
+      toolboxController.setCollisionMeshes(collisionMeshes);
+      FrameConvexPolytope obstacle = ConvexPolytopeConstructor.getFrameCuboidCollisionMesh(ReferenceFrame.getWorldFrame(), new Point3D(0.25, 0.0, 0.75), 0.15, 0.15, 0.15);
+      toolboxController.submitObstacleCollisionMesh(obstacle);
+      FrameConvexPolytopeVisualizer visualizer = new FrameConvexPolytopeVisualizer(4, mainRegistry, yoGraphicsListRegistry);
+      visualizer.addPolytope(obstacle);
+      visualizer.update();
       robot = new RobotFromDescription(robotDescription);
       toolboxUpdater = createToolboxUpdater();
       robot.setController(toolboxUpdater);
@@ -173,7 +193,6 @@ public class KinematicsToolboxCollisionDetectionTest
       assertTrue("Poor solution quality: " + toolboxController.getSolution().getSolutionQuality(),
                  toolboxController.getSolution().getSolutionQuality() < 1.0e-4);
    }
-
 
    private void runKinematicsToolboxController(int numberOfIterations) throws SimulationExceededMaximumTimeException
    {

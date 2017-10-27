@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
+import gnu.trove.map.hash.THashMap;
 import us.ihmc.avatar.networkProcessor.modules.ToolboxController;
 import us.ihmc.avatar.networkProcessor.modules.ToolboxModule;
 import us.ihmc.commonWalkingControlModules.configurations.JointPrivilegedConfigurationParameters;
@@ -205,15 +206,21 @@ public class KinematicsToolboxController extends ToolboxController
     */
    private final YoInteger numberOfActiveCommands = new YoInteger("numberOfActiveCommands", registry);
 
+   /**
+    * Generates the commands to move away from collisions (with obstacles / self)
+    */
+   private final CollisionAvoidanceModule collisionAvoidanceModule;
+   
    public KinematicsToolboxController(CommandInputManager commandInputManager, StatusMessageOutputManager statusOutputManager,
                                       FloatingInverseDynamicsJoint rootJoint, OneDoFJoint[] oneDoFJoints, YoGraphicsListRegistry yoGraphicsListRegistry,
                                       YoVariableRegistry parentRegistry)
    {
-      this(commandInputManager, statusOutputManager, rootJoint, oneDoFJoints, null, yoGraphicsListRegistry, parentRegistry);
+      this(commandInputManager, statusOutputManager, rootJoint, oneDoFJoints, null, null, yoGraphicsListRegistry, parentRegistry);
    }
 
    public KinematicsToolboxController(CommandInputManager commandInputManager, StatusMessageOutputManager statusOutputManager,
-                                      FloatingInverseDynamicsJoint rootJoint, OneDoFJoint[] oneDoFJoints, Collection<RigidBody> controllableRigidBodies,
+                                      FloatingInverseDynamicsJoint rootJoint, OneDoFJoint[] oneDoFJoints,
+                                      THashMap<RigidBody, FrameConvexPolytope> collisionMeshes, Collection<RigidBody> controllableRigidBodies,
                                       YoGraphicsListRegistry yoGraphicsListRegistry, YoVariableRegistry parentRegistry)
    {
       super(statusOutputManager, parentRegistry);
@@ -224,7 +231,7 @@ public class KinematicsToolboxController extends ToolboxController
 
       // This will find the root body without using rootJoint so it can be null.
       rootBody = ScrewTools.getRootBody(oneDoFJoints[0].getPredecessor());
-
+      
       centerOfMassFrame = new CenterOfMassReferenceFrame("centerOfMass", worldFrame, rootBody);
 
       Arrays.stream(oneDoFJoints).forEach(joint -> jointNameBasedHashCodeMap.put(joint.getNameBasedHashCode(), joint));
@@ -241,6 +248,15 @@ public class KinematicsToolboxController extends ToolboxController
       privilegedWeight.set(1.0);
       privilegedConfigurationGain.set(50.0);
       privilegedMaxVelocity.set(Double.POSITIVE_INFINITY);
+      //TODO move the settings to be configurable by 
+      collisionAvoidanceModule = createAndInitializeCollisionAvoidanceModule(collisionMeshes);
+   }
+
+   private CollisionAvoidanceModule createAndInitializeCollisionAvoidanceModule(THashMap<RigidBody, FrameConvexPolytope> collisionMeshes)
+   {
+      CollisionAvoidanceModule module = new CollisionAvoidanceModule();
+      module.setRigidBodyCollisionMeshes(collisionMeshes);
+      return module;
    }
 
    /**
@@ -597,7 +613,7 @@ public class KinematicsToolboxController extends ToolboxController
 
    protected InverseKinematicsCommandList getAdditionalInverseKinematicsCommands()
    {
-      return null;
+      return collisionAvoidanceModule.getCollisionAvoidanceCommands();
    }
 
    @Override
@@ -620,5 +636,25 @@ public class KinematicsToolboxController extends ToolboxController
    public KinematicsToolboxOutputStatus getSolution()
    {
       return inverseKinematicsSolution;
+   }
+   
+   public void submitObstacleCollisionMesh(FrameConvexPolytope obstacleMesh)
+   {
+      collisionAvoidanceModule.submitObstacleCollisionMesh(obstacleMesh);
+   }
+   
+   public void setCollisionMeshes(THashMap<RigidBody, FrameConvexPolytope> collisionMeshes)
+   {
+      collisionAvoidanceModule.setRigidBodyCollisionMeshes(collisionMeshes);
+   }
+   
+   public boolean isCollisionAvoidanceEnabled()
+   {
+      return collisionAvoidanceModule.isEnabled();
+   }
+   
+   public void enableCollisionAvoidance(boolean enabled)
+   {
+      collisionAvoidanceModule.enable(enabled);
    }
 }
