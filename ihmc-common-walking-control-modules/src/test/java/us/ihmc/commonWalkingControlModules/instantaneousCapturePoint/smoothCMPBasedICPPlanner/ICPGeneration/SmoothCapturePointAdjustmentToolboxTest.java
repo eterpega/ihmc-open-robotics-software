@@ -4,10 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import org.junit.Before;
 import org.junit.Test;
 
-import us.ihmc.commonWalkingControlModules.instantaneousCapturePoint.smoothCMPBasedICPPlanner.ICPGeneration.SmoothCapturePointAdjustmentToolbox;
-import us.ihmc.commonWalkingControlModules.instantaneousCapturePoint.smoothCMPBasedICPPlanner.ICPGeneration.SmoothCapturePointToolbox;
 import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FrameTuple3D;
@@ -16,7 +15,6 @@ import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tools.EuclidCoreTestTools;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.robotics.math.trajectories.FrameTrajectory3D;
-import us.ihmc.robotics.math.trajectories.YoFrameTrajectory3D;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 public class SmoothCapturePointAdjustmentToolboxTest
@@ -32,6 +30,15 @@ public class SmoothCapturePointAdjustmentToolboxTest
    
    private final SmoothCapturePointToolbox icpToolbox = new SmoothCapturePointToolbox();
    private final SmoothCapturePointAdjustmentToolbox icpAdjustmentToolbox = new SmoothCapturePointAdjustmentToolbox(icpToolbox);
+   private final List<FrameTuple3D<?, ?>> icpQuantityInitialConditionList = new ArrayList<>();
+   
+   @Before
+   public void setupTest()
+   {
+      icpQuantityInitialConditionList.add(new FramePoint3D());
+      while(icpQuantityInitialConditionList.size() < SmoothCapturePointAdjustmentToolbox.defaultSize)
+         icpQuantityInitialConditionList.add(new FrameVector3D());
+   }
    
    @ContinuousIntegrationTest(estimatedDuration = 0.0)
    @Test(timeout = 30000)
@@ -118,8 +125,8 @@ public class SmoothCapturePointAdjustmentToolboxTest
             cmp2QuantitiesBefore.add(cmp2QuantityBC);
          }
 
-         icpAdjustmentToolbox.setICPInitialConditions(cmpPolynomials3D.get(0).getInitialTime(), exitCornerPoints, cmpPolynomials3D, numberOfSwingSegments, omega0);
-         icpAdjustmentToolbox.adjustDesiredTrajectoriesForInitialSmoothing(entryCornerPoints, exitCornerPoints, cmpPolynomials3D, omega0);
+         setICPInitialConditions(cmpPolynomials3D.get(0).getInitialTime(), exitCornerPoints, cmpPolynomials3D, numberOfSwingSegments, omega0);
+         icpAdjustmentToolbox.adjustDesiredTrajectoriesForInitialSmoothing3D(omega0, cmpPolynomials3D ,icpQuantityInitialConditionList, entryCornerPoints, exitCornerPoints);
 
          for(int j = 0; j < numberOfCoefficients / 2; j++)
          {
@@ -251,10 +258,10 @@ public class SmoothCapturePointAdjustmentToolboxTest
             cmp3QuantitiesBefore.add(cmp3QuantityBC);
          }
 
-         icpAdjustmentToolbox.setICPInitialConditions(cmpPolynomials3DSwing.get(0).getFinalTime(), exitCornerPointsSwing, cmpPolynomials3DSwing, numberOfSwingSegments, omega0);
+         setICPInitialConditions(cmpPolynomials3DSwing.get(0).getFinalTime(), exitCornerPointsSwing, cmpPolynomials3DSwing, numberOfSwingSegments, omega0);
          
          icpToolbox.computeDesiredCornerPoints3D(entryCornerPointsTransfer, exitCornerPointsTransfer, cmpPolynomials3DTransfer, omega0);
-         icpAdjustmentToolbox.adjustDesiredTrajectoriesForInitialSmoothing(entryCornerPointsTransfer, exitCornerPointsTransfer, cmpPolynomials3DTransfer, omega0);
+         icpAdjustmentToolbox.adjustDesiredTrajectoriesForInitialSmoothing3D(omega0, cmpPolynomials3DTransfer, icpQuantityInitialConditionList, entryCornerPointsTransfer, exitCornerPointsTransfer);
 
          for(int j = 0; j < numberOfCoefficients / 2; j++)
          {            
@@ -416,11 +423,11 @@ public class SmoothCapturePointAdjustmentToolboxTest
             cmp3QuantitiesBefore.add(cmp3QuantityBC);
          }
 
-         icpAdjustmentToolbox.setICPInitialConditions(cmpPolynomials3DSwing.get(0).getFinalTime() - endTimeOffset, exitCornerPointsSwing, cmpPolynomials3DSwing, numberOfSwingSegments - 1, omega0);
+         setICPInitialConditions(cmpPolynomials3DSwing.get(0).getFinalTime() - endTimeOffset, exitCornerPointsSwing, cmpPolynomials3DSwing, numberOfSwingSegments - 1, omega0);
          
          icpToolbox.computeDesiredCornerPoints3D(entryCornerPointsTransferUpdated, exitCornerPointsTransferUpdated, cmpPolynomials3DTransferUpdated, omega0);
-         icpAdjustmentToolbox.adjustDesiredTrajectoriesForInitialSmoothing(entryCornerPointsTransferUpdated, exitCornerPointsTransferUpdated, cmpPolynomials3DTransferUpdated, omega0);
-
+         icpAdjustmentToolbox.adjustDesiredTrajectoriesForInitialSmoothing3D(omega0, cmpPolynomials3DTransferUpdated, icpQuantityInitialConditionList, entryCornerPointsTransferUpdated, exitCornerPointsTransferUpdated);
+         
          for(int j = 0; j < numberOfCoefficients / 2; j++)
          {
             FrameTuple3D<?, ?> icp1QuantityAfter = new FramePoint3D();
@@ -529,8 +536,8 @@ public class SmoothCapturePointAdjustmentToolboxTest
             cmp2QuantitiesBefore.add(cmp2QuantityBC);
          }
 
-         icpAdjustmentToolbox.setICPInitialConditions(cmpPolynomials3D.get(0).getInitialTime(),exitCornerPoints, cmpPolynomials3D, numberOfSwingSegments, omega0);
-         icpAdjustmentToolbox.adjustDesiredTrajectoriesForInitialSmoothing(entryCornerPoints, exitCornerPoints, cmpPolynomials3D, omega0);
+         setICPInitialConditions(cmpPolynomials3D.get(0).getInitialTime(),exitCornerPoints, cmpPolynomials3D, numberOfSwingSegments, omega0);
+         icpAdjustmentToolbox.adjustDesiredTrajectoriesForInitialSmoothing3D(omega0, cmpPolynomials3D, icpQuantityInitialConditionList, entryCornerPoints, exitCornerPoints);
 
          for(int j = 0; j < numberOfCoefficients / 2; j++)
          {
@@ -660,10 +667,10 @@ public class SmoothCapturePointAdjustmentToolboxTest
             cmp3QuantitiesBefore.add(cmp3QuantityBC);
          }
 
-         icpAdjustmentToolbox.setICPInitialConditions(cmpPolynomials3DSwing.get(0).getFinalTime(), exitCornerPointsSwing, cmpPolynomials3DSwing, numberOfSwingSegments, omega0);
+         setICPInitialConditions(cmpPolynomials3DSwing.get(0).getFinalTime(), exitCornerPointsSwing, cmpPolynomials3DSwing, numberOfSwingSegments, omega0);
          
          icpToolbox.computeDesiredCornerPoints3D(entryCornerPointsTransfer, exitCornerPointsTransfer, cmpPolynomials3DTransfer, omega0);
-         icpAdjustmentToolbox.adjustDesiredTrajectoriesForInitialSmoothing(entryCornerPointsTransfer, exitCornerPointsTransfer, cmpPolynomials3DTransfer, omega0);
+         icpAdjustmentToolbox.adjustDesiredTrajectoriesForInitialSmoothing3D(omega0, cmpPolynomials3DTransfer, icpQuantityInitialConditionList, entryCornerPointsTransfer, exitCornerPointsTransfer);
 
          for(int j = 0; j < numberOfCoefficients / 2; j++)
          {
@@ -684,6 +691,32 @@ public class SmoothCapturePointAdjustmentToolboxTest
             FrameTuple3D<?, ?> cmp2QuantitySegment3 = new FramePoint3D();
             cubic3DSegment3.getDerivative(j, cubic3DSegment3.getInitialTime(), cmp2QuantitySegment3);
             EuclidCoreTestTools.assertTuple3DEquals("", cmp2QuantitySegment2, cmp2QuantitySegment3, EPSILON);
+         }
+      }
+   }
+   
+   public void setICPInitialConditions(double localTime, List<FramePoint3D> exitCornerPointsFromCoPs, List<FrameTrajectory3D> copPolynomials3D,
+                                       int currentSwingSegment, double omega0)
+   {
+      if (currentSwingSegment < 0)
+      {
+         FrameTrajectory3D copPolynomial3D = copPolynomials3D.get(0);
+         for (int i = 0; i < copPolynomials3D.get(0).getNumberOfCoefficients() / 2; i++)
+         {
+            FrameTuple3D<?, ?> icpQuantityInitialCondition = icpQuantityInitialConditionList.get(i);
+
+            copPolynomial3D.getDerivative(i, localTime, icpQuantityInitialCondition);
+         }
+      }
+      else
+      {
+         FrameTrajectory3D copPolynomial3D = copPolynomials3D.get(currentSwingSegment);
+         for (int i = 0; i < copPolynomials3D.get(0).getNumberOfCoefficients() / 2; i++)
+         {
+            FrameTuple3D<?, ?> icpQuantityInitialCondition = icpQuantityInitialConditionList.get(i);
+
+            icpToolbox.calculateICPQuantityFromCorrespondingCMPPolynomial3D(omega0, localTime, i, copPolynomial3D,
+                                                                            exitCornerPointsFromCoPs.get(currentSwingSegment), icpQuantityInitialCondition);
          }
       }
    }

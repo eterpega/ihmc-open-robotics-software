@@ -35,6 +35,7 @@ public class ReferenceCMPTrajectoryGenerator
 
    private final FramePoint3D desiredCMP = new FramePoint3D();
    private final FrameVector3D desiredCMPVelocity = new FrameVector3D();
+   private final FrameVector3D desiredCMPAcceleration = new FrameVector3D();
    private final TorqueTrajectory torqueTrajectory;
 
    public ReferenceCMPTrajectoryGenerator(String namePrefix, int maxNumberOfFootstepsToConsider, YoInteger numberOfFootstepsToConsider, YoVariableRegistry registry)
@@ -76,7 +77,7 @@ public class ReferenceCMPTrajectoryGenerator
       double timeInState = currentTime - initialTime;
 
       if (activeTrajectory != null)
-         activeTrajectory.update(timeInState, desiredCMP, desiredCMPVelocity);
+         activeTrajectory.update(timeInState, desiredCMP, desiredCMPVelocity, desiredCMPAcceleration);
    }
 
    public void getPosition(FramePoint3D desiredCMPToPack)
@@ -98,11 +99,23 @@ public class ReferenceCMPTrajectoryGenerator
    {
       desiredCMPVelocityToPack.set(desiredCMPVelocity);
    }
+   
+   public void getAcceleration(FrameVector3D desiredCMPAccelerationToPack)
+   {
+      desiredCMPAccelerationToPack.setIncludingFrame(desiredCMPAcceleration);
+   }
 
    public void getLinearData(FramePoint3D positionToPack, FrameVector3D velocityToPack)
    {
       getPosition(positionToPack);
       getVelocity(velocityToPack);
+   }
+
+   public void getLinearData(FramePoint3D positionToPack, FrameVector3D velocityToPack, FrameVector3D accelerationToPack)
+   {
+      getPosition(positionToPack);
+      getVelocity(velocityToPack);
+      getAcceleration(accelerationToPack);
    }
 
    public void getLinearData(YoFramePoint positionToPack, YoFrameVector velocityToPack)

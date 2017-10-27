@@ -424,6 +424,12 @@ public class ReferenceCoPTrajectoryGenerator implements ReferenceCoPTrajectoryGe
       desiredCoPVelocityToPack.setIncludingFrame(desiredCoPVelocity);
    }
 
+   public void getDesiredCenterOfPressure(FramePoint3D desiredCoPToPack, FrameVector3D desiredCoPVelocityToPack, FrameVector3D desiredCoPAccelerationToPack)
+   {
+      getDesiredCenterOfPressure(desiredCoPToPack, desiredCoPVelocityToPack);
+      desiredCoPAccelerationToPack.setIncludingFrame(desiredCoPAcceleration);
+   }
+
    @Override
    public void getDesiredCenterOfPressure(YoFramePoint desiredCoPToPack)
    {

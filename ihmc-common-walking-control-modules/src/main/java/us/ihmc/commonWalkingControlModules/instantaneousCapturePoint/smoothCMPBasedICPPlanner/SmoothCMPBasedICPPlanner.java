@@ -152,7 +152,7 @@ public class SmoothCMPBasedICPPlanner extends AbstractICPPlanner
          throw new RuntimeException("Tried to submit the wrong type of parameters.");
       }
    }
-
+   
    private void setupVisualizers(YoGraphicsListRegistry yoGraphicsListRegistry)
    {
       YoGraphicsList yoGraphicsList = new YoGraphicsList(getClass().getSimpleName());
@@ -364,8 +364,6 @@ public class SmoothCMPBasedICPPlanner extends AbstractICPPlanner
       referenceICPGenerator.getICPPhaseEntryCornerPoints(icpPhaseEntryCornerPoints);
       referenceICPGenerator.getICPPhaseExitCornerPoints(icpPhaseExitCornerPoints);
       referenceICPGenerator.compute(ZERO_TIME);
-      // TODO implement requested hold position
-      // TODO implement is done walking
    }
 
    @Override
@@ -375,7 +373,6 @@ public class SmoothCMPBasedICPPlanner extends AbstractICPPlanner
       clearPlanWithoutClearingPlannedFootsteps();
       RobotSide supportSide = this.supportSide.getEnumValue();
 
-      // TODO set up the CoP Generator to be able to only update the current Support Feet CMPs
       referenceCoPGenerator.computeReferenceCoPsStartingFromSingleSupport(supportSide);
       referenceCMPGenerator.setNumberOfRegisteredSteps(referenceCoPGenerator.getNumberOfFootstepsRegistered());
       referenceICPGenerator.setNumberOfRegisteredSteps(referenceCoPGenerator.getNumberOfFootstepsRegistered());
@@ -479,7 +476,6 @@ public class SmoothCMPBasedICPPlanner extends AbstractICPPlanner
    {
       if (isStanding.getBooleanValue())
       {
-         // TODO: replace by CMP generator
          referenceCoPGenerator.getFinalCoPLocation(finalDesiredCapturePointPositionToPack);
       }
       else if (!isInDoubleSupport())
