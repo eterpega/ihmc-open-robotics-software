@@ -364,6 +364,7 @@ public class SmoothCMPBasedICPPlanner extends AbstractICPPlanner
       referenceICPGenerator.getICPPhaseEntryCornerPoints(icpPhaseEntryCornerPoints);
       referenceICPGenerator.getICPPhaseExitCornerPoints(icpPhaseExitCornerPoints);
       referenceICPGenerator.compute(ZERO_TIME);
+      //isInitialTransfer.set(false);
    }
 
    @Override

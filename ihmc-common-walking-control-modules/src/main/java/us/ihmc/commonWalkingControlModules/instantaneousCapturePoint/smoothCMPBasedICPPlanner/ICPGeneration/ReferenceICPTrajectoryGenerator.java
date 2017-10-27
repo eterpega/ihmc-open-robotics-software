@@ -331,12 +331,10 @@ public class ReferenceICPTrajectoryGenerator implements PositionTrajectoryGenera
 
    public void adjustDesiredTrajectoriesForInitialSmoothing()
    {
-      // isDoubleSupport.getBooleanValue() && 
       if ((isInitialTransfer.getBooleanValue() || (continuouslyAdjustForICPContinuity.getBooleanValue())) && copTrajectories.size() > 1)
       {
          icpAdjustmentToolbox.adjustDesiredTrajectoriesForInitialSmoothing3D(omega0.getDoubleValue(), copTrajectories, icpQuantityInitialConditionList, icpDesiredInitialPositionsFromCoPs, icpDesiredFinalPositionsFromCoPs);
       }
-      //reset();
    }
 
    @Override
