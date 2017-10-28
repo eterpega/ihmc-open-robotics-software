@@ -8,11 +8,13 @@ import us.ihmc.commonWalkingControlModules.configurations.ICPPlannerParameters;
 import us.ihmc.commonWalkingControlModules.configurations.ICPTrajectoryPlannerParameters;
 import us.ihmc.commonWalkingControlModules.configurations.SmoothCMPPlannerParameters;
 import us.ihmc.commonWalkingControlModules.instantaneousCapturePoint.AbstractICPPlanner;
+import us.ihmc.commonWalkingControlModules.instantaneousCapturePoint.smoothCMPBasedICPPlanner.SmoothCMPBasedICPPlannerStateMachine.PlannerState;
 import us.ihmc.commonWalkingControlModules.instantaneousCapturePoint.smoothCMPBasedICPPlanner.AMGeneration.FootstepAngularMomentumPredictor;
 import us.ihmc.commonWalkingControlModules.instantaneousCapturePoint.smoothCMPBasedICPPlanner.CMPGeneration.ReferenceCMPTrajectoryGenerator;
 import us.ihmc.commonWalkingControlModules.instantaneousCapturePoint.smoothCMPBasedICPPlanner.CoMGeneration.ReferenceCoMTrajectoryGenerator;
 import us.ihmc.commonWalkingControlModules.instantaneousCapturePoint.smoothCMPBasedICPPlanner.CoPGeneration.CoPPointsInFoot;
 import us.ihmc.commonWalkingControlModules.instantaneousCapturePoint.smoothCMPBasedICPPlanner.CoPGeneration.CoPTrajectory;
+import us.ihmc.commonWalkingControlModules.instantaneousCapturePoint.smoothCMPBasedICPPlanner.CoPGeneration.FootstepData;
 import us.ihmc.commonWalkingControlModules.instantaneousCapturePoint.smoothCMPBasedICPPlanner.CoPGeneration.ReferenceCoPTrajectoryGenerator;
 import us.ihmc.commonWalkingControlModules.instantaneousCapturePoint.smoothCMPBasedICPPlanner.ICPGeneration.ReferenceICPTrajectoryGenerator;
 import us.ihmc.commons.PrintTools;
@@ -31,6 +33,7 @@ import us.ihmc.humanoidRobotics.footstep.Footstep;
 import us.ihmc.humanoidRobotics.footstep.FootstepTiming;
 import us.ihmc.robotModels.FullRobotModel;
 import us.ihmc.robotics.MathTools;
+import us.ihmc.robotics.lists.RecyclingArrayList;
 import us.ihmc.robotics.math.frames.YoFramePoint;
 import us.ihmc.robotics.math.frames.YoFramePoint2d;
 import us.ihmc.robotics.math.frames.YoFramePointInMultipleFrames;
@@ -39,6 +42,7 @@ import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoEnum;
 
 public class SmoothCMPBasedICPPlanner extends AbstractICPPlanner
 {
@@ -47,6 +51,7 @@ public class SmoothCMPBasedICPPlanner extends AbstractICPPlanner
 
    private static final double ZERO_TIME = 0.0;
 
+   private final SmoothCMPBasedICPPlannerStateMachine stateMachine;
    private final ReferenceCoPTrajectoryGenerator referenceCoPGenerator;
    private final ReferenceCMPTrajectoryGenerator referenceCMPGenerator;
    private final ReferenceICPTrajectoryGenerator referenceICPGenerator;
@@ -70,6 +75,8 @@ public class SmoothCMPBasedICPPlanner extends AbstractICPPlanner
 
    private final YoBoolean areCoMDynamicsSatisfied;
 
+   private final RecyclingArrayList<FootstepData> footstepDataList = new RecyclingArrayList<>(FootstepData.class);
+   
    public SmoothCMPBasedICPPlanner(FullRobotModel fullRobotModel, BipedSupportPolygons bipedSupportPolygons,
                                    SideDependentList<? extends ContactablePlaneBody> contactableFeet, int maxNumberOfFootstepsToConsider,
                                    int numberOfPointsPerFoot, YoVariableRegistry parentRegistry, YoGraphicsListRegistry yoGraphicsListRegistry, double gravityZ)
@@ -109,6 +116,7 @@ public class SmoothCMPBasedICPPlanner extends AbstractICPPlanner
          icpPhaseExitCornerPoints.add(exitCornerPoint);
       }
 
+      stateMachine = new SmoothCMPBasedICPPlannerStateMachine(namePrefix, isStanding, isInitialTransfer, isDoubleSupport, numberFootstepsToConsider, footstepDataList, registry);
       referenceCoPGenerator = new ReferenceCoPTrajectoryGenerator(namePrefix, numberOfPointsPerFoot, maxNumberOfFootstepsToConsider, bipedSupportPolygons,
                                                                   contactableFeet, numberFootstepsToConsider, swingDurations, transferDurations,
                                                                   swingDurationAlphas, swingDurationShiftFractions, transferDurationAlphas, registry);
@@ -152,7 +160,7 @@ public class SmoothCMPBasedICPPlanner extends AbstractICPPlanner
          throw new RuntimeException("Tried to submit the wrong type of parameters.");
       }
    }
-   
+
    private void setupVisualizers(YoGraphicsListRegistry yoGraphicsListRegistry)
    {
       YoGraphicsList yoGraphicsList = new YoGraphicsList(getClass().getSimpleName());
@@ -215,7 +223,7 @@ public class SmoothCMPBasedICPPlanner extends AbstractICPPlanner
          swingDurationShiftFractions.get(i).setToNaN();
       }
    }
-   
+
    public void clearPlanWithoutClearingPlannedFootsteps()
    {
       referenceCoPGenerator.clearPlan();
@@ -228,42 +236,34 @@ public class SmoothCMPBasedICPPlanner extends AbstractICPPlanner
    /** {@inheritDoc} */
    public void addFootstepToPlan(Footstep footstep, FootstepTiming timing)
    {
-      if (footstep == null)
-         return;
-      referenceCoPGenerator.addFootstepToPlan(footstep, timing);
-
-      int footstepIndex = referenceCoPGenerator.getNumberOfFootstepsRegistered() - 1;
-      if (Double.isFinite(timing.getSwingTime()))
-         swingDurations.get(footstepIndex).set(timing.getSwingTime());
+      if (footstep != null && timing != null)
+      {
+         if (!footstep.getFootstepPose().getReferenceFrame().getTransformToRoot().containsNaN())
+         {
+            footstepDataList.add().set(footstep, timing);
+         }
+         else
+            PrintTools.warn("Received bad footstep " + footstep.toString() + " " + timing.toString());
+      }
       else
-         swingDurations.get(footstepIndex).set(1.0);
-
-      if (Double.isFinite(timing.getTransferTime()))
-         transferDurations.get(footstepIndex).set(timing.getTransferTime());
-      else
-         transferDurations.get(footstepIndex).set(1.0);
-
-      swingDurationAlphas.get(footstepIndex).set(defaultSwingDurationAlpha.getDoubleValue());
-      transferDurationAlphas.get(footstepIndex).set(defaultTransferDurationAlpha.getDoubleValue());
-      swingDurationShiftFractions.get(footstepIndex).set(defaultSwingDurationShiftFraction.getDoubleValue());
-
-      finalTransferDuration.set(defaultFinalTransferDuration.getDoubleValue());
-      finalTransferDurationAlpha.set(defaultTransferDurationAlpha.getDoubleValue());
+         PrintTools.warn("Receieved null footstep / timing");
+   }
+   
+   private void setTimingsForFootstepPlanning()
+   {
+      int stateIndex = 0;
+      for (int i = 0; i < stateMachine.getNumberOfFootstepsToPlan(); i++)
+      {
+         
+      }
    }
 
    @Override
    /** {@inheritDoc} */
    public void initializeForStanding(double initialTime)
    {
-      clearPlan();
-
       this.initialTime.set(initialTime);
-
-      isInitialTransfer.set(isStanding.getBooleanValue());
-      isStanding.set(true);
-      isDoubleSupport.set(true);
-      transferDurations.get(0).set(finalTransferDuration.getDoubleValue());
-      transferDurationAlphas.get(0).set(finalTransferDurationAlpha.getDoubleValue());
+      stateMachine.updateStateList();
       updateTransferPlan();
    }
 
@@ -272,14 +272,7 @@ public class SmoothCMPBasedICPPlanner extends AbstractICPPlanner
    public void initializeForTransfer(double initialTime)
    {
       this.initialTime.set(initialTime);
-
-      isDoubleSupport.set(true);
-      isInitialTransfer.set(isStanding.getBooleanValue());
-      isStanding.set(false);
-      int numberOfFootstepRegistered = getNumberOfFootstepsRegistered();
-      transferDurations.get(numberOfFootstepRegistered).set(finalTransferDuration.getDoubleValue());
-      transferDurationAlphas.get(numberOfFootstepRegistered).set(finalTransferDurationAlpha.getDoubleValue());
-
+      stateMachine.updateStateList();
       updateTransferPlan();
    }
 
@@ -296,16 +289,7 @@ public class SmoothCMPBasedICPPlanner extends AbstractICPPlanner
    public void initializeForSingleSupport(double initialTime)
    {
       this.initialTime.set(initialTime);
-      isStanding.set(false);
-      isDoubleSupport.set(false);
-
-      isInitialTransfer.set(false);
-      isHoldingPosition.set(false);
-
-      int numberOfFootstepRegistered = getNumberOfFootstepsRegistered();
-      transferDurations.get(numberOfFootstepRegistered).set(finalTransferDuration.getDoubleValue());
-      transferDurationAlphas.get(numberOfFootstepRegistered).set(finalTransferDurationAlpha.getDoubleValue());
-
+      stateMachine.updateStateList();
       updateSingleSupportPlan();
    }
 
