@@ -256,7 +256,7 @@ public class ReferenceCoMTrajectoryGenerator implements PositionTrajectoryGenera
             && Math.abs(cmpTrajectories.get(currentSegmentIndex).getFinalTime() - cmpTrajectories.get(currentSegmentIndex + 1).getInitialTime()) < 1.0e-5)
       {
          currentSegmentIndex++;
-         if (currentSegmentIndex + 1 > cmpTrajectories.size())
+         if (currentSegmentIndex == cmpTrajectories.size() - 1)
          {
             return currentSegmentIndex;
          }

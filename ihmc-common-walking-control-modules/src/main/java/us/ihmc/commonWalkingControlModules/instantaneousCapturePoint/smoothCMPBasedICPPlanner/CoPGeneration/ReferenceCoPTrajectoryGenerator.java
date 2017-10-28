@@ -1365,4 +1365,9 @@ public class ReferenceCoPTrajectoryGenerator implements ReferenceCoPTrajectoryGe
          return new SwingCoPTrajectory(orderOfSplineInterpolation.getEnumValue(), numberOfSwingSegments);
       }
    }
+
+   public RecyclingArrayList<FootstepData> getFootstepDataList()
+   {
+      return upcomingFootstepsData;
+   }
 }
