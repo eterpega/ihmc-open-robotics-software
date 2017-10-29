@@ -258,16 +258,13 @@ public abstract class AbstractICPPlanner implements ICPPlannerInterface
    /** {@inheritDoc} */
    public void updateCurrentPlan()
    {
-      PrintTools.debug("Replanning");
       if (isDoubleSupport.getBooleanValue())
       {
-         if (isHoldingPosition.getBooleanValue())
-            requestedHoldPosition.set(true);
-         updateTransferPlan();
+         updateTransferPlan(initialTime.getDoubleValue() + timeInCurrentState.getDoubleValue());
       }
       else
       {
-         updateSingleSupportPlan();
+         updateSingleSupportPlan(initialTime.getDoubleValue() + timeInCurrentState.getDoubleValue());
       }
    }
 
@@ -342,8 +339,8 @@ public abstract class AbstractICPPlanner implements ICPPlannerInterface
    /** {@inheritDoc} */
    public abstract int getNumberOfFootstepsRegistered();
 
-   protected abstract void updateTransferPlan();
-   protected abstract void updateSingleSupportPlan();
+   protected abstract void updateTransferPlan(double time);
+   protected abstract void updateSingleSupportPlan(double time);
 
    private final FramePoint2D desiredICP2d = new FramePoint2D();
    private final FramePoint2D finalICP2d = new FramePoint2D();

@@ -20,6 +20,9 @@ import us.ihmc.commonWalkingControlModules.desiredFootStep.footstepGenerator.Foo
 import us.ihmc.commonWalkingControlModules.instantaneousCapturePoint.smoothCMPBasedICPPlanner.CoPGeneration.CoPPointsInFoot;
 import us.ihmc.commons.Epsilons;
 import us.ihmc.commons.PrintTools;
+import us.ihmc.continuousIntegration.IntegrationCategory;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.continuousIntegration.ContinuousIntegrationSuite.ContinuousIntegrationSuiteCategory;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
@@ -339,6 +342,7 @@ public class SmoothCMPBasedICPPlannerTest
          scs.closeAndDispose();
    }
 
+   @ContinuousIntegrationTest(estimatedDuration = 2.0, categoriesOverride = {IntegrationCategory.FAST})
    @Test
    public void testForDiscontinuitiesWithoutAngularMomentum()
    {
@@ -347,6 +351,7 @@ public class SmoothCMPBasedICPPlannerTest
       simulate(true, false, true);
    }
 
+   @ContinuousIntegrationTest(estimatedDuration = 2.0, categoriesOverride = {IntegrationCategory.FAST})
    @Test
    public void testForDiscontinuitiesWithAngularMomentum()
    {
@@ -355,6 +360,7 @@ public class SmoothCMPBasedICPPlannerTest
       simulate(true, false, true);
    }
 
+   @ContinuousIntegrationTest(estimatedDuration = 2.0, categoriesOverride = {IntegrationCategory.FAST})
    @Test
    public void testForPlanningConsistencyWithoutAngularMomentum()
    {
@@ -363,6 +369,7 @@ public class SmoothCMPBasedICPPlannerTest
       simulate(false, true, true);
    }
 
+   @ContinuousIntegrationTest(estimatedDuration = 2.0, categoriesOverride = {IntegrationCategory.FAST})
    @Test
    public void testForPlanningConsistencyWithAngularMomentum()
    {
@@ -404,7 +411,7 @@ public class SmoothCMPBasedICPPlannerTest
    {
       if (!newTestStartDiscontinuity)
       {
-         assertTrueLocal(comPositionForDiscontinuity.epsilonEquals(comPosition, spatialEpsilonForDiscontinuity));
+         assertTrueLocal(comPositionForDiscontinuity.toString() + " " + comPosition.toString(), comPositionForDiscontinuity.epsilonEquals(comPosition, spatialEpsilonForDiscontinuity));
          assertTrueLocal(icpPositionForDiscontinuity.epsilonEquals(icpPosition, spatialEpsilonForDiscontinuity));
          assertTrueLocal(cmpPositionForDiscontinuity.epsilonEquals(cmpPosition, spatialEpsilonForDiscontinuity * 4));
          assertTrueLocal(copPositionForDiscontinuity.epsilonEquals(copPosition, spatialEpsilonForDiscontinuity * 4));

@@ -36,6 +36,7 @@ public class SmoothCMPBasedICPPlannerStateMachine
    {
       STANDING, INITIAL_TRANSFER, SWING, TRANSFER, FINAL_TRANSFER, FLAMINGO_STANCE
    }
+
    private static final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
 
    private final RecyclingArrayList<FootstepData> footstepDataList;
@@ -68,7 +69,7 @@ public class SmoothCMPBasedICPPlannerStateMachine
    private final FramePoint3D comPosition = new FramePoint3D();
    private final FrameVector3D comVelocity = new FrameVector3D();
    private final FrameVector3D comAcceleration = new FrameVector3D();
-   
+
    public SmoothCMPBasedICPPlannerStateMachine(String namePrefix, YoBoolean isStanding, YoBoolean isInitialTransfer, YoBoolean isDoubleSupport,
                                                YoBoolean planForDoubleSupport, YoBoolean planForSingleSupport, YoDouble timeInCurrentState,
                                                ReferenceCoPTrajectoryGenerator copTrajectoryGenerator, ReferenceCMPTrajectoryGenerator cmpTrajectoryGenerator,
@@ -89,7 +90,8 @@ public class SmoothCMPBasedICPPlannerStateMachine
       this.amTrajectoryGenerator = amTrajectoryGenerator;
       this.icpTrajectoryGenerator = icpTrajectoryGenerator;
       this.comTrajectoryGenerator = comTrajectoryGenerator;
-      this.stateMachine = new GenericStateMachine<>(namePrefix + "State", namePrefix + "TimeForPlanner", PlannerState.class, PlannerState.STANDING, timeInCurrentState, registry);
+      this.stateMachine = new GenericStateMachine<>(namePrefix + "State", namePrefix + "TimeForPlanner", PlannerState.class, PlannerState.STANDING,
+                                                    timeInCurrentState, registry);
       initializeStateMachine();
    }
 
@@ -145,19 +147,18 @@ public class SmoothCMPBasedICPPlannerStateMachine
    {
       return stateMachine.getCurrentStateEnum();
    }
-   
+
    public void setCurrentState(PlannerState stateToSet)
    {
       stateMachine.setCurrentState(stateToSet);
    }
 
-   public void transitionStates()
+   public void checkStateTransitions()
    {
       stateMachine.checkTransitionConditions();
       setPlannerFlagsFromState();
-      setGeneratorInitialStates();
    }
-   
+
    private void setGeneratorInitialStates()
    {
       copTrajectoryGenerator.setInitialCoPPositionForPlan(copPosition);
@@ -166,7 +167,7 @@ public class SmoothCMPBasedICPPlannerStateMachine
    public void updateState()
    {
       stateMachine.doAction();
-      transitionStates();
+      checkStateTransitions();
    }
 
    private class ICPPlannerState extends State<PlannerState>
@@ -185,7 +186,7 @@ public class SmoothCMPBasedICPPlannerStateMachine
       @Override
       public void doTransitionIntoAction()
       {
-         setGeneratorInitialStates();
+         
       }
 
       @Override
@@ -206,13 +207,13 @@ public class SmoothCMPBasedICPPlannerStateMachine
             public boolean checkCondition()
             {
                boolean transitionCondition = footstepDataList.size() != 0;
-               if(transitionCondition)
+               if (transitionCondition)
                   planForDoubleSupport.set(false);
                return transitionCondition;
             }
          });
       }
-      
+
       @Override
       public void doAction()
       {
@@ -244,7 +245,7 @@ public class SmoothCMPBasedICPPlannerStateMachine
             public boolean checkCondition()
             {
                boolean transitionToSwing = planForSingleSupport.getBooleanValue() && Double.isFinite(footstepDataList.get(0).getSwingTime());
-               if(transitionToSwing)
+               if (transitionToSwing)
                   planForSingleSupport.set(false);
                return transitionToSwing;
             }
@@ -255,7 +256,7 @@ public class SmoothCMPBasedICPPlannerStateMachine
             public boolean checkCondition()
             {
                boolean transitionCondition = planForSingleSupport.getBooleanValue() && !Double.isFinite(footstepDataList.get(0).getSwingTime());
-               if(transitionCondition)
+               if (transitionCondition)
                   planForSingleSupport.set(false);
                return transitionCondition;
             }
@@ -274,7 +275,7 @@ public class SmoothCMPBasedICPPlannerStateMachine
             public boolean checkCondition()
             {
                boolean transitionCondition = planForDoubleSupport.getBooleanValue() && (footstepDataList.size() > 0);
-               if(transitionCondition)
+               if (transitionCondition)
                   planForDoubleSupport.set(false);
                return transitionCondition;
             }
@@ -285,7 +286,7 @@ public class SmoothCMPBasedICPPlannerStateMachine
             public boolean checkCondition()
             {
                boolean transitionCondition = planForDoubleSupport.getBooleanValue() && (footstepDataList.size() == 0);
-               if(transitionCondition)
+               if (transitionCondition)
                   planForDoubleSupport.set(false);
                return transitionCondition;
             }
@@ -306,7 +307,9 @@ public class SmoothCMPBasedICPPlannerStateMachine
                copTrajectoryGenerator.getDesiredCenterOfPressure(copPosition);
                cmpTrajectoryGenerator.getPosition(cmpPosition);
                icpTrajectoryGenerator.getPosition(icpPosition);
-               return copPosition.epsilonEquals(cmpPosition, Epsilons.ONE_THOUSANDTH) && copPosition.epsilonEquals(icpPosition, Epsilons.ONE_THOUSANDTH);
+               comTrajectoryGenerator.getPosition(comPosition);
+               return copPosition.epsilonEquals(cmpPosition, Epsilons.ONE_THOUSANDTH) && copPosition.epsilonEquals(icpPosition, Epsilons.ONE_THOUSANDTH)
+                     && copPosition.epsilonEquals(comPosition, Epsilons.ONE_THOUSANDTH);
             }
          });
       }

@@ -24,7 +24,7 @@ public class AtlasPointyRocksTest extends HumanoidPointyRocksTest
 
    @Override
    @ContinuousIntegrationTest(estimatedDuration = 45.9, categoriesOverride = {IntegrationCategory.IN_DEVELOPMENT})
-   @Test(timeout = 230000)
+   //@Test(timeout = 230000)
    /** {@inheritDoc} */
    public void testWalkingForwardWithHalfFootContactChangesStopBetweenSteps() throws SimulationExceededMaximumTimeException
    {
@@ -42,7 +42,7 @@ public class AtlasPointyRocksTest extends HumanoidPointyRocksTest
 
    @Override
    @ContinuousIntegrationTest(estimatedDuration = 69.2, categoriesOverride = {IntegrationCategory.IN_DEVELOPMENT})
-   @Test(timeout = 350000)
+   //@Test(timeout = 350000)
    /** {@inheritDoc} */
    public void testWalkingForwardWithHalfFootContactChangesContinuousSteps() throws SimulationExceededMaximumTimeException
    {
@@ -51,7 +51,7 @@ public class AtlasPointyRocksTest extends HumanoidPointyRocksTest
 
    @Override
    @ContinuousIntegrationTest(estimatedDuration = 45.9, categoriesOverride = {IntegrationCategory.IN_DEVELOPMENT})
-   @Test(timeout = 230000)
+   //@Test(timeout = 230000)
    /** {@inheritDoc} */
    public void testWalkingForwardWithPartialFootholdsAndStopBetweenSteps() throws SimulationExceededMaximumTimeException
    {
@@ -96,7 +96,7 @@ public class AtlasPointyRocksTest extends HumanoidPointyRocksTest
 
    @Override
    @ContinuousIntegrationTest(estimatedDuration = 45.9, categoriesOverride = {IntegrationCategory.IN_DEVELOPMENT})
-   @Test(timeout = 230000)
+   //@Test(timeout = 230000)
    /** {@inheritDoc} */
    public void testHoldPositionByStandingOnOneLegAndGettingPushedSideways() throws SimulationExceededMaximumTimeException
    {
@@ -105,7 +105,7 @@ public class AtlasPointyRocksTest extends HumanoidPointyRocksTest
 
    @Override
    @ContinuousIntegrationTest(estimatedDuration = 45.0, categoriesOverride = {IntegrationCategory.IN_DEVELOPMENT})
-   @Test(timeout = 300000)
+   //@Test(timeout = 300000)
    /** {@inheritDoc} */
    public void testBalanceOnLine() throws SimulationExceededMaximumTimeException
    {

@@ -72,13 +72,13 @@ public class SmoothCMPBasedICPPlannerStateMachineTest
    {
       footstepDataList.clear();
       assertTrue(plannerStateMachine.getCurrentState() == PlannerState.STANDING);
-      plannerStateMachine.transitionStates();
+      plannerStateMachine.checkStateTransitions();
       assertTrue(plannerStateMachine.getCurrentState() == PlannerState.STANDING);
       assertTrue(isStanding.getBooleanValue());
       assertTrue(isDoubleSupport.getBooleanValue());
       assertFalse(isInitialTransfer.getBooleanValue());
       footstepDataList.add().set(new Footstep(), new FootstepTiming());
-      plannerStateMachine.transitionStates();
+      plannerStateMachine.checkStateTransitions();
       assertTrue(plannerStateMachine.getCurrentState() == PlannerState.INITIAL_TRANSFER);
       assertFalse(isStanding.getBooleanValue());
       assertTrue(isDoubleSupport.getBooleanValue());
@@ -90,19 +90,19 @@ public class SmoothCMPBasedICPPlannerStateMachineTest
    {
       footstepDataList.clear();
       plannerStateMachine.setCurrentState(PlannerState.INITIAL_TRANSFER);
-      plannerStateMachine.transitionStates();
+      plannerStateMachine.checkStateTransitions();
       assertTrue(plannerStateMachine.getCurrentState() == PlannerState.INITIAL_TRANSFER);
       assertFalse(isStanding.getBooleanValue());
       assertTrue(isDoubleSupport.getBooleanValue());
       assertTrue(isInitialTransfer.getBooleanValue());
       planForSingleSupport.set(true);
       footstepDataList.add().set(new Footstep(), new FootstepTiming(Double.POSITIVE_INFINITY, 0.6));
-      plannerStateMachine.transitionStates();
+      plannerStateMachine.checkStateTransitions();
       assertTrue(plannerStateMachine.getCurrentState() == PlannerState.FLAMINGO_STANCE);
       assertFalse(isStanding.getBooleanValue());
       assertFalse(isDoubleSupport.getBooleanValue());
       assertFalse(isInitialTransfer.getBooleanValue());
-      plannerStateMachine.transitionStates();
+      plannerStateMachine.checkStateTransitions();
       assertTrue(plannerStateMachine.getCurrentState() == PlannerState.FLAMINGO_STANCE);
       assertFalse(isStanding.getBooleanValue());
       assertFalse(isDoubleSupport.getBooleanValue());
@@ -114,19 +114,19 @@ public class SmoothCMPBasedICPPlannerStateMachineTest
    {
       footstepDataList.clear();
       plannerStateMachine.setCurrentState(PlannerState.INITIAL_TRANSFER);
-      plannerStateMachine.transitionStates();
+      plannerStateMachine.checkStateTransitions();
       assertTrue(plannerStateMachine.getCurrentState() == PlannerState.INITIAL_TRANSFER);
       assertFalse(isStanding.getBooleanValue());
       assertTrue(isDoubleSupport.getBooleanValue());
       assertTrue(isInitialTransfer.getBooleanValue());
       planForSingleSupport.set(true);
       footstepDataList.add().set(new Footstep(), new FootstepTiming(0.6, 0.2));
-      plannerStateMachine.transitionStates();
+      plannerStateMachine.checkStateTransitions();
       assertTrue(plannerStateMachine.getCurrentState() == PlannerState.SWING);
       assertFalse(isStanding.getBooleanValue());
       assertFalse(isDoubleSupport.getBooleanValue());
       assertFalse(isInitialTransfer.getBooleanValue());
-      plannerStateMachine.transitionStates();
+      plannerStateMachine.checkStateTransitions();
       assertTrue(plannerStateMachine.getCurrentState() == PlannerState.SWING);
       assertFalse(isStanding.getBooleanValue());
       assertFalse(isDoubleSupport.getBooleanValue());
@@ -138,19 +138,19 @@ public class SmoothCMPBasedICPPlannerStateMachineTest
    {
       footstepDataList.clear();
       plannerStateMachine.setCurrentState(PlannerState.SWING);
-      plannerStateMachine.transitionStates();
+      plannerStateMachine.checkStateTransitions();
       assertTrue(plannerStateMachine.getCurrentState() == PlannerState.SWING);
       assertFalse(isStanding.getBooleanValue());
       assertFalse(isDoubleSupport.getBooleanValue());
       assertFalse(isInitialTransfer.getBooleanValue());
       planForDoubleSupport.set(true);
       footstepDataList.add().set(new Footstep(), new FootstepTiming());
-      plannerStateMachine.transitionStates();
+      plannerStateMachine.checkStateTransitions();
       assertTrue(plannerStateMachine.getCurrentState() == PlannerState.TRANSFER);
       assertFalse(isStanding.getBooleanValue());
       assertTrue(isDoubleSupport.getBooleanValue());
       assertFalse(isInitialTransfer.getBooleanValue());
-      plannerStateMachine.transitionStates();
+      plannerStateMachine.checkStateTransitions();
       assertTrue(plannerStateMachine.getCurrentState() == PlannerState.TRANSFER);
       assertFalse(isStanding.getBooleanValue());
       assertTrue(isDoubleSupport.getBooleanValue());
@@ -162,18 +162,18 @@ public class SmoothCMPBasedICPPlannerStateMachineTest
    {
       footstepDataList.clear();
       plannerStateMachine.setCurrentState(PlannerState.SWING);
-      plannerStateMachine.transitionStates();
+      plannerStateMachine.checkStateTransitions();
       assertTrue(plannerStateMachine.getCurrentState() == PlannerState.SWING);
       assertFalse(isStanding.getBooleanValue());
       assertFalse(isDoubleSupport.getBooleanValue());
       assertFalse(isInitialTransfer.getBooleanValue());
       planForDoubleSupport.set(true);
-      plannerStateMachine.transitionStates();
+      plannerStateMachine.checkStateTransitions();
       assertTrue(plannerStateMachine.getCurrentState() == PlannerState.FINAL_TRANSFER);
       assertFalse(isStanding.getBooleanValue());
       assertTrue(isDoubleSupport.getBooleanValue());
       assertFalse(isInitialTransfer.getBooleanValue());
-      plannerStateMachine.transitionStates();
+      plannerStateMachine.checkStateTransitions();
       assertTrue(plannerStateMachine.getCurrentState() == PlannerState.FINAL_TRANSFER);
       assertFalse(isStanding.getBooleanValue());
       assertTrue(isDoubleSupport.getBooleanValue());
