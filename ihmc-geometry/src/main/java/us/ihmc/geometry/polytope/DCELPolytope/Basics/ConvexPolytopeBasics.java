@@ -293,6 +293,11 @@ public abstract class ConvexPolytopeBasics<A extends PolytopeVertexBasics<A, B, 
          return;
       }
       getVisibleSilhouetteUsingSeed(visibleSilhouetteList, firstHalfEdgeForSilhouette, visibleFaces);
+      if(visibleSilhouetteList.isEmpty())
+      {
+         PrintTools.warn("Got empty visible edge list. Skipping this point");
+         return;
+      }
       removeFaces(nonSilhouetteFaces);
       removeFaces(silhouetteFaces);
       createFacesFromVisibleSilhouetteAndOnFaceList(visibleSilhouetteList, onFaceList, vertexToAdd);
@@ -365,14 +370,14 @@ public abstract class ConvexPolytopeBasics<A extends PolytopeVertexBasics<A, B, 
       }
       if (count == numberOfEdges)
       {
-         PrintTools.error("Could not determine visible silhouette \n" + toString());
+//         PrintTools.error("Could not determine visible silhouette \n" + toString());
 //         PrintTools.warn("On face size: " + onFaceList.size());
 //         for(int i = 0; i < onFaceList.size(); i++)
 //            PrintTools.debug(onFaceList.get(i).toString());
 //         PrintTools.warn("Visible face size: " + visibleFaces.size());
 //         for(int i = 0; i < visibleFaces.size(); i++)
 //            PrintTools.debug(visibleFaces.get(i).toString());
-         faces.clear();
+         visibleSilhouetteToPack.clear();
       }
    }
 
