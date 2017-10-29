@@ -258,6 +258,7 @@ public abstract class AbstractICPPlanner implements ICPPlannerInterface
    /** {@inheritDoc} */
    public void updateCurrentPlan()
    {
+      PrintTools.debug("Replanning");
       if (isDoubleSupport.getBooleanValue())
       {
          if (isHoldingPosition.getBooleanValue())

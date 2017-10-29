@@ -7,8 +7,10 @@ import us.ihmc.commonWalkingControlModules.instantaneousCapturePoint.smoothCMPBa
 import us.ihmc.commonWalkingControlModules.instantaneousCapturePoint.smoothCMPBasedICPPlanner.CoPGeneration.ReferenceCoPTrajectoryGenerator;
 import us.ihmc.commonWalkingControlModules.instantaneousCapturePoint.smoothCMPBasedICPPlanner.ICPGeneration.ReferenceICPTrajectoryGenerator;
 import us.ihmc.commons.Epsilons;
+import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.robotics.MathTools;
 import us.ihmc.robotics.lists.RecyclingArrayList;
 import us.ihmc.robotics.math.frames.YoFramePoint;
@@ -34,6 +36,7 @@ public class SmoothCMPBasedICPPlannerStateMachine
    {
       STANDING, INITIAL_TRANSFER, SWING, TRANSFER, FINAL_TRANSFER, FLAMINGO_STANCE
    }
+   private static final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
 
    private final RecyclingArrayList<FootstepData> footstepDataList;
 
@@ -103,7 +106,6 @@ public class SmoothCMPBasedICPPlannerStateMachine
    private void updateStateFromGenerators()
    {
       double timeInCurrentState = MathTools.clamp(this.timeInCurrentState.getDoubleValue(), 0.0, copTrajectoryGenerator.getCurrentStateFinalTime());
-
       copTrajectoryGenerator.update(timeInCurrentState);
       amTrajectoryGenerator.update(timeInCurrentState);
       cmpTrajectoryGenerator.update(timeInCurrentState);
@@ -153,8 +155,14 @@ public class SmoothCMPBasedICPPlannerStateMachine
    {
       stateMachine.checkTransitionConditions();
       setPlannerFlagsFromState();
+      setGeneratorInitialStates();
    }
    
+   private void setGeneratorInitialStates()
+   {
+      copTrajectoryGenerator.setInitialCoPPositionForPlan(copPosition);
+   }
+
    public void updateState()
    {
       stateMachine.doAction();
@@ -177,6 +185,7 @@ public class SmoothCMPBasedICPPlannerStateMachine
       @Override
       public void doTransitionIntoAction()
       {
+         setGeneratorInitialStates();
       }
 
       @Override
@@ -202,6 +211,25 @@ public class SmoothCMPBasedICPPlannerStateMachine
                return transitionCondition;
             }
          });
+      }
+      
+      @Override
+      public void doAction()
+      {
+         copTrajectoryGenerator.getCenterOfDoubleSupportPolygon(copPosition);
+         copVelocity.setToZero(worldFrame);
+         copAcceleration.setToZero(worldFrame);
+         cmpPosition.setIncludingFrame(copPosition);
+         cmpVelocity.setToZero(worldFrame);
+         cmpAcceleration.setToZero(worldFrame);
+         icpPosition.setIncludingFrame(copPosition);
+         icpVelocity.setToZero(worldFrame);
+         icpAcceleration.setToZero(worldFrame);
+         comPosition.setIncludingFrame(copPosition);
+         comVelocity.setToZero(worldFrame);
+         comAcceleration.setToZero(worldFrame);
+         centroidalAngularMomentum.setToZero(worldFrame);
+         centroidalTorque.setToZero(worldFrame);
       }
    }
 
@@ -298,8 +326,8 @@ public class SmoothCMPBasedICPPlannerStateMachine
 
    public void getCMPData(YoFramePoint desiredCMPPosition, YoFrameVector desiredCMPVelocity)
    {
-      desiredCMPPosition.set(desiredCMPPosition);
-      desiredCMPVelocity.set(desiredCMPVelocity);
+      desiredCMPPosition.set(cmpPosition);
+      desiredCMPVelocity.set(cmpVelocity);
    }
 
    public void getICPData(YoFramePoint desiredICPPosition, YoFrameVector desiredICPVelocity, YoFrameVector desiredICPAcceleration)
