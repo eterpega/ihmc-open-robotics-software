@@ -7,12 +7,10 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
 import gnu.trove.map.hash.THashMap;
-import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics.CollisionAvoidanceCommand;
-import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics.InverseKinematicsCommand;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics.InverseKinematicsCommandList;
 import us.ihmc.geometry.polytope.DCELPolytope.Frame.FrameConvexPolytope;
+import us.ihmc.robotics.screwTheory.InverseDynamicsJoint;
 import us.ihmc.robotics.screwTheory.RigidBody;
-import us.ihmc.robotics.screwTheory.ScrewTools;
 
 /**
  * Simple module that checks if the rigid bodies are colliding with the list of obstacles submitted
@@ -55,24 +53,28 @@ public class CollisionAvoidanceModule
    private boolean isEnabled = false;
    
    /**
-    * Maintains the status if collision avoidance is on
-    */
-   private boolean isWorking = false;
-   
-   /**
     * List of collision avoidance commands to submit to the controller core
     */
    private InverseKinematicsCommandList commandList = new InverseKinematicsCommandList();
    
+   /**
+    * Generates the collision avoidance commands based on collision data from the collision detectors
+    */
+   private final CollisionAvoidanceCommandGenerator commandGenerator;
+   
+   public CollisionAvoidanceModule(RigidBody rootBody, InverseDynamicsJoint[] controlledJoints)
+   {
+      commandGenerator = new CollisionAvoidanceCommandGenerator(rootBody, controlledJoints, commandList);
+   }
+   
    public void setRigidBodyCollisionMeshes(THashMap<RigidBody, FrameConvexPolytope> collisionMeshMap)
    {
-      isWorking = (collisionMeshMap != null);
-      if(!isWorking)
+      if(collisionMeshMap == null)
          return;
       this.rigidBodies = new ArrayList<>(collisionMeshMap.keySet());
       for(int i = 0; i < rigidBodies.size(); i++)
       {
-         collisionDetectorMap.put(rigidBodies.get(i), new RigidBodyCollisionDetector(collisionMeshMap.get(rigidBodies.get(i)), parameters));
+         collisionDetectorMap.put(rigidBodies.get(i), new RigidBodyCollisionDetector(rigidBodies.get(i), collisionMeshMap.get(rigidBodies.get(i)), parameters, commandGenerator));
       }
    }
    
@@ -104,9 +106,9 @@ public class CollisionAvoidanceModule
       obstacleMeshes.clear();
    }
    
-   public void checkCollisions()
+   public void checkCollisionsAndAddAvoidanceCommands()
    {
-      if(!isEnabled || !isWorking)
+      if(!isEnabled)
          return;
       commandList.clear();
       for(int i = 0; i < rigidBodies.size(); i++)

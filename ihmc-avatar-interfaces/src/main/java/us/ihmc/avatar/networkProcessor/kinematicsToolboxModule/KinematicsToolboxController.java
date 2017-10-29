@@ -236,7 +236,8 @@ public class KinematicsToolboxController extends ToolboxController
 
       Arrays.stream(oneDoFJoints).forEach(joint -> jointNameBasedHashCodeMap.put(joint.getNameBasedHashCode(), joint));
 
-      controllerCore = createControllerCore(controllableRigidBodies);
+      InverseDynamicsJoint[] controlledJoints = getControlledJoints();
+      controllerCore = createControllerCore(controllableRigidBodies, controlledJoints);
       feedbackControllerDataHolder = controllerCore.getWholeBodyFeedbackControllerDataHolder();
 
       inverseKinematicsSolution = new KinematicsToolboxOutputStatus(oneDoFJoints);
@@ -249,12 +250,12 @@ public class KinematicsToolboxController extends ToolboxController
       privilegedConfigurationGain.set(50.0);
       privilegedMaxVelocity.set(Double.POSITIVE_INFINITY);
       //TODO move the settings to be configurable by 
-      collisionAvoidanceModule = createAndInitializeCollisionAvoidanceModule(collisionMeshes);
+      collisionAvoidanceModule = createAndInitializeCollisionAvoidanceModule(controlledJoints, collisionMeshes);
    }
 
-   private CollisionAvoidanceModule createAndInitializeCollisionAvoidanceModule(THashMap<RigidBody, FrameConvexPolytope> collisionMeshes)
+   private CollisionAvoidanceModule createAndInitializeCollisionAvoidanceModule(InverseDynamicsJoint[] controlledOneDoFJoints, THashMap<RigidBody, FrameConvexPolytope> collisionMeshes)
    {
-      CollisionAvoidanceModule module = new CollisionAvoidanceModule();
+      CollisionAvoidanceModule module = new CollisionAvoidanceModule(rootBody, controlledOneDoFJoints);
       module.setRigidBodyCollisionMeshes(collisionMeshes);
       return module;
    }
@@ -311,9 +312,21 @@ public class KinematicsToolboxController extends ToolboxController
     * @return the controller core that will run for the desired robot
     *         {@link #desiredFullRobotModel}.
     */
-   private WholeBodyControllerCore createControllerCore(Collection<RigidBody> controllableRigidBodies)
+   private WholeBodyControllerCore createControllerCore(Collection<RigidBody> controllableRigidBodies, InverseDynamicsJoint[] controlledJoints)
    {
       KinematicsToolboxOptimizationSettings optimizationSettings = new KinematicsToolboxOptimizationSettings();
+      WholeBodyControlCoreToolbox toolbox = new WholeBodyControlCoreToolbox(updateDT, 0.0, rootJoint, controlledJoints, centerOfMassFrame, optimizationSettings,
+                                                                            null, registry);
+      toolbox.setJointPrivilegedConfigurationParameters(new JointPrivilegedConfigurationParameters());
+      toolbox.setupForInverseKinematicsSolver();
+      FeedbackControlCommandList controllerCoreTemplate = createControllerCoreTemplate(controllableRigidBodies);
+      controllerCoreTemplate.addCommand(new CenterOfMassFeedbackControlCommand());
+      JointDesiredOutputList lowLevelControllerOutput = new JointDesiredOutputList(oneDoFJoints);
+      return new WholeBodyControllerCore(toolbox, controllerCoreTemplate, lowLevelControllerOutput, registry);
+   }
+
+   private InverseDynamicsJoint[] getControlledJoints()
+   {
       InverseDynamicsJoint[] controlledJoints;
       if (rootJoint != null)
       {
@@ -325,14 +338,7 @@ public class KinematicsToolboxController extends ToolboxController
       {
          controlledJoints = oneDoFJoints;
       }
-      WholeBodyControlCoreToolbox toolbox = new WholeBodyControlCoreToolbox(updateDT, 0.0, rootJoint, controlledJoints, centerOfMassFrame, optimizationSettings,
-                                                                            null, registry);
-      toolbox.setJointPrivilegedConfigurationParameters(new JointPrivilegedConfigurationParameters());
-      toolbox.setupForInverseKinematicsSolver();
-      FeedbackControlCommandList controllerCoreTemplate = createControllerCoreTemplate(controllableRigidBodies);
-      controllerCoreTemplate.addCommand(new CenterOfMassFeedbackControlCommand());
-      JointDesiredOutputList lowLevelControllerOutput = new JointDesiredOutputList(oneDoFJoints);
-      return new WholeBodyControllerCore(toolbox, controllerCoreTemplate, lowLevelControllerOutput, registry);
+      return controlledJoints;
    }
 
    /**
@@ -423,6 +429,7 @@ public class KinematicsToolboxController extends ToolboxController
       controllerCoreCommand.addFeedbackControlCommand(getAdditionalFeedbackControlCommands());
 
       controllerCoreCommand.addInverseKinematicsCommand(privilegedConfigurationCommandReference.getAndSet(null));
+      collisionAvoidanceModule.checkCollisionsAndAddAvoidanceCommands();
       controllerCoreCommand.addInverseKinematicsCommand(getAdditionalInverseKinematicsCommands());
 
       // Save all commands used for this control tick for computing the solution quality.
