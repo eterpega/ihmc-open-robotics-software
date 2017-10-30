@@ -7,6 +7,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
 import gnu.trove.map.hash.THashMap;
+import us.ihmc.avatar.collisionAvoidance.FrameConvexPolytopeVisualizer;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics.CollisionAvoidanceCommand;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics.InverseKinematicsCommandList;
 import us.ihmc.commons.PrintTools;
@@ -66,10 +67,21 @@ public class CollisionAvoidanceModule
     */
    private final CollisionAvoidanceCommandGenerator commandGenerator;
    
+   /**
+    * Visualization stuff
+    */
+   private final FrameConvexPolytopeVisualizer viz;
+   
    public CollisionAvoidanceModule(RigidBody rootBody, InverseDynamicsJoint[] controlledJoints)
+   {
+      this(rootBody, controlledJoints, null);
+   }
+   
+   public CollisionAvoidanceModule(RigidBody rootBody, InverseDynamicsJoint[] controlledJoints, FrameConvexPolytopeVisualizer viz)
    {
       command = new CollisionAvoidanceCommand(controlledJoints);
       commandGenerator = new CollisionAvoidanceCommandGenerator(rootBody, command);
+      this.viz = viz;
    }
    
    public void setRigidBodyCollisionMeshes(THashMap<RigidBody, FrameConvexPolytope> collisionMeshMap)
@@ -79,7 +91,9 @@ public class CollisionAvoidanceModule
       this.rigidBodies = new ArrayList<>(collisionMeshMap.keySet());
       for(int i = 0; i < rigidBodies.size(); i++)
       {
-         collisionDetectorMap.put(rigidBodies.get(i), new RigidBodyCollisionDetector(rigidBodies.get(i), collisionMeshMap.get(rigidBodies.get(i)), parameters, commandGenerator));
+         RigidBody rigidBody = rigidBodies.get(i);
+         collisionDetectorMap.put(rigidBody, new RigidBodyCollisionDetector(rigidBody, collisionMeshMap.get(rigidBody), parameters, commandGenerator, null));
+         visualize(collisionMeshMap.get(rigidBody));
       }
    }
    
@@ -91,6 +105,7 @@ public class CollisionAvoidanceModule
    public void submitObstacleCollisionMesh(FrameConvexPolytope obstacleCollisionMesh)
    {
       this.obstacleMeshes.add(obstacleCollisionMesh);
+      visualize(obstacleCollisionMesh);
    }
    
    public void submitObstacleCollisionMesh(FrameConvexPolytope... obstacleMeshes)
@@ -116,7 +131,7 @@ public class CollisionAvoidanceModule
       commandList.clear();
       if(!isEnabled)
          return;
-      PrintTools.debug("\n Checking for collisions...");
+      PrintTools.debug("Checking for collisions...");
       command.reset();
       boolean collisionDetected = false;
       for(int i = 0; i < rigidBodies.size(); i++)
@@ -125,6 +140,8 @@ public class CollisionAvoidanceModule
          RigidBodyCollisionDetector collisionDetector = collisionDetectorMap.get(rigidBody);
          collisionDetected |= collisionDetector.checkCollisionsWithObstacles(obstacleMeshes);
       }
+      if(viz != null)
+         viz.update();
       if(collisionDetected)
          commandList.addCommand(command);
    }
@@ -142,5 +159,14 @@ public class CollisionAvoidanceModule
    public InverseKinematicsCommandList getCollisionAvoidanceCommands()
    {
       return commandList;
+   }
+   
+   private void visualize(FrameConvexPolytope polytope)
+   {
+      if(viz != null)
+      {
+         viz.addPolytope(polytope);
+         viz.update();
+      }
    }
 }

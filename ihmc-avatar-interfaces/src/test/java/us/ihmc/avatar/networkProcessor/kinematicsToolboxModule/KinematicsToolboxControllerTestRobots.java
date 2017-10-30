@@ -131,7 +131,7 @@ public class KinematicsToolboxControllerTestRobots
          scsHandLink.setLinkGraphics(createHandGraphics());
          CollisionMeshDescription scsHandLinkMeshDescription = new CollisionMeshDescription();
          scsHandLinkMeshDescription.addSphere(0.05);
-         scsHandLink.addCollisionMesh(scsHandLinkMeshDescription);
+         //scsHandLink.addCollisionMesh(scsHandLinkMeshDescription);
 
          addRootJoint(rootJoint);
          rootJoint.setLink(scsRootLink);

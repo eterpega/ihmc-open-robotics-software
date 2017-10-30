@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import gnu.trove.map.hash.THashMap;
+import us.ihmc.avatar.collisionAvoidance.FrameConvexPolytopeVisualizer;
 import us.ihmc.avatar.networkProcessor.modules.ToolboxController;
 import us.ihmc.avatar.networkProcessor.modules.ToolboxModule;
 import us.ihmc.commonWalkingControlModules.configurations.JointPrivilegedConfigurationParameters;
@@ -21,6 +22,7 @@ import us.ihmc.commonWalkingControlModules.controllerCore.command.feedbackContro
 import us.ihmc.commonWalkingControlModules.controllerCore.command.feedbackController.FeedbackControlCommand;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.feedbackController.FeedbackControlCommandList;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.feedbackController.SpatialFeedbackControlCommand;
+import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics.CollisionAvoidanceCommand;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics.InverseKinematicsCommandList;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics.PrivilegedConfigurationCommand;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics.PrivilegedConfigurationCommand.PrivilegedConfigurationOption;
@@ -211,18 +213,34 @@ public class KinematicsToolboxController extends ToolboxController
     * Generates the commands to move away from collisions (with obstacles / self)
     */
    private final CollisionAvoidanceModule collisionAvoidanceModule;
-   
+
    public KinematicsToolboxController(CommandInputManager commandInputManager, StatusMessageOutputManager statusOutputManager,
                                       FloatingInverseDynamicsJoint rootJoint, OneDoFJoint[] oneDoFJoints, YoGraphicsListRegistry yoGraphicsListRegistry,
                                       YoVariableRegistry parentRegistry)
    {
-      this(commandInputManager, statusOutputManager, rootJoint, oneDoFJoints, null, null, yoGraphicsListRegistry, parentRegistry);
+      this(commandInputManager, statusOutputManager, rootJoint, oneDoFJoints, null, null, yoGraphicsListRegistry, parentRegistry, null);
+   }
+
+   public KinematicsToolboxController(CommandInputManager commandInputManager, StatusMessageOutputManager statusOutputManager,
+                                      FloatingInverseDynamicsJoint rootJoint, OneDoFJoint[] oneDoFJoints, YoGraphicsListRegistry yoGraphicsListRegistry,
+                                      YoVariableRegistry parentRegistry, FrameConvexPolytopeVisualizer viz)
+   {
+      this(commandInputManager, statusOutputManager, rootJoint, oneDoFJoints, null, null, yoGraphicsListRegistry, parentRegistry, viz);
    }
 
    public KinematicsToolboxController(CommandInputManager commandInputManager, StatusMessageOutputManager statusOutputManager,
                                       FloatingInverseDynamicsJoint rootJoint, OneDoFJoint[] oneDoFJoints,
                                       THashMap<RigidBody, FrameConvexPolytope> collisionMeshes, Collection<RigidBody> controllableRigidBodies,
                                       YoGraphicsListRegistry yoGraphicsListRegistry, YoVariableRegistry parentRegistry)
+   {
+      this(commandInputManager, statusOutputManager, rootJoint, oneDoFJoints, collisionMeshes, controllableRigidBodies, yoGraphicsListRegistry, parentRegistry,
+           null);
+   }
+
+   public KinematicsToolboxController(CommandInputManager commandInputManager, StatusMessageOutputManager statusOutputManager,
+                                      FloatingInverseDynamicsJoint rootJoint, OneDoFJoint[] oneDoFJoints,
+                                      THashMap<RigidBody, FrameConvexPolytope> collisionMeshes, Collection<RigidBody> controllableRigidBodies,
+                                      YoGraphicsListRegistry yoGraphicsListRegistry, YoVariableRegistry parentRegistry, FrameConvexPolytopeVisualizer viz)
    {
       super(statusOutputManager, parentRegistry);
       this.commandInputManager = commandInputManager;
@@ -232,7 +250,7 @@ public class KinematicsToolboxController extends ToolboxController
 
       // This will find the root body without using rootJoint so it can be null.
       rootBody = ScrewTools.getRootBody(oneDoFJoints[0].getPredecessor());
-      
+
       centerOfMassFrame = new CenterOfMassReferenceFrame("centerOfMass", worldFrame, rootBody);
 
       Arrays.stream(oneDoFJoints).forEach(joint -> jointNameBasedHashCodeMap.put(joint.getNameBasedHashCode(), joint));
@@ -251,12 +269,14 @@ public class KinematicsToolboxController extends ToolboxController
       privilegedConfigurationGain.set(50.0);
       privilegedMaxVelocity.set(Double.POSITIVE_INFINITY);
       //TODO move the settings to be configurable by 
-      collisionAvoidanceModule = createAndInitializeCollisionAvoidanceModule(controlledJoints, collisionMeshes);
+      collisionAvoidanceModule = createAndInitializeCollisionAvoidanceModule(controlledJoints, collisionMeshes, viz);
    }
 
-   private CollisionAvoidanceModule createAndInitializeCollisionAvoidanceModule(InverseDynamicsJoint[] controlledOneDoFJoints, THashMap<RigidBody, FrameConvexPolytope> collisionMeshes)
+   private CollisionAvoidanceModule createAndInitializeCollisionAvoidanceModule(InverseDynamicsJoint[] controlledOneDoFJoints,
+                                                                                THashMap<RigidBody, FrameConvexPolytope> collisionMeshes,
+                                                                                FrameConvexPolytopeVisualizer viz)
    {
-      CollisionAvoidanceModule module = new CollisionAvoidanceModule(rootBody, controlledOneDoFJoints);
+      CollisionAvoidanceModule module = new CollisionAvoidanceModule(rootBody, controlledOneDoFJoints, viz);
       module.setRigidBodyCollisionMeshes(collisionMeshes);
       return module;
    }
@@ -621,7 +641,12 @@ public class KinematicsToolboxController extends ToolboxController
 
    protected InverseKinematicsCommandList getAdditionalInverseKinematicsCommands()
    {
-      PrintTools.debug("Adding collision avoidance commands: " + collisionAvoidanceModule.getCollisionAvoidanceCommands().getNumberOfCommands());
+      int taskSize;
+      if (collisionAvoidanceModule.getCollisionAvoidanceCommands().getNumberOfCommands() != 0)
+         taskSize = ((CollisionAvoidanceCommand) collisionAvoidanceModule.getCollisionAvoidanceCommands().getCommand(0)).getTaskSize();
+      else
+         taskSize = 0;
+      PrintTools.debug("Collision task size: " + taskSize);
       return collisionAvoidanceModule.getCollisionAvoidanceCommands();
    }
 
@@ -646,22 +671,22 @@ public class KinematicsToolboxController extends ToolboxController
    {
       return inverseKinematicsSolution;
    }
-   
+
    public void submitObstacleCollisionMesh(FrameConvexPolytope obstacleMesh)
    {
       collisionAvoidanceModule.submitObstacleCollisionMesh(obstacleMesh);
    }
-   
+
    public void setCollisionMeshes(THashMap<RigidBody, FrameConvexPolytope> collisionMeshes)
    {
       collisionAvoidanceModule.setRigidBodyCollisionMeshes(collisionMeshes);
    }
-   
+
    public boolean isCollisionAvoidanceEnabled()
    {
       return collisionAvoidanceModule.isEnabled();
    }
-   
+
    public void enableCollisionAvoidance(boolean enabled)
    {
       collisionAvoidanceModule.enable(enabled);

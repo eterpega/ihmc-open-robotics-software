@@ -1,6 +1,7 @@
 package us.ihmc.geometry.polytope.DCELPolytope.CollisionDetection;
 
 import us.ihmc.commons.Epsilons;
+import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
@@ -127,20 +128,24 @@ public class HybridGJKEPACollisionDetector
       }
 
       if(simplex.isEmpty())
-         supportVectorDirection.set(1.0,  0.0, 0.0);
+         supportVectorDirection.set(0.0, 1.0, 0.0);
       else
          simplex.getSupportVectorDirectionTo(origin, supportVectorDirection);
       previousSupportVectorDirection.set(supportVectorDirection);
-      for (int i = 0; i < iterations; i++)
+      for (int i = 0; i < iterations;)
       {
          simplex.addVertex(polytopeA.getSupportingVertexHack(supportVectorDirection), polytopeB.getSupportingVertexHack(supportVectorDirectionNegative));
          if(simplex.isInteriorPoint(origin, epsilon))
+         {
             return true;
+         }
          else
             simplex.getSupportVectorDirectionTo(origin, supportVectorDirection);
          
          if(previousSupportVectorDirection.epsilonEquals(supportVectorDirection, epsilon))
+         {
             return false;
+         }
          else
             previousSupportVectorDirection.set(supportVectorDirection);
       }

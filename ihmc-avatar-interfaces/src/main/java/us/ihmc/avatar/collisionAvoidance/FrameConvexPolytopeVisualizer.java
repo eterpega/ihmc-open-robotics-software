@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import us.ihmc.commons.Epsilons;
 import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.Axis;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
@@ -18,9 +17,6 @@ import us.ihmc.geometry.polytope.DCELPolytope.Basics.ConvexPolytopeReadOnly;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeHalfEdgeReadOnly;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeVertexReadOnly;
 import us.ihmc.geometry.polytope.DCELPolytope.Frame.FrameConvexPolytope;
-import us.ihmc.geometry.polytope.DCELPolytope.Frame.FrameConvexPolytopeFace;
-import us.ihmc.geometry.polytope.DCELPolytope.Frame.FramePolytopeHalfEdge;
-import us.ihmc.geometry.polytope.DCELPolytope.Frame.FramePolytopeVertex;
 import us.ihmc.graphicsDescription.Graphics3DObject;
 import us.ihmc.graphicsDescription.appearance.YoAppearanceRGBColor;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicLineSegment;
@@ -94,6 +90,7 @@ public class FrameConvexPolytopeVisualizer
       polytopes[numberOfPolytopes] = polytopeToAdd;
       polytopeColors[numberOfPolytopes] = getNextColor();
       numberOfPolytopes++;
+      update();
    }
 
    private Color getNextColor()
@@ -293,5 +290,19 @@ public class FrameConvexPolytopeVisualizer
          if(polytopes[i] == polytopeToChange)
             polytopeColors[i] = newColor;
       updateNonBlocking();
+   }
+
+   public void removePolytope(ConvexPolytopeReadOnly polytope)
+   {
+      for(int i = 0; i < numberOfPolytopes; i++)
+      {
+         if(polytopes[i] == polytope)
+         {
+            polytopes[i] = null;
+            numberOfPolytopes--;
+            break;
+         }
+      }
+      update();
    }
 }

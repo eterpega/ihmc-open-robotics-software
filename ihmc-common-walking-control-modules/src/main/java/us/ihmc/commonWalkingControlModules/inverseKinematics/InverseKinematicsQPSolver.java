@@ -83,6 +83,9 @@ public class InverseKinematicsQPSolver
       solverInput_Aeq.reshape(0, numberOfDoFs);
       solverInput_beq.reshape(0, 1);
 
+      solverInput_Ain.reshape(0, numberOfDoFs);
+      solverInput_bin.reshape(0, 1);
+
       if (!firstCall.getBooleanValue())
          addJointAccelerationRegularization();
    }

@@ -113,25 +113,16 @@ public class KinematicsToolboxCollisionDetectionTest
 
       StatusMessageOutputManager statusOutputManager = new StatusMessageOutputManager(KinematicsToolboxModule.supportedStatus());
 
+      visualizer = new FrameConvexPolytopeVisualizer(50, mainRegistry, yoGraphicsListRegistry);
       toolboxController = new KinematicsToolboxController(commandInputManager, statusOutputManager, null, controllerFullRobotModel.getOneDoFJoints(),
-                                                          yoGraphicsListRegistry, mainRegistry);
+                                                          yoGraphicsListRegistry, mainRegistry, visualizer);
 
       THashMap<RigidBody, FrameConvexPolytope> collisionMeshes = (new RobotCollisionMeshProvider(4)).createCollisionMeshesFromRobotDescription(controllerFullRobotModel,
                                                                                                                                                robotDescription);
       toolboxController.setCollisionMeshes(collisionMeshes);
-      FrameConvexPolytope obstacle = ConvexPolytopeConstructor.getFrameCuboidCollisionMesh(ReferenceFrame.getWorldFrame(), new Point3D(-0.15, 0.0, 0.45), 0.15,
+      FrameConvexPolytope obstacle = ConvexPolytopeConstructor.getFrameCuboidCollisionMesh(ReferenceFrame.getWorldFrame(), new Point3D(0.15, 0.0, 0.65), 0.15,
                                                                                            0.15, 0.15);
       toolboxController.submitObstacleCollisionMesh(obstacle);
-      visualizer = new FrameConvexPolytopeVisualizer(10, mainRegistry, yoGraphicsListRegistry);
-      visualizer.addPolytope(obstacle);
-      RigidBody[] rigidBodies = collisionMeshes.keySet().toArray(new RigidBody[] {});
-      for (int i = 0; i < rigidBodies.length; i++)
-      {
-         FrameConvexPolytope collisionMesh = collisionMeshes.get(rigidBodies[i]);
-         if (collisionMesh != null)
-            visualizer.addPolytope(collisionMesh);
-      }
-      visualizer.update();
       robot = new RobotFromDescription(robotDescription);
       toolboxUpdater = createToolboxUpdater();
       robot.setController(toolboxUpdater);
@@ -205,7 +196,7 @@ public class KinematicsToolboxCollisionDetectionTest
       RobotConfigurationData robotConfigurationData = extractRobotConfigurationData(initialFullRobotModel);
       toolboxController.updateRobotConfigurationData(robotConfigurationData);
 
-      int numberOfIterations = 250;
+      int numberOfIterations = 2;
 
       runKinematicsToolboxController(numberOfIterations);
 
@@ -214,7 +205,7 @@ public class KinematicsToolboxCollisionDetectionTest
                  toolboxController.getSolution().getSolutionQuality() < 1.0e-4);
    }
 
-   @Test
+   @Test(timeout = 10)
    public void testHandCollsion() throws Exception
    {
       if (VERBOSE)
@@ -227,8 +218,8 @@ public class KinematicsToolboxCollisionDetectionTest
       OneDoFJoint[] inputAngles = desiredFullRobotModel.getOneDoFJoints();
       inputAngles[0].setQ(Math.toRadians(0));
       inputAngles[1].setQ(Math.toRadians(0));
-      inputAngles[2].setQ(Math.toRadians(-90));
-      inputAngles[3].setQ(Math.toRadians(90));
+      inputAngles[2].setQ(Math.toRadians(90));
+      inputAngles[3].setQ(Math.toRadians(-90));
       inputAngles[4].setQ(Math.toRadians(45));
       inputAngles[5].setQ(Math.toRadians(45));
       inputAngles[6].setQ(Math.toRadians(45));
@@ -239,7 +230,7 @@ public class KinematicsToolboxCollisionDetectionTest
       FramePoint3D desiredPosition = new FramePoint3D(hand.getBodyFixedFrame());
       desiredPosition.changeFrame(worldFrame);
       KinematicsToolboxRigidBodyMessage message = new KinematicsToolboxRigidBodyMessage(hand, desiredPosition);
-      message.setWeight(100.0);
+      message.setWeight(20.0);
       commandInputManager.submitMessage(message);
 
       snapGhostToFullRobotModel(desiredFullRobotModel);
