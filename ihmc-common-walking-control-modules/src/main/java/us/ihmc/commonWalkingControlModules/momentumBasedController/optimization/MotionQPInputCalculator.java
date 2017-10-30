@@ -618,6 +618,7 @@ public class MotionQPInputCalculator
             }
          }
       }
+      motionQPInputToPack.taskObjective.set(commandToConvert.getTaskObjective());
       recordTaskJacobian(motionQPInputToPack.taskJacobian);
       return true;
    }

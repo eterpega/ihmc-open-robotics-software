@@ -32,8 +32,9 @@ public class RigidBodyCollisionDetector
       this.rigidBody = rigidBody;
    }
    
-   public void checkCollisionsWithObstacles(List<FrameConvexPolytope> obstacleMeshes)
+   public boolean checkCollisionsWithObstacles(List<FrameConvexPolytope> obstacleMeshes)
    {
+      boolean collisionDetected = false;
       for(int i = 0; i < obstacleMeshes.size(); i++)
       {
          FrameConvexPolytope obstacleMesh = obstacleMeshes.get(i);
@@ -44,13 +45,17 @@ public class RigidBodyCollisionDetector
          collisionDetector.setPolytopeB(obstacleMesh);
          if(collisionDetector.checkCollision())
          {
-            collidingObstacleSimplices.put(obstacleMesh, pairSimplex);
+            collisionDetected = true;
+            //collidingObstacleSimplices.put(obstacleMesh, pairSimplex);
             collisionDetector.runEPAExpansion();
             collisionDetector.getCollisionPoints(rigidBodyCollidingPoint, obstacleMeshCollidingPoint);
             PrintTools.debug("Detected collision for:  " + rigidBody.getName());
-            //registerCollision(rigidBodyCollidingPoint, obstacleMeshCollidingPoint);
+            registerCollision(rigidBodyCollidingPoint, obstacleMeshCollidingPoint);
          }  
       }
+      if(collisionDetected)
+         PrintTools.debug("Got collision for: " + rigidBody.getName());
+      return collisionDetected;
    }
    
    private void registerCollision(Point3D rigidBodyPoint, Point3D obstaclePoint)

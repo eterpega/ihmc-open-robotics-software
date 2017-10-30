@@ -1,30 +1,32 @@
 package us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics;
 
+import java.util.List;
+
 import org.ejml.data.DenseMatrix64F;
 
+import gnu.trove.list.array.TIntArrayList;
+import gnu.trove.map.hash.THashMap;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.ControllerCoreCommandType;
-import us.ihmc.euclid.referenceFrame.FramePoint3D;
-import us.ihmc.euclid.tuple3D.Vector3D;
-import us.ihmc.robotics.geometry.FramePose;
-import us.ihmc.robotics.screwTheory.GeometricJacobianCalculator;
+import us.ihmc.commons.PrintTools;
 import us.ihmc.robotics.screwTheory.InverseDynamicsJoint;
-import us.ihmc.robotics.screwTheory.OneDoFJoint;
-import us.ihmc.robotics.screwTheory.RigidBody;
-import us.ihmc.robotics.screwTheory.ScrewTools;
-import us.ihmc.robotics.screwTheory.SelectionMatrix6D;
 
 public class CollisionAvoidanceCommand implements InverseKinematicsCommand<CollisionAvoidanceCommand>
 {
+   private static final int defaultTaskSize = 10;
    private int numberOfJoints;
-   private DenseMatrix64F jacobian = new DenseMatrix64F();
+   private DenseMatrix64F jacobian;
+   private DenseMatrix64F objective;
    private InverseDynamicsJoint[] joints;
    private int taskSize = 0;
+   private THashMap<InverseDynamicsJoint, TIntArrayList> jointIndexMap = new THashMap<>();
 
-   public CollisionAvoidanceCommand(InverseDynamicsJoint[] oneDoFJoints)
+   public CollisionAvoidanceCommand(InverseDynamicsJoint[] controlledJoints)
    {
-      this.numberOfJoints = oneDoFJoints.length;
-      this.joints = oneDoFJoints;
-      this.jacobian.reshape(numberOfJoints, taskSize);
+      this.numberOfJoints = controlledJoints.length;
+      this.joints = controlledJoints;
+      this.jacobian = new DenseMatrix64F(defaultTaskSize, numberOfJoints);
+      this.objective = new DenseMatrix64F(defaultTaskSize, 1);
+      createColumnIndexMap();
       reset();
    }
 
@@ -32,6 +34,7 @@ public class CollisionAvoidanceCommand implements InverseKinematicsCommand<Colli
    {
       taskSize = 0;
       jacobian.reshape(taskSize, numberOfJoints);
+      objective.reshape(taskSize, 1);
    }
 
    public InverseDynamicsJoint[] getJoints()
@@ -67,6 +70,11 @@ public class CollisionAvoidanceCommand implements InverseKinematicsCommand<Colli
    {
       return jacobian;
    }
+   
+   public DenseMatrix64F getTaskObjective()
+   {
+      return objective;
+   }
 
    @Override
    public ControllerCoreCommandType getCommandType()
@@ -94,5 +102,45 @@ public class CollisionAvoidanceCommand implements InverseKinematicsCommand<Colli
          startIndex += joints[i].getDegreesOfFreedom();
       }
       return -1;
+   }
+
+   private void createColumnIndexMap()
+   {
+      int columnIndex = 0;
+      for(int i = 0; i < joints.length; i++)
+      {
+         InverseDynamicsJoint joint = joints[i];
+         TIntArrayList columnList = new TIntArrayList(joint.getDegreesOfFreedom());
+         for(int j = 0; j < joint.getDegreesOfFreedom(); j++)
+            columnList.add(columnIndex++);
+         jointIndexMap.put(joint, columnList);
+      }
+   }
+   
+   public void addConstraint(List<InverseDynamicsJoint> kinematicChain, DenseMatrix64F taskJacobian, double taskObjective)
+   {
+      PrintTools.debug("Adding task constraint");
+      jacobian.reshape(taskSize + 1, numberOfJoints, true);
+      objective.reshape(taskSize + 1, 1);
+      int taskJacobianColumnIndex = 0;
+      for(int i = 0; i < kinematicChain.size(); i++)
+      {
+         InverseDynamicsJoint joint = kinematicChain.get(i);
+         TIntArrayList columns = jointIndexMap.get(joint);
+         if(columns == null)
+         {
+            taskJacobianColumnIndex += joint.getDegreesOfFreedom();
+            continue;
+            //throw new RuntimeException("Got collision avoidance jacobian for unregistered joint: " + joint.getName());
+         }
+         if(joint.getDegreesOfFreedom() != columns.size())
+            throw new RuntimeException("Joint column index entries do not match joint degrees of freedom");
+         for(int j = 0; j < columns.size(); j++)
+         {
+            jacobian.set(taskSize, columns.get(j), taskJacobianColumnIndex++);
+         }
+      }
+      objective.set(taskSize, 0, taskObjective);
+      taskSize++;
    }
 }

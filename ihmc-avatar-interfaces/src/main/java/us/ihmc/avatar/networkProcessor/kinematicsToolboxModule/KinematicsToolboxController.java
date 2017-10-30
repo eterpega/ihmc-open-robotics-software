@@ -24,6 +24,7 @@ import us.ihmc.commonWalkingControlModules.controllerCore.command.feedbackContro
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics.InverseKinematicsCommandList;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics.PrivilegedConfigurationCommand;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics.PrivilegedConfigurationCommand.PrivilegedConfigurationOption;
+import us.ihmc.commons.PrintTools;
 import us.ihmc.communication.controllerAPI.CommandInputManager;
 import us.ihmc.communication.controllerAPI.StatusMessageOutputManager;
 import us.ihmc.communication.packets.HumanoidKinematicsToolboxConfigurationMessage;
@@ -619,6 +620,7 @@ public class KinematicsToolboxController extends ToolboxController
 
    protected InverseKinematicsCommandList getAdditionalInverseKinematicsCommands()
    {
+      PrintTools.debug("Adding collision avoidance commands: " + collisionAvoidanceModule.getCollisionAvoidanceCommands().getNumberOfCommands());
       return collisionAvoidanceModule.getCollisionAvoidanceCommands();
    }
 
