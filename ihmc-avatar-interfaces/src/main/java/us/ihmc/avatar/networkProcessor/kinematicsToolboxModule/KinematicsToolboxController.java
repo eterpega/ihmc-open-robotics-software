@@ -641,12 +641,6 @@ public class KinematicsToolboxController extends ToolboxController
 
    protected InverseKinematicsCommandList getAdditionalInverseKinematicsCommands()
    {
-      int taskSize;
-      if (collisionAvoidanceModule.getCollisionAvoidanceCommands().getNumberOfCommands() != 0)
-         taskSize = ((CollisionAvoidanceCommand) collisionAvoidanceModule.getCollisionAvoidanceCommands().getCommand(0)).getTaskSize();
-      else
-         taskSize = 0;
-      PrintTools.debug("Collision task size: " + taskSize);
       return collisionAvoidanceModule.getCollisionAvoidanceCommands();
    }
 
