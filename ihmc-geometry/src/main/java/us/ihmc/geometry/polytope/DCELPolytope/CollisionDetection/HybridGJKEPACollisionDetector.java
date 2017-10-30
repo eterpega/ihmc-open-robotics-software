@@ -131,7 +131,7 @@ public class HybridGJKEPACollisionDetector
       else
          simplex.getSupportVectorDirectionTo(origin, supportVectorDirection);
       previousSupportVectorDirection.set(supportVectorDirection);
-      for (int i = 0; i < iterations;)
+      for (int i = 0; i < iterations; i++)
       {
          simplex.addVertex(polytopeA.getSupportingVertexHack(supportVectorDirection), polytopeB.getSupportingVertexHack(supportVectorDirectionNegative));
          if(simplex.isInteriorPoint(origin, epsilon))

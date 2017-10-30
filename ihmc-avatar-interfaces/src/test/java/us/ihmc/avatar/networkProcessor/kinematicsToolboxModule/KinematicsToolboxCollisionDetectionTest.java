@@ -95,7 +95,7 @@ public class KinematicsToolboxCollisionDetectionTest
    @Before
    public void setup()
    {
-      simulationTestingParameters.setKeepSCSUp(false);
+      simulationTestingParameters.setKeepSCSUp(true);
       mainRegistry = new YoVariableRegistry("main");
       initializationSucceeded = new YoBoolean("initializationSucceeded", mainRegistry);
       numberOfIterations = new YoInteger("numberOfIterations", mainRegistry);
@@ -117,7 +117,7 @@ public class KinematicsToolboxCollisionDetectionTest
       THashMap<RigidBody, FrameConvexPolytope> collisionMeshes = (new RobotCollisionMeshProvider(4)).createCollisionMeshesFromRobotDescription(controllerFullRobotModel,
                                                                                                                                                robotDescription);
       toolboxController.setCollisionMeshes(collisionMeshes);
-      FrameConvexPolytope obstacle = ConvexPolytopeConstructor.getFrameCuboidCollisionMesh(ReferenceFrame.getWorldFrame(), new Point3D(0.25, 0.0, 0.75), 0.15,
+      FrameConvexPolytope obstacle = ConvexPolytopeConstructor.getFrameCuboidCollisionMesh(ReferenceFrame.getWorldFrame(), new Point3D(-0.15, 0.0, 0.45), 0.15,
                                                                                            0.15, 0.15);
       toolboxController.submitObstacleCollisionMesh(obstacle);
       visualizer = new FrameConvexPolytopeVisualizer(10, mainRegistry, yoGraphicsListRegistry);
@@ -225,8 +225,8 @@ public class KinematicsToolboxCollisionDetectionTest
       OneDoFJoint[] inputAngles = desiredFullRobotModel.getOneDoFJoints();
       inputAngles[0].setQ(Math.toRadians(0));
       inputAngles[1].setQ(Math.toRadians(0));
-      inputAngles[2].setQ(Math.toRadians(30));
-      inputAngles[3].setQ(Math.toRadians(0));
+      inputAngles[2].setQ(Math.toRadians(-90));
+      inputAngles[3].setQ(Math.toRadians(90));
       inputAngles[4].setQ(Math.toRadians(45));
       inputAngles[5].setQ(Math.toRadians(45));
       inputAngles[6].setQ(Math.toRadians(45));
@@ -237,13 +237,13 @@ public class KinematicsToolboxCollisionDetectionTest
       FramePoint3D desiredPosition = new FramePoint3D(hand.getBodyFixedFrame());
       desiredPosition.changeFrame(worldFrame);
       KinematicsToolboxRigidBodyMessage message = new KinematicsToolboxRigidBodyMessage(hand, desiredPosition);
-      message.setWeight(20.0);
+      message.setWeight(100.0);
       commandInputManager.submitMessage(message);
 
       snapGhostToFullRobotModel(desiredFullRobotModel);
       toolboxController.updateRobotConfigurationData(robotConfigurationData);
 
-      int numberOfIterations = 100;
+      int numberOfIterations = 200;
 
       runKinematicsToolboxController(numberOfIterations);
 

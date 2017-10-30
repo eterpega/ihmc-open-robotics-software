@@ -368,9 +368,9 @@ public abstract class ConvexPolytopeBasics<A extends PolytopeVertexBasics<A, B, 
          if (halfEdgeUnderConsideration == seedHalfEdge)
             break;
       }
-      if (count == numberOfEdges)
+      if (count == numberOfEdges && faces.size() > 1)
       {
-//         PrintTools.error("Could not determine visible silhouette \n" + toString());
+         PrintTools.error("Could not determine visible silhouette");
 //         PrintTools.warn("On face size: " + onFaceList.size());
 //         for(int i = 0; i < onFaceList.size(); i++)
 //            PrintTools.debug(onFaceList.get(i).toString());
