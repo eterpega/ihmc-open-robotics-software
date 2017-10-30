@@ -234,7 +234,7 @@ public class KinematicsToolboxCollisionDetectionTest
       snapGhostToFullRobotModel(desiredFullRobotModel);
       toolboxController.updateRobotConfigurationData(robotConfigurationData);
 
-      int numberOfIterations = 200;
+      int numberOfIterations = 2000;
 
       runKinematicsToolboxController(numberOfIterations);
 
