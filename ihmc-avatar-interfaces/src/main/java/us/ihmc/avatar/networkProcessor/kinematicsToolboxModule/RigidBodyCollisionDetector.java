@@ -3,6 +3,7 @@ package us.ihmc.avatar.networkProcessor.kinematicsToolboxModule;
 import java.util.List;
 
 import gnu.trove.map.hash.THashMap;
+import us.ihmc.avatar.collisionAvoidance.FrameConvexPolytopeVisualizer;
 import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.Point3D;
@@ -23,13 +24,21 @@ public class RigidBodyCollisionDetector
    private final CollisionAvoidanceCommandGenerator commandGenerator;
    private final RigidBody rigidBody;
    
+   private final ExtendedSimplexPolytope tempSimplex;
    
    public RigidBodyCollisionDetector(RigidBody rigidBody, FrameConvexPolytope rigidBodyCollisionMesh, CollisionAvoidanceModuleSettings params, CollisionAvoidanceCommandGenerator commandGenerator)
+   {
+      this(rigidBody, rigidBodyCollisionMesh, params, commandGenerator, null);
+   }
+   public RigidBodyCollisionDetector(RigidBody rigidBody, FrameConvexPolytope rigidBodyCollisionMesh, CollisionAvoidanceModuleSettings params, CollisionAvoidanceCommandGenerator commandGenerator, FrameConvexPolytopeVisualizer viz)
    {
       this.collisionDetector = new HybridGJKEPACollisionDetector(params.getCollisionDetectionEpsilon());
       this.collisionDetector.setPolytopeA(rigidBodyCollisionMesh);
       this.commandGenerator = commandGenerator;
       this.rigidBody = rigidBody;
+      this.tempSimplex = new ExtendedSimplexPolytope();
+      if(viz != null)
+         viz.addPolytope(tempSimplex.getPolytope());
    }
    
    public boolean checkCollisionsWithObstacles(List<FrameConvexPolytope> obstacleMeshes)
@@ -40,7 +49,11 @@ public class RigidBodyCollisionDetector
          FrameConvexPolytope obstacleMesh = obstacleMeshes.get(i);
          ExtendedSimplexPolytope pairSimplex = collidingObstacleSimplices.get(obstacleMesh);
          if(pairSimplex == null)
-            pairSimplex = new ExtendedSimplexPolytope();
+         {
+            pairSimplex = tempSimplex;
+            pairSimplex.clear();
+         }
+            //   pairSimplex = new ExtendedSimplexPolytope();
          collisionDetector.setSimplex(pairSimplex);
          collisionDetector.setPolytopeB(obstacleMesh);
          if(collisionDetector.checkCollision())
@@ -53,15 +66,13 @@ public class RigidBodyCollisionDetector
             registerCollision(rigidBodyCollidingPoint, obstacleMeshCollidingPoint);
          }  
       }
-      if(collisionDetected)
-         PrintTools.debug("Got collision for: " + rigidBody.getName());
       return collisionDetected;
    }
    
    private void registerCollision(Point3D rigidBodyPoint, Point3D obstaclePoint)
    {
       // Get direction to move in to avoid collision
-      collsionVector.sub(obstaclePoint, rigidBodyPoint);
+      collsionVector.sub(rigidBodyPoint, obstaclePoint);
       commandGenerator.addCollisionConstraint(rigidBody, rigidBodyPoint, collsionVector);
    }
 }

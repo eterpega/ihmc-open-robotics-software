@@ -119,7 +119,7 @@ public class CollisionAvoidanceCommand implements InverseKinematicsCommand<Colli
    
    public void addConstraint(List<InverseDynamicsJoint> kinematicChain, DenseMatrix64F taskJacobian, double taskObjective)
    {
-      PrintTools.debug("Adding task constraint");
+      //PrintTools.debug("Adding task constraint " + taskJacobian.toString() + " > " + taskObjective);
       jacobian.reshape(taskSize + 1, numberOfJoints, true);
       objective.reshape(taskSize + 1, 1);
       int taskJacobianColumnIndex = 0;
@@ -137,9 +137,10 @@ public class CollisionAvoidanceCommand implements InverseKinematicsCommand<Colli
             throw new RuntimeException("Joint column index entries do not match joint degrees of freedom");
          for(int j = 0; j < columns.size(); j++)
          {
-            jacobian.set(taskSize, columns.get(j), taskJacobianColumnIndex++);
+            jacobian.set(taskSize, columns.get(j), taskJacobian.get(0, taskJacobianColumnIndex++));
          }
       }
+      //PrintTools.debug("Task Jacobian " + jacobian.toString() + " Task Objective: " + objective.toString());
       objective.set(taskSize, 0, taskObjective);
       taskSize++;
    }

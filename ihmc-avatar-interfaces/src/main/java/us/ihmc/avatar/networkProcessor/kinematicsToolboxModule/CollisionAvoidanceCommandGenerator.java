@@ -35,7 +35,7 @@ public class CollisionAvoidanceCommandGenerator
    /**
     * The secret sauce that ensures that the resultant joint velocity is in a direction that avoids collisions
     */
-   private double collisionAvoidanceTaskObjective = 0.0;
+   private double collisionAvoidanceTaskObjective = 0.01;
    
    public CollisionAvoidanceCommandGenerator(RigidBody rootBody, CollisionAvoidanceCommand collisionAvoidanceCommand)
    {
