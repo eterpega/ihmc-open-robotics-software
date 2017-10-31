@@ -268,7 +268,7 @@ public class KinematicsToolboxController extends ToolboxController
       inverseKinematicsSolution = new KinematicsToolboxOutputStatus(oneDoFJoints);
       inverseKinematicsSolution.setDestination(-1);
 
-      gains.setProportionalGains(1200.0); // Gains used for everything. It is as high as possible to reduce the convergence time.
+      gains.setProportionalGains(100.0); // Gains used for everything. It is as high as possible to reduce the convergence time.
       gains.setMaxFeedbackAndFeedbackRate(1500.0, Double.POSITIVE_INFINITY);
 
       privilegedWeight.set(1.0);
@@ -607,12 +607,12 @@ public class KinematicsToolboxController extends ToolboxController
     */
    private void snapPrivilegedConfigurationToCurrent()
    {
-//      PrivilegedConfigurationCommand privilegedConfigurationCommand = new PrivilegedConfigurationCommand();
-//      privilegedConfigurationCommand.setPrivilegedConfigurationOption(PrivilegedConfigurationOption.AT_CURRENT);
-//      privilegedConfigurationCommand.setDefaultWeight(privilegedWeight.getDoubleValue());
-//      privilegedConfigurationCommand.setDefaultConfigurationGain(privilegedConfigurationGain.getDoubleValue());
-//      privilegedConfigurationCommand.setDefaultMaxVelocity(privilegedMaxVelocity.getDoubleValue());
-//      privilegedConfigurationCommandReference.set(privilegedConfigurationCommand);
+      PrivilegedConfigurationCommand privilegedConfigurationCommand = new PrivilegedConfigurationCommand();
+      privilegedConfigurationCommand.setPrivilegedConfigurationOption(PrivilegedConfigurationOption.AT_CURRENT);
+      privilegedConfigurationCommand.setDefaultWeight(privilegedWeight.getDoubleValue());
+      privilegedConfigurationCommand.setDefaultConfigurationGain(privilegedConfigurationGain.getDoubleValue());
+      privilegedConfigurationCommand.setDefaultMaxVelocity(privilegedMaxVelocity.getDoubleValue());
+      privilegedConfigurationCommandReference.set(privilegedConfigurationCommand);
    }
 
    void updateRobotConfigurationData(RobotConfigurationData newConfigurationData)

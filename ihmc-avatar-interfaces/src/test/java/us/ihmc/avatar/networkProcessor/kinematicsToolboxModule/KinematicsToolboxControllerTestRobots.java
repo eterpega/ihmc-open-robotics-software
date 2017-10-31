@@ -100,7 +100,7 @@ public class KinematicsToolboxControllerTestRobots
          LinkDescription scsUpperArmLink = new LinkDescription("upperArmLink");
          scsUpperArmLink.setMass(1.0);
          scsUpperArmLink.setMomentOfInertia(createNullMOI());
-         scsUpperArmLink.setLinkGraphics(createArmGraphic(upperArmLength, upperArmRadius, new YoAppearanceRGBColor(Color.RED, 0.75)));
+         scsUpperArmLink.setLinkGraphics(createArmGraphic(upperArmLength, upperArmRadius, YoAppearance.Red()));
          CollisionMeshDescription scsUpperArmLinkMeshDescription = new CollisionMeshDescription();
          scsUpperArmLinkMeshDescription.addCylinderReferencedAtBottomMiddle(upperArmRadius, upperArmLength);
          scsUpperArmLink.addCollisionMesh(scsUpperArmLinkMeshDescription);
@@ -108,7 +108,7 @@ public class KinematicsToolboxControllerTestRobots
          LinkDescription scsLowerArmLink = new LinkDescription("lowerArmLink");
          scsLowerArmLink.setMass(1.0);
          scsLowerArmLink.setMomentOfInertia(createNullMOI());
-         scsLowerArmLink.setLinkGraphics(createArmGraphic(lowerArmLength, lowerArmRadius, new YoAppearanceRGBColor(Color.GREEN, 0.75)));
+         scsLowerArmLink.setLinkGraphics(createArmGraphic(lowerArmLength, lowerArmRadius, YoAppearance.Green()));
          CollisionMeshDescription scsLowerArmLinkMeshDescription = new CollisionMeshDescription();
          scsLowerArmLinkMeshDescription.addCylinderReferencedAtBottomMiddle(lowerArmRadius, lowerArmLength);
          scsLowerArmLink.addCollisionMesh(scsLowerArmLinkMeshDescription);
@@ -350,7 +350,7 @@ public class KinematicsToolboxControllerTestRobots
    private static LinkGraphicsDescription createArmGraphic(double length, double radius, AppearanceDefinition appearance)
    {
       LinkGraphicsDescription graphics = new LinkGraphicsDescription();
-      //graphics.addSphere(1.2 * radius, YoAppearance.Grey());
+      graphics.addSphere(1.2 * radius, YoAppearance.Grey());
       graphics.addCylinder(length, radius, appearance);
       return graphics;
    }
