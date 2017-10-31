@@ -140,6 +140,7 @@ public class KinematicsToolboxCollisionDetectionTest
          scs.setCameraFix(0.0, 0.0, 1.0);
          scs.setCameraPosition(8.0, 0.0, 3.0);
          scs.startOnAThread();
+         scs.setDT(0.001, 1);
          blockingSimulationRunner = new BlockingSimulationRunner(scs, 60.0 * 10.0);
       }
    }
@@ -250,7 +251,7 @@ public class KinematicsToolboxCollisionDetectionTest
    public void testRandomHandPosition() throws SimulationExceededMaximumTimeException
    {
       FramePoint3D origin = new FramePoint3D(worldFrame);
-      for (int i = 0; i < 5; i++)
+      for (int i = 0; i < 10; i++)
       {
          FullRobotModel initialFullRobotModel = new FullRobotModelFromDescription(robotDescription, robotJointMap, null);
 
@@ -279,6 +280,7 @@ public class KinematicsToolboxCollisionDetectionTest
          RigidBody hand = ScrewTools.findRigidBodiesWithNames(ScrewTools.computeRigidBodiesAfterThisJoint(controllerFullRobotModel.getOneDoFJoints()),
                                                               "handLink")[0];
          FramePoint3D pointForObstacle = new FramePoint3D(lowerArm.getBodyFixedFrame());
+         pointForObstacle.add(RandomNumbers.nextDouble(new Random(), -0.01, 0.01), RandomNumbers.nextDouble(new Random(), -0.01, 0.01), RandomNumbers.nextDouble(new Random(), -0.01, 0.01));
          //pointForObstacle.changeFrame(hand.getBodyFixedFrame());
          //pointForObstacle.scale(0.5);
          pointForObstacle.changeFrame(worldFrame);
