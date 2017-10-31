@@ -92,7 +92,7 @@ public class CollisionAvoidanceModule
       for(int i = 0; i < rigidBodies.size(); i++)
       {
          RigidBody rigidBody = rigidBodies.get(i);
-         collisionDetectorMap.put(rigidBody, new RigidBodyCollisionDetector(rigidBody, collisionMeshMap.get(rigidBody), parameters, commandGenerator, null));
+         collisionDetectorMap.put(rigidBody, new RigidBodyCollisionDetector(rigidBody, collisionMeshMap.get(rigidBody), parameters, commandGenerator, viz));
          visualize(collisionMeshMap.get(rigidBody));
       }
    }
@@ -123,17 +123,24 @@ public class CollisionAvoidanceModule
    
    public void clearObstacleMeshList()
    {
+      if (viz != null)
+      {
+         for(int i = 0; i < obstacleMeshes.size(); i++)
+            viz.removePolytope(obstacleMeshes.get(i));
+      }
       obstacleMeshes.clear();
    }
    
-   public void checkCollisionsAndAddAvoidanceCommands()
+   public boolean checkCollisionsAndAddAvoidanceCommands()
    {
       commandList.clear();
       if(!isEnabled)
-         return;
+         return false;
       PrintTools.debug("Checking for collisions...");
       command.reset();
       boolean collisionDetected = false;
+      if(viz != null)
+         viz.clearCollisionVectors();
       for(int i = 0; i < rigidBodies.size(); i++)
       {
          RigidBody rigidBody = rigidBodies.get(i);
@@ -144,6 +151,7 @@ public class CollisionAvoidanceModule
          viz.update();
       if(collisionDetected)
          commandList.addCommand(command);
+      return collisionDetected;
    }
 
    public boolean isEnabled()

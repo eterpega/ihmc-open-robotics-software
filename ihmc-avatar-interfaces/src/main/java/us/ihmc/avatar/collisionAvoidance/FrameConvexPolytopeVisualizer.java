@@ -34,8 +34,9 @@ import us.ihmc.yoVariables.variable.YoDouble;
 
 public class FrameConvexPolytopeVisualizer
 {
-   private static final int numberOfVizEdges = 1000;
-   private static final int numberOfVizVertices = 500;
+   private static final int numberOfVizEdges = 500;
+   private static final int numberOfVizVertices = 100;
+   private static final int numberOfCollisionVectors = 10;
    private final YoVariableRegistry registry;
    private final YoGraphicsListRegistry graphicsListRegistry;
    private SimulationConstructionSet scs;
@@ -46,11 +47,11 @@ public class FrameConvexPolytopeVisualizer
    private final ConvexPolytopeReadOnly[] polytopes;
    private final Color[] polytopeColors;
    private int numberOfPolytopes = 0;
-   private YoGraphicLineSegment collisionVector;
-   private YoGraphicLineSegment collisionPoints;
+   private ArrayList<YoGraphicLineSegment> collisionVectors;
    private static final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
    private boolean keepSCSUp = false;
-
+   private int collisionVectorIndex = 0;
+   
    public FrameConvexPolytopeVisualizer(int maxNumberOfPolytopes, YoVariableRegistry registry, YoGraphicsListRegistry graphicsListRegistry)
    {
       this.scs = null;
@@ -83,6 +84,7 @@ public class FrameConvexPolytopeVisualizer
    {
       polytopeVerticesViz = new ArrayList<>(numberOfVizVertices);
       polytopeEdgesViz = new ArrayList<>(numberOfVizEdges);
+      collisionVectors = new ArrayList<>(numberOfCollisionVectors);
    }
 
    public void addPolytope(ConvexPolytopeReadOnly polytopeToAdd)
@@ -163,35 +165,34 @@ public class FrameConvexPolytopeVisualizer
    private Point3D tempPoint1 = new Point3D();
    private Point3D tempPoint2 = new Point3D();
 
-   public void showCollisionVector(Point3D startPoint, Point3D endPoint)
+   public void showCollisionVector(Point3D point1, Point3D point2)
    {
-      this.collisionPoints.setStartAndEnd(startPoint, endPoint);
+      this.collisionVectors.get(collisionVectorIndex++).setStartAndEnd(point1, point2);
    }
-
    
-   public void showCollisionVector(Vector3D collisionVector)
+   public void clearCollisionVectors()
    {
-      tempPoint2.set(tempPoint1);
-      tempPoint2.add(collisionVector);
-      this.collisionVector.setStartAndEnd(tempPoint1, tempPoint2);
+      for(int i = 0; i < collisionVectorIndex; i++)
+         this.collisionVectors.get(i).setToNaN();
+      collisionVectorIndex = 0;
    }
 
    public void createPolytopeVisualizationElements()
    {
-      collisionVector = new YoGraphicLineSegment("CollisionVector", "Viz", worldFrame, new YoAppearanceRGBColor(Color.PINK, 0.0), registry);
-      collisionVector.setDrawArrowhead(true);
-      collisionVector.setToNaN();
-      graphicsListRegistry.registerYoGraphic("CollisionVector", collisionVector);
-
-      collisionPoints = new YoGraphicLineSegment("CollisionPoints", "Viz", worldFrame, new YoAppearanceRGBColor(Color.GREEN, 0.0), registry);
-      collisionPoints.setDrawArrowhead(true);
-      collisionPoints.setToNaN();
-      graphicsListRegistry.registerYoGraphic("CollisionPoints", collisionPoints);
+      collisionVectors.clear();
+      for (int i = 0; i < numberOfCollisionVectors; i++)
+      {
+         YoGraphicLineSegment vector = new YoGraphicLineSegment("CollisionVector" + i, "Viz", worldFrame, new YoAppearanceRGBColor(Color.BLUE, 0.0), registry);
+         vector.setDrawArrowhead(true);
+         vector.setToNaN();
+         collisionVectors.add(vector);
+      }
+      graphicsListRegistry.registerYoGraphics("CollisionVectors", collisionVectors);
 
       polytopeEdgesViz.clear();
       for (int i = 0; i < numberOfVizEdges; i++)
       {
-         YoGraphicLineSegment edge = new YoGraphicLineSegment("PolytopeEdge" + i, "Viz", worldFrame, new YoAppearanceRGBColor(Color.BLACK, 0.5), registry);
+         YoGraphicLineSegment edge = new YoGraphicLineSegment("PolytopeEdge" + i, "Viz", worldFrame, new YoAppearanceRGBColor(Color.GRAY, 0.5), registry);
          edge.setDrawArrowhead(false);
          edge.setToNaN();
          polytopeEdgesViz.add(edge);
@@ -200,7 +201,7 @@ public class FrameConvexPolytopeVisualizer
 
       for (int i = 0; i < numberOfVizVertices; i++)
       {
-         YoGraphicPosition point = new YoGraphicPosition("PolytopeVertex" + i, "Viz", registry, 0.001, new YoAppearanceRGBColor(Color.BLACK, 0.0));
+         YoGraphicPosition point = new YoGraphicPosition("PolytopeVertex" + i, "Viz", registry, 0.001, new YoAppearanceRGBColor(Color.GRAY, 0.0));
          point.setPositionToNaN();
          polytopeVerticesViz.add(point);
       }

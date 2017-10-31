@@ -106,6 +106,7 @@ public class KinematicsToolboxCollisionDetectionTest
       robotJointMap = new KinematicsToolboxControllerTestRobots.SevenDoFArmJointMap();
 
       controllerFullRobotModel = new FullRobotModelFromDescription(robotDescription, robotJointMap, null);
+      randomizeJointPositions(new Random(), controllerFullRobotModel, 1.0);
       commandInputManager = new CommandInputManager(KinematicsToolboxModule.supportedCommands());
       commandInputManager.registerConversionHelper(new KinematicsToolboxCommandConverter(controllerFullRobotModel.getElevator()));
 
@@ -115,13 +116,11 @@ public class KinematicsToolboxCollisionDetectionTest
       toolboxController = new KinematicsToolboxController(commandInputManager, statusOutputManager, null, controllerFullRobotModel.getOneDoFJoints(),
                                                           yoGraphicsListRegistry, mainRegistry, visualizer);
 
-      THashMap<RigidBody, FrameConvexPolytope> collisionMeshes = (new RobotCollisionMeshProvider(4)).createCollisionMeshesFromRobotDescription(controllerFullRobotModel,
+      THashMap<RigidBody, FrameConvexPolytope> collisionMeshes = (new RobotCollisionMeshProvider(8)).createCollisionMeshesFromRobotDescription(controllerFullRobotModel,
                                                                                                                                                robotDescription);
       toolboxController.setCollisionMeshes(collisionMeshes);
-      FrameConvexPolytope obstacle = ConvexPolytopeConstructor.getFrameCuboidCollisionMesh(ReferenceFrame.getWorldFrame(), new Point3D(0.15, 0.0, 0.65), 0.15,
-                                                                                           0.15, 0.15);
-      toolboxController.submitObstacleCollisionMesh(obstacle);
       robot = new RobotFromDescription(robotDescription);
+      new JointAnglesWriter(robot, controllerFullRobotModel.getRootJoint(), controllerFullRobotModel.getControllableOneDoFJoints());
       toolboxUpdater = createToolboxUpdater();
       robot.setController(toolboxUpdater);
       robot.setDynamic(false);
@@ -208,6 +207,9 @@ public class KinematicsToolboxCollisionDetectionTest
    {
       if (VERBOSE)
          PrintTools.info(this, "Entering: testRandomHandPositions");
+      FrameConvexPolytope obstacle = ConvexPolytopeConstructor.getFrameCuboidCollisionMesh(ReferenceFrame.getWorldFrame(), new Point3D(0.15, 0.0, 0.65), 0.15,
+                                                                                           0.15, 0.15);
+      toolboxController.submitObstacleCollisionMesh(obstacle);
       Random random = new Random(2135);
       FullRobotModel initialFullRobotModel = new FullRobotModelFromDescription(robotDescription, robotJointMap, null);
       RobotConfigurationData robotConfigurationData = extractRobotConfigurationData(initialFullRobotModel);
@@ -221,10 +223,9 @@ public class KinematicsToolboxCollisionDetectionTest
       inputAngles[4].setQ(Math.toRadians(45));
       inputAngles[5].setQ(Math.toRadians(45));
       inputAngles[6].setQ(Math.toRadians(45));
-      
+
       toolboxController.enableCollisionAvoidance(true);
-      RigidBody hand = ScrewTools.findRigidBodiesWithNames(ScrewTools.computeRigidBodiesAfterThisJoint(desiredFullRobotModel.getOneDoFJoints()),
-                                                           "handLink")[0];
+      RigidBody hand = ScrewTools.findRigidBodiesWithNames(ScrewTools.computeRigidBodiesAfterThisJoint(desiredFullRobotModel.getOneDoFJoints()), "handLink")[0];
       FramePoint3D desiredPosition = new FramePoint3D(hand.getBodyFixedFrame());
       desiredPosition.changeFrame(worldFrame);
       KinematicsToolboxRigidBodyMessage message = new KinematicsToolboxRigidBodyMessage(hand, desiredPosition);
@@ -234,7 +235,7 @@ public class KinematicsToolboxCollisionDetectionTest
       snapGhostToFullRobotModel(desiredFullRobotModel);
       toolboxController.updateRobotConfigurationData(robotConfigurationData);
 
-      int numberOfIterations = 2000;
+      int numberOfIterations = 200;
 
       runKinematicsToolboxController(numberOfIterations);
 
@@ -243,6 +244,60 @@ public class KinematicsToolboxCollisionDetectionTest
       if (VERBOSE)
          PrintTools.info(this, "Solution quality: " + solutionQuality);
       assertTrue("Poor solution quality: " + solutionQuality, solutionQuality < 1.0e-4);
+   }
+
+   @Test
+   public void testRandomHandPosition() throws SimulationExceededMaximumTimeException
+   {
+      FramePoint3D origin = new FramePoint3D(worldFrame);
+      for (int i = 0; i < 5; i++)
+      {
+         FullRobotModel initialFullRobotModel = new FullRobotModelFromDescription(robotDescription, robotJointMap, null);
+
+         FullRobotModel desiredFullRobotModel = createFullRobotModelAtInitialConfiguration();
+         randomizeJointPositions(new Random(), desiredFullRobotModel, 0.6);
+
+         toolboxController.enableCollisionAvoidance(false);
+         RigidBody desiredHand = ScrewTools.findRigidBodiesWithNames(ScrewTools.computeRigidBodiesAfterThisJoint(desiredFullRobotModel.getOneDoFJoints()),
+                                                                     "handLink")[0];
+         FramePoint3D desiredPosition = new FramePoint3D(desiredHand.getBodyFixedFrame());
+         desiredPosition.changeFrame(worldFrame);
+         KinematicsToolboxRigidBodyMessage message = new KinematicsToolboxRigidBodyMessage(desiredHand, desiredPosition);
+         message.setWeight(20.0);
+         commandInputManager.submitMessage(message);
+
+         snapGhostToFullRobotModel(desiredFullRobotModel);
+         randomizeJointPositions(new Random(), initialFullRobotModel, 0.6);
+         RobotConfigurationData robotConfigurationData = extractRobotConfigurationData(initialFullRobotModel);
+         toolboxController.updateRobotConfigurationData(robotConfigurationData);
+
+         int numberOfIterations = 200;
+         runKinematicsToolboxController(numberOfIterations);
+
+         RigidBody lowerArm = ScrewTools.findRigidBodiesWithNames(ScrewTools.computeRigidBodiesAfterThisJoint(controllerFullRobotModel.getOneDoFJoints()),
+                                                                  "lowerArmLink")[0];
+         RigidBody hand = ScrewTools.findRigidBodiesWithNames(ScrewTools.computeRigidBodiesAfterThisJoint(controllerFullRobotModel.getOneDoFJoints()),
+                                                              "handLink")[0];
+         FramePoint3D pointForObstacle = new FramePoint3D(lowerArm.getBodyFixedFrame());
+         //pointForObstacle.changeFrame(hand.getBodyFixedFrame());
+         //pointForObstacle.scale(0.5);
+         pointForObstacle.changeFrame(worldFrame);
+         FrameConvexPolytope obstacleMesh = ConvexPolytopeConstructor.getFrameSphericalCollisionMeshByProjectingCube(pointForObstacle, 0.075, 4);
+         toolboxController.clearObstacleMeshes();
+         toolboxController.submitObstacleCollisionMesh(obstacleMesh);
+
+         toolboxController.enableCollisionAvoidance(true);
+         toolboxController.updateRobotConfigurationData(robotConfigurationData);
+         commandInputManager.submitMessage(message);
+         runKinematicsToolboxController(numberOfIterations * 2);
+
+         System.gc();
+         assertTrue(KinematicsToolboxController.class.getSimpleName() + " did not manage to initialize.", initializationSucceeded.getBooleanValue());
+         double solutionQuality = toolboxController.getSolution().getSolutionQuality();
+         if (VERBOSE)
+            PrintTools.info(this, "Solution quality: " + solutionQuality);
+         assertTrue("Poor solution quality: " + solutionQuality, solutionQuality < 1.0e-4);
+      }
    }
 
    private void randomizeJointPositions(Random random, FullRobotModel randomizedFullRobotModel, double percentOfMotionRangeAllowed)
