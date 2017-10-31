@@ -1,5 +1,6 @@
 package us.ihmc.avatar.networkProcessor.kinematicsToolboxModule;
 
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,6 +24,13 @@ import us.ihmc.robotics.screwTheory.RigidBody;
  */
 public class CollisionAvoidanceModule
 {
+   /**
+    * Enable collision box visualization 
+    */
+   private final static boolean visualizeRigidBodyMeshes = false;
+   private final static boolean visualizeObstacleMeshes = true;
+   private final static boolean visualizeCollisionVectors = true;
+   
    /**
     * Stores the collision detectors for the individual rigid bodies the idea here being that simplices can be 
     * carried forward into the next iteration to speed up the process
@@ -93,7 +101,8 @@ public class CollisionAvoidanceModule
       {
          RigidBody rigidBody = rigidBodies.get(i);
          collisionDetectorMap.put(rigidBody, new RigidBodyCollisionDetector(rigidBody, collisionMeshMap.get(rigidBody), parameters, commandGenerator, viz));
-         visualize(collisionMeshMap.get(rigidBody));
+         if(visualizeRigidBodyMeshes)
+            visualize(collisionMeshMap.get(rigidBody));
       }
    }
    
@@ -105,7 +114,8 @@ public class CollisionAvoidanceModule
    public void submitObstacleCollisionMesh(FrameConvexPolytope obstacleCollisionMesh)
    {
       this.obstacleMeshes.add(obstacleCollisionMesh);
-      visualize(obstacleCollisionMesh);
+      if(visualizeObstacleMeshes)
+         visualize(obstacleCollisionMesh);
    }
    
    public void submitObstacleCollisionMesh(FrameConvexPolytope... obstacleMeshes)
@@ -139,18 +149,20 @@ public class CollisionAvoidanceModule
       PrintTools.debug("Checking for collisions...");
       command.reset();
       boolean collisionDetected = false;
-      if(viz != null)
+      if(viz != null && visualizeCollisionVectors)
          viz.clearCollisionVectors();
       for(int i = 0; i < rigidBodies.size(); i++)
       {
          RigidBody rigidBody = rigidBodies.get(i);
+         PrintTools.debug("Checking collisions: " + rigidBody.toString());
          RigidBodyCollisionDetector collisionDetector = collisionDetectorMap.get(rigidBody);
          collisionDetected |= collisionDetector.checkCollisionsWithObstacles(obstacleMeshes);
       }
-      if(viz != null)
+      if(viz != null && (visualizeRigidBodyMeshes || visualizeObstacleMeshes))
          viz.update();
       if(collisionDetected)
          commandList.addCommand(command);
+      PrintTools.debug("Done checking collisions");
       return collisionDetected;
    }
 
@@ -173,7 +185,7 @@ public class CollisionAvoidanceModule
    {
       if(viz != null)
       {
-         viz.addPolytope(polytope);
+         viz.addPolytope(polytope, Color.BLUE);
          viz.update();
       }
    }
