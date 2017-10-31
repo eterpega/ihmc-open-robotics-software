@@ -1,6 +1,9 @@
 package us.ihmc.avatar.collisionAvoidance;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 import gnu.trove.map.hash.THashMap;
 import us.ihmc.commons.PrintTools;
@@ -24,6 +27,7 @@ import us.ihmc.robotics.robotDescription.RobotDescription;
 import us.ihmc.robotics.robotDescription.SphereDescriptionReadOnly;
 import us.ihmc.robotics.screwTheory.InverseDynamicsJoint;
 import us.ihmc.robotics.screwTheory.RigidBody;
+import us.ihmc.robotics.screwTheory.ScrewTools;
 
 public class RobotCollisionMeshProvider
 {
@@ -32,6 +36,44 @@ public class RobotCollisionMeshProvider
    public RobotCollisionMeshProvider(int numberOfCurvedSurfaceDivisions)
    {
       this.defaultCurvedSurfaceDivisions = numberOfCurvedSurfaceDivisions;
+   }
+   
+   public THashMap<RigidBody, FrameConvexPolytope> createCollisionMeshesFromRobotDescription(RigidBody rootBody, JointDescription rootJointDescription)
+   {
+      Map<String, RigidBody> nameToRigidBodyMap = createNameBasedRigidBodyMap(rootBody);
+      Map<String, LinkDescription> nameToLinkDescriptionMap = createNameToLinkDescriptionMap(rootJointDescription);
+      THashMap<RigidBody, FrameConvexPolytope> collisionMeshMap = new THashMap<>();
+      String[] rigidBodyNames = (String[]) nameToRigidBodyMap.keySet().toArray();
+      for(int i = 0; i < rigidBodyNames.length; i++)
+      {
+         RigidBody rigidBody = nameToRigidBodyMap.get(rigidBodyNames[i]);
+         LinkDescription linkDescription = nameToLinkDescriptionMap.get(rigidBodyNames[i]);
+         collisionMeshMap.put(rigidBody, createCollisionMesh(rigidBody, linkDescription.getCollisionMeshes()));
+      }
+      return collisionMeshMap;
+   }
+
+   private Map<String, LinkDescription> createNameToLinkDescriptionMap(JointDescription rootJointDescription)
+   {
+      Map<String, LinkDescription> nameToLinkDescriptionMap = new THashMap<>();
+      recursivelyAddLinkeDescriptions(rootJointDescription, nameToLinkDescriptionMap);
+      return nameToLinkDescriptionMap;
+   }
+
+   private void recursivelyAddLinkeDescriptions(JointDescription rootJointDescription, Map<String, LinkDescription> nameToLinkDescriptionMap)
+   {
+      nameToLinkDescriptionMap.put(rootJointDescription.getLink().getName(), rootJointDescription.getLink());
+      for(JointDescription jointDescription : rootJointDescription.getChildrenJoints())
+         recursivelyAddLinkeDescriptions(jointDescription, nameToLinkDescriptionMap);
+   }
+
+   private Map<String, RigidBody> createNameBasedRigidBodyMap(RigidBody rootBody)
+   {
+      Map<String, RigidBody> nameToRigidBodyMap = new THashMap<>();
+      RigidBody[] rigidBodies = ScrewTools.computeSupportAndSubtreeSuccessors(rootBody);
+      for(int i = 0; i < rigidBodies.length; i++)
+         nameToRigidBodyMap.put(rigidBodies[i].getName(), rigidBodies[i]);
+      return nameToRigidBodyMap;
    }
 
    public THashMap<RigidBody, FrameConvexPolytope> createCollisionMeshesFromRobotDescription(FullRobotModel fullRobotModel, RobotDescription robotDescription)
