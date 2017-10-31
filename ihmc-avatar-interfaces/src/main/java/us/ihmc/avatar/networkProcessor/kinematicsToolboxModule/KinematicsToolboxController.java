@@ -53,6 +53,7 @@ import us.ihmc.robotics.screwTheory.ScrewTools;
 import us.ihmc.sensorProcessing.communication.packets.dataobjects.RobotConfigurationData;
 import us.ihmc.sensorProcessing.outputData.LowLevelOneDoFJointDesiredDataHolderList;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.yoVariables.variable.YoInteger;
 
@@ -214,6 +215,11 @@ public class KinematicsToolboxController extends ToolboxController
     */
    private final CollisionAvoidanceModule collisionAvoidanceModule;
 
+   /**
+    * Maintains a flag indicating if the solution is colliding. Is set to false in case the collision avoidance is disabled
+    */
+   private final YoBoolean colliding;
+   
    public KinematicsToolboxController(CommandInputManager commandInputManager, StatusMessageOutputManager statusOutputManager,
                                       FloatingInverseDynamicsJoint rootJoint, OneDoFJoint[] oneDoFJoints, YoGraphicsListRegistry yoGraphicsListRegistry,
                                       YoVariableRegistry parentRegistry)
@@ -247,7 +253,7 @@ public class KinematicsToolboxController extends ToolboxController
       this.rootJoint = rootJoint;
       this.oneDoFJoints = oneDoFJoints;
       this.yoGraphicsListRegistry = yoGraphicsListRegistry;
-
+      this.colliding = new YoBoolean("Colliding", registry);
       // This will find the root body without using rootJoint so it can be null.
       rootBody = ScrewTools.getRootBody(oneDoFJoints[0].getPredecessor());
 
@@ -450,7 +456,7 @@ public class KinematicsToolboxController extends ToolboxController
       controllerCoreCommand.addFeedbackControlCommand(getAdditionalFeedbackControlCommands());
 
       controllerCoreCommand.addInverseKinematicsCommand(privilegedConfigurationCommandReference.getAndSet(null));
-      collisionAvoidanceModule.checkCollisionsAndAddAvoidanceCommands();
+      colliding.set(collisionAvoidanceModule.checkCollisionsAndAddAvoidanceCommands());
       controllerCoreCommand.addInverseKinematicsCommand(getAdditionalInverseKinematicsCommands());
 
       // Save all commands used for this control tick for computing the solution quality.
@@ -601,12 +607,12 @@ public class KinematicsToolboxController extends ToolboxController
     */
    private void snapPrivilegedConfigurationToCurrent()
    {
-      PrivilegedConfigurationCommand privilegedConfigurationCommand = new PrivilegedConfigurationCommand();
-      privilegedConfigurationCommand.setPrivilegedConfigurationOption(PrivilegedConfigurationOption.AT_CURRENT);
-      privilegedConfigurationCommand.setDefaultWeight(privilegedWeight.getDoubleValue());
-      privilegedConfigurationCommand.setDefaultConfigurationGain(privilegedConfigurationGain.getDoubleValue());
-      privilegedConfigurationCommand.setDefaultMaxVelocity(privilegedMaxVelocity.getDoubleValue());
-      privilegedConfigurationCommandReference.set(privilegedConfigurationCommand);
+//      PrivilegedConfigurationCommand privilegedConfigurationCommand = new PrivilegedConfigurationCommand();
+//      privilegedConfigurationCommand.setPrivilegedConfigurationOption(PrivilegedConfigurationOption.AT_CURRENT);
+//      privilegedConfigurationCommand.setDefaultWeight(privilegedWeight.getDoubleValue());
+//      privilegedConfigurationCommand.setDefaultConfigurationGain(privilegedConfigurationGain.getDoubleValue());
+//      privilegedConfigurationCommand.setDefaultMaxVelocity(privilegedMaxVelocity.getDoubleValue());
+//      privilegedConfigurationCommandReference.set(privilegedConfigurationCommand);
    }
 
    void updateRobotConfigurationData(RobotConfigurationData newConfigurationData)
@@ -684,5 +690,15 @@ public class KinematicsToolboxController extends ToolboxController
    public void enableCollisionAvoidance(boolean enabled)
    {
       collisionAvoidanceModule.enable(enabled);
+   }
+
+   public void clearObstacleMeshes()
+   {
+      collisionAvoidanceModule.clearObstacleMeshList();
+   }
+   
+   public boolean isColliding()
+   {
+      return colliding.getBooleanValue();
    }
 }

@@ -141,6 +141,9 @@ public class HybridGJKEPACollisionDetector
          }
          else
             simplex.getSupportVectorDirectionTo(origin, supportVectorDirection);
+
+         if(simplex.getPolytope().getNumberOfVertices() > 100)
+            PrintTools.debug("Prev: " + previousSupportVectorDirection.toString() + "  Curr: " + supportVectorDirection.toString());
          
          if(previousSupportVectorDirection.epsilonEquals(supportVectorDirection, epsilon))
          {

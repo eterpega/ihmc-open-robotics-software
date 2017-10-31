@@ -1,5 +1,6 @@
 package us.ihmc.avatar.networkProcessor.kinematicsToolboxModule;
 
+import java.awt.Color;
 import java.util.Set;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -11,6 +12,7 @@ import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
 import us.ihmc.graphicsDescription.appearance.YoAppearance;
+import us.ihmc.graphicsDescription.appearance.YoAppearanceRGBColor;
 import us.ihmc.robotics.partNames.ArmJointName;
 import us.ihmc.robotics.partNames.JointNameMap;
 import us.ihmc.robotics.partNames.JointRole;
@@ -98,7 +100,7 @@ public class KinematicsToolboxControllerTestRobots
          LinkDescription scsUpperArmLink = new LinkDescription("upperArmLink");
          scsUpperArmLink.setMass(1.0);
          scsUpperArmLink.setMomentOfInertia(createNullMOI());
-         scsUpperArmLink.setLinkGraphics(createArmGraphic(upperArmLength, upperArmRadius, YoAppearance.Red()));
+         scsUpperArmLink.setLinkGraphics(createArmGraphic(upperArmLength, upperArmRadius, new YoAppearanceRGBColor(Color.RED, 0.75)));
          CollisionMeshDescription scsUpperArmLinkMeshDescription = new CollisionMeshDescription();
          scsUpperArmLinkMeshDescription.addCylinderReferencedAtBottomMiddle(upperArmRadius, upperArmLength);
          scsUpperArmLink.addCollisionMesh(scsUpperArmLinkMeshDescription);
@@ -106,7 +108,7 @@ public class KinematicsToolboxControllerTestRobots
          LinkDescription scsLowerArmLink = new LinkDescription("lowerArmLink");
          scsLowerArmLink.setMass(1.0);
          scsLowerArmLink.setMomentOfInertia(createNullMOI());
-         scsLowerArmLink.setLinkGraphics(createArmGraphic(lowerArmLength, lowerArmRadius, YoAppearance.Green()));
+         scsLowerArmLink.setLinkGraphics(createArmGraphic(lowerArmLength, lowerArmRadius, new YoAppearanceRGBColor(Color.GREEN, 0.75)));
          CollisionMeshDescription scsLowerArmLinkMeshDescription = new CollisionMeshDescription();
          scsLowerArmLinkMeshDescription.addCylinderReferencedAtBottomMiddle(lowerArmRadius, lowerArmLength);
          scsLowerArmLink.addCollisionMesh(scsLowerArmLinkMeshDescription);
@@ -348,7 +350,7 @@ public class KinematicsToolboxControllerTestRobots
    private static LinkGraphicsDescription createArmGraphic(double length, double radius, AppearanceDefinition appearance)
    {
       LinkGraphicsDescription graphics = new LinkGraphicsDescription();
-      graphics.addSphere(1.2 * radius, YoAppearance.Grey());
+      //graphics.addSphere(1.2 * radius, YoAppearance.Grey());
       graphics.addCylinder(length, radius, appearance);
       return graphics;
    }

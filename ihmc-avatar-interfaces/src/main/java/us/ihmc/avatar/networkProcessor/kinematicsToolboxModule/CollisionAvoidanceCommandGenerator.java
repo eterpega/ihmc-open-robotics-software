@@ -33,9 +33,10 @@ public class CollisionAvoidanceCommandGenerator
    DenseMatrix64F tempJacobianMatrix, tempCollisionConstraint;
    DenseMatrix64F tempCollisionVector = new DenseMatrix64F(6, 1);
    /**
-    * The secret sauce that ensures that the resultant joint velocity is in a direction that avoids collisions
+    * The secret sauce that ensures that the resultant joint velocity is in a direction that avoids collisions. This should be as high as possible 
+    * but not so high that the solution becomes in feasible
     */
-   private double collisionAvoidanceTaskObjective = 0.01;
+   private double collisionAvoidanceTaskObjective = 0.0;
    
    public CollisionAvoidanceCommandGenerator(RigidBody rootBody, CollisionAvoidanceCommand collisionAvoidanceCommand)
    {
@@ -59,7 +60,8 @@ public class CollisionAvoidanceCommandGenerator
       setCollisionVectorMatrix(collsionVector);
       tempCollisionConstraint.reshape(tempCollisionVector.getNumCols(), tempJacobianMatrix.getNumCols());
       CommonOps.multTransA(tempCollisionVector, tempJacobianMatrix, tempCollisionConstraint);
-      command.addConstraint(kinematicChain, tempCollisionConstraint, collisionAvoidanceTaskObjective);
+      CommonOps.scale(-1.0, tempCollisionConstraint);
+      command.addConstraint(kinematicChain, tempCollisionConstraint, -collisionAvoidanceTaskObjective);
    }
    
    private void setCollisionVectorMatrix(Vector3D collisionVector)

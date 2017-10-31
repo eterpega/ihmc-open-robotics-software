@@ -25,6 +25,7 @@ public class RigidBodyCollisionDetector
    private final RigidBody rigidBody;
    
    private final ExtendedSimplexPolytope tempSimplex;
+   private final FrameConvexPolytopeVisualizer viz;
    
    public RigidBodyCollisionDetector(RigidBody rigidBody, FrameConvexPolytope rigidBodyCollisionMesh, CollisionAvoidanceModuleSettings params, CollisionAvoidanceCommandGenerator commandGenerator)
    {
@@ -37,8 +38,7 @@ public class RigidBodyCollisionDetector
       this.commandGenerator = commandGenerator;
       this.rigidBody = rigidBody;
       this.tempSimplex = new ExtendedSimplexPolytope();
-      if(viz != null)
-         viz.addPolytope(tempSimplex.getPolytope());
+      this.viz = viz;
    }
    
    public boolean checkCollisionsWithObstacles(List<FrameConvexPolytope> obstacleMeshes)
@@ -62,6 +62,8 @@ public class RigidBodyCollisionDetector
             //collidingObstacleSimplices.put(obstacleMesh, pairSimplex);
             collisionDetector.runEPAExpansion();
             collisionDetector.getCollisionPoints(rigidBodyCollidingPoint, obstacleMeshCollidingPoint);
+            if(viz != null)
+               viz.showCollisionVector(rigidBodyCollidingPoint, obstacleMeshCollidingPoint);
             PrintTools.debug("Detected collision for:  " + rigidBody.getName());
             registerCollision(rigidBodyCollidingPoint, obstacleMeshCollidingPoint);
          }  
@@ -72,7 +74,7 @@ public class RigidBodyCollisionDetector
    private void registerCollision(Point3D rigidBodyPoint, Point3D obstaclePoint)
    {
       // Get direction to move in to avoid collision
-      collsionVector.sub(rigidBodyPoint, obstaclePoint);
+      collsionVector.sub(obstaclePoint, rigidBodyPoint);
       commandGenerator.addCollisionConstraint(rigidBody, rigidBodyPoint, collsionVector);
    }
 }
