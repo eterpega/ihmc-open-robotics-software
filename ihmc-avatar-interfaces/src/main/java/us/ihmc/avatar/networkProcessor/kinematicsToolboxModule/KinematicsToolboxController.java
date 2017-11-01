@@ -647,6 +647,12 @@ public class KinematicsToolboxController extends ToolboxController
 
    protected InverseKinematicsCommandList getAdditionalInverseKinematicsCommands()
    {
+      int taskSize = 0;
+      if(collisionAvoidanceModule.getCollisionAvoidanceCommands().getNumberOfCommands() == 0)
+         taskSize = 0;
+      else 
+         taskSize = ((CollisionAvoidanceCommand)collisionAvoidanceModule.getCollisionAvoidanceCommands().getCommand(0)).getTaskSize();
+      PrintTools.debug("Task size: " + taskSize);
       return collisionAvoidanceModule.getCollisionAvoidanceCommands();
    }
 
@@ -675,6 +681,11 @@ public class KinematicsToolboxController extends ToolboxController
    public void submitObstacleCollisionMesh(FrameConvexPolytope obstacleMesh)
    {
       collisionAvoidanceModule.submitObstacleCollisionMesh(obstacleMesh);
+   }
+
+   public void submitObstacleCollisionMesh(List<FrameConvexPolytope> obstacleMeshes)
+   {
+      collisionAvoidanceModule.submitObstacleCollisionMesh(obstacleMeshes);
    }
 
    public void setCollisionMeshes(THashMap<RigidBody, FrameConvexPolytope> collisionMeshes)

@@ -117,6 +117,7 @@ public abstract class AvatarHumanoidKinematicsToolboxControllerTest implements M
                                                           mainRegistry);
 
       robot = robotModel.createHumanoidFloatingRootJointRobot(false);
+      robotModel.getDefaultRobotInitialSetup(0.0, 0.0).initializeRobot(robot, robotModel.getJointMap());
       toolboxUpdater = createToolboxUpdater();
       robot.setController(toolboxUpdater);
       robot.setDynamic(false);
@@ -127,6 +128,7 @@ public abstract class AvatarHumanoidKinematicsToolboxControllerTest implements M
       robotDescription.setName("Ghost");
       recursivelyModyfyGraphics(robotDescription.getChildrenJoints().get(0));
       ghost = ghostRobotModel.createHumanoidFloatingRootJointRobot(false);
+      ghostRobotModel.getDefaultRobotInitialSetup(0.0,  0.0).initializeRobot(ghost, ghostRobotModel.getJointMap());
       ghost.setDynamic(false);
       ghost.setGravity(0);
       hideGhost();

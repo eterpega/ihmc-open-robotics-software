@@ -107,7 +107,7 @@ public abstract class ConvexPolytopeBasics<A extends PolytopeVertexBasics<A, B, 
       return vertices;
    }
    
-   public void getVertices(ArrayList<Point3D> verticesToPack)
+   public void getVertices(List<Point3D> verticesToPack)
    {
       updateVertices();
       for(int i = 0; i < vertices.size(); i++)
@@ -295,7 +295,6 @@ public abstract class ConvexPolytopeBasics<A extends PolytopeVertexBasics<A, B, 
       getVisibleSilhouetteUsingSeed(visibleSilhouetteList, firstHalfEdgeForSilhouette, visibleFaces);
       if(visibleSilhouetteList.isEmpty())
       {
-         PrintTools.warn("Got empty visible edge list. Skipping this point");
          return;
       }
       removeFaces(nonSilhouetteFaces);
