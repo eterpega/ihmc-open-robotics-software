@@ -15,7 +15,7 @@ import us.ihmc.robotics.screwTheory.RigidBody;
 
 public class RigidBodyCollisionDetector
 {
-   private final THashMap<FrameConvexPolytope, ExtendedSimplexPolytope> collidingObstacleSimplices = new THashMap<>(); 
+   //private final THashMap<FrameConvexPolytope, ExtendedSimplexPolytope> collidingObstacleSimplices = new THashMap<>(); 
    private final Point3D rigidBodyCollidingPoint = new Point3D();
    private final Point3D obstacleMeshCollidingPoint = new Point3D();
    private final Vector3D collsionVector = new Vector3D();
@@ -47,14 +47,15 @@ public class RigidBodyCollisionDetector
       for(int i = 0; i < obstacleMeshes.size(); i++)
       {
          FrameConvexPolytope obstacleMesh = obstacleMeshes.get(i);
-         ExtendedSimplexPolytope pairSimplex = collidingObstacleSimplices.get(obstacleMesh);
-         if(pairSimplex == null)
-         {
-            pairSimplex = tempSimplex;
-            pairSimplex.clear();
-         }
-            //   pairSimplex = new ExtendedSimplexPolytope();
-         collisionDetector.setSimplex(pairSimplex);
+         //ExtendedSimplexPolytope pairSimplex = collidingObstacleSimplices.get(obstacleMesh);
+         //if(pairSimplex == null)
+         //{
+         //   pairSimplex = tempSimplex;
+         //   pairSimplex.clear();
+         //}
+         //   pairSimplex = new ExtendedSimplexPolytope();
+         tempSimplex.clear();
+         collisionDetector.setSimplex(tempSimplex);
          collisionDetector.setPolytopeB(obstacleMesh);
          if(collisionDetector.checkCollision())
          {

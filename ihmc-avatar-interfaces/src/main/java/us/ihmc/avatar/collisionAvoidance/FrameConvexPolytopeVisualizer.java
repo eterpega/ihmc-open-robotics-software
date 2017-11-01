@@ -34,9 +34,9 @@ import us.ihmc.yoVariables.variable.YoDouble;
 
 public class FrameConvexPolytopeVisualizer
 {
-   private static final int numberOfVizEdges = 500;
-   private static final int numberOfVizVertices = 100;
-   private static final int numberOfCollisionVectors = 10;
+   private final int numberOfVizEdges;
+   private final int numberOfVizVertices;
+   private final int numberOfCollisionVectors;
    private final YoVariableRegistry registry;
    private final YoGraphicsListRegistry graphicsListRegistry;
    private SimulationConstructionSet scs;
@@ -59,6 +59,9 @@ public class FrameConvexPolytopeVisualizer
       this.graphicsListRegistry = graphicsListRegistry;
       this.polytopes = new ConvexPolytopeReadOnly[maxNumberOfPolytopes];
       this.polytopeColors = new Color[maxNumberOfPolytopes];
+      this.numberOfVizEdges = maxNumberOfPolytopes * 100;
+      this.numberOfVizVertices = maxNumberOfPolytopes * 50;
+      this.numberOfCollisionVectors = maxNumberOfPolytopes * 3;
       createVizArrays();
       createPolytopeVisualizationElements();
    }
@@ -73,6 +76,9 @@ public class FrameConvexPolytopeVisualizer
       this.registry = new YoVariableRegistry("PolytopeVisualizer");
       this.graphicsListRegistry = new YoGraphicsListRegistry();
       this.keepSCSUp = keepSCSUp;
+      this.numberOfVizEdges = maxNumberOfPolytopes * 100;
+      this.numberOfVizVertices = maxNumberOfPolytopes * 50;
+      this.numberOfCollisionVectors = maxNumberOfPolytopes * 3;
       createVizArrays();
       polytopes = new ConvexPolytopeReadOnly[maxNumberOfPolytopes];
       polytopeColors = new Color[maxNumberOfPolytopes];
@@ -192,7 +198,7 @@ public class FrameConvexPolytopeVisualizer
       polytopeEdgesViz.clear();
       for (int i = 0; i < numberOfVizEdges; i++)
       {
-         YoGraphicLineSegment edge = new YoGraphicLineSegment("PolytopeEdge" + i, "Viz", worldFrame, new YoAppearanceRGBColor(Color.BLUE, 0.5), registry);
+         YoGraphicLineSegment edge = new YoGraphicLineSegment("PolytopeEdge" + i, "Viz", worldFrame, new YoAppearanceRGBColor(Color.GRAY, 0.5), registry);
          edge.setDrawArrowhead(false);
          edge.setToNaN();
          polytopeEdgesViz.add(edge);
@@ -201,13 +207,13 @@ public class FrameConvexPolytopeVisualizer
 
       for (int i = 0; i < numberOfVizVertices; i++)
       {
-         YoGraphicPosition point = new YoGraphicPosition("PolytopeVertex" + i, "Viz", registry, 0.001, new YoAppearanceRGBColor(Color.BLUE, 0.0));
+         YoGraphicPosition point = new YoGraphicPosition("PolytopeVertex" + i, "Viz", registry, 0.001, new YoAppearanceRGBColor(Color.GRAY, 0.0));
          point.setPositionToNaN();
          polytopeVerticesViz.add(point);
       }
       graphicsListRegistry.registerYoGraphics("PolytopeVertices", polytopeVerticesViz);
 
-      position = new YoGraphicPosition("PositionForVisibleEdges", "Viz", registry, 0.1, new YoAppearanceRGBColor(Color.RED, 0.5));
+      position = new YoGraphicPosition("PositionForVisibleEdges", "Viz", registry, 0.1, new YoAppearanceRGBColor(Color.GRAY, 0.5));
       position.setPositionToNaN();
       graphicsListRegistry.registerYoGraphic("VisualPoint", position);
    }

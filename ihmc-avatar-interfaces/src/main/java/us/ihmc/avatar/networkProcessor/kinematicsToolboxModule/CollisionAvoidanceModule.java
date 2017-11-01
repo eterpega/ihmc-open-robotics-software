@@ -27,9 +27,10 @@ public class CollisionAvoidanceModule
    /**
     * Enable collision box visualization 
     */
-   private final static boolean visualizeRigidBodyMeshes = false;
+   private final static boolean visualizeRigidBodyMeshes = true;
    private final static boolean visualizeObstacleMeshes = true;
    private final static boolean visualizeCollisionVectors = true;
+   private final static boolean debug = true;
    
    /**
     * Stores the collision detectors for the individual rigid bodies the idea here being that simplices can be 
@@ -123,12 +124,19 @@ public class CollisionAvoidanceModule
       for(int i = 0; i < obstacleMeshes.length; i++)
       {
          this.obstacleMeshes.add(obstacleMeshes[i]);
+         if(visualizeObstacleMeshes)
+            visualize(obstacleMeshes[i]);
       }
    }
    
    public void submitObstacleCollisionMesh(List<FrameConvexPolytope> obstacleMeshes)
    {
-      obstacleMeshes.addAll(obstacleMeshes);
+      this.obstacleMeshes.addAll(obstacleMeshes);
+      if(visualizeObstacleMeshes)
+      {
+         for(int i = 0; i < obstacleMeshes.size(); i++)
+            visualize(obstacleMeshes.get(i));
+      }
    }
    
    public void clearObstacleMeshList()
@@ -146,7 +154,8 @@ public class CollisionAvoidanceModule
       commandList.clear();
       if(!isEnabled)
          return false;
-      PrintTools.debug("Checking for collisions...");
+      if(debug)
+         PrintTools.debug("Checking for collisions...");
       command.reset();
       boolean collisionDetected = false;
       if(viz != null && visualizeCollisionVectors)
@@ -154,15 +163,20 @@ public class CollisionAvoidanceModule
       for(int i = 0; i < rigidBodies.size(); i++)
       {
          RigidBody rigidBody = rigidBodies.get(i);
-         PrintTools.debug("Checking collisions: " + rigidBody.toString());
+         if(debug)
+            PrintTools.debug("Checking collisions: " + rigidBody.toString());
          RigidBodyCollisionDetector collisionDetector = collisionDetectorMap.get(rigidBody);
          collisionDetected |= collisionDetector.checkCollisionsWithObstacles(obstacleMeshes);
       }
       if(viz != null && (visualizeRigidBodyMeshes || visualizeObstacleMeshes))
          viz.update();
+      
       if(collisionDetected)
          commandList.addCommand(command);
-      PrintTools.debug("Done checking collisions");
+      
+      if(debug)
+         PrintTools.debug("Done checking collisions");
+      
       return collisionDetected;
    }
 

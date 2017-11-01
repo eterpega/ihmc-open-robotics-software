@@ -1,32 +1,32 @@
 package us.ihmc.atlas.inverseKinematicsTest;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import org.jfree.date.SpreadsheetDate;
+import org.junit.Test;
 
 import com.badlogic.gdx.math.collision.BoundingBox;
 
+import us.ihmc.atlas.AtlasJointMap;
 import us.ihmc.atlas.AtlasRobotModel;
 import us.ihmc.atlas.AtlasRobotVersion;
+import us.ihmc.atlas.parameters.AtlasPhysicalProperties;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
 import us.ihmc.avatar.drcRobot.RobotTarget;
-import us.ihmc.avatar.inverseKinematics.AvatarInverseKinematicsObstacleAvoidanceTest;
-import us.ihmc.euclid.referenceFrame.FramePoint3D;
-import us.ihmc.ihmcPerception.depthData.collisionShapes.CollisionShape;
+import us.ihmc.avatar.networkProcessor.kinematicsToolboxModule.AvatarInverseKinematicsObstacleAvoidanceTest;
+import us.ihmc.euclid.matrix.RotationMatrix;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.robotics.partNames.JointNameMap;
+import us.ihmc.robotics.robotDescription.ConvexShapeDescription;
+import us.ihmc.robotics.robotDescription.RobotDescription;
+import us.ihmc.robotics.robotDescription.SphereDescriptionReadOnly;
 
 public class AtlasInverseKinematicsObstacleAvoidanceTest extends AvatarInverseKinematicsObstacleAvoidanceTest
 {
    AtlasRobotModel robotModel = new AtlasRobotModel(AtlasRobotVersion.ATLAS_UNPLUGGED_V5_DUAL_ROBOTIQ, RobotTarget.SCS, false);
-   
-   @Override
-   public DRCRobotModel getRobotModel()
-   {
-      return robotModel;
-   }
-
-   @Override
-   public String getSimpleRobotName()
-   {
-      return robotModel.getSimpleRobotName();
-   }
 
    @Override
    public boolean keepSCSUp()
@@ -37,33 +37,46 @@ public class AtlasInverseKinematicsObstacleAvoidanceTest extends AvatarInverseKi
    @Override
    public int getNumberOfObstacles()
    {
-      return 10;
+      return 1;
    }
 
    @Override
-   public boolean specifyObstacle()
+   public boolean specifyObstacles()
    {
-      return false;
-   }
-
-   @Override
-   public List<FramePoint3D> getObstaclePositions()
-   {
-      return null;
-   }
-
-   @Override
-   public List<CollisionShape> getListOfObstacles()
-   {
-      // TODO Auto-generated method stub
-      return null;
+      return true;
    }
 
    @Override
    public BoundingBox getWorkspaceBoundsForCreatingObstacles()
    {
-      // TODO Auto-generated method stub
       return null;
    }
-   
+
+   @Override
+   public List<? extends ConvexShapeDescription> getObstacleDescription()
+   {
+      List<ConvexShapeDescription> obstacleDescriptionList = new ArrayList<ConvexShapeDescription>();
+      SphereDescriptionReadOnly sphere = new SphereDescriptionReadOnly(0.1, new RigidBodyTransform(new RotationMatrix(), new Vector3D(0.45, -0.4, 0.5)));
+      obstacleDescriptionList.add(sphere);
+      return obstacleDescriptionList;
+   }
+
+   @Override
+   public Point3D getDesiredHandLocation()
+   {
+      return new Point3D(0.5, -0.1, 0.0);
+   }
+
+   @Test
+   @Override
+   public void testInverseKinematics()
+   {
+      super.testInverseKinematics();
+   }
+
+   @Override
+   public DRCRobotModel getRobotModel()
+   {
+      return new AtlasRobotModel(AtlasRobotVersion.ATLAS_UNPLUGGED_V5_NO_HANDS, RobotTarget.SCS, false);
+   }
 }

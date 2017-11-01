@@ -1,22 +1,23 @@
 package us.ihmc.geometry.polytope.DCELPolytope;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 
 import us.ihmc.commons.Epsilons;
-import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.geometry.tools.EuclidGeometryTools;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeVertexReadOnly;
-import us.ihmc.robotics.lists.RecyclingArrayList;
 
 public class ExtendedSimplexPolytope implements Simplex
 {
    private double epsilon = Epsilons.ONE_TEN_THOUSANDTH;
    private ExtendedConvexPolytope polytope = new ExtendedConvexPolytope();
-   RecyclingArrayList<SimplexVertex> vertices = new RecyclingArrayList<>(SimplexVertex.class);
+   private List<SimplexVertex> vertices = new ArrayList<>();
    private final Vector3D basisVector1 = new Vector3D();
    private final Vector3D basisVector2 = new Vector3D();
    private final Vector3D pointVector = new Vector3D();
@@ -43,7 +44,7 @@ public class ExtendedSimplexPolytope implements Simplex
    
    public void addVertex(PolytopeVertexReadOnly vertexOnPolytopeA, PolytopeVertexReadOnly vertexOnPolytopeB, double epsilon)
    {
-      SimplexVertex newVertex = vertices.add();
+      SimplexVertex newVertex = new SimplexVertex();
       newVertex.set(vertexOnPolytopeA, vertexOnPolytopeB);
       polytope.addVertex(newVertex, epsilon);
    }
