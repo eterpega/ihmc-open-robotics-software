@@ -21,6 +21,7 @@ import us.ihmc.avatar.jointAnglesWriter.JointAnglesWriter;
 import us.ihmc.commons.RandomNumbers;
 import us.ihmc.communication.controllerAPI.CommandInputManager;
 import us.ihmc.communication.controllerAPI.StatusMessageOutputManager;
+import us.ihmc.communication.packets.HumanoidKinematicsToolboxConfigurationMessage;
 import us.ihmc.communication.packets.KinematicsToolboxRigidBodyMessage;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
@@ -32,6 +33,7 @@ import us.ihmc.graphicsDescription.appearance.YoAppearanceRGBColor;
 import us.ihmc.graphicsDescription.instructions.Graphics3DAddModelFileInstruction;
 import us.ihmc.graphicsDescription.instructions.Graphics3DPrimitiveInstruction;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.humanoidRobotics.communication.kinematicsToolboxAPI.HumanoidKinematicsToolboxConfigurationCommand;
 import us.ihmc.humanoidRobotics.communication.packets.walking.CapturabilityBasedStatus;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotModels.FullRobotModel;
@@ -44,12 +46,15 @@ import us.ihmc.robotics.robotDescription.LinkDescription;
 import us.ihmc.robotics.robotDescription.LinkGraphicsDescription;
 import us.ihmc.robotics.robotDescription.RobotDescription;
 import us.ihmc.robotics.robotSide.RobotSide;
+import us.ihmc.robotics.robotSide.RobotSideTest;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
 import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.robotics.screwTheory.ScrewTools;
 import us.ihmc.robotics.sensors.ForceSensorDefinition;
 import us.ihmc.robotics.sensors.IMUDefinition;
 import us.ihmc.sensorProcessing.communication.packets.dataobjects.RobotConfigurationData;
+import us.ihmc.sensorProcessing.simulatedSensors.DRCPerfectSensorReaderFactory;
+import us.ihmc.simulationconstructionset.FloatingRootJointRobot;
 import us.ihmc.simulationconstructionset.Robot;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
 import us.ihmc.simulationconstructionset.util.simulationRunner.BlockingSimulationRunner;
@@ -93,8 +98,8 @@ public abstract class AvatarInverseKinematicsObstacleAvoidanceTest
 
    YoBoolean initializationSucceeded = new YoBoolean("ControllerInitializationSucceeded", testRegistry);
    
-   private Robot scsRobot;
-   private Robot scsGhostRobot;
+   private FloatingRootJointRobot scsRobot;
+   private FloatingRootJointRobot scsGhostRobot;
    private FullHumanoidRobotModel controllerRobotModel;
    private FullHumanoidRobotModel ghostRobotModel;
    private JointAnglesWriter controllerRobotWriter;
@@ -114,12 +119,16 @@ public abstract class AvatarInverseKinematicsObstacleAvoidanceTest
       RobotDescription robotDescription = controllerRobot.getRobotDescription();
       //recursivelyModifyRobotGraphics(robotDescription.getChildrenJoints().get(0));
       controllerRobotModel = controllerRobot.createFullRobotModel();
+      scsRobot = controllerRobot.createHumanoidFloatingRootJointRobot(false);
+      DRCPerfectSensorReaderFactory drcPerfectSensorReaderFactory = new DRCPerfectSensorReaderFactory(scsRobot, null, 0);
+      drcPerfectSensorReaderFactory.build(controllerRobotModel.getRootJoint(), null, null, null, null, null, null);
+      drcPerfectSensorReaderFactory.getSensorReader().read();
+
       commandInputManager = new CommandInputManager(KinematicsToolboxModule.supportedCommands());
       commandInputManager.registerConversionHelper(new KinematicsToolboxCommandConverter(controllerRobotModel.getElevator()));
       StatusMessageOutputManager statusOutputManager = new StatusMessageOutputManager(KinematicsToolboxModule.supportedStatus());
       toolbox = new HumanoidKinematicsToolboxController(commandInputManager, statusOutputManager, controllerRobotModel, graphicsRegistry, testRegistry,
                                                         visualizer);
-      scsRobot = controllerRobot.createHumanoidFloatingRootJointRobot(false);
       scsRobot.setGravity(0.0);
       scsRobot.setDynamic(false);
       controllerRobotWriter = new JointAnglesWriter(scsRobot, controllerRobotModel.getRootJoint(), controllerRobotModel.getOneDoFJoints());
@@ -315,7 +324,11 @@ public abstract class AvatarInverseKinematicsObstacleAvoidanceTest
    {
       Random random = new Random(2145);
       toolbox.enableCollisionAvoidance(true);
-      for (RobotSide side : RobotSide.values)
+      toolbox.updateCapturabilityBasedStatus(createCapturabilityBasedStatus(true, false));
+      HumanoidKinematicsToolboxConfigurationMessage command = new HumanoidKinematicsToolboxConfigurationMessage();
+      command.setHoldCurrentCenterOfMassXYPosition(false);
+      commandInputManager.submitMessage(command);
+      for (RobotSide side : new RobotSide[]{RobotSide.RIGHT, RobotSide.LEFT})
       {
          //randomizeArmJointPositions(random, side, ghostRobotModel);
          ghostRobotWriter.updateRobotConfigurationBasedOnFullRobotModel();
@@ -374,14 +387,10 @@ public abstract class AvatarInverseKinematicsObstacleAvoidanceTest
       }
    }
 
-
-   
-   
    private void runControllerToolbox(int numberOfTicks)
    {
       RobotConfigurationData robotConfigurationData = extractRobotConfigurationData(controllerRobotModel);
       toolbox.updateRobotConfigurationData(robotConfigurationData);
-      toolbox.updateCapturabilityBasedStatus(createCapturabilityBasedStatus(true, true));
 
       initializationSucceeded.set(false);
       try
