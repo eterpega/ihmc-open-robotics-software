@@ -26,6 +26,7 @@ public class RigidBodyCollisionDetector
 
    private final ExtendedSimplexPolytope tempSimplex;
    private final FrameConvexPolytopeVisualizer viz;
+   private double collisionQuality;
 
    public RigidBodyCollisionDetector(RigidBody rigidBody, FrameConvexPolytope rigidBodyCollisionMesh, CollisionAvoidanceModuleSettings params,
                                      CollisionAvoidanceCommandGenerator commandGenerator)
@@ -47,6 +48,7 @@ public class RigidBodyCollisionDetector
    public boolean checkCollisionsWithObstacles(List<FrameConvexPolytope> obstacleMeshes)
    {
       boolean collisionDetected = false;
+      collisionQuality = 0.0;
       for (int i = 0; i < obstacleMeshes.size(); i++)
       {
          FrameConvexPolytope obstacleMesh = obstacleMeshes.get(i);
@@ -64,9 +66,7 @@ public class RigidBodyCollisionDetector
          {
             collisionDetected = true;
             //collidingObstacleSimplices.put(obstacleMesh, pairSimplex);
-            //PrintTools.debug("Detected collision for:  " + rigidBody.getName());
             collisionDetector.runEPAExpansion();
-            //PrintTools.debug("Ran EPA for:  " + rigidBody.getName());
             collisionDetector.getCollisionPoints(rigidBodyCollidingPoint, obstacleMeshCollidingPoint);
             if (viz != null)
                viz.showCollisionVector(rigidBodyCollidingPoint, obstacleMeshCollidingPoint);
@@ -75,14 +75,17 @@ public class RigidBodyCollisionDetector
       }
       return collisionDetected;
    }
+   
+   public double getCollisionQuality()
+   {
+     return collisionQuality;
+   }
 
    private void registerCollision(Point3D rigidBodyPoint, Point3D obstaclePoint)
    {
-      // Get direction to move in to avoid collision
-      //PrintTools.debug("Before: " + rigidBodyPoint.toString());
-      //obstaclePoint.applyTransform(rigidBody.getBodyFixedFrame().getTransformToWorldFrame());
-      //PrintTools.debug("After: " + rigidBodyPoint.toString());
+      // TODO rigid body points are right now always returned in world frame. Once that is fixed the points will have to be converted to the same frame
       collsionVector.sub(obstaclePoint, rigidBodyPoint);
+      collisionQuality += collsionVector.length();
       commandGenerator.addCollisionConstraint(rigidBody, rigidBodyPoint, collsionVector);
    }
 }
