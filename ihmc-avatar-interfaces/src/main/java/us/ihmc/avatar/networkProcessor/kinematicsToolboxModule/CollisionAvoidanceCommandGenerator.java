@@ -8,6 +8,7 @@ import org.ejml.ops.CommonOps;
 
 import us.ihmc.avatar.collisionAvoidance.FrameConvexPolytopeVisualizer;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics.CollisionAvoidanceCommand;
+import us.ihmc.commons.Epsilons;
 import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.Point3D;
@@ -35,7 +36,7 @@ public class CollisionAvoidanceCommandGenerator
     * The secret sauce that ensures that the resultant joint velocity is in a direction that avoids collisions. This should be as high as possible 
     * but not so high that the solution becomes in feasible
     */
-   private double collisionAvoidanceTaskObjective = 10;
+   private double collisionAvoidanceTaskObjective = 750; //m/s 
 
    public CollisionAvoidanceCommandGenerator(RigidBody rootBody, CollisionAvoidanceCommand collisionAvoidanceCommand)
    {
@@ -75,7 +76,7 @@ public class CollisionAvoidanceCommandGenerator
       tempCollisionConstraint.reshape(tempCollisionVector.getNumCols(), tempJacobianMatrix.getNumCols());
       CommonOps.multTransA(tempCollisionVector, tempJacobianMatrix, tempCollisionConstraint);
       CommonOps.scale(-1.0, tempCollisionConstraint);
-      command.addConstraint(kinematicChain, tempCollisionConstraint, -collisionAvoidanceTaskObjective);
+      command.addConstraint(kinematicChain, tempCollisionConstraint, -collisionAvoidanceTaskObjective * collsionVector.length());
    }
    
    private void setCollisionVectorMatrix(Vector3D collisionVector)
