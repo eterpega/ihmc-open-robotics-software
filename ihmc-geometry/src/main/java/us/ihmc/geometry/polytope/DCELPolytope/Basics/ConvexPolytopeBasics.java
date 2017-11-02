@@ -679,6 +679,11 @@ public abstract class ConvexPolytopeBasics<A extends PolytopeVertexBasics<A, B, 
       vertices.clear();
       edges.clear();
       faces.clear();
+      visibleFaces.clear();
+      silhouetteFaces.clear();
+      nonSilhouetteFaces.clear();
+      onFaceList.clear();
+      visibleSilhouetteList.clear();
    }
 
    @Override

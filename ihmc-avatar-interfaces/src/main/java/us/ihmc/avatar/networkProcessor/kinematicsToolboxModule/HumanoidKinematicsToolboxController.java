@@ -353,6 +353,7 @@ public class HumanoidKinematicsToolboxController extends KinematicsToolboxContro
    {
       InverseKinematicsCommandList commands = new InverseKinematicsCommandList();
       commands.addCommand(createJointLimitReductionCommand());
+      commands.addCommand(super.getAdditionalInverseKinematicsCommands());
       return commands;
    }
 

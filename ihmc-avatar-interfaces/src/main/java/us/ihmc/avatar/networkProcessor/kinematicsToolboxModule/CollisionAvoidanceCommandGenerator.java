@@ -1,15 +1,13 @@
 package us.ihmc.avatar.networkProcessor.kinematicsToolboxModule;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
-import org.ejml.ops.NormOps;
 
-import gnu.trove.list.array.TIntArrayList;
-import gnu.trove.map.hash.THashMap;
+import us.ihmc.avatar.collisionAvoidance.FrameConvexPolytopeVisualizer;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics.CollisionAvoidanceCommand;
-import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics.InverseKinematicsCommandList;
 import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.Point3D;
@@ -29,6 +27,7 @@ public class CollisionAvoidanceCommandGenerator
    private final FramePose collidingPointPose = new FramePose();
    private final PoseReferenceFrame collidingPointFrame = new PoseReferenceFrame("CollidingPointFrame", collidingPointPose);
    private final Quaternion defaultPointOrientation = new Quaternion();
+   private final FrameConvexPolytopeVisualizer viz;
    
    DenseMatrix64F tempJacobianMatrix, tempCollisionConstraint;
    DenseMatrix64F tempCollisionVector = new DenseMatrix64F(6, 1);
@@ -36,24 +35,39 @@ public class CollisionAvoidanceCommandGenerator
     * The secret sauce that ensures that the resultant joint velocity is in a direction that avoids collisions. This should be as high as possible 
     * but not so high that the solution becomes in feasible
     */
-   private double collisionAvoidanceTaskObjective = 0.0;
-   
+   private double collisionAvoidanceTaskObjective = 10;
+
    public CollisionAvoidanceCommandGenerator(RigidBody rootBody, CollisionAvoidanceCommand collisionAvoidanceCommand)
+   {
+      this(rootBody, collisionAvoidanceCommand, null);
+   }
+   
+   public CollisionAvoidanceCommandGenerator(RigidBody rootBody, CollisionAvoidanceCommand collisionAvoidanceCommand, FrameConvexPolytopeVisualizer viz)
    {
       this.rootBody = rootBody;
       this.command = collisionAvoidanceCommand;
       this.tempJacobianMatrix = new DenseMatrix64F(6, 1);
       this.tempCollisionConstraint = new DenseMatrix64F(1, 1);
+      this.viz = viz;
    }
 
+   private final Point3D tempPoint = new Point3D();
    public void addCollisionConstraint(RigidBody rigidBody, Point3D rigidBodyPoint, Vector3D collsionVector)
    {
+      if(viz!=null)
+      {
+         tempPoint.set(rigidBodyPoint);
+         tempPoint.add(collsionVector);
+         viz.showCollisionVector(rigidBodyPoint, tempPoint);
+      }
       jacobianCalculator.clear();
       //TODO check if the point orientation affects the results... 
       collidingPointPose.setPoseIncludingFrame(ReferenceFrame.getWorldFrame(), rigidBodyPoint, defaultPointOrientation);
       collidingPointFrame.setPoseAndUpdate(collidingPointPose);
-      jacobianCalculator.setJacobianFrame(collidingPointFrame);
+      if(viz != null)
+         viz.showRigidBodyCollidingPoint(collidingPointFrame);
       jacobianCalculator.setKinematicChain(rootBody, rigidBody);
+      jacobianCalculator.setJacobianFrame(collidingPointFrame);
       List<InverseDynamicsJoint> kinematicChain = jacobianCalculator.getJointsFromBaseToEndEffector();
       jacobianCalculator.computeJacobianMatrix();
       jacobianCalculator.getJacobianMatrix(tempJacobianMatrix);

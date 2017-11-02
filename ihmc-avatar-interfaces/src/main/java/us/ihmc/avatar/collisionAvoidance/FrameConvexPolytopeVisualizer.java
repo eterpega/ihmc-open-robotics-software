@@ -13,9 +13,11 @@ import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.geometry.polytope.ConvexPolytopeConstructor;
+import us.ihmc.geometry.polytope.DCELPolytope.ExtendedSimplexPolytope;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.ConvexPolytopeReadOnly;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeHalfEdgeReadOnly;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeVertexReadOnly;
+import us.ihmc.geometry.polytope.DCELPolytope.CollisionDetection.PolytopeListener;
 import us.ihmc.geometry.polytope.DCELPolytope.Frame.FrameConvexPolytope;
 import us.ihmc.graphicsDescription.Graphics3DObject;
 import us.ihmc.graphicsDescription.appearance.YoAppearanceRGBColor;
@@ -23,6 +25,7 @@ import us.ihmc.graphicsDescription.yoGraphics.YoGraphicLineSegment;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.robotics.MathTools;
+import us.ihmc.robotics.referenceFrames.PoseReferenceFrame;
 import us.ihmc.robotics.robotDescription.CollisionMeshDescription;
 import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.simulationconstructionset.Robot;
@@ -32,7 +35,7 @@ import us.ihmc.tools.thread.ThreadTools;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
 
-public class FrameConvexPolytopeVisualizer
+public class FrameConvexPolytopeVisualizer implements PolytopeListener
 {
    private final int numberOfVizEdges;
    private final int numberOfVizVertices;
@@ -49,8 +52,10 @@ public class FrameConvexPolytopeVisualizer
    private int numberOfPolytopes = 0;
    private ArrayList<YoGraphicLineSegment> collisionVectors;
    private static final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
-   private boolean keepSCSUp = false;
+   private boolean keepSCSUp = true;
    private int collisionVectorIndex = 0;
+   private int iterationCount = 0;
+   private boolean block = false;
    
    public FrameConvexPolytopeVisualizer(int maxNumberOfPolytopes, YoVariableRegistry registry, YoGraphicsListRegistry graphicsListRegistry)
    {
@@ -98,7 +103,7 @@ public class FrameConvexPolytopeVisualizer
       polytopes[numberOfPolytopes] = polytopeToAdd;
       polytopeColors[numberOfPolytopes] = getNextColor();
       numberOfPolytopes++;
-      update();
+      updateNonBlocking();
    }
 
    private Color getNextColor()
@@ -153,7 +158,7 @@ public class FrameConvexPolytopeVisualizer
       scs = new SimulationConstructionSet(robotList, parameters);
       Graphics3DObject coordinateSystem = new Graphics3DObject();
       coordinateSystem.addCoordinateSystem(.5);
-      //scs.addStaticLinkGraphics(coordinateSystem);
+      scs.addStaticLinkGraphics(coordinateSystem);
       scs.setGroundVisible(false);
       scs.setDT(1.0, 1);
       scs.startOnAThread();
@@ -183,8 +188,22 @@ public class FrameConvexPolytopeVisualizer
       collisionVectorIndex = 0;
    }
 
+   private YoGraphicLineSegment xVector;
+   private YoGraphicLineSegment yVector;
+   private YoGraphicLineSegment zVector;
+   
    public void createPolytopeVisualizationElements()
    {
+      xVector = new YoGraphicLineSegment("xAxis", "Viz", worldFrame, new YoAppearanceRGBColor(Color.PINK, 0.0), registry);
+      xVector.setDrawArrowhead(true);
+      yVector = new YoGraphicLineSegment("yAxis", "Viz", worldFrame, new YoAppearanceRGBColor(Color.PINK, 0.0), registry);
+      yVector.setDrawArrowhead(true);
+      zVector = new YoGraphicLineSegment("zAxis", "Viz", worldFrame, new YoAppearanceRGBColor(Color.PINK, 0.0), registry);
+      zVector.setDrawArrowhead(true);
+      graphicsListRegistry.registerYoGraphic("Axis",xVector);
+      graphicsListRegistry.registerYoGraphic("Axis",yVector);
+      graphicsListRegistry.registerYoGraphic("Axis",zVector);
+
       collisionVectors.clear();
       for (int i = 0; i < numberOfCollisionVectors; i++)
       {
@@ -311,5 +330,57 @@ public class FrameConvexPolytopeVisualizer
          }
       }
       update();
+   }
+
+   @Override
+   public void update(ConvexPolytopeReadOnly simplex)
+   {
+      for(int i = 0; i < numberOfPolytopes; i++)
+      {
+         if(polytopes[i] == simplex)
+         {
+            //PrintTools.debug("Vertices: " + simplex.getNumberOfVertices());
+            updateNonBlocking();
+            if(block && iterationCount++ > 10)
+               throw new RuntimeException("This happened");
+            return;
+         }
+      }
+      addPolytope(simplex);
+   }
+
+   @Override
+   public void blockWhenInControl()
+   {
+      PrintTools.debug("Block requested");
+      //block = true;
+   }
+   
+   
+   private Point3D origin = new Point3D();
+   private Vector3D xAxis = new Vector3D();
+   private Vector3D yAxis = new Vector3D();
+   private Vector3D zAxis = new Vector3D();
+   
+   public void showRigidBodyCollidingPoint(PoseReferenceFrame referenceFrame)
+   {
+      RigidBodyTransform transform = referenceFrame.getTransformToWorldFrame();
+      origin.setToZero();
+      origin.applyTransform(transform);
+      xAxis.set(.1, 0.0, 0.0);
+      xAxis.applyTransform(transform);
+      yAxis.set(0.0, .1, 0.0);
+      yAxis.applyTransform(transform);
+      zAxis.set(0.0, 0.0, .1);
+      zAxis.applyTransform(transform);
+      tempPoint1.set(origin);
+      tempPoint1.add(xAxis);
+      xVector.setStartAndEnd(origin, tempPoint1);
+      tempPoint1.set(origin);
+      tempPoint1.add(yAxis);
+      yVector.setStartAndEnd(origin, tempPoint1);
+      tempPoint1.set(origin);
+      tempPoint1.add(zAxis);
+      zVector.setStartAndEnd(origin, tempPoint1);
    }
 }

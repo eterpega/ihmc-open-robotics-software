@@ -3,15 +3,12 @@ package us.ihmc.atlas.inverseKinematicsTest;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.jfree.date.SpreadsheetDate;
 import org.junit.Test;
 
 import com.badlogic.gdx.math.collision.BoundingBox;
 
-import us.ihmc.atlas.AtlasJointMap;
 import us.ihmc.atlas.AtlasRobotModel;
 import us.ihmc.atlas.AtlasRobotVersion;
-import us.ihmc.atlas.parameters.AtlasPhysicalProperties;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
 import us.ihmc.avatar.drcRobot.RobotTarget;
 import us.ihmc.avatar.networkProcessor.kinematicsToolboxModule.AvatarInverseKinematicsObstacleAvoidanceTest;
@@ -19,9 +16,7 @@ import us.ihmc.euclid.matrix.RotationMatrix;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
-import us.ihmc.robotics.partNames.JointNameMap;
 import us.ihmc.robotics.robotDescription.ConvexShapeDescription;
-import us.ihmc.robotics.robotDescription.RobotDescription;
 import us.ihmc.robotics.robotDescription.SphereDescriptionReadOnly;
 
 public class AtlasInverseKinematicsObstacleAvoidanceTest extends AvatarInverseKinematicsObstacleAvoidanceTest
@@ -56,7 +51,8 @@ public class AtlasInverseKinematicsObstacleAvoidanceTest extends AvatarInverseKi
    public List<? extends ConvexShapeDescription> getObstacleDescription()
    {
       List<ConvexShapeDescription> obstacleDescriptionList = new ArrayList<ConvexShapeDescription>();
-      SphereDescriptionReadOnly sphere = new SphereDescriptionReadOnly(0.1, new RigidBodyTransform(new RotationMatrix(), new Vector3D(0.45, -0.4, 0.5)));
+      SphereDescriptionReadOnly sphere = new SphereDescriptionReadOnly(0.1, new RigidBodyTransform(new RotationMatrix(), new Vector3D(0.4, -0.45, 0.4)));
+      //SphereDescriptionReadOnly sphere = new SphereDescriptionReadOnly(0.1, new RigidBodyTransform(new RotationMatrix(), new Vector3D(0.27, 0.0, 0.4)));
       obstacleDescriptionList.add(sphere);
       return obstacleDescriptionList;
    }
