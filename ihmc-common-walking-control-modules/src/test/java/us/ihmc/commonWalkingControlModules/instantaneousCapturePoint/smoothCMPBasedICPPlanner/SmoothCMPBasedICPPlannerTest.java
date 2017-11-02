@@ -343,7 +343,7 @@ public class SmoothCMPBasedICPPlannerTest
    }
 
    @ContinuousIntegrationTest(estimatedDuration = 2.0, categoriesOverride = {IntegrationCategory.FAST})
-   @Test
+   @Test(timeout = 30000)
    public void testForDiscontinuitiesWithoutAngularMomentum()
    {
       boolean isAMOn = false;
@@ -352,7 +352,7 @@ public class SmoothCMPBasedICPPlannerTest
    }
 
    @ContinuousIntegrationTest(estimatedDuration = 2.0, categoriesOverride = {IntegrationCategory.FAST})
-   @Test
+   @Test(timeout = 30000)
    public void testForDiscontinuitiesWithAngularMomentum()
    {
       boolean isAMOn = true;
@@ -361,7 +361,7 @@ public class SmoothCMPBasedICPPlannerTest
    }
 
    @ContinuousIntegrationTest(estimatedDuration = 2.0, categoriesOverride = {IntegrationCategory.FAST})
-   @Test
+   @Test(timeout = 30000)
    public void testForPlanningConsistencyWithoutAngularMomentum()
    {
       boolean isAMOn = false;
@@ -370,7 +370,7 @@ public class SmoothCMPBasedICPPlannerTest
    }
 
    @ContinuousIntegrationTest(estimatedDuration = 2.0, categoriesOverride = {IntegrationCategory.FAST})
-   @Test
+   @Test(timeout = 30000)
    public void testForPlanningConsistencyWithAngularMomentum()
    {
       boolean isAMOn = true;

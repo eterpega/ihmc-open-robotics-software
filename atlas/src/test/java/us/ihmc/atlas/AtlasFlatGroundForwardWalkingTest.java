@@ -64,7 +64,7 @@ public class AtlasFlatGroundForwardWalkingTest extends AvatarFlatGroundForwardWa
 
    @Override
    @ContinuousIntegrationTest (estimatedDuration = 70.0, categoriesOverride = {IntegrationCategory.FAST})
-   @Test
+   @Test(timeout = 520000)
    public void testForwardWalk() throws SimulationExceededMaximumTimeException
    {
       super.testForwardWalk();
@@ -72,7 +72,7 @@ public class AtlasFlatGroundForwardWalkingTest extends AvatarFlatGroundForwardWa
 
    @Override
    @ContinuousIntegrationTest (estimatedDuration = 70.0, categoriesOverride = {IntegrationCategory.FAST})
-   @Test
+   @Test(timeout = 520000)
    public void testForwardWalkWithForceDisturbances() throws SimulationExceededMaximumTimeException
    {
       super.testForwardWalkWithForceDisturbances();
