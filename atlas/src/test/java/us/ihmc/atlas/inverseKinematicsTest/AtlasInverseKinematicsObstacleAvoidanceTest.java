@@ -32,7 +32,7 @@ public class AtlasInverseKinematicsObstacleAvoidanceTest extends AvatarInverseKi
    @Override
    public int getNumberOfObstacles()
    {
-      return 1;
+      return 3;
    }
 
    @Override
@@ -52,7 +52,10 @@ public class AtlasInverseKinematicsObstacleAvoidanceTest extends AvatarInverseKi
    {
       List<ConvexShapeDescription> obstacleDescriptionList = new ArrayList<ConvexShapeDescription>();
       SphereDescriptionReadOnly sphere = new SphereDescriptionReadOnly(0.1, new RigidBodyTransform(new RotationMatrix(), new Vector3D(0.4, -0.45, 0.4)));
-      //SphereDescriptionReadOnly sphere = new SphereDescriptionReadOnly(0.1, new RigidBodyTransform(new RotationMatrix(), new Vector3D(0.27, 0.0, 0.4)));
+      obstacleDescriptionList.add(sphere);
+      sphere = new SphereDescriptionReadOnly(0.1, new RigidBodyTransform(new RotationMatrix(), new Vector3D(-0.27, 0.0, 0.5)));
+      obstacleDescriptionList.add(sphere);
+      sphere = new SphereDescriptionReadOnly(0.1, new RigidBodyTransform(new RotationMatrix(), new Vector3D(0.0, -0.45, -0.4)));
       obstacleDescriptionList.add(sphere);
       return obstacleDescriptionList;
    }

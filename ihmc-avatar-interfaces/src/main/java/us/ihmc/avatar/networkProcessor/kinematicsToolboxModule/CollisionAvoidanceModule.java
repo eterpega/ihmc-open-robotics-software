@@ -81,6 +81,11 @@ public class CollisionAvoidanceModule
     */
    private final FrameConvexPolytopeVisualizer viz;
    
+   /**
+    * Collision quality 
+    */
+   private double collisionQuality = 0.0;
+   
    public CollisionAvoidanceModule(RigidBody rootBody, InverseDynamicsJoint[] controlledJoints)
    {
       this(rootBody, controlledJoints, null);
@@ -160,6 +165,7 @@ public class CollisionAvoidanceModule
       boolean collisionDetected = false;
       if(viz != null && visualizeCollisionVectors)
          viz.clearCollisionVectors();
+      collisionQuality = 0.0;
       for(int i = 0; i < rigidBodies.size(); i++)
       {
          RigidBody rigidBody = rigidBodies.get(i);
@@ -167,6 +173,7 @@ public class CollisionAvoidanceModule
             PrintTools.debug("Checking collisions: " + rigidBody.toString());
          RigidBodyCollisionDetector collisionDetector = collisionDetectorMap.get(rigidBody);
          collisionDetected |= collisionDetector.checkCollisionsWithObstacles(obstacleMeshes);
+         collisionQuality += collisionDetector.getCollisionQuality();
       }
       if(viz != null && (visualizeRigidBodyMeshes || visualizeObstacleMeshes))
          viz.update();
@@ -178,6 +185,11 @@ public class CollisionAvoidanceModule
          PrintTools.debug("Done checking collisions");
       
       return collisionDetected;
+   }
+   
+   public double getCollisionQuality()
+   {
+      return collisionQuality;
    }
 
    public boolean isEnabled()

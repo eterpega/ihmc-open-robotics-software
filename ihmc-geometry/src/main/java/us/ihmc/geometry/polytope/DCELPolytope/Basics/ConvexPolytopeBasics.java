@@ -358,7 +358,7 @@ public abstract class ConvexPolytopeBasics<A extends PolytopeVertexBasics<A, B, 
          for (int i = 0; i < destinationVertex.getNumberOfAssociatedEdges(); i++)
          {
             if (silhouetteFaceList.contains(destinationVertex.getAssociatedEdge(i).getFace())
-                  && !silhouetteFaceList.contains(destinationVertex.getAssociatedEdge(i).getTwinHalfEdge().getFace()))
+                  && (destinationVertex.getAssociatedEdge(i).getTwinHalfEdge() != null) && !silhouetteFaceList.contains(destinationVertex.getAssociatedEdge(i).getTwinHalfEdge().getFace()))
             {
                halfEdgeUnderConsideration = destinationVertex.getAssociatedEdge(i);
                break;

@@ -143,6 +143,13 @@ public class KinematicsToolboxController extends ToolboxController
    private final YoDouble solutionQuality = new YoDouble("solutionQuality", registry);
 
    /**
+    * This is the current estimate of the collision quality that is calculated based on the 
+    * the smallest Euclidean distance rigid bodies need to move to be in a non-colliding configuration.
+    * In case the collision avoidance is disabled it is set to zero
+    */
+   private final YoDouble collisionQuality = new YoDouble("collisionQuality", registry);
+
+   /**
     * Weight indicating the priority for getting closer to the current privileged configuration. The
     * current privileged configuration can be changed at any time by sending a
     * {@link HumanoidKinematicsToolboxConfigurationMessage}.
@@ -219,7 +226,7 @@ public class KinematicsToolboxController extends ToolboxController
     * Maintains a flag indicating if the solution is colliding. Is set to false in case the collision avoidance is disabled
     */
    private final YoBoolean colliding;
-   
+
    public KinematicsToolboxController(CommandInputManager commandInputManager, StatusMessageOutputManager statusOutputManager,
                                       FloatingInverseDynamicsJoint rootJoint, OneDoFJoint[] oneDoFJoints, YoGraphicsListRegistry yoGraphicsListRegistry,
                                       YoVariableRegistry parentRegistry)
@@ -421,7 +428,7 @@ public class KinematicsToolboxController extends ToolboxController
       userFeedbackCommands.clear();
 
       RobotConfigurationData robotConfigurationData = latestRobotConfigurationDataReference.get();
-      
+
       if (robotConfigurationData == null)
          return false;
 
@@ -473,7 +480,8 @@ public class KinematicsToolboxController extends ToolboxController
 
       // Calculating the solution quality based on sum of all the commands' tracking error.
       solutionQuality.set(KinematicsToolboxHelper.calculateSolutionQuality(allFeedbackControlCommands, feedbackControllerDataHolder));
-
+      collisionQuality.set(collisionAvoidanceModule.getCollisionQuality());
+      
       // Updating the the robot state from the current solution, initializing the next control tick.
       KinematicsToolboxHelper.setRobotStateFromControllerCoreOutput(controllerCore.getControllerCoreOutput(), rootJoint, oneDoFJoints);
       updateVisualization();
@@ -701,7 +709,7 @@ public class KinematicsToolboxController extends ToolboxController
    {
       collisionAvoidanceModule.clearObstacleMeshList();
    }
-   
+
    public boolean isColliding()
    {
       return colliding.getBooleanValue();
