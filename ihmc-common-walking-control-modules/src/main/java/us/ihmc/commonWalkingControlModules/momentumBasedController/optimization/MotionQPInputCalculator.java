@@ -11,6 +11,7 @@ import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamic
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.SpatialAccelerationCommand;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics.*;
 import us.ihmc.commonWalkingControlModules.inverseKinematics.JointPrivilegedConfigurationHandler;
+import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
@@ -607,7 +608,9 @@ public class MotionQPInputCalculator
          InverseDynamicsJoint joint = commandToConvert.getJoint(jointIndex);
          int[] columns = jointIndexHandler.getJointIndices(joint);
          if (columns == null)
+         {
             return false;
+         }
          // For each joint find the correct columns to update
          for (int dofNumber = 0; dofNumber < columns.length; dofNumber++)
          {
@@ -619,14 +622,14 @@ public class MotionQPInputCalculator
          }
       }
       motionQPInputToPack.taskObjective.set(commandToConvert.getTaskObjective());
-      recordTaskJacobian(motionQPInputToPack.taskJacobian);
+      //recordTaskJacobian(motionQPInputToPack.taskJacobian);
       return true;
    }
 
    private void recordTaskJacobian(DenseMatrix64F taskJacobian)
    {
       int taskSize = taskJacobian.getNumRows();
-      allTaskJacobian.reshape(allTaskJacobian.getNumRows() + taskSize, numberOfDoFs);
+      allTaskJacobian.reshape(allTaskJacobian.getNumRows() + taskSize, numberOfDoFs, true);
       CommonOps.insert(taskJacobian, allTaskJacobian, allTaskJacobian.getNumRows() - taskSize, 0);
    }
 

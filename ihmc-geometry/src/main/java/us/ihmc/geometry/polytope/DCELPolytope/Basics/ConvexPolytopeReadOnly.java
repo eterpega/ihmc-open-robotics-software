@@ -21,4 +21,6 @@ public interface ConvexPolytopeReadOnly extends EpsilonComparable<ConvexPolytope
             return false;
       return true;
    }
+   
+   int getNumberOfVertices();
 }

@@ -26,6 +26,7 @@ import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.geometry.polytope.DCELPolytope.Frame.FrameConvexPolytope;
+import us.ihmc.graphicsDescription.Graphics3DObject;
 import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
 import us.ihmc.graphicsDescription.appearance.YoAppearanceRGBColor;
 import us.ihmc.graphicsDescription.instructions.Graphics3DAddModelFileInstruction;
@@ -67,6 +68,7 @@ public abstract class AvatarInverseKinematicsObstacleAvoidanceTest
    private YoVariableRegistry testRegistry = new YoVariableRegistry("InverseKinematicsTestRegistry");
    private YoGraphicsListRegistry graphicsRegistry = new YoGraphicsListRegistry();
    private final AppearanceDefinition ghostAppearance = new YoAppearanceRGBColor(Color.YELLOW, 0.8);
+   private final double robotTransparency = 0.75;
    
    private SimulationTestingParameters simulationTestParameters;
    private SimulationConstructionSet scs;
@@ -109,6 +111,8 @@ public abstract class AvatarInverseKinematicsObstacleAvoidanceTest
       simulationTestParameters.setKeepSCSUp(keepSCSUp());
 
       DRCRobotModel controllerRobot = getRobotModel();
+      RobotDescription robotDescription = controllerRobot.getRobotDescription();
+      //recursivelyModifyRobotGraphics(robotDescription.getChildrenJoints().get(0));
       controllerRobotModel = controllerRobot.createFullRobotModel();
       commandInputManager = new CommandInputManager(KinematicsToolboxModule.supportedCommands());
       commandInputManager.registerConversionHelper(new KinematicsToolboxCommandConverter(controllerRobotModel.getElevator()));
@@ -123,7 +127,7 @@ public abstract class AvatarInverseKinematicsObstacleAvoidanceTest
       DRCRobotModel ghostRobot = getRobotModel();
       RobotDescription ghostDescription = ghostRobot.getRobotDescription();
       ghostDescription.setName("GhostHumanoid");
-      recursivelyModifyGraphics(ghostDescription.getChildrenJoints().get(0));
+      recursivelyModifyGhostGraphics(ghostDescription.getChildrenJoints().get(0));
       scsGhostRobot = ghostRobot.createHumanoidFloatingRootJointRobot(false);
       scsGhostRobot.setGravity(0.0);
       scsGhostRobot.setDynamic(false);
@@ -136,7 +140,11 @@ public abstract class AvatarInverseKinematicsObstacleAvoidanceTest
       scsRobot.setController(controllerWrapper);
       if (visualize)
       {
-         scs = new SimulationConstructionSet(new Robot[] {scsRobot, scsGhostRobot}, simulationTestParameters);
+         scs = new SimulationConstructionSet(new Robot[] {scsRobot}, simulationTestParameters);
+         Graphics3DObject coordinateSystem = new Graphics3DObject();
+         coordinateSystem.addCoordinateSystem(.5);
+         scs.setGroundVisible(false);
+         scs.addStaticLinkGraphics(coordinateSystem);
          scs.addYoGraphicsListRegistry(graphicsRegistry, true);
          scs.setCameraFix(0.0, 0.0, 1.0);
          scs.setCameraPosition(8.0, 0.0, 3.0);
@@ -146,7 +154,7 @@ public abstract class AvatarInverseKinematicsObstacleAvoidanceTest
       }
    }
 
-   private void recursivelyModifyGraphics(JointDescription joint)
+   private void recursivelyModifyGhostGraphics(JointDescription joint)
    {
       if (joint == null)
          return;
@@ -176,11 +184,51 @@ public abstract class AvatarInverseKinematicsObstacleAvoidanceTest
 
       for (JointDescription child : joint.getChildrenJoints())
       {
-         recursivelyModifyGraphics(child);
+         recursivelyModifyGhostGraphics(child);
       }
 
    }
 
+   private void recursivelyModifyRobotGraphics(JointDescription joint)
+   {
+      if (joint == null)
+         return;
+      LinkDescription link = joint.getLink();
+      if (link == null)
+         return;
+      LinkGraphicsDescription linkGraphics = link.getLinkGraphics();
+      if (linkGraphics == null)
+         return;
+
+      ArrayList<Graphics3DPrimitiveInstruction> graphics3dInstructions = linkGraphics.getGraphics3DInstructions();
+
+      if (graphics3dInstructions == null)
+         return;
+
+      for (Graphics3DPrimitiveInstruction primitive : graphics3dInstructions)
+      {
+         if (primitive instanceof Graphics3DAddModelFileInstruction)
+         {
+            Graphics3DAddModelFileInstruction modelInstruction = (Graphics3DAddModelFileInstruction) primitive;
+            AppearanceDefinition modelApprearance = modelInstruction.getAppearance();
+            if(modelApprearance == null)
+               modelInstruction.setAppearance(new YoAppearanceRGBColor(Color.WHITE, robotTransparency));
+            else
+               modelApprearance.setTransparency(robotTransparency);
+         }
+      }
+
+      if (joint.getChildrenJoints() == null)
+         return;
+
+      for (JointDescription child : joint.getChildrenJoints())
+      {
+         recursivelyModifyGhostGraphics(child);
+      }
+
+   }
+   
+   
    private RobotController createControllerWrapperAroundToolbox()
    {
       return new RobotController()
@@ -273,13 +321,13 @@ public abstract class AvatarInverseKinematicsObstacleAvoidanceTest
          ghostRobotWriter.updateRobotConfigurationBasedOnFullRobotModel();
          RigidBody hand = ghostRobotModel.getHand(side);
          FramePoint3D desiredPosition = new FramePoint3D(hand.getBodyFixedFrame());
-         desiredPosition.add(0.4, side.negateIfLeftSide(0.75), 0.0);
+         desiredPosition.add(0.4, side.negateIfLeftSide(0.65), 0.0);
          desiredPosition.changeFrame(worldFrame);
          KinematicsToolboxRigidBodyMessage message = new KinematicsToolboxRigidBodyMessage(hand, desiredPosition);
          message.setWeight(20.0);
          commandInputManager.submitMessage(message);
       }
-      runControllerToolbox(1000);
+      runControllerToolbox(5000);
    }
 
    private void randomizeRobotConfiguration(FullRobotModel robotModel, double percentOfMotionRangeAllowed, Random random)
@@ -372,5 +420,4 @@ public abstract class AvatarInverseKinematicsObstacleAvoidanceTest
       capturabilityBasedStatus.rightFootSupportPolygonLength = isRightFootInSupport ? 1 : 0;
       return capturabilityBasedStatus;
    }
-
 }

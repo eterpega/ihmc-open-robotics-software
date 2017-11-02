@@ -101,6 +101,15 @@ public class RobotCollisionMeshProvider
             PrintTools.debug("Link : " + linkDescription.getName() + " Joint: " + joint.getName());
          collisionMeshMap.put(rigidBody, createCollisionMesh(rigidBody, linkDescription));
       }
+      else
+      {
+         LinkDescription linkDescription = jointDescription.getLink();
+         InverseDynamicsJoint joint = fullRobotModel.getRootJoint();
+         RigidBody rigidBody = joint.getSuccessor();
+         if (debug)
+            PrintTools.debug("Link : " + linkDescription.getName() + " Joint: " + joint.getName());
+         collisionMeshMap.put(rigidBody, createCollisionMesh(rigidBody, linkDescription));
+      }
       for (JointDescription childJointDescription : jointDescription.getChildrenJoints())
       {
          recursivelyAddCollisionMeshes(collisionMeshMap, childJointDescription, fullRobotModel);

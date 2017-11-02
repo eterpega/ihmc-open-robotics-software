@@ -1,7 +1,6 @@
 package us.ihmc.geometry.polytope.DCELPolytope.CollisionDetection;
 
 import us.ihmc.commons.Epsilons;
-import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
@@ -52,7 +51,8 @@ public class HybridGJKEPACollisionDetector
    };
    
    private Vector3D previousSupportVectorDirection = new Vector3D();
-   private final int iterations = 10;
+   private final int iterations = 1000;
+   private final PolytopeListener listener;
 
    public void setSupportVectorDirection(Vector3DReadOnly vectorToSet)
    {
@@ -99,6 +99,11 @@ public class HybridGJKEPACollisionDetector
       return epsilon;
    }
 
+   public HybridGJKEPACollisionDetector(PolytopeListener listener)
+   {
+      this(null, defaultCollisionEpsilon, listener);
+   }
+
    public HybridGJKEPACollisionDetector()
    {
       this(null, defaultCollisionEpsilon);
@@ -116,8 +121,14 @@ public class HybridGJKEPACollisionDetector
    
    public HybridGJKEPACollisionDetector(ExtendedSimplexPolytope simplex, double epsilon)
    {
+      this(simplex, epsilon, null);
+   }
+
+   public HybridGJKEPACollisionDetector(ExtendedSimplexPolytope simplex, double epsilon, PolytopeListener listener)
+   {
       setSimplex(simplex);
       setEpsilon(epsilon);
+      this.listener = listener;
    }
    
    public boolean checkCollision()
@@ -132,29 +143,39 @@ public class HybridGJKEPACollisionDetector
       else
          simplex.getSupportVectorDirectionTo(origin, supportVectorDirection);
       previousSupportVectorDirection.set(supportVectorDirection);
-      for (int i = 0; i < iterations;)
+      for (int i = 0; i < iterations; i++)
       {
+         updateListeners();
          simplex.addVertex(polytopeA.getSupportingVertexHack(supportVectorDirection), polytopeB.getSupportingVertexHack(supportVectorDirectionNegative));
          if(simplex.isInteriorPoint(origin, epsilon))
          {
+            //PrintTools.debug("Breaking on collision");
             return true;
          }
          else
             simplex.getSupportVectorDirectionTo(origin, supportVectorDirection);
-
-         if(simplex.getPolytope().getNumberOfVertices() > 100)
-            PrintTools.debug("Prev: " + previousSupportVectorDirection.toString() + "  Curr: " + supportVectorDirection.toString());
+         
+         //PrintTools.debug("Prev: " + previousSupportVectorDirection.toString() + "  Curr: " + supportVectorDirection.toString());
          
          if(previousSupportVectorDirection.epsilonEquals(supportVectorDirection, epsilon))
          {
+            //PrintTools.debug("Breaking on support vector");
             return false;
          }
          else
             previousSupportVectorDirection.set(supportVectorDirection);
       }
+      if(listener != null)
+         listener.blockWhenInControl();
       return false;
    }
-
+   
+   private void updateListeners()
+   {
+      if(listener != null)
+         listener.update(simplex.getPolytope());
+   }
+   
    public void runEPAExpansion()
    {
       simplex.getSupportVectorDirectionTo(origin, supportVectorDirection);

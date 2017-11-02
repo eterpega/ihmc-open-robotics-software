@@ -19,32 +19,35 @@ public class RigidBodyCollisionDetector
    private final Point3D rigidBodyCollidingPoint = new Point3D();
    private final Point3D obstacleMeshCollidingPoint = new Point3D();
    private final Vector3D collsionVector = new Vector3D();
-   
+
    private final HybridGJKEPACollisionDetector collisionDetector;
    private final CollisionAvoidanceCommandGenerator commandGenerator;
    private final RigidBody rigidBody;
-   
+
    private final ExtendedSimplexPolytope tempSimplex;
    private final FrameConvexPolytopeVisualizer viz;
-   
-   public RigidBodyCollisionDetector(RigidBody rigidBody, FrameConvexPolytope rigidBodyCollisionMesh, CollisionAvoidanceModuleSettings params, CollisionAvoidanceCommandGenerator commandGenerator)
+
+   public RigidBodyCollisionDetector(RigidBody rigidBody, FrameConvexPolytope rigidBodyCollisionMesh, CollisionAvoidanceModuleSettings params,
+                                     CollisionAvoidanceCommandGenerator commandGenerator)
    {
       this(rigidBody, rigidBodyCollisionMesh, params, commandGenerator, null);
    }
-   public RigidBodyCollisionDetector(RigidBody rigidBody, FrameConvexPolytope rigidBodyCollisionMesh, CollisionAvoidanceModuleSettings params, CollisionAvoidanceCommandGenerator commandGenerator, FrameConvexPolytopeVisualizer viz)
+
+   public RigidBodyCollisionDetector(RigidBody rigidBody, FrameConvexPolytope rigidBodyCollisionMesh, CollisionAvoidanceModuleSettings params,
+                                     CollisionAvoidanceCommandGenerator commandGenerator, FrameConvexPolytopeVisualizer viz)
    {
-      this.collisionDetector = new HybridGJKEPACollisionDetector(params.getCollisionDetectionEpsilon());
+      this.collisionDetector = new HybridGJKEPACollisionDetector(null, params.getCollisionDetectionEpsilon());
       this.collisionDetector.setPolytopeA(rigidBodyCollisionMesh);
       this.commandGenerator = commandGenerator;
       this.rigidBody = rigidBody;
       this.tempSimplex = new ExtendedSimplexPolytope();
       this.viz = viz;
    }
-   
+
    public boolean checkCollisionsWithObstacles(List<FrameConvexPolytope> obstacleMeshes)
    {
       boolean collisionDetected = false;
-      for(int i = 0; i < obstacleMeshes.size(); i++)
+      for (int i = 0; i < obstacleMeshes.size(); i++)
       {
          FrameConvexPolytope obstacleMesh = obstacleMeshes.get(i);
          //ExtendedSimplexPolytope pairSimplex = collidingObstacleSimplices.get(obstacleMesh);
@@ -57,24 +60,28 @@ public class RigidBodyCollisionDetector
          tempSimplex.clear();
          collisionDetector.setSimplex(tempSimplex);
          collisionDetector.setPolytopeB(obstacleMesh);
-         if(collisionDetector.checkCollision())
+         if (collisionDetector.checkCollision())
          {
             collisionDetected = true;
             //collidingObstacleSimplices.put(obstacleMesh, pairSimplex);
+            //PrintTools.debug("Detected collision for:  " + rigidBody.getName());
             collisionDetector.runEPAExpansion();
+            //PrintTools.debug("Ran EPA for:  " + rigidBody.getName());
             collisionDetector.getCollisionPoints(rigidBodyCollidingPoint, obstacleMeshCollidingPoint);
-            if(viz != null)
+            if (viz != null)
                viz.showCollisionVector(rigidBodyCollidingPoint, obstacleMeshCollidingPoint);
-            PrintTools.debug("Detected collision for:  " + rigidBody.getName());
             registerCollision(rigidBodyCollidingPoint, obstacleMeshCollidingPoint);
-         }  
+         }
       }
       return collisionDetected;
    }
-   
+
    private void registerCollision(Point3D rigidBodyPoint, Point3D obstaclePoint)
    {
       // Get direction to move in to avoid collision
+      //PrintTools.debug("Before: " + rigidBodyPoint.toString());
+      //obstaclePoint.applyTransform(rigidBody.getBodyFixedFrame().getTransformToWorldFrame());
+      //PrintTools.debug("After: " + rigidBodyPoint.toString());
       collsionVector.sub(obstaclePoint, rigidBodyPoint);
       commandGenerator.addCollisionConstraint(rigidBody, rigidBodyPoint, collsionVector);
    }

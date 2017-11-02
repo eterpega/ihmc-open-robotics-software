@@ -27,10 +27,10 @@ public class CollisionAvoidanceModule
    /**
     * Enable collision box visualization 
     */
-   private final static boolean visualizeRigidBodyMeshes = true;
+   private final static boolean visualizeRigidBodyMeshes = false;
    private final static boolean visualizeObstacleMeshes = true;
    private final static boolean visualizeCollisionVectors = true;
-   private final static boolean debug = true;
+   private final static boolean debug = false;
    
    /**
     * Stores the collision detectors for the individual rigid bodies the idea here being that simplices can be 
@@ -89,7 +89,7 @@ public class CollisionAvoidanceModule
    public CollisionAvoidanceModule(RigidBody rootBody, InverseDynamicsJoint[] controlledJoints, FrameConvexPolytopeVisualizer viz)
    {
       command = new CollisionAvoidanceCommand(controlledJoints);
-      commandGenerator = new CollisionAvoidanceCommandGenerator(rootBody, command);
+      commandGenerator = new CollisionAvoidanceCommandGenerator(rootBody, command, viz);
       this.viz = viz;
    }
    
@@ -101,7 +101,7 @@ public class CollisionAvoidanceModule
       for(int i = 0; i < rigidBodies.size(); i++)
       {
          RigidBody rigidBody = rigidBodies.get(i);
-         collisionDetectorMap.put(rigidBody, new RigidBodyCollisionDetector(rigidBody, collisionMeshMap.get(rigidBody), parameters, commandGenerator, viz));
+         collisionDetectorMap.put(rigidBody, new RigidBodyCollisionDetector(rigidBody, collisionMeshMap.get(rigidBody), parameters, commandGenerator));
          if(visualizeRigidBodyMeshes)
             visualize(collisionMeshMap.get(rigidBody));
       }

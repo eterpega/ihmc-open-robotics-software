@@ -268,10 +268,10 @@ public class KinematicsToolboxController extends ToolboxController
       inverseKinematicsSolution = new KinematicsToolboxOutputStatus(oneDoFJoints);
       inverseKinematicsSolution.setDestination(-1);
 
-      gains.setProportionalGains(100.0); // Gains used for everything. It is as high as possible to reduce the convergence time.
+      gains.setProportionalGains(1200.0); // Gains used for everything. It is as high as possible to reduce the convergence time.
       gains.setMaxFeedbackAndFeedbackRate(1500.0, Double.POSITIVE_INFINITY);
 
-      privilegedWeight.set(1.0);
+      privilegedWeight.set(10.0);
       privilegedConfigurationGain.set(50.0);
       privilegedMaxVelocity.set(Double.POSITIVE_INFINITY);
       //TODO move the settings to be configurable by 
@@ -421,7 +421,7 @@ public class KinematicsToolboxController extends ToolboxController
       userFeedbackCommands.clear();
 
       RobotConfigurationData robotConfigurationData = latestRobotConfigurationDataReference.get();
-
+      
       if (robotConfigurationData == null)
          return false;
 
@@ -455,9 +455,9 @@ public class KinematicsToolboxController extends ToolboxController
       controllerCoreCommand.addFeedbackControlCommand(userCommands);
       controllerCoreCommand.addFeedbackControlCommand(getAdditionalFeedbackControlCommands());
 
-      controllerCoreCommand.addInverseKinematicsCommand(privilegedConfigurationCommandReference.getAndSet(null));
       colliding.set(collisionAvoidanceModule.checkCollisionsAndAddAvoidanceCommands());
       controllerCoreCommand.addInverseKinematicsCommand(getAdditionalInverseKinematicsCommands());
+      controllerCoreCommand.addInverseKinematicsCommand(privilegedConfigurationCommandReference.getAndSet(null));
 
       // Save all commands used for this control tick for computing the solution quality.
       FeedbackControlCommandList allFeedbackControlCommands = new FeedbackControlCommandList(controllerCoreCommand.getFeedbackControlCommandList());
@@ -647,12 +647,6 @@ public class KinematicsToolboxController extends ToolboxController
 
    protected InverseKinematicsCommandList getAdditionalInverseKinematicsCommands()
    {
-      int taskSize = 0;
-      if(collisionAvoidanceModule.getCollisionAvoidanceCommands().getNumberOfCommands() == 0)
-         taskSize = 0;
-      else 
-         taskSize = ((CollisionAvoidanceCommand)collisionAvoidanceModule.getCollisionAvoidanceCommands().getCommand(0)).getTaskSize();
-      PrintTools.debug("Task size: " + taskSize);
       return collisionAvoidanceModule.getCollisionAvoidanceCommands();
    }
 
