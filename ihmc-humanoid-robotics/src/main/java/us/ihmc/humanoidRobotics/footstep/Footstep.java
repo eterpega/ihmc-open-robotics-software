@@ -2,6 +2,7 @@ package us.ihmc.humanoidRobotics.footstep;
 
 import java.util.List;
 
+import boofcv.struct.image.Planar;
 import us.ihmc.euclid.interfaces.Settable;
 import us.ihmc.euclid.referenceFrame.FramePoint2D;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
@@ -14,6 +15,7 @@ import us.ihmc.humanoidRobotics.communication.controllerAPI.command.FootstepData
 import us.ihmc.robotics.MathTools;
 import us.ihmc.robotics.geometry.FrameOrientation;
 import us.ihmc.robotics.geometry.FramePose;
+import us.ihmc.robotics.geometry.PlanarRegion;
 import us.ihmc.robotics.lists.RecyclingArrayList;
 import us.ihmc.robotics.math.trajectories.waypoints.FrameSE3TrajectoryPoint;
 import us.ihmc.robotics.referenceFrames.PoseReferenceFrame;
@@ -43,6 +45,8 @@ public class Footstep implements Settable<Footstep>
    private final RecyclingArrayList<FramePoint3D> customPositionWaypoints = new RecyclingArrayList<>(2, FramePoint3D.class);
    private final RecyclingArrayList<FrameSE3TrajectoryPoint> swingTrajectory = new RecyclingArrayList<>(maxNumberOfSwingWaypoints,
                                                                                                         FrameSE3TrajectoryPoint.class);
+
+   private PlanarRegion planarRegion = null;
 
    private TrajectoryType trajectoryType = TrajectoryType.DEFAULT;
    private double swingHeight = 0.0;
@@ -90,6 +94,18 @@ public class Footstep implements Settable<Footstep>
       this.swingHeight = swingHeight;
    }
 
+   public Footstep(RobotSide robotSide, FramePose footstepPose, boolean trustHeight, List<Point2D> predictedContactPoints, TrajectoryType trajectoryType,
+                   double swingHeight, PlanarRegion planarRegion)
+   {
+      this.robotSide = robotSide;
+      this.trustHeight = trustHeight;
+      this.footstepPose.setIncludingFrame(footstepPose);
+      setPredictedContactPoints(predictedContactPoints);
+      this.trajectoryType = trajectoryType;
+      this.swingHeight = swingHeight;
+      this.planarRegion = planarRegion;
+   }
+
    @Override
    public void set(Footstep other)
    {
@@ -100,6 +116,7 @@ public class Footstep implements Settable<Footstep>
       this.scriptedFootstep = other.scriptedFootstep;
       this.trajectoryType = other.trajectoryType;
       this.swingHeight = other.swingHeight;
+      this.planarRegion = other.planarRegion;
 
       this.footstepPose.setIncludingFrame(other.footstepPose);
 
@@ -435,6 +452,11 @@ public class Footstep implements Settable<Footstep>
       tempPose.changeFrame(footstepSoleFrame.getParent());
       footstepSoleFrame.setPoseAndUpdate(tempPose);
       return footstepSoleFrame;
+   }
+
+   public PlanarRegion getPlanarRegion()
+   {
+      return planarRegion;
    }
 
    public void getAnklePose(FramePose poseToPack, RigidBodyTransform transformFromAnkleToSole)

@@ -12,6 +12,7 @@ import us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage;
 import us.ihmc.humanoidRobotics.footstep.Footstep;
 import us.ihmc.robotics.geometry.FrameOrientation;
+import us.ihmc.robotics.geometry.PlanarRegion;
 import us.ihmc.robotics.lists.RecyclingArrayList;
 import us.ihmc.robotics.math.trajectories.waypoints.FrameSE3TrajectoryPoint;
 import us.ihmc.robotics.robotSide.RobotSide;
@@ -37,6 +38,7 @@ public class FootstepDataCommand implements Command<FootstepDataCommand, Footste
    private double transferDuration = Double.NaN;
 
    private ReferenceFrame trajectoryFrame;
+   private PlanarRegion planarRegion;
    
    /** the time to delay this command on the controller side before being executed **/
    private double executionDelayTime;
@@ -73,6 +75,7 @@ public class FootstepDataCommand implements Command<FootstepDataCommand, Footste
       swingTrajectoryBlendDuration = message.getSwingTrajectoryBlendDuration();
       position.setIncludingFrame(worldFrame, message.getLocation());
       orientation.setIncludingFrame(worldFrame, message.getOrientation());
+      planarRegion = message.planarRegion;
 
       Point3D[] originalPositionWaypointList = message.getCustomPositionWaypoints();
       customPositionWaypoints.clear();
@@ -117,6 +120,7 @@ public class FootstepDataCommand implements Command<FootstepDataCommand, Footste
       swingTrajectoryBlendDuration = other.swingTrajectoryBlendDuration;
       position.setIncludingFrame(other.position);
       orientation.setIncludingFrame(other.orientation);
+      planarRegion = other.planarRegion;
 
       RecyclingArrayList<FramePoint3D> otherWaypointList = other.customPositionWaypoints;
       customPositionWaypoints.clear();

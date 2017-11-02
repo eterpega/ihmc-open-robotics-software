@@ -25,6 +25,7 @@ import us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage;
 import us.ihmc.humanoidRobotics.footstep.Footstep;
 import us.ihmc.robotics.MathTools;
 import us.ihmc.robotics.geometry.FrameOrientation;
+import us.ihmc.robotics.geometry.PlanarRegion;
 import us.ihmc.robotics.random.RandomGeometry;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.trajectories.TrajectoryType;
@@ -32,7 +33,7 @@ import us.ihmc.robotics.trajectories.TrajectoryType;
 @RosMessagePacket(documentation = "This message specifies the position, orientation and side (left or right) of a desired footstep in world frame.", rosPackage = RosMessagePacket.CORE_IHMC_PACKAGE)
 public class FootstepDataMessage extends Packet<FootstepDataMessage> implements TransformableDataObject<FootstepDataMessage>
 {
-   @RosExportedField(documentation = "Specifies which foot will swing to reach the foostep.")
+   @RosExportedField(documentation = "Specifies which foot will swing to reach the footstep.")
    public RobotSide robotSide;
    @RosExportedField(documentation = "Specifies the position of the footstep (sole frame) in world frame.")
    public Point3D location;
@@ -46,13 +47,13 @@ public class FootstepDataMessage extends Packet<FootstepDataMessage> implements 
          + "- {x: -0.5 * foot_length, y: -0.5 * heel_width}\n" + "- {x: -0.5 * foot_length, y: 0.5 * heel_width}\n")
    public ArrayList<Point2D> predictedContactPoints;
 
-   @RosExportedField(documentation = "This contains information on what the swing trajectory should be for each step. Recomended is DEFAULT.")
+   @RosExportedField(documentation = "This contains information on what the swing trajectory should be for each step. Recommended is DEFAULT.")
    public TrajectoryType trajectoryType = TrajectoryType.DEFAULT;
    @RosExportedField(documentation = "Contains information on how high the robot should swing its foot. This affects trajectory types DEFAULT and OBSTACLE_CLEARANCE."
-         + "If a value smaller then the minumal swing height is chosen (e.g. 0.0) the swing height will be changed to a default value.")
+         + "If a value smaller then the minimal swing height is chosen (e.g. 0.0) the swing height will be changed to a default value.")
    public double swingHeight = 0.0;
    @RosExportedField(documentation = "In case the trajectory type is set to CUSTOM two swing waypoints can be specified here. The waypoints define sole positions."
-         + "The controller will compute times and velocities at the waypoints. This is a convinient way to shape the trajectory of the swing. If full control over the swing"
+         + "The controller will compute times and velocities at the waypoints. This is a convenient way to shape the trajectory of the swing. If full control over the swing"
          + "trajectory is desired use the trajectory type WAYPOINTS instead. The position waypoints are expected in the trajectory frame.")
    public Point3D[] positionWaypoints = new Point3D[0];
    @RosExportedField(documentation = "In case the trajectory type is set to WAYPOINTS, swing waypoints can be specified here. The waypoints do not include the"
@@ -71,6 +72,9 @@ public class FootstepDataMessage extends Packet<FootstepDataMessage> implements 
    @RosExportedField(documentation = "The transferDuration is the time spent with the feet in ground contact before a step."
          + "\nIf the value of this field is invalid (not positive) it will be replaced by a default transferDuration.")
    public double transferDuration = -1.0;
+   @RosExportedField(documentation = "The planar region is the planar region that the footstep should be constrained to, if adjusted. A value of null will\n"
+         + "default to leaving any footstep adjustment unconstrained.")
+   public PlanarRegion planarRegion;
 
    /** the time to delay this command on the controller side before being executed **/
    public double executionDelayTime;
@@ -105,6 +109,12 @@ public class FootstepDataMessage extends Packet<FootstepDataMessage> implements 
    public FootstepDataMessage(RobotSide robotSide, Point3D location, Quaternion orientation, ArrayList<Point2D> predictedContactPoints,
                               TrajectoryType trajectoryType, double swingHeight)
    {
+      this(robotSide, location, orientation, predictedContactPoints, trajectoryType, swingHeight, null);
+   }
+
+   public FootstepDataMessage(RobotSide robotSide, Point3D location, Quaternion orientation, ArrayList<Point2D> predictedContactPoints,
+                              TrajectoryType trajectoryType, double swingHeight, PlanarRegion planarRegion)
+   {
       this.robotSide = robotSide;
       this.location = location;
       this.orientation = orientation;
@@ -114,6 +124,7 @@ public class FootstepDataMessage extends Packet<FootstepDataMessage> implements 
          this.predictedContactPoints = predictedContactPoints;
       this.trajectoryType = trajectoryType;
       this.swingHeight = swingHeight;
+      this.planarRegion = planarRegion;
    }
 
    public FootstepDataMessage(FootstepDataMessage footstepData)
@@ -137,6 +148,7 @@ public class FootstepDataMessage extends Packet<FootstepDataMessage> implements 
       }
       this.trajectoryType = footstepData.trajectoryType;
       this.swingHeight = footstepData.swingHeight;
+      this.planarRegion = footstepData.planarRegion;
       this.swingTrajectoryBlendDuration = footstepData.swingTrajectoryBlendDuration;
 
       if (footstepData.positionWaypoints != null)
@@ -192,6 +204,7 @@ public class FootstepDataMessage extends Packet<FootstepDataMessage> implements 
       trajectoryType = footstep.getTrajectoryType();
       swingHeight = footstep.getSwingHeight();
       swingTrajectoryBlendDuration = footstep.getSwingTrajectoryBlendDuration();
+      planarRegion = footstep.getPlanarRegion();
 
       if (footstep.getCustomPositionWaypoints().size() != 0)
       {
