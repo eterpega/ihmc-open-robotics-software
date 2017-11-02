@@ -51,9 +51,10 @@ public class AtlasInverseKinematicsObstacleAvoidanceTest extends AvatarInverseKi
    public List<? extends ConvexShapeDescription> getObstacleDescription()
    {
       List<ConvexShapeDescription> obstacleDescriptionList = new ArrayList<ConvexShapeDescription>();
-      SphereDescriptionReadOnly sphere = new SphereDescriptionReadOnly(0.1, new RigidBodyTransform(new RotationMatrix(), new Vector3D(0.4, -0.45, 0.4)));
+      SphereDescriptionReadOnly sphere = new SphereDescriptionReadOnly(0.1, new RigidBodyTransform(new RotationMatrix(), new Vector3D(0.4, -0.25, 0.4)));
       obstacleDescriptionList.add(sphere);
-      sphere = new SphereDescriptionReadOnly(0.1, new RigidBodyTransform(new RotationMatrix(), new Vector3D(-0.27, 0.0, 0.5)));
+      //sphere = new SphereDescriptionReadOnly(0.1, new RigidBodyTransform(new RotationMatrix(), new Vector3D(-0.27, 0.0, 0.5)));
+      sphere = new SphereDescriptionReadOnly(0.1, new RigidBodyTransform(new RotationMatrix(), new Vector3D(0.4, 0.25, 0.4)));
       obstacleDescriptionList.add(sphere);
       sphere = new SphereDescriptionReadOnly(0.1, new RigidBodyTransform(new RotationMatrix(), new Vector3D(0.0, -0.45, -0.4)));
       obstacleDescriptionList.add(sphere);
