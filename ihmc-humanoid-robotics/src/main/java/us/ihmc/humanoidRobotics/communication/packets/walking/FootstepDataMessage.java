@@ -270,6 +270,11 @@ public class FootstepDataMessage extends Packet<FootstepDataMessage> implements 
       this.location.set(location);
    }
 
+   public void setPlanarRegion(PlanarRegion planarRegion)
+   {
+      this.planarRegion = planarRegion;
+   }
+
    public void setOrientation(QuaternionReadOnly orientation)
    {
       if (this.orientation == null)
