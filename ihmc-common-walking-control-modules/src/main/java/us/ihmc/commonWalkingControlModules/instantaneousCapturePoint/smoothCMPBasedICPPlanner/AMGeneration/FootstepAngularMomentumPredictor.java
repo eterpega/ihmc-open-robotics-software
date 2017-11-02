@@ -392,7 +392,7 @@ public class FootstepAngularMomentumPredictor implements AngularMomentumTrajecto
       }
       else
       {
-         activeTrajectory = null;
+         activeTrajectory = transferAngularMomentumTrajectories.get(0);
       }
 
       if (DEBUG)

@@ -66,9 +66,13 @@ public class SmoothCMPBasedICPPlannerStateMachine
    private final FramePoint3D icpPosition = new FramePoint3D();
    private final FrameVector3D icpVelocity = new FrameVector3D();
    private final FrameVector3D icpAcceleration = new FrameVector3D();
+   private final FramePoint3D icpInitialPosition = new FramePoint3D();
+   private final FrameVector3D icpInitialVelocity = new FrameVector3D();
+   private final FrameVector3D icpInitialAcceleration = new FrameVector3D();
    private final FramePoint3D comPosition = new FramePoint3D();
    private final FrameVector3D comVelocity = new FrameVector3D();
    private final FrameVector3D comAcceleration = new FrameVector3D();
+   private double plannerTimeInState = 0.0;
 
    public SmoothCMPBasedICPPlannerStateMachine(String namePrefix, YoBoolean isStanding, YoBoolean isInitialTransfer, YoBoolean isDoubleSupport,
                                                YoBoolean planForDoubleSupport, YoBoolean planForSingleSupport, YoDouble timeInCurrentState,
@@ -107,12 +111,12 @@ public class SmoothCMPBasedICPPlannerStateMachine
 
    private void updateStateFromGenerators()
    {
-      double timeInCurrentState = MathTools.clamp(this.timeInCurrentState.getDoubleValue(), 0.0, copTrajectoryGenerator.getCurrentStateFinalTime());
-      copTrajectoryGenerator.update(timeInCurrentState);
-      amTrajectoryGenerator.update(timeInCurrentState);
-      cmpTrajectoryGenerator.update(timeInCurrentState);
-      icpTrajectoryGenerator.compute(timeInCurrentState);
-      comTrajectoryGenerator.compute(timeInCurrentState);
+      plannerTimeInState = MathTools.clamp(this.timeInCurrentState.getDoubleValue(), 0.0, copTrajectoryGenerator.getCurrentStateFinalTime());
+      copTrajectoryGenerator.update(plannerTimeInState);
+      amTrajectoryGenerator.update(plannerTimeInState);
+      cmpTrajectoryGenerator.update(plannerTimeInState);
+      icpTrajectoryGenerator.compute(plannerTimeInState);
+      comTrajectoryGenerator.compute(plannerTimeInState);
 
       copTrajectoryGenerator.getDesiredCenterOfPressure(copPosition, copVelocity, copAcceleration);
       amTrajectoryGenerator.getDesiredAngularMomentum(centroidalAngularMomentum, centroidalTorque);
@@ -186,12 +190,18 @@ public class SmoothCMPBasedICPPlannerStateMachine
       @Override
       public void doTransitionIntoAction()
       {
-         
+         icpTrajectoryGenerator.setICPInitialConditionsForAdjustment(icpInitialPosition, icpInitialVelocity, icpInitialAcceleration);
       }
 
       @Override
       public void doTransitionOutOfAction()
       {
+         PrintTools.debug(getStateEnum() + " Transitioning out time: " + plannerTimeInState);
+         icpTrajectoryGenerator.compute(plannerTimeInState);
+         icpTrajectoryGenerator.getPosition(icpInitialPosition);
+         icpTrajectoryGenerator.getVelocity(icpInitialVelocity);
+         icpTrajectoryGenerator.getAcceleration(icpInitialAcceleration);
+         PrintTools.debug("Pos: " + icpInitialPosition.toString() + " Vel: " + icpInitialVelocity.toString() + " Acc: " + icpAcceleration.toString());
       }
    }
 

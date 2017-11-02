@@ -5,6 +5,7 @@ import java.util.List;
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.interfaces.linsol.LinearSolver;
 
+import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.Axis;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FrameTuple3D;
@@ -83,10 +84,10 @@ public class SmoothCapturePointAdjustmentToolbox
    {
       calculateGeneralizedICPMatricesOnCMPSegment2(omega0, cmpPolynomialSegment2);
 
-      // TODO: check whether division always integer
       for (int i = 0; i < numberOfConstrainedDerivatives; i++)
       {
          double icpQuantityInitialConditionScalar = icpQuantityInitialConditionList.get(i).getElement(axis.ordinal());
+         PrintTools.debug(axis.toString() + " ICP AdPos: " + icpQuantityInitialConditionScalar);
          calculateGeneralizedICPMatricesOnCMPSegment1(omega0, i, cmpPolynomialSegment1);
          setGeneralizedBoundaryConstraints(i, numberOfCoefficients, numberOfConstrainedDerivatives, cmpPolynomialSegment1, cmpPolynomialSegment2,
                                            icpQuantityInitialConditionScalar, icpPositionFinalSegment2Scalar);

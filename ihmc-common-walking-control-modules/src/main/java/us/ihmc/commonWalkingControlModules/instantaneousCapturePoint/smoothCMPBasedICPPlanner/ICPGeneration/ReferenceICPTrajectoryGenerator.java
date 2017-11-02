@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import gnu.trove.list.array.TIntArrayList;
+import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FrameTuple3D;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
@@ -264,10 +265,10 @@ public class ReferenceICPTrajectoryGenerator implements PositionTrajectoryGenera
 
       icpToolbox.computeDesiredCornerPoints(icpDesiredInitialPositionsFromCoPs, icpDesiredFinalPositionsFromCoPs, copTrajectories, omega0.getDoubleValue());
 
-      if (isInitialTransfer.getBooleanValue())
-      {
-         setICPInitialConditionsForAdjustment(localTimeInCurrentPhase.getDoubleValue(), -1);
-      }
+//      if (isInitialTransfer.getBooleanValue())
+//      {
+//         setICPInitialConditionsForAdjustment(localTimeInCurrentPhase.getDoubleValue(), -1);
+//      }
    }
 
    public void initializeForSwingFromCoPs(List<? extends SegmentedFrameTrajectory3D> transferCoPTrajectories,
@@ -324,10 +325,10 @@ public class ReferenceICPTrajectoryGenerator implements PositionTrajectoryGenera
       icpPositionDesiredTerminal.set(icpDesiredFinalPositions.get(cmpTrajectories.size() - 1));
    }
 
-   public void setICPInitialConditionsForAdjustment(double time, int currentSwingSegment)
-   {
-      setICPInitialConditions(time, icpDesiredFinalPositionsFromCoPs, copTrajectories, currentSwingSegment, omega0.getDoubleValue());
-   }
+//   public void setICPInitialConditionsForAdjustment(double time, int currentSwingSegment)
+//   {
+//      setICPInitialConditions(time, icpDesiredFinalPositionsFromCoPs, copTrajectories, currentSwingSegment, omega0.getDoubleValue());
+//   }
 
    public void adjustDesiredTrajectoriesForInitialSmoothing()
    {
@@ -356,7 +357,7 @@ public class ReferenceICPTrajectoryGenerator implements PositionTrajectoryGenera
          icpToolbox.computeDesiredCapturePointAcceleration(omega0.getDoubleValue(), localTimeInCurrentPhase.getDoubleValue(),
                                                            icpPositionDesiredFinalCurrentSegment, cmpPolynomial3D, icpAccelerationDesiredCurrent);
 
-         setICPInitialConditionsForAdjustment(localTimeInCurrentPhase.getDoubleValue(), currentSegmentIndex.getIntegerValue()); // TODO: add controller dt for proper continuation
+         //setICPInitialConditionsForAdjustment(localTimeInCurrentPhase.getDoubleValue(), currentSegmentIndex.getIntegerValue()); // TODO: add controller dt for proper continuation
          if (debug)
             checkICPDynamics(localTimeInCurrentPhase.getDoubleValue(), icpVelocityDesiredCurrent, icpPositionDesiredCurrent, cmpPolynomial3D);
       }
@@ -382,7 +383,7 @@ public class ReferenceICPTrajectoryGenerator implements PositionTrajectoryGenera
             && Math.abs(cmpTrajectories.get(currentSegmentIndex).getFinalTime() - cmpTrajectories.get(currentSegmentIndex + 1).getInitialTime()) < 1.0e-5)
       {
          currentSegmentIndex++;
-         if (currentSegmentIndex ==  cmpTrajectories.size() - 1)
+         if (currentSegmentIndex ==  cmpTrajectories.size())
          {
             return currentSegmentIndex;
          }
@@ -554,7 +555,19 @@ public class ReferenceICPTrajectoryGenerator implements PositionTrajectoryGenera
       return totalNumberOfCMPSegments.getIntegerValue();
    }
    
-   public void setICPInitialConditions(double localTime, List<FramePoint3D> exitCornerPointsFromCoPs, List<FrameTrajectory3D> copPolynomials3D,
+   public void setICPInitialConditionsForAdjustment(FramePoint3D icpPosition, FrameVector3D... derivatives)
+   {
+      icpQuantityInitialConditionList.get(0).setIncludingFrame(icpPosition);
+      if(derivatives != null)
+      {
+         for(int i = 0; ((i < derivatives.length) && (i+1 < icpQuantityInitialConditionList.size())); i++)
+         {
+            icpQuantityInitialConditionList.get(i + 1).setIncludingFrame(derivatives[i]);
+         }
+      }
+   }
+   
+   private void setICPInitialConditions(double localTime, List<FramePoint3D> exitCornerPointsFromCoPs, List<FrameTrajectory3D> copPolynomials3D,
                                        int currentSwingSegment, double omega0)
    {
       if (currentSwingSegment < 0)
@@ -563,7 +576,7 @@ public class ReferenceICPTrajectoryGenerator implements PositionTrajectoryGenera
          for (int i = 0; i < copPolynomials3D.get(0).getNumberOfCoefficients() / 2; i++)
          {
             FrameTuple3D<?, ?> icpQuantityInitialCondition = icpQuantityInitialConditionList.get(i);
-
+   
             copPolynomial3D.getDerivative(i, localTime, icpQuantityInitialCondition);
          }
       }
@@ -573,7 +586,7 @@ public class ReferenceICPTrajectoryGenerator implements PositionTrajectoryGenera
          for (int i = 0; i < copPolynomials3D.get(0).getNumberOfCoefficients() / 2; i++)
          {
             FrameTuple3D<?, ?> icpQuantityInitialCondition = icpQuantityInitialConditionList.get(i);
-
+   
             icpToolbox.calculateICPQuantityFromCorrespondingCMPPolynomial3D(omega0, localTime, i, copPolynomial3D,
                                                                             exitCornerPointsFromCoPs.get(currentSwingSegment), icpQuantityInitialCondition);
          }

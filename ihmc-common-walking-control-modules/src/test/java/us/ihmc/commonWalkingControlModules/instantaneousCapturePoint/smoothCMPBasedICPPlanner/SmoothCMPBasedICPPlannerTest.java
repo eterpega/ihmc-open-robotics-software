@@ -66,8 +66,8 @@ public class SmoothCMPBasedICPPlannerTest
    private final static double spatialEpsilonForPlanningConsistency = 0.010; // m 
    private static final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
 
-   private static final boolean visualize = false;
-   private static final boolean keepSCSUp = false;
+   private static final boolean visualize = true;
+   private static final boolean keepSCSUp = true;
    private static final boolean testAssertions = !keepSCSUp && true;
 
    // Simulation parameters
@@ -352,7 +352,7 @@ public class SmoothCMPBasedICPPlannerTest
    }
 
    @ContinuousIntegrationTest(estimatedDuration = 2.0, categoriesOverride = {IntegrationCategory.FAST})
-   @Test(timeout = 30000)
+   @Test //(timeout = 30000)
    public void testForDiscontinuitiesWithAngularMomentum()
    {
       boolean isAMOn = true;
@@ -370,7 +370,7 @@ public class SmoothCMPBasedICPPlannerTest
    }
 
    @ContinuousIntegrationTest(estimatedDuration = 2.0, categoriesOverride = {IntegrationCategory.FAST})
-   @Test(timeout = 30000)
+   @Test//(timeout = 30000)
    public void testForPlanningConsistencyWithAngularMomentum()
    {
       boolean isAMOn = true;
@@ -411,8 +411,10 @@ public class SmoothCMPBasedICPPlannerTest
    {
       if (!newTestStartDiscontinuity)
       {
-         assertTrueLocal(comPositionForDiscontinuity.toString() + " " + comPosition.toString(), comPositionForDiscontinuity.epsilonEquals(comPosition, spatialEpsilonForDiscontinuity));
-         assertTrueLocal(icpPositionForDiscontinuity.epsilonEquals(icpPosition, spatialEpsilonForDiscontinuity));
+         assertTrueLocal(comPositionForDiscontinuity.toString() + " " + comPosition.toString(),
+                         comPositionForDiscontinuity.epsilonEquals(comPosition, spatialEpsilonForDiscontinuity));
+         assertTrueLocal("Time: " + yoTime.getDoubleValue() + ", Got: " + icpPosition.toString() + ", Should have been: " + icpPositionForDiscontinuity.toString() + ", Epsilon: "
+               + spatialEpsilonForDiscontinuity, icpPositionForDiscontinuity.epsilonEquals(icpPosition, spatialEpsilonForDiscontinuity));
          assertTrueLocal(cmpPositionForDiscontinuity.epsilonEquals(cmpPosition, spatialEpsilonForDiscontinuity * 4));
          assertTrueLocal(copPositionForDiscontinuity.epsilonEquals(copPosition, spatialEpsilonForDiscontinuity * 4));
       }

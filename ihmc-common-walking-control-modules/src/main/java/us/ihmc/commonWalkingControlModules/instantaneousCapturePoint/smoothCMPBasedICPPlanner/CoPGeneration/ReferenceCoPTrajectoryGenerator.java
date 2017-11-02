@@ -342,8 +342,18 @@ public class ReferenceCoPTrajectoryGenerator implements ReferenceCoPTrajectoryGe
    @Override
    public void updateListeners()
    {
+      updateCoPWaypointsFromTrajectories();
       for (int i = 0; i < copLocationWaypoints.size(); i++)
          copLocationWaypoints.get(i).notifyVariableChangedListeners();
+   }
+   
+   private void updateCoPWaypointsFromTrajectories()
+   {
+      //for(int i = 0; i < copLocationWaypoints.size()
+      //      && !copLocationWaypoints.get(i).getCoPPointList().isEmpty(); i++)
+      //{
+      //   
+      //}
    }
 
    @Override
@@ -1344,7 +1354,7 @@ public class ReferenceCoPTrajectoryGenerator implements ReferenceCoPTrajectoryGe
 
    public double getCurrentStateFinalTime()
    {
-      if (activeTrajectory.getNumberOfSegments() == 0)
+      if (activeTrajectory == null || activeTrajectory.getNumberOfSegments() == 0)
          return 0.0;
       else
          return activeTrajectory.getNodeTimes()[activeTrajectory.getNumberOfSegments()];
