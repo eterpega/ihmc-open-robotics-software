@@ -149,6 +149,7 @@ public class Footstep implements Settable<Footstep>
       this.trajectoryType = command.getTrajectoryType();
       this.swingHeight = command.getSwingHeight();
       this.trustHeight = trustHeight;
+      this.planarRegion = command.getPlanarRegion();
 
       this.footstepPose.setPoseIncludingFrame(command.getPosition(), command.getOrientation());
 
@@ -199,6 +200,7 @@ public class Footstep implements Settable<Footstep>
       scriptedFootstep = false;
       trajectoryType = TrajectoryType.DEFAULT;
       swingHeight = 0.0;
+      planarRegion = null;
    }
 
    public TrajectoryType getTrajectoryType()
