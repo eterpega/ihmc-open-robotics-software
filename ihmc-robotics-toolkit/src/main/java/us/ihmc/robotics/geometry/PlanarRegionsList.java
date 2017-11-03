@@ -39,6 +39,11 @@ public class PlanarRegionsList
       regions.add(region);
    }
 
+   public void clear()
+   {
+      regions.clear();
+   }
+
    /**
     * Find all the planar regions that intersect with the given convex polygon. The algorithm is
     * equivalent to projecting all the regions onto the XY-plane and then finding the regions
