@@ -5,11 +5,13 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import org.junit.Test;
 
 import us.ihmc.commons.Epsilons;
 import us.ihmc.commons.MutationTestFacilitator;
+import us.ihmc.commons.PrintTools;
 import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
 import us.ihmc.euclid.geometry.BoundingBox3D;
 import us.ihmc.euclid.tools.EuclidCoreTestTools;
@@ -21,6 +23,9 @@ import us.ihmc.geometry.polytope.DCELPolytope.ConvexPolytopeFace;
 import us.ihmc.geometry.polytope.DCELPolytope.ExtendedConvexPolytope;
 import us.ihmc.geometry.polytope.DCELPolytope.ExtendedPolytopeVertex;
 import us.ihmc.geometry.polytope.DCELPolytope.PolytopeHalfEdge;
+import us.ihmc.geometry.polytope.DCELPolytope.Basics.ConvexPolytopeFaceReadOnly;
+import us.ihmc.geometry.polytope.DCELPolytope.Basics.ConvexPolytopeReadOnly;
+import us.ihmc.scsVisualizers.geometry.polytope.PolytopeVisualizer;
 
 public class ConvexPolytopeTest
 {
@@ -57,7 +62,6 @@ public class ConvexPolytopeTest
                   + face.toString(), face.getEdge(i).getTwinHalfEdge().getDestinationVertex() == face.getEdge(i).getOriginVertex());
          }
       }
-
    }
 
    @Test(timeout = 10000)
@@ -525,7 +529,61 @@ public class ConvexPolytopeTest
       PolytopeVertex vertex6 = new PolytopeVertex(0.01822181847842627, -0.2069197063056774, -0.12517471528642377);
 
    }
+   
+   @Test
+   public void testCylinderCreationFromRandomPointsByProjection()
+   {
+      PolytopeVisualizer viz = new PolytopeVisualizer(1);
+      int numberOfPoints = 100;
+      Random random = new Random(1234);
+      double cylinderHeight = 1.0;
+      double cylinderRadius = 0.125;
+      ExtendedConvexPolytope cylinder = new ExtendedConvexPolytope(viz);
+      for(int i = 0; i < numberOfPoints; i++)
+      {
+         Point3D pointToAdd = new Point3D(random.nextDouble(), random.nextDouble(), random.nextDouble());
+         projectToInteriorOfCylinder(cylinderHeight, cylinderRadius, pointToAdd);
+         PrintTools.debug("Adding point " + i);
+         cylinder.addVertex(pointToAdd, EPSILON);
+         checkPolytopeConsistency(cylinder);
+      }
+   }
 
+   public void checkPolytopeConsistency(ConvexPolytopeReadOnly polytope)
+   {
+      int numberOfFaces = polytope.getNumberOfFaces();
+      if(numberOfFaces < 2)
+         return;
+      for (int j = 0; j < numberOfFaces; j++)
+      {
+         ConvexPolytopeFaceReadOnly face = polytope.getFace(j);
+         for (int i = 0; i < face.getNumberOfEdges(); i++)
+         {
+            assertTrue("Null twin edge for edge: " + face.getEdge(i).toString() + " on face: " + face.toString(), face.getEdge(i).getTwinHalfEdge() != null);
+            assertTrue("Twin edge: " + face.getEdge(i).getTwinHalfEdge().toString() + " mismatch for edge: " + face.getEdge(i).toString() + " on face: "
+                  + face.toString(), face.getEdge(i).getTwinHalfEdge().getOriginVertex() == face.getEdge(i).getDestinationVertex());
+            assertTrue("Twin edge: " + face.getEdge(i).getTwinHalfEdge().toString() + " mismatch for edge: " + face.getEdge(i).toString() + " on face: "
+                  + face.toString(), face.getEdge(i).getTwinHalfEdge().getDestinationVertex() == face.getEdge(i).getOriginVertex());
+         }
+      }
+   }
+   
+   /**
+    * Projects assuming the center is the origin and axis is the Z axis
+    * @param height
+    * @param radius
+    */
+   private void projectToInteriorOfCylinder(double height, double radius, Point3D pointToProject)
+   {
+      double XYComponentNorm = Math.sqrt(pointToProject.getX() * pointToProject.getX() + pointToProject.getY() * pointToProject.getY());
+      if (XYComponentNorm > radius)
+         pointToProject.scale(radius / XYComponentNorm, radius / XYComponentNorm, 1.0);
+      if(pointToProject.getZ() > height / 2.0)
+         pointToProject.setZ(height / 2.0);
+      else if(pointToProject.getZ() < -height / 2.0)
+         pointToProject.setZ(-height / 2.0);
+   }
+   
    public static void main(String[] args)
    {
       MutationTestFacilitator.facilitateMutationTestForPackage(ConvexPolytopeTest.class);

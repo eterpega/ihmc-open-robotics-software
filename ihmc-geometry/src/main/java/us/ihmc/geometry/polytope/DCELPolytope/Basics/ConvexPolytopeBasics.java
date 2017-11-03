@@ -14,6 +14,7 @@ import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
+import us.ihmc.geometry.polytope.DCELPolytope.CollisionDetection.PolytopeListener;
 import us.ihmc.geometry.polytope.DCELPolytope.Providers.ConvexPolytopeFaceProvider;
 import us.ihmc.geometry.polytope.DCELPolytope.Providers.PolytopeVertexProvider;
 
@@ -34,19 +35,25 @@ public abstract class ConvexPolytopeBasics<A extends PolytopeVertexBasics<A, B, 
    private final ArrayList<C> onFaceList = new ArrayList<>();
    private final ArrayList<B> visibleSilhouetteList = new ArrayList<>();
 
-   // Temporary variables for intermediate results
    private Vector3D tempVector = new Vector3D();
    private Point3D centroid = new Point3D();
-
+   private final PolytopeListener listener;
+   
    public ConvexPolytopeBasics()
    {
-      
+      listener = null;
+   }
+   
+   public ConvexPolytopeBasics(PolytopeListener listener)
+   {
+      this.listener = listener;
    }
    
    public ConvexPolytopeBasics(ConvexPolytopeReadOnly polytope)
    {
       set(polytope);
       boundingBoxNeedsUpdating = true;
+      listener = null;
    }
 
    public void getBoundingBox(BoundingBox3D boundingBoxToPack)

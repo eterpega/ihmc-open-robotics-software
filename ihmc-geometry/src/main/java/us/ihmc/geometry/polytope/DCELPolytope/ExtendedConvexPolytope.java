@@ -3,6 +3,7 @@ package us.ihmc.geometry.polytope.DCELPolytope;
 import java.util.List;
 
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.ConvexPolytopeBasics;
+import us.ihmc.geometry.polytope.DCELPolytope.CollisionDetection.PolytopeListener;
 import us.ihmc.geometry.polytope.DCELPolytope.Providers.ConvexPolytopeFaceBuilder;
 import us.ihmc.geometry.polytope.DCELPolytope.Providers.ConvexPolytopeFaceProvider;
 import us.ihmc.geometry.polytope.DCELPolytope.Providers.PolytopeVertexBuilder;
@@ -20,9 +21,15 @@ public class ExtendedConvexPolytope extends ConvexPolytopeBasics<ExtendedPolytop
 {
    private final ConvexPolytopeFaceBuilder faceBuilder = new ConvexPolytopeFaceBuilder(); 
    private final PolytopeVertexBuilder vertexBuilder =  new PolytopeVertexBuilder();
+   
    public ExtendedConvexPolytope()
    {
       super();
+   }
+   
+   public ExtendedConvexPolytope(PolytopeListener listener)
+   {
+      super(listener);
    }
    
    public ExtendedConvexPolytope(ExtendedConvexPolytope polytope)

@@ -23,4 +23,6 @@ public interface ConvexPolytopeReadOnly extends EpsilonComparable<ConvexPolytope
    }
    
    int getNumberOfVertices();
+   int getNumberOfFaces();
+   ConvexPolytopeFaceReadOnly getFace(int index);
 }
