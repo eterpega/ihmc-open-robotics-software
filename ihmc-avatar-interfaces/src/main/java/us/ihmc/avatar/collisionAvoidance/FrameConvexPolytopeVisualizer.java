@@ -349,14 +349,6 @@ public class FrameConvexPolytopeVisualizer implements PolytopeListener
       addPolytope(simplex);
    }
 
-   @Override
-   public void blockWhenInControl()
-   {
-      PrintTools.debug("Block requested");
-      //block = true;
-   }
-   
-   
    private Point3D origin = new Point3D();
    private Vector3D xAxis = new Vector3D();
    private Vector3D yAxis = new Vector3D();

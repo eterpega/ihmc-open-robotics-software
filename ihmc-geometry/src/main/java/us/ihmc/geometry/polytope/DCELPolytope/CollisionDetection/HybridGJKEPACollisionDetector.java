@@ -165,8 +165,6 @@ public class HybridGJKEPACollisionDetector
          else
             previousSupportVectorDirection.set(supportVectorDirection);
       }
-      if(listener != null)
-         listener.blockWhenInControl();
       return false;
    }
    

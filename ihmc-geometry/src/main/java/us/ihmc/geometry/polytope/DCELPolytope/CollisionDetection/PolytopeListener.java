@@ -4,7 +4,9 @@ import us.ihmc.geometry.polytope.DCELPolytope.Basics.ConvexPolytopeReadOnly;
 
 public interface PolytopeListener
 {
-   void update(ConvexPolytopeReadOnly simplex);
-
-   void blockWhenInControl();
+   void attachPolytope(ConvexPolytopeReadOnly polytopeToAttach);
+   void updateAll();
+   void updateEdges();
+   void updateVertices();
+   void updateFaces();
 }
