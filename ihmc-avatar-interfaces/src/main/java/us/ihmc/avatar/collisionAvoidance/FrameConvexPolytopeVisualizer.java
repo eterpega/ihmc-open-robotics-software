@@ -18,6 +18,7 @@ import us.ihmc.geometry.polytope.DCELPolytope.Basics.ConvexPolytopeReadOnly;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeHalfEdgeReadOnly;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeVertexReadOnly;
 import us.ihmc.geometry.polytope.DCELPolytope.CollisionDetection.PolytopeListener;
+import us.ihmc.geometry.polytope.DCELPolytope.CollisionDetection.PolytopeVisualizationListener;
 import us.ihmc.geometry.polytope.DCELPolytope.Frame.FrameConvexPolytope;
 import us.ihmc.graphicsDescription.Graphics3DObject;
 import us.ihmc.graphicsDescription.appearance.YoAppearanceRGBColor;
@@ -35,7 +36,7 @@ import us.ihmc.tools.thread.ThreadTools;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
 
-public class FrameConvexPolytopeVisualizer implements PolytopeListener
+public class FrameConvexPolytopeVisualizer
 {
    private final int numberOfVizEdges;
    private final int numberOfVizVertices;
@@ -332,7 +333,6 @@ public class FrameConvexPolytopeVisualizer implements PolytopeListener
       update();
    }
 
-   @Override
    public void update(ConvexPolytopeReadOnly simplex)
    {
       for(int i = 0; i < numberOfPolytopes; i++)

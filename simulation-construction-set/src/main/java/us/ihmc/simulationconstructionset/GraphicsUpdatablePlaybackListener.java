@@ -10,6 +10,7 @@ public class GraphicsUpdatablePlaybackListener implements PlaybackListener
 
    public GraphicsUpdatablePlaybackListener(ArrayList<GraphicsUpdatable> graphicsUpdatableList)
    {
+      System.out.println("senpai notice me");
       this.graphicsUpdatableList = graphicsUpdatableList;
    }
 

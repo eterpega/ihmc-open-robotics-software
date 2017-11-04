@@ -5,7 +5,6 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 import org.junit.Test;
 
@@ -24,7 +23,7 @@ import us.ihmc.geometry.polytope.DCELPolytope.ExtendedPolytopeVertex;
 import us.ihmc.geometry.polytope.DCELPolytope.PolytopeHalfEdge;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.ConvexPolytopeFaceReadOnly;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.ConvexPolytopeReadOnly;
-import us.ihmc.scsVisualizers.geometry.polytope.PolytopeVisualizer;
+import us.ihmc.scsVisualizers.geometry.polytope.PolytopeVisualizationHelper;
 
 public class ConvexPolytopeTest
 {
@@ -532,20 +531,30 @@ public class ConvexPolytopeTest
    @Test
    public void testCylinderCreationFromRandomPointsByProjection()
    {
-      PolytopeVisualizer viz = new PolytopeVisualizer(1);
-      int numberOfPoints = 100;
-      Random random = new Random(1234);
-      double cylinderHeight = 1.0;
-      double cylinderRadius = 0.125;
-      ExtendedConvexPolytope cylinder = new ExtendedConvexPolytope(viz);
-      for(int i = 0; i < numberOfPoints; i++)
-      {
-         Point3D pointToAdd = new Point3D(random.nextDouble(), random.nextDouble(), random.nextDouble());
-         projectToInteriorOfCylinder(cylinderHeight, cylinderRadius, pointToAdd);
-         PrintTools.debug("Adding point " + i);
-         cylinder.addVertex(pointToAdd, EPSILON);
-         checkPolytopeConsistency(cylinder);
-      }
+      PolytopeVisualizationHelper testHelper = new PolytopeVisualizationHelper("Test", 1, 8, 20, 10);
+      ExtendedConvexPolytope polytope = ConvexPolytopeConstructor.getCuboidCollisionMesh(new Point3D(), 1.0, 1.0, 1.0);
+      testHelper.attachPolytope(polytope);
+      testHelper.updateAll();
+      testHelper.tickSCS();
+      polytope = ConvexPolytopeConstructor.getCuboidCollisionMesh(new Point3D(1.5, 0.0, 0.0), 1.0, 1.0, 1.0);
+      polytope.addVertex(0.0, 0.0, 0.0, EPSILON);
+      testHelper.attachPolytope(0, polytope);
+      testHelper.updateAll();
+      testHelper.tickSCS();
+      testHelper.keepSCSUp();
+//      int numberOfPoints = 100;
+//      Random random = new Random(1234);
+//      double cylinderHeight = 1.0;
+//      double cylinderRadius = 0.125;
+//      ExtendedConvexPolytope cylinder = new ExtendedConvexPolytope(viz);
+//      for(int i = 0; i < numberOfPoints; i++)
+//      {
+//         Point3D pointToAdd = new Point3D(random.nextDouble(), random.nextDouble(), random.nextDouble());
+//         projectToInteriorOfCylinder(cylinderHeight, cylinderRadius, pointToAdd);
+//         PrintTools.debug("Adding point " + i);
+//         cylinder.addVertex(pointToAdd, EPSILON);
+//         checkPolytopeConsistency(cylinder);
+//      }
    }
 
    public void checkPolytopeConsistency(ConvexPolytopeReadOnly polytope)

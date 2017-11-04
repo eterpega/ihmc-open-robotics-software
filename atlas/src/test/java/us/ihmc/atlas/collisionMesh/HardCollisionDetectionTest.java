@@ -1,11 +1,12 @@
 package us.ihmc.atlas.collisionMesh;
 
+import static org.junit.Assert.*;
+
 import org.junit.Test;
 
 import gnu.trove.map.hash.THashMap;
 import us.ihmc.atlas.AtlasRobotModel;
 import us.ihmc.atlas.AtlasRobotVersion;
-import us.ihmc.avatar.collisionAvoidance.FrameConvexPolytopeVisualizer;
 import us.ihmc.avatar.collisionAvoidance.RobotCollisionMeshProvider;
 import us.ihmc.avatar.drcRobot.RobotTarget;
 import us.ihmc.commons.PrintTools;
@@ -40,18 +41,18 @@ public class HardCollisionDetectionTest
                                                                                                                                                   0.5)),
                                                                                                               0.1, 4);
       ExtendedSimplexPolytope simplex = new ExtendedSimplexPolytope();
-      FrameConvexPolytopeVisualizer viz = new FrameConvexPolytopeVisualizer(3, true);
-      viz.addPolytope(polytopeA);
-      viz.addPolytope(polytopeB);
-      viz.addPolytope(simplex.getPolytope());
-      HybridGJKEPACollisionDetector collisionDetector = new HybridGJKEPACollisionDetector(viz);
+      //PolytopeVisualizationHelper viz = new PolytopeVisualizationHelper(3, true);
+      //viz.addPolytope(polytopeA);
+      //viz.addPolytope(polytopeB);
+      //viz.addPolytope(simplex.getPolytope());
+      HybridGJKEPACollisionDetector collisionDetector = new HybridGJKEPACollisionDetector();
       PrintTools.debug("Setting up detector");
       collisionDetector.setSimplex(simplex);
       collisionDetector.setPolytopeA(polytopeA);
       collisionDetector.setPolytopeB(polytopeB);
       PrintTools.debug("Now checking collisions");
-      collisionDetector.checkCollision();
+      assertFalse(collisionDetector.checkCollision());
       PrintTools.debug("Done checking collisions");
-      viz.update();
+      //viz.update();
    }
 }
