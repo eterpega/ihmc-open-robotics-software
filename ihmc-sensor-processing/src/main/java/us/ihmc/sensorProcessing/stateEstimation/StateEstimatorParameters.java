@@ -1,8 +1,9 @@
 package us.ihmc.sensorProcessing.stateEstimation;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
-
 import us.ihmc.robotics.robotSide.SideDependentList;
+
+import java.util.ArrayList;
 
 public abstract class StateEstimatorParameters implements SensorProcessingConfiguration
 {
@@ -167,5 +168,10 @@ public abstract class StateEstimatorParameters implements SensorProcessingConfig
    public boolean correctTrustedFeetPositions()
    {
       return false;
+   }
+
+   public ArrayList<ImmutablePair<String, String>> getIMUSensorsToUseInJointStateEstimator()
+   {
+      return null;
    }
 }
