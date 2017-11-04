@@ -1,5 +1,6 @@
 package us.ihmc.graphicsDescription.yoGraphics;
 
+import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.AffineTransform;
@@ -121,6 +122,7 @@ public abstract class YoGraphicAbstractShape extends YoGraphic
    @Override
    protected void computeRotationTranslation(AffineTransform transform3D)
    {
+      PrintTools.debug("adlsajlasjgklasjgksajkfgasjhaskjghasjkh " + yoFramePoint.getX());
       transform3D.setIdentity();
       translationVector.set(yoFramePoint.getX(), yoFramePoint.getY(), yoFramePoint.getZ());
       yoFrameOrientation.getEulerAngles(rotationEulerVector);

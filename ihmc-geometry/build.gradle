@@ -35,5 +35,5 @@ testDependencies {
    compile group: "us.ihmc", name: "ihmc-ci-core-api", version: "0.16.8"
    compile group: 'us.ihmc', name: 'ihmc-commons-testing', version: '0.11.2'
    compile group: "us.ihmc", name: "ihmc-java-extensions-test", version: groupDependencyVersion
-   compile group: "us.ihmc", name: "simulation-construction-set-visualizers-test", version: groupDependencyVersion
+   compile group: "us.ihmc", name: "simulation-construction-set-visualizers", version: groupDependencyVersion
 }

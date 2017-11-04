@@ -77,6 +77,8 @@ public class HybridGJKEPACollisionDetector
    public void setSimplex(ExtendedSimplexPolytope simplex)
    {
       this.simplex = simplex;
+      if(listener != null)
+         listener.attachPolytope(getSimplex());
    }
    
    public void setPolytopeA(ConvexPolytopeReadOnly polytopeA)
@@ -171,7 +173,7 @@ public class HybridGJKEPACollisionDetector
    private void updateListeners()
    {
       if(listener != null)
-         listener.update(simplex.getPolytope());
+         listener.updateAll();
    }
    
    public void runEPAExpansion()
