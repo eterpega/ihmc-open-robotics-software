@@ -44,7 +44,7 @@ public class SimpleICPOptimizationSolutionHandler
    private final boolean debug;
 
    private final FramePoint2D locationSolutionOnPlane = new FramePoint2D();
-   private final FramePoint2D locationSolution = new FramePoint2D();
+   private final FramePoint3D locationSolution = new FramePoint3D();
    private final FramePoint2D previousLocationSolution = new FramePoint2D();
    private final FramePoint2D clippedLocationSolution = new FramePoint2D();
 
@@ -139,7 +139,7 @@ public class SimpleICPOptimizationSolutionHandler
          footstepSolutionReturned.set(locationSolutionOnPlane);
 
          if (useICPControlPlane)
-            icpControlPlane.projectPointFromPlaneOntoSurface(locationSolutionOnPlane, locationSolution, referenceFootstepLocation.getZ());
+            icpControlPlane.projectPointFromPlaneOntoSurface(worldFrame, locationSolutionOnPlane, locationSolution, referenceFootstepLocation.getZ());
          else
             locationSolution.set(locationSolutionOnPlane);
 
@@ -152,14 +152,14 @@ public class SimpleICPOptimizationSolutionHandler
          if (i == 0)
          {
             firstStepAdjusted = footstepWasAdjusted;
-            footstepAdjustment.set(locationSolution);
+            footstepAdjustment.setByProjectionOntoXYPlane(locationSolution);
             footstepAdjustment.sub(referenceFootstepLocation2D);
             clippedFootstepAdjustment.set(clippedLocationSolution);
             clippedFootstepAdjustment.sub(referenceFootstepLocation2D);
          }
 
          footstepSolutionToPack.set(clippedLocationSolution);
-         unclippedFootstepSolutionToPack.set(locationSolution);
+         unclippedFootstepSolutionToPack.setByProjectionOntoXYPlane(locationSolution);
       }
 
       this.footstepWasAdjusted.set(firstStepAdjusted);

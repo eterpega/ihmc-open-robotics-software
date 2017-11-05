@@ -448,7 +448,7 @@ public class SimpleICPOptimizationController implements ICPOptimizationControlle
          upcomingFootsteps.get(stepIndex).getPosition(tempPoint3d);
 
          if (useICPControlPlane)
-            icpControlPlane.projectPointOntoControlPlane(tempPoint3d, projectedTempPoint3d);
+            icpControlPlane.projectPointOntoControlPlane(worldFrame, tempPoint3d, projectedTempPoint3d);
          else
             projectedTempPoint3d.set(tempPoint3d);
 
@@ -655,7 +655,7 @@ public class SimpleICPOptimizationController implements ICPOptimizationControlle
          */
          upcomingFootstepLocation.getFrameTuple(tempPoint3d);
          if (useICPControlPlane)
-            icpControlPlane.projectPointOntoControlPlane(tempPoint3d, projectedTempPoint3d);
+            icpControlPlane.projectPointOntoControlPlane(worldFrame, tempPoint3d, projectedTempPoint3d);
          else
             projectedTempPoint3d.set(tempPoint3d);
          tempPoint2d.set(projectedTempPoint3d);
