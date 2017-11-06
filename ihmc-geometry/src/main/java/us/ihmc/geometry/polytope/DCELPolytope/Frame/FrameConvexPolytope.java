@@ -9,6 +9,7 @@ import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.geometry.polytope.DCELPolytope.ExtendedConvexPolytope;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.ConvexPolytopeBasics;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeVertexReadOnly;
+import us.ihmc.geometry.polytope.DCELPolytope.CollisionDetection.PolytopeListener;
 import us.ihmc.geometry.polytope.DCELPolytope.Providers.ConvexPolytopeFaceProvider;
 import us.ihmc.geometry.polytope.DCELPolytope.Providers.FrameConvexPolytopeFaceBuilder;
 import us.ihmc.geometry.polytope.DCELPolytope.Providers.FramePolytopeVertexBuilder;
@@ -20,9 +21,21 @@ public class FrameConvexPolytope extends ConvexPolytopeBasics<FramePolytopeVerte
    private final FrameConvexPolytopeFaceBuilder faceBuilder = new FrameConvexPolytopeFaceBuilder(this);
    private final FramePolytopeVertexBuilder vertexBuilder = new FramePolytopeVertexBuilder(this);
 
+   public FrameConvexPolytope(PolytopeListener listener)
+   {
+      super(listener);
+      this.referenceFrame = ReferenceFrame.getWorldFrame();
+   }
+   
    public FrameConvexPolytope()
    {
       this.referenceFrame = ReferenceFrame.getWorldFrame();
+   }
+   
+   public FrameConvexPolytope(ReferenceFrame referenceFrame, PolytopeListener listener)
+   {
+      super(listener);
+      this.referenceFrame = referenceFrame;
    }
    
    public FrameConvexPolytope(ReferenceFrame referenceFrame)
