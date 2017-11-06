@@ -59,7 +59,6 @@ public class YoGraphicPolygon3D extends YoGraphicAbstractShape implements Remote
       graphics3dObject.setChangeable(true);
       MeshDataHolder meshDataHolder = MeshDataGenerator.Polygon(points);
       instruction = new Graphics3DAddMeshDataInstruction(meshDataHolder, appearance);
-      instruction.setAppearance(appearance);
       graphics3dObject.addInstruction(instruction);
    }
 
@@ -90,7 +89,7 @@ public class YoGraphicPolygon3D extends YoGraphicAbstractShape implements Remote
       return yoVariableList;
    }
 
-   public void set(FramePoint3D[] points)
+   public synchronized void set(FramePoint3D[] points)
    {
       if (points.length > this.ccwOrderedPoints.length)
          throw new RuntimeException("Cannot plot more vertices than the maximum number");
@@ -106,26 +105,25 @@ public class YoGraphicPolygon3D extends YoGraphicAbstractShape implements Remote
       for (; i < ccwOrderedPoints.length; i++)
          ccwOrderedPoints[i].setToNaN();
       numberOfPoints.set(points.length);
+      update();
    }
 
    private List<Point3DReadOnly> pointList = new ArrayList<>();
 
    @Override
-   protected void computeRotationTranslation(AffineTransform transform3d)
+   protected synchronized void computeRotationTranslation(AffineTransform transform3d)
    {
       transform3d.setToZero();
       //super.computeRotationTranslation(transform3d);
       update();
    }
-   
+
    @Override
-   public void update()
+   public synchronized void update()
    {
-      System.out.println("updating!");
-      if(numberOfPoints.getIntegerValue() < 3)
+      if (numberOfPoints.getIntegerValue() < 3)
       {
-         PrintTools.debug("Number of points: " + numberOfPoints.getIntegerValue());
-         instruction.setMesh(null);
+         instruction.setMesh(MeshDataGenerator.Cube(0.0, 0.0, 0.0, true));
          return;
       }
       pointList.clear();
@@ -135,7 +133,7 @@ public class YoGraphicPolygon3D extends YoGraphicAbstractShape implements Remote
       instruction.setMesh(meshDataHolder);
    }
 
-   public void set(Point3DReadOnly[] points)
+   public synchronized void set(Point3DReadOnly[] points)
    {
       if (points.length > this.ccwOrderedPoints.length)
          throw new RuntimeException("Cannot plot more vertices than the maximum number");
@@ -148,16 +146,17 @@ public class YoGraphicPolygon3D extends YoGraphicAbstractShape implements Remote
          y += ccwOrderedPoints[i].getY();
          z += ccwOrderedPoints[i].getZ();
       }
-      x/= points.length;
-      y/= points.length;
-      z/= points.length;
+      x /= points.length;
+      y /= points.length;
+      z /= points.length;
       yoFramePoint.set(x, y, z);
       for (; i < ccwOrderedPoints.length; i++)
          ccwOrderedPoints[i].setToNaN();
       numberOfPoints.set(points.length);
+      update();
    }
 
-   public void set(List<Point3DReadOnly> points)
+   public synchronized void set(List<Point3DReadOnly> points)
    {
       if (points.size() > this.ccwOrderedPoints.length)
          throw new RuntimeException("Cannot plot more vertices than the maximum number");
@@ -172,16 +171,17 @@ public class YoGraphicPolygon3D extends YoGraphicAbstractShape implements Remote
          z += ccwOrderedPoints[i].getZ();
 
       }
-      x/= points.size();
-      y/= points.size();
-      z/= points.size();
+      x /= points.size();
+      y /= points.size();
+      z /= points.size();
       yoFramePoint.set(x, y, z);
       for (; i < ccwOrderedPoints.length; i++)
          ccwOrderedPoints[i].setToNaN();
       numberOfPoints.set(points.size());
+      update();
    }
 
-   public void setToNaN()
+   public synchronized void setToNaN()
    {
       for (int i = 0; i < ccwOrderedPoints.length; i++)
          ccwOrderedPoints[i].setToNaN();
@@ -202,7 +202,6 @@ public class YoGraphicPolygon3D extends YoGraphicAbstractShape implements Remote
    @Override
    public Graphics3DObject getLinkGraphics()
    {
-      System.out.println("Yup!!");
       return graphics3dObject;
    }
 }

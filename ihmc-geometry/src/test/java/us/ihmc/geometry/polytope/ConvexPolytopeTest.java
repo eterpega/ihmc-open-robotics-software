@@ -3,15 +3,25 @@ package us.ihmc.geometry.polytope;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.awt.Color;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 
 import org.junit.Test;
 
+import us.ihmc.atlas.AtlasRobotModel;
+import us.ihmc.atlas.AtlasRobotVersion;
+import us.ihmc.avatar.collisionAvoidance.FrameConvexPolytopeVisualizer;
+import us.ihmc.avatar.collisionAvoidance.RobotCollisionMeshProvider;
+import us.ihmc.avatar.drcRobot.RobotTarget;
 import us.ihmc.commons.Epsilons;
 import us.ihmc.commons.MutationTestFacilitator;
+import us.ihmc.commons.PrintTools;
 import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
 import us.ihmc.euclid.geometry.BoundingBox3D;
+import us.ihmc.euclid.tools.EuclidCoreRandomTools;
 import us.ihmc.euclid.tools.EuclidCoreTestTools;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Point3D;
@@ -23,7 +33,15 @@ import us.ihmc.geometry.polytope.DCELPolytope.ExtendedPolytopeVertex;
 import us.ihmc.geometry.polytope.DCELPolytope.PolytopeHalfEdge;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.ConvexPolytopeFaceReadOnly;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.ConvexPolytopeReadOnly;
+import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeHalfEdgeReadOnly;
+import us.ihmc.geometry.polytope.DCELPolytope.Frame.FrameConvexPolytope;
+import us.ihmc.robotModels.FullHumanoidRobotModel;
+import us.ihmc.robotics.robotDescription.LinkDescription;
+import us.ihmc.robotics.robotDescription.RobotDescription;
+import us.ihmc.robotics.screwTheory.RigidBody;
+import us.ihmc.robotics.screwTheory.ScrewTools;
 import us.ihmc.scsVisualizers.geometry.polytope.PolytopeVisualizationHelper;
+import us.ihmc.tools.thread.ThreadTools;
 
 public class ConvexPolytopeTest
 {
@@ -527,40 +545,103 @@ public class ConvexPolytopeTest
       PolytopeVertex vertex6 = new PolytopeVertex(0.01822181847842627, -0.2069197063056774, -0.12517471528642377);
 
    }
-   
+
    @Test
    public void testCylinderCreationFromRandomPointsByProjection()
    {
-      PolytopeVisualizationHelper testHelper = new PolytopeVisualizationHelper("Test", 1, 8, 20, 10);
-      ExtendedConvexPolytope polytope = ConvexPolytopeConstructor.getCuboidCollisionMesh(new Point3D(), 1.0, 1.0, 1.0);
-      testHelper.attachPolytope(polytope);
-      testHelper.updateAll();
+      PolytopeVisualizationHelper testHelper = new PolytopeVisualizationHelper("Test", 1, 100, 200, 0);
+      //      ExtendedConvexPolytope polytope = ConvexPolytopeConstructor.getCuboidCollisionMesh(new Point3D(), 1.0, 1.0, 1.0);
+      //      testHelper.attachPolytope(polytope);
+      //      testHelper.updateAll();
+      //      testHelper.tickSCS();
+      //      polytope = ConvexPolytopeConstructor.getCuboidCollisionMesh(new Point3D(1.5, 0.0, 0.0), 1.0, 1.0, 1.0);
+      //      polytope.addVertex(0.0, 0.0, 0.0, EPSILON);
+      //      testHelper.attachPolytope(0, polytope);
+      //      testHelper.updateAll();
+      //      testHelper.tickSCS();
+      //      testHelper.keepSCSUp();
+      int numberOfPoints = 100;
+      Random random = new Random(1234);
+      double cylinderHeight = 1.0;
+      double cylinderRadius = 0.125;
+      ExtendedConvexPolytope cylinder = new ExtendedConvexPolytope(testHelper.getNextVisualizer());
+      for (int i = 0; i < numberOfPoints; i++)
+      {
+         Point3D pointToAdd = new Point3D(EuclidCoreRandomTools.generateRandomDouble(random, 10.0), EuclidCoreRandomTools.generateRandomDouble(random, 10.0),
+                                          EuclidCoreRandomTools.generateRandomDouble(random, 10.0));
+         projectToInteriorOfCylinder(cylinderHeight, cylinderRadius, pointToAdd);
+         PrintTools.debug("Adding point " + pointToAdd.toString());
+         cylinder.addVertex(pointToAdd, EPSILON);
+         checkPolytopeConsistency(cylinder);
+         testHelper.tickSCS();
+      }
+      testHelper.keepSCSUp();
+   }
+
+   @Test
+   public void testRobotModelHardMeshes()
+   {
+      PolytopeVisualizationHelper visualization = new PolytopeVisualizationHelper("AtlasRobotMeshTest", 1, 100, 100, 100);
+      AtlasRobotModel atlasRobotModel = new AtlasRobotModel(AtlasRobotVersion.ATLAS_UNPLUGGED_V5_NO_HANDS, RobotTarget.SCS, false);
+      RobotDescription atlasRobotDescription = atlasRobotModel.getRobotDescription();
+      FullHumanoidRobotModel atlasFullRobotModel = atlasRobotModel.createFullRobotModel();
+      RobotCollisionMeshProvider meshProvider = new RobotCollisionMeshProvider(8);
+      RigidBody head = ScrewTools.findRigidBodiesWithNames(ScrewTools.computeRigidBodiesAfterThisJoint(atlasFullRobotModel.getRootJoint()), "head")[0];
+      LinkDescription headDescription = atlasRobotDescription.getLinkDescription("neck_ry");
+      ArrayList<Point3D> pointList = meshProvider.getCollisionMeshPoints(headDescription.getCollisionMeshes(), new Vector3D());
+      FrameConvexPolytope polytope = new FrameConvexPolytope(head.getBodyFixedFrame(), visualization.getNextVisualizer());
+      visualization.getVisualizer(0).setHighlightColor(Color.BLUE);
+      for (int i = 0; i < pointList.size(); i++)
+      {
+         polytope.addVertex(pointList.get(i), Epsilons.ONE_TEN_THOUSANDTH);
+         visualization.showAdditionalPoint(head.getBodyFixedFrame(), pointList.get(i));
+         visualization.tickSCS();
+         if (!checkPolytopeConsistencySoft(polytope))
+         {
+            PolytopeHalfEdgeReadOnly nullFaceResult = checkForNullTwinEdges(polytope);
+            if(nullFaceResult != null)
+            {
+               visualization.getVisualizer(0).highlightEdges((List<PolytopeHalfEdgeReadOnly>)Arrays.asList(nullFaceResult));
+               visualization.updateAll();
+            }
+            break;
+         }
+      }
+      visualization.keepSCSUp();
+   }
+
+   @Test
+   public void testAddVeryCloseVertex()
+   {
+      PolytopeVisualizationHelper testHelper = new PolytopeVisualizationHelper("Test", 1, 100, 200, 100);
+      ExtendedConvexPolytope polytope = new ExtendedConvexPolytope(testHelper.getNextVisualizer());
+      //      polytope.addVertices(EPSILON, ConvexPolytopeConstructor.getCollisionMeshPointsForCuboid(0.0, 0.0, 0.0, 1.0, 1.0, 1.0));
+      polytope.addVertex(1.0, 1.0, 1.0, EPSILON);
+      checkPolytopeConsistency(polytope);
       testHelper.tickSCS();
-      polytope = ConvexPolytopeConstructor.getCuboidCollisionMesh(new Point3D(1.5, 0.0, 0.0), 1.0, 1.0, 1.0);
-      polytope.addVertex(0.0, 0.0, 0.0, EPSILON);
-      testHelper.attachPolytope(0, polytope);
-      testHelper.updateAll();
+
+      polytope.addVertex(1.0, 1.0, 0.0, EPSILON);
+      checkPolytopeConsistency(polytope);
+      testHelper.tickSCS();
+
+      polytope.addVertex(1.0, 0.0, 1.0, EPSILON);
+      checkPolytopeConsistency(polytope);
+      testHelper.tickSCS();
+
+      polytope.addVertex(1.0, 0.0, 0.0, EPSILON);
+      checkPolytopeConsistency(polytope);
+      testHelper.tickSCS();
+
+      polytope.addVertex(1.0 - EPSILON, 0.5, 0.5, EPSILON);
+      checkPolytopeConsistency(polytope);
       testHelper.tickSCS();
       testHelper.keepSCSUp();
-//      int numberOfPoints = 100;
-//      Random random = new Random(1234);
-//      double cylinderHeight = 1.0;
-//      double cylinderRadius = 0.125;
-//      ExtendedConvexPolytope cylinder = new ExtendedConvexPolytope(viz);
-//      for(int i = 0; i < numberOfPoints; i++)
-//      {
-//         Point3D pointToAdd = new Point3D(random.nextDouble(), random.nextDouble(), random.nextDouble());
-//         projectToInteriorOfCylinder(cylinderHeight, cylinderRadius, pointToAdd);
-//         PrintTools.debug("Adding point " + i);
-//         cylinder.addVertex(pointToAdd, EPSILON);
-//         checkPolytopeConsistency(cylinder);
-//      }
    }
 
    public void checkPolytopeConsistency(ConvexPolytopeReadOnly polytope)
    {
       int numberOfFaces = polytope.getNumberOfFaces();
-      if(numberOfFaces < 2)
+      if (numberOfFaces < 2)
          return;
       for (int j = 0; j < numberOfFaces; j++)
       {
@@ -575,7 +656,59 @@ public class ConvexPolytopeTest
          }
       }
    }
-   
+
+   public PolytopeHalfEdgeReadOnly checkForNullTwinEdges(ConvexPolytopeReadOnly polytope)
+   {
+      int numberOfFaces = polytope.getNumberOfFaces();
+      if (numberOfFaces < 2)
+         return null;
+      for (int j = 0; j < numberOfFaces; j++)
+      {
+         ConvexPolytopeFaceReadOnly face = polytope.getFace(j);
+         for (int i = 0; i < face.getNumberOfEdges(); i++)
+         {
+            if (face.getEdge(i).getTwinHalfEdge() != null)
+            {
+               return face.getEdge(i);
+            }
+         }
+      }
+      return null;
+   }
+
+   public boolean checkPolytopeConsistencySoft(ConvexPolytopeReadOnly polytope)
+   {
+      int numberOfFaces = polytope.getNumberOfFaces();
+      if (numberOfFaces < 2)
+         return true;
+      for (int j = 0; j < numberOfFaces; j++)
+      {
+         ConvexPolytopeFaceReadOnly face = polytope.getFace(j);
+         for (int i = 0; i < face.getNumberOfEdges(); i++)
+         {
+            if (face.getEdge(i).getTwinHalfEdge() != null)
+            {
+               PrintTools.error("Null twin edge for edge: " + face.getEdge(i).toString() + " on face: " + face.toString());
+               return false;
+            }
+            if (face.getEdge(i).getTwinHalfEdge().getOriginVertex() == face.getEdge(i).getDestinationVertex())
+            {
+               PrintTools.error("Twin edge: " + face.getEdge(i).getTwinHalfEdge().toString() + " mismatch for edge: " + face.getEdge(i).toString()
+                     + " on face: " + face.toString());
+               return false;
+            }
+            if (face.getEdge(i).getTwinHalfEdge().getDestinationVertex() == face.getEdge(i).getOriginVertex())
+            {
+               PrintTools.error("Twin edge: " + face.getEdge(i).getTwinHalfEdge().toString() + " mismatch for edge: " + face.getEdge(i).toString()
+                     + " on face: " + face.toString());
+               return false;
+            }
+
+         }
+      }
+      return true;
+   }
+
    /**
     * Projects assuming the center is the origin and axis is the Z axis
     * @param height
@@ -586,12 +719,12 @@ public class ConvexPolytopeTest
       double XYComponentNorm = Math.sqrt(pointToProject.getX() * pointToProject.getX() + pointToProject.getY() * pointToProject.getY());
       if (XYComponentNorm > radius)
          pointToProject.scale(radius / XYComponentNorm, radius / XYComponentNorm, 1.0);
-      if(pointToProject.getZ() > height / 2.0)
+      if (pointToProject.getZ() > height / 2.0)
          pointToProject.setZ(height / 2.0);
-      else if(pointToProject.getZ() < -height / 2.0)
+      else if (pointToProject.getZ() < -height / 2.0)
          pointToProject.setZ(-height / 2.0);
    }
-   
+
    public static void main(String[] args)
    {
       MutationTestFacilitator.facilitateMutationTestForPackage(ConvexPolytopeTest.class);

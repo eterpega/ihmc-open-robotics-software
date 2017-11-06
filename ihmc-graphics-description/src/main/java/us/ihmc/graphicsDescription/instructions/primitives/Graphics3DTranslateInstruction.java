@@ -23,7 +23,11 @@ public class Graphics3DTranslateInstruction implements Graphics3DPrimitiveInstru
    {
       return translation;
    }
-
+   
+   public void setTranslation(double tx, double ty, double tz)
+   {
+      translation.set(tx, ty, tz);
+   }
 
    public String toString()
    {

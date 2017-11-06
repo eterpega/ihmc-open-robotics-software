@@ -3295,7 +3295,6 @@ public class StandardSimulationGUI implements SelectGraphConfigurationCommandExe
             // Need to test to make sure that fixes things.
             for (GraphicsUpdatable graphicsUpdatable : graphicsUpdatables)
             {
-               System.out.println("updating?");
                graphicsUpdatable.update();
             }
          }
