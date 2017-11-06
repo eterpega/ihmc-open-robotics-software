@@ -31,7 +31,7 @@ import us.ihmc.robotics.screwTheory.ScrewTools;
 
 public class RobotCollisionMeshProvider
 {
-   private final boolean debug = true;
+   private final boolean debug = false;
    private final int defaultCurvedSurfaceDivisions;
 
    public RobotCollisionMeshProvider(int numberOfCurvedSurfaceDivisions)

@@ -5,7 +5,6 @@ import static org.junit.Assert.assertTrue;
 
 import java.awt.Color;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -13,7 +12,6 @@ import org.junit.Test;
 
 import us.ihmc.atlas.AtlasRobotModel;
 import us.ihmc.atlas.AtlasRobotVersion;
-import us.ihmc.avatar.collisionAvoidance.FrameConvexPolytopeVisualizer;
 import us.ihmc.avatar.collisionAvoidance.RobotCollisionMeshProvider;
 import us.ihmc.avatar.drcRobot.RobotTarget;
 import us.ihmc.commons.Epsilons;
@@ -34,14 +32,13 @@ import us.ihmc.geometry.polytope.DCELPolytope.PolytopeHalfEdge;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.ConvexPolytopeFaceReadOnly;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.ConvexPolytopeReadOnly;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeHalfEdgeReadOnly;
-import us.ihmc.geometry.polytope.DCELPolytope.Frame.FrameConvexPolytope;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotics.robotDescription.LinkDescription;
 import us.ihmc.robotics.robotDescription.RobotDescription;
 import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.robotics.screwTheory.ScrewTools;
 import us.ihmc.scsVisualizers.geometry.polytope.PolytopeVisualizationHelper;
-import us.ihmc.tools.thread.ThreadTools;
+import us.ihmc.scsVisualizers.geometry.polytope.PolytopeVisualizer;
 
 public class ConvexPolytopeTest
 {
@@ -577,11 +574,11 @@ public class ConvexPolytopeTest
       }
       testHelper.keepSCSUp();
    }
-
+   
    @Test
    public void testRobotModelHardMeshes()
    {
-      PolytopeVisualizationHelper visualization = new PolytopeVisualizationHelper("AtlasRobotMeshTest", 1, 100, 100, 100);
+      PolytopeVisualizationHelper visualizationHelper = new PolytopeVisualizationHelper("AtlasRobotMeshTest", 1, 100, 100, 100);
       AtlasRobotModel atlasRobotModel = new AtlasRobotModel(AtlasRobotVersion.ATLAS_UNPLUGGED_V5_NO_HANDS, RobotTarget.SCS, false);
       RobotDescription atlasRobotDescription = atlasRobotModel.getRobotDescription();
       FullHumanoidRobotModel atlasFullRobotModel = atlasRobotModel.createFullRobotModel();
@@ -589,25 +586,32 @@ public class ConvexPolytopeTest
       RigidBody head = ScrewTools.findRigidBodiesWithNames(ScrewTools.computeRigidBodiesAfterThisJoint(atlasFullRobotModel.getRootJoint()), "head")[0];
       LinkDescription headDescription = atlasRobotDescription.getLinkDescription("neck_ry");
       ArrayList<Point3D> pointList = meshProvider.getCollisionMeshPoints(headDescription.getCollisionMeshes(), new Vector3D());
-      FrameConvexPolytope polytope = new FrameConvexPolytope(head.getBodyFixedFrame(), visualization.getNextVisualizer());
-      visualization.getVisualizer(0).setHighlightColor(Color.BLUE);
+      ExtendedConvexPolytope polytope = new ExtendedConvexPolytope(visualizationHelper.getNextVisualizer());
+      PolytopeVisualizer polytopeVisualizer = visualizationHelper.getVisualizer(0);
+      polytopeVisualizer.setHighlightColor(Color.BLUE);
       for (int i = 0; i < pointList.size(); i++)
       {
+         polytopeVisualizer.clearHighlightedEdge();
+         PrintTools.debug("Adding point " + i + ":, " + pointList.get(i).getX() +  " ,  " + pointList.get(i).getY() +  " ,  " + pointList.get(i).getZ());
+         //polytope.getVisibleSilhouette(pointList.get(i), visibleEdgeList, Epsilons.ONE_BILLIONTH);
+         //polytopeViusalizer.highlightEdges(visibleEdgeList);
+         //PrintTools.debug("Number of visible edges" + visibleEdgeList.size());
          polytope.addVertex(pointList.get(i), Epsilons.ONE_TEN_THOUSANDTH);
-         visualization.showAdditionalPoint(head.getBodyFixedFrame(), pointList.get(i));
-         visualization.tickSCS();
+         visualizationHelper.showAdditionalPoint(head.getBodyFixedFrame(), pointList.get(i));
+         visualizationHelper.tickSCS();
          if (!checkPolytopeConsistencySoft(polytope))
          {
             PolytopeHalfEdgeReadOnly nullFaceResult = checkForNullTwinEdges(polytope);
             if(nullFaceResult != null)
             {
-               visualization.getVisualizer(0).highlightEdges((List<PolytopeHalfEdgeReadOnly>)Arrays.asList(nullFaceResult));
-               visualization.updateAll();
+               //polytopeVisualizer.highlightEdge(nullFaceResult);
+               visualizationHelper.updateAll();
             }
             break;
          }
       }
-      visualization.keepSCSUp();
+      PrintTools.debug(polytope.getNumberOfFaces() + "");
+      visualizationHelper.keepSCSUp();
    }
 
    @Test
@@ -686,18 +690,18 @@ public class ConvexPolytopeTest
          ConvexPolytopeFaceReadOnly face = polytope.getFace(j);
          for (int i = 0; i < face.getNumberOfEdges(); i++)
          {
-            if (face.getEdge(i).getTwinHalfEdge() != null)
+            if (face.getEdge(i).getTwinHalfEdge() == null)
             {
                PrintTools.error("Null twin edge for edge: " + face.getEdge(i).toString() + " on face: " + face.toString());
                return false;
             }
-            if (face.getEdge(i).getTwinHalfEdge().getOriginVertex() == face.getEdge(i).getDestinationVertex())
+            if (face.getEdge(i).getTwinHalfEdge().getOriginVertex() != face.getEdge(i).getDestinationVertex())
             {
                PrintTools.error("Twin edge: " + face.getEdge(i).getTwinHalfEdge().toString() + " mismatch for edge: " + face.getEdge(i).toString()
                      + " on face: " + face.toString());
                return false;
             }
-            if (face.getEdge(i).getTwinHalfEdge().getDestinationVertex() == face.getEdge(i).getOriginVertex())
+            if (face.getEdge(i).getTwinHalfEdge().getDestinationVertex() != face.getEdge(i).getOriginVertex())
             {
                PrintTools.error("Twin edge: " + face.getEdge(i).getTwinHalfEdge().toString() + " mismatch for edge: " + face.getEdge(i).toString()
                      + " on face: " + face.toString());

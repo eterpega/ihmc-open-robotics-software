@@ -208,19 +208,15 @@ public abstract class ConvexPolytopeFaceBasics<A extends PolytopeVertexBasics<A,
       for (int i = 0; i < getNumberOfEdges() + 1; i++)
       {
          double dotProduct = getEdgeVisibilityProduct(vertex, edgeUnderConsideration);
-         if (dotProduct <= 0)
-            edgeUnderConsideration = edgeUnderConsideration.getNextHalfEdge();
-         else
-            edgeUnderConsideration = edgeUnderConsideration.getPreviousHalfEdge();
-
-         if (previousDotProduct * dotProduct <= 0)
+         if (dotProduct >= 0.0 && (previousDotProduct < 0.0))
          {
-            if (previousDotProduct < 0)
-               edgeUnderConsideration = edgeUnderConsideration.getNextHalfEdge();
             return edgeUnderConsideration;
          }
          else
+         {
+            edgeUnderConsideration = edgeUnderConsideration.getNextHalfEdge();
             previousDotProduct = dotProduct;
+         }
       }
       PrintTools.debug("Reaching here - this is never good");
       return null;

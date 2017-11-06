@@ -113,9 +113,8 @@ public class YoGraphicPolygon3D extends YoGraphicAbstractShape implements Remote
    @Override
    protected synchronized void computeRotationTranslation(AffineTransform transform3d)
    {
-      transform3d.setToZero();
-      //super.computeRotationTranslation(transform3d);
-      update();
+      super.computeRotationTranslation(transform3d);
+      //update();
    }
 
    @Override
