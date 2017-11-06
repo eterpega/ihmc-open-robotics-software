@@ -35,7 +35,7 @@ public class YoGraphicVector extends YoGraphic implements RemoteYoGraphic, Graph
    private final AppearanceDefinition appearance;
    private final Graphics3DAddMeshDataInstruction instruction;
    private final Graphics3DObject linkGraphics;
-
+   
    public YoGraphicVector(String name, YoFramePoint startPoint, YoFrameVector frameVector, AppearanceDefinition appearance)
    {
       this(name, startPoint, frameVector, 1.0, appearance);
@@ -71,7 +71,6 @@ public class YoGraphicVector extends YoGraphic implements RemoteYoGraphic, Graph
 
    public void updateGraphics(AppearanceDefinition appearance)
    {
-      instruction.setMesh(getMesh());
       instruction.setAppearance(appearance);
    }
 
@@ -84,6 +83,12 @@ public class YoGraphicVector extends YoGraphic implements RemoteYoGraphic, Graph
    public YoGraphicVector(String name, YoDouble baseX, YoDouble baseY, YoDouble baseZ, YoDouble x, YoDouble y, YoDouble z, double scaleFactor,
                           AppearanceDefinition appearance, boolean drawArrowhead)
    {
+      this(name, baseX, baseY, baseZ, x, y, z, scaleFactor, new AppearanceDefinition[]{appearance}, drawArrowhead);
+   }
+   
+   public YoGraphicVector(String name, YoDouble baseX, YoDouble baseY, YoDouble baseZ, YoDouble x, YoDouble y, YoDouble z, double scaleFactor,
+                          AppearanceDefinition[] appearances, boolean drawArrowhead)
+   {
       super(name);
 
       this.baseX = baseX;
@@ -94,7 +99,7 @@ public class YoGraphicVector extends YoGraphic implements RemoteYoGraphic, Graph
       this.z = z;
       this.drawArrowhead = drawArrowhead;
       this.scaleFactor = scaleFactor;
-      this.appearance = appearance;
+      this.appearance = appearances[0];
       this.linkGraphics = new Graphics3DObject();
       this.linkGraphics.setChangeable(true);
       this.instruction = new Graphics3DAddMeshDataInstruction(getMesh(), appearance);
