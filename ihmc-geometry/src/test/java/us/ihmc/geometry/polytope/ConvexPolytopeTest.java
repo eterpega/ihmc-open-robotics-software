@@ -574,44 +574,64 @@ public class ConvexPolytopeTest
       }
       testHelper.keepSCSUp();
    }
-   
+
    @Test
-   public void testRobotModelHardMeshes()
+   public void testRobotModelHeadMeshes()
    {
       PolytopeVisualizationHelper visualizationHelper = new PolytopeVisualizationHelper("AtlasRobotMeshTest", 1, 100, 100, 100);
-      AtlasRobotModel atlasRobotModel = new AtlasRobotModel(AtlasRobotVersion.ATLAS_UNPLUGGED_V5_NO_HANDS, RobotTarget.SCS, false);
-      RobotDescription atlasRobotDescription = atlasRobotModel.getRobotDescription();
-      FullHumanoidRobotModel atlasFullRobotModel = atlasRobotModel.createFullRobotModel();
-      RobotCollisionMeshProvider meshProvider = new RobotCollisionMeshProvider(8);
-      RigidBody head = ScrewTools.findRigidBodiesWithNames(ScrewTools.computeRigidBodiesAfterThisJoint(atlasFullRobotModel.getRootJoint()), "head")[0];
-      LinkDescription headDescription = atlasRobotDescription.getLinkDescription("neck_ry");
-      ArrayList<Point3D> pointList = meshProvider.getCollisionMeshPoints(headDescription.getCollisionMeshes(), new Vector3D());
+      String linkName = "neck_ry";
+      ArrayList<Point3D> pointList = getAtlasCollisionMeshPointsForLink(linkName);
       ExtendedConvexPolytope polytope = new ExtendedConvexPolytope(visualizationHelper.getNextVisualizer());
       PolytopeVisualizer polytopeVisualizer = visualizationHelper.getVisualizer(0);
-      polytopeVisualizer.setHighlightColor(Color.BLUE);
       for (int i = 0; i < pointList.size(); i++)
       {
          polytopeVisualizer.clearHighlightedEdge();
-         PrintTools.debug("Adding point " + i + ":, " + pointList.get(i).getX() +  " ,  " + pointList.get(i).getY() +  " ,  " + pointList.get(i).getZ());
-         //polytope.getVisibleSilhouette(pointList.get(i), visibleEdgeList, Epsilons.ONE_BILLIONTH);
-         //polytopeViusalizer.highlightEdges(visibleEdgeList);
-         //PrintTools.debug("Number of visible edges" + visibleEdgeList.size());
+         //PrintTools.debug("Adding point " + i + ":, " + pointList.get(i).getX() +  " ,  " + pointList.get(i).getY() +  " ,  " + pointList.get(i).getZ());
          polytope.addVertex(pointList.get(i), Epsilons.ONE_TEN_THOUSANDTH);
-         visualizationHelper.showAdditionalPoint(head.getBodyFixedFrame(), pointList.get(i));
+         visualizationHelper.showAdditionalPoint(pointList.get(i));
          visualizationHelper.tickSCS();
-         if (!checkPolytopeConsistencySoft(polytope))
+         checkPolytopeConsistency(polytope);
+      }
+   }
+
+   @Test
+   public void testRobotModelPelvisMeshes()
+   {
+      PolytopeVisualizationHelper visualizationHelper = new PolytopeVisualizationHelper("AtlasRobotMeshTest", 1, 50, 500, 100);
+      PolytopeVisualizer polytopeVisualizer = visualizationHelper.getNextVisualizer();
+      ExtendedConvexPolytope polytope = new ExtendedConvexPolytope(polytopeVisualizer);
+      String linkName = "pelvis";
+      ArrayList<Point3D> pointList = getAtlasCollisionMeshPointsForLink(linkName);
+      for (int i = 0; i < pointList.size(); i++)
+      {
+         polytopeVisualizer.clearHighlightedEdge();
+         visualizationHelper.clearAdditionalEdge();
+         PrintTools.debug("Adding point " + i + ":, " + pointList.get(i).getX() + " ,  " + pointList.get(i).getY() + " ,  " + pointList.get(i).getZ());
+         polytope.addVertex(pointList.get(i), Epsilons.ONE_TEN_THOUSANDTH);
+         visualizationHelper.showAdditionalPoint(pointList.get(i));
+         visualizationHelper.tickSCS();
+         PolytopeHalfEdgeReadOnly invalidEdge = checkPolytopeConsistencySoft(polytope);
+         if (invalidEdge != null)
          {
-            PolytopeHalfEdgeReadOnly nullFaceResult = checkForNullTwinEdges(polytope);
-            if(nullFaceResult != null)
-            {
-               //polytopeVisualizer.highlightEdge(nullFaceResult);
-               visualizationHelper.updateAll();
-            }
+            visualizationHelper.highlightEdge(invalidEdge);
+            visualizationHelper.updateAll();
+            visualizationHelper.tickSCS();
             break;
          }
       }
-      PrintTools.debug(polytope.getNumberOfFaces() + "");
+      PrintTools.debug(polytope.toString());
       visualizationHelper.keepSCSUp();
+   }
+
+   public ArrayList<Point3D> getAtlasCollisionMeshPointsForLink(String linkName)
+   {
+      ArrayList<Point3D> pointList;
+      AtlasRobotModel atlasRobotModel = new AtlasRobotModel(AtlasRobotVersion.ATLAS_UNPLUGGED_V5_NO_HANDS, RobotTarget.SCS, false);
+      RobotDescription atlasRobotDescription = atlasRobotModel.getRobotDescription();
+      RobotCollisionMeshProvider meshProvider = new RobotCollisionMeshProvider(8);
+      LinkDescription headDescription = atlasRobotDescription.getLinkDescription(linkName);
+      pointList = meshProvider.getCollisionMeshPoints(headDescription.getCollisionMeshes(), new Vector3D());
+      return pointList;
    }
 
    @Test
@@ -680,11 +700,11 @@ public class ConvexPolytopeTest
       return null;
    }
 
-   public boolean checkPolytopeConsistencySoft(ConvexPolytopeReadOnly polytope)
+   public PolytopeHalfEdgeReadOnly checkPolytopeConsistencySoft(ConvexPolytopeReadOnly polytope)
    {
       int numberOfFaces = polytope.getNumberOfFaces();
       if (numberOfFaces < 2)
-         return true;
+         return null;
       for (int j = 0; j < numberOfFaces; j++)
       {
          ConvexPolytopeFaceReadOnly face = polytope.getFace(j);
@@ -693,24 +713,24 @@ public class ConvexPolytopeTest
             if (face.getEdge(i).getTwinHalfEdge() == null)
             {
                PrintTools.error("Null twin edge for edge: " + face.getEdge(i).toString() + " on face: " + face.toString());
-               return false;
+               return face.getEdge(i);
             }
             if (face.getEdge(i).getTwinHalfEdge().getOriginVertex() != face.getEdge(i).getDestinationVertex())
             {
                PrintTools.error("Twin edge: " + face.getEdge(i).getTwinHalfEdge().toString() + " mismatch for edge: " + face.getEdge(i).toString()
                      + " on face: " + face.toString());
-               return false;
+               return face.getEdge(i);
             }
             if (face.getEdge(i).getTwinHalfEdge().getDestinationVertex() != face.getEdge(i).getOriginVertex())
             {
                PrintTools.error("Twin edge: " + face.getEdge(i).getTwinHalfEdge().toString() + " mismatch for edge: " + face.getEdge(i).toString()
                      + " on face: " + face.toString());
-               return false;
+               return face.getEdge(i);
             }
 
          }
       }
-      return true;
+      return null;
    }
 
    /**
