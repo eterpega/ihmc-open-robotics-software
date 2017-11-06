@@ -85,31 +85,22 @@ public class RobotCollisionMeshProvider
       FloatingJointDescription rootJointDescription = (FloatingJointDescription) rootJointDescriptions.get(0);
       THashMap<RigidBody, FrameConvexPolytope> collisionMeshMap = new THashMap<>();
       recursivelyAddCollisionMeshes(collisionMeshMap, rootJointDescription, fullRobotModel);
-      PrintTools.debug("Done with mesh generation");
       return collisionMeshMap;
    }
 
    private void recursivelyAddCollisionMeshes(THashMap<RigidBody, FrameConvexPolytope> collisionMeshMap, JointDescription jointDescription,
                                               FullRobotModel fullRobotModel)
    {
+      LinkDescription linkDescription = jointDescription.getLink();
+      InverseDynamicsJoint joint = null;
       if (!(jointDescription.getName() == fullRobotModel.getRootJoint().getName()))
-      {
-         LinkDescription linkDescription = jointDescription.getLink();
-         InverseDynamicsJoint joint = fullRobotModel.getOneDoFJointByName(jointDescription.getName());
-         RigidBody rigidBody = joint.getSuccessor();
-         if (debug)
-            PrintTools.debug("Link : " + linkDescription.getName() + " Joint: " + joint.getName());
-         collisionMeshMap.put(rigidBody, createCollisionMesh(rigidBody, linkDescription));
-      }
-//      else
-//      {
-//         LinkDescription linkDescription = jointDescription.getLink();
-//         InverseDynamicsJoint joint = fullRobotModel.getRootJoint();
-//         RigidBody rigidBody = joint.getSuccessor();
-//         if (debug)
-//            PrintTools.debug("Link : " + linkDescription.getName() + " Joint: " + joint.getName());
-//         collisionMeshMap.put(rigidBody, createCollisionMesh(rigidBody, linkDescription));
-//      }
+         joint = fullRobotModel.getOneDoFJointByName(jointDescription.getName());
+      else
+         joint = fullRobotModel.getRootJoint();
+      RigidBody rigidBody = joint.getSuccessor();
+      if (debug)
+         PrintTools.debug("Link : " + linkDescription.getName() + " Joint: " + joint.getName());
+      collisionMeshMap.put(rigidBody, createCollisionMesh(rigidBody, linkDescription));
       for (JointDescription childJointDescription : jointDescription.getChildrenJoints())
       {
          recursivelyAddCollisionMeshes(collisionMeshMap, childJointDescription, fullRobotModel);
