@@ -65,9 +65,9 @@ public class FrameConvexPolytopeVisualizer
       this.graphicsListRegistry = graphicsListRegistry;
       this.polytopes = new ConvexPolytopeReadOnly[maxNumberOfPolytopes];
       this.polytopeColors = new Color[maxNumberOfPolytopes];
-      this.numberOfVizEdges = maxNumberOfPolytopes * 100;
+      this.numberOfVizEdges = maxNumberOfPolytopes * 150;
       this.numberOfVizVertices = maxNumberOfPolytopes * 50;
-      this.numberOfCollisionVectors = maxNumberOfPolytopes * 3;
+      this.numberOfCollisionVectors = maxNumberOfPolytopes * 1;
       createVizArrays();
       createPolytopeVisualizationElements();
    }
@@ -82,7 +82,7 @@ public class FrameConvexPolytopeVisualizer
       this.registry = new YoVariableRegistry("PolytopeVisualizer");
       this.graphicsListRegistry = new YoGraphicsListRegistry();
       this.keepSCSUp = keepSCSUp;
-      this.numberOfVizEdges = maxNumberOfPolytopes * 100;
+      this.numberOfVizEdges = maxNumberOfPolytopes * 150;
       this.numberOfVizVertices = maxNumberOfPolytopes * 50;
       this.numberOfCollisionVectors = maxNumberOfPolytopes * 3;
       createVizArrays();

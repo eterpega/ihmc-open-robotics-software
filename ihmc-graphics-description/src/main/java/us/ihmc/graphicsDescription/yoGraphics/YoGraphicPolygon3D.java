@@ -105,7 +105,7 @@ public class YoGraphicPolygon3D extends YoGraphicAbstractShape implements Remote
       for (; i < ccwOrderedPoints.length; i++)
          ccwOrderedPoints[i].setToNaN();
       numberOfPoints.set(points.length);
-      update();
+      //update();
    }
 
    private List<Point3DReadOnly> pointList = new ArrayList<>();
@@ -113,7 +113,7 @@ public class YoGraphicPolygon3D extends YoGraphicAbstractShape implements Remote
    @Override
    protected synchronized void computeRotationTranslation(AffineTransform transform3d)
    {
-      super.computeRotationTranslation(transform3d);
+      //super.computeRotationTranslation(transform3d);
       //update();
    }
 
@@ -152,7 +152,7 @@ public class YoGraphicPolygon3D extends YoGraphicAbstractShape implements Remote
       for (; i < ccwOrderedPoints.length; i++)
          ccwOrderedPoints[i].setToNaN();
       numberOfPoints.set(points.length);
-      update();
+      //update();
    }
 
    public synchronized void set(List<Point3DReadOnly> points)
@@ -177,7 +177,7 @@ public class YoGraphicPolygon3D extends YoGraphicAbstractShape implements Remote
       for (; i < ccwOrderedPoints.length; i++)
          ccwOrderedPoints[i].setToNaN();
       numberOfPoints.set(points.size());
-      update();
+      //update();
    }
 
    public synchronized void setToNaN()
