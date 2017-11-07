@@ -33,8 +33,10 @@ import us.ihmc.geometry.polytope.DCELPolytope.Basics.ConvexPolytopeFaceReadOnly;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.ConvexPolytopeReadOnly;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeHalfEdgeReadOnly;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
+import us.ihmc.robotics.robotDescription.JointDescription;
 import us.ihmc.robotics.robotDescription.LinkDescription;
 import us.ihmc.robotics.robotDescription.RobotDescription;
+import us.ihmc.robotics.screwTheory.InverseDynamicsJoint;
 import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.robotics.screwTheory.ScrewTools;
 import us.ihmc.scsVisualizers.geometry.polytope.PolytopeVisualizationHelper;
@@ -578,30 +580,88 @@ public class ConvexPolytopeTest
    @Test
    public void testRobotModelHeadMeshes()
    {
-      PolytopeVisualizationHelper visualizationHelper = new PolytopeVisualizationHelper("AtlasRobotMeshTest", 1, 100, 100, 100);
+      boolean debug = false;
+      PolytopeVisualizationHelper visualizationHelper = null;
+      PolytopeVisualizer polytopeVisualizer = null;
+      ExtendedConvexPolytope polytope = null;
+      if(debug)
+      {
+         visualizationHelper = new PolytopeVisualizationHelper("AtlasRobotMeshTest", 1, 50, 500, 100);
+         polytopeVisualizer = visualizationHelper.getNextVisualizer();
+         polytope = new ExtendedConvexPolytope(polytopeVisualizer);
+      }
+      else
+         polytope = new ExtendedConvexPolytope();
+     
       String linkName = "neck_ry";
       ArrayList<Point3D> pointList = getAtlasCollisionMeshPointsForLink(linkName);
-      ExtendedConvexPolytope polytope = new ExtendedConvexPolytope(visualizationHelper.getNextVisualizer());
-      PolytopeVisualizer polytopeVisualizer = visualizationHelper.getVisualizer(0);
       for (int i = 0; i < pointList.size(); i++)
       {
-         polytopeVisualizer.clearHighlightedEdge();
-         //PrintTools.debug("Adding point " + i + ":, " + pointList.get(i).getX() +  " ,  " + pointList.get(i).getY() +  " ,  " + pointList.get(i).getZ());
+         if(debug)
+         {
+            polytopeVisualizer.clearHighlightedEdge();
+            visualizationHelper.clearAdditionalEdge();
+            //PrintTools.debug("Adding point " + i + ":, " + pointList.get(i).getX() + " ,  " + pointList.get(i).getY() + " ,  " + pointList.get(i).getZ());
+         }
          polytope.addVertex(pointList.get(i), Epsilons.ONE_TEN_THOUSANDTH);
-         visualizationHelper.showAdditionalPoint(pointList.get(i));
-         visualizationHelper.tickSCS();
+         if(debug)
+         {
+            visualizationHelper.showAdditionalPoint(pointList.get(i));
+            visualizationHelper.tickSCS();
+         }
          checkPolytopeConsistency(polytope);
       }
+      if(debug)
+         visualizationHelper.keepSCSUp();
    }
 
    @Test
    public void testRobotModelPelvisMeshes()
    {
-      PolytopeVisualizationHelper visualizationHelper = new PolytopeVisualizationHelper("AtlasRobotMeshTest", 1, 50, 500, 100);
-      PolytopeVisualizer polytopeVisualizer = visualizationHelper.getNextVisualizer();
-      ExtendedConvexPolytope polytope = new ExtendedConvexPolytope(polytopeVisualizer);
+      boolean debug = false;
+      PolytopeVisualizationHelper visualizationHelper = null;
+      PolytopeVisualizer polytopeVisualizer = null;
+      ExtendedConvexPolytope polytope = null;
+      if(debug)
+      {
+         visualizationHelper = new PolytopeVisualizationHelper("AtlasRobotMeshTest", 1, 50, 500, 100);
+         polytopeVisualizer = visualizationHelper.getNextVisualizer();
+         polytope = new ExtendedConvexPolytope(polytopeVisualizer);
+      }
+      else
+         polytope = new ExtendedConvexPolytope();
+     
       String linkName = "pelvis";
       ArrayList<Point3D> pointList = getAtlasCollisionMeshPointsForLink(linkName);
+      for (int i = 0; i < pointList.size(); i++)
+      {
+         if(debug)
+         {
+            polytopeVisualizer.clearHighlightedEdge();
+            visualizationHelper.clearAdditionalEdge();
+            //PrintTools.debug("Adding point " + i + ":, " + pointList.get(i).getX() + " ,  " + pointList.get(i).getY() + " ,  " + pointList.get(i).getZ());
+         }
+         polytope.addVertex(pointList.get(i), Epsilons.ONE_TEN_THOUSANDTH);
+         if(debug)
+         {
+            visualizationHelper.showAdditionalPoint(pointList.get(i));
+            visualizationHelper.tickSCS();
+         }
+         checkPolytopeConsistency(polytope);
+      }
+      if(debug)
+         visualizationHelper.keepSCSUp();
+   }
+
+   @Test
+   public void testRobotModelTorsoMeshes()
+   {
+      PolytopeVisualizationHelper visualizationHelper = new PolytopeVisualizationHelper("AtlasRobotMeshTest", 1, 1000, 5000, 1000);
+      PolytopeVisualizer polytopeVisualizer = visualizationHelper.getNextVisualizer();
+      ExtendedConvexPolytope polytope = new ExtendedConvexPolytope(polytopeVisualizer);
+      String jointName = "back_bkx";
+      ArrayList<Point3D> pointList = getAtlasCollisionMeshPointsForLink(jointName);
+      polytopeVisualizer.setColor(Color.BLACK);
       for (int i = 0; i < pointList.size(); i++)
       {
          polytopeVisualizer.clearHighlightedEdge();
@@ -609,6 +669,7 @@ public class ConvexPolytopeTest
          PrintTools.debug("Adding point " + i + ":, " + pointList.get(i).getX() + " ,  " + pointList.get(i).getY() + " ,  " + pointList.get(i).getZ());
          polytope.addVertex(pointList.get(i), Epsilons.ONE_TEN_THOUSANDTH);
          visualizationHelper.showAdditionalPoint(pointList.get(i));
+         polytopeVisualizer.updateVertices(pointList);
          visualizationHelper.tickSCS();
          PolytopeHalfEdgeReadOnly invalidEdge = checkPolytopeConsistencySoft(polytope);
          if (invalidEdge != null)
@@ -623,15 +684,22 @@ public class ConvexPolytopeTest
       visualizationHelper.keepSCSUp();
    }
 
-   public ArrayList<Point3D> getAtlasCollisionMeshPointsForLink(String linkName)
+   public ArrayList<Point3D> getAtlasCollisionMeshPointsForLink(String jointName)
    {
       ArrayList<Point3D> pointList;
       AtlasRobotModel atlasRobotModel = new AtlasRobotModel(AtlasRobotVersion.ATLAS_UNPLUGGED_V5_NO_HANDS, RobotTarget.SCS, false);
       RobotDescription atlasRobotDescription = atlasRobotModel.getRobotDescription();
-      RobotCollisionMeshProvider meshProvider = new RobotCollisionMeshProvider(8);
-      LinkDescription headDescription = atlasRobotDescription.getLinkDescription(linkName);
-      pointList = meshProvider.getCollisionMeshPoints(headDescription.getCollisionMeshes(), new Vector3D());
+      RobotCollisionMeshProvider meshProvider = new RobotCollisionMeshProvider(4);
+      LinkDescription linkDescription = atlasRobotDescription.getLinkDescription(jointName);
+      pointList = meshProvider.getCollisionMeshPoints(linkDescription.getCollisionMeshes(), new Vector3D());
       return pointList;
+   }
+   
+   private void recursivelyPrintLinkNames(JointDescription joint)
+   {
+      PrintTools.debug("Joint: " + joint.getName() + ", Link: " + joint.getLink().getName());
+      for(JointDescription childrenJoint : joint.getChildrenJoints())
+         recursivelyPrintLinkNames(childrenJoint);
    }
 
    @Test

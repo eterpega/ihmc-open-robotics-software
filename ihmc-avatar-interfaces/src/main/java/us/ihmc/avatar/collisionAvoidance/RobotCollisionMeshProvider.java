@@ -98,7 +98,7 @@ public class RobotCollisionMeshProvider
       else
          joint = fullRobotModel.getRootJoint();
       RigidBody rigidBody = joint.getSuccessor();
-      if (debug)
+      //if (debug)
          PrintTools.debug("Link : " + linkDescription.getName() + " Joint: " + joint.getName());
       collisionMeshMap.put(rigidBody, createCollisionMesh(rigidBody, linkDescription));
       for (JointDescription childJointDescription : jointDescription.getChildrenJoints())

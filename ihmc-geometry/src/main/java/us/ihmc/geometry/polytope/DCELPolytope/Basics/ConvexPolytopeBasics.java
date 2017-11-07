@@ -314,6 +314,8 @@ public abstract class ConvexPolytopeBasics<V extends PolytopeVertexBasics<V, E, 
       if (onFaceList.size() > 0)
       {
          E firstVisibleEdge = getFirstVisibleEdgeFromOnFaceList(onFaceList, visibleFaces); //onFaceList.get(0).getFirstVisibleEdge(vertexToAdd);
+         if(firstVisibleEdge == null)
+            return;
          firstHalfEdgeForSilhouette = firstVisibleEdge.getTwinHalfEdge();
       }
       else
