@@ -148,6 +148,7 @@ public class HumanoidReferenceFrames implements CommonHumanoidReferenceFrames
       centerOfMassFrame = new CenterOfMassReferenceFrame("centerOfMass", worldFrame, elevator);
 
       // set default CommonHumanoidReferenceFrameIds for certain frames used commonly for control
+      addDefaultIDToReferenceFrame(CommonReferenceFrameIds.WORLD_FRAME, worldFrame);
       addDefaultIDToReferenceFrame(CommonReferenceFrameIds.MIDFEET_ZUP_FRAME, getMidFeetZUpFrame());
       addDefaultIDToReferenceFrame(CommonReferenceFrameIds.PELVIS_ZUP_FRAME, getPelvisZUpFrame());
       addDefaultIDToReferenceFrame(CommonReferenceFrameIds.PELVIS_FRAME, getPelvisFrame());

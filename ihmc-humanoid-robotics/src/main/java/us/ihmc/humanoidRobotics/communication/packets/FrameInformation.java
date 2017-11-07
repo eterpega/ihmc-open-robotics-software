@@ -21,7 +21,8 @@ import java.util.Random;
       + "CHEST_FRAME = -103\n"
       + "CENTER_OF_MASS_FRAME = -104\n"
       + "LEFT_SOLE_FRAME = -105\n"
-      + "RIGHT_SOLE_FRAME = -106", rosPackage = RosMessagePacket.CORE_IHMC_PACKAGE, isIHMCPacket = false)
+      + "RIGHT_SOLE_FRAME = -106\n"
+      + "WORLD_FRAME = -107", rosPackage = RosMessagePacket.CORE_IHMC_PACKAGE, isIHMCPacket = false)
 public class FrameInformation implements EpsilonComparable<FrameInformation>
 {
    /**
