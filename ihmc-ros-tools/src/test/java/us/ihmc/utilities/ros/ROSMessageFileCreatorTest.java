@@ -12,7 +12,7 @@ import us.ihmc.utilities.ros.msgToPacket.converter.GenericROSTranslationTools;
 
 /**
  * <p>
- * Notes to future refactorers: There is a reason that this test is not in IHMCROSTools even though it is testing
+ * Notes to future refactorers: There is a reason that this test is not in ihmc-ros-tools even though it is testing
  * a class that lives there.
  * </p>
  *
