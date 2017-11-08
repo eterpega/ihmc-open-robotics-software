@@ -148,7 +148,7 @@ public class HybridGJKEPACollisionDetector
       for (int i = 0; i < iterations; i++)
       {
          updateListeners();
-         simplex.addVertex(polytopeA.getSupportingVertexHack(supportVectorDirection), polytopeB.getSupportingVertexHack(supportVectorDirectionNegative));
+         simplex.addVertex(polytopeA.getSupportingPolytopeVertex(supportVectorDirection), polytopeB.getSupportingPolytopeVertex(supportVectorDirectionNegative));
          if(simplex.isInteriorPoint(origin, epsilon))
          {
             //PrintTools.debug("Breaking on collision");
@@ -182,7 +182,7 @@ public class HybridGJKEPACollisionDetector
       previousSupportVectorDirection.set(supportVectorDirection);
       while(true)
       {
-         simplex.addVertex(polytopeA.getSupportingVertexHack(supportVectorDirection), polytopeB.getSupportingVertexHack(supportVectorDirectionNegative));
+         simplex.addVertex(polytopeA.getSupportingPolytopeVertex(supportVectorDirection), polytopeB.getSupportingPolytopeVertex(supportVectorDirectionNegative));
          simplex.getSupportVectorDirectionTo(origin, supportVectorDirection);
          if(supportVectorDirection.epsilonEquals(previousSupportVectorDirection, epsilon))
             break;

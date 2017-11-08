@@ -99,9 +99,9 @@ public class FrameConvexPolytope extends ConvexPolytopeBasics<FramePolytopeVerte
    }
    
    @Override
-   public FramePolytopeVertex getSupportingVertexHack(Vector3DReadOnly supportDirection)
+   public FramePolytopeVertex getSupportingPolytopeVertex(Vector3DReadOnly supportDirection)
    {
-      FramePolytopeVertex polytopeVertex = super.getSupportingVertexHack(supportDirection);
+      FramePolytopeVertex polytopeVertex = super.getSupportingPolytopeVertex(supportDirection);
       return polytopeVertex;
    }
 }

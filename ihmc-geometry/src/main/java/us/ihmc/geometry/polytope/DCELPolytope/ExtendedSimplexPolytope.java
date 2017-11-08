@@ -96,7 +96,7 @@ public class ExtendedSimplexPolytope implements Simplex
       // Assuming linearity between the simplex and polytope points 
       if(member instanceof ConvexPolytopeFace)
       {
-         // TODO fix this nasty type casting 
+         // TODO fix this nasty type casting
          SimplexVertex simplexVertex1 = (SimplexVertex) ((ConvexPolytopeFace)member).getEdge(0).getOriginVertex();
          PolytopeVertexReadOnly polytopeAVertex1 = simplexVertex1.getVertexOnPolytopeA();
          PolytopeVertexReadOnly polytopeBVertex1 = simplexVertex1.getVertexOnPolytopeB();
@@ -135,6 +135,7 @@ public class ExtendedSimplexPolytope implements Simplex
       }
       else if (member instanceof SimplexVertex)
       {
+         // TODO fix this nasty type casting 
          pointOnA.set(((SimplexVertex) member).getVertexOnPolytopeA());
          pointOnB.set(((SimplexVertex) member).getVertexOnPolytopeB());
       }

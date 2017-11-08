@@ -1,6 +1,5 @@
 package us.ihmc.geometry.polytope.DCELPolytope.Basics;
 
-import java.rmi.dgc.Lease;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -20,6 +19,15 @@ import us.ihmc.geometry.polytope.DCELPolytope.CollisionDetection.PolytopeListene
 import us.ihmc.geometry.polytope.DCELPolytope.Providers.ConvexPolytopeFaceProvider;
 import us.ihmc.geometry.polytope.DCELPolytope.Providers.PolytopeVertexProvider;
 
+/**
+ * 
+ * @author Apoorv S
+ *
+ * @param <V>
+ * @param <E>
+ * @param <F>
+ * 
+ */
 public abstract class ConvexPolytopeBasics<V extends PolytopeVertexBasics<V, E, F>, E extends PolytopeHalfEdgeBasics<V, E, F>, F extends ConvexPolytopeFaceBasics<V, E, F>>
       implements ConvexPolytopeReadOnly, SimplexBasics, Clearable, Transformable, Settable<ConvexPolytopeReadOnly>
 {
@@ -699,7 +707,7 @@ public abstract class ConvexPolytopeBasics<V extends PolytopeVertexBasics<V, E, 
 
    // TODO Hacking this for the new collision detector. #FIXME fix this and the related interfaces and all that depends on those interfaces so that there dont need to be two versions of the getSupportinVertex function
    @Override
-   public V getSupportingVertexHack(Vector3DReadOnly supportDirection)
+   public V getSupportingPolytopeVertex(Vector3DReadOnly supportDirection)
    {
       V bestVertex = faces.get(0).getEdge(0).getOriginVertex();
       tempVector.set(bestVertex);
