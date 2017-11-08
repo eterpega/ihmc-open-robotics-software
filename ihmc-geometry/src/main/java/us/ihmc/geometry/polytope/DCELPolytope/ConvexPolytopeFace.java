@@ -20,12 +20,11 @@ public class ConvexPolytopeFace extends ConvexPolytopeFaceBasics<ExtendedPolytop
       super();
    }
    
-   public ConvexPolytopeFace(PolytopeHalfEdge[] edgeList)
+   public ConvexPolytopeFace(PolytopeHalfEdge[] edges)
    {
-      this();
-      copyEdgeList(edgeList);
+      super(edges);
    }
-
+   
    @Override
    protected PolytopeHalfEdgeProvider<ExtendedPolytopeVertex, PolytopeHalfEdge, ConvexPolytopeFace> getHalfEdgeProvider()
    {
