@@ -329,7 +329,7 @@ public abstract class ConvexPolytopeBasics<V extends PolytopeVertexBasics<V, E, 
       }
       else
       {
-         firstHalfEdgeForSilhouette = getSeedEdgeForSilhouetteCalculation(visibleFaces, visibleFaceSeed);
+         firstHalfEdgeForSilhouette = getSeedEdgeForSilhouetteCalculation(visibleFaces, silhouetteFaces.get(0));
       }
       if (listener != null)
          listener.udpateVisibleEdgeSeed(firstHalfEdgeForSilhouette);
