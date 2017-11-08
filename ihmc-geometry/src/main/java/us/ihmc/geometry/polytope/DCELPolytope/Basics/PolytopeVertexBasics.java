@@ -6,51 +6,97 @@ import java.util.List;
 import us.ihmc.euclid.interfaces.Clearable;
 import us.ihmc.euclid.interfaces.Settable;
 import us.ihmc.euclid.interfaces.Transformable;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.interfaces.Transform;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DBasics;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 
-public abstract class PolytopeVertexBasics<A extends PolytopeVertexBasics<A, B, C>, B extends PolytopeHalfEdgeBasics<A, B, C>, C extends ConvexPolytopeFaceBasics<A, B, C>>
-      implements SimplexBasics, PolytopeVertexReadOnly, Clearable, Settable<A>, Transformable, Point3DBasics
+/**
+ * Template data structure that defines a Doubly-connected edge list (DCEL) polytope vertex
+ * 
+ * A DCEL vertex is composed of 
+ * <li> 3D point: A data structure that stores the spatial location of the vertex in 3D space. May / may not have a notion of a {@code ReferenceFrame}
+ * <li> Associated edge list: A list of DCEL edges {@code E} that have their origins at this vertex
+ * 
+ * @author Apoorv S
+ * 
+ * @param <V> The class that extends this template. Should represent a point in some 3D space
+ * @param <E> Data structure representing edges formed by joining two vertices
+ * @param <F> A collection of edges that constitute a face of the polytope
+ */
+public abstract class PolytopeVertexBasics<V extends PolytopeVertexBasics<V, E, F>, E extends PolytopeHalfEdgeBasics<V, E, F>, F extends ConvexPolytopeFaceBasics<V, E, F>>
+      implements SimplexBasics, PolytopeVertexReadOnly, Clearable, Settable<V>, Transformable, Point3DBasics
 {
-   private final ArrayList<B> associatedEdges = new ArrayList<>();
+   /**
+    * List of edges that start at this vertex. May be part of different faces
+    */
+   private final ArrayList<E> associatedEdges = new ArrayList<>();
 
+   /**
+    * Method to get a reference to the object storing the spatial coordinates for the vertex
+    * @return Typically a FramePoint3D or Point3D depending on the use
+    */
    protected abstract Point3DBasics getPointObjectReference();
 
+   /**
+    * Default constructor
+    */
    public PolytopeVertexBasics()
    {
    }
 
-   public void set(A vertex)
+   /**
+    * Set the spatial coordinates from another vertex and copy all the edge associations 
+    */
+   public void set(V other)
    {
-      getPointObjectReference().set(vertex.getPosition());
+      getPointObjectReference().set(other.getPosition());
       clearAssociatedEdgeList();
-      copyEdges(vertex.getAssociatedEdges());
+      addAssociatedEdges(other.getAssociatedEdges());
    }
 
-   public List<B> getAssociatedEdges()
+   /**
+    * {@inheritDoc}
+    */
+   public List<E> getAssociatedEdges()
    {
       return associatedEdges;
    }
 
-   public B getAssociatedEdge(int index)
+   /**
+    * {@inheritDoc}
+    */
+   public E getAssociatedEdge(int index)
    {
       return associatedEdges.get(index);
    }
 
-   public void removeAssociatedEdge(B edgeToAdd)
+   /**
+    * Method to remove a particular edge from the associated edge list
+    * @param edgeToAdd the associated edge that is to be removed. In case the edge specified is not on the list, no errors are thrown
+    * 
+    */
+   public void removeAssociatedEdge(E edgeToAdd)
    {
       associatedEdges.remove(edgeToAdd);
    }
 
+   /**
+    * Remove all edges in the associated edge list
+    */
    public void clearAssociatedEdgeList()
    {
       associatedEdges.clear();
    }
 
-   public void copyEdges(List<B> edgeList)
+   /**
+    * Add a {@code List<E>} of DCEL edges to the associated edge list. This invokes the {@code addAssociatedEdge()} method 
+    * and addition to the list follows the same set of rules
+    * @param edgeList a list of DCEL edges that must be added 
+    */
+   public void addAssociatedEdges(List<E> edgeList)
    {
       for (int i = 0; i < edgeList.size(); i++)
       {
@@ -58,37 +104,58 @@ public abstract class PolytopeVertexBasics<A extends PolytopeVertexBasics<A, B, 
       }
    }
 
-   public void addAssociatedEdge(B edge)
+   /**
+    * Add a DCEL edge to the associated edge list. In case the edge is already on the associated edge list
+    * no action is carried out. The check for whether an edge is already on the list is done by comparing objects.
+    * Hence is possible to add a edge that geometrically equals an already existent edge
+    * @param edge the DCEL edge to add to the associated edge list
+    */
+   public void addAssociatedEdge(E edge)
    {
       if (!isAssociatedWithEdge(edge))
          associatedEdges.add(edge);
    }
 
+   /**
+    * {@inheritDoc}
+    */
    public boolean isAssociatedWithEdge(PolytopeHalfEdgeReadOnly edgeToCheck)
    {
       return associatedEdges.contains(edgeToCheck);
    }
 
+   /**
+    * {@inheritDoc}
+    */
    public boolean isAssociatedWithEdge(PolytopeHalfEdgeReadOnly edgeToCheck, double epsilon)
    {
-      boolean result = associatedEdges.size() > 0;
-      for (int i = 0; result && i < associatedEdges.size(); i++)
+      for (int i = 0; i < associatedEdges.size(); i++)
       {
-         result &= associatedEdges.get(i).epsilonEquals(edgeToCheck, epsilon);
+         if(associatedEdges.get(i).epsilonEquals(edgeToCheck, epsilon))
+            return true;
       }
-      return result;
+      return false;
    }
 
+   /**
+    * {@inheritDoc}
+    */
    public int getNumberOfAssociatedEdges()
    {
       return associatedEdges.size();
    }
 
+   /**
+    * {@inheritDoc}
+    */
    public double dot(Vector3DReadOnly vector)
    {
       return getX() * vector.getX() + getY() * vector.getY() + getZ() * vector.getZ();
    }
 
+   /**
+    * {@inheritDoc}
+    */
    public String toString()
    {
       return "( " + getX() + ", " + getY() + ", " + getZ() + ")";
@@ -112,6 +179,7 @@ public abstract class PolytopeVertexBasics<A extends PolytopeVertexBasics<A, B, 
       return getPointObjectReference().getZ();
    }
 
+   @Override
    public double getElement(int index)
    {
       return getPointObjectReference().getElement(index);
@@ -129,6 +197,9 @@ public abstract class PolytopeVertexBasics<A extends PolytopeVertexBasics<A, B, 
       getPointObjectReference().applyInverseTransform(transform);
    }
 
+   /**
+    * {@inheritDoc}
+    */
    public boolean isAnyFaceMarked()
    {
       boolean isMarked = false;
@@ -136,7 +207,6 @@ public abstract class PolytopeVertexBasics<A extends PolytopeVertexBasics<A, B, 
       {
          isMarked |= associatedEdges.get(i).getFace().isMarked();
       }
-      //PrintTools.debug(toString() + " " +isMarked);
       return isMarked;
    }
 

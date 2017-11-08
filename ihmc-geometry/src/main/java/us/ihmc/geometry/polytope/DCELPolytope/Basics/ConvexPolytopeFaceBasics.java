@@ -426,7 +426,7 @@ public abstract class ConvexPolytopeFaceBasics<A extends PolytopeVertexBasics<A,
          edges.get(i).setToNaN();
    }
 
-   public double dotFaceNormal(Vector3DBasics direction)
+   public double dotFaceNormal(Vector3DReadOnly direction)
    {
       updateFaceNormal();
       return direction.dot(faceNormal);

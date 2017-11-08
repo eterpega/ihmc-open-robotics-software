@@ -54,20 +54,22 @@ public class PolytopeVertexTest
       PolytopeHalfEdge twinEdge1 = edge1.createTwinHalfEdge();
       assertTrue(vertex2.getAssociatedEdges().size() == 1);
       assertTrue(vertex2.getAssociatedEdges().get(0) == twinEdge1);
+      PolytopeHalfEdge edge1GeomerticDuplicate = new PolytopeHalfEdge();
+      
    }
    
+   @Test
    public void testConstructor()
    {
       ExtendedPolytopeVertex vertex = new ExtendedPolytopeVertex();
-      PolytopeHalfEdge edge = vertex.getAssociatedEdge(0);
    }
    
+   @Test
    public void testFrameConstructor()
    {
       ExtendedPolytopeVertex vertex = new ExtendedPolytopeVertex();
       FramePolytopeVertex framevertex = new FramePolytopeVertex(ReferenceFrame.getWorldFrame(), new ExtendedPolytopeVertex());
       FramePolytopeVertex framevertex2 = new FramePolytopeVertex(ReferenceFrame.getWorldFrame(), new ExtendedPolytopeVertex());
-      FramePolytopeHalfEdge edge = framevertex.getAssociatedEdge(0);
       framevertex.epsilonEquals(framevertex2, Epsilons.ONE);
       vertex.epsilonEquals(framevertex, Epsilons.ONE);
       
