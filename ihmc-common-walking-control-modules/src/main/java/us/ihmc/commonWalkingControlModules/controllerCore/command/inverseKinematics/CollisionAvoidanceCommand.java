@@ -138,8 +138,9 @@ public class CollisionAvoidanceCommand implements InverseKinematicsCommand<Colli
          TIntArrayList columns = jointIndexMap.get(joint);
          if(columns == null)
          {
-            taskJacobianColumnIndex += joint.getDegreesOfFreedom();
-            throw new RuntimeException("Got collision avoidance jacobian for unregistered joint: " + joint.getName());
+            //taskJacobianColumnIndex += joint.getDegreesOfFreedom();
+            continue;
+            //throw new RuntimeException("Got collision avoidance jacobian for unregistered joint: " + joint.getName());
          }
          if(joint.getDegreesOfFreedom() != columns.size())
             throw new RuntimeException("Joint column index entries do not match joint degrees of freedom");

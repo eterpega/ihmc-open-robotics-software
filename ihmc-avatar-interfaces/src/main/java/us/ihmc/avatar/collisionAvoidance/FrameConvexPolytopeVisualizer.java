@@ -65,7 +65,7 @@ public class FrameConvexPolytopeVisualizer
       this.graphicsListRegistry = graphicsListRegistry;
       this.polytopes = new ConvexPolytopeReadOnly[maxNumberOfPolytopes];
       this.polytopeColors = new Color[maxNumberOfPolytopes];
-      this.numberOfVizEdges = maxNumberOfPolytopes * 150;
+      this.numberOfVizEdges = maxNumberOfPolytopes * 100;
       this.numberOfVizVertices = maxNumberOfPolytopes * 50;
       this.numberOfCollisionVectors = maxNumberOfPolytopes * 1;
       createVizArrays();
@@ -356,23 +356,23 @@ public class FrameConvexPolytopeVisualizer
    
    public void showRigidBodyCollidingPoint(PoseReferenceFrame referenceFrame)
    {
-      RigidBodyTransform transform = referenceFrame.getTransformToWorldFrame();
-      origin.setToZero();
-      origin.applyTransform(transform);
-      xAxis.set(.1, 0.0, 0.0);
-      xAxis.applyTransform(transform);
-      yAxis.set(0.0, .1, 0.0);
-      yAxis.applyTransform(transform);
-      zAxis.set(0.0, 0.0, .1);
-      zAxis.applyTransform(transform);
-      tempPoint1.set(origin);
-      tempPoint1.add(xAxis);
-      xVector.setStartAndEnd(origin, tempPoint1);
-      tempPoint1.set(origin);
-      tempPoint1.add(yAxis);
-      yVector.setStartAndEnd(origin, tempPoint1);
-      tempPoint1.set(origin);
-      tempPoint1.add(zAxis);
-      zVector.setStartAndEnd(origin, tempPoint1);
+//      RigidBodyTransform transform = referenceFrame.getTransformToWorldFrame();
+//      origin.setToZero();
+//      origin.applyTransform(transform);
+//      xAxis.set(.1, 0.0, 0.0);
+//      xAxis.applyTransform(transform);
+//      yAxis.set(0.0, .1, 0.0);
+//      yAxis.applyTransform(transform);
+//      zAxis.set(0.0, 0.0, .1);
+//      zAxis.applyTransform(transform);
+//      tempPoint1.set(origin);
+//      tempPoint1.add(xAxis);
+//      xVector.setStartAndEnd(origin, tempPoint1);
+//      tempPoint1.set(origin);
+//      tempPoint1.add(yAxis);
+//      yVector.setStartAndEnd(origin, tempPoint1);
+//      tempPoint1.set(origin);
+//      tempPoint1.add(zAxis);
+//      zVector.setStartAndEnd(origin, tempPoint1);
    }
 }

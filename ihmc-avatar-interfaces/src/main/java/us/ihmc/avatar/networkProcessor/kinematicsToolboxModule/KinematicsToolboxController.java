@@ -278,7 +278,7 @@ public class KinematicsToolboxController extends ToolboxController
       gains.setProportionalGains(1200.0); // Gains used for everything. It is as high as possible to reduce the convergence time.
       gains.setMaxFeedbackAndFeedbackRate(1500.0, Double.POSITIVE_INFINITY);
 
-      privilegedWeight.set(10.0);
+      privilegedWeight.set(1.0);
       privilegedConfigurationGain.set(50.0);
       privilegedMaxVelocity.set(Double.POSITIVE_INFINITY);
       //TODO move the settings to be configurable by 
