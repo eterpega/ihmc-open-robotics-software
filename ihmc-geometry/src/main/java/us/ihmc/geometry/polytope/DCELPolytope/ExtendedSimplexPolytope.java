@@ -15,7 +15,7 @@ import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeVertexReadOnly;
 
 public class ExtendedSimplexPolytope implements Simplex
 {
-   private double epsilon = Epsilons.ONE_TEN_THOUSANDTH;
+   private double epsilon = Epsilons.ONE_TRILLIONTH;
    private ExtendedConvexPolytope polytope = new ExtendedConvexPolytope();
    private List<SimplexVertex> vertices = new ArrayList<>();
    private final Vector3D basisVector1 = new Vector3D();

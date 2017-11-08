@@ -23,12 +23,12 @@ public class PolytopeHalfEdge extends PolytopeHalfEdgeBasics<ExtendedPolytopeVer
    }
    
    /**
-    * Creates a new edge at the same location. References to origin / destionation vertices, twin / next / previous edges and associated is not preserved
+    * Creates a new edge at the same location. References to origin / destination vertices, twin / next / previous edges and associated is not preserved
     * @param edge
     */
    public PolytopeHalfEdge(PolytopeHalfEdgeReadOnly edge)
    {
-      super(new ExtendedPolytopeVertex(edge.getOriginVertex()), new ExtendedPolytopeVertex(edge.getOriginVertex()));
+      super(new ExtendedPolytopeVertex(edge.getOriginVertex()), new ExtendedPolytopeVertex(edge.getDestinationVertex()));
    }
 
    public PolytopeHalfEdge(ExtendedPolytopeVertex origin, ExtendedPolytopeVertex destination)

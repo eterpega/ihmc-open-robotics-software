@@ -23,7 +23,7 @@ public interface ConvexPolytopeFaceReadOnly extends EpsilonComparable<ConvexPoly
 
    boolean isPointInFacePlane(Point3DReadOnly vertexToCheck, double epsilon);
 
-   boolean isInteriorPoint(Point3DReadOnly vertexToCheck);
+   boolean isInteriorPoint(Point3DReadOnly vertexToCheck, double epsilon);
 
    Point3D getFaceCentroid();
 
