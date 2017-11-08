@@ -1,10 +1,13 @@
 package us.ihmc.communication.packets;
 
+import us.ihmc.euclid.geometry.BoundingBox3D;
+
 public class RequestPlanarRegionsListMessage extends Packet<RequestPlanarRegionsListMessage>
 {
    public enum RequestType {SINGLE_UPDATE, CONTINUOUS_UPDATE, STOP_UPDATE, CLEAR};
 
    public RequestType requestType;
+   public BoundingBox3D boundingBoxInWorldForRequest;
 
    public RequestPlanarRegionsListMessage()
    {
@@ -12,13 +15,32 @@ public class RequestPlanarRegionsListMessage extends Packet<RequestPlanarRegions
 
    public RequestPlanarRegionsListMessage(RequestType requestType)
    {
-      this.requestType = requestType;
+      this(requestType, null, null);
+   }
+
+   public RequestPlanarRegionsListMessage(RequestType requestType, BoundingBox3D boundingBoxInWorldForRequest)
+   {
+      this(requestType, boundingBoxInWorldForRequest, null);
    }
 
    public RequestPlanarRegionsListMessage(RequestType requestType, PacketDestination destination)
    {
+      this(requestType, null, destination);
+   }
+
+   public RequestPlanarRegionsListMessage(RequestType requestType, BoundingBox3D boundingBoxInWorldForRequest, PacketDestination destination)
+   {
       this.requestType = requestType;
-      setDestination(destination);
+      this.boundingBoxInWorldForRequest = boundingBoxInWorldForRequest;
+      if (destination != null)
+         setDestination(destination);
+   }
+
+   public void set(RequestPlanarRegionsListMessage other)
+   {
+      this.requestType = other.requestType;
+      this.boundingBoxInWorldForRequest = other.boundingBoxInWorldForRequest;
+      setDestination(other.getDestination());
    }
 
    public RequestType getRequesType()
@@ -31,9 +53,27 @@ public class RequestPlanarRegionsListMessage extends Packet<RequestPlanarRegions
       this.requestType = requesType;
    }
 
+   public boolean hasBoundingBox()
+   {
+      return boundingBoxInWorldForRequest != null;
+   }
+
+   public BoundingBox3D getBoundingBoxInWorldForRequest()
+   {
+      return boundingBoxInWorldForRequest;
+   }
+
    @Override
    public boolean epsilonEquals(RequestPlanarRegionsListMessage other, double epsilon)
    {
-      return requestType == other.requestType;
+      boolean typeEqual = requestType == other.requestType;
+      boolean boxEqual;
+      if (hasBoundingBox() && other.hasBoundingBox())
+         boxEqual = boundingBoxInWorldForRequest.epsilonEquals(other.boundingBoxInWorldForRequest, epsilon);
+      else if (!hasBoundingBox() && !other.hasBoundingBox())
+         boxEqual = true;
+      else
+         boxEqual = false;
+      return typeEqual && boxEqual;
    }
 }
