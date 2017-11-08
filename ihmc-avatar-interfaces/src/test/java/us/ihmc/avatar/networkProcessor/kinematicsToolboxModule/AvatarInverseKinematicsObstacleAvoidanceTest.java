@@ -324,9 +324,9 @@ public abstract class AvatarInverseKinematicsObstacleAvoidanceTest
    {
       Random random = new Random(2145);
       toolbox.enableCollisionAvoidance(true);
-      toolbox.updateCapturabilityBasedStatus(createCapturabilityBasedStatus(true, false));
+      toolbox.updateCapturabilityBasedStatus(createCapturabilityBasedStatus(true, true));
       HumanoidKinematicsToolboxConfigurationMessage command = new HumanoidKinematicsToolboxConfigurationMessage();
-      command.setHoldCurrentCenterOfMassXYPosition(false);
+      command.setHoldCurrentCenterOfMassXYPosition(true);
       commandInputManager.submitMessage(command);
       for (RobotSide side : new RobotSide[]{RobotSide.RIGHT, RobotSide.LEFT})
       {
