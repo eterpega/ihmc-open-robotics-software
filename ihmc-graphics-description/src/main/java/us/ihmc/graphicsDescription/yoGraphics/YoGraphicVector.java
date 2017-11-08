@@ -69,7 +69,7 @@ public class YoGraphicVector extends YoGraphic implements RemoteYoGraphic, Graph
       }
    }
 
-   public void updateGraphics(AppearanceDefinition appearance)
+   public void setAppearance(AppearanceDefinition appearance)
    {
       instruction.setAppearance(appearance);
    }
@@ -136,6 +136,7 @@ public class YoGraphicVector extends YoGraphic implements RemoteYoGraphic, Graph
    public void setDrawArrowhead(boolean drawArrowhead)
    {
       this.drawArrowhead = drawArrowhead;
+      this.instruction.setMesh(getMesh());
    }
 
    public void getBasePosition(Point3D point3d)

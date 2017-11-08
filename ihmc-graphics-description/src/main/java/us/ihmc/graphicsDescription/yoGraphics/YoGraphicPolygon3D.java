@@ -27,7 +27,7 @@ public class YoGraphicPolygon3D extends YoGraphicAbstractShape implements Remote
    private final YoFramePoint[] ccwOrderedPoints;
    private final Point3D[] points;
    private final double height;
-   private final AppearanceDefinition appearance;
+   private AppearanceDefinition appearance;
    private final YoInteger numberOfPoints;
 
    private final Graphics3DObject graphics3dObject;
@@ -89,6 +89,11 @@ public class YoGraphicPolygon3D extends YoGraphicAbstractShape implements Remote
       return yoVariableList;
    }
 
+   public void setAppearance(AppearanceDefinition appearance)
+   {
+      this.appearance = appearance;
+   }
+   
    public synchronized void set(FramePoint3D[] points)
    {
       if (points.length > this.ccwOrderedPoints.length)
@@ -130,6 +135,7 @@ public class YoGraphicPolygon3D extends YoGraphicAbstractShape implements Remote
          pointList.add(ccwOrderedPoints[i].getFrameTuple().getGeometryObject());
       MeshDataHolder meshDataHolder = MeshDataGenerator.Polygon(pointList, numberOfPoints.getIntegerValue());
       instruction.setMesh(meshDataHolder);
+      instruction.setAppearance(appearance);
    }
 
    public synchronized void set(Point3DReadOnly[] points)
