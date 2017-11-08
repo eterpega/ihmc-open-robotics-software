@@ -125,4 +125,9 @@ public class PlanarRegionCommand implements Command<PlanarRegionCommand, PlanarR
    {
       return regionId;
    }
+
+   public void getPlanarRegion(PlanarRegion planarRegionToPack)
+   {
+      planarRegionToPack.set(fromLocalToWorldTransform, convexPolygons, regionId);
+   }
 }
