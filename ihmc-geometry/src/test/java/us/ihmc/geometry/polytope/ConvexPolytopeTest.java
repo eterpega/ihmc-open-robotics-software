@@ -664,7 +664,7 @@ public class ConvexPolytopeTest
       String jointName = "back_bkx";
       ArrayList<Point3D> pointList = getAtlasCollisionMeshPointsForLink(jointName);
       polytopeVisualizer.setColor(Color.BLACK);
-      int size = 158;//pointList.size();
+      int size = pointList.size();
       for (int i = 0; i < size; i++)
       {
          polytopeVisualizer.clearHighlightedEdge();
