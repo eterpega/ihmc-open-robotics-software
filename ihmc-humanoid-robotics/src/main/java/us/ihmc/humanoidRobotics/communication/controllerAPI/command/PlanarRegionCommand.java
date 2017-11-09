@@ -60,7 +60,7 @@ public class PlanarRegionCommand implements Command<PlanarRegionCommand, PlanarR
 
       List<Point2D32[]> convexPolygonsVertices = message.getConvexPolygonsVertices();
       convexPolygons.clear();
-      for (int i = 0; i < convexPolygons.size(); i++)
+      for (int i = 0; i < convexPolygonsVertices.size(); i++)
       {
          Point2D32[] convexPolygonVertices = convexPolygonsVertices.get(i);
          convexPolygons.add().addVertices(convexPolygonVertices, convexPolygonVertices.length);
