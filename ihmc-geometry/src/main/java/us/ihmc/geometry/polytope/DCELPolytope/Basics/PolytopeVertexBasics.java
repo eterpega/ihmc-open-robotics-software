@@ -3,6 +3,7 @@ package us.ihmc.geometry.polytope.DCELPolytope.Basics;
 import java.util.ArrayList;
 import java.util.List;
 
+import us.ihmc.commons.MathTools;
 import us.ihmc.euclid.interfaces.Clearable;
 import us.ihmc.euclid.interfaces.Settable;
 import us.ihmc.euclid.interfaces.Transformable;
@@ -11,7 +12,6 @@ import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DBasics;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
-import us.ihmc.robotics.MathTools;
 
 /**
  * Template data structure that defines a Doubly-connected edge list (DCEL) polytope vertex
