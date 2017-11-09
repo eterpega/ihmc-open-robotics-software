@@ -12,7 +12,13 @@ import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.geometry.polytope.DCELPolytope.Providers.PolytopeHalfEdgeProvider;
 
 /**
- * A template that defines the basic structure of a DCEL half edge
+ * A template that defines the basic structure of a DCEL half edge. A half edge is composed of 
+ * <li> {@code originVertex} starting point reference for this directed edge
+ * <li> {@code destinatioVertex} ending point reference for this directed edge
+ * <li> {@code twinHalfEdge} reference to the twin half edge on an adjacent face, if defined
+ * <li> {@code nextHalfEdge} reference to the half edge on {@code face} that succeeds this edge in a counter clockwise sense
+ * <li> {@code previousHalfEdge} reference to the half edge on {@code face} that precedes this edge in a counter clockwise sense 
+ * <li> {@code face} the face that this half edge is a part of 
  * @author Apoorv S
  *
  * @param <V> Data structure representing a point in 3D space

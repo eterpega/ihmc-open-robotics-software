@@ -1,4 +1,4 @@
-package us.ihmc.geometry.polytope;
+package us.ihmc.geometry.polytope.DCELPolytope;
 
 import static org.junit.Assert.*;
 
@@ -8,6 +8,7 @@ import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.geometry.polytope.ConvexPolytopeConstructor;
 import us.ihmc.geometry.polytope.DCELPolytope.ExtendedConvexPolytope;
 import us.ihmc.geometry.polytope.DCELPolytope.ExtendedSimplexPolytope;
 import us.ihmc.geometry.polytope.DCELPolytope.CollisionDetection.HybridGJKEPACollisionDetector;

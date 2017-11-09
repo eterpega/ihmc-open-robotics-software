@@ -6,6 +6,7 @@ import org.junit.runners.Suite.SuiteClasses;
 import us.ihmc.commons.MutationTestFacilitator;
 import us.ihmc.continuousIntegration.ContinuousIntegrationSuite;
 import us.ihmc.continuousIntegration.ContinuousIntegrationSuite.ContinuousIntegrationSuiteCategory;
+import us.ihmc.geometry.polytope.DCELPolytope.SimplexPolytopeTest;
 import us.ihmc.continuousIntegration.IntegrationCategory;
 
 @RunWith(ContinuousIntegrationSuite.class)

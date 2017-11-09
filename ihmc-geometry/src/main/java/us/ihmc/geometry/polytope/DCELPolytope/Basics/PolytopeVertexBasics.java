@@ -12,6 +12,7 @@ import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DBasics;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
+import us.ihmc.robotics.MathTools;
 
 /**
  * Template data structure that defines a Doubly-connected edge list (DCEL) polytope vertex
@@ -265,5 +266,12 @@ public abstract class PolytopeVertexBasics<V extends PolytopeVertexBasics<V, E, 
    public SimplexBasics getSmallestSimplexMemberReference(Point3DReadOnly point)
    {
       return this;
+   }
+   
+   public void round(double epsilon)
+   {
+      setX(MathTools.roundToPrecision(getX(), epsilon * 10));
+      setY(MathTools.roundToPrecision(getY(), epsilon * 10));
+      setZ(MathTools.roundToPrecision(getZ(), epsilon * 10));
    }
 }

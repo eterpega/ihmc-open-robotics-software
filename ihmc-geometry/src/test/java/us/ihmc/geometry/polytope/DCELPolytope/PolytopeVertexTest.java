@@ -1,19 +1,12 @@
-package us.ihmc.geometry.polytope;
+package us.ihmc.geometry.polytope.DCELPolytope;
 
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
 import us.ihmc.commons.Epsilons;
-import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.Point3D;
-import us.ihmc.geometry.polytope.DCELPolytope.ExtendedPolytopeVertex;
-import us.ihmc.geometry.polytope.DCELPolytope.PolytopeHalfEdge;
-import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeHalfEdgeBasics;
-import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeVertexBasics;
-import us.ihmc.geometry.polytope.DCELPolytope.Basics.SimplexBasics;
-import us.ihmc.geometry.polytope.DCELPolytope.Frame.FramePolytopeHalfEdge;
 import us.ihmc.geometry.polytope.DCELPolytope.Frame.FramePolytopeVertex;
 
 public class PolytopeVertexTest
