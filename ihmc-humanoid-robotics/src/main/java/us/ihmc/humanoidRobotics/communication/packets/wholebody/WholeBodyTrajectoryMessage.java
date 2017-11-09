@@ -390,6 +390,9 @@ public class WholeBodyTrajectoryMessage extends TrackablePacket<WholeBodyTraject
          return errorMessage;
       }
 
+      if ((errorMessage = checkForRedundancy()) != null)
+         return errorMessage;
+
       if ((errorMessage = validateIfNeeded(leftHandTrajectoryMessage)) != null)
          return errorMessage;
       if ((errorMessage = validateIfNeeded(rightHandTrajectoryMessage)) != null)
@@ -418,6 +421,19 @@ public class WholeBodyTrajectoryMessage extends TrackablePacket<WholeBodyTraject
          errorMessage = message.validateMessage();
 
       return errorMessage;
+   }
+   
+   private String checkForRedundancy()
+   {
+      if (leftArmTrajectoryMessage != null && leftHandTrajectoryMessage != null)
+      {
+         return "Got message with jointspace and taskspace desireds for the left arm/hand.";
+      }
+      if (rightArmTrajectoryMessage != null && rightHandTrajectoryMessage != null)
+      {
+         return "Got message with jointspace and taskspace desireds for the left arm/hand.";
+      }
+      return null;
    }
 
    @Override
