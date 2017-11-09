@@ -137,7 +137,7 @@ public class PlanarRegionConstraintProvider
          activePlanarRegion.setConvexPolygon2d(convexHull);
          activePlanarRegionInControlPlane.setConvexPolygon2d(projectedConvexHull);
 
-         solver.setPlanarRegionConstraint(projectedConvexHull, distanceToPlanarRegionEdgeForNoOverhang.getDoubleValue() - footstepDeadband.getDoubleValue());
+         solver.setPlanarRegionConstraint(projectedConvexHull, distanceToPlanarRegionEdgeForNoOverhang.getDoubleValue()/* - footstepDeadband.getDoubleValue() */);
       }
    }
 
