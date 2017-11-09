@@ -3,7 +3,6 @@ package us.ihmc.graphicsDescription.yoGraphics;
 import java.util.ArrayList;
 import java.util.List;
 
-import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.AffineTransform;
@@ -17,11 +16,13 @@ import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
 import us.ihmc.graphicsDescription.instructions.Graphics3DAddMeshDataInstruction;
 import us.ihmc.robotics.math.frames.YoFrameOrientation;
 import us.ihmc.robotics.math.frames.YoFramePoint;
-import us.ihmc.yoVariables.listener.VariableChangedListener;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoInteger;
 import us.ihmc.yoVariables.variable.YoVariable;
 
+/**
+ * When using this class create and attach a {@code PlaybackListener} to update this object, otherwise the graphics will not be in sync
+ */
 public class YoGraphicPolygon3D extends YoGraphicAbstractShape implements RemoteYoGraphic, GraphicsUpdatable
 {
    private final YoFramePoint[] ccwOrderedPoints;
@@ -71,7 +72,6 @@ public class YoGraphicPolygon3D extends YoGraphicAbstractShape implements Remote
    @Override
    public YoVariable<?>[] getVariables()
    {
-      PrintTools.debug("Getting yo variables");
       YoVariable<?>[] yoVariableList = new YoVariable<?>[3 * ccwOrderedPoints.length + 1 + 6];
       for (int i = 0; i < ccwOrderedPoints.length; i++)
       {
