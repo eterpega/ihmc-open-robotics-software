@@ -18,12 +18,14 @@ import us.ihmc.avatar.collisionAvoidance.FrameConvexPolytopeVisualizer;
 import us.ihmc.avatar.collisionAvoidance.RobotCollisionMeshProvider;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
 import us.ihmc.avatar.jointAnglesWriter.JointAnglesWriter;
+import us.ihmc.commons.Epsilons;
 import us.ihmc.commons.MathTools;
 import us.ihmc.commons.RandomNumbers;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.communication.controllerAPI.CommandInputManager;
 import us.ihmc.communication.controllerAPI.StatusMessageOutputManager;
 import us.ihmc.communication.packets.HumanoidKinematicsToolboxConfigurationMessage;
+import us.ihmc.communication.packets.KinematicsToolboxOutputStatus;
 import us.ihmc.communication.packets.KinematicsToolboxRigidBodyMessage;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
@@ -108,7 +110,9 @@ public abstract class AvatarInverseKinematicsObstacleAvoidanceTest
    private HumanoidKinematicsToolboxController toolbox;
    private CommandInputManager commandInputManager;
    private RobotController controllerWrapper;
-
+   private double desiredSolutionQuality = 2 * Epsilons.ONE_HUNDREDTH;
+   private double desiredCollisionQuality = Epsilons.ONE_THOUSANDTH;
+   
    @Before
    public void setupTest()
    {
@@ -392,6 +396,9 @@ public abstract class AvatarInverseKinematicsObstacleAvoidanceTest
          toolbox.submitObstacleCollisionMesh(obstacleMeshes);
          toolbox.enableCollisionAvoidance(true);
          runControllerToolbox(1000);
+         KinematicsToolboxOutputStatus toolboxSolution = toolbox.getSolution();
+         assertTrue(toolboxSolution.getCollisionQuality() <= desiredCollisionQuality);
+         assertTrue(toolboxSolution.getSolutionQuality() <= desiredSolutionQuality);
       }
    }
 
@@ -452,7 +459,11 @@ public abstract class AvatarInverseKinematicsObstacleAvoidanceTest
          else
          {
             for (int i = 0; i < numberOfTicks; i++)
+            {
                controllerWrapper.doControl();
+               if(toolbox.getSolution().getSolutionQuality() <= desiredSolutionQuality && toolbox.getSolution().getCollisionQuality() <= desiredCollisionQuality)
+                  break;
+            }
          }
       }
       catch (Exception e)
