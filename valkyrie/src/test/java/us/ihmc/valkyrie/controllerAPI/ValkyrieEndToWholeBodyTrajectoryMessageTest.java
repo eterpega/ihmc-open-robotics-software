@@ -64,4 +64,12 @@ public class ValkyrieEndToWholeBodyTrajectoryMessageTest extends EndToEndWholeBo
    {
       super.testSingleWaypointUsingMessageOfMessagesWithDelays();
    }
+
+   @Override
+   @ContinuousIntegrationTest(estimatedDuration = 10.0)
+   @Test
+   public void testArmAndHandMessages() throws Exception
+   {
+      super.testArmAndHandMessages();
+   }
 }

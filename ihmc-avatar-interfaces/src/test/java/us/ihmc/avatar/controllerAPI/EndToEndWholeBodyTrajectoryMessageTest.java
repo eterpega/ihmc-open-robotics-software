@@ -5,10 +5,12 @@ import static org.junit.Assert.assertTrue;
 import java.util.Random;
 
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 
 import us.ihmc.avatar.MultiRobotTestInterface;
 import us.ihmc.avatar.testTools.DRCSimulationTestHelper;
+import us.ihmc.commons.PrintTools;
 import us.ihmc.commons.RandomNumbers;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.euclid.referenceFrame.FrameQuaternion;
@@ -16,6 +18,7 @@ import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.humanoidRobotics.communication.packets.manipulation.ArmTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.HandTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.AutomaticManipulationAbortMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.ChestTrajectoryMessage;
@@ -460,6 +463,30 @@ public abstract class EndToEndWholeBodyTrajectoryMessageTest implements MultiRob
 
       boolean success = drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(0.5);
       assertTrue(success);
+   }
+   
+   public void testArmAndHandMessages() throws Exception
+   {
+      BambooTools.reportTestStartedMessage(simulationTestingParameters.getShowWindows());
+
+      RobotSide robotSide = RobotSide.LEFT;
+      double trajectoryTime = 0.5;
+      HandTrajectoryMessage handTrajectory = new HandTrajectoryMessage(robotSide, trajectoryTime, new Point3D(), new Quaternion(), ReferenceFrame.getWorldFrame());
+      ArmTrajectoryMessage armTrajectory = new ArmTrajectoryMessage(robotSide, trajectoryTime, new double[3]);
+
+      WholeBodyTrajectoryMessage wholeBodyTrajectoryMessage = new WholeBodyTrajectoryMessage();
+      wholeBodyTrajectoryMessage.setArmTrajectoryMessage(armTrajectory);
+      wholeBodyTrajectoryMessage.setHandTrajectoryMessage(handTrajectory);
+
+      String error = wholeBodyTrajectoryMessage.validateMessage();
+      if (error == null)
+      {
+         Assert.fail("Message should not be valid.");
+      }
+      else
+      {
+         PrintTools.info(error);
+      }
    }
 
    @Before
