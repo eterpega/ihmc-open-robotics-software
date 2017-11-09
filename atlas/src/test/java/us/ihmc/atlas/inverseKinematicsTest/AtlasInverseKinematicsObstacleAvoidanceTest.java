@@ -26,7 +26,7 @@ public class AtlasInverseKinematicsObstacleAvoidanceTest extends AvatarInverseKi
    @Override
    public boolean keepSCSUp()
    {
-      return true;
+      return false;
    }
 
    @Override
@@ -74,6 +74,12 @@ public class AtlasInverseKinematicsObstacleAvoidanceTest extends AvatarInverseKi
       super.testInverseKinematics();
    }
 
+   @Test
+   public void testRandomHandPositionsInverseKinematics()
+   {
+      super.testRandomHandPositionsInverseKinematics();
+   }
+   
    @Override
    public DRCRobotModel getRobotModel()
    {

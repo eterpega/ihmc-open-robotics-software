@@ -26,6 +26,7 @@ import us.ihmc.communication.packets.KinematicsToolboxRigidBodyMessage;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.geometry.polytope.ConvexPolytopeConstructor;
 import us.ihmc.geometry.polytope.DCELPolytope.Frame.FrameConvexPolytope;
 import us.ihmc.graphicsDescription.Graphics3DObject;
 import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
@@ -39,6 +40,7 @@ import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotModels.FullRobotModel;
 import us.ihmc.robotModels.FullRobotModelUtils;
 import us.ihmc.robotics.MathTools;
+import us.ihmc.robotics.partNames.ArmJointName;
 import us.ihmc.robotics.robotController.RobotController;
 import us.ihmc.robotics.robotDescription.ConvexShapeDescription;
 import us.ihmc.robotics.robotDescription.JointDescription;
@@ -47,6 +49,7 @@ import us.ihmc.robotics.robotDescription.LinkGraphicsDescription;
 import us.ihmc.robotics.robotDescription.RobotDescription;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.RobotSideTest;
+import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
 import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.robotics.screwTheory.ScrewTools;
@@ -340,7 +343,58 @@ public abstract class AvatarInverseKinematicsObstacleAvoidanceTest
          message.setWeight(20.0);
          commandInputManager.submitMessage(message);
       }
+      RobotConfigurationData robotConfigurationData = extractRobotConfigurationData(controllerRobotModel);
+      toolbox.updateRobotConfigurationData(robotConfigurationData);
       runControllerToolbox(5000);
+   }
+   
+   private SideDependentList<KinematicsToolboxRigidBodyMessage> handMessages = new SideDependentList<>();
+   private List<FrameConvexPolytope> obstacleMeshes = new ArrayList<>();
+   public void testRandomHandPositionsInverseKinematics()
+   {
+      Random random = new Random(2145);
+      for(int i = 0; i < 10; i++)
+      {
+         toolbox.updateCapturabilityBasedStatus(createCapturabilityBasedStatus(true, true));
+         HumanoidKinematicsToolboxConfigurationMessage command = new HumanoidKinematicsToolboxConfigurationMessage();
+         command.setHoldCurrentCenterOfMassXYPosition(true);
+         commandInputManager.submitMessage(command);
+         obstacleMeshes.clear();
+         toolbox.clearObstacleMeshes();
+         handMessages.clear();
+         RobotConfigurationData robotConfigurationData = extractRobotConfigurationData(controllerRobotModel);
+         toolbox.updateRobotConfigurationData(robotConfigurationData);
+         toolbox.enableCollisionAvoidance(false);
+         for (RobotSide side : new RobotSide[]{RobotSide.RIGHT})
+         {
+            randomizeArmJointPositions(random, side, ghostRobotModel);
+            ghostRobotWriter.updateRobotConfigurationBasedOnFullRobotModel();
+            RigidBody hand = ghostRobotModel.getHand(side);
+            FramePoint3D desiredPosition = new FramePoint3D(hand.getBodyFixedFrame());
+            desiredPosition.changeFrame(worldFrame);
+            KinematicsToolboxRigidBodyMessage message = new KinematicsToolboxRigidBodyMessage(hand, desiredPosition);
+            message.setWeight(20.0);
+            handMessages.put(side, message);
+            commandInputManager.submitMessage(message);
+         }
+         runControllerToolbox(1000);
+         toolbox.updateCapturabilityBasedStatus(createCapturabilityBasedStatus(true, true));
+         command = new HumanoidKinematicsToolboxConfigurationMessage();
+         command.setHoldCurrentCenterOfMassXYPosition(true);
+         commandInputManager.submitMessage(command);
+         for (RobotSide side : new RobotSide[]{RobotSide.RIGHT})
+         {
+            RigidBody upperArm = controllerRobotModel.getArmJoint(side, ArmJointName.ELBOW_PITCH).getSuccessor();
+            FramePoint3D obstacleCentroid = new FramePoint3D(upperArm.getBodyFixedFrame());
+            obstacleCentroid.changeFrame(worldFrame);
+            obstacleMeshes.add(ConvexPolytopeConstructor.getFrameSphericalCollisionMeshByProjectingCube(worldFrame, obstacleCentroid.getPoint(), 0.075, 4));
+            commandInputManager.submitMessage(handMessages.get(side));
+         }
+         toolbox.updateRobotConfigurationData(robotConfigurationData);
+         toolbox.submitObstacleCollisionMesh(obstacleMeshes);
+         toolbox.enableCollisionAvoidance(true);
+         runControllerToolbox(1000);
+      }
    }
 
    private void randomizeRobotConfiguration(FullRobotModel robotModel, double percentOfMotionRangeAllowed, Random random)
@@ -389,9 +443,6 @@ public abstract class AvatarInverseKinematicsObstacleAvoidanceTest
 
    private void runControllerToolbox(int numberOfTicks)
    {
-      RobotConfigurationData robotConfigurationData = extractRobotConfigurationData(controllerRobotModel);
-      toolbox.updateRobotConfigurationData(robotConfigurationData);
-
       initializationSucceeded.set(false);
       try
       {

@@ -31,7 +31,14 @@ import us.ihmc.robotics.screwTheory.ScrewTools;
 
 public class RobotCollisionMeshProvider
 {
-   private final boolean debug = false;
+   /**
+    * Debug flag. Setting this to true will enable the debug prints
+    */
+   private static final boolean debug = false;
+
+   /**
+    * Controls the number of segments a curved surface is broken up into. A larger value will represent a smooth surface more accurately
+    */
    private final int defaultCurvedSurfaceDivisions;
 
    public RobotCollisionMeshProvider(int numberOfCurvedSurfaceDivisions)

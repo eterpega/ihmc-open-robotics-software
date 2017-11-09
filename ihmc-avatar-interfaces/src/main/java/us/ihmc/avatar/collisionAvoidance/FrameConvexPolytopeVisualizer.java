@@ -57,7 +57,7 @@ public class FrameConvexPolytopeVisualizer
    private int collisionVectorIndex = 0;
    private int iterationCount = 0;
    private boolean block = false;
-   
+
    public FrameConvexPolytopeVisualizer(int maxNumberOfPolytopes, YoVariableRegistry registry, YoGraphicsListRegistry graphicsListRegistry)
    {
       this.scs = null;
@@ -71,7 +71,7 @@ public class FrameConvexPolytopeVisualizer
       createVizArrays();
       createPolytopeVisualizationElements();
    }
-   
+
    public FrameConvexPolytopeVisualizer(int maxNumberOfPolytopes)
    {
       this(maxNumberOfPolytopes, false);
@@ -109,11 +109,12 @@ public class FrameConvexPolytopeVisualizer
 
    private Color getNextColor()
    {
-      double numberOfDivisionsPerColor = Math.pow(polytopes.length, 1.0/ 3.0);
+      double numberOfDivisionsPerColor = Math.pow(polytopes.length, 1.0 / 3.0);
       double r = MathTools.clamp((numberOfPolytopes % numberOfDivisionsPerColor) / (numberOfDivisionsPerColor - 1), 0.0, 1.0);
       double g = MathTools.clamp(((numberOfPolytopes / numberOfDivisionsPerColor) % numberOfDivisionsPerColor) / (numberOfDivisionsPerColor - 1), 0.0, 1.0);
-      double b = MathTools.clamp(((numberOfPolytopes / numberOfDivisionsPerColor / numberOfDivisionsPerColor) % numberOfDivisionsPerColor) / (numberOfDivisionsPerColor - 1), 0.0, 1.0);
-      return new Color((float)r, (float)g, (float)b);
+      double b = MathTools.clamp(((numberOfPolytopes / numberOfDivisionsPerColor / numberOfDivisionsPerColor) % numberOfDivisionsPerColor)
+            / (numberOfDivisionsPerColor - 1), 0.0, 1.0);
+      return new Color((float) r, (float) g, (float) b);
    }
 
    public void addPolytope(ConvexPolytopeReadOnly polytopeToAdd, Color color)
@@ -126,7 +127,7 @@ public class FrameConvexPolytopeVisualizer
    public void update()
    {
       updatePolytopeVisualization(polytopes);
-      if (scs!= null && keepSCSUp)
+      if (scs != null && keepSCSUp)
       {
          PrintTools.debug("Sleeping forever");
          ThreadTools.sleepForever();
@@ -146,7 +147,7 @@ public class FrameConvexPolytopeVisualizer
       robot.addYoGraphicsListRegistry(graphicsListRegistry);
       SimulationConstructionSetParameters parameters = new SimulationConstructionSetParameters();
       Robot[] robotList;
-      if(robots == null)
+      if (robots == null)
       {
          robotList = new Robot[1];
          robotList[0] = robot;
@@ -167,7 +168,7 @@ public class FrameConvexPolytopeVisualizer
 
    public void tickSCS()
    {
-      if(scs!= null)
+      if (scs != null)
       {
          yoTime.add(1.0);
          scs.tickAndUpdate();
@@ -181,10 +182,10 @@ public class FrameConvexPolytopeVisualizer
    {
       this.collisionVectors.get(collisionVectorIndex++).setStartAndEnd(point1, point2);
    }
-   
+
    public void clearCollisionVectors()
    {
-      for(int i = 0; i < collisionVectorIndex; i++)
+      for (int i = 0; i < collisionVectorIndex; i++)
          this.collisionVectors.get(i).setToNaN();
       collisionVectorIndex = 0;
    }
@@ -192,7 +193,7 @@ public class FrameConvexPolytopeVisualizer
    private YoGraphicLineSegment xVector;
    private YoGraphicLineSegment yVector;
    private YoGraphicLineSegment zVector;
-   
+
    public void createPolytopeVisualizationElements()
    {
       xVector = new YoGraphicLineSegment("xAxis", "Viz", worldFrame, new YoAppearanceRGBColor(Color.PINK, 0.0), registry);
@@ -201,9 +202,9 @@ public class FrameConvexPolytopeVisualizer
       yVector.setDrawArrowhead(true);
       zVector = new YoGraphicLineSegment("zAxis", "Viz", worldFrame, new YoAppearanceRGBColor(Color.PINK, 0.0), registry);
       zVector.setDrawArrowhead(true);
-      graphicsListRegistry.registerYoGraphic("Axis",xVector);
-      graphicsListRegistry.registerYoGraphic("Axis",yVector);
-      graphicsListRegistry.registerYoGraphic("Axis",zVector);
+      graphicsListRegistry.registerYoGraphic("Axis", xVector);
+      graphicsListRegistry.registerYoGraphic("Axis", yVector);
+      graphicsListRegistry.registerYoGraphic("Axis", zVector);
 
       collisionVectors.clear();
       for (int i = 0; i < numberOfCollisionVectors; i++)
@@ -245,7 +246,7 @@ public class FrameConvexPolytopeVisualizer
    {
       int edgeIndex = 0;
       int vertexIndex = 0;
-      for (int j = 0; j < numberOfPolytopes; j++)
+      for (int j = 0; j < numberOfPolytopes && polytopes[j] != null; j++)
       {
          Color color = polytopeColors[j];
          List<? extends PolytopeHalfEdgeReadOnly> edges = polytopes[j].getEdges();
@@ -314,34 +315,38 @@ public class FrameConvexPolytopeVisualizer
    public void updateColor(FrameConvexPolytope polytopeToChange, Color newColor)
    {
       for (int i = 0; i < numberOfPolytopes; i++)
-         if(polytopes[i] == polytopeToChange)
+         if (polytopes[i] == polytopeToChange)
             polytopeColors[i] = newColor;
       updateNonBlocking();
    }
 
    public void removePolytope(ConvexPolytopeReadOnly polytope)
    {
-      for(int i = 0; i < numberOfPolytopes; i++)
+      int i = 0;
+      for (; i < numberOfPolytopes; i++)
       {
-         if(polytopes[i] == polytope)
+         if (polytopes[i] == polytope)
          {
             polytopes[i] = null;
             numberOfPolytopes--;
             break;
          }
       }
+      for (; i < polytopes.length - 1; i++)
+         polytopes[i] = polytopes[i + 1];
+      polytopes[polytopes.length - 1] = null;
       update();
    }
 
    public void update(ConvexPolytopeReadOnly simplex)
    {
-      for(int i = 0; i < numberOfPolytopes; i++)
+      for (int i = 0; i < numberOfPolytopes; i++)
       {
-         if(polytopes[i] == simplex)
+         if (polytopes[i] == simplex)
          {
             //PrintTools.debug("Vertices: " + simplex.getNumberOfVertices());
             updateNonBlocking();
-            if(block && iterationCount++ > 10)
+            if (block && iterationCount++ > 10)
                throw new RuntimeException("This happened");
             return;
          }
@@ -353,26 +358,26 @@ public class FrameConvexPolytopeVisualizer
    private Vector3D xAxis = new Vector3D();
    private Vector3D yAxis = new Vector3D();
    private Vector3D zAxis = new Vector3D();
-   
+
    public void showRigidBodyCollidingPoint(PoseReferenceFrame referenceFrame)
    {
-//      RigidBodyTransform transform = referenceFrame.getTransformToWorldFrame();
-//      origin.setToZero();
-//      origin.applyTransform(transform);
-//      xAxis.set(.1, 0.0, 0.0);
-//      xAxis.applyTransform(transform);
-//      yAxis.set(0.0, .1, 0.0);
-//      yAxis.applyTransform(transform);
-//      zAxis.set(0.0, 0.0, .1);
-//      zAxis.applyTransform(transform);
-//      tempPoint1.set(origin);
-//      tempPoint1.add(xAxis);
-//      xVector.setStartAndEnd(origin, tempPoint1);
-//      tempPoint1.set(origin);
-//      tempPoint1.add(yAxis);
-//      yVector.setStartAndEnd(origin, tempPoint1);
-//      tempPoint1.set(origin);
-//      tempPoint1.add(zAxis);
-//      zVector.setStartAndEnd(origin, tempPoint1);
+      //      RigidBodyTransform transform = referenceFrame.getTransformToWorldFrame();
+      //      origin.setToZero();
+      //      origin.applyTransform(transform);
+      //      xAxis.set(.1, 0.0, 0.0);
+      //      xAxis.applyTransform(transform);
+      //      yAxis.set(0.0, .1, 0.0);
+      //      yAxis.applyTransform(transform);
+      //      zAxis.set(0.0, 0.0, .1);
+      //      zAxis.applyTransform(transform);
+      //      tempPoint1.set(origin);
+      //      tempPoint1.add(xAxis);
+      //      xVector.setStartAndEnd(origin, tempPoint1);
+      //      tempPoint1.set(origin);
+      //      tempPoint1.add(yAxis);
+      //      yVector.setStartAndEnd(origin, tempPoint1);
+      //      tempPoint1.set(origin);
+      //      tempPoint1.add(zAxis);
+      //      zVector.setStartAndEnd(origin, tempPoint1);
    }
 }
