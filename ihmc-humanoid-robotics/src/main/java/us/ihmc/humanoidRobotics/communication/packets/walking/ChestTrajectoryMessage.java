@@ -76,7 +76,8 @@ public class ChestTrajectoryMessage extends AbstractSO3TrajectoryMessage<ChestTr
    /**
     * Use this constructor to build a message with more than one trajectory point.
     * By default this constructor sets the trajectory frame to pelvis z up and the data frame to world
-    * This constructor only allocates memory for the trajectory points, you need to call {@link #setTrajectoryPoint(int, double, Quaternion, Vector3D)} for each trajectory point afterwards.
+    * This constructor only allocates memory for the trajectory points, you need to call {@link #setTrajectoryPoint(int, double, Quaternion, Vector3D, ReferenceFrame)}
+    * for each trajectory point afterwards.
     * Sets the frame to control in to world
     * @param numberOfTrajectoryPoints number of trajectory points that will be sent to the controller.
     */

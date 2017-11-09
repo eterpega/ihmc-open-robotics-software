@@ -5,6 +5,7 @@ import java.util.Random;
 import us.ihmc.communication.packets.Packet;
 import us.ihmc.communication.packets.QueueableMessage;
 import us.ihmc.communication.packets.VisualizablePacket;
+import us.ihmc.communication.ros.generators.RosExportedField;
 import us.ihmc.communication.ros.generators.RosMessagePacket;
 import us.ihmc.humanoidRobotics.communication.packets.FrameBasedMessage;
 import us.ihmc.humanoidRobotics.communication.packets.FrameInformation;
@@ -12,13 +13,15 @@ import us.ihmc.humanoidRobotics.communication.packets.walking.ChestTrajectoryMes
 import us.ihmc.humanoidRobotics.communication.packets.walking.SpineTrajectoryMessage;
 
 @RosMessagePacket(documentation =
-      "This message commands the controller to move the chest in both taskspace amd jointspace to the desired orientation and joint angles while going through the specified trajectory points.",
+      "This message commands the controller to move the chest in both taskspace and jointspace to the desired orientation and joint angles while going through the specified trajectory points.",
                   rosPackage = RosMessagePacket.CORE_IHMC_PACKAGE,
                   topic = "/control/hybrid_chest_trajectory")
 public class ChestHybridJointspaceTaskspaceTrajectoryMessage extends QueueableMessage<ChestHybridJointspaceTaskspaceTrajectoryMessage> implements VisualizablePacket, FrameBasedMessage
 {
-
+   @RosExportedField(documentation = "Taskspace trajectory for the chest")
    public ChestTrajectoryMessage chestTrajectoryMessage;
+
+   @RosExportedField(documentation = "Jointspace trajectory for the spine joints")
    public SpineTrajectoryMessage spineTrajectoryMessage;
 
    /**
@@ -41,7 +44,7 @@ public class ChestHybridJointspaceTaskspaceTrajectoryMessage extends QueueableMe
 
    /**
     * Clone constructor.
-    * @param message to clone.
+    * @param chestHybridJointspaceTaskspaceMessage to clone.
     */
    public ChestHybridJointspaceTaskspaceTrajectoryMessage(ChestHybridJointspaceTaskspaceTrajectoryMessage chestHybridJointspaceTaskspaceMessage)
    {
