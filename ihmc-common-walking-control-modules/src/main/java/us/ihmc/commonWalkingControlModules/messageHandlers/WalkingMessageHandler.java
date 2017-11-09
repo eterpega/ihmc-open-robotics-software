@@ -134,7 +134,7 @@ public class WalkingMessageHandler
 
       momentumTrajectoryHandler = new MomentumTrajectoryHandler(yoTime);
       comTrajectoryHandler = new CenterOfMassTrajectoryHandler(yoTime);
-      planarRegionsListHandler = new PlanarRegionsListHandler(registry);
+      planarRegionsListHandler = new PlanarRegionsListHandler(statusOutputManager, registry);
 
       parentRegistry.addChild(registry);
    }

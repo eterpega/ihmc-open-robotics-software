@@ -43,14 +43,14 @@ public class RequestPlanarRegionsListMessage extends SettablePacket<RequestPlana
       setDestination(other.getDestination());
    }
 
-   public RequestType getRequesType()
+   public RequestType getRequestType()
    {
       return requestType;
    }
 
-   public void setRequesType(RequestType requesType)
+   public void setRequestType(RequestType requestType)
    {
-      this.requestType = requesType;
+      this.requestType = requestType;
    }
 
    public boolean hasBoundingBox()
