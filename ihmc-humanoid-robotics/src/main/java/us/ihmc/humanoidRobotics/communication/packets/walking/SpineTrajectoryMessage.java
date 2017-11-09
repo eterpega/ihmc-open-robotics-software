@@ -3,9 +3,14 @@ package us.ihmc.humanoidRobotics.communication.packets.walking;
 import java.util.Random;
 
 import us.ihmc.communication.packets.Packet;
+import us.ihmc.communication.ros.generators.RosMessagePacket;
 import us.ihmc.humanoidRobotics.communication.packets.AbstractJointspaceTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.OneDoFJointTrajectoryMessage;
 
+@RosMessagePacket(documentation =
+      "This message commands the controller to move the spine joints to the desired joint angles through the specified trajectory.",
+      rosPackage = RosMessagePacket.CORE_IHMC_PACKAGE,
+      topic = "/control/spine_trajectory")
 public class SpineTrajectoryMessage extends AbstractJointspaceTrajectoryMessage<SpineTrajectoryMessage>
 {
    /**
