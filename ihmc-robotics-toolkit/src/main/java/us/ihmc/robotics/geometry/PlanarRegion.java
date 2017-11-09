@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import us.ihmc.commons.MathTools;
+import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.geometry.BoundingBox2D;
 import us.ihmc.euclid.geometry.BoundingBox3D;
 import us.ihmc.euclid.geometry.ConvexPolygon2D;
@@ -22,7 +24,6 @@ import us.ihmc.euclid.tuple3D.interfaces.Point3DBasics;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DBasics;
 import us.ihmc.euclid.tuple4D.Quaternion;
-import us.ihmc.robotics.MathTools;
 import us.ihmc.robotics.random.RandomGeometry;
 
 public class PlanarRegion
@@ -67,6 +68,8 @@ public class PlanarRegion
     */
    public PlanarRegion(RigidBodyTransform transformToWorld, List<ConvexPolygon2D> planarRegionConvexPolygons)
    {
+      PrintTools.warn("This constructor does not set the concave hull.");
+
       fromLocalToWorldTransform.set(transformToWorld);
       fromWorldToLocalTransform.setAndInvert(fromLocalToWorldTransform);
       concaveHullsVertices = new Point2D[0];
@@ -104,11 +107,34 @@ public class PlanarRegion
    {
       fromLocalToWorldTransform.set(transformToWorld);
       fromWorldToLocalTransform.setAndInvert(fromLocalToWorldTransform);
-      concaveHullsVertices = new Point2D[0];
+      concaveHullsVertices = new Point2D[convexPolygon.getNumberOfVertices()];
+      for (int i = 0; i < convexPolygon.getNumberOfVertices(); i++)
+      {
+         concaveHullsVertices[i] = new Point2D(convexPolygon.getVertex(i));
+      }
       convexPolygons = new ArrayList<>();
       convexPolygons.add(convexPolygon);
       updateBoundingBox();
       updateConvexHull();
+   }
+
+   public void set(RigidBodyTransform transformToWorld, List<ConvexPolygon2D> planarRegionConvexPolygons)
+   {
+      this.set(transformToWorld, planarRegionConvexPolygons, NO_REGION_ID);
+   }
+
+   public void set(RigidBodyTransform transformToWorld, List<ConvexPolygon2D> planarRegionConvexPolygons, int newRegionId)
+   {
+      fromLocalToWorldTransform.set(transformToWorld);
+      fromWorldToLocalTransform.setAndInvert(fromLocalToWorldTransform);
+
+      convexPolygons.clear();
+      convexPolygons.addAll(planarRegionConvexPolygons);
+
+      updateBoundingBox();
+      updateConvexHull();
+
+      regionId = newRegionId;
    }
 
    /**
