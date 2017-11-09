@@ -56,6 +56,8 @@ public class TransferToWalkingSingleSupportState extends TransferState
       else
          pelvisOrientationManager.setToHoldCurrentDesiredInSupportFoot(transferToSide);
 
+      walkingMessageHandler.getPlanarRegionsListHandler().requestPlanarReqions();
+
       int stepsToAdd = Math.min(numberOfFootstepsToConsider, walkingMessageHandler.getCurrentNumberOfFootsteps());
       if (stepsToAdd < 1)
       {
