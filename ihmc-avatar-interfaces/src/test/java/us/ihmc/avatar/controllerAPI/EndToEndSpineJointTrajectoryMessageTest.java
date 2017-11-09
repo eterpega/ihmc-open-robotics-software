@@ -17,21 +17,17 @@ import us.ihmc.avatar.testTools.DRCSimulationTestHelper;
 import us.ihmc.commonWalkingControlModules.controlModules.rigidBody.RigidBodyJointControlHelper;
 import us.ihmc.commonWalkingControlModules.controlModules.rigidBody.RigidBodyJointspaceControlState;
 import us.ihmc.commons.RandomNumbers;
+import us.ihmc.communication.packets.ExecutionMode;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tools.EuclidCoreTestTools;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.euclid.tuple4D.Vector4D;
-import us.ihmc.communication.packets.ExecutionMode;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.OneDoFJointTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.ChestTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.SpineTrajectoryMessage;
 import us.ihmc.humanoidRobotics.frames.HumanoidReferenceFrames;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
-import us.ihmc.yoVariables.variable.YoBoolean;
-import us.ihmc.yoVariables.variable.YoDouble;
-import us.ihmc.yoVariables.variable.YoInteger;
-import us.ihmc.yoVariables.variable.YoVariable;
 import us.ihmc.robotics.geometry.FrameOrientation;
 import us.ihmc.robotics.math.QuaternionCalculus;
 import us.ihmc.robotics.math.frames.YoFrameQuaternion;
@@ -46,6 +42,10 @@ import us.ihmc.simulationconstructionset.util.simulationRunner.BlockingSimulatio
 import us.ihmc.simulationconstructionset.util.simulationTesting.SimulationTestingParameters;
 import us.ihmc.tools.MemoryTools;
 import us.ihmc.tools.thread.ThreadTools;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoInteger;
+import us.ihmc.yoVariables.variable.YoVariable;
 
 public abstract class EndToEndSpineJointTrajectoryMessageTest implements MultiRobotTestInterface
 {
@@ -367,7 +367,7 @@ public abstract class EndToEndSpineJointTrajectoryMessageTest implements MultiRo
       return new SpineTrajectoryMessage(trajectoryTime, jointDesireds);
    }
 
-   private double getRandomJointAngleInRange(Random random, OneDoFJoint joint)
+   public static double getRandomJointAngleInRange(Random random, OneDoFJoint joint)
    {
       double jointLimitUpper = joint.getJointLimitUpper();
       double jointLimitLower = joint.getJointLimitLower();
@@ -419,7 +419,7 @@ public abstract class EndToEndSpineJointTrajectoryMessageTest implements MultiRo
       assertDesiredsMatchAfterExecution(message, spineJoints, drcSimulationTestHelper.getSimulationConstructionSet());
    }
 
-   private static void assertDesiredsMatchAfterExecution(SpineTrajectoryMessage message, OneDoFJoint[] spineJoints, SimulationConstructionSet scs)
+   public static void assertDesiredsMatchAfterExecution(SpineTrajectoryMessage message, OneDoFJoint[] spineJoints, SimulationConstructionSet scs)
    {
       for (int jointIdx = 0; jointIdx < spineJoints.length; jointIdx++)
       {

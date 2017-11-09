@@ -16,6 +16,7 @@ import us.ihmc.humanoidRobotics.communication.packets.manipulation.HandTrajector
 import us.ihmc.humanoidRobotics.communication.packets.walking.ChestTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.PelvisTrajectoryMessage;
+import us.ihmc.humanoidRobotics.communication.packets.walking.SpineTrajectoryMessage;
 import us.ihmc.robotics.robotSide.RobotSide;
 
 @RosMessagePacket(documentation = "Send whole body trajectories to the robot. A best effort is made to execute the trajectory while balance is kept.\n"
@@ -25,18 +26,20 @@ import us.ihmc.robotics.robotSide.RobotSide;
       topic = "/control/whole_body_trajectory")
 public class WholeBodyTrajectoryMessage extends TrackablePacket<WholeBodyTrajectoryMessage> implements VisualizablePacket, MultiplePacketHolder
 {
-   @RosExportedField(documentation = "Trajectory for the left hand")
+   @RosExportedField(documentation = "Trajectory for the left hand. Note, that it is not possible to set this when also setting a leftArmTrajectoryMessage.")
    public HandTrajectoryMessage leftHandTrajectoryMessage;
-   @RosExportedField(documentation = "Trajectory for the right hand")
+   @RosExportedField(documentation = "Trajectory for the right hand. Note, that it is not possible to set this when also setting a rightArmTrajectoryMessage.")
    public HandTrajectoryMessage rightHandTrajectoryMessage;
 
-   @RosExportedField(documentation = "Trajectory for the left arm joints")
+   @RosExportedField(documentation = "Trajectory for the left arm joints. Note, that it is not possible to set this when also setting a leftHandTrajectoryMessage.")
    public ArmTrajectoryMessage leftArmTrajectoryMessage;
-   @RosExportedField(documentation = "Trajectory for the right arm joints")
+   @RosExportedField(documentation = "Trajectory for the right arm joints. Note, that it is not possible to set this when also setting a rightHandTrajectoryMessage.")
    public ArmTrajectoryMessage rightArmTrajectoryMessage;
 
-   @RosExportedField(documentation = "Trajectory for the chest")
+   @RosExportedField(documentation = "Trajectory for the chest. Note, that it is not possible to set this when also setting a spineTrajectoryMessage.")
    public ChestTrajectoryMessage chestTrajectoryMessage;
+   @RosExportedField(documentation = "Trajectory for the spine. Note, that it is not possible to set this when also setting a chestTrajectoryMessage.")
+   public SpineTrajectoryMessage spineTrajectoryMessage;
 
    @RosExportedField(documentation = "Trajectory for the pelvis")
    public PelvisTrajectoryMessage pelvisTrajectoryMessage;
@@ -79,6 +82,7 @@ public class WholeBodyTrajectoryMessage extends TrackablePacket<WholeBodyTraject
       rightFootTrajectoryMessage.robotSide = RobotSide.RIGHT;
 
       chestTrajectoryMessage = new ChestTrajectoryMessage(random);
+      spineTrajectoryMessage = new SpineTrajectoryMessage(random);
       pelvisTrajectoryMessage = new PelvisTrajectoryMessage(random);
    }
 
@@ -111,6 +115,11 @@ public class WholeBodyTrajectoryMessage extends TrackablePacket<WholeBodyTraject
    public ChestTrajectoryMessage getChestTrajectoryMessage()
    {
       return chestTrajectoryMessage;
+   }
+
+   public SpineTrajectoryMessage getSpineTrajectoryMessage()
+   {
+      return spineTrajectoryMessage;
    }
 
    public PelvisTrajectoryMessage getPelvisTrajectoryMessage()
@@ -173,6 +182,14 @@ public class WholeBodyTrajectoryMessage extends TrackablePacket<WholeBodyTraject
          chestTrajectoryMessage.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
 
       this.chestTrajectoryMessage = chestTrajectoryMessage;
+   }
+
+   public void setSpineTrajectoryMessage(SpineTrajectoryMessage spineTrajectoryMessage)
+   {
+      if (spineTrajectoryMessage.getUniqueId() == INVALID_MESSAGE_ID)
+         spineTrajectoryMessage.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
+
+      this.spineTrajectoryMessage = spineTrajectoryMessage;
    }
 
    public void setPelvisTrajectoryMessage(PelvisTrajectoryMessage pelvisTrajectoryMessage)
@@ -276,6 +293,11 @@ public class WholeBodyTrajectoryMessage extends TrackablePacket<WholeBodyTraject
       chestTrajectoryMessage = null;
    }
 
+   public void clearSpineTrajectoryMessage()
+   {
+      spineTrajectoryMessage = null;
+   }
+
    public void clearPelvisTrajectoryMessage()
    {
       pelvisTrajectoryMessage = null;
@@ -333,6 +355,8 @@ public class WholeBodyTrajectoryMessage extends TrackablePacket<WholeBodyTraject
          return false;
       if (chestTrajectoryMessage == null && other.chestTrajectoryMessage != null)
          return false;
+      if (spineTrajectoryMessage == null && other.spineTrajectoryMessage != null)
+         return false;
       if (pelvisTrajectoryMessage == null && other.pelvisTrajectoryMessage != null)
          return false;
       if (leftFootTrajectoryMessage == null && other.leftFootTrajectoryMessage != null)
@@ -350,6 +374,8 @@ public class WholeBodyTrajectoryMessage extends TrackablePacket<WholeBodyTraject
          return false;
       if (chestTrajectoryMessage != null && other.chestTrajectoryMessage == null)
          return false;
+      if (spineTrajectoryMessage != null && other.spineTrajectoryMessage == null)
+         return false;
       if (pelvisTrajectoryMessage != null && other.pelvisTrajectoryMessage == null)
          return false;
       if (leftFootTrajectoryMessage != null && other.leftFootTrajectoryMessage == null)
@@ -366,6 +392,8 @@ public class WholeBodyTrajectoryMessage extends TrackablePacket<WholeBodyTraject
       if (!rightArmTrajectoryMessage.epsilonEquals(other.rightArmTrajectoryMessage, epsilon))
          return false;
       if (!chestTrajectoryMessage.epsilonEquals(other.chestTrajectoryMessage, epsilon))
+         return false;
+      if (!spineTrajectoryMessage.epsilonEquals(other.spineTrajectoryMessage, epsilon))
          return false;
       if (!pelvisTrajectoryMessage.epsilonEquals(other.pelvisTrajectoryMessage, epsilon))
          return false;
@@ -403,6 +431,8 @@ public class WholeBodyTrajectoryMessage extends TrackablePacket<WholeBodyTraject
          return errorMessage;
       if ((errorMessage = validateIfNeeded(chestTrajectoryMessage)) != null)
          return errorMessage;
+      if ((errorMessage = validateIfNeeded(spineTrajectoryMessage)) != null)
+         return errorMessage;
       if ((errorMessage = validateIfNeeded(pelvisTrajectoryMessage)) != null)
          return errorMessage;
       if ((errorMessage = validateIfNeeded(leftFootTrajectoryMessage)) != null)
@@ -431,7 +461,11 @@ public class WholeBodyTrajectoryMessage extends TrackablePacket<WholeBodyTraject
       }
       if (rightArmTrajectoryMessage != null && rightHandTrajectoryMessage != null)
       {
-         return "Got message with jointspace and taskspace desireds for the left arm/hand.";
+         return "Got message with jointspace and taskspace desireds for the right arm/hand.";
+      }
+      if (spineTrajectoryMessage != null && chestTrajectoryMessage != null)
+      {
+         return "Got message with jointspace and taskspace desireds for the spine/chest.";
       }
       return null;
    }
@@ -450,6 +484,8 @@ public class WholeBodyTrajectoryMessage extends TrackablePacket<WholeBodyTraject
          wholeBodyPackets.add(rightArmTrajectoryMessage);
       if (chestTrajectoryMessage != null)
          wholeBodyPackets.add(chestTrajectoryMessage);
+      if (spineTrajectoryMessage != null)
+         wholeBodyPackets.add(spineTrajectoryMessage);
       if (pelvisTrajectoryMessage != null)
          wholeBodyPackets.add(pelvisTrajectoryMessage);
       if (leftFootTrajectoryMessage != null)

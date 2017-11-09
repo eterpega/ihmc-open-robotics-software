@@ -22,6 +22,7 @@ import us.ihmc.humanoidRobotics.communication.packets.walking.AutomaticManipulat
 import us.ihmc.humanoidRobotics.communication.packets.walking.ChestTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.PelvisTrajectoryMessage;
+import us.ihmc.humanoidRobotics.communication.packets.walking.SpineTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.wholebody.MessageOfMessages;
 import us.ihmc.humanoidRobotics.communication.packets.wholebody.WholeBodyTrajectoryMessage;
 import us.ihmc.humanoidRobotics.frames.HumanoidReferenceFrames;
@@ -490,6 +491,67 @@ public abstract class EndToEndWholeBodyTrajectoryMessageTest implements MultiRob
       {
          PrintTools.info(error);
       }
+   }
+
+   public void testSpineAndChestMessages() throws Exception
+   {
+      BambooTools.reportTestStartedMessage(simulationTestingParameters.getShowWindows());
+
+      double trajectoryTime = 0.5;
+      ChestTrajectoryMessage chestTrajectory = new ChestTrajectoryMessage(trajectoryTime, new Quaternion(), ReferenceFrame.getWorldFrame());
+      SpineTrajectoryMessage spineTrajectory = new SpineTrajectoryMessage(trajectoryTime, new double[3]);
+
+      WholeBodyTrajectoryMessage wholeBodyTrajectoryMessage = new WholeBodyTrajectoryMessage();
+      wholeBodyTrajectoryMessage.setSpineTrajectoryMessage(spineTrajectory);
+      wholeBodyTrajectoryMessage.setChestTrajectoryMessage(chestTrajectory);
+
+      String error = wholeBodyTrajectoryMessage.validateMessage();
+      if (error == null)
+      {
+         Assert.fail("Message should not be valid.");
+      }
+      else
+      {
+         PrintTools.info(error);
+      }
+   }
+
+   public void testSpineMessage() throws Exception
+   {
+      BambooTools.reportTestStartedMessage(simulationTestingParameters.getShowWindows());
+
+      drcSimulationTestHelper = new DRCSimulationTestHelper(simulationTestingParameters, getRobotModel());
+      drcSimulationTestHelper.createSimulation(getClass().getSimpleName());
+
+      ThreadTools.sleep(1000);
+      assertTrue(drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(0.25));
+
+      Random random = new Random(391293L);
+      double trajectoryTime = 1.0;
+
+      FullHumanoidRobotModel fullRobotModel = drcSimulationTestHelper.getControllerFullRobotModel();
+      RigidBody pelvis = fullRobotModel.getPelvis();
+      RigidBody chest = fullRobotModel.getChest();
+      OneDoFJoint[] spineJoints = ScrewTools.createOneDoFJointPath(pelvis, chest);
+      int numberOfJoints = spineJoints.length;
+
+      double[] jointDesireds = new double[numberOfJoints];
+      for (int jointIdx = 0; jointIdx < numberOfJoints; jointIdx++)
+      {
+         OneDoFJoint joint = spineJoints[jointIdx];
+         double desired = EndToEndSpineJointTrajectoryMessageTest.getRandomJointAngleInRange(random, joint);
+         jointDesireds[jointIdx] = desired;
+      }
+      SpineTrajectoryMessage spineMessage = new SpineTrajectoryMessage(trajectoryTime, jointDesireds);
+
+      WholeBodyTrajectoryMessage wholeBodyTrajectoryMessage = new WholeBodyTrajectoryMessage();
+      wholeBodyTrajectoryMessage.setSpineTrajectoryMessage(spineMessage);
+
+      drcSimulationTestHelper.send(wholeBodyTrajectoryMessage);
+      double controllerDT = getRobotModel().getControllerDT();
+      assertTrue(drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(trajectoryTime + 5.0 * controllerDT));
+      SimulationConstructionSet simulationConstructionSet = drcSimulationTestHelper.getSimulationConstructionSet();
+      EndToEndSpineJointTrajectoryMessageTest.assertDesiredsMatchAfterExecution(spineMessage, spineJoints, simulationConstructionSet);
    }
 
    @Before

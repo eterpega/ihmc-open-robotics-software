@@ -11,6 +11,7 @@ import us.ihmc.humanoidRobotics.communication.packets.manipulation.HandTrajector
 import us.ihmc.humanoidRobotics.communication.packets.walking.ChestTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.PelvisTrajectoryMessage;
+import us.ihmc.humanoidRobotics.communication.packets.walking.SpineTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.wholebody.WholeBodyTrajectoryMessage;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
@@ -20,6 +21,7 @@ public class WholeBodyTrajectoryCommand implements MultipleCommandHolder<WholeBo
    private final SideDependentList<HandTrajectoryCommand> handTrajectoryControllerCommands = new SideDependentList<>();
    private final SideDependentList<ArmTrajectoryCommand> armTrajectoryControllerCommands = new SideDependentList<>();
    private final ChestTrajectoryCommand chestTrajectoryControllerCommand = new ChestTrajectoryCommand();
+   private final SpineTrajectoryCommand spineTrajectoryControllerCommand = new SpineTrajectoryCommand();
    private final PelvisTrajectoryCommand pelvisTrajectoryControllerCommand = new PelvisTrajectoryCommand();
    private final SideDependentList<FootTrajectoryCommand> footTrajectoryControllerCommands = new SideDependentList<>();
 
@@ -48,6 +50,7 @@ public class WholeBodyTrajectoryCommand implements MultipleCommandHolder<WholeBo
       }
 
       allControllerCommands.add(chestTrajectoryControllerCommand);
+      allControllerCommands.add(spineTrajectoryControllerCommand);
       allControllerCommands.add(pelvisTrajectoryControllerCommand);
    }
 
@@ -61,6 +64,7 @@ public class WholeBodyTrajectoryCommand implements MultipleCommandHolder<WholeBo
          footTrajectoryControllerCommands.get(robotSide).clear();
       }
       chestTrajectoryControllerCommand.clear();
+      spineTrajectoryControllerCommand.clear();
       pelvisTrajectoryControllerCommand.clear();
    }
 
@@ -75,6 +79,7 @@ public class WholeBodyTrajectoryCommand implements MultipleCommandHolder<WholeBo
          footTrajectoryControllerCommands.get(robotSide).set(other.footTrajectoryControllerCommands.get(robotSide));
       }
       chestTrajectoryControllerCommand.set(other.chestTrajectoryControllerCommand);
+      spineTrajectoryControllerCommand.set(other.spineTrajectoryControllerCommand);
       pelvisTrajectoryControllerCommand.set(other.pelvisTrajectoryControllerCommand);
    }
 
@@ -100,6 +105,9 @@ public class WholeBodyTrajectoryCommand implements MultipleCommandHolder<WholeBo
       ChestTrajectoryMessage chestTrajectoryMessage = message.getChestTrajectoryMessage();
       if (chestTrajectoryMessage.getUniqueId() != Packet.INVALID_MESSAGE_ID)
          chestTrajectoryControllerCommand.set(chestTrajectoryMessage);
+      SpineTrajectoryMessage spineTrajectoryMessage = message.getSpineTrajectoryMessage();
+      if (spineTrajectoryMessage.getUniqueId() != Packet.INVALID_MESSAGE_ID)
+         spineTrajectoryControllerCommand.set(spineTrajectoryMessage);
       PelvisTrajectoryMessage pelvisTrajectoryMessage = message.getPelvisTrajectoryMessage();
       if (pelvisTrajectoryMessage.getUniqueId() != Packet.INVALID_MESSAGE_ID)
          pelvisTrajectoryControllerCommand.set(pelvisTrajectoryMessage);
