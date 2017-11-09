@@ -71,7 +71,7 @@ import us.ihmc.simulationconstructionset.util.ground.TerrainObject3D;
 import us.ihmc.simulationconstructionset.util.simulationRunner.BlockingSimulationRunner.SimulationExceededMaximumTimeException;
 import us.ihmc.simulationconstructionset.util.simulationTesting.SimulationTestingParameters;
 import us.ihmc.tools.MemoryTools;
-import us.ihmc.tools.thread.ThreadTools;
+import us.ihmc.commons.thread.ThreadTools;
 
 public abstract class WholeBodyPoseValidityTesterTest implements MultiRobotTestInterface
 {
@@ -431,7 +431,7 @@ public abstract class WholeBodyPoseValidityTesterTest implements MultiRobotTestI
       PrintTools.info("behavior Out " );      
    }
    
-   @Test(timeout = 200000)
+   @Test(timeout = 300000)
    public void cleaningMotionStateMachineBehaviorTest() throws SimulationExceededMaximumTimeException, IOException
    {
       if(isKinematicsToolboxVisualizerEnabled)
@@ -452,7 +452,7 @@ public abstract class WholeBodyPoseValidityTesterTest implements MultiRobotTestI
       
       drcBehaviorTestHelper.dispatchBehavior(cleaningStateMachineBehavior);
       
-      Assert.assertTrue(drcBehaviorTestHelper.simulateAndBlockAndCatchExceptions(150.0));
+      Assert.assertTrue(drcBehaviorTestHelper.simulateAndBlockAndCatchExceptions(40));
       
       PrintTools.info("behavior Out " );      
    }

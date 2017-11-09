@@ -273,7 +273,15 @@ public class YoGraphicVector extends YoGraphic implements RemoteYoGraphic, Graph
    public Artifact createArtifact()
    {
       MutableColor color3f = appearance.getColor();
-      return new YoArtifactLineSegment2d(getName(), new YoFrameLineSegment2d(baseX, baseY, x, y, ReferenceFrame.getWorldFrame()), color3f.get());
+      YoDouble endPointX = new YoDouble(getName() + "ArtifactEndPointX", baseX.getYoVariableRegistry());
+      YoDouble endPointY = new YoDouble(getName() + "ArtifactEndPointY", baseY.getYoVariableRegistry());
+
+      baseX.addVariableChangedListener(v -> endPointX.set(baseX.getDoubleValue() + x.getDoubleValue()));
+      baseY.addVariableChangedListener(v -> endPointY.set(baseY.getDoubleValue() + y.getDoubleValue()));
+      x.addVariableChangedListener(v -> endPointX.set(baseX.getDoubleValue() + x.getDoubleValue()));
+      y.addVariableChangedListener(v -> endPointY.set(baseY.getDoubleValue() + y.getDoubleValue()));
+
+      return new YoArtifactLineSegment2d(getName(), new YoFrameLineSegment2d(baseX, baseY, endPointX, endPointY, ReferenceFrame.getWorldFrame()), color3f.get());
    }
 
    @Override
