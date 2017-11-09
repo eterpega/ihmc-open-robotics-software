@@ -23,7 +23,8 @@ public class KinematicsToolboxOutputStatus extends SettablePacket<KinematicsTool
 
    /** Below 5.0e-3 seems to represent a good solution. */
    public double solutionQuality = Double.NaN;
-
+   public double collisionQuality = Double.NaN;
+   
    public KinematicsToolboxOutputStatus(Random random)
    {
       jointNameHash = random.nextInt(10000);
@@ -89,6 +90,7 @@ public class KinematicsToolboxOutputStatus extends SettablePacket<KinematicsTool
       uniqueId = other.uniqueId;
       destination = other.destination;
       solutionQuality = other.solutionQuality;
+      collisionQuality = other.collisionQuality;
    }
 
    public void getDesiredJointState(FloatingInverseDynamicsJoint rootJointToUpdate, OneDoFJoint[] jointsToUpdate)
@@ -143,6 +145,11 @@ public class KinematicsToolboxOutputStatus extends SettablePacket<KinematicsTool
       this.solutionQuality = solutionQuality;
    }
 
+   public void setCollisionQuality(double collisionQuality)
+   {
+      this.collisionQuality = collisionQuality;
+   }
+
    public float[] getJointAngles()
    {
       return desiredJointAngles;
@@ -161,6 +168,11 @@ public class KinematicsToolboxOutputStatus extends SettablePacket<KinematicsTool
    public double getSolutionQuality()
    {
       return solutionQuality;
+   }
+   
+   public double getCollisionQuality()
+   {
+      return collisionQuality;
    }
 
    public static KinematicsToolboxOutputStatus interpolateOutputStatus(KinematicsToolboxOutputStatus outputStatusOne,
