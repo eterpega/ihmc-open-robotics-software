@@ -620,7 +620,7 @@ public class ConvexPolytopeTest
       ExtendedConvexPolytope polytope = null;
       if (debug)
       {
-         visualizationHelper = new PolytopeVisualizationHelper("AtlasRobotMeshTest", 1, 50, 500, 0);
+         visualizationHelper = new PolytopeVisualizationHelper("AtlasRobotMeshTest", 1, 50, 500, 15);
          polytopeVisualizer = visualizationHelper.getNextVisualizer();
          polytope = new ExtendedConvexPolytope(polytopeVisualizer);
       }
@@ -635,7 +635,7 @@ public class ConvexPolytopeTest
          {
             polytopeVisualizer.clearHighlightedEdge();
             visualizationHelper.clearAdditionalEdge();
-            //PrintTools.debug("Adding point " + i + ":, " + pointList.get(i).getX() + " ,  " + pointList.get(i).getY() + " ,  " + pointList.get(i).getZ());
+            PrintTools.debug("Adding point " + i + ":, " + pointList.get(i).getX() + " ,  " + pointList.get(i).getY() + " ,  " + pointList.get(i).getZ());
          }
          polytope.addVertex(pointList.get(i), EPSILON);
          if (debug)
@@ -645,8 +645,12 @@ public class ConvexPolytopeTest
          }
          if(debug)
          {
-            if(checkPolytopeConsistencySoft(polytope) != null)
+            PolytopeHalfEdgeReadOnly invalidEdge = checkPolytopeConsistencySoft(polytope);
+            if(invalidEdge != null)
+            {
+               //visualizationHelper.highlightEdge(invalidEdge.getTwinHalfEdge());
                break;
+            }
          }
          else
             checkPolytopeConsistency(polytope);
@@ -655,7 +659,7 @@ public class ConvexPolytopeTest
          visualizationHelper.keepSCSUp();
    }
 
-   @Test
+//   @Test
    public void testRobotModelTorsoMeshes()
    {
       PolytopeVisualizationHelper visualizationHelper = new PolytopeVisualizationHelper("AtlasRobotMeshTest", 1, 1000, 5000, 15);
@@ -755,6 +759,7 @@ public class ConvexPolytopeTest
       for (int j = 0; j < numberOfFaces; j++)
       {
          ConvexPolytopeFaceReadOnly face = polytope.getFace(j);
+         assertTrue(face.getNumberOfEdges() > 0);
          for (int i = 0; i < face.getNumberOfEdges(); i++)
          {
             assertTrue("Null twin edge for edge: " + face.getEdge(i).toString() + " on face: " + face.toString(), face.getEdge(i).getTwinHalfEdge() != null);
@@ -793,6 +798,8 @@ public class ConvexPolytopeTest
       for (int j = 0; j < numberOfFaces; j++)
       {
          ConvexPolytopeFaceReadOnly face = polytope.getFace(j);
+         if(face.getNumberOfEdges() == 0)
+            return null;
          for (int i = 0; i < face.getNumberOfEdges(); i++)
          {
             if (face.getEdge(i).getTwinHalfEdge() == null)
@@ -802,7 +809,7 @@ public class ConvexPolytopeTest
             }
             if (face.getEdge(i).getTwinHalfEdge().getOriginVertex() != face.getEdge(i).getDestinationVertex())
             {
-               PrintTools.error("Twin edge: " + face.getEdge(i).getTwinHalfEdge().toString() + " mismatch for edge: " + face.getEdge(i).toString()
+               PrintTools.error("Twin edge: " + face.getEdge(i).getTwinHalfEdge().toString() + "\n mismatch for edge: " + face.getEdge(i).toString()
                      + " on face: " + face.toString());
                return face.getEdge(i);
             }

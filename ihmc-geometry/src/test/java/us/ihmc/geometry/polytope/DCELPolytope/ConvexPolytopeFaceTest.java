@@ -1,4 +1,4 @@
-package us.ihmc.geometry.polytope;
+package us.ihmc.geometry.polytope.DCELPolytope;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -10,9 +10,6 @@ import org.junit.Test;
 
 import us.ihmc.commons.Epsilons;
 import us.ihmc.commons.PrintTools;
-import us.ihmc.geometry.polytope.DCELPolytope.ConvexPolytopeFace;
-import us.ihmc.geometry.polytope.DCELPolytope.ExtendedPolytopeVertex;
-import us.ihmc.geometry.polytope.DCELPolytope.PolytopeHalfEdge;
 
 public class ConvexPolytopeFaceTest
 {
@@ -225,7 +222,7 @@ public class ConvexPolytopeFaceTest
       assertTrue(visibleEdgeList.get(1) == halfEdge1);
       assertTrue(visibleEdgeList.get(2) == halfEdge2);
    }
-   
+
    @Test
    public void testRepeatedPointAddition()
    {
@@ -238,5 +235,30 @@ public class ConvexPolytopeFaceTest
       face.addVertex(vertex3, epsilon);
       assertTrue("Got: " + face.getNumberOfEdges() + ", should have been 2", face.getNumberOfEdges() == 2);
    }
-   
+
+   @Test
+   public void testAdditionPrecision()
+   {
+      ConvexPolytopeFace face = new ConvexPolytopeFace();
+      face.addVertex(new ExtendedPolytopeVertex(0.0001111, 0.0002222, 0.0003333), epsilon);
+      face.addVertex(new ExtendedPolytopeVertex(1.0001111, 0.0002222, 0.0003333), epsilon);
+      face.addVertex(new ExtendedPolytopeVertex(1.0001111, 1.0002222, 0.0003333), epsilon);
+      face.addVertex(new ExtendedPolytopeVertex(0.0001111, 1.0002222, 0.0003333), epsilon);
+      face.addVertex(new ExtendedPolytopeVertex(1.0001111, 0.0002222, 0.0003333), epsilon);
+      assertTrue(face.toString(), face.getNumberOfEdges() == 4);
+   }
+
+   @Test
+   public void testAFailingCase()
+   {
+      ConvexPolytopeFace face = new ConvexPolytopeFace();
+
+      face.addVertex(new ExtendedPolytopeVertex( -0.15000000000000002, 0.04200000000000001, 0.11500000000000002), epsilon);
+      face.addVertex(new ExtendedPolytopeVertex( -0.15000000000000002, 0.07500000000000001, -0.12000000000000002), epsilon);
+      face.addVertex(new ExtendedPolytopeVertex( -0.15000000000000002, -0.07500000000000001, -0.12000000000000002), epsilon);
+      face.addVertex(new ExtendedPolytopeVertex( -0.15000000000000002, -0.04200000000000001, 0.11500000000000002), epsilon);
+      face.addVertex(new ExtendedPolytopeVertex( -0.15000000000000002, 0.07500000000000001, -0.12000000000000002), epsilon);
+      assertTrue(face.toString(), face.getNumberOfEdges() == 4);
+   }
+
 }
