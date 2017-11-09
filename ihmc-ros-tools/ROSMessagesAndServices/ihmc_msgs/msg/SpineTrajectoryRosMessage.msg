@@ -1,12 +1,9 @@
-## ChestHybridJointspaceTaskspaceTrajectoryRosMessage
-# This message commands the controller to move the chest in both taskspace and jointspace to the
-# desired orientation and joint angles while going through the specified trajectory points.
+## SpineTrajectoryRosMessage
+# This message commands the controller to move the spine joints to the desired joint angles through
+# the specified trajectory.
 
-# Taskspace trajectory for the chest
-ihmc_msgs/ChestTrajectoryRosMessage chest_trajectory_message
-
-# Jointspace trajectory for the spine joints
-ihmc_msgs/SpineTrajectoryRosMessage spine_trajectory_message
+# List of points in the trajectory.
+ihmc_msgs/OneDoFJointTrajectoryRosMessage[] joint_trajectory_messages
 
 # When OVERRIDE is chosen:  - The time of the first trajectory point can be zero, in which case the
 # controller will start directly at the first trajectory point. Otherwise the controller will prepend
