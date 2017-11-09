@@ -66,10 +66,26 @@ public class ValkyrieEndToWholeBodyTrajectoryMessageTest extends EndToEndWholeBo
    }
 
    @Override
-   @ContinuousIntegrationTest(estimatedDuration = 10.0)
+   @ContinuousIntegrationTest(estimatedDuration = 1.0)
    @Test
    public void testArmAndHandMessages() throws Exception
    {
       super.testArmAndHandMessages();
+   }
+
+   @Override
+   @ContinuousIntegrationTest(estimatedDuration = 1.0)
+   @Test
+   public void testSpineAndChestMessages() throws Exception
+   {
+      super.testSpineAndChestMessages();
+   }
+
+   @Override
+   @ContinuousIntegrationTest(estimatedDuration = 1.0)
+   @Test
+   public void testSpineMessage() throws Exception
+   {
+      super.testSpineMessage();
    }
 }
