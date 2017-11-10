@@ -52,11 +52,6 @@ public class CollisionAvoidanceCommand implements InverseKinematicsCommand<Colli
       return joints;
    }
 
-   public boolean getIsEqualityConstraint()
-   {
-      return false;
-   }
-
    public int getNumberOfJoints()
    {
       return joints.length;
@@ -153,5 +148,10 @@ public class CollisionAvoidanceCommand implements InverseKinematicsCommand<Colli
       //PrintTools.debug("Task Jacobian " + jacobian.toString() + " Task Objective: " + objective.toString());
       objective.set(taskSize, 0, taskObjective);
       taskSize++;
+   }
+
+   public ConstraintType getConstraintType()
+   {
+      return ConstraintType.INEQUALITY;
    }
 }

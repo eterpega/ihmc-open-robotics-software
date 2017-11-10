@@ -2,16 +2,19 @@ package us.ihmc.commonWalkingControlModules.momentumBasedController.optimization
 
 import org.ejml.data.DenseMatrix64F;
 
+import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics.ConstraintType;
+
+
 public class MotionQPInput
 {
+   
    public final DenseMatrix64F taskJacobian;
    public final DenseMatrix64F taskObjective;
    public final DenseMatrix64F taskWeightMatrix;
    private double taskWeightScalar;
    private boolean useWeightScalar = false;
-   private boolean isMotionConstraint = false;
-   private boolean isEqualityConstraint = true;
    private final int numberOfDoFs;
+   private ConstraintType constraintType = ConstraintType.OBJECTIVE;
 
    /**
     * <p>
@@ -55,16 +58,6 @@ public class MotionQPInput
       this.taskWeightMatrix.set(taskWeightMatrix);
    }
 
-   public void setIsMotionConstraint(boolean isMotionConstraint)
-   {
-      this.isMotionConstraint = isMotionConstraint;
-   }
-   
-   public void setIsEqualityConstraint(boolean isEqualityConstraint)
-   {
-      this.isEqualityConstraint = isEqualityConstraint;
-   }
-
    public void setUseWeightScalar(boolean useWeightScalar)
    {
       this.useWeightScalar = useWeightScalar;
@@ -87,26 +80,31 @@ public class MotionQPInput
 
    public boolean isMotionConstraint()
    {
-      return isMotionConstraint;
+      return constraintType.isHardConstraint();
    }
 
    public boolean isEqualityConstraint()
    {
-      return isEqualityConstraint;
+      return constraintType.isEqualityConstraint();
    }
-   
+
    @Override
    public String toString()
    {
       String ret = getClass().getSimpleName();
       ret += "Jacobian:\n" + taskJacobian;
       ret += "Objective:\n" + taskObjective;
-      if (isMotionConstraint)
-         ret += "Motion constraint.";
+      if (constraintType.isHardConstraint())
+         ret += constraintType.toString();
       else if (useWeightScalar)
          ret += "Weight: " + taskWeightScalar;
       else
          ret += "Weight:\n" + taskWeightMatrix;
       return ret;
+   }
+
+   public void setConstraintType(ConstraintType constraintType)
+   {
+      this.constraintType = constraintType;
    }
 }

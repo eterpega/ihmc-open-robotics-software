@@ -133,7 +133,7 @@ public class MotionQPInputCalculator
 
       privilegedConfigurationHandler.computePrivilegedJointAccelerations();
 
-      motionQPInputToPack.setIsMotionConstraint(false);
+      motionQPInputToPack.setConstraintType(ConstraintType.OBJECTIVE);
       motionQPInputToPack.setUseWeightScalar(false);
 
       nullspaceCalculator.setPseudoInverseAlpha(nullspaceProjectionAlpha.getDoubleValue());
@@ -169,7 +169,7 @@ public class MotionQPInputCalculator
 
       privilegedConfigurationHandler.computePrivilegedJointVelocities();
 
-      motionQPInputToPack.setIsMotionConstraint(false);
+      motionQPInputToPack.setConstraintType(ConstraintType.OBJECTIVE);
       motionQPInputToPack.setUseWeightScalar(false);
 
       DenseMatrix64F selectionMatrix = privilegedConfigurationHandler.getSelectionMatrix();
@@ -219,7 +219,7 @@ public class MotionQPInputCalculator
          return false;
 
       motionQPInputToPack.reshape(taskSize);
-      motionQPInputToPack.setIsMotionConstraint(commandToConvert.isHardConstraint());
+      motionQPInputToPack.setConstraintType(commandToConvert.isHardConstraint() ? ConstraintType.EQUALITY : ConstraintType.OBJECTIVE);
       // If the task is setup as a hard constraint, there is no need for a weight matrix.
       if (!commandToConvert.isHardConstraint())
       {
@@ -337,7 +337,7 @@ public class MotionQPInputCalculator
          return false;
 
       motionQPInputToPack.reshape(taskSize);
-      motionQPInputToPack.setIsMotionConstraint(commandToConvert.isHardConstraint());
+      motionQPInputToPack.setConstraintType(commandToConvert.getConstraintType());
       // If the task is setup as a hard constraint, there is no need for a weight matrix.
       if (!commandToConvert.isHardConstraint())
       {
@@ -442,7 +442,7 @@ public class MotionQPInputCalculator
 
       motionQPInputToPack.reshape(taskSize);
       motionQPInputToPack.setUseWeightScalar(false);
-      motionQPInputToPack.setIsMotionConstraint(false);
+      motionQPInputToPack.setConstraintType(ConstraintType.OBJECTIVE);
 
       // Compute the weight: W = S * W * S^T
       tempTaskWeight.reshape(SpatialAccelerationVector.SIZE, SpatialAccelerationVector.SIZE);
@@ -486,7 +486,7 @@ public class MotionQPInputCalculator
 
       motionQPInputToPack.reshape(taskSize);
       motionQPInputToPack.setUseWeightScalar(false);
-      motionQPInputToPack.setIsMotionConstraint(false);
+      motionQPInputToPack.setConstraintType(ConstraintType.OBJECTIVE);
 
       // Compute the weight: W = S * W * S^T
       tempTaskWeight.reshape(SpatialAccelerationVector.SIZE, SpatialAccelerationVector.SIZE);
@@ -526,7 +526,7 @@ public class MotionQPInputCalculator
          return false;
 
       motionQPInputToPack.reshape(taskSize);
-      motionQPInputToPack.setIsMotionConstraint(commandToConvert.isHardConstraint());
+      motionQPInputToPack.setConstraintType(commandToConvert.isHardConstraint() ? ConstraintType.EQUALITY :ConstraintType.OBJECTIVE);
       motionQPInputToPack.taskJacobian.zero();
       motionQPInputToPack.taskWeightMatrix.zero();
       motionQPInputToPack.setUseWeightScalar(false);
@@ -566,7 +566,7 @@ public class MotionQPInputCalculator
          return false;
 
       motionQPInputToPack.reshape(taskSize);
-      motionQPInputToPack.setIsMotionConstraint(commandToConvert.isHardConstraint());
+      motionQPInputToPack.setConstraintType(commandToConvert.isHardConstraint() ? ConstraintType.EQUALITY :ConstraintType.OBJECTIVE);
       motionQPInputToPack.taskJacobian.zero();
       motionQPInputToPack.taskWeightMatrix.zero();
       motionQPInputToPack.setUseWeightScalar(false);
@@ -600,8 +600,7 @@ public class MotionQPInputCalculator
          return false;
 
       motionQPInputToPack.reshape(taskSize);
-      motionQPInputToPack.setIsMotionConstraint(!commandToConvert.getIsEqualityConstraint());
-      motionQPInputToPack.setIsEqualityConstraint(commandToConvert.getIsEqualityConstraint());
+      motionQPInputToPack.setConstraintType(commandToConvert.getConstraintType());
       
       for (int jointIndex = 0; jointIndex < commandToConvert.getNumberOfJoints(); jointIndex++)
       {

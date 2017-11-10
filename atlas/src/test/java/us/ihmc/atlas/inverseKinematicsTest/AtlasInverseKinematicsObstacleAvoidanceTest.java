@@ -12,6 +12,8 @@ import us.ihmc.atlas.AtlasRobotVersion;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
 import us.ihmc.avatar.drcRobot.RobotTarget;
 import us.ihmc.avatar.networkProcessor.kinematicsToolboxModule.AvatarInverseKinematicsObstacleAvoidanceTest;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
+import us.ihmc.continuousIntegration.IntegrationCategory;
 import us.ihmc.euclid.matrix.RotationMatrix;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Point3D;
@@ -67,14 +69,15 @@ public class AtlasInverseKinematicsObstacleAvoidanceTest extends AvatarInverseKi
       return new Point3D(0.5, -0.1, 0.0);
    }
 
-   @Test
-   @Override
+   @ContinuousIntegrationTest(estimatedDuration = 10.0, categoriesOverride = {IntegrationCategory.IN_DEVELOPMENT})
+   @Test(timeout = 10000)
    public void testInverseKinematics()
    {
       super.testInverseKinematics();
    }
 
-   @Test
+   @ContinuousIntegrationTest(estimatedDuration = 25.0, categoriesOverride = {IntegrationCategory.IN_DEVELOPMENT})
+   @Test(timeout = 200000)
    public void testRandomHandPositionsInverseKinematics()
    {
       super.testRandomHandPositionsInverseKinematics();
