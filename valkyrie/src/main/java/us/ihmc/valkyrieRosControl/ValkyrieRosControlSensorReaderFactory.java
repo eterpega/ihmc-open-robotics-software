@@ -35,6 +35,7 @@ import us.ihmc.valkyrieRosControl.dataHolders.YoJointStateHandleHolder;
 import us.ihmc.valkyrieRosControl.dataHolders.YoMicroStrainIMUHandleHolder;
 import us.ihmc.valkyrieRosControl.dataHolders.YoPositionJointHandleHolder;
 import us.ihmc.valkyrieRosControl.dataHolders.YoSwitchableFilterModeIMUHandleHolder;
+import us.ihmc.wholeBodyController.ExceptionHandler;
 import us.ihmc.wholeBodyController.diagnostics.JointTorqueOffsetEstimator;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
@@ -218,5 +219,10 @@ public class ValkyrieRosControlSensorReaderFactory implements SensorReaderFactor
    public void setupLowLevelControlWithPacketCommunicator(PacketCommunicator packetCommunicator)
    {
       sensorReader.setupLowLevelControlWithPacketCommunicator(packetCommunicator);
+   }
+
+   public ExceptionHandler getExceptionHandler()
+   {
+      return sensorReader.getExceptionHandler();
    }
 }
