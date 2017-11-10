@@ -1,9 +1,5 @@
 package us.ihmc.humanoidRobotics.communication.packets.wholebody;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-
 import us.ihmc.communication.packets.MultiplePacketHolder;
 import us.ihmc.communication.packets.Packet;
 import us.ihmc.communication.packets.VisualizablePacket;
@@ -17,6 +13,10 @@ import us.ihmc.humanoidRobotics.communication.packets.walking.FootTrajectoryMess
 import us.ihmc.humanoidRobotics.communication.packets.walking.PelvisTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.SpineTrajectoryMessage;
 import us.ihmc.robotics.robotSide.RobotSide;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 @RosMessagePacket(documentation = "Send whole body trajectories to the robot. A best effort is made to execute the trajectory while balance is kept.\n"
       + " A message with a unique id equals to 0 will be interpreted as invalid and will not be processed by the controller. This rule DOES apply to the fields of this message."
@@ -454,15 +454,18 @@ public class WholeBodyTrajectoryMessage extends Packet<WholeBodyTrajectoryMessag
    
    private String checkForRedundancy()
    {
-      if (leftArmTrajectoryMessage != null && leftHandTrajectoryMessage != null)
+      if ((leftArmTrajectoryMessage != null && leftArmTrajectoryMessage.jointTrajectoryMessages.length > 0) && (leftHandTrajectoryMessage != null
+            && leftHandTrajectoryMessage.taskspaceTrajectoryPoints.length > 0))
       {
          return "Got message with jointspace and taskspace desireds for the left arm/hand.";
       }
-      if (rightArmTrajectoryMessage != null && rightHandTrajectoryMessage != null)
+      if ((rightArmTrajectoryMessage != null && rightArmTrajectoryMessage.jointTrajectoryMessages.length > 0) && (rightHandTrajectoryMessage != null
+            && rightHandTrajectoryMessage.taskspaceTrajectoryPoints.length > 0))
       {
          return "Got message with jointspace and taskspace desireds for the right arm/hand.";
       }
-      if (spineTrajectoryMessage != null && chestTrajectoryMessage != null)
+      if ((spineTrajectoryMessage != null && spineTrajectoryMessage.jointTrajectoryMessages.length > 0) && (chestTrajectoryMessage != null
+            && chestTrajectoryMessage.taskspaceTrajectoryPoints.length > 0))
       {
          return "Got message with jointspace and taskspace desireds for the spine/chest.";
       }
