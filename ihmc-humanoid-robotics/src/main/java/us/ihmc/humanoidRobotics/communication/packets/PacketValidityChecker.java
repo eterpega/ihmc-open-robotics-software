@@ -407,12 +407,12 @@ public abstract class PacketValidityChecker
 
       if(handTrajectoryMessage.getFrameInformation().getDataReferenceFrameId() == NameBasedHashCodeTools.NULL_HASHCODE)
       {
-         return ChestTrajectoryMessage.class.getSimpleName() + " Expressed In Reference Frame Id Not Set";
+         return HandTrajectoryMessage.class.getSimpleName() + " Expressed In Reference Frame Id Not Set";
       }
 
       if(handTrajectoryMessage.getFrameInformation().getTrajectoryReferenceFrameId() == NameBasedHashCodeTools.NULL_HASHCODE)
       {
-         return ChestTrajectoryMessage.class.getSimpleName() + " Trajectory Reference Frame Id Not Set";
+         return HandTrajectoryMessage.class.getSimpleName() + " Trajectory Reference Frame Id Not Set";
       }
 
       ObjectErrorType errorType;
@@ -507,12 +507,12 @@ public abstract class PacketValidityChecker
 
       if(headTrajectoryMessage.getFrameInformation().getDataReferenceFrameId() == NameBasedHashCodeTools.NULL_HASHCODE)
       {
-         return ChestTrajectoryMessage.class.getSimpleName() + " Expressed In Reference Frame Id Not Set";
+         return HeadTrajectoryMessage.class.getSimpleName() + " Expressed In Reference Frame Id Not Set";
       }
 
       if(headTrajectoryMessage.getFrameInformation().getTrajectoryReferenceFrameId() == NameBasedHashCodeTools.NULL_HASHCODE)
       {
-         return ChestTrajectoryMessage.class.getSimpleName() + " Trajectory Reference Frame Id Not Set";
+         return HeadTrajectoryMessage.class.getSimpleName() + " Trajectory Reference Frame Id Not Set";
       }
 
       SO3TrajectoryPointMessage previousTrajectoryPoint = null;
@@ -619,7 +619,7 @@ public abstract class PacketValidityChecker
    {
       String errorMessage = validatePacket(message, true);
       if (errorMessage != null)
-         return ChestTrajectoryMessage.class.getSimpleName() + " " + errorMessage;
+         return AbstractSO3TrajectoryMessage.class.getSimpleName() + " " + errorMessage;
 
       SO3TrajectoryPointMessage previousTrajectoryPoint = null;
 
@@ -632,12 +632,12 @@ public abstract class PacketValidityChecker
 
       if(message.getFrameInformation().getDataReferenceFrameId() == NameBasedHashCodeTools.NULL_HASHCODE)
       {
-         return ChestTrajectoryMessage.class.getSimpleName() + " Expressed In Reference Frame Id Not Set";
+         return AbstractSO3TrajectoryMessage.class.getSimpleName() + " Expressed In Reference Frame Id Not Set";
       }
 
       if(message.getFrameInformation().getTrajectoryReferenceFrameId() == NameBasedHashCodeTools.NULL_HASHCODE)
       {
-         return ChestTrajectoryMessage.class.getSimpleName() + " Trajectory Reference Frame Id Not Set";
+         return AbstractSO3TrajectoryMessage.class.getSimpleName() + " Trajectory Reference Frame Id Not Set";
       }
 
       for (int i = 0; i < message.getNumberOfTrajectoryPoints(); i++)
@@ -711,12 +711,12 @@ public abstract class PacketValidityChecker
 
       if(pelvisTrajectoryMessage.getFrameInformation().getDataReferenceFrameId() == NameBasedHashCodeTools.NULL_HASHCODE)
       {
-         return ChestTrajectoryMessage.class.getSimpleName() + " Expressed In Reference Frame Id Not Set";
+         return PelvisTrajectoryMessage.class.getSimpleName() + " Expressed In Reference Frame Id Not Set";
       }
 
       if(pelvisTrajectoryMessage.getFrameInformation().getTrajectoryReferenceFrameId() == NameBasedHashCodeTools.NULL_HASHCODE)
       {
-         return ChestTrajectoryMessage.class.getSimpleName() + " Trajectory Reference Frame Id Not Set";
+         return PelvisTrajectoryMessage.class.getSimpleName() + " Trajectory Reference Frame Id Not Set";
       }
 
       SE3TrajectoryPointMessage previousTrajectoryPoint = null;
@@ -758,12 +758,12 @@ public abstract class PacketValidityChecker
 
       if(footTrajectoryMessage.getFrameInformation().getDataReferenceFrameId() == NameBasedHashCodeTools.NULL_HASHCODE)
       {
-         return ChestTrajectoryMessage.class.getSimpleName() + " Expressed In Reference Frame Id Not Set";
+         return FootTrajectoryMessage.class.getSimpleName() + " Expressed In Reference Frame Id Not Set";
       }
 
       if(footTrajectoryMessage.getFrameInformation().getTrajectoryReferenceFrameId() == NameBasedHashCodeTools.NULL_HASHCODE)
       {
-         return ChestTrajectoryMessage.class.getSimpleName() + " Trajectory Reference Frame Id Not Set";
+         return FootTrajectoryMessage.class.getSimpleName() + " Trajectory Reference Frame Id Not Set";
       }
 
       ObjectErrorType errorType;
