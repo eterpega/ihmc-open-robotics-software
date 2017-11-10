@@ -77,27 +77,42 @@ public class CollisionAvoidanceModule
    private final CollisionAvoidanceCommandGenerator commandGenerator;
    
    /**
-    * Visualization stuff
+    * Visualization object for debugging the collision avoidance
     */
-   private final FrameConvexPolytopeVisualizer viz;
+   private final FrameConvexPolytopeVisualizer visualizer;
    
    /**
-    * Collision quality 
+    * This is the current estimate of the collision quality that is calculated based on the 
+    * the smallest Euclidean distance rigid bodies need to move to be in a non-colliding configuration.
+    * In case the collision avoidance is disabled it is set to zero
     */
    private double collisionQuality = 0.0;
    
+   /**
+    * @param rootBody the root body is the first rigid body of the kinematic chain that will be used to avoid collisions
+    * @param controlledJoints the list of joints that will be used for avoiding collisions
+    */
    public CollisionAvoidanceModule(RigidBody rootBody, InverseDynamicsJoint[] controlledJoints)
    {
       this(rootBody, controlledJoints, null);
    }
    
-   public CollisionAvoidanceModule(RigidBody rootBody, InverseDynamicsJoint[] controlledJoints, FrameConvexPolytopeVisualizer viz)
+   /**
+    * @param rootBody the root body is the first rigid body of the kinematic chain that will be used to avoid collisions
+    * @param controlledJoints the list of joints that will be used for avoiding collisions
+    * @param visualizer a visualizer that helps debug the module
+    */
+   public CollisionAvoidanceModule(RigidBody rootBody, InverseDynamicsJoint[] controlledJoints, FrameConvexPolytopeVisualizer visualizer)
    {
       command = new CollisionAvoidanceCommand(controlledJoints);
-      commandGenerator = new CollisionAvoidanceCommandGenerator(rootBody, command, viz);
-      this.viz = viz;
+      commandGenerator = new CollisionAvoidanceCommandGenerator(rootBody, command, visualizer);
+      this.visualizer = visualizer;
    }
    
+   /**
+    * Sets the collision meshes for the various rigid bodies that will be used to detect and avoid collisions 
+    * @param collisionMeshMap a map that relates the rigid bodies to their meshes 
+    */
    public void setRigidBodyCollisionMeshes(THashMap<RigidBody, FrameConvexPolytope> collisionMeshMap)
    {
       if(collisionMeshMap == null)
@@ -112,11 +127,21 @@ public class CollisionAvoidanceModule
       }
    }
    
+   /**
+    * Stores a pair of rigid bodies that can physically collide given all the joint limits
+    * @param rigidBody1 a rigid body that can collide with {@code rigidBody2}
+    * @param rigidBody2 a rigid body that can collide with {@code rigidBody1}
+    * Note: Self-collision is not yet implemented
+    */
    public void submitSelfCollisionPair(RigidBody rigidBody1, RigidBody rigidBody2)
    {
       selfCollisionList.add(new ImmutablePair<RigidBody, RigidBody>(rigidBody1, rigidBody2));
    }
    
+   /**
+    * Submits a collision mesh to the module that will be used for detecting collisions
+    * @param obstacleCollisionMesh this typically represent a object in the surroundings
+    */
    public void submitObstacleCollisionMesh(FrameConvexPolytope obstacleCollisionMesh)
    {
       this.obstacleMeshes.add(obstacleCollisionMesh);
@@ -124,6 +149,10 @@ public class CollisionAvoidanceModule
          visualize(obstacleCollisionMesh);
    }
    
+   /**
+    * Submits a list of collision meshes to the module that will be used for detecting collisions with rigid bodies
+    * @param obstacleMeshes these typically represent objects in the surroundings
+    */
    public void submitObstacleCollisionMesh(FrameConvexPolytope... obstacleMeshes)
    {
       for(int i = 0; i < obstacleMeshes.length; i++)
@@ -134,6 +163,10 @@ public class CollisionAvoidanceModule
       }
    }
    
+   /**
+    * Submits a list of collision meshes to the module that will be used for detecting collisions with rigid bodies
+    * @param obstacleMeshes these typically represent objects in the surroundings
+    */
    public void submitObstacleCollisionMesh(List<FrameConvexPolytope> obstacleMeshes)
    {
       this.obstacleMeshes.addAll(obstacleMeshes);
@@ -144,16 +177,24 @@ public class CollisionAvoidanceModule
       }
    }
    
+   /**
+    * Clears the list of obstacle meshes that the module has been using for collision detection
+    */
    public void clearObstacleMeshList()
    {
-      if (viz != null)
+      if (visualizer != null)
       {
          for(int i = 0; i < obstacleMeshes.size(); i++)
-            viz.removePolytope(obstacleMeshes.get(i));
+            visualizer.removePolytope(obstacleMeshes.get(i));
       }
       obstacleMeshes.clear();
    }
    
+   /**
+    * Checks if the rigid bodies are colliding with the submitted list of obstacles and generates the 
+    * list of commands that can will move the inverse kinematics solutions to non-colliding configurations
+    * @return
+    */
    public boolean checkCollisionsAndAddAvoidanceCommands()
    {
       commandList.clear();
@@ -163,8 +204,8 @@ public class CollisionAvoidanceModule
          PrintTools.debug("Checking for collisions...");
       command.reset();
       boolean collisionDetected = false;
-      if(viz != null && visualizeCollisionVectors)
-         viz.clearCollisionVectors();
+      if(visualizer != null && visualizeCollisionVectors)
+         visualizer.clearCollisionVectors();
       collisionQuality = 0.0;
       for(int i = 0; i < rigidBodies.size(); i++)
       {
@@ -175,8 +216,8 @@ public class CollisionAvoidanceModule
          collisionDetected |= collisionDetector.checkCollisionsWithObstacles(obstacleMeshes);
          collisionQuality += collisionDetector.getCollisionQuality();
       }
-      if(viz != null && (visualizeRigidBodyMeshes || visualizeObstacleMeshes))
-         viz.update();
+      if(visualizer != null && (visualizeRigidBodyMeshes || visualizeObstacleMeshes))
+         visualizer.update();
       
       if(collisionDetected)
          commandList.addCommand(command);
@@ -187,32 +228,53 @@ public class CollisionAvoidanceModule
       return collisionDetected;
    }
    
+   /**
+    * Returns the collision quality parameter. This is the largest distance that any of the colliding bodies need to move by to 
+    * move out of a collision 
+    * @return
+    */
    public double getCollisionQuality()
    {
       return collisionQuality;
    }
 
+   /**
+    * Returns the status whether the module is working or not
+    * @return
+    */
    public boolean isEnabled()
    {
       return isEnabled;
    }
 
+   /**
+    * Sets the state of the module
+    * @param enabled
+    */
    public void enable(boolean enabled)
    {
       this.isEnabled = enabled;
    }
 
+   /**
+    * Returns the list of commands that will help avoid collisions
+    * @return
+    */
    public InverseKinematicsCommandList getCollisionAvoidanceCommands()
    {
       return commandList;
    }
-   
+
+   /**
+    * Internal function that submits meshes for visualization to the visualization listener
+    * @param polytope
+    */
    private void visualize(FrameConvexPolytope polytope)
    {
-      if(viz != null)
+      if(visualizer != null)
       {
-         viz.addPolytope(polytope, Color.BLUE);
-         viz.update();
+         visualizer.addPolytope(polytope, Color.BLUE);
+         visualizer.update();
       }
    }
 }
