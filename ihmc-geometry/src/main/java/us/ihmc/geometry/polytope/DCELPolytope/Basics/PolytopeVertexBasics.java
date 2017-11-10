@@ -269,8 +269,8 @@ public abstract class PolytopeVertexBasics<V extends PolytopeVertexBasics<V, E, 
    
    public void round(double epsilon)
    {
-      setX(MathTools.roundToPrecision(getX(), epsilon * 10));
-      setY(MathTools.roundToPrecision(getY(), epsilon * 10));
-      setZ(MathTools.roundToPrecision(getZ(), epsilon * 10));
+      setX(MathTools.roundToPrecision(getX(), epsilon));
+      setY(MathTools.roundToPrecision(getY(), epsilon));
+      setZ(MathTools.roundToPrecision(getZ(), epsilon));
    }
 }

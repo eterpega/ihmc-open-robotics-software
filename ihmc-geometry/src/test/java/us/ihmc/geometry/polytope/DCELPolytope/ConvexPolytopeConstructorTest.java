@@ -10,14 +10,12 @@ import org.junit.Before;
 import org.junit.Test;
 
 import us.ihmc.commons.Epsilons;
+import us.ihmc.commons.MathTools;
 import us.ihmc.euclid.Axis;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.geometry.polytope.ConvexPolytopeConstructor;
-import us.ihmc.geometry.polytope.DCELPolytope.ConvexPolytopeFace;
-import us.ihmc.geometry.polytope.DCELPolytope.ExtendedConvexPolytope;
-import us.ihmc.robotics.MathTools;
 
 public class ConvexPolytopeConstructorTest
 {
