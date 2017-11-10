@@ -298,6 +298,7 @@ public class ValkyrieRosControlController extends IHMCWholeRobotControlJavaBridg
       DRCControllerThread controllerThread = new DRCControllerThread(robotModel, sensorInformation, controllerFactory, threadDataSynchronizer, drcOutputWriter,
             dataProducer, yoVariableServer, gravity, estimatorDT);
 
+      controllerThread.attachControllerExceptionHandler(sensorReaderFactory.getExceptionHandler());
       sensorReaderFactory.attachControllerAPI(commandInputManager, statusOutputManager);
       sensorReaderFactory.attachForceSensorCalibrationModule(estimatorThread.getForceSensorCalibrationModule());
       sensorReaderFactory.attachJointTorqueOffsetEstimator(jointTorqueOffsetEstimatorControllerFactory.getJointTorqueOffsetEstimatorController());

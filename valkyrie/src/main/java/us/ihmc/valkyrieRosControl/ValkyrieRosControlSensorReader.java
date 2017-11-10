@@ -27,6 +27,7 @@ import us.ihmc.valkyrieRosControl.dataHolders.YoForceTorqueSensorHandle;
 import us.ihmc.valkyrieRosControl.dataHolders.YoIMUHandleHolder;
 import us.ihmc.valkyrieRosControl.dataHolders.YoJointStateHandleHolder;
 import us.ihmc.valkyrieRosControl.dataHolders.YoPositionJointHandleHolder;
+import us.ihmc.wholeBodyController.ExceptionHandler;
 import us.ihmc.wholeBodyController.JointTorqueOffsetProcessor;
 import us.ihmc.wholeBodyController.diagnostics.JointTorqueOffsetEstimator;
 
@@ -188,5 +189,10 @@ public class ValkyrieRosControlSensorReader implements SensorReader, JointTorque
    public void setupLowLevelControlWithPacketCommunicator(PacketCommunicator packetCommunicator)
    {
       lowlLevelController.setupLowLevelControlWithPacketCommunicator(packetCommunicator);
+   }
+
+   public ExceptionHandler getExceptionHandler()
+   {
+      return lowlLevelController.getControllerExceptionHandler();
    }
 }
