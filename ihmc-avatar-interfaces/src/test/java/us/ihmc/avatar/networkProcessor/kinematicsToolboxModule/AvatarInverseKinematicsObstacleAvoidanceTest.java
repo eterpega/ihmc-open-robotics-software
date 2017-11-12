@@ -58,7 +58,6 @@ import us.ihmc.robotics.sensors.ForceSensorDefinition;
 import us.ihmc.robotics.sensors.IMUDefinition;
 import us.ihmc.sensorProcessing.communication.packets.dataobjects.RobotConfigurationData;
 import us.ihmc.sensorProcessing.simulatedSensors.DRCPerfectSensorReaderFactory;
-import us.ihmc.simulationconstructionset.FloatingRootJointRobot;
 import us.ihmc.simulationconstructionset.HumanoidFloatingRootJointRobot;
 import us.ihmc.simulationconstructionset.Robot;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
@@ -102,6 +101,7 @@ public abstract class AvatarInverseKinematicsObstacleAvoidanceTest
 
    YoBoolean initializationSucceeded = new YoBoolean("ControllerInitializationSucceeded", testRegistry);
    
+   private RobotConfigurationData initialConfigurationData;
    private HumanoidFloatingRootJointRobot scsRobot;
    private HumanoidFloatingRootJointRobot scsGhostRobot;
    private FullHumanoidRobotModel controllerRobotModel;
@@ -130,7 +130,8 @@ public abstract class AvatarInverseKinematicsObstacleAvoidanceTest
       DRCPerfectSensorReaderFactory drcRobotPerfectSensorReaderFactory = new DRCPerfectSensorReaderFactory(scsRobot, null, 0);
       drcRobotPerfectSensorReaderFactory.build(controllerRobotModel.getRootJoint(), null, null, null, null, null, null);
       drcRobotPerfectSensorReaderFactory.getSensorReader().read();
-
+      initialConfigurationData = extractRobotConfigurationData(controllerRobotModel);
+      
       commandInputManager = new CommandInputManager(KinematicsToolboxModule.supportedCommands());
       commandInputManager.registerConversionHelper(new KinematicsToolboxCommandConverter(controllerRobotModel.getElevator()));
       StatusMessageOutputManager statusOutputManager = new StatusMessageOutputManager(KinematicsToolboxModule.supportedStatus());
@@ -361,7 +362,8 @@ public abstract class AvatarInverseKinematicsObstacleAvoidanceTest
    private List<FrameConvexPolytope> obstacleMeshes = new ArrayList<>();
    public void testRandomHandPositionsInverseKinematics()
    {
-      Random random = new Random(2145);
+      //2145
+      Random random = new Random(2143);
       for(int i = 0; i < 10; i++)
       {
          toolbox.updateCapturabilityBasedStatus(createCapturabilityBasedStatus(true, true));
@@ -371,7 +373,7 @@ public abstract class AvatarInverseKinematicsObstacleAvoidanceTest
          obstacleMeshes.clear();
          toolbox.clearObstacleMeshes();
          handMessages.clear();
-         RobotConfigurationData robotConfigurationData = extractRobotConfigurationData(controllerRobotModel);
+         RobotConfigurationData robotConfigurationData = new RobotConfigurationData(initialConfigurationData);
          toolbox.updateRobotConfigurationData(robotConfigurationData);
          toolbox.enableCollisionAvoidance(false);
          for (RobotSide side : new RobotSide[]{RobotSide.RIGHT})
@@ -386,7 +388,7 @@ public abstract class AvatarInverseKinematicsObstacleAvoidanceTest
             handMessages.put(side, message);
             commandInputManager.submitMessage(message);
          }
-         runControllerToolbox(1000);
+         runControllerToolbox(400);
          toolbox.updateCapturabilityBasedStatus(createCapturabilityBasedStatus(true, true));
          command = new HumanoidKinematicsToolboxConfigurationMessage();
          command.setHoldCurrentCenterOfMassXYPosition(true);
@@ -399,10 +401,11 @@ public abstract class AvatarInverseKinematicsObstacleAvoidanceTest
             obstacleMeshes.add(ConvexPolytopeConstructor.getFrameSphericalCollisionMeshByProjectingCube(worldFrame, obstacleCentroid.getPoint(), 0.075, 4));
             commandInputManager.submitMessage(handMessages.get(side));
          }
+         robotConfigurationData = new RobotConfigurationData(initialConfigurationData);
          toolbox.updateRobotConfigurationData(robotConfigurationData);
          toolbox.submitObstacleCollisionMesh(obstacleMeshes);
          toolbox.enableCollisionAvoidance(true);
-         runControllerToolbox(1000);
+         runControllerToolbox(400);
          KinematicsToolboxOutputStatus toolboxSolution = toolbox.getSolution();
          //assertTrue(toolboxSolution.getCollisionQuality() <= desiredCollisionQuality);
          //assertTrue(toolboxSolution.getSolutionQuality() <= desiredSolutionQuality);
