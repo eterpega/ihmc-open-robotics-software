@@ -28,7 +28,7 @@ public class AtlasInverseKinematicsObstacleAvoidanceTest extends AvatarInverseKi
    @Override
    public boolean keepSCSUp()
    {
-      return false;
+      return true;
    }
 
    @Override

@@ -84,13 +84,79 @@ public class RobotConfigurationData extends Packet<RobotConfigurationData>
       }
    }
 
+   public RobotConfigurationData(RobotConfigurationData other)
+   {
+      this.timestamp = other.timestamp;
+      this.sensorHeadPPSTimestamp = other.sensorHeadPPSTimestamp;
+      this.jointNameHash = other.jointNameHash;
+
+      if (other.jointAngles != null)
+      {
+         this.jointAngles = new float[other.jointAngles.length];
+         for (int i = 0; i < jointAngles.length; i++)
+            this.jointAngles[i] = other.jointAngles[i];
+      }
+
+      if (other.jointVelocities != null)
+      {
+         this.jointVelocities = new float[other.jointVelocities.length];
+         for (int i = 0; i < jointVelocities.length; i++)
+            this.jointVelocities[i] = other.jointVelocities[i];
+      }
+
+      if (other.jointTorques != null)
+      {
+         this.jointTorques = new float[other.jointTorques.length];
+         for (int i = 0; i < jointTorques.length; i++)
+            this.jointTorques[i] = other.jointTorques[i];
+      }
+
+      rootTranslation.set(other.rootTranslation);
+      rootOrientation.set(other.rootOrientation);
+      pelvisLinearVelocity.set(other.pelvisLinearVelocity);
+      pelvisAngularVelocity.set(other.pelvisAngularVelocity);
+      pelvisLinearAcceleration.set(pelvisLinearAcceleration);
+
+      if (other.momentAndForceDataAllForceSensors != null)
+      {
+         this.momentAndForceDataAllForceSensors = new float[other.momentAndForceDataAllForceSensors.length][];
+         for (int i = 0; i < other.momentAndForceDataAllForceSensors.length; i++)
+         {
+            if(other.momentAndForceDataAllForceSensors[i] == null)
+               continue;
+            this.momentAndForceDataAllForceSensors[i] = new float[other.momentAndForceDataAllForceSensors[i].length];
+            for (int j = 0; j < other.momentAndForceDataAllForceSensors[i].length; j++)
+               this.momentAndForceDataAllForceSensors[i][j] = other.momentAndForceDataAllForceSensors[i][j];
+         }
+      }
+
+      if (other.imuSensorData != null)
+      {
+         this.imuSensorData = new IMUPacket[other.imuSensorData.length];
+         for (int i = 0; i < other.imuSensorData.length; i++)
+         {
+            imuSensorData[i] = new IMUPacket();
+            imuSensorData[i].set(other.imuSensorData[i].getLinearAcceleration(), other.imuSensorData[i].getOrientation(),
+                                 other.imuSensorData[i].getAngularVelocity(), other.imuSensorData[i].getTime());
+         }
+      }
+
+      this.robotMotionStatus = other.robotMotionStatus;
+      this.auxiliaryRobotData = other.auxiliaryRobotData;
+
+      this.lastReceivedPacketTypeID = other.lastReceivedPacketTypeID;
+      this.lastReceivedPacketUniqueId = other.lastReceivedPacketUniqueId;
+      this.lastReceivedPacketRobotTimestamp = other.lastReceivedPacketRobotTimestamp;
+
+   }
+
    public RobotConfigurationData()
    {
       // empty constructor for serialization
    }
 
    public RobotConfigurationData(OneDoFJoint[] joints, ForceSensorDefinition[] forceSensorDefinitions, AuxiliaryRobotData auxiliaryRobotData,
-         IMUDefinition[] imuDefinitions)
+                                 IMUDefinition[] imuDefinitions)
    {
       jointAngles = new float[joints.length];
       jointVelocities = new float[joints.length];
