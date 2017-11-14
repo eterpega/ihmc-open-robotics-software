@@ -27,6 +27,7 @@ import us.ihmc.communication.controllerAPI.StatusMessageOutputManager;
 import us.ihmc.communication.packets.HumanoidKinematicsToolboxConfigurationMessage;
 import us.ihmc.communication.packets.KinematicsToolboxOutputStatus;
 import us.ihmc.communication.packets.KinematicsToolboxRigidBodyMessage;
+import us.ihmc.euclid.Axis;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.Point3D;
@@ -43,6 +44,7 @@ import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotModels.FullRobotModel;
 import us.ihmc.robotModels.FullRobotModelUtils;
 import us.ihmc.robotics.partNames.ArmJointName;
+import us.ihmc.robotics.partNames.SpineJointName;
 import us.ihmc.robotics.robotController.RobotController;
 import us.ihmc.robotics.robotDescription.ConvexShapeDescription;
 import us.ihmc.robotics.robotDescription.JointDescription;
@@ -343,11 +345,11 @@ public abstract class AvatarInverseKinematicsObstacleAvoidanceTest
       commandInputManager.submitMessage(command);
       for (RobotSide side : new RobotSide[]{RobotSide.RIGHT, RobotSide.LEFT})
       {
-         //randomizeArmJointPositions(random, side, ghostRobotModel);
+         randomizeArmJointPositions(random, side, ghostRobotModel);
          ghostRobotWriter.updateRobotConfigurationBasedOnFullRobotModel();
          RigidBody hand = ghostRobotModel.getHand(side);
          FramePoint3D desiredPosition = new FramePoint3D(hand.getBodyFixedFrame());
-         desiredPosition.add(0.4, side.negateIfLeftSide(0.65), 0.0);
+         //desiredPosition.add(0.4, side.negateIfLeftSide(0.65), 0.0);
          desiredPosition.changeFrame(worldFrame);
          KinematicsToolboxRigidBodyMessage message = new KinematicsToolboxRigidBodyMessage(hand, desiredPosition);
          message.setWeight(20.0);
@@ -388,7 +390,7 @@ public abstract class AvatarInverseKinematicsObstacleAvoidanceTest
             handMessages.put(side, message);
             commandInputManager.submitMessage(message);
          }
-         runControllerToolbox(400);
+         runControllerToolbox(100);
          toolbox.updateCapturabilityBasedStatus(createCapturabilityBasedStatus(true, true));
          command = new HumanoidKinematicsToolboxConfigurationMessage();
          command.setHoldCurrentCenterOfMassXYPosition(true);
@@ -399,13 +401,24 @@ public abstract class AvatarInverseKinematicsObstacleAvoidanceTest
             FramePoint3D obstacleCentroid = new FramePoint3D(upperArm.getBodyFixedFrame());
             obstacleCentroid.changeFrame(worldFrame);
             obstacleMeshes.add(ConvexPolytopeConstructor.getFrameSphericalCollisionMeshByProjectingCube(worldFrame, obstacleCentroid.getPoint(), 0.075, 4));
+            RigidBody pelvis = controllerRobotModel.getPelvis();
+            obstacleCentroid = new FramePoint3D(pelvis.getBodyFixedFrame());
+            obstacleCentroid.changeFrame(worldFrame);
+            obstacleCentroid.add(-0.15, 0.15, 0.0);
+            obstacleMeshes.add(ConvexPolytopeConstructor.getFrameCuboidCollisionMesh(worldFrame, obstacleCentroid.getPoint(), 0.075, 0.1, 0.1));
+            RigidBody chest = controllerRobotModel.getSpineJoint(SpineJointName.SPINE_ROLL).getSuccessor();
+            obstacleCentroid = new FramePoint3D(chest.getChildrenJoints().get(0).getFrameBeforeJoint());
+            obstacleCentroid.scale(0.5);
+            obstacleCentroid.changeFrame(worldFrame);
+            obstacleCentroid.addX(0.2);
+            obstacleMeshes.add(ConvexPolytopeConstructor.getFrameCylindericalCollisionMesh(worldFrame, obstacleCentroid.getPoint(), Axis.Z, 0.075, 0.2, 8));
             commandInputManager.submitMessage(handMessages.get(side));
          }
          robotConfigurationData = new RobotConfigurationData(initialConfigurationData);
          toolbox.updateRobotConfigurationData(robotConfigurationData);
          toolbox.submitObstacleCollisionMesh(obstacleMeshes);
          toolbox.enableCollisionAvoidance(true);
-         runControllerToolbox(400);
+         runControllerToolbox(600);
          KinematicsToolboxOutputStatus toolboxSolution = toolbox.getSolution();
          //assertTrue(toolboxSolution.getCollisionQuality() <= desiredCollisionQuality);
          //assertTrue(toolboxSolution.getSolutionQuality() <= desiredSolutionQuality);

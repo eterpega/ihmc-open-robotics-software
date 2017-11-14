@@ -69,8 +69,8 @@ public class AtlasInverseKinematicsObstacleAvoidanceTest extends AvatarInverseKi
       return new Point3D(0.5, -0.1, 0.0);
    }
 
-   @Test
    @Override
+   @Test
    public void testInverseKinematics()
    {
       super.testInverseKinematics();
