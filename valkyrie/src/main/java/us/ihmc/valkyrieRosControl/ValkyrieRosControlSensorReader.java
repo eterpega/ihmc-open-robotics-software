@@ -48,6 +48,7 @@ public class ValkyrieRosControlSensorReader implements SensorReader, JointTorque
 
    private final DenseMatrix64F torqueForce = new DenseMatrix64F(6, 1);
 
+   private final ValkyrieWristJointLimitsCalculator wristJointLimitsCalculator;
    private final ValkyrieRosControlLowLevelController lowlLevelController;
 
    public ValkyrieRosControlSensorReader(StateEstimatorSensorDefinitions stateEstimatorSensorDefinitions,
@@ -67,6 +68,7 @@ public class ValkyrieRosControlSensorReader implements SensorReader, JointTorque
       double estimatorDT = sensorProcessingConfiguration.getEstimatorDT();
       lowlLevelController = new ValkyrieRosControlLowLevelController(timestampProvider, estimatorDT, yoEffortJointHandleHolders, yoPositionJointHandleHolders,
                                                                      jointMap, registry);
+      wristJointLimitsCalculator = new ValkyrieWristJointLimitsCalculator(yoEffortJointHandleHolders, jointMap);
    }
 
    public void setDoIHMCControlRatio(double controlRatio)
@@ -144,6 +146,8 @@ public class ValkyrieRosControlSensorReader implements SensorReader, JointTorque
 
       long timestamp = timestampProvider.getTimestamp();
       sensorProcessing.startComputation(timestamp, timestamp, -1);
+
+      wristJointLimitsCalculator.update();
    }
 
    @Override

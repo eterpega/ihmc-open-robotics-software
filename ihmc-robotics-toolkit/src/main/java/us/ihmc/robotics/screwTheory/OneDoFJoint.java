@@ -320,6 +320,8 @@ public abstract class OneDoFJoint extends AbstractInverseDynamicsJoint
       setQdd(oneDoFOriginalJoint.getQdd());
       setTauMeasured(oneDoFOriginalJoint.getTauMeasured());
       setEnabled(oneDoFOriginalJoint.isEnabled());
+      setJointLimitLower(oneDoFOriginalJoint.getJointLimitLower());
+      setJointLimitUpper(oneDoFOriginalJoint.getJointLimitUpper());
    }
 
    @Override
