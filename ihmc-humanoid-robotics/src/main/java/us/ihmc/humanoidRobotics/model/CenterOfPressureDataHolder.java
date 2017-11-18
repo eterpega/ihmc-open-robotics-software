@@ -56,6 +56,15 @@ public class CenterOfPressureDataHolder
       setCenterOfPressure(centerOfPressure, footFromNameMap);
    }
 
+   public void set(CenterOfPressureDataHolder other)
+   {
+      // TODO: Implement this without garbage
+      for (RigidBody foot : centerOfPressures.keySet())
+      {
+         other.getCenterOfPressureByName(centerOfPressures.get(foot), foot);
+      }
+   }
+
    public void getCenterOfPressure(Point2D centerOfPressureToPack, RigidBody foot)
    {
       centerOfPressureToPack.set(centerOfPressures.get(foot));
