@@ -28,12 +28,12 @@ public class Simple3dofBipedRobot extends Robot
    private final double hipOffsetY = 0.1;
    private final double thighLength = 0.5;
    private final double thighRadius = 0.06;
-   private final double thighMass = 0.01;
+   private final double thighMass = 0.05;
    private final double thighRogX = thighLength / 3.0, thighRogY = thighLength / 3.0, thighRogZ = thighRadius;
 
    private final double shinLength = 0.6;
    private final double shinRadius = 0.03;
-   private final double shinMass = 0.005;
+   private final double shinMass = 0.05;
    private final double shinRogX = shinLength / 3.0, shinRogY = shinLength / 3.0, shinRogZ = shinRadius;
 
    private final FloatingPlanarJoint bodyJoint;
@@ -45,7 +45,7 @@ public class Simple3dofBipedRobot extends Robot
    private final YoFramePoint capturePoint = new YoFramePoint("capturePoint", ReferenceFrame.getWorldFrame(), this.getRobotsYoVariableRegistry());
    private final SideDependentList<YoDouble> capturePointWithRespectToFeet = new SideDependentList<>();
    private final YoDouble capturePointWithRespectToBody = new YoDouble("capturePointBody", this.getRobotsYoVariableRegistry());
-   
+
    public Simple3dofBipedRobot()
    {
       super("3dofBiped");
@@ -61,10 +61,11 @@ public class Simple3dofBipedRobot extends Robot
 
       setKneeJointPosition(RobotSide.LEFT, 1.0);
       setKneeJointPosition(RobotSide.RIGHT, 1.0);
-      
+
       for (RobotSide robotSide : RobotSide.values)
       {
-         capturePointWithRespectToFeet.set(robotSide, new YoDouble("capturePoint" + robotSide.getCamelCaseNameForMiddleOfExpression() + "Foot", this.getRobotsYoVariableRegistry()));
+         capturePointWithRespectToFeet.set(robotSide, new YoDouble("capturePoint" + robotSide.getCamelCaseNameForMiddleOfExpression() + "Foot",
+                                                                   this.getRobotsYoVariableRegistry()));
       }
    }
 
@@ -119,6 +120,16 @@ public class Simple3dofBipedRobot extends Robot
       feetPoints.set(robotSide, footPoint);
    }
 
+   public double getBodyAngle()
+   {
+      return bodyJoint.getQ_rot().getDoubleValue();
+   }
+
+   public double getBodyAngularVelocity()
+   {
+      return bodyJoint.getQd_rot().getDoubleValue();
+   }
+
    public void setHipJointPosition(RobotSide robotSide, double hipJointPosition)
    {
       hipJoints.get(robotSide).setQ(hipJointPosition);
@@ -142,6 +153,16 @@ public class Simple3dofBipedRobot extends Robot
    public double getHipAngle(RobotSide robotSide)
    {
       return hipJoints.get(robotSide).getQ();
+   }
+
+   public double getThighAngle(RobotSide robotSide)
+   {
+      return getBodyAngle() + getHipAngle(robotSide);
+   }
+
+   public double getThighAngularVelocity(RobotSide robotSide)
+   {
+      return getBodyAngularVelocity() + getHipAngularVelocity(robotSide);
    }
 
    public double getKneeLength(RobotSide robotSide)
@@ -176,8 +197,8 @@ public class Simple3dofBipedRobot extends Robot
       FrameVector3D capturePointVector = new FrameVector3D();
       bodyJoint.getVelocity(capturePointVector);
 
-      capturePoint.scale(0.3);
-      capturePointWithRespectToBody.set(capturePoint.getX());
+      capturePointVector.scale(0.3);
+      capturePointWithRespectToBody.set(capturePointVector.getX());
 
       Vector3D translationToWorld = new Vector3D();
       bodyJoint.getTranslationToWorld(translationToWorld);
@@ -186,24 +207,28 @@ public class Simple3dofBipedRobot extends Robot
 
       capturePoint.set(capturePointVector);
 
-      
       for (RobotSide robotSide : RobotSide.values)
       {
          Point3D capturePointInFoot = capturePoint.getPoint3dCopy();
          capturePointInFoot.sub(this.getFootPosition(robotSide));
-         
+
          capturePointWithRespectToFeet.get(robotSide).set(capturePointInFoot.getX());
       }
    }
-   
+
    public double getCapturePointXWithRespectToFoot(RobotSide robotSide)
    {
       return capturePointWithRespectToFeet.get(robotSide).getDoubleValue();
    }
-   
+
    public double getCapturePointXWithRespectToBody()
    {
       return capturePointWithRespectToBody.getDoubleValue();
+   }
+
+   public boolean hasFootMadeContact(RobotSide robotSide)
+   {
+      return feetPoints.get(robotSide).isInContact();
    }
 
 }
