@@ -1,6 +1,7 @@
 package us.ihmc.exampleSimulations.simple3dofBiped;
 
 import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.robotics.math.trajectories.CubicPolynomialTrajectoryGenerator;
 import us.ihmc.robotics.math.trajectories.providers.YoVariableDoubleProvider;
 import us.ihmc.robotics.robotController.RobotController;
@@ -24,6 +25,8 @@ public class SimpleLeapOfFaithHeuristicController implements RobotController
    private final SideDependentList<YoDouble> q_d_hips = new SideDependentList<>();
    private final SideDependentList<YoDouble> q_d_knees = new SideDependentList<>();
 
+   
+   private final YoDouble q_d_pitch = new YoDouble("q_d_pitch", registry);
    private final YoDouble bodyOrientationKp = new YoDouble("bodyOrientationKp", registry);
    private final YoDouble bodyOrientationKd = new YoDouble("bodyOrientationKd", registry);
 
@@ -92,8 +95,8 @@ public class SimpleLeapOfFaithHeuristicController implements RobotController
       totalMass.set(simple3dofBiped.computeCenterOfMass(comPoint));
 
       finalSwingThighAngle.set(-0.4);
-      swingDuration.set(0.4);
-      swingTime.set(0.4);
+      swingDuration.set(0.3);
+      swingTime.set(0.3);
       finalRetractThighAngle.set(-0.2);
       retractDuration.set(0.3);
 
@@ -101,7 +104,7 @@ public class SimpleLeapOfFaithHeuristicController implements RobotController
       retractKneeForSwingVelocity.set(5.0);
       straightenKneeForSwingVelocity.set(3.0);
       extendKneeDuringStanceVelocity.set(0.2);
-      dropSupportKneeAcceleration.set(1.0);//-2
+      dropSupportKneeAcceleration.set(4.0);//-2
 
       capturePointToStartSwing.set(0.10);
 
@@ -116,9 +119,9 @@ public class SimpleLeapOfFaithHeuristicController implements RobotController
       kneeSupportKd.set(50.0);
 
       kneeSwingKp.set(500.0);
-      kneeSwingKd.set(50.0);
+      kneeSwingKd.set(10.0);
 
-      thighSwingKp.set(20.0);
+      thighSwingKp.set(40.0);
       thighSwingKd.set(1.0);
 
       minimumKneeSupportForce.set(2.0);
@@ -179,6 +182,27 @@ public class SimpleLeapOfFaithHeuristicController implements RobotController
       @Override
       public void doAction()
       {
+         double supportHipTorque = bodyOrientationKp.getDoubleValue() * (q_d_pitch.getDoubleValue() - robot.getBodyAngle())
+               - bodyOrientationKd.getDoubleValue() * robot.getBodyAngularVelocity();
+         Vector3D loadingGroundForce = robot.getFootForce(loadingSide);
+         Vector3D toeOffGroundForce = robot.getFootForce(toeOffSide);
+         
+         double loadingMagnitude = loadingGroundForce.getZ();
+         double toeOffMagnitude = toeOffGroundForce.getZ();
+         
+         if (loadingMagnitude < 0.0) loadingMagnitude = 0.0;
+         if (toeOffMagnitude < 0.0) toeOffMagnitude = 0.0;
+         double totalMagnitude = loadingMagnitude + toeOffMagnitude;
+         
+         if (totalMagnitude > totalMass.getDoubleValue() * 9.81 * 0.05) 
+         {
+            double percentLoading = loadingMagnitude / totalMagnitude;
+            double percentToeOff = toeOffMagnitude / totalMagnitude;
+            
+            robot.setHipTorque(loadingSide, -supportHipTorque * percentLoading);
+            robot.setHipTorque(toeOffSide, -supportHipTorque * percentToeOff);
+         }
+         
          YoDouble toeOffKneeDesiredLength = q_d_knees.get(toeOffSide);
 
          toeOffKneeVelocity.add(deltaTime.getDoubleValue() * toeOffKneeAcceleration.getDoubleValue());
@@ -257,7 +281,7 @@ public class SimpleLeapOfFaithHeuristicController implements RobotController
       @Override
       public void doAction()
       {
-         double supportHipTorque = bodyOrientationKp.getDoubleValue() * (0.0 - robot.getBodyAngle())
+         double supportHipTorque = bodyOrientationKp.getDoubleValue() * (q_d_pitch.getDoubleValue() - robot.getBodyAngle())
                - bodyOrientationKd.getDoubleValue() * robot.getBodyAngularVelocity();
          robot.setHipTorque(supportSide, -supportHipTorque);
 
@@ -338,7 +362,7 @@ public class SimpleLeapOfFaithHeuristicController implements RobotController
       @Override
       public void doAction()
       {
-         double supportHipTorque = bodyOrientationKp.getDoubleValue() * (0.0 - robot.getBodyAngle())
+         double supportHipTorque = bodyOrientationKp.getDoubleValue() * (q_d_pitch.getDoubleValue() - robot.getBodyAngle())
                - bodyOrientationKd.getDoubleValue() * robot.getBodyAngularVelocity();
          robot.setHipTorque(supportSide, -supportHipTorque);
 

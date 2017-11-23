@@ -23,6 +23,7 @@ public class Simple3dofBipedRobot extends Robot
    private final double bodyLength = 1.0;
    private final double bodyRadius = 0.1;
    private final double bodyMass = 1.0;
+   private final double bodyCoMZ = 0.5;
    private final double bodyRogX = 0.1, bodyRogY = 0.1, bodyRogZ = 0.1;
 
    private final double hipOffsetY = 0.1;
@@ -74,6 +75,7 @@ public class Simple3dofBipedRobot extends Robot
       FloatingPlanarJoint bodyJoint = new FloatingPlanarJoint("bodyJoint", this);
       Link bodyLink = new Link("body");
       bodyLink.setMassAndRadiiOfGyration(bodyMass, bodyRogX, bodyRogY, bodyRogZ);
+      bodyLink.setComOffset(0.0, 0.0, bodyCoMZ);
       Graphics3DObject bodyGraphics = new Graphics3DObject();
       bodyGraphics.translate(0.0, 0.0, bodyLength / 2.0 - bodyRadius);
       bodyGraphics.addCapsule(bodyRadius, bodyLength, YoAppearance.Gold());
@@ -229,6 +231,13 @@ public class Simple3dofBipedRobot extends Robot
    public boolean hasFootMadeContact(RobotSide robotSide)
    {
       return feetPoints.get(robotSide).isInContact();
+   }
+
+   public Vector3D getFootForce(RobotSide robotSide)
+   {
+      Vector3D force = new Vector3D();
+      feetPoints.get(robotSide).getForce(force);
+      return force;
    }
 
 }
