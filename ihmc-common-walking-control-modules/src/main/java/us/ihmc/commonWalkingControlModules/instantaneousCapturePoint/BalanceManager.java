@@ -47,6 +47,7 @@ import us.ihmc.robotics.math.frames.YoFrameVector2d;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.robotics.screwTheory.TotalMassCalculator;
+import us.ihmc.robotics.time.ExecutionTimer;
 import us.ihmc.sensorProcessing.frames.CommonHumanoidReferenceFrames;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
@@ -130,6 +131,10 @@ public class BalanceManager
    private final boolean useICPTimingOptimization;
 
    private final YoICPControlGains icpControlGains = new YoICPControlGains("", registry);
+
+   private final ExecutionTimer balanceManagerTimer = new ExecutionTimer("balanceManagerTimer", registry);
+   private final ExecutionTimer momentumRecoveryTimer = new ExecutionTimer("momentumRecoveryTimer", registry);
+   private final ExecutionTimer linearMomentumRateOfChangeTimer = new ExecutionTimer("linearMomentumRateOfChangeTimer", registry);
 
    public BalanceManager(HighLevelHumanoidControllerToolbox controllerToolbox, WalkingControllerParameters walkingControllerParameters,
                          ICPWithTimeFreezingPlannerParameters icpPlannerParameters, ICPAngularMomentumModifierParameters angularMomentumModifierParameters,
@@ -386,6 +391,8 @@ public class BalanceManager
    private final FramePoint3D copEstimate = new FramePoint3D();
    public void compute(RobotSide supportLeg, double desiredCoMHeightAcceleration, boolean keepCMPInsideSupportPolygon, boolean controlHeightWithMomentum)
    {
+      balanceManagerTimer.startMeasurement();
+
       controllerToolbox.getCapturePoint(capturePoint2d);
       controllerToolbox.getCoP(copEstimate);
 
@@ -429,12 +436,18 @@ public class BalanceManager
 
       yoFinalDesiredICP.getFrameTuple2dIncludingFrame(finalDesiredCapturePoint2d);
 
+      momentumRecoveryTimer.startMeasurement();
+
       getICPError(icpError2d);
       momentumRecoveryControlModule.setICPError(icpError2d);
       momentumRecoveryControlModule.setSupportSide(supportLeg);
       momentumRecoveryControlModule.setCapturePoint(capturePoint2d);
       momentumRecoveryControlModule.setSupportPolygon(bipedSupportPolygons.getSupportPolygonInWorld());
       momentumRecoveryControlModule.compute();
+
+      momentumRecoveryTimer.stopMeasurement();
+
+      linearMomentumRateOfChangeTimer.startMeasurement();
 
       momentumRecoveryControlModule.getCMPProjectionArea(areaToProjectInto, safeArea);
       if (!keepCMPInsideSupportPolygon)
@@ -463,6 +476,10 @@ public class BalanceManager
       yoDesiredCMP.getFrameTuple2d(desiredCMP);
       linearMomentumRateOfChangeControlModule.compute(desiredCMP, desiredCMP);
       yoDesiredCMP.set(desiredCMP);
+
+      linearMomentumRateOfChangeTimer.stopMeasurement();
+
+      balanceManagerTimer.stopMeasurement();
    }
 
    public void packFootstepForRecoveringFromDisturbance(RobotSide swingSide, double swingTimeRemaining, Footstep footstepToPack)

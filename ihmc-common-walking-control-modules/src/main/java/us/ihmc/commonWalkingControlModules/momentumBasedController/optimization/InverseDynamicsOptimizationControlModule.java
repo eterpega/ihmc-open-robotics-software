@@ -32,6 +32,7 @@ import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.robotics.screwTheory.ScrewTools;
 import us.ihmc.robotics.screwTheory.SpatialForceVector;
 import us.ihmc.robotics.screwTheory.Wrench;
+import us.ihmc.robotics.time.ExecutionTimer;
 import us.ihmc.tools.exceptions.NoConvergenceException;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
@@ -75,6 +76,11 @@ public class InverseDynamicsOptimizationControlModule
 
    private final YoBoolean useWarmStart = new YoBoolean("useWarmStartInSolver", registry);
    private final YoInteger maximumNumberOfIterations = new YoInteger("maximumNumberOfIterationsInSolver", registry);
+
+   private final ExecutionTimer wrenchMatrixCalculatorTimer = new ExecutionTimer("wrenchMatrixCalculatorTimer", registry);
+   private final ExecutionTimer wrenchesEquilibriumTimer = new ExecutionTimer("wrenchesEquilibriumTimer", registry);
+   private final ExecutionTimer privilegedAccelerationTimer = new ExecutionTimer("privilegedAccelerationTimer", registry);
+   private final ExecutionTimer momentumModuleSolutionTimer = new ExecutionTimer("momentumModuleSolutionTimer", registry);
 
    public InverseDynamicsOptimizationControlModule(WholeBodyControlCoreToolbox toolbox, YoVariableRegistry parentRegistry)
    {
@@ -153,7 +159,10 @@ public class InverseDynamicsOptimizationControlModule
 
    public MomentumModuleSolution compute() throws MomentumControlModuleException
    {
+      wrenchMatrixCalculatorTimer.startMeasurement();
       wrenchMatrixCalculator.computeMatrices();
+      wrenchMatrixCalculatorTimer.stopMeasurement();
+
       if (VISUALIZE_RHO_BASIS_VECTORS)
          basisVectorVisualizer.visualize(wrenchMatrixCalculator.getBasisVectors(), wrenchMatrixCalculator.getBasisVectorsOrigin());
       qpSolver.setRhoRegularizationWeight(wrenchMatrixCalculator.getRhoWeightMatrix());
@@ -164,8 +173,12 @@ public class InverseDynamicsOptimizationControlModule
       qpSolver.setMaxRho(wrenchMatrixCalculator.getRhoMaxMatrix());
       qpSolver.setActiveRhos(wrenchMatrixCalculator.getActiveRhoMatrix());
 
+      wrenchesEquilibriumTimer.startMeasurement();
       setupWrenchesEquilibriumConstraint();
+      wrenchesEquilibriumTimer.stopMeasurement();
+      privilegedAccelerationTimer.startMeasurement();
       computePrivilegedJointAccelerations();
+      privilegedAccelerationTimer.stopMeasurement();
 
       if (SETUP_JOINT_LIMIT_CONSTRAINTS)
       {
@@ -204,6 +217,8 @@ public class InverseDynamicsOptimizationControlModule
       DenseMatrix64F qDDotSolution = qpSolver.getJointAccelerations();
       DenseMatrix64F rhoSolution = qpSolver.getRhos();
 
+      momentumModuleSolutionTimer.startMeasurement();
+
       Map<RigidBody, Wrench> groundReactionWrenches = wrenchMatrixCalculator.computeWrenchesFromRho(rhoSolution);
       externalWrenchHandler.computeExternalWrenches(groundReactionWrenches);
 
@@ -217,6 +232,8 @@ public class InverseDynamicsOptimizationControlModule
       momentumModuleSolution.setRhoSolution(rhoSolution);
       momentumModuleSolution.setJointsToOptimizeFor(jointsToOptimizeFor);
       momentumModuleSolution.setRigidBodiesWithExternalWrench(rigidBodiesWithExternalWrench);
+
+      momentumModuleSolutionTimer.stopMeasurement();
 
       if (noConvergenceException != null)
       {

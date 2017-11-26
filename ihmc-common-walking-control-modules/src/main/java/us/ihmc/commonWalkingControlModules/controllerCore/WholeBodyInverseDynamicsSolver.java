@@ -45,6 +45,7 @@ import us.ihmc.robotics.screwTheory.ScrewTools;
 import us.ihmc.robotics.screwTheory.SpatialAccelerationCalculator;
 import us.ihmc.robotics.screwTheory.SpatialForceVector;
 import us.ihmc.robotics.screwTheory.Wrench;
+import us.ihmc.robotics.time.ExecutionTimer;
 import us.ihmc.sensorProcessing.outputData.JointDesiredControlMode;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
@@ -90,6 +91,9 @@ public class WholeBodyInverseDynamicsSolver
    private final YoFrameVector yoResidualRootJointTorque;
 
    private final double controlDT;
+
+   private final ExecutionTimer inverseDynamicsSolverTimer = new ExecutionTimer("inverseDynamicsSolverTimer", registry);
+   private final ExecutionTimer inverseDynamicsOptimizationTimer = new ExecutionTimer("inverseDynamicsOptimizationTimer", registry);
 
    public WholeBodyInverseDynamicsSolver(WholeBodyControlCoreToolbox toolbox, YoVariableRegistry parentRegistry)
    {
@@ -162,6 +166,8 @@ public class WholeBodyInverseDynamicsSolver
 
    public void compute()
    {
+      inverseDynamicsSolverTimer.startMeasurement();
+
       if (USE_DYNAMIC_MATRIX_CALCULATOR)
       {
          dynamicsMatrixCalculator.compute();
@@ -173,7 +179,9 @@ public class WholeBodyInverseDynamicsSolver
 
       try
       {
+         inverseDynamicsOptimizationTimer.startMeasurement();
          momentumModuleSolution = optimizationControlModule.compute();
+         inverseDynamicsOptimizationTimer.stopMeasurement();
       }
       catch (MomentumControlModuleException momentumControlModuleException)
       {
@@ -236,6 +244,8 @@ public class WholeBodyInverseDynamicsSolver
 
       planeContactWrenchProcessor.compute(externalWrenchSolution);
       wrenchVisualizer.visualize(externalWrenchSolution);
+
+      inverseDynamicsSolverTimer.stopMeasurement();
    }
 
    private void updateLowLevelData()

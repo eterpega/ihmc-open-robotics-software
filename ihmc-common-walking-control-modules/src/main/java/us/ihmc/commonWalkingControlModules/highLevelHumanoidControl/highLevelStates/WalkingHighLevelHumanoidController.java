@@ -76,6 +76,7 @@ import us.ihmc.robotics.stateMachines.conditionBasedStateMachine.State;
 import us.ihmc.robotics.stateMachines.conditionBasedStateMachine.StateChangedListener;
 import us.ihmc.robotics.stateMachines.conditionBasedStateMachine.StateTransition;
 import us.ihmc.robotics.stateMachines.conditionBasedStateMachine.StateTransitionCondition;
+import us.ihmc.robotics.time.ExecutionTimer;
 import us.ihmc.robotics.trajectories.TrajectoryType;
 import us.ihmc.sensorProcessing.outputData.JointDesiredOutput;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
@@ -134,6 +135,12 @@ public class WalkingHighLevelHumanoidController extends HighLevelBehavior
    private final PrivilegedConfigurationCommand privilegedConfigurationCommand = new PrivilegedConfigurationCommand();
    private final ControllerCoreCommand controllerCoreCommand = new ControllerCoreCommand(WholeBodyControllerCoreMode.INVERSE_DYNAMICS);
    private ControllerCoreOutputReadOnly controllerCoreOutput;
+
+   private final ExecutionTimer walkingStateMachineTimer = new ExecutionTimer("walkingStateMachineTimer", registry);
+   private final ExecutionTimer managerUpdateTimer = new ExecutionTimer("managerUpdateTimer", registry);
+   private final ExecutionTimer commandConsumerTimer = new ExecutionTimer("commandConsumerTimer", registry);
+   private final ExecutionTimer populateControllerCoreCommandTimer = new ExecutionTimer("populateControllerCoreCommandTimer", registry);
+   private final ExecutionTimer controllerToolboxUpdateTimer = new ExecutionTimer("controllerToolboxUpdateTimer", registry);
 
    /**
     * This command is used only when
@@ -561,10 +568,14 @@ public class WalkingHighLevelHumanoidController extends HighLevelBehavior
    @Override
    public void doAction()
    {
+      controllerToolboxUpdateTimer.startMeasurement();
       controllerToolbox.update();
+      controllerToolboxUpdateTimer.stopMeasurement();
 
       controllerCoreOutput.getLinearMomentumRate(achievedLinearMomentumRate);
       balanceManager.computeAchievedCMP(achievedLinearMomentumRate);
+
+      commandConsumerTimer.startMeasurement();
 
       WalkingState currentState = stateMachine.getCurrentState();
       commandConsumer.update();
@@ -581,20 +592,28 @@ public class WalkingHighLevelHumanoidController extends HighLevelBehavior
       commandConsumer.handleAutomaticManipulationAbortOnICPError(currentState);
       commandConsumer.consumeLoadBearingCommands();
 
+      commandConsumerTimer.stopMeasurement();
+
       updateFailureDetection();
 
       balanceManager.update();
 
+      walkingStateMachineTimer.startMeasurement();
       stateMachine.checkTransitionConditions();
       stateMachine.doAction();
+      walkingStateMachineTimer.stopMeasurement();
 
       currentState = stateMachine.getCurrentState();
 
+      managerUpdateTimer.startMeasurement();
       updateManagers(currentState);
+      managerUpdateTimer.stopMeasurement();
 
       handleChangeInContactState();
 
+      populateControllerCoreCommandTimer.startMeasurement();
       submitControllerCoreCommands();
+      populateControllerCoreCommandTimer.stopMeasurement();
 
       for (RobotSide robotSide : RobotSide.values)
       {
