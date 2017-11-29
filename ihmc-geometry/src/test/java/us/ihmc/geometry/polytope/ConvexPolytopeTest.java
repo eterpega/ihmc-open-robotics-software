@@ -3,17 +3,12 @@ package us.ihmc.geometry.polytope;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 import org.junit.Test;
 
-import us.ihmc.atlas.AtlasRobotModel;
-import us.ihmc.atlas.AtlasRobotVersion;
-import us.ihmc.avatar.collisionAvoidance.RobotCollisionMeshProvider;
-import us.ihmc.avatar.drcRobot.RobotTarget;
 import us.ihmc.commons.Epsilons;
 import us.ihmc.commons.MutationTestFacilitator;
 import us.ihmc.commons.PrintTools;
@@ -32,11 +27,6 @@ import us.ihmc.geometry.polytope.DCELPolytope.PolytopeHalfEdge;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.ConvexPolytopeFaceReadOnly;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.ConvexPolytopeReadOnly;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeHalfEdgeReadOnly;
-import us.ihmc.robotics.robotDescription.JointDescription;
-import us.ihmc.robotics.robotDescription.LinkDescription;
-import us.ihmc.robotics.robotDescription.RobotDescription;
-import us.ihmc.scsVisualizers.geometry.polytope.PolytopeVisualizationHelper;
-import us.ihmc.scsVisualizers.geometry.polytope.PolytopeVisualizer;
 
 public class ConvexPolytopeTest
 {
@@ -544,211 +534,42 @@ public class ConvexPolytopeTest
    @Test
    public void testCylinderCreationFromRandomPointsByProjection()
    {
-      boolean debug = false;
-      PolytopeVisualizationHelper testHelper = null;
-      if (debug)
-         testHelper = new PolytopeVisualizationHelper("Test", 1, 100, 200, 0);
       int numberOfPoints = 100;
       Random random = new Random(1234);
       double cylinderHeight = 1.0;
       double cylinderRadius = 0.125;
       ExtendedConvexPolytope cylinder = null;
-      if (debug)
-         cylinder = new ExtendedConvexPolytope(testHelper.getNextVisualizer());
-      else
-         cylinder = new ExtendedConvexPolytope();
+      cylinder = new ExtendedConvexPolytope();
       for (int i = 0; i < numberOfPoints; i++)
       {
          Point3D pointToAdd = new Point3D(EuclidCoreRandomTools.generateRandomDouble(random, 10.0), EuclidCoreRandomTools.generateRandomDouble(random, 10.0),
                                           EuclidCoreRandomTools.generateRandomDouble(random, 10.0));
          projectToInteriorOfCylinder(cylinderHeight, cylinderRadius, pointToAdd);
-         if (debug)
-            PrintTools.debug("Adding point " + pointToAdd.toString());
          cylinder.addVertex(pointToAdd, EPSILON);
          checkPolytopeConsistency(cylinder);
-         if (debug)
-            testHelper.tickSCS();
       }
-      if (debug)
-         testHelper.keepSCSUp();
-   }
-
-   @Test
-   public void testRobotModelHeadMeshes()
-   {
-      boolean debug = false;
-      PolytopeVisualizationHelper visualizationHelper = null;
-      PolytopeVisualizer polytopeVisualizer = null;
-      ExtendedConvexPolytope polytope = null;
-      if (debug)
-      {
-         visualizationHelper = new PolytopeVisualizationHelper("AtlasRobotMeshTest", 1, 50, 500, 100);
-         polytopeVisualizer = visualizationHelper.getNextVisualizer();
-         polytope = new ExtendedConvexPolytope(polytopeVisualizer);
-      }
-      else
-         polytope = new ExtendedConvexPolytope();
-
-      String linkName = "neck_ry";
-      ArrayList<Point3D> pointList = getAtlasCollisionMeshPointsForLink(linkName);
-      for (int i = 0; i < pointList.size(); i++)
-      {
-         if (debug)
-         {
-            polytopeVisualizer.clearHighlightedEdge();
-            visualizationHelper.clearAdditionalEdge();
-            //PrintTools.debug("Adding point " + i + ":, " + pointList.get(i).getX() + " ,  " + pointList.get(i).getY() + " ,  " + pointList.get(i).getZ());
-         }
-         polytope.addVertex(pointList.get(i), EPSILON);
-         if (debug)
-         {
-            visualizationHelper.showAdditionalPoint(pointList.get(i));
-            visualizationHelper.tickSCS();
-         }
-         checkPolytopeConsistency(polytope);
-      }
-      if (debug)
-         visualizationHelper.keepSCSUp();
-   }
-
-   @Test
-   public void testRobotModelPelvisMeshes()
-   {
-      boolean debug = false;
-      PolytopeVisualizationHelper visualizationHelper = null;
-      PolytopeVisualizer polytopeVisualizer = null;
-      ExtendedConvexPolytope polytope = null;
-      if (debug)
-      {
-         visualizationHelper = new PolytopeVisualizationHelper("AtlasRobotMeshTest", 1, 50, 500, 15);
-         polytopeVisualizer = visualizationHelper.getNextVisualizer();
-         polytope = new ExtendedConvexPolytope(polytopeVisualizer);
-      }
-      else
-         polytope = new ExtendedConvexPolytope();
-
-      String linkName = "pelvis";
-      ArrayList<Point3D> pointList = getAtlasCollisionMeshPointsForLink(linkName);
-      for (int i = 0; i < pointList.size(); i++)
-      {
-         if (debug)
-         {
-            polytopeVisualizer.clearHighlightedEdge();
-            visualizationHelper.clearAdditionalEdge();
-            PrintTools.debug("Adding point " + i + ":, " + pointList.get(i).getX() + " ,  " + pointList.get(i).getY() + " ,  " + pointList.get(i).getZ());
-         }
-         polytope.addVertex(pointList.get(i), EPSILON);
-         if (debug)
-         {
-            visualizationHelper.showAdditionalPoint(pointList.get(i));
-            visualizationHelper.tickSCS();
-         }
-         if(debug)
-         {
-            PolytopeHalfEdgeReadOnly invalidEdge = checkPolytopeConsistencySoft(polytope);
-            if(invalidEdge != null)
-            {
-               //visualizationHelper.highlightEdge(invalidEdge.getTwinHalfEdge());
-               break;
-            }
-         }
-         else
-            checkPolytopeConsistency(polytope);
-      }
-      if (debug)
-         visualizationHelper.keepSCSUp();
-   }
-
-//   @Test
-   public void testRobotModelTorsoMeshes()
-   {
-      PolytopeVisualizationHelper visualizationHelper = new PolytopeVisualizationHelper("AtlasRobotMeshTest", 1, 1000, 5000, 15);
-      PolytopeVisualizer polytopeVisualizer = visualizationHelper.getNextVisualizer();
-      ExtendedConvexPolytope polytope = new ExtendedConvexPolytope(polytopeVisualizer);
-      String jointName = "back_bkx";
-      ArrayList<Point3D> pointList = getAtlasCollisionMeshPointsForLink(jointName);
-      polytopeVisualizer.setColor(Color.BLACK);
-      int size = pointList.size();
-      for (int i = 0; i < size; i++)
-      {
-         polytopeVisualizer.clearHighlightedEdge();
-         visualizationHelper.clearAdditionalEdge();
-         PrintTools.debug("Adding point " + i + ":, " + pointList.get(i).getX() + " ,  " + pointList.get(i).getY() + " ,  " + pointList.get(i).getZ());
-         polytope.addVertex(pointList.get(i), EPSILON);
-         visualizationHelper.showAdditionalPoint(pointList.get(i));
-         polytopeVisualizer.updateVertices(pointList);
-         visualizationHelper.tickSCS();
-         PolytopeHalfEdgeReadOnly invalidEdge = checkPolytopeConsistencySoft(polytope);
-         if (invalidEdge != null)
-         {
-            visualizationHelper.highlightEdge(invalidEdge);
-            visualizationHelper.updateAll();
-            visualizationHelper.tickSCS();
-            break;
-         }
-      }
-      visualizationHelper.keepSCSUp();
-   }
-
-   public ArrayList<Point3D> getAtlasCollisionMeshPointsForLink(String jointName)
-   {
-      ArrayList<Point3D> pointList;
-      AtlasRobotModel atlasRobotModel = new AtlasRobotModel(AtlasRobotVersion.ATLAS_UNPLUGGED_V5_NO_HANDS, RobotTarget.SCS, false);
-      RobotDescription atlasRobotDescription = atlasRobotModel.getRobotDescription();
-      RobotCollisionMeshProvider meshProvider = new RobotCollisionMeshProvider(16);
-      LinkDescription linkDescription = atlasRobotDescription.getLinkDescription(jointName);
-      pointList = meshProvider.getCollisionMeshPoints(linkDescription.getCollisionMeshes(), new Vector3D());
-      return pointList;
-   }
-
-   private void recursivelyPrintLinkNames(JointDescription joint)
-   {
-      PrintTools.debug("Joint: " + joint.getName() + ", Link: " + joint.getLink().getName());
-      for (JointDescription childrenJoint : joint.getChildrenJoints())
-         recursivelyPrintLinkNames(childrenJoint);
    }
 
    @Test
    public void testAddVeryCloseVertex()
    {
-      boolean debug = false;
-      PolytopeVisualizationHelper testHelper = null;
       ExtendedConvexPolytope polytope = null;
-      if (debug)
-      {
-         testHelper = new PolytopeVisualizationHelper("Test", 1, 100, 200, 100);
-         polytope = new ExtendedConvexPolytope(testHelper.getNextVisualizer());
-      }
-      else
-         polytope = new ExtendedConvexPolytope();
+      polytope = new ExtendedConvexPolytope();
 
       polytope.addVertex(1.0, 1.0, 1.0, EPSILON);
       checkPolytopeConsistency(polytope);
-      if (debug)
-         testHelper.tickSCS();
 
       polytope.addVertex(1.0, 1.0, 0.0, EPSILON);
       checkPolytopeConsistency(polytope);
-      if (debug)
-         testHelper.tickSCS();
 
       polytope.addVertex(1.0, 0.0, 1.0, EPSILON);
       checkPolytopeConsistency(polytope);
-      if (debug)
-         testHelper.tickSCS();
 
       polytope.addVertex(1.0, 0.0, 0.0, EPSILON);
       checkPolytopeConsistency(polytope);
-      if (debug)
-         testHelper.tickSCS();
 
       polytope.addVertex(1.0 - EPSILON, 0.5, 0.5, EPSILON);
       checkPolytopeConsistency(polytope);
-      if (debug)
-      {
-         testHelper.tickSCS();
-         testHelper.keepSCSUp();
-      }
    }
 
    public void checkPolytopeConsistency(ConvexPolytopeReadOnly polytope)
@@ -798,7 +619,7 @@ public class ConvexPolytopeTest
       for (int j = 0; j < numberOfFaces; j++)
       {
          ConvexPolytopeFaceReadOnly face = polytope.getFace(j);
-         if(face.getNumberOfEdges() == 0)
+         if (face.getNumberOfEdges() == 0)
             return null;
          for (int i = 0; i < face.getNumberOfEdges(); i++)
          {
@@ -827,6 +648,7 @@ public class ConvexPolytopeTest
 
    /**
     * Projects assuming the center is the origin and axis is the Z axis
+    * 
     * @param height
     * @param radius
     */

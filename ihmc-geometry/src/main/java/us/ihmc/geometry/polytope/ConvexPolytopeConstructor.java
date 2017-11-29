@@ -752,8 +752,8 @@ public class ConvexPolytopeConstructor
       RigidBodyTransform rigidBodyTransform = new RigidBodyTransform();
       Vector3D axisAngleVector = new Vector3D();
       lineSegment.getDirection(true, axisAngleVector);
-      double angle = axisAngleVector.angle(Axis.X.getAxisVector());
-      axisAngleVector.cross(Axis.X.getAxisVector());
+      double angle = axisAngleVector.angle(Axis.X);
+      axisAngleVector.cross(Axis.X);
       axisAngleVector.normalize();
       axisAngleVector.scale(angle);
       rigidBodyTransform.setRotation(axisAngleVector);
