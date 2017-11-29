@@ -7,6 +7,7 @@ import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 
 import us.ihmc.commons.Epsilons;
+import us.ihmc.commons.MathTools;
 import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.geometry.tools.EuclidGeometryTools;
 import us.ihmc.euclid.interfaces.GeometryObject;
@@ -16,7 +17,6 @@ import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DBasics;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DBasics;
-import us.ihmc.robotics.MathTools;
 
 /**
  * This class defines a polytope face. A face is defined by the set of edges that bound it.
@@ -608,5 +608,11 @@ public class ConvexPolytopeFace implements GeometryObject<ConvexPolytopeFace>, C
          return this;
       else
          return getEdgeClosestTo(tempPoint).getSmallestSimplexMemberReference(point);
+   }
+
+   @Override
+   public boolean geometricallyEquals(ConvexPolytopeFace other, double epsilon)
+   {
+      throw new RuntimeException("Not implemented.");
    }
 }

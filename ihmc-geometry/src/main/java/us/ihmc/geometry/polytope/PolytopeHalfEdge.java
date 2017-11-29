@@ -377,4 +377,10 @@ public class PolytopeHalfEdge implements GeometryObject<PolytopeHalfEdge>, Polyt
       else
          return this;
    }
+
+   @Override
+   public boolean geometricallyEquals(PolytopeHalfEdge other, double epsilon)
+   {
+      throw new RuntimeException("Not implemented.");
+   }
 }

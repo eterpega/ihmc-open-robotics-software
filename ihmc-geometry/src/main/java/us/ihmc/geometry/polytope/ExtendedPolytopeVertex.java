@@ -248,4 +248,10 @@ public class ExtendedPolytopeVertex implements GeometryObject<ExtendedPolytopeVe
    {
       return this;
    }
+
+   @Override
+   public boolean geometricallyEquals(ExtendedPolytopeVertex other, double epsilon)
+   {
+      throw new RuntimeException("Not implemented.");
+   }
 }

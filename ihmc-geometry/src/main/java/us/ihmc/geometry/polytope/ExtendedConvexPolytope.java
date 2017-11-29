@@ -753,4 +753,10 @@ public class ExtendedConvexPolytope implements GeometryObject<ExtendedConvexPoly
    {
       return getFaceContainingPointClosestTo(point).getSmallestSimplexMemberReference(point);
    }
+
+   @Override
+   public boolean geometricallyEquals(ExtendedConvexPolytope other, double epsilon)
+   {
+      throw new RuntimeException("Not implemented.");
+   }
 }

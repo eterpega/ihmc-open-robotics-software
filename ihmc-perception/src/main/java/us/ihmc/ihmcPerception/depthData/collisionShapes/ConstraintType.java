@@ -1,6 +1,6 @@
 package us.ihmc.ihmcPerception.depthData.collisionShapes;
 
-import us.ihmc.robotics.MathTools;
+import us.ihmc.commons.MathTools;
 
 public enum ConstraintType
 {
