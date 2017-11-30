@@ -1,6 +1,5 @@
 package us.ihmc.graphicsDescription.yoGraphics;
 
-import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.transform.AffineTransform;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.graphicsDescription.Graphics3DObject;
