@@ -7,6 +7,7 @@ import us.ihmc.commons.MathTools;
 import us.ihmc.euclid.interfaces.Clearable;
 import us.ihmc.euclid.interfaces.Settable;
 import us.ihmc.euclid.interfaces.Transformable;
+import us.ihmc.euclid.tools.EuclidCoreIOTools;
 import us.ihmc.euclid.transform.interfaces.Transform;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DBasics;
@@ -158,7 +159,7 @@ public abstract class PolytopeVertexBasics<V extends PolytopeVertexBasics<V, E, 
     */
    public String toString()
    {
-      return "( " + getX() + ", " + getY() + ", " + getZ() + ")";
+      return EuclidCoreIOTools.getTuple3DString(this);
    }
 
    @Override
