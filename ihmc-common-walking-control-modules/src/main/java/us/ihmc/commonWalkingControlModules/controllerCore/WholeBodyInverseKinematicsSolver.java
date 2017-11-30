@@ -5,7 +5,6 @@ import java.util.Map;
 
 import org.ejml.data.DenseMatrix64F;
 
-import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics.CollisionAvoidanceCommand;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics.InverseKinematicsCommand;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics.InverseKinematicsCommandList;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics.InverseKinematicsSolution;
@@ -143,9 +142,6 @@ public class WholeBodyInverseKinematicsSolver
             break;
          case LIMIT_REDUCTION:
             optimizationControlModule.submitJointLimitReductionCommand((JointLimitReductionCommand) command);
-            break;
-         case COLLISION_AVOIDANCE:
-            optimizationControlModule.submitCollisionAvoidanceCommand((CollisionAvoidanceCommand)command);
             break;
          case COMMAND_LIST:
             submitInverseKinematicsCommandList((InverseKinematicsCommandList) command);

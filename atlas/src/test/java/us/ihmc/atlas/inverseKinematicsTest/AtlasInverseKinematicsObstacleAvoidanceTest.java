@@ -23,13 +23,7 @@ import us.ihmc.robotics.robotDescription.SphereDescriptionReadOnly;
 
 public class AtlasInverseKinematicsObstacleAvoidanceTest extends AvatarInverseKinematicsObstacleAvoidanceTest
 {
-   AtlasRobotModel robotModel = new AtlasRobotModel(AtlasRobotVersion.ATLAS_UNPLUGGED_V5_DUAL_ROBOTIQ, RobotTarget.SCS, false);
-
-   @Override
-   public boolean keepSCSUp()
-   {
-      return true;
-   }
+   private final AtlasRobotModel robotModel = new AtlasRobotModel(AtlasRobotVersion.ATLAS_UNPLUGGED_V5_DUAL_ROBOTIQ, RobotTarget.SCS, false);
 
    @Override
    public int getNumberOfObstacles()

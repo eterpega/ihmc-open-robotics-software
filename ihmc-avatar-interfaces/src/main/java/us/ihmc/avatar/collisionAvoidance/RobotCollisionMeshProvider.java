@@ -1,10 +1,10 @@
 package us.ihmc.avatar.collisionAvoidance;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import gnu.trove.map.hash.THashMap;
 import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.geometry.LineSegment3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
@@ -25,7 +25,6 @@ import us.ihmc.robotics.robotDescription.JointDescription;
 import us.ihmc.robotics.robotDescription.LinkDescription;
 import us.ihmc.robotics.robotDescription.RobotDescription;
 import us.ihmc.robotics.robotDescription.SphereDescriptionReadOnly;
-import us.ihmc.robotics.screwTheory.InverseDynamicsJoint;
 import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.robotics.screwTheory.ScrewTools;
 
@@ -37,7 +36,8 @@ public class RobotCollisionMeshProvider
    private static final boolean debug = false;
 
    /**
-    * Controls the number of segments a curved surface is broken up into. A larger value will represent a smooth surface more accurately
+    * Controls the number of segments a curved surface is broken up into. A larger value will
+    * represent a smooth surface more accurately
     */
    private final int defaultCurvedSurfaceDivisions;
 
@@ -46,90 +46,70 @@ public class RobotCollisionMeshProvider
       this.defaultCurvedSurfaceDivisions = numberOfCurvedSurfaceDivisions;
    }
 
-   public THashMap<RigidBody, FrameConvexPolytope> createCollisionMeshesFromDescription(RigidBody rootBody, JointDescription rootJointDescription)
+   public Map<RigidBody, FrameConvexPolytope> createCollisionMeshesFromRobotDescription(RigidBody rootBody, JointDescription rootJointDescription)
    {
       Map<String, RigidBody> nameToRigidBodyMap = createNameBasedRigidBodyMap(rootBody);
       Map<String, LinkDescription> nameToLinkDescriptionMap = createNameToLinkDescriptionMap(rootJointDescription);
-      THashMap<RigidBody, FrameConvexPolytope> collisionMeshMap = new THashMap<>();
-      String[] rigidBodyNames = (String[]) nameToRigidBodyMap.keySet().toArray();
-      for (int i = 0; i < rigidBodyNames.length; i++)
+      Map<RigidBody, FrameConvexPolytope> collisionMeshMap = new HashMap<>();
+
+      for (String name : nameToLinkDescriptionMap.keySet())
       {
-         RigidBody rigidBody = nameToRigidBodyMap.get(rigidBodyNames[i]);
-         LinkDescription linkDescription = nameToLinkDescriptionMap.get(rigidBodyNames[i]);
-         collisionMeshMap.put(rigidBody, createCollisionMesh(rigidBody, linkDescription.getCollisionMeshes()));
+         RigidBody rigidBody = nameToRigidBodyMap.get(name);
+         LinkDescription linkDescription = nameToLinkDescriptionMap.get(name);
+         collisionMeshMap.put(rigidBody, createCollisionMesh(rigidBody, linkDescription));
       }
       return collisionMeshMap;
    }
 
-   private Map<String, LinkDescription> createNameToLinkDescriptionMap(JointDescription rootJointDescription)
+   public Map<RigidBody, FrameConvexPolytope> createCollisionMeshesFromRobotDescription(FullRobotModel fullRobotModel, RobotDescription robotDescription)
    {
-      Map<String, LinkDescription> nameToLinkDescriptionMap = new THashMap<>();
+      ArrayList<JointDescription> rootJointDescriptions = robotDescription.getRootJoints();
+
+      if (rootJointDescriptions.size() > 1 || !(rootJointDescriptions.get(0) instanceof FloatingJointDescription))
+         throw new RuntimeException("There should be only one floating joint");
+
+      FloatingJointDescription rootJointDescription = (FloatingJointDescription) rootJointDescriptions.get(0);
+      return createCollisionMeshesFromRobotDescription(fullRobotModel.getElevator(), rootJointDescription);
+   }
+
+   private static Map<String, LinkDescription> createNameToLinkDescriptionMap(JointDescription rootJointDescription)
+   {
+      Map<String, LinkDescription> nameToLinkDescriptionMap = new HashMap<>();
       recursivelyAddLinkeDescriptions(rootJointDescription, nameToLinkDescriptionMap);
       return nameToLinkDescriptionMap;
    }
 
-   private void recursivelyAddLinkeDescriptions(JointDescription rootJointDescription, Map<String, LinkDescription> nameToLinkDescriptionMap)
+   private static void recursivelyAddLinkeDescriptions(JointDescription rootJointDescription, Map<String, LinkDescription> nameToLinkDescriptionMap)
    {
       nameToLinkDescriptionMap.put(rootJointDescription.getLink().getName(), rootJointDescription.getLink());
       for (JointDescription jointDescription : rootJointDescription.getChildrenJoints())
          recursivelyAddLinkeDescriptions(jointDescription, nameToLinkDescriptionMap);
    }
 
-   private Map<String, RigidBody> createNameBasedRigidBodyMap(RigidBody rootBody)
+   private static Map<String, RigidBody> createNameBasedRigidBodyMap(RigidBody rootBody)
    {
-      Map<String, RigidBody> nameToRigidBodyMap = new THashMap<>();
+      Map<String, RigidBody> nameToRigidBodyMap = new HashMap<>();
       RigidBody[] rigidBodies = ScrewTools.computeSupportAndSubtreeSuccessors(rootBody);
       for (int i = 0; i < rigidBodies.length; i++)
          nameToRigidBodyMap.put(rigidBodies[i].getName(), rigidBodies[i]);
       return nameToRigidBodyMap;
    }
 
-   public THashMap<RigidBody, FrameConvexPolytope> createCollisionMeshesFromRobotDescription(FullRobotModel fullRobotModel, RobotDescription robotDescription)
-   {
-      ArrayList<JointDescription> rootJointDescriptions = robotDescription.getRootJoints();
-      if (rootJointDescriptions.size() > 1 || !(rootJointDescriptions.get(0) instanceof FloatingJointDescription))
-         throw new RuntimeException("There should be only one floating joint");
-      FloatingJointDescription rootJointDescription = (FloatingJointDescription) rootJointDescriptions.get(0);
-      THashMap<RigidBody, FrameConvexPolytope> collisionMeshMap = new THashMap<>();
-      recursivelyAddCollisionMeshes(collisionMeshMap, rootJointDescription, fullRobotModel);
-      return collisionMeshMap;
-   }
-
-   private void recursivelyAddCollisionMeshes(THashMap<RigidBody, FrameConvexPolytope> collisionMeshMap, JointDescription jointDescription,
-                                              FullRobotModel fullRobotModel)
-   {
-      LinkDescription linkDescription = jointDescription.getLink();
-      InverseDynamicsJoint joint = null;
-      if (!(jointDescription.getName() == fullRobotModel.getRootJoint().getName()))
-         joint = fullRobotModel.getOneDoFJointByName(jointDescription.getName());
-      else
-         joint = fullRobotModel.getRootJoint();
-      RigidBody rigidBody = joint.getSuccessor();
-      if (debug)
-         PrintTools.debug("Link : " + linkDescription.getName() + " Joint: " + joint.getName());
-      collisionMeshMap.put(rigidBody, createCollisionMesh(rigidBody, linkDescription));
-      for (JointDescription childJointDescription : jointDescription.getChildrenJoints())
-      {
-         recursivelyAddCollisionMeshes(collisionMeshMap, childJointDescription, fullRobotModel);
-      }
-   }
-
-   private final Vector3D centerOfMassOffset = new Vector3D();
-
    public FrameConvexPolytope createCollisionMesh(RigidBody rigidBody, ArrayList<CollisionMeshDescription> meshDescriptions)
    {
-      centerOfMassOffset.setToZero();
+      Vector3D centerOfMassOffset = new Vector3D();
       return ConvexPolytopeConstructor.createFramePolytope(rigidBody.getBodyFixedFrame(), getCollisionMeshPoints(meshDescriptions, centerOfMassOffset));
    }
 
    public FrameConvexPolytope createCollisionMesh(RigidBody rigidBody, LinkDescription linkDescriptions)
    {
+      Vector3D centerOfMassOffset = new Vector3D();
       linkDescriptions.getCenterOfMassOffset(centerOfMassOffset);
       return ConvexPolytopeConstructor.createFramePolytope(rigidBody.getBodyFixedFrame(),
                                                            getCollisionMeshPoints(linkDescriptions.getCollisionMeshes(), centerOfMassOffset));
    }
 
-   public ArrayList<Point3D> getCollisionMeshPoints(ArrayList<CollisionMeshDescription> meshDescriptions, Vector3D centerOfMassOffset)
+   public List<Point3D> getCollisionMeshPoints(ArrayList<CollisionMeshDescription> meshDescriptions, Vector3D centerOfMassOffset)
    {
       ArrayList<ConvexShapeDescription> collisionShapeDescriptions = new ArrayList<>();
       for (int i = 0; i < meshDescriptions.size(); i++)
@@ -198,7 +178,7 @@ public class RobotCollisionMeshProvider
 
    public FrameConvexPolytope createCollisionMeshesFromDescription(ReferenceFrame referenceFrame, ConvexShapeDescription shapeDescription)
    {
-      ArrayList<Point3D> points = new ArrayList<>();
+      List<Point3D> points = new ArrayList<>();
       getCollisionMeshPointsFromDescription(shapeDescription, points);
       return ConvexPolytopeConstructor.createFramePolytope(referenceFrame, points);
    }

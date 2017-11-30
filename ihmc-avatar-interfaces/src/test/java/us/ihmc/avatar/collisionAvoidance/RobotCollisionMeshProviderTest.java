@@ -5,13 +5,14 @@ import static org.junit.Assert.assertTrue;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Random;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 import org.junit.Test;
 
-import gnu.trove.map.hash.THashMap;
 import us.ihmc.avatar.jointAnglesWriter.JointAnglesWriter;
 import us.ihmc.avatar.networkProcessor.kinematicsToolboxModule.KinematicsToolboxControllerTestRobots;
 import us.ihmc.commons.Epsilons;
@@ -29,13 +30,10 @@ import us.ihmc.geometry.polytope.ConvexPolytopeConstructor;
 import us.ihmc.geometry.polytope.DCELPolytope.ExtendedSimplexPolytope;
 import us.ihmc.geometry.polytope.DCELPolytope.CollisionDetection.HybridGJKEPACollisionDetector;
 import us.ihmc.geometry.polytope.DCELPolytope.Frame.FrameConvexPolytope;
-import us.ihmc.robotModels.FullRobotModel;
-import us.ihmc.robotModels.FullRobotModelFromDescription;
 import us.ihmc.robotics.geometry.FramePose;
-import us.ihmc.robotics.partNames.JointNameMap;
 import us.ihmc.robotics.referenceFrames.PoseReferenceFrame;
 import us.ihmc.robotics.robotDescription.CollisionMeshDescription;
-import us.ihmc.robotics.robotDescription.RobotDescription;
+import us.ihmc.robotics.screwTheory.FloatingInverseDynamicsJoint;
 import us.ihmc.robotics.screwTheory.GeometricJacobianCalculator;
 import us.ihmc.robotics.screwTheory.InverseDynamicsJoint;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
@@ -51,14 +49,15 @@ public class RobotCollisionMeshProviderTest
    @Test
    public void testCollisionMeshCreationFromRobotDescription()
    {
-      RobotDescription sevenDoFArm = new KinematicsToolboxControllerTestRobots.SevenDoFArm();
-      JointNameMap sevenDoFArmJointNameMap = new KinematicsToolboxControllerTestRobots.SevenDoFArmJointMap();
-      FullRobotModel robotModel = new FullRobotModelFromDescription(sevenDoFArm, sevenDoFArmJointNameMap, null);
+      KinematicsToolboxControllerTestRobots.SevenDoFArm sevenDoFArm = new KinematicsToolboxControllerTestRobots.SevenDoFArm();
+      Pair<FloatingInverseDynamicsJoint, OneDoFJoint[]> inverseDynamicsRobot = KinematicsToolboxControllerTestRobots.createInverseDynamicsRobot(sevenDoFArm);
       RobotCollisionMeshProvider meshProvider = new RobotCollisionMeshProvider(4);
-      THashMap<RigidBody, FrameConvexPolytope> collisionPolytopeMap = meshProvider.createCollisionMeshesFromRobotDescription(robotModel, sevenDoFArm);
+      RigidBody rootBody = ScrewTools.getRootBody(inverseDynamicsRobot.getRight()[0].getSuccessor());
+      Map<RigidBody, FrameConvexPolytope> collisionPolytopeMap = meshProvider.createCollisionMeshesFromRobotDescription(rootBody,
+                                                                                                                        sevenDoFArm.getRootJoints().get(0));
       RobotFromDescription scsRobot = new RobotFromDescription(sevenDoFArm);
       FrameConvexPolytopeVisualizer viz = new FrameConvexPolytopeVisualizer(collisionPolytopeMap.size(), true, scsRobot);
-      for (RigidBody rigidBody : ScrewTools.computeRigidBodiesAfterThisJoint(robotModel.getRootJoint()))
+      for (RigidBody rigidBody : ScrewTools.computeRigidBodiesAfterThisJoint(rootBody.getChildrenJoints().get(0)))
       {
          if (collisionPolytopeMap.get(rigidBody) != null)
             viz.addPolytope(collisionPolytopeMap.get(rigidBody), Color.BLUE);
@@ -66,14 +65,15 @@ public class RobotCollisionMeshProviderTest
             PrintTools.debug("Getting a null for rigid body " + rigidBody.getName());
       }
       viz.updateNonBlocking();
-      randomizeJointPositions(new Random(124815), robotModel, 0.75);
-      new JointAnglesWriter(scsRobot, robotModel.getRootJoint(), robotModel.getOneDoFJoints()).updateRobotConfigurationBasedOnFullRobotModel();
+      randomizeJointPositions(new Random(124815), inverseDynamicsRobot, 0.75);
+      new JointAnglesWriter(scsRobot, inverseDynamicsRobot.getKey(), inverseDynamicsRobot.getValue()).updateRobotConfigurationBasedOnFullRobotModel();
       viz.update();
    }
 
-   private void randomizeJointPositions(Random random, FullRobotModel randomizedFullRobotModel, double percentOfMotionRangeAllowed)
+   private void randomizeJointPositions(Random random, Pair<FloatingInverseDynamicsJoint, OneDoFJoint[]> randomizedFullRobotModel,
+                                        double percentOfMotionRangeAllowed)
    {
-      for (OneDoFJoint joint : randomizedFullRobotModel.getOneDoFJoints())
+      for (OneDoFJoint joint : randomizedFullRobotModel.getRight())
       {
          double jointLimitLower = joint.getJointLimitLower();
          if (Double.isInfinite(jointLimitLower))
@@ -92,17 +92,18 @@ public class RobotCollisionMeshProviderTest
    public void testMeshCollisionsWithObjects()
    {
       PoseReferenceFrame collisionPointReferenceFrame = new PoseReferenceFrame("CollisionPointFrame", new FramePose());
-      RobotDescription sevenDoFArm = new KinematicsToolboxControllerTestRobots.SevenDoFArm();
-      JointNameMap sevenDoFArmJointNameMap = new KinematicsToolboxControllerTestRobots.SevenDoFArmJointMap();
-      FullRobotModel robotModel = new FullRobotModelFromDescription(sevenDoFArm, sevenDoFArmJointNameMap, null);
+      KinematicsToolboxControllerTestRobots.SevenDoFArm sevenDoFArm = new KinematicsToolboxControllerTestRobots.SevenDoFArm();
+      Pair<FloatingInverseDynamicsJoint, OneDoFJoint[]> inverseDynamicsRobot = KinematicsToolboxControllerTestRobots.createInverseDynamicsRobot(sevenDoFArm);
       RobotCollisionMeshProvider meshProvider = new RobotCollisionMeshProvider(4);
-      THashMap<RigidBody, FrameConvexPolytope> collisionPolytopeMap = meshProvider.createCollisionMeshesFromRobotDescription(robotModel, sevenDoFArm);
+      RigidBody rootBody = ScrewTools.getRootBody(inverseDynamicsRobot.getRight()[0].getSuccessor());
+      Map<RigidBody, FrameConvexPolytope> collisionPolytopeMap = meshProvider.createCollisionMeshesFromRobotDescription(rootBody,
+                                                                                                                        sevenDoFArm.getRootJoints().get(0));
       RobotFromDescription scsRobot = new RobotFromDescription(sevenDoFArm);
       FrameConvexPolytopeVisualizer viz = new FrameConvexPolytopeVisualizer(collisionPolytopeMap.size() + 2, true, scsRobot);
       GeometricJacobianCalculator jacobianCalculator = new GeometricJacobianCalculator();
-      RigidBody[] rigidBodyList = ScrewTools.computeRigidBodiesAfterThisJoint(robotModel.getRootJoint());
-      DenseMatrix64F jacobianMatrix = new DenseMatrix64F(6,7);
-      DenseMatrix64F jacobianTranspose = new DenseMatrix64F(7,6);
+      RigidBody[] rigidBodyList = ScrewTools.computeRigidBodiesAfterThisJoint(rootBody.getChildrenJoints().get(0));
+      DenseMatrix64F jacobianMatrix = new DenseMatrix64F(6, 7);
+      DenseMatrix64F jacobianTranspose = new DenseMatrix64F(7, 6);
       DenseMatrix64F xDot = new DenseMatrix64F(6, 1);
       DenseMatrix64F qDot = new DenseMatrix64F(7, 1);
       for (RigidBody rigidBody : rigidBodyList)
@@ -148,7 +149,7 @@ public class RobotCollisionMeshProviderTest
                }
                //viz.showCollisionVector(pointOnRobot, pointOnObstacle);
                //viz.updateNonBlocking();
-               InverseDynamicsJoint[] controllableJoints = ScrewTools.computeSubtreeJoints(robotModel.getRootJoint().getSuccessor());
+               InverseDynamicsJoint[] controllableJoints = ScrewTools.computeSubtreeJoints(rootBody);
                updateCollisionFrameFromPoint(collisionPointReferenceFrame, pointOnRobot, collisionVector);
                jacobianCalculator.clearJacobianMatrix();
                jacobianCalculator.setJacobianFrame(collisionPointReferenceFrame);
@@ -157,17 +158,16 @@ public class RobotCollisionMeshProviderTest
                jacobianCalculator.getJacobianMatrix(jacobianMatrix);
                //CommonOps.pinv(jacobianMatrix, jacobianInverse);
                CommonOps.transpose(jacobianMatrix, jacobianTranspose);
-               for(int i = 0; i < 3; i++)
+               for (int i = 0; i < 3; i++)
                   xDot.set(i + 3, 0, collisionVector.getElement(i));
                CommonOps.mult(jacobianTranspose, xDot, qDot);
                double scale = 5;
-               for(int i = 0; i < controllableJoints.length; i++)
+               for (int i = 0; i < controllableJoints.length; i++)
                {
-                  //PrintTools.debug("Moving " + controllableJoints[i].getName() + " by " + qDot.get(i, 0));
-                  OneDoFJoint joint = robotModel.getOneDoFJointByName(controllableJoints[i].getName());
-                  joint.setQ(joint.getQ() + qDot.get(i, 0) * scale);
+                  OneDoFJoint oneDoFJoint = (OneDoFJoint) controllableJoints[i];
+                  oneDoFJoint.setQ(oneDoFJoint.getQ() + qDot.get(i, 0) * scale);
                }
-               new JointAnglesWriter(scsRobot, robotModel.getRootJoint(), robotModel.getOneDoFJoints()).updateRobotConfigurationBasedOnFullRobotModel();
+               new JointAnglesWriter(scsRobot, inverseDynamicsRobot.getKey(), inverseDynamicsRobot.getValue()).updateRobotConfigurationBasedOnFullRobotModel();
                //viz.updateNonBlocking();
             }
          }
@@ -178,17 +178,17 @@ public class RobotCollisionMeshProviderTest
       PrintTools.debug("Took: " + timer.getCurrentTime());
       viz.update();
    }
-   
+
    private final Quaternion worldOrientation = new Quaternion();
-   
+
    private void updateCollisionFrameFromPoint(PoseReferenceFrame poseFrame, Point3D collisionPoint, Vector3D collisionVector)
    {
       //TODO: Generate the frame axis using Gram-Schmidt orthogonalization on collision vector 
-      
+
       // Set the pose 
       poseFrame.setPoseAndUpdate(collisionPoint, worldOrientation);
    }
-   
+
    private double norm(Vector3DReadOnly vector)
    {
       return vector.getX() * vector.getX() + vector.getY() * vector.getY() + vector.getZ() * vector.getZ();

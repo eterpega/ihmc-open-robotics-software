@@ -22,11 +22,9 @@ import us.ihmc.commonWalkingControlModules.controllerCore.command.feedbackContro
 import us.ihmc.commonWalkingControlModules.controllerCore.command.feedbackController.FeedbackControlCommand;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.feedbackController.FeedbackControlCommandList;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.feedbackController.SpatialFeedbackControlCommand;
-import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics.CollisionAvoidanceCommand;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics.InverseKinematicsCommandList;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics.PrivilegedConfigurationCommand;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics.PrivilegedConfigurationCommand.PrivilegedConfigurationOption;
-import us.ihmc.commons.PrintTools;
 import us.ihmc.communication.controllerAPI.CommandInputManager;
 import us.ihmc.communication.controllerAPI.StatusMessageOutputManager;
 import us.ihmc.communication.packets.HumanoidKinematicsToolboxConfigurationMessage;
@@ -461,9 +459,10 @@ public class KinematicsToolboxController extends ToolboxController
       numberOfActiveCommands.set(userCommands.getNumberOfCommands());
       controllerCoreCommand.addFeedbackControlCommand(userCommands);
       controllerCoreCommand.addFeedbackControlCommand(getAdditionalFeedbackControlCommands());
+      controllerCoreCommand.addInverseKinematicsCommand(getAdditionalInverseKinematicsCommands());
 
       colliding.set(collisionAvoidanceModule.checkCollisionsAndAddAvoidanceCommands());
-      controllerCoreCommand.addInverseKinematicsCommand(getAdditionalInverseKinematicsCommands());
+      controllerCoreCommand.addInverseKinematicsCommand(collisionAvoidanceModule.getCollisionAvoidanceCommands());
       controllerCoreCommand.addInverseKinematicsCommand(privilegedConfigurationCommandReference.getAndSet(null));
 
       // Save all commands used for this control tick for computing the solution quality.
@@ -656,7 +655,7 @@ public class KinematicsToolboxController extends ToolboxController
 
    protected InverseKinematicsCommandList getAdditionalInverseKinematicsCommands()
    {
-      return collisionAvoidanceModule.getCollisionAvoidanceCommands();
+      return null;
    }
 
    @Override
@@ -691,7 +690,7 @@ public class KinematicsToolboxController extends ToolboxController
       collisionAvoidanceModule.submitObstacleCollisionMesh(obstacleMeshes);
    }
 
-   public void setCollisionMeshes(THashMap<RigidBody, FrameConvexPolytope> collisionMeshes)
+   public void setCollisionMeshes(Map<RigidBody, FrameConvexPolytope> collisionMeshes)
    {
       collisionAvoidanceModule.setRigidBodyCollisionMeshes(collisionMeshes);
    }

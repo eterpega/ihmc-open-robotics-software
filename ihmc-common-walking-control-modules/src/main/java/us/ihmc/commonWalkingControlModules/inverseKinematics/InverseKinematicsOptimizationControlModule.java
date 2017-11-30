@@ -6,7 +6,6 @@ import java.util.Map;
 import org.ejml.data.DenseMatrix64F;
 
 import us.ihmc.commonWalkingControlModules.controllerCore.WholeBodyControlCoreToolbox;
-import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics.CollisionAvoidanceCommand;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics.InverseKinematicsSolution;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics.JointLimitReductionCommand;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics.JointspaceVelocityCommand;
@@ -175,13 +174,6 @@ public class InverseKinematicsOptimizationControlModule
          qpSolver.addMotionInput(motionQPInput);
    }
    
-   public void submitCollisionAvoidanceCommand(CollisionAvoidanceCommand command)
-   {
-      boolean success = motionQPInputCalculator.convertCollisionAvoidanceCommand(command, motionQPInput);
-      if (success)
-         qpSolver.addMotionInput(motionQPInput);
-   }
-
    public void submitPrivilegedConfigurationCommand(PrivilegedConfigurationCommand command)
    {
       motionQPInputCalculator.updatePrivilegedConfiguration(command);

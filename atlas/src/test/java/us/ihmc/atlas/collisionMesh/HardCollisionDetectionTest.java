@@ -1,10 +1,11 @@
 package us.ihmc.atlas.collisionMesh;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+
+import java.util.Map;
 
 import org.junit.Test;
 
-import gnu.trove.map.hash.THashMap;
 import us.ihmc.atlas.AtlasRobotModel;
 import us.ihmc.atlas.AtlasRobotVersion;
 import us.ihmc.avatar.collisionAvoidance.RobotCollisionMeshProvider;
@@ -24,22 +25,21 @@ import us.ihmc.robotics.screwTheory.ScrewTools;
 
 public class HardCollisionDetectionTest
 {
+   private static final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
+
    @Test
    public void testAtlasFootIssue()
    {
       AtlasRobotModel atlasRobotModel = new AtlasRobotModel(AtlasRobotVersion.ATLAS_UNPLUGGED_V5_NO_HANDS, RobotTarget.SCS, false);
       FullHumanoidRobotModel fullRobotModel = atlasRobotModel.createFullRobotModel();
       RobotCollisionMeshProvider provider = new RobotCollisionMeshProvider(4);
-      THashMap<RigidBody, FrameConvexPolytope> meshMap = provider.createCollisionMeshesFromRobotDescription(fullRobotModel,
-                                                                                                            atlasRobotModel.getRobotDescription());
-      FrameConvexPolytope polytopeA = meshMap.get(ScrewTools.findRigidBodiesWithNames(ScrewTools.computeSupportAndSubtreeSuccessors(fullRobotModel.getRootJoint()
-                                                                                                                                                  .getSuccessor()),
-                                                                                      "r_lleg")[0]);
-      FrameConvexPolytope polytopeB = ConvexPolytopeConstructor.getFrameSphericalCollisionMeshByProjectingCube(ReferenceFrame.getWorldFrame(),
-                                                                                                              new RigidBodyTransform(new RotationMatrix(),
-                                                                                                                                     new Vector3D(0.45, -0.4,
-                                                                                                                                                  0.5)),
-                                                                                                              0.1, 4);
+      Map<RigidBody, FrameConvexPolytope> meshMap = provider.createCollisionMeshesFromRobotDescription(fullRobotModel, atlasRobotModel.getRobotDescription());
+
+      RigidBody[] rigidBodies = ScrewTools.computeSupportAndSubtreeSuccessors(fullRobotModel.getRootJoint().getSuccessor());
+
+      FrameConvexPolytope polytopeA = meshMap.get(ScrewTools.findRigidBodiesWithNames(rigidBodies, "r_lleg")[0]);
+      RigidBodyTransform transform = new RigidBodyTransform(new RotationMatrix(), new Vector3D(0.45, -0.4, 0.5));
+      FrameConvexPolytope polytopeB = ConvexPolytopeConstructor.getFrameSphericalCollisionMeshByProjectingCube(worldFrame, transform, 0.1, 4);
       ExtendedSimplexPolytope simplex = new ExtendedSimplexPolytope();
       //PolytopeVisualizationHelper viz = new PolytopeVisualizationHelper(3, true);
       //viz.addPolytope(polytopeA);

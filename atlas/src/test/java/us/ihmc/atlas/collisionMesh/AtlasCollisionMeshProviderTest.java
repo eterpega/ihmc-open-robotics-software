@@ -1,11 +1,11 @@
 package us.ihmc.atlas.collisionMesh;
 
 import java.awt.Color;
-import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import org.junit.Test;
 
-import gnu.trove.map.hash.THashMap;
 import us.ihmc.atlas.AtlasRobotModel;
 import us.ihmc.atlas.AtlasRobotVersion;
 import us.ihmc.avatar.collisionAvoidance.FrameConvexPolytopeVisualizer;
@@ -32,7 +32,7 @@ public class AtlasCollisionMeshProviderTest
       RobotDescription atlasRobotDescription = atlasRobotModel.getRobotDescription();
       FullHumanoidRobotModel atlasFullRobotModel = atlasRobotModel.createFullRobotModel();
       RobotCollisionMeshProvider meshProvider = new RobotCollisionMeshProvider(8);
-      THashMap<RigidBody, FrameConvexPolytope> atlasCollisionMesh = meshProvider.createCollisionMeshesFromRobotDescription(atlasFullRobotModel, atlasRobotDescription);
+      Map<RigidBody, FrameConvexPolytope> atlasCollisionMesh = meshProvider.createCollisionMeshesFromRobotDescription(atlasFullRobotModel, atlasRobotDescription);
       HumanoidFloatingRootJointRobot atlasFloatingRobotModel = atlasRobotModel.createHumanoidFloatingRootJointRobot(false, true);
       FrameConvexPolytopeVisualizer viz = new FrameConvexPolytopeVisualizer(atlasCollisionMesh.size(), true, atlasFloatingRobotModel);
       for(RigidBody rigidBody : ScrewTools.computeRigidBodiesAfterThisJoint(atlasFullRobotModel.getRootJoint()))
@@ -54,7 +54,7 @@ public class AtlasCollisionMeshProviderTest
       RobotCollisionMeshProvider meshProvider = new RobotCollisionMeshProvider(8);
       RigidBody head = ScrewTools.findRigidBodiesWithNames(ScrewTools.computeRigidBodiesAfterThisJoint(atlasFullRobotModel.getRootJoint()), "head")[0];
       LinkDescription headDescription = atlasRobotDescription.getLinkDescription("neck_ry");
-      ArrayList<Point3D> pointList = meshProvider.getCollisionMeshPoints(headDescription.getCollisionMeshes(), new Vector3D());
+      List<Point3D> pointList = meshProvider.getCollisionMeshPoints(headDescription.getCollisionMeshes(), new Vector3D());
       FrameConvexPolytope polytope = new FrameConvexPolytope(head.getBodyFixedFrame());
       FrameConvexPolytope polytope2 = new FrameConvexPolytope(head.getBodyFixedFrame());
       FrameConvexPolytopeVisualizer viz = new FrameConvexPolytopeVisualizer(2, true);

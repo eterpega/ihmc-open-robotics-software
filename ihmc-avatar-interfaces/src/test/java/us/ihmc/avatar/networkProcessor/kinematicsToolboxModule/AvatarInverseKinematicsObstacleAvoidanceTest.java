@@ -71,7 +71,12 @@ import us.ihmc.yoVariables.variable.YoBoolean;
 
 public abstract class AvatarInverseKinematicsObstacleAvoidanceTest
 {
-   private static final boolean visualize = true;
+   private static final SimulationTestingParameters simulationTestingParameters = SimulationTestingParameters.createFromSystemProperties();
+   private static final boolean visualize = simulationTestingParameters.getCreateGUI();
+   static
+   {
+      simulationTestingParameters.setDataBufferSize(1 << 16);
+   }
 
    private static final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
 
@@ -80,11 +85,8 @@ public abstract class AvatarInverseKinematicsObstacleAvoidanceTest
    private final AppearanceDefinition ghostAppearance = new YoAppearanceRGBColor(Color.YELLOW, 0.8);
    private final double robotTransparency = 0.75;
    
-   private SimulationTestingParameters simulationTestParameters;
    private SimulationConstructionSet scs;
    private BlockingSimulationRunner blockingSimulationRunner;
-
-   public abstract boolean keepSCSUp();
 
    public abstract int getNumberOfObstacles();
 
@@ -120,8 +122,6 @@ public abstract class AvatarInverseKinematicsObstacleAvoidanceTest
    public void setupTest()
    {
       MemoryTools.printCurrentMemoryUsageAndReturnUsedMemoryInMB(getClass().getSimpleName() + " before test.");
-      simulationTestParameters = new SimulationTestingParameters();
-      simulationTestParameters.setKeepSCSUp(keepSCSUp());
 
       DRCRobotModel controllerRobot = getRobotModel();
       RobotDescription robotDescription = controllerRobot.getRobotDescription();
@@ -164,7 +164,7 @@ public abstract class AvatarInverseKinematicsObstacleAvoidanceTest
       scsRobot.setController(controllerWrapper);
       if (visualize)
       {
-         scs = new SimulationConstructionSet(new Robot[] {scsRobot, scsGhostRobot}, simulationTestParameters);
+         scs = new SimulationConstructionSet(new Robot[] {scsRobot, scsGhostRobot}, simulationTestingParameters);
          Graphics3DObject coordinateSystem = new Graphics3DObject();
          coordinateSystem.addCoordinateSystem(.5);
          scs.setGroundVisible(false);
@@ -213,46 +213,6 @@ public abstract class AvatarInverseKinematicsObstacleAvoidanceTest
 
    }
 
-   private void recursivelyModifyRobotGraphics(JointDescription joint)
-   {
-      if (joint == null)
-         return;
-      LinkDescription link = joint.getLink();
-      if (link == null)
-         return;
-      LinkGraphicsDescription linkGraphics = link.getLinkGraphics();
-      if (linkGraphics == null)
-         return;
-
-      ArrayList<Graphics3DPrimitiveInstruction> graphics3dInstructions = linkGraphics.getGraphics3DInstructions();
-
-      if (graphics3dInstructions == null)
-         return;
-
-      for (Graphics3DPrimitiveInstruction primitive : graphics3dInstructions)
-      {
-         if (primitive instanceof Graphics3DAddModelFileInstruction)
-         {
-            Graphics3DAddModelFileInstruction modelInstruction = (Graphics3DAddModelFileInstruction) primitive;
-            AppearanceDefinition modelApprearance = modelInstruction.getAppearance();
-            if(modelApprearance == null)
-               modelInstruction.setAppearance(new YoAppearanceRGBColor(Color.WHITE, robotTransparency));
-            else
-               modelApprearance.setTransparency(robotTransparency);
-         }
-      }
-
-      if (joint.getChildrenJoints() == null)
-         return;
-
-      for (JointDescription child : joint.getChildrenJoints())
-      {
-         recursivelyModifyGhostGraphics(child);
-      }
-
-   }
-   
-   
    private RobotController createControllerWrapperAroundToolbox()
    {
       return new RobotController()
@@ -300,12 +260,11 @@ public abstract class AvatarInverseKinematicsObstacleAvoidanceTest
    public void cleanTest()
    {
       cleanTestVariables();
-      if (simulationTestParameters.getKeepSCSUp())
+      if (simulationTestingParameters.getKeepSCSUp())
       {
          ThreadTools.sleepForever();
       }
 
-      simulationTestParameters = null;
       MemoryTools.printCurrentMemoryUsageAndReturnUsedMemoryInMB(getClass().getSimpleName() + " after test.");
    }
 

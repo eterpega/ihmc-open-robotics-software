@@ -6,14 +6,15 @@ import static us.ihmc.humanoidRobotics.communication.packets.KinematicsToolboxMe
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Random;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import gnu.trove.map.hash.THashMap;
 import us.ihmc.avatar.collisionAvoidance.FrameConvexPolytopeVisualizer;
 import us.ihmc.avatar.collisionAvoidance.RobotCollisionMeshProvider;
 import us.ihmc.avatar.jointAnglesWriter.JointAnglesWriter;
@@ -32,9 +33,6 @@ import us.ihmc.graphicsDescription.appearance.YoAppearanceRGBColor;
 import us.ihmc.graphicsDescription.instructions.Graphics3DInstruction;
 import us.ihmc.graphicsDescription.instructions.Graphics3DPrimitiveInstruction;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
-import us.ihmc.robotModels.FullRobotModel;
-import us.ihmc.robotModels.FullRobotModelFromDescription;
-import us.ihmc.robotics.partNames.JointNameMap;
 import us.ihmc.robotics.robotController.RobotController;
 import us.ihmc.robotics.robotDescription.JointDescription;
 import us.ihmc.robotics.robotDescription.LinkDescription;
@@ -64,10 +62,11 @@ public class KinematicsToolboxCollisionDetectionTest
 
    private static final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
    private static final YoAppearanceRGBColor ghostApperance = new YoAppearanceRGBColor(Color.YELLOW, 0.75);
-   private static final SimulationTestingParameters simulationTestingParameters = SimulationTestingParameters.createFromEnvironmentVariables();
+   private static final SimulationTestingParameters simulationTestingParameters = SimulationTestingParameters.createFromSystemProperties();
    private static final boolean visualize = simulationTestingParameters.getCreateGUI();
    static
    {
+      simulationTestingParameters.setKeepSCSUp(true);
       simulationTestingParameters.setDataBufferSize(1 << 16);
    }
 
@@ -87,40 +86,36 @@ public class KinematicsToolboxCollisionDetectionTest
    private Robot ghost;
    private RobotController toolboxUpdater;
 
-   private RobotDescription robotDescription;
-   private JointNameMap robotJointMap;
-   private FullRobotModel controllerFullRobotModel;
    private FrameConvexPolytopeVisualizer visualizer;
 
    @Before
    public void setup()
    {
-      simulationTestingParameters.setKeepSCSUp(true);
       mainRegistry = new YoVariableRegistry("main");
       initializationSucceeded = new YoBoolean("initializationSucceeded", mainRegistry);
       numberOfIterations = new YoInteger("numberOfIterations", mainRegistry);
       finalSolutionQuality = new YoDouble("finalSolutionQuality", mainRegistry);
       yoGraphicsListRegistry = new YoGraphicsListRegistry();
 
-      robotDescription = new KinematicsToolboxControllerTestRobots.SevenDoFArm();
-      robotJointMap = new KinematicsToolboxControllerTestRobots.SevenDoFArmJointMap();
-
-      controllerFullRobotModel = new FullRobotModelFromDescription(robotDescription, robotJointMap, null);
-      randomizeJointPositions(new Random(), controllerFullRobotModel, 1.0);
+      RobotDescription robotDescription = new KinematicsToolboxControllerTestRobots.SevenDoFArm();
+      Pair<FloatingInverseDynamicsJoint, OneDoFJoint[]> desiredFullRobotModel = KinematicsToolboxControllerTestRobots.createInverseDynamicsRobot(robotDescription);
       commandInputManager = new CommandInputManager(KinematicsToolboxModule.supportedCommands());
-      commandInputManager.registerConversionHelper(new KinematicsToolboxCommandConverter(controllerFullRobotModel.getElevator()));
+      RigidBody rootBody = ScrewTools.getRootBody(desiredFullRobotModel.getRight()[0].getSuccessor());
+      commandInputManager.registerConversionHelper(new KinematicsToolboxCommandConverter(rootBody));
 
       StatusMessageOutputManager statusOutputManager = new StatusMessageOutputManager(KinematicsToolboxModule.supportedStatus());
 
       visualizer = new FrameConvexPolytopeVisualizer(10, mainRegistry, yoGraphicsListRegistry);
-      toolboxController = new KinematicsToolboxController(commandInputManager, statusOutputManager, null, controllerFullRobotModel.getOneDoFJoints(),
-                                                          yoGraphicsListRegistry, mainRegistry, visualizer);
+      toolboxController = new KinematicsToolboxController(commandInputManager, statusOutputManager, desiredFullRobotModel.getLeft(),
+                                                          desiredFullRobotModel.getRight(), yoGraphicsListRegistry, mainRegistry, visualizer);
 
-      THashMap<RigidBody, FrameConvexPolytope> collisionMeshes = (new RobotCollisionMeshProvider(8)).createCollisionMeshesFromRobotDescription(controllerFullRobotModel,
-                                                                                                                                               robotDescription);
+      RobotCollisionMeshProvider robotCollisionMeshProvider = new RobotCollisionMeshProvider(8);
+      Map<RigidBody, FrameConvexPolytope> collisionMeshes = robotCollisionMeshProvider.createCollisionMeshesFromRobotDescription(rootBody,
+                                                                                                                                 robotDescription.getRootJoints()
+                                                                                                                                                 .get(0));
       toolboxController.setCollisionMeshes(collisionMeshes);
+
       robot = new RobotFromDescription(robotDescription);
-      new JointAnglesWriter(robot, controllerFullRobotModel.getRootJoint(), controllerFullRobotModel.getControllableOneDoFJoints());
       toolboxUpdater = createToolboxUpdater();
       robot.setController(toolboxUpdater);
       robot.setDynamic(false);
@@ -145,10 +140,9 @@ public class KinematicsToolboxCollisionDetectionTest
       }
    }
 
-   private void snapGhostToFullRobotModel(FullRobotModel fullHumanoidRobotModel)
+   private void snapGhostToFullRobotModel(Pair<FloatingInverseDynamicsJoint, OneDoFJoint[]> fullHumanoidRobotModel)
    {
-      new JointAnglesWriter(ghost, fullHumanoidRobotModel.getRootJoint(),
-                            fullHumanoidRobotModel.getOneDoFJoints()).updateRobotConfigurationBasedOnFullRobotModel();
+      new JointAnglesWriter(ghost, fullHumanoidRobotModel.getLeft(), fullHumanoidRobotModel.getRight()).updateRobotConfigurationBasedOnFullRobotModel();
    }
 
    @After
@@ -185,10 +179,10 @@ public class KinematicsToolboxCollisionDetectionTest
    @Test
    public void testHoldBodyPose() throws Exception
    {
-      FullRobotModel initialFullRobotModel = new FullRobotModelFromDescription(robotDescription, robotJointMap, null);
+      Pair<FloatingInverseDynamicsJoint, OneDoFJoint[]> initialFullRobotModel = createFullRobotModelAtInitialConfiguration();
       snapGhostToFullRobotModel(initialFullRobotModel);
 
-      RigidBody hand = ScrewTools.findRigidBodiesWithNames(ScrewTools.computeRigidBodiesAfterThisJoint(initialFullRobotModel.getRootJoint()), "handLink")[0];
+      RigidBody hand = ScrewTools.findRigidBodiesWithNames(ScrewTools.computeRigidBodiesAfterThisJoint(initialFullRobotModel.getRight()), "handLink")[0];
       commandInputManager.submitMessage(holdRigidBodyCurrentPose(hand));
 
       RobotConfigurationData robotConfigurationData = extractRobotConfigurationData(initialFullRobotModel);
@@ -203,20 +197,19 @@ public class KinematicsToolboxCollisionDetectionTest
                  toolboxController.getSolution().getSolutionQuality() < 1.0e-4);
    }
 
-   @Test(timeout = 10)
-   public void testHandCollsion() throws Exception
+   @Test
+   public void testHandCollision() throws Exception
    {
       if (VERBOSE)
          PrintTools.info(this, "Entering: testRandomHandPositions");
       FrameConvexPolytope obstacle = ConvexPolytopeConstructor.getFrameCuboidCollisionMesh(ReferenceFrame.getWorldFrame(), new Point3D(0.15, 0.0, 0.65), 0.15,
                                                                                            0.15, 0.15);
       toolboxController.submitObstacleCollisionMesh(obstacle);
-      Random random = new Random(2135);
-      FullRobotModel initialFullRobotModel = new FullRobotModelFromDescription(robotDescription, robotJointMap, null);
+      Pair<FloatingInverseDynamicsJoint, OneDoFJoint[]> initialFullRobotModel = createFullRobotModelAtInitialConfiguration();
       RobotConfigurationData robotConfigurationData = extractRobotConfigurationData(initialFullRobotModel);
 
-      FullRobotModel desiredFullRobotModel = createFullRobotModelAtInitialConfiguration();
-      OneDoFJoint[] inputAngles = desiredFullRobotModel.getOneDoFJoints();
+      Pair<FloatingInverseDynamicsJoint, OneDoFJoint[]> desiredFullRobotModel = createFullRobotModelAtInitialConfiguration();
+      OneDoFJoint[] inputAngles = desiredFullRobotModel.getRight();
       inputAngles[0].setQ(Math.toRadians(0));
       inputAngles[1].setQ(Math.toRadians(0));
       inputAngles[2].setQ(Math.toRadians(90));
@@ -226,7 +219,7 @@ public class KinematicsToolboxCollisionDetectionTest
       inputAngles[6].setQ(Math.toRadians(45));
 
       toolboxController.enableCollisionAvoidance(true);
-      RigidBody hand = ScrewTools.findRigidBodiesWithNames(ScrewTools.computeRigidBodiesAfterThisJoint(desiredFullRobotModel.getOneDoFJoints()), "handLink")[0];
+      RigidBody hand = ScrewTools.findRigidBodiesWithNames(ScrewTools.computeRigidBodiesAfterThisJoint(desiredFullRobotModel.getRight()), "handLink")[0];
       FramePoint3D desiredPosition = new FramePoint3D(hand.getBodyFixedFrame());
       desiredPosition.changeFrame(worldFrame);
       KinematicsToolboxRigidBodyMessage message = new KinematicsToolboxRigidBodyMessage(hand, desiredPosition);
@@ -236,7 +229,7 @@ public class KinematicsToolboxCollisionDetectionTest
       snapGhostToFullRobotModel(desiredFullRobotModel);
       toolboxController.updateRobotConfigurationData(robotConfigurationData);
 
-      int numberOfIterations = 200;
+      int numberOfIterations = 2000;
 
       runKinematicsToolboxController(numberOfIterations);
 
@@ -250,16 +243,15 @@ public class KinematicsToolboxCollisionDetectionTest
    @Test
    public void testRandomHandPosition() throws SimulationExceededMaximumTimeException
    {
-      FramePoint3D origin = new FramePoint3D(worldFrame);
       for (int i = 0; i < 10; i++)
       {
-         FullRobotModel initialFullRobotModel = new FullRobotModelFromDescription(robotDescription, robotJointMap, null);
+         Pair<FloatingInverseDynamicsJoint, OneDoFJoint[]> initialFullRobotModel = createFullRobotModelAtInitialConfiguration();
 
-         FullRobotModel desiredFullRobotModel = createFullRobotModelAtInitialConfiguration();
+         Pair<FloatingInverseDynamicsJoint, OneDoFJoint[]> desiredFullRobotModel = createFullRobotModelAtInitialConfiguration();
          randomizeJointPositions(new Random(), desiredFullRobotModel, 0.6);
 
          toolboxController.enableCollisionAvoidance(false);
-         RigidBody desiredHand = ScrewTools.findRigidBodiesWithNames(ScrewTools.computeRigidBodiesAfterThisJoint(desiredFullRobotModel.getOneDoFJoints()),
+         RigidBody desiredHand = ScrewTools.findRigidBodiesWithNames(ScrewTools.computeRigidBodiesAfterThisJoint(desiredFullRobotModel.getRight()),
                                                                      "handLink")[0];
          FramePoint3D desiredPosition = new FramePoint3D(desiredHand.getBodyFixedFrame());
          desiredPosition.changeFrame(worldFrame);
@@ -275,12 +267,13 @@ public class KinematicsToolboxCollisionDetectionTest
          int numberOfIterations = 200;
          runKinematicsToolboxController(numberOfIterations);
 
-         RigidBody lowerArm = ScrewTools.findRigidBodiesWithNames(ScrewTools.computeRigidBodiesAfterThisJoint(controllerFullRobotModel.getOneDoFJoints()),
+         RigidBody lowerArm = ScrewTools.findRigidBodiesWithNames(ScrewTools.computeRigidBodiesAfterThisJoint(toolboxController.getDesiredOneDoFJoint()),
                                                                   "lowerArmLink")[0];
          //RigidBody hand = ScrewTools.findRigidBodiesWithNames(ScrewTools.computeRigidBodiesAfterThisJoint(controllerFullRobotModel.getOneDoFJoints()),
          //                                                     "handLink")[0];
          FramePoint3D pointForObstacle = new FramePoint3D(lowerArm.getBodyFixedFrame());
-         pointForObstacle.add(RandomNumbers.nextDouble(new Random(), -0.01, 0.01), RandomNumbers.nextDouble(new Random(), -0.01, 0.01), RandomNumbers.nextDouble(new Random(), -0.01, 0.01));
+         pointForObstacle.add(RandomNumbers.nextDouble(new Random(), -0.01, 0.01), RandomNumbers.nextDouble(new Random(), -0.01, 0.01),
+                              RandomNumbers.nextDouble(new Random(), -0.01, 0.01));
          //pointForObstacle.changeFrame(hand.getBodyFixedFrame());
          //pointForObstacle.scale(0.5);
          pointForObstacle.changeFrame(worldFrame);
@@ -302,10 +295,10 @@ public class KinematicsToolboxCollisionDetectionTest
       }
    }
 
-   private void randomizeJointPositions(Random random, FullRobotModel randomizedFullRobotModel, double percentOfMotionRangeAllowed)
+   private void randomizeJointPositions(Random random, Pair<FloatingInverseDynamicsJoint, OneDoFJoint[]> randomizedFullRobotModel,
+                                        double percentOfMotionRangeAllowed)
    {
-      OneDoFJoint[] joints = randomizedFullRobotModel.getControllableOneDoFJoints();
-      for (OneDoFJoint joint : joints)
+      for (OneDoFJoint joint : randomizedFullRobotModel.getRight())
       {
          double jointLimitLower = joint.getJointLimitLower();
          if (Double.isInfinite(jointLimitLower))
@@ -320,16 +313,16 @@ public class KinematicsToolboxCollisionDetectionTest
       }
    }
 
-   private FullRobotModel createFullRobotModelAtInitialConfiguration()
+   private Pair<FloatingInverseDynamicsJoint, OneDoFJoint[]> createFullRobotModelAtInitialConfiguration()
    {
-      FullRobotModel robotModel = new FullRobotModelFromDescription(robotDescription, robotJointMap, null);
-      for (OneDoFJoint joint : robotModel.getControllableOneDoFJoints())
+      RobotDescription robotDescription = new KinematicsToolboxControllerTestRobots.SevenDoFArm();
+      Pair<FloatingInverseDynamicsJoint, OneDoFJoint[]> fullRobotModel = KinematicsToolboxControllerTestRobots.createInverseDynamicsRobot(robotDescription);
+      for (OneDoFJoint joint : fullRobotModel.getRight())
       {
-         double lowerLimit = joint.getJointLimitLower();
-         double upperLimit = joint.getJointLimitUpper();
-         joint.setQ((upperLimit + lowerLimit) / 2.0);
+         if (Double.isFinite(joint.getJointLimitLower()) && Double.isFinite(joint.getJointLimitUpper()))
+            joint.setQ(0.5 * (joint.getJointLimitLower() + joint.getJointLimitUpper()));
       }
-      return robotModel;
+      return fullRobotModel;
    }
 
    private void runKinematicsToolboxController(int numberOfIterations) throws SimulationExceededMaximumTimeException
@@ -354,7 +347,7 @@ public class KinematicsToolboxCollisionDetectionTest
    {
       return new RobotController()
       {
-         private final JointAnglesWriter jointAnglesWriter = new JointAnglesWriter(robot, controllerFullRobotModel.getRootJoint(),
+         private final JointAnglesWriter jointAnglesWriter = new JointAnglesWriter(robot, toolboxController.getDesiredRootJoint(),
                                                                                    toolboxController.getDesiredOneDoFJoint());
 
          @Override
@@ -432,13 +425,13 @@ public class KinematicsToolboxCollisionDetectionTest
       }
    }
 
-   private RobotConfigurationData extractRobotConfigurationData(FullRobotModel initialFullRobotModel)
+   private RobotConfigurationData extractRobotConfigurationData(Pair<FloatingInverseDynamicsJoint, OneDoFJoint[]> initialFullRobotModel)
    {
-      OneDoFJoint[] joints = initialFullRobotModel.getOneDoFJoints();
+      OneDoFJoint[] joints = initialFullRobotModel.getRight();
       RobotConfigurationData robotConfigurationData = new RobotConfigurationData(joints, new ForceSensorDefinition[0], null, new IMUDefinition[0]);
       robotConfigurationData.setJointState(Arrays.stream(joints).collect(Collectors.toList()));
 
-      FloatingInverseDynamicsJoint rootJoint = initialFullRobotModel.getRootJoint();
+      FloatingInverseDynamicsJoint rootJoint = initialFullRobotModel.getLeft();
       if (rootJoint != null)
       {
          robotConfigurationData.setRootTranslation(rootJoint.getTranslationForReading());
