@@ -104,7 +104,7 @@ public class SimpleICPOptimizationQPSolver
    private final DenseMatrix64F feedbackGain = new DenseMatrix64F(2, 2);
 
    /** Flag to use the quad prog QP solver vs. the active set QP solver. **/
-   private final SimpleEfficientActiveSetQPSolver solver = new SimpleEfficientActiveSetQPSolver();
+   private final SimpleEfficientActiveSetQPSolver solver = new SimpleEfficientActiveSetQPSolver(true);
 
    /** Full solution vector to the quadratic program. */
    private final DenseMatrix64F solution;
