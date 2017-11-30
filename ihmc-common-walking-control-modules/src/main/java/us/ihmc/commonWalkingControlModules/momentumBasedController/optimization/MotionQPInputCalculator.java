@@ -14,6 +14,7 @@ import us.ihmc.commonWalkingControlModules.inverseKinematics.JointPrivilegedConf
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.robotics.linearAlgebra.DampedLeastSquaresNullspaceCalculator;
+import us.ihmc.robotics.linearAlgebra.DiagonalMatrixTools;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.linearAlgebra.MatrixTools;
@@ -230,7 +231,9 @@ public class MotionQPInputCalculator
          tempTaskWeight.reshape(SpatialAccelerationVector.SIZE, SpatialAccelerationVector.SIZE);
          commandToConvert.getWeightMatrix(controlFrame, tempTaskWeight);
          tempTaskWeightSubspace.reshape(taskSize, SpatialAccelerationVector.SIZE);
-         CommonOps.mult(tempSelectionMatrix, tempTaskWeight, tempTaskWeightSubspace);
+         // TODO is the product of these diagonal?
+         //CommonOps.mult(tempSelectionMatrix, tempTaskWeight, tempTaskWeightSubspace);
+         DiagonalMatrixTools.postMult(tempSelectionMatrix, tempTaskWeight, tempTaskWeightSubspace);
          CommonOps.multTransB(tempTaskWeightSubspace, tempSelectionMatrix, motionQPInputToPack.taskWeightMatrix);
       }
 
@@ -348,7 +351,9 @@ public class MotionQPInputCalculator
          tempTaskWeight.reshape(SpatialAccelerationVector.SIZE, SpatialAccelerationVector.SIZE);
          commandToConvert.getWeightMatrix(controlFrame, tempTaskWeight);
          tempTaskWeightSubspace.reshape(taskSize, SpatialAccelerationVector.SIZE);
-         CommonOps.mult(tempSelectionMatrix, tempTaskWeight, tempTaskWeightSubspace);
+         // TODO is the product of these diagonal
+         //CommonOps.mult(tempSelectionMatrix, tempTaskWeight, tempTaskWeightSubspace);
+         DiagonalMatrixTools.postMult(tempSelectionMatrix, tempTaskWeight, tempTaskWeightSubspace);
          CommonOps.multTransB(tempTaskWeightSubspace, tempSelectionMatrix, motionQPInputToPack.taskWeightMatrix);
       }
 
@@ -450,7 +455,9 @@ public class MotionQPInputCalculator
       tempTaskWeight.reshape(SpatialAccelerationVector.SIZE, SpatialAccelerationVector.SIZE);
       commandToConvert.getWeightMatrix(tempTaskWeight);
       tempTaskWeightSubspace.reshape(taskSize, SpatialAccelerationVector.SIZE);
-      CommonOps.mult(tempSelectionMatrix, tempTaskWeight, tempTaskWeightSubspace);
+      // TODO is the product of these diagonal
+      //CommonOps.mult(tempSelectionMatrix, tempTaskWeight, tempTaskWeightSubspace);
+      DiagonalMatrixTools.postMult(tempSelectionMatrix, tempTaskWeight, tempTaskWeightSubspace);
       CommonOps.multTransB(tempTaskWeightSubspace, tempSelectionMatrix, motionQPInputToPack.taskWeightMatrix);
 
       // Compute the task Jacobian: J = S * A
@@ -494,7 +501,9 @@ public class MotionQPInputCalculator
       tempTaskWeight.reshape(SpatialAccelerationVector.SIZE, SpatialAccelerationVector.SIZE);
       commandToConvert.getWeightMatrix(tempTaskWeight);
       tempTaskWeightSubspace.reshape(taskSize, SpatialAccelerationVector.SIZE);
-      CommonOps.mult(tempSelectionMatrix, tempTaskWeight, tempTaskWeightSubspace);
+      // TODO is the product of these diagonal
+      //CommonOps.mult(tempSelectionMatrix, tempTaskWeight, tempTaskWeightSubspace);
+      DiagonalMatrixTools.postMult(tempSelectionMatrix, tempTaskWeight, tempTaskWeightSubspace);
       CommonOps.multTransB(tempTaskWeightSubspace, tempSelectionMatrix, motionQPInputToPack.taskWeightMatrix);
 
       // Compute the task Jacobian: J = S * A
