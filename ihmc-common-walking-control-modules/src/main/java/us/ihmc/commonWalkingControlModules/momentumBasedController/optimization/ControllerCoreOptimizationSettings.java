@@ -319,7 +319,7 @@ public interface ControllerCoreOptimizationSettings
     */
    default ActiveSetQPSolverWithInactiveVariablesInterface getActiveSetQPSolver()
    {
-      return new SimpleEfficientActiveSetQPSolverWithInactiveVariables();
+      return new SimpleEfficientActiveSetQPSolverWithInactiveVariables(true);
    }
 
    /**

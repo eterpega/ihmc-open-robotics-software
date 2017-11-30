@@ -24,6 +24,16 @@ public class SimpleEfficientActiveSetQPSolverWithInactiveVariables extends Simpl
    private final DenseMatrix64F activeVariables = new DenseMatrix64F(0, 0);
    private final DenseMatrix64F activeVariableSolution = new DenseMatrix64F(0, 0);
 
+   public SimpleEfficientActiveSetQPSolverWithInactiveVariables()
+   {
+      super(false);
+   }
+
+   public SimpleEfficientActiveSetQPSolverWithInactiveVariables(boolean isHessianMatrixSymmetric)
+   {
+      super(isHessianMatrixSymmetric);
+   }
+
    private void setMatricesFromOriginal()
    {
       quadraticCostQMatrix.set(originalQuadraticCostQMatrix);

@@ -94,7 +94,7 @@ public class SimpleEfficientActiveSetQPSolver extends AbstractSimpleActiveSetQPS
 
    protected final DenseMatrix64F computedObjectiveFunctionValue = new DenseMatrix64F(1, 1);
 
-   private final LinearSolver<DenseMatrix64F> solver = LinearSolverFactory.linear(0);
+   private final LinearSolver<DenseMatrix64F> solver;
 
    private final DenseMatrix64F lowerBoundViolations = new DenseMatrix64F(0, 0);
    private final DenseMatrix64F upperBoundViolations = new DenseMatrix64F(0, 0);
@@ -106,6 +106,19 @@ public class SimpleEfficientActiveSetQPSolver extends AbstractSimpleActiveSetQPS
    private int previousNumberOfInequalityConstraints = 0;
    private int previousNumberOfLowerBoundConstraints = 0;
    private int previousNumberOfUpperBoundConstraints = 0;
+
+   public SimpleEfficientActiveSetQPSolver()
+   {
+      this(false);
+   }
+
+   public SimpleEfficientActiveSetQPSolver(boolean isHessianMatrixSymmetric)
+   {
+      if (isHessianMatrixSymmetric)
+         solver = LinearSolverFactory.symmPosDef(0);
+      else
+         solver = LinearSolverFactory.linear(0);
+   }
 
    @Override
    public void setConvergenceThreshold(double convergenceThreshold)
