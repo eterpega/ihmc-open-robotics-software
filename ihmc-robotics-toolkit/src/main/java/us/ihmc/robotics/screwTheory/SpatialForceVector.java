@@ -224,6 +224,15 @@ public class SpatialForceVector
       set(other.expressedInFrame, other.linearPart, other.angularPart);
    }
 
+   public void set(DenseMatrix64F matrix)
+   {
+      MathTools.checkEquals(matrix.getNumRows(), SIZE);
+      MathTools.checkEquals(matrix.getNumCols(), 1);
+
+      angularPart.set(matrix.get(0), matrix.get(1), matrix.get(2));
+      linearPart.set(matrix.get(3), matrix.get(4), matrix.get(5));
+   }
+
    /**
     * Adds another spatial force vector to this one, after performing some reference frame checks.
     */
@@ -233,6 +242,18 @@ public class SpatialForceVector
 
       linearPart.add(other.linearPart);
       angularPart.add(other.angularPart);
+   }
+
+   /**
+    * Adds a spatial force vector. This vector is stored as [tau^T f^T], where tau is the angular portion and f is the linear.
+    */
+   public void add(DenseMatrix64F matrix)
+   {
+      MathTools.checkEquals(matrix.getNumRows(), SIZE);
+      MathTools.checkEquals(matrix.getNumCols(), 1);
+
+      angularPart.add(matrix.get(0), matrix.get(1), matrix.get(2));
+      linearPart.add(matrix.get(3), matrix.get(4), matrix.get(5));
    }
 
    /**
@@ -273,8 +294,8 @@ public class SpatialForceVector
       MathTools.checkEquals(matrix.getNumCols(), 1);
 
       this.expressedInFrame = expressedInFrame;
-      angularPart.set(matrix.get(0, 0), matrix.get(1 + rowStart, 0), matrix.get(2 + rowStart, 0));
-      linearPart.set(matrix.get(3 + rowStart, 0), matrix.get(4 + rowStart, 0), matrix.get(5 + rowStart, 0));
+      angularPart.set(matrix.get(0), matrix.get(1 + rowStart), matrix.get(2 + rowStart));
+      linearPart.set(matrix.get(3 + rowStart), matrix.get(4 + rowStart), matrix.get(5 + rowStart));
    }
 
    public void set(ReferenceFrame expressedInFrame, double[] doubleArray)

@@ -9,6 +9,8 @@ import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.robotics.linearAlgebra.MatrixTools;
+import us.ihmc.robotics.time.ExecutionTimer;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 /**
  * The centroidal momentum can be written as \dot{h} = A * \dot{v} + \dot{A} * v. This class
@@ -24,10 +26,8 @@ public class CentroidalMomentumRateTermCalculator
    private final ReferenceFrame centerOfMassFrame;
    private final DenseMatrix64F centroidalMomentumMatrix;
 
-   private final SpatialAccelerationVector rootAcceleration;
    private final SpatialAccelerationCalculator spatialAccelerationCalculator;
    private final SpatialAccelerationVector tempSpatialAcceleration;
-   private final SpatialForceVector tempSpatialForceVector;
 
    private final Momentum[] unitMomenta;
    private final Momentum[] bodyMomenta;
@@ -35,7 +35,6 @@ public class CentroidalMomentumRateTermCalculator
    private final RigidBody[] rigidBodies;
    private final RigidBody rootBody;
    private final DenseMatrix64F[] denseAdjTimesI;
-   private final DenseMatrix64F[] denseInertias;
    private final Momentum leftSide = new Momentum();
    private final Twist tempTwist = new Twist();
    private final Twist comTwist;
@@ -50,11 +49,15 @@ public class CentroidalMomentumRateTermCalculator
    private final Matrix3D tempPTilde = new Matrix3D();
    private final DenseMatrix64F v;
    private final DenseMatrix64F aDotV;
-   private final Vector3D zero = new Vector3D();
    private final double robotMass;
    private final boolean[][] isAncestorMapping;
 
    public CentroidalMomentumRateTermCalculator(RigidBody rootBody, ReferenceFrame centerOfMassFrame, DenseMatrix64F v, double robotMass)
+   {
+      this(rootBody, centerOfMassFrame, v, robotMass, null);
+   }
+
+   public CentroidalMomentumRateTermCalculator(RigidBody rootBody, ReferenceFrame centerOfMassFrame, DenseMatrix64F v, double robotMass, YoVariableRegistry registry)
    {
       this.rootBody = rootBody;
       this.jointList = ScrewTools.computeSupportAndSubtreeJoints(rootBody);
@@ -70,10 +73,9 @@ public class CentroidalMomentumRateTermCalculator
       }
 
       this.tempSpatialAcceleration = new SpatialAccelerationVector();
-      this.rootAcceleration = new SpatialAccelerationVector(rootBody.getBodyFixedFrame(), ReferenceFrame.getWorldFrame(), rootBody.getBodyFixedFrame());
-      this.spatialAccelerationCalculator = new SpatialAccelerationCalculator(rootBody, this.rootAcceleration, true, false, false);
+      SpatialAccelerationVector rootAcceleration = new SpatialAccelerationVector(rootBody.getBodyFixedFrame(), ReferenceFrame.getWorldFrame(), rootBody.getBodyFixedFrame());
+      this.spatialAccelerationCalculator = new SpatialAccelerationCalculator(rootBody, rootAcceleration, true, false, false);
 
-      this.denseInertias = new DenseMatrix64F[jointList.length];
       this.bodyMomenta = new Momentum[jointList.length];
       this.bodyTwists = new Twist[jointList.length];
       this.rigidBodies = new RigidBody[jointList.length];
@@ -86,7 +88,6 @@ public class CentroidalMomentumRateTermCalculator
          bodyMomenta[j] = new Momentum(centerOfMassFrame);
          bodyTwists[j] = new Twist();
          rigidBodies[j] = jointList[j].getSuccessor();
-         denseInertias[j] = rigidBodies[j].getInertia().toMatrix();
          denseAdjTimesI[j] = new DenseMatrix64F(6, 6);
 
          RigidBody columnRigidBody = jointList[j].getSuccessor();
@@ -99,7 +100,7 @@ public class CentroidalMomentumRateTermCalculator
 
       this.comTwist = new Twist(centerOfMassFrame, rootBody.getBodyFixedFrame(), centerOfMassFrame);
       comTwist.setToZero();
-      this.tempVector = new Vector3D(0, 0, 0);
+      this.tempVector = new Vector3D();
       this.aDotV = new DenseMatrix64F(6, 1);
       this.robotMass = robotMass;
       if (robotMass == 0)
@@ -107,22 +108,17 @@ public class CentroidalMomentumRateTermCalculator
          throw new RuntimeException("Your robot has zero mass");
       }
       this.tempMatrix3d.setToZero();
-      this.tempSpatialForceVector = new SpatialForceVector(centerOfMassFrame);
    }
 
    public void compute()
    {
-
       spatialAccelerationCalculator.compute();
 
       precomputeAdjointTimesInertia();
 
-      tempVector.set(0, 0, 0);
+      tempVector.setToZero();
       for (Momentum momentum : unitMomenta)
-      {
-         momentum.setAngularPart(zero);
-         momentum.setLinearPart(zero);
-      }
+         momentum.setToZero();
       aDotV.zero();
 
       int column = 0;
@@ -140,18 +136,15 @@ public class CentroidalMomentumRateTermCalculator
 
                   tempTwist.getMatrix(tempSpatialMotionMatrix, 0);
                   CommonOps.mult(denseAdjTimesI[i], tempSpatialMotionMatrix, tempMatrix);
-                  tempSpatialForceVector.set(centerOfMassFrame, tempMatrix);
-                  unitMomenta[column].add(tempSpatialForceVector);
+                  unitMomenta[column].add(tempMatrix);
                }
             }
-            //pack column into the centroidal momentum matrix
+            // pack column into the centroidal momentum matrix
             unitMomenta[column].getMatrix(tempMatrix);
             MatrixTools.setMatrixBlock(centroidalMomentumMatrix, 0, column, tempMatrix, 0, 0, 6, 1, 1.0);
 
             // Multiply column by joint velocity and sum to compute center of mass velocity
-            tempVector.setX(tempVector.getX() + unitMomenta[column].getLinearPartX() * v.get(column));
-            tempVector.setY(tempVector.getY() + unitMomenta[column].getLinearPartY() * v.get(column));
-            tempVector.setZ(tempVector.getZ() + unitMomenta[column].getLinearPartZ() * v.get(column));
+            tempVector.scaleAdd(v.get(column), unitMomenta[column].getLinearPart(), tempVector);
 
             column++;
          }
@@ -161,21 +154,21 @@ public class CentroidalMomentumRateTermCalculator
          // Change expressed in frame to center of mass frame
          bodyTwists[j].changeFrame(centerOfMassFrame);
 
+         // Ad^{T} * I * J * v
          tempTwist.set(bodyTwists[j]);
          tempTwist.changeFrame(jointList[j].getSuccessor().getInertia().getExpressedInFrame());
-         // Ad^{T} * I * J * v
          tempTwist.getMatrix(tempSpatialMotionMatrix, 0);
          CommonOps.mult(denseAdjTimesI[j], tempSpatialMotionMatrix, tempMatrix);
-         tempSpatialForceVector.set(centerOfMassFrame, tempMatrix);
-         bodyMomenta[j].set(tempSpatialForceVector);
+         bodyMomenta[j].set(tempMatrix);
+
+         computeADotVRightSide(j);
       }
 
-      tempVector.scale(1 / robotMass);
+      tempVector.scale(1.0 / robotMass);
 
       comTwist.setLinearPart(tempVector);
 
       computeADotVLeftSide();
-      computeADotVRightSide();
    }
 
    private void computeADotVLeftSide()
@@ -199,20 +192,16 @@ public class CentroidalMomentumRateTermCalculator
          leftSide.addLinearPart(tempVector);
          //
          leftSide.getMatrix(tempSpatialForceMatrix);
-         CommonOps.add(aDotV, tempSpatialForceMatrix, aDotV);
+         CommonOps.addEquals(aDotV, tempSpatialForceMatrix);
       }
    }
 
-   private void computeADotVRightSide()
+   private void computeADotVRightSide(int jointIndex)
    {
       // Here we calculate Jdot * v by computing the spatial acceleration with vddot = 0
-      for (int j = 0; j < jointList.length; j++)
-      {
-         spatialAccelerationCalculator.getAccelerationOfBody(rigidBodies[j], tempSpatialAcceleration);
-         tempSpatialAcceleration.getMatrix(tempSpatialMotionMatrix, 0);
-         CommonOps.mult(denseAdjTimesI[j], tempSpatialMotionMatrix, tempMatrix);
-         CommonOps.add(aDotV, tempMatrix, aDotV);
-      }
+      spatialAccelerationCalculator.getAccelerationOfBody(rigidBodies[jointIndex], tempSpatialAcceleration);
+      tempSpatialAcceleration.getMatrix(tempSpatialMotionMatrix, 0);
+      CommonOps.multAdd(denseAdjTimesI[jointIndex], tempSpatialMotionMatrix, aDotV);
    }
 
    /**
@@ -228,7 +217,8 @@ public class CentroidalMomentumRateTermCalculator
 
          tempMatrix3d.get(0, 0, tempAdjoint);
          tempMatrix3d.get(3, 3, tempAdjoint);
-         tempPTilde.setToTildeForm(tempVector);
+
+         tempPTilde.setToTildeForm(tempVector); // aka, a skew-symmetric matrix
          tempPTilde.multiply(tempMatrix3d);
          tempPTilde.get(0, 3, tempAdjoint);
 

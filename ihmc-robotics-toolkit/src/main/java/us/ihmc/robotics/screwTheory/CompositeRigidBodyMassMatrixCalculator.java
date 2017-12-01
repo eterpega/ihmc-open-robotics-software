@@ -28,7 +28,6 @@ public class CompositeRigidBodyMassMatrixCalculator implements MassMatrixCalcula
       allBodiesExceptRoot = ScrewTools.computeSupportAndSubtreeSuccessors(rootBody);
       jointsInOrder = computeJointsInOrder(rootBody, jointsToIgnore);
 
-
       crbInertiasInOrder = createCompositeRigidBodyInertiasInOrder(allBodiesExceptRoot.length);
       parentMap = ScrewTools.createParentMap(allBodiesExceptRoot);
       massMatrixIndices = createMassMatrixIndices(allBodiesExceptRoot);
@@ -70,7 +69,6 @@ public class CompositeRigidBodyMassMatrixCalculator implements MassMatrixCalcula
          RigidBody currentBody = allBodiesExceptRoot[bodyIndex];
          InverseDynamicsJoint parentJoint = currentBody.getParentJoint();
          CompositeRigidBodyInertia currentBodyInertia = crbInertiasInOrder[bodyIndex];
-         GeometricJacobian motionSubspace = parentJoint.getMotionSubspace();
 
          setUnitMomenta(currentBodyInertia, parentJoint);
          setDiagonalTerm(bodyIndex, parentJoint);
