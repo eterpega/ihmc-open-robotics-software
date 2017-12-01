@@ -4,7 +4,9 @@ import us.ihmc.commonWalkingControlModules.bipedSupportPolygons.BipedSupportPoly
 import us.ihmc.commonWalkingControlModules.configurations.ICPPlannerParameters;
 import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParameters;
 import us.ihmc.commonWalkingControlModules.instantaneousCapturePoint.icpOptimization.*;
-import us.ihmc.commonWalkingControlModules.instantaneousCapturePoint.icpOptimization.simpleController.SimpleAdjustmentICPOptimizationController;
+import us.ihmc.commonWalkingControlModules.instantaneousCapturePoint.icpOptimization.recursiveController.ICPAdjustmentOptimizationController;
+import us.ihmc.commonWalkingControlModules.instantaneousCapturePoint.icpOptimization.recursiveController.ICPTimingOptimizationController;
+import us.ihmc.commonWalkingControlModules.instantaneousCapturePoint.icpOptimization.simpleController.SimpleICPOptimizationController;
 import us.ihmc.euclid.referenceFrame.FramePoint2D;
 import us.ihmc.euclid.referenceFrame.FrameVector2D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
@@ -13,19 +15,25 @@ import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.humanoidRobotics.bipedSupportPolygons.ContactablePlaneBody;
 import us.ihmc.humanoidRobotics.footstep.Footstep;
 import us.ihmc.humanoidRobotics.footstep.FootstepTiming;
-import us.ihmc.robotics.MathTools;
+import us.ihmc.commons.MathTools;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.robotics.geometry.FrameConvexPolygon2d;
 import us.ihmc.robotics.geometry.FramePose;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.sensorProcessing.frames.ReferenceFrames;
 
-public class ICPOptimizationLinearMomentumRateOfChangeControlModule extends LinearMomentumRateOfChangeControlModule
+public class ICPOptimizationLinearMomentumRateOfChangeControlModule extends LeggedLinearMomentumRateOfChangeControlModule
 {
    private final ICPOptimizationController icpOptimizationController;
    private final YoDouble yoTime;
    private final BipedSupportPolygons bipedSupportPolygons;
+   
+   private final FrameConvexPolygon2d supportPolygon = new FrameConvexPolygon2d();
+   private final YoBoolean desiredCMPinSafeArea;
+
    
    private final SideDependentList<RigidBodyTransform> transformsFromAnkleToSole = new SideDependentList<>();
    private final boolean useSimpleAdjustment;
@@ -48,6 +56,8 @@ public class ICPOptimizationLinearMomentumRateOfChangeControlModule extends Line
 
       this.bipedSupportPolygons = bipedSupportPolygons;
       this.yoTime = yoTime;
+      this.desiredCMPinSafeArea = new YoBoolean("DesiredCMPinSafeArea", registry);
+
 
       MathTools.checkIntervalContains(gravityZ, 0.0, Double.POSITIVE_INFINITY);
       
@@ -65,8 +75,8 @@ public class ICPOptimizationLinearMomentumRateOfChangeControlModule extends Line
       useSimpleAdjustment = icpOptimizationParameters.useSimpleOptimization();
       if (useSimpleAdjustment)
       {
-         icpOptimizationController = new SimpleAdjustmentICPOptimizationController(walkingControllerParameters, bipedSupportPolygons, icpControlPolygons,
-                                                                                   contactableFeet, controlDT, registry, yoGraphicsListRegistry);
+         icpOptimizationController = new SimpleICPOptimizationController(walkingControllerParameters, bipedSupportPolygons, icpControlPolygons,
+                                                                         contactableFeet, controlDT, registry, yoGraphicsListRegistry);
       }
       else
       {

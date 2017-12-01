@@ -3,7 +3,7 @@ package us.ihmc.footstepPlanning.bodyPath;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang.mutable.MutableInt;
+import org.apache.commons.lang3.mutable.MutableInt;
 
 import com.google.common.util.concurrent.AtomicDouble;
 
@@ -38,7 +38,7 @@ import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPolygon;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.pathPlanning.bodyPathPlanner.WaypointDefinedBodyPathPlan;
-import us.ihmc.robotics.MathTools;
+import us.ihmc.commons.MathTools;
 import us.ihmc.robotics.geometry.FramePose;
 import us.ihmc.robotics.math.frames.YoFrameConvexPolygon2d;
 import us.ihmc.robotics.math.frames.YoFramePoint;
