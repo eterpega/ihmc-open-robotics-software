@@ -32,6 +32,7 @@ public class ConvexPolytopeTest
 {
    private final static double EPSILON = 1e-15;
 
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
    @Test(timeout = 1000)
    public void testAdditionWithSquarePyramid()
    {
@@ -65,6 +66,7 @@ public class ConvexPolytopeTest
       }
    }
 
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
    @Test(timeout = 10000)
    public void testPartialCylinder()
    {
@@ -531,7 +533,8 @@ public class ConvexPolytopeTest
 
    }
 
-   @Test
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test(timeout = 1000)
    public void testCylinderCreationFromRandomPointsByProjection()
    {
       int numberOfPoints = 100;
@@ -550,7 +553,8 @@ public class ConvexPolytopeTest
       }
    }
 
-   @Test
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test(timeout = 1000)
    public void testAddVeryCloseVertex()
    {
       ExtendedConvexPolytope polytope = null;

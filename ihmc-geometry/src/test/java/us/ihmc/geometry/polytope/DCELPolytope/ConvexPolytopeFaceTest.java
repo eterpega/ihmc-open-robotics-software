@@ -9,13 +9,14 @@ import java.util.List;
 import org.junit.Test;
 
 import us.ihmc.commons.Epsilons;
-import us.ihmc.commons.PrintTools;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
 
 public class ConvexPolytopeFaceTest
 {
    private static final double epsilon = Epsilons.ONE_TEN_THOUSANDTH;
 
-   @Test
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test(timeout = 1000)
    public void testConstructorAndAddVertex()
    {
       ConvexPolytopeFace face = new ConvexPolytopeFace();
@@ -150,7 +151,8 @@ public class ConvexPolytopeFaceTest
       assertTrue(edge.getDestinationVertex() == vertex1);
    }
 
-   @Test
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test(timeout = 1000)
    public void testGetFirstVisibleEdge()
    {
       ExtendedPolytopeVertex vertex1 = new ExtendedPolytopeVertex(0.0, 0.0, 0.0);
@@ -183,7 +185,8 @@ public class ConvexPolytopeFaceTest
       assertTrue(firstVisibleEdge == halfEdge5);
    }
 
-   @Test
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test(timeout = 1000)
    public void testGetVisibleEdgeList()
    {
       ExtendedPolytopeVertex vertex1 = new ExtendedPolytopeVertex(0.0, 0.0, 0.0);
@@ -223,7 +226,8 @@ public class ConvexPolytopeFaceTest
       assertTrue(visibleEdgeList.get(2) == halfEdge2);
    }
 
-   @Test
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test(timeout = 1000)
    public void testRepeatedPointAddition()
    {
       ConvexPolytopeFace face = new ConvexPolytopeFace();
@@ -236,7 +240,8 @@ public class ConvexPolytopeFaceTest
       assertTrue("Got: " + face.getNumberOfEdges() + ", should have been 2", face.getNumberOfEdges() == 2);
    }
 
-   @Test
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test(timeout = 1000)
    public void testAdditionPrecision()
    {
       ConvexPolytopeFace face = new ConvexPolytopeFace();
@@ -248,7 +253,8 @@ public class ConvexPolytopeFaceTest
       assertTrue(face.toString(), face.getNumberOfEdges() == 4);
    }
 
-   @Test
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test(timeout = 1000)
    public void testAFailingCase()
    {
       ConvexPolytopeFace face = new ConvexPolytopeFace();

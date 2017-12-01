@@ -1,17 +1,15 @@
 package us.ihmc.geometry.polytope.DCELPolytope;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
-import org.apache.commons.lang3.text.WordUtils;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import us.ihmc.commons.Epsilons;
 import us.ihmc.commons.PrintTools;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.RigidBodyTransform;
-import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.geometry.polytope.DCELPolytope.CollisionDetection.HybridGJKEPACollisionDetector;
 import us.ihmc.geometry.polytope.DCELPolytope.Frame.FrameConvexPolytope;
 import us.ihmc.geometry.polytope.DCELPolytope.Frame.FramePolytopeVertex;
@@ -30,14 +28,9 @@ public class FrameConvexPolytopeTest
       transformFromParent.setTranslation(1, 1, 1);
       boxFrame = ReferenceFrame.constructFrameWithUnchangingTransformFromParent("BoxFrame", ReferenceFrame.getWorldFrame(), transformFromParent);
    }
-   
-   @After
-   public void tearDownTest()
-   {
-      
-   }
-   
-   @Test
+
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test(timeout = 1000)
    public void testCollisions()
    {
       ReferenceFrame polytope1Frame = ReferenceFrame.constructFrameWithUnchangingTransformFromParent("Polytope1Frame", worldFrame, transformFromParent);
@@ -47,8 +40,9 @@ public class FrameConvexPolytopeTest
       HybridGJKEPACollisionDetector detector = new HybridGJKEPACollisionDetector();
       //detector.checkCollisionBetweenTwoPolytopes(polytope1, polytope2, new Vector3D(0.0, 0.0, 1.0));
    }
-   
-   @Test
+
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test(timeout = 1000)
    public void testConstructor()
    {
       FrameConvexPolytope framePolytope = new FrameConvexPolytope(boxFrame);
@@ -64,8 +58,9 @@ public class FrameConvexPolytopeTest
       
       PrintTools.debug("");
    }
-   
-   @Test
+
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test(timeout = 1000)
    public void testVertexConstruction()
    {
       FramePolytopeVertex vertex1 = new FramePolytopeVertex(boxFrame);

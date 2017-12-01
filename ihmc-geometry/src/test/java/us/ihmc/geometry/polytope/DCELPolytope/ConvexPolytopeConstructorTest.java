@@ -5,12 +5,11 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import us.ihmc.commons.Epsilons;
 import us.ihmc.commons.MathTools;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
 import us.ihmc.euclid.Axis;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
@@ -19,19 +18,8 @@ import us.ihmc.geometry.polytope.ConvexPolytopeConstructor;
 
 public class ConvexPolytopeConstructorTest
 {
-   @Before
-   public void setup()
-   {
-
-   }
-   
-   @After
-   public void tearDown()
-   {
-      
-   }
-   
-   @Test(timeout = 10000)
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test(timeout = 1000)
    public void testCylinderConstructor()
    {
       int numberOfSide = 20;
@@ -51,8 +39,9 @@ public class ConvexPolytopeConstructorTest
          }
       }
    }
-   
-   @Test
+
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test(timeout = 1000)
    public void testCylindericalPointsListCreation()
    {
       double xCenter = 1.0;

@@ -1,18 +1,17 @@
 package us.ihmc.geometry.polytope.DCELPolytope;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
+
 import org.junit.Test;
 
 import us.ihmc.commons.Epsilons;
-import us.ihmc.commons.PrintTools;
-import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
-import us.ihmc.geometry.polytope.DCELPolytope.ExtendedPolytopeVertex;
-import us.ihmc.geometry.polytope.DCELPolytope.PolytopeHalfEdge;
 
 public class PolytopeHalfEdgeTest
 {
-   @Test
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test(timeout = 1000)
    public void testConstructor()
    {
       ExtendedPolytopeVertex vertex1 = getRandomPolytopeVertex();
@@ -42,8 +41,9 @@ public class PolytopeHalfEdgeTest
       assertTrue(halfEdge3.getNextHalfEdge() == null);
       assertTrue(halfEdge3.getTwinHalfEdge() == null);
    }
-   
-   @Test
+
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test(timeout = 1000)
    public void testEdgeReverse()
    {
       ExtendedPolytopeVertex vertex1 = getRandomPolytopeVertex();
@@ -68,8 +68,9 @@ public class PolytopeHalfEdgeTest
    {
       return new ExtendedPolytopeVertex(Math.random(), Math.random(), Math.random());
    }
-   
-   @Test 
+
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test(timeout = 1000)
    public void testCreateTwinEdge()
    {
       ExtendedPolytopeVertex vertex1 = getRandomPolytopeVertex();
@@ -81,7 +82,8 @@ public class PolytopeHalfEdgeTest
       assertTrue(twinOfHalfEdge1.getDestinationVertex() == vertex1);
    }
 
-   @Test
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test(timeout = 1000)
    public void testSetAndCreateTwinEdge()
    {
       ExtendedPolytopeVertex vertex1 = getRandomPolytopeVertex();
@@ -93,8 +95,9 @@ public class PolytopeHalfEdgeTest
       assertTrue(twinOfHalfEdge1.getOriginVertex() == vertex2);
       assertTrue(twinOfHalfEdge1.getDestinationVertex() == vertex1);
    }
-   
-   @Test
+
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test(timeout = 1000)
    public void testEpsilonEquals()
    {
       ExtendedPolytopeVertex vertex1 = getRandomPolytopeVertex();
@@ -106,8 +109,9 @@ public class PolytopeHalfEdgeTest
       PolytopeHalfEdge halfEdge2 = new PolytopeHalfEdge(vertex3, vertex4);
       assertTrue(halfEdge1.epsilonEquals(halfEdge2, Epsilons.ONE_THOUSANDTH*2));
    }
-   
-   @Test 
+
+   @ContinuousIntegrationTest(estimatedDuration = 0.0)
+   @Test(timeout = 1000)
    public void testEdgeVector()
    {
       ExtendedPolytopeVertex vertex1 = getRandomPolytopeVertex();
