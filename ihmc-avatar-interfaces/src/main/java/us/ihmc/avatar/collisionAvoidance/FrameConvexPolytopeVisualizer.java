@@ -17,9 +17,6 @@ import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 public class FrameConvexPolytopeVisualizer
 {
-   private final int numberOfVizEdges;
-   private final int numberOfVizVertices;
-
    private final ArrayList<YoGraphicPosition> polytopeVerticesViz;
    private final ArrayList<YoGraphicLineSegment> polytopeEdgesViz;
    private final YoGraphicLineSegment xVector;
@@ -33,12 +30,20 @@ public class FrameConvexPolytopeVisualizer
 
    public FrameConvexPolytopeVisualizer(int maxNumberOfPolytopes, YoVariableRegistry registry, YoGraphicsListRegistry graphicsListRegistry)
    {
+      this(maxNumberOfPolytopes, 150, 50, registry, graphicsListRegistry);
+   }
+
+   public FrameConvexPolytopeVisualizer(int maxNumberOfPolytopes, int maxNumberOfVerticesPerPolytope, int maxNumberOfEdgesPerPolytope,
+                                        YoVariableRegistry registry, YoGraphicsListRegistry graphicsListRegistry)
+   {
       this.polytopes = new ConvexPolytopeReadOnly[maxNumberOfPolytopes];
       this.polytopeColors = new Color[maxNumberOfPolytopes];
-      this.numberOfVizEdges = maxNumberOfPolytopes * 150;
-      this.numberOfVizVertices = maxNumberOfPolytopes * 50;
-      polytopeVerticesViz = new ArrayList<>(numberOfVizVertices);
-      polytopeEdgesViz = new ArrayList<>(numberOfVizEdges);
+
+      int maxNumberOfEdges = maxNumberOfPolytopes * maxNumberOfEdgesPerPolytope;
+      int maxNumberOfVertices = maxNumberOfPolytopes * maxNumberOfVerticesPerPolytope;
+
+      polytopeVerticesViz = new ArrayList<>(maxNumberOfVertices);
+      polytopeEdgesViz = new ArrayList<>(maxNumberOfEdges);
 
       String listName = "FrameConvexPolytopeVisualizer";
 
@@ -53,7 +58,7 @@ public class FrameConvexPolytopeVisualizer
       graphicsListRegistry.registerYoGraphic(listName, zVector);
 
       polytopeEdgesViz.clear();
-      for (int i = 0; i < numberOfVizEdges; i++)
+      for (int i = 0; i < maxNumberOfEdges; i++)
       {
          YoGraphicLineSegment edge = new YoGraphicLineSegment("PolytopeEdge" + i, "Viz", worldFrame, new YoAppearanceRGBColor(Color.GRAY, 0.5), registry);
          edge.setDrawArrowhead(false);
@@ -62,7 +67,7 @@ public class FrameConvexPolytopeVisualizer
       }
       graphicsListRegistry.registerYoGraphics(listName, polytopeEdgesViz);
 
-      for (int i = 0; i < numberOfVizVertices; i++)
+      for (int i = 0; i < maxNumberOfVertices; i++)
       {
          YoGraphicPosition point = new YoGraphicPosition("PolytopeVertex" + i, "Viz", registry, 0.001, new YoAppearanceRGBColor(Color.GRAY, 0.0));
          point.setPositionToNaN();
