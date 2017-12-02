@@ -105,7 +105,7 @@ public class HumanoidKinematicsToolboxController extends KinematicsToolboxContro
                                               FullHumanoidRobotModel desiredFullRobotModel, YoGraphicsListRegistry yoGraphicsListRegistry,
                                               YoVariableRegistry parentRegistry)
    {
-      super(commandInputManager, statusOutputManager, desiredFullRobotModel.getRootJoint(), getAllJointsExcludingHands(desiredFullRobotModel), 
+      super(commandInputManager, statusOutputManager, desiredFullRobotModel.getRootJoint(), getAllJointsExcludingHands(desiredFullRobotModel),
             createListOfControllableRigidBodies(desiredFullRobotModel), yoGraphicsListRegistry, parentRegistry);
 
       this.desiredFullRobotModel = desiredFullRobotModel;
@@ -345,7 +345,6 @@ public class HumanoidKinematicsToolboxController extends KinematicsToolboxContro
    {
       InverseKinematicsCommandList commands = new InverseKinematicsCommandList();
       commands.addCommand(createJointLimitReductionCommand());
-      commands.addCommand(super.getAdditionalInverseKinematicsCommands());
       return commands;
    }
 
