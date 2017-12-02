@@ -109,7 +109,7 @@ public class KinematicsToolboxCollisionDetectionTest
       Map<RigidBody, FrameConvexPolytope> collisionMeshes = robotCollisionMeshProvider.createCollisionMeshesFromRobotDescription(rootBody,
                                                                                                                                  robotDescription.getRootJoints()
                                                                                                                                                  .get(0));
-      toolboxController.setCollisionMeshes(collisionMeshes);
+      toolboxController.setRobotCollisionMeshes(collisionMeshes);
 
       robot = new RobotFromDescription(robotDescription);
       toolboxUpdater = createToolboxUpdater();

@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
-import gnu.trove.map.hash.THashMap;
 import us.ihmc.avatar.networkProcessor.modules.ToolboxController;
 import us.ihmc.avatar.networkProcessor.modules.ToolboxModule;
 import us.ihmc.commonWalkingControlModules.configurations.JointPrivilegedConfigurationParameters;
@@ -140,8 +139,8 @@ public class KinematicsToolboxController extends ToolboxController
    private final YoDouble solutionQuality = new YoDouble("solutionQuality", registry);
 
    /**
-    * This is the current estimate of the collision quality that is calculated based on the 
-    * the smallest Euclidean distance rigid bodies need to move to be in a non-colliding configuration.
+    * This is the current estimate of the collision quality that is calculated based on the the
+    * smallest Euclidean distance rigid bodies need to move to be in a non-colliding configuration.
     * In case the collision avoidance is disabled it is set to zero
     */
    private final YoDouble collisionQuality = new YoDouble("collisionQuality", registry);
@@ -220,7 +219,8 @@ public class KinematicsToolboxController extends ToolboxController
    private final CollisionAvoidanceModule collisionAvoidanceModule;
 
    /**
-    * Maintains a flag indicating if the solution is colliding. Is set to false in case the collision avoidance is disabled
+    * Maintains a flag indicating if the solution is colliding. Is set to false in case the
+    * collision avoidance is disabled
     */
    private final YoBoolean colliding;
 
@@ -228,12 +228,11 @@ public class KinematicsToolboxController extends ToolboxController
                                       FloatingInverseDynamicsJoint rootJoint, OneDoFJoint[] oneDoFJoints, YoGraphicsListRegistry yoGraphicsListRegistry,
                                       YoVariableRegistry parentRegistry)
    {
-      this(commandInputManager, statusOutputManager, rootJoint, oneDoFJoints, null, null, yoGraphicsListRegistry, parentRegistry);
+      this(commandInputManager, statusOutputManager, rootJoint, oneDoFJoints, null, yoGraphicsListRegistry, parentRegistry);
    }
 
    public KinematicsToolboxController(CommandInputManager commandInputManager, StatusMessageOutputManager statusOutputManager,
-                                      FloatingInverseDynamicsJoint rootJoint, OneDoFJoint[] oneDoFJoints,
-                                      THashMap<RigidBody, FrameConvexPolytope> collisionMeshes, Collection<RigidBody> controllableRigidBodies,
+                                      FloatingInverseDynamicsJoint rootJoint, OneDoFJoint[] oneDoFJoints, Collection<RigidBody> controllableRigidBodies,
                                       YoGraphicsListRegistry yoGraphicsListRegistry, YoVariableRegistry parentRegistry)
    {
       super(statusOutputManager, parentRegistry);
@@ -263,15 +262,7 @@ public class KinematicsToolboxController extends ToolboxController
       privilegedConfigurationGain.set(50.0);
       privilegedMaxVelocity.set(Double.POSITIVE_INFINITY);
       //TODO move the settings to be configurable by 
-      collisionAvoidanceModule = createAndInitializeCollisionAvoidanceModule(controlledJoints, collisionMeshes);
-   }
-
-   private CollisionAvoidanceModule createAndInitializeCollisionAvoidanceModule(InverseDynamicsJoint[] controlledOneDoFJoints,
-                                                                                THashMap<RigidBody, FrameConvexPolytope> collisionMeshes)
-   {
-      CollisionAvoidanceModule module = new CollisionAvoidanceModule(rootBody, controlledOneDoFJoints, yoGraphicsListRegistry, registry);
-      module.setRigidBodyCollisionMeshes(collisionMeshes);
-      return module;
+      collisionAvoidanceModule = new CollisionAvoidanceModule(rootBody, controlledJoints, yoGraphicsListRegistry, registry);
    }
 
    /**
@@ -451,9 +442,8 @@ public class KinematicsToolboxController extends ToolboxController
       FeedbackControlCommandList allFeedbackControlCommands = new FeedbackControlCommandList(controllerCoreCommand.getFeedbackControlCommandList());
 
       /*
-       * Submitting and requesting the controller core to run the feedback
-       * controllers, formulate and solve the optimization problem for this
-       * control tick.
+       * Submitting and requesting the controller core to run the feedback controllers, formulate
+       * and solve the optimization problem for this control tick.
        */
       controllerCore.reset();
       controllerCore.submitControllerCoreCommand(controllerCoreCommand);
@@ -462,7 +452,7 @@ public class KinematicsToolboxController extends ToolboxController
       // Calculating the solution quality based on sum of all the commands' tracking error.
       solutionQuality.set(KinematicsToolboxHelper.calculateSolutionQuality(allFeedbackControlCommands, feedbackControllerDataHolder));
       collisionQuality.set(collisionAvoidanceModule.getCollisionQuality());
-      
+
       // Updating the the robot state from the current solution, initializing the next control tick.
       KinematicsToolboxHelper.setRobotStateFromControllerCoreOutput(controllerCore.getControllerCoreOutput(), rootJoint, oneDoFJoints);
       updateVisualization();
@@ -501,9 +491,9 @@ public class KinematicsToolboxController extends ToolboxController
          KinematicsToolboxConfigurationCommand command = commandInputManager.pollNewestCommand(KinematicsToolboxConfigurationCommand.class);
 
          /*
-          * If there is a new privileged configuration, the desired robot state
-          * is updated alongside with the privileged configuration and the
-          * initial center of mass position and foot poses.
+          * If there is a new privileged configuration, the desired robot state is updated alongside
+          * with the privileged configuration and the initial center of mass position and foot
+          * poses.
           */
          KinematicsToolboxHelper.setRobotStateFromPrivilegedConfigurationData(command, rootJoint, jointNameBasedHashCodeMap);
          if (command.hasPrivilegedJointAngles() || command.hasPrivilegedRootJointPosition() || command.hasPrivilegedRootJointOrientation())
@@ -531,10 +521,9 @@ public class KinematicsToolboxController extends ToolboxController
 
       FeedbackControlCommandList inputs = new FeedbackControlCommandList();
       /*
-       * By using the map, we ensure that there is only one command per
-       * end-effector (including the center of mass). The map is also useful for
-       * remembering commands received during the previous control ticks of the
-       * same run.
+       * By using the map, we ensure that there is only one command per end-effector (including the
+       * center of mass). The map is also useful for remembering commands received during the
+       * previous control ticks of the same run.
        */
       userFeedbackCommands.values().forEach(inputs::addCommand);
       return inputs;
@@ -674,7 +663,7 @@ public class KinematicsToolboxController extends ToolboxController
       collisionAvoidanceModule.submitObstacleCollisionMesh(obstacleMeshes);
    }
 
-   public void setCollisionMeshes(Map<RigidBody, FrameConvexPolytope> collisionMeshes)
+   public void setRobotCollisionMeshes(Map<RigidBody, FrameConvexPolytope> collisionMeshes)
    {
       collisionAvoidanceModule.setRigidBodyCollisionMeshes(collisionMeshes);
    }

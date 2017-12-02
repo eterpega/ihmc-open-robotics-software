@@ -98,7 +98,7 @@ public class CollisionAvoidanceModule
       this.yoGraphicsListRegistry = yoGraphicsListRegistry;
 
       if (yoGraphicsListRegistry != null)
-         visualizer = new FrameConvexPolytopeVisualizer(40, parentRegistry, yoGraphicsListRegistry);
+         visualizer = new FrameConvexPolytopeVisualizer(10, parentRegistry, yoGraphicsListRegistry);
       else
          visualizer = null;
 

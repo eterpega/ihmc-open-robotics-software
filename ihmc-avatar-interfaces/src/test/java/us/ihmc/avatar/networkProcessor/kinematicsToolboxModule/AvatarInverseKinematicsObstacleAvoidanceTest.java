@@ -154,7 +154,7 @@ public abstract class AvatarInverseKinematicsObstacleAvoidanceTest
       drcGhostPerfectSensorReaderFactory.getSensorReader().read();
 
       ghostRobotWriter = new JointAnglesWriter(scsGhostRobot, ghostRobotModel.getRootJoint(), ghostRobotModel.getOneDoFJoints());
-      toolbox.setCollisionMeshes(new RobotCollisionMeshProvider(4).createCollisionMeshesFromRobotDescription(controllerRobotModel,
+      toolbox.setRobotCollisionMeshes(new RobotCollisionMeshProvider(4).createCollisionMeshesFromRobotDescription(controllerRobotModel,
                                                                                                              controllerRobot.getRobotDescription()));
       toolbox.submitObstacleCollisionMesh(createObstacles());
       controllerWrapper = createControllerWrapperAroundToolbox();

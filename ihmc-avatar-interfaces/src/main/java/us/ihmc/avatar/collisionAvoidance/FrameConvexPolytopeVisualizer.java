@@ -18,6 +18,8 @@ import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 public class FrameConvexPolytopeVisualizer
 {
+   private static final boolean VERBOSE = false;
+
    private final ArrayList<YoGraphicPosition> polytopeVerticesViz;
    private final ArrayList<YoGraphicLineSegment> polytopeEdgesViz;
    private final YoGraphicLineSegment xVector;
@@ -43,8 +45,11 @@ public class FrameConvexPolytopeVisualizer
       int maxNumberOfEdges = maxNumberOfPolytopes * maxNumberOfEdgesPerPolytope;
       int maxNumberOfVertices = maxNumberOfPolytopes * maxNumberOfVerticesPerPolytope;
 
-      PrintTools.info("Max number of edges: " + maxNumberOfEdges);
-      PrintTools.info("Max number of vertices: " + maxNumberOfVertices);
+      if (VERBOSE)
+      {
+         PrintTools.info("Max number of edges: " + maxNumberOfEdges);
+         PrintTools.info("Max number of vertices: " + maxNumberOfVertices);
+      }
 
       polytopeVerticesViz = new ArrayList<>(maxNumberOfVertices);
       polytopeEdgesViz = new ArrayList<>(maxNumberOfEdges);
@@ -123,8 +128,11 @@ public class FrameConvexPolytopeVisualizer
          }
       }
 
-      PrintTools.info("Number of edges: " + (edgeIndex + 1));
-      PrintTools.info("Number of vertices: " + (vertexIndex + 1));
+      if (VERBOSE)
+      {
+         PrintTools.info("Number of edges: " + (edgeIndex + 1));
+         PrintTools.info("Number of vertices: " + (vertexIndex + 1));
+      }
 
       for (; edgeIndex < polytopeEdgesViz.size(); edgeIndex++)
       {
