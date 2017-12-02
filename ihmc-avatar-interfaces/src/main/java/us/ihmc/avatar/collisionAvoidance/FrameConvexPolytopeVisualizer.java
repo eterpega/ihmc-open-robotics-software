@@ -2,31 +2,20 @@ package us.ihmc.avatar.collisionAvoidance;
 
 import java.awt.Color;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import us.ihmc.commons.MathTools;
-import us.ihmc.commons.PrintTools;
-import us.ihmc.commons.thread.ThreadTools;
-import us.ihmc.euclid.Axis;
-import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.Point3D;
-import us.ihmc.geometry.polytope.ConvexPolytopeConstructor;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.ConvexPolytopeReadOnly;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeHalfEdgeReadOnly;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeVertexReadOnly;
 import us.ihmc.geometry.polytope.DCELPolytope.Frame.FrameConvexPolytope;
-import us.ihmc.graphicsDescription.Graphics3DObject;
 import us.ihmc.graphicsDescription.appearance.YoAppearanceRGBColor;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicLineSegment;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
-import us.ihmc.simulationconstructionset.Robot;
-import us.ihmc.simulationconstructionset.SimulationConstructionSet;
-import us.ihmc.simulationconstructionset.SimulationConstructionSetParameters;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
-import us.ihmc.yoVariables.variable.YoDouble;
 
 public class FrameConvexPolytopeVisualizer
 {
@@ -35,24 +24,18 @@ public class FrameConvexPolytopeVisualizer
    private final int numberOfCollisionVectors;
    private final YoVariableRegistry registry;
    private final YoGraphicsListRegistry graphicsListRegistry;
-   private SimulationConstructionSet scs;
    private ArrayList<YoGraphicPosition> polytopeVerticesViz;
    private ArrayList<YoGraphicLineSegment> polytopeEdgesViz;
    private YoGraphicPosition position;
-   private YoDouble yoTime;
    private final ConvexPolytopeReadOnly[] polytopes;
    private final Color[] polytopeColors;
    private int numberOfPolytopes = 0;
    private ArrayList<YoGraphicLineSegment> collisionVectors;
    private static final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
-   private boolean keepSCSUp = true;
    private int collisionVectorIndex = 0;
-   private int iterationCount = 0;
-   private boolean block = false;
 
    public FrameConvexPolytopeVisualizer(int maxNumberOfPolytopes, YoVariableRegistry registry, YoGraphicsListRegistry graphicsListRegistry)
    {
-      this.scs = null;
       this.registry = registry;
       this.graphicsListRegistry = graphicsListRegistry;
       this.polytopes = new ConvexPolytopeReadOnly[maxNumberOfPolytopes];
@@ -60,30 +43,10 @@ public class FrameConvexPolytopeVisualizer
       this.numberOfVizEdges = maxNumberOfPolytopes * 150;
       this.numberOfVizVertices = maxNumberOfPolytopes * 50;
       this.numberOfCollisionVectors = maxNumberOfPolytopes * 3;
-      createVizArrays();
-      createPolytopeVisualizationElements();
-   }
-
-   public FrameConvexPolytopeVisualizer(int maxNumberOfPolytopes, boolean keepSCSUp, Robot... robots)
-   {
-      this.registry = new YoVariableRegistry("PolytopeVisualizer");
-      this.graphicsListRegistry = new YoGraphicsListRegistry();
-      this.keepSCSUp = keepSCSUp;
-      this.numberOfVizEdges = maxNumberOfPolytopes * 150;
-      this.numberOfVizVertices = maxNumberOfPolytopes * 50;
-      this.numberOfCollisionVectors = maxNumberOfPolytopes * 3;
-      createVizArrays();
-      polytopes = new ConvexPolytopeReadOnly[maxNumberOfPolytopes];
-      polytopeColors = new Color[maxNumberOfPolytopes];
-      createPolytopeVisualizationElements();
-      setupSCS(robots);
-   }
-
-   private void createVizArrays()
-   {
       polytopeVerticesViz = new ArrayList<>(numberOfVizVertices);
       polytopeEdgesViz = new ArrayList<>(numberOfVizEdges);
       collisionVectors = new ArrayList<>(numberOfCollisionVectors);
+      createPolytopeVisualizationElements();
    }
 
    public void addPolytope(ConvexPolytopeReadOnly polytopeToAdd)
@@ -91,7 +54,7 @@ public class FrameConvexPolytopeVisualizer
       polytopes[numberOfPolytopes] = polytopeToAdd;
       polytopeColors[numberOfPolytopes] = getNextColor();
       numberOfPolytopes++;
-      updateNonBlocking();
+      updatePolytopeVisualization(polytopes);
    }
 
    private Color getNextColor()
@@ -114,52 +77,6 @@ public class FrameConvexPolytopeVisualizer
    public void update()
    {
       updatePolytopeVisualization(polytopes);
-      if (scs != null && keepSCSUp)
-      {
-         PrintTools.debug("Sleeping forever");
-         ThreadTools.sleepForever();
-      }
-   }
-
-   public void updateNonBlocking()
-   {
-      updatePolytopeVisualization(polytopes);
-   }
-
-   private void setupSCS(Robot... robots)
-   {
-      Robot robot = new Robot(getClass().getSimpleName() + "Robot");
-      yoTime = robot.getYoTime();
-      robot.addYoVariableRegistry(registry);
-      robot.addYoGraphicsListRegistry(graphicsListRegistry);
-      SimulationConstructionSetParameters parameters = new SimulationConstructionSetParameters();
-      Robot[] robotList;
-      if (robots == null)
-      {
-         robotList = new Robot[1];
-         robotList[0] = robot;
-      }
-      else
-      {
-         robotList = Arrays.copyOf(robots, robots.length + 1);
-         robotList[robots.length] = robot;
-      }
-      scs = new SimulationConstructionSet(robotList, parameters);
-      Graphics3DObject coordinateSystem = new Graphics3DObject();
-      coordinateSystem.addCoordinateSystem(.5);
-      scs.addStaticLinkGraphics(coordinateSystem);
-      scs.setGroundVisible(false);
-      scs.setDT(1.0, 1);
-      scs.startOnAThread();
-   }
-
-   public void tickSCS()
-   {
-      if (scs != null)
-      {
-         yoTime.add(1.0);
-         scs.tickAndUpdate();
-      }
    }
 
    public void showCollisionVector(Point3D point1, Point3D point2)
@@ -249,7 +166,6 @@ public class FrameConvexPolytopeVisualizer
          polytopeEdgesViz.get(edgeIndex).setToNaN();
       for (; vertexIndex < polytopeVerticesViz.size(); vertexIndex++)
          polytopeVerticesViz.get(vertexIndex).setPositionToNaN();
-      tickSCS();
    }
 
    public void updateColor(FrameConvexPolytope polytopeToChange, Color newColor)
@@ -257,7 +173,7 @@ public class FrameConvexPolytopeVisualizer
       for (int i = 0; i < numberOfPolytopes; i++)
          if (polytopes[i] == polytopeToChange)
             polytopeColors[i] = newColor;
-      updateNonBlocking();
+      updatePolytopeVisualization(polytopes);
    }
 
    public void removePolytope(ConvexPolytopeReadOnly polytope)
@@ -276,21 +192,5 @@ public class FrameConvexPolytopeVisualizer
          polytopes[i] = polytopes[i + 1];
       polytopes[polytopes.length - 1] = null;
       update();
-   }
-
-   public void update(ConvexPolytopeReadOnly simplex)
-   {
-      for (int i = 0; i < numberOfPolytopes; i++)
-      {
-         if (polytopes[i] == simplex)
-         {
-            //PrintTools.debug("Vertices: " + simplex.getNumberOfVertices());
-            updateNonBlocking();
-            if (block && iterationCount++ > 10)
-               throw new RuntimeException("This happened");
-            return;
-         }
-      }
-      addPolytope(simplex);
    }
 }
