@@ -287,7 +287,7 @@ public class KinematicsToolboxController extends ToolboxController
                                                                                 THashMap<RigidBody, FrameConvexPolytope> collisionMeshes,
                                                                                 FrameConvexPolytopeVisualizer viz)
    {
-      CollisionAvoidanceModule module = new CollisionAvoidanceModule(rootBody, controlledOneDoFJoints, viz);
+      CollisionAvoidanceModule module = new CollisionAvoidanceModule(rootBody, controlledOneDoFJoints, viz, yoGraphicsListRegistry, registry);
       module.setRigidBodyCollisionMeshes(collisionMeshes);
       return module;
    }

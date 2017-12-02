@@ -13,8 +13,10 @@ import us.ihmc.avatar.collisionAvoidance.FrameConvexPolytopeVisualizer;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics.InverseKinematicsCommandList;
 import us.ihmc.commons.PrintTools;
 import us.ihmc.geometry.polytope.DCELPolytope.Frame.FrameConvexPolytope;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.robotics.screwTheory.InverseDynamicsJoint;
 import us.ihmc.robotics.screwTheory.RigidBody;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 /**
  * Simple module that checks if the rigid bodies are colliding with the list of obstacles submitted
@@ -81,15 +83,8 @@ public class CollisionAvoidanceModule
     */
    private double collisionQuality = 0.0;
 
-   /**
-    * @param rootBody the root body is the first rigid body of the kinematic chain that will be used
-    *           to avoid collisions
-    * @param controlledJoints the list of joints that will be used for avoiding collisions
-    */
-   public CollisionAvoidanceModule(RigidBody rootBody, InverseDynamicsJoint[] controlledJoints)
-   {
-      this(rootBody, controlledJoints, null);
-   }
+   private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
+   private final YoGraphicsListRegistry yoGraphicsListRegistry;
 
    /**
     * @param rootBody the root body is the first rigid body of the kinematic chain that will be used
@@ -97,9 +92,12 @@ public class CollisionAvoidanceModule
     * @param controlledJoints the list of joints that will be used for avoiding collisions
     * @param visualizer a visualizer that helps debug the module
     */
-   public CollisionAvoidanceModule(RigidBody rootBody, InverseDynamicsJoint[] controlledJoints, FrameConvexPolytopeVisualizer visualizer)
+   public CollisionAvoidanceModule(RigidBody rootBody, InverseDynamicsJoint[] controlledJoints, FrameConvexPolytopeVisualizer visualizer,
+                                   YoGraphicsListRegistry yoGraphicsListRegistry, YoVariableRegistry parentRegistry)
    {
       this.visualizer = visualizer;
+      this.yoGraphicsListRegistry = yoGraphicsListRegistry;
+      parentRegistry.addChild(registry);
    }
 
    /**
@@ -116,7 +114,10 @@ public class CollisionAvoidanceModule
       for (int i = 0; i < rigidBodies.size(); i++)
       {
          RigidBody rigidBody = rigidBodies.get(i);
-         collisionDetectorMap.put(rigidBody, new RigidBodyCollisionDetector(rigidBody, collisionMeshMap.get(rigidBody), parameters, visualizer));
+         YoGraphicsListRegistry graphicRegistry = visualizeCollisionVectors ? yoGraphicsListRegistry : null;
+         RigidBodyCollisionDetector detector = new RigidBodyCollisionDetector(rigidBody, collisionMeshMap.get(rigidBody), parameters, graphicRegistry,
+                                                                              registry);
+         collisionDetectorMap.put(rigidBody, detector);
          if (visualizeRigidBodyMeshes)
             visualize(collisionMeshMap.get(rigidBody));
       }
@@ -207,9 +208,6 @@ public class CollisionAvoidanceModule
          PrintTools.debug("Checking for collisions...");
 
       boolean collisionDetected = false;
-
-      if (visualizer != null && visualizeCollisionVectors)
-         visualizer.clearCollisionVectors();
 
       collisionQuality = 0.0;
 

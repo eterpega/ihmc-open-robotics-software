@@ -2,7 +2,6 @@ package us.ihmc.avatar.networkProcessor.kinematicsToolboxModule;
 
 import java.util.List;
 
-import us.ihmc.avatar.collisionAvoidance.FrameConvexPolytopeVisualizer;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics.InverseKinematicsCommand;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinematics.SpatialVelocityCommand;
 import us.ihmc.euclid.geometry.tools.EuclidGeometryTools;
@@ -14,9 +13,13 @@ import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.geometry.polytope.DCELPolytope.ExtendedSimplexPolytope;
 import us.ihmc.geometry.polytope.DCELPolytope.CollisionDetection.HybridGJKEPACollisionDetector;
 import us.ihmc.geometry.polytope.DCELPolytope.Frame.FrameConvexPolytope;
+import us.ihmc.graphicsDescription.appearance.YoAppearance;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicLineSegment;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.robotics.screwTheory.ScrewTools;
 import us.ihmc.robotics.screwTheory.SelectionMatrix6D;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 public class RigidBodyCollisionDetector
 {
@@ -28,8 +31,8 @@ public class RigidBodyCollisionDetector
    private final HybridGJKEPACollisionDetector collisionDetector;
 
    private final ExtendedSimplexPolytope tempSimplex;
-   private final FrameConvexPolytopeVisualizer viz;
    private double collisionQuality;
+   private final YoGraphicLineSegment yoGraphicCollisionVector;
 
    private final RigidBodyTransform collisionFrameTransform = new RigidBodyTransform();
    private final ReferenceFrame collisionReferenceFrame;
@@ -41,18 +44,21 @@ public class RigidBodyCollisionDetector
    private double collisionAvoidanceTaskObjective = 500; //m/s 
    private final SpatialVelocityCommand spatialVelocityCommand = new SpatialVelocityCommand();
 
-   public RigidBodyCollisionDetector(RigidBody rigidBody, FrameConvexPolytope rigidBodyCollisionMesh, CollisionAvoidanceModuleSettings params)
-   {
-      this(rigidBody, rigidBodyCollisionMesh, params, null);
-   }
-
-   public RigidBodyCollisionDetector(RigidBody rigidBody, FrameConvexPolytope rigidBodyCollisionMesh, CollisionAvoidanceModuleSettings params,
-                                     FrameConvexPolytopeVisualizer viz)
+   public RigidBodyCollisionDetector(RigidBody rigidBody, FrameConvexPolytope rigidBodyCollisionMesh, CollisionAvoidanceModuleSettings params, YoGraphicsListRegistry yoGraphicsListRegistry, YoVariableRegistry registry)
    {
       this.collisionDetector = new HybridGJKEPACollisionDetector(null, params.getCollisionDetectionEpsilon());
       this.collisionDetector.setPolytopeA(rigidBodyCollisionMesh);
       this.tempSimplex = new ExtendedSimplexPolytope();
-      this.viz = viz;
+
+      if (yoGraphicsListRegistry != null)
+      {
+         yoGraphicCollisionVector = new YoGraphicLineSegment(rigidBody.getName(), "Collision", ReferenceFrame.getWorldFrame(), YoAppearance.Red(), registry);
+         yoGraphicsListRegistry.registerYoGraphic("CollisionVectors", yoGraphicCollisionVector);
+      }
+      else
+      {
+         yoGraphicCollisionVector = null;
+      }
 
       collisionReferenceFrame = new ReferenceFrame(rigidBody.getName() + "CollisionFrame", rigidBody.getBodyFixedFrame())
       {
@@ -88,10 +94,15 @@ public class RigidBodyCollisionDetector
             collisionDetector.runEPAExpansion();
             collisionDetector.getCollisionPoints(rigidBodyCollidingPoint, obstacleMeshCollidingPoint);
 
-            if (viz != null)
-               viz.showCollisionVector(rigidBodyCollidingPoint, obstacleMeshCollidingPoint);
-
             registerCollision(rigidBodyCollidingPoint, obstacleMeshCollidingPoint);
+
+            if (yoGraphicCollisionVector != null)
+               yoGraphicCollisionVector.setStartAndEnd(rigidBodyCollidingPoint, obstacleMeshCollidingPoint);
+         }
+         else
+         {
+            if (yoGraphicCollisionVector != null)
+               yoGraphicCollisionVector.hide();
          }
       }
       return collisionDetected;
@@ -106,9 +117,6 @@ public class RigidBodyCollisionDetector
    {
       // TODO rigid body points are right now always returned in world frame. Once that is fixed the points will have to be converted to the same frame
       collisionVector.sub(obstaclePoint, rigidBodyPoint);
-
-      if (viz != null)
-         viz.showCollisionVector(rigidBodyPoint, obstaclePoint);
 
       double penetrationDistance = collisionVector.length();
       collisionQuality += penetrationDistance;
