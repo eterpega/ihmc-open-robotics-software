@@ -9,11 +9,8 @@ import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.graphicsDescription.Graphics3DObject;
 import us.ihmc.graphicsDescription.GraphicsUpdatable;
-import us.ihmc.graphicsDescription.MeshDataGenerator;
-import us.ihmc.graphicsDescription.MeshDataHolder;
 import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
 import us.ihmc.graphicsDescription.appearance.YoAppearance;
-import us.ihmc.graphicsDescription.instructions.Graphics3DAddMeshDataInstruction;
 import us.ihmc.graphicsDescription.plotting.artifact.Artifact;
 import us.ihmc.graphicsDescription.yoGraphics.plotting.YoArtifactLineSegment2d;
 import us.ihmc.robotics.dataStructures.MutableColor;
@@ -24,7 +21,6 @@ import us.ihmc.yoVariables.variable.YoDouble;
 
 public class YoGraphicVector extends YoGraphic implements RemoteYoGraphic, GraphicsUpdatable
 {
-   private static final int RESOLUTION = 25;
    private double lineRadiusWhenOneMeterLong = 0.015;
    private double minRadiusScaleFactor = 0.3;
    private double maxRadiusScaleFactor = 3.0;
@@ -33,9 +29,7 @@ public class YoGraphicVector extends YoGraphic implements RemoteYoGraphic, Graph
    protected final double scaleFactor;
    private boolean drawArrowhead;
    private final AppearanceDefinition appearance;
-   private final Graphics3DAddMeshDataInstruction instruction;
-   private final Graphics3DObject linkGraphics;
-   
+
    public YoGraphicVector(String name, YoFramePoint startPoint, YoFrameVector frameVector, AppearanceDefinition appearance)
    {
       this(name, startPoint, frameVector, 1.0, appearance);
@@ -65,29 +59,19 @@ public class YoGraphicVector extends YoGraphic implements RemoteYoGraphic, Graph
 
       if ((!startPoint.getReferenceFrame().isWorldFrame()) || (!frameVector.getReferenceFrame().isWorldFrame()))
       {
-         System.err.println("Warning: Should be in a World Frame to create a YoGraphicVector. startPoint = " + startPoint + ", frameVector = " + frameVector);
+         System.err.println("Warning: Should be in a World Frame to create a YoGraphicVector. startPoint = " + startPoint + ", frameVector = "
+               + frameVector);
       }
    }
 
-   public void setAppearance(AppearanceDefinition appearance)
-   {
-      instruction.setAppearance(appearance);
-   }
-
-   public YoGraphicVector(String name, YoDouble baseX, YoDouble baseY, YoDouble baseZ, YoDouble x, YoDouble y, YoDouble z, double scaleFactor,
-                          AppearanceDefinition appearance)
+   public YoGraphicVector(String name, YoDouble baseX, YoDouble baseY, YoDouble baseZ, YoDouble x, YoDouble y,
+                          YoDouble z, double scaleFactor, AppearanceDefinition appearance)
    {
       this(name, baseX, baseY, baseZ, x, y, z, scaleFactor, appearance, true);
    }
 
-   public YoGraphicVector(String name, YoDouble baseX, YoDouble baseY, YoDouble baseZ, YoDouble x, YoDouble y, YoDouble z, double scaleFactor,
-                          AppearanceDefinition appearance, boolean drawArrowhead)
-   {
-      this(name, baseX, baseY, baseZ, x, y, z, scaleFactor, new AppearanceDefinition[]{appearance}, drawArrowhead);
-   }
-   
-   public YoGraphicVector(String name, YoDouble baseX, YoDouble baseY, YoDouble baseZ, YoDouble x, YoDouble y, YoDouble z, double scaleFactor,
-                          AppearanceDefinition[] appearances, boolean drawArrowhead)
+   public YoGraphicVector(String name, YoDouble baseX, YoDouble baseY, YoDouble baseZ, YoDouble x, YoDouble y,
+                          YoDouble z, double scaleFactor, AppearanceDefinition appearance, boolean drawArrowhead)
    {
       super(name);
 
@@ -99,27 +83,7 @@ public class YoGraphicVector extends YoGraphic implements RemoteYoGraphic, Graph
       this.z = z;
       this.drawArrowhead = drawArrowhead;
       this.scaleFactor = scaleFactor;
-      this.appearance = appearances[0];
-      this.linkGraphics = new Graphics3DObject();
-      this.linkGraphics.setChangeable(true);
-      this.instruction = new Graphics3DAddMeshDataInstruction(getMesh(), appearance);
-      this.linkGraphics.addInstruction(instruction);
-   }
-   
-   private MeshDataHolder getMesh()
-   {
-      if(drawArrowhead)
-      {
-         MeshDataHolder cylinder = MeshDataGenerator.Cylinder(lineRadiusWhenOneMeterLong, 0.9, RESOLUTION);
-         MeshDataHolder translatedCylinder = MeshDataHolder.translate(cylinder, 0.0f, 0.0f, 0.9f);
-         MeshDataHolder cone = MeshDataGenerator.Cone(0.1, (0.5 / 0.2) * lineRadiusWhenOneMeterLong, RESOLUTION);
-         MeshDataHolder combinedMesh = MeshDataHolder.combine(translatedCylinder, cone, true);
-         return combinedMesh;
-      }
-      else
-      {
-         return MeshDataGenerator.Cylinder(lineRadiusWhenOneMeterLong, 1.0, RESOLUTION);
-      }
+      this.appearance = appearance;
    }
 
    public void setLineRadiusWhenOneMeterLong(double lineRadiusWhenOneMeterLong)
@@ -136,7 +100,6 @@ public class YoGraphicVector extends YoGraphic implements RemoteYoGraphic, Graph
    public void setDrawArrowhead(boolean drawArrowhead)
    {
       this.drawArrowhead = drawArrowhead;
-      this.instruction.setMesh(getMesh());
    }
 
    public void getBasePosition(Point3D point3d)
@@ -340,6 +303,19 @@ public class YoGraphicVector extends YoGraphic implements RemoteYoGraphic, Graph
    @Override
    public Graphics3DObject getLinkGraphics()
    {
+      Graphics3DObject linkGraphics = new Graphics3DObject();
+
+      if (drawArrowhead)
+      {
+         linkGraphics.addCylinder(0.9, lineRadiusWhenOneMeterLong, appearance);
+         linkGraphics.translate(0.0, 0.0, 0.9);
+         linkGraphics.addCone(0.1, (0.05 / 0.02) * lineRadiusWhenOneMeterLong, appearance);
+      }
+      else
+      {
+         linkGraphics.addCylinder(1.0, lineRadiusWhenOneMeterLong, appearance);
+      }
+
       return linkGraphics;
    }
 
