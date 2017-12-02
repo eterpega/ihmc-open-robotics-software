@@ -90,13 +90,17 @@ public class CollisionAvoidanceModule
     * @param rootBody the root body is the first rigid body of the kinematic chain that will be used
     *           to avoid collisions
     * @param controlledJoints the list of joints that will be used for avoiding collisions
-    * @param visualizer a visualizer that helps debug the module
     */
-   public CollisionAvoidanceModule(RigidBody rootBody, InverseDynamicsJoint[] controlledJoints, FrameConvexPolytopeVisualizer visualizer,
-                                   YoGraphicsListRegistry yoGraphicsListRegistry, YoVariableRegistry parentRegistry)
+   public CollisionAvoidanceModule(RigidBody rootBody, InverseDynamicsJoint[] controlledJoints, YoGraphicsListRegistry yoGraphicsListRegistry,
+                                   YoVariableRegistry parentRegistry)
    {
-      this.visualizer = visualizer;
       this.yoGraphicsListRegistry = yoGraphicsListRegistry;
+
+      if (yoGraphicsListRegistry != null)
+         visualizer = new FrameConvexPolytopeVisualizer(40, parentRegistry, yoGraphicsListRegistry);
+      else
+         visualizer = null;
+
       parentRegistry.addChild(registry);
    }
 
@@ -223,7 +227,7 @@ public class CollisionAvoidanceModule
             commandList.addCommand(collisionDetector.getCommand());
       }
 
-      if (visualizer != null && (visualizeRigidBodyMeshes || visualizeObstacleMeshes))
+      if (visualizer != null)
          visualizer.update();
 
       if (debug)

@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import gnu.trove.map.hash.THashMap;
-import us.ihmc.avatar.collisionAvoidance.FrameConvexPolytopeVisualizer;
 import us.ihmc.avatar.networkProcessor.modules.ToolboxController;
 import us.ihmc.avatar.networkProcessor.modules.ToolboxModule;
 import us.ihmc.commonWalkingControlModules.configurations.JointPrivilegedConfigurationParameters;
@@ -229,29 +228,13 @@ public class KinematicsToolboxController extends ToolboxController
                                       FloatingInverseDynamicsJoint rootJoint, OneDoFJoint[] oneDoFJoints, YoGraphicsListRegistry yoGraphicsListRegistry,
                                       YoVariableRegistry parentRegistry)
    {
-      this(commandInputManager, statusOutputManager, rootJoint, oneDoFJoints, null, null, yoGraphicsListRegistry, parentRegistry, null);
-   }
-
-   public KinematicsToolboxController(CommandInputManager commandInputManager, StatusMessageOutputManager statusOutputManager,
-                                      FloatingInverseDynamicsJoint rootJoint, OneDoFJoint[] oneDoFJoints, YoGraphicsListRegistry yoGraphicsListRegistry,
-                                      YoVariableRegistry parentRegistry, FrameConvexPolytopeVisualizer viz)
-   {
-      this(commandInputManager, statusOutputManager, rootJoint, oneDoFJoints, null, null, yoGraphicsListRegistry, parentRegistry, viz);
+      this(commandInputManager, statusOutputManager, rootJoint, oneDoFJoints, null, null, yoGraphicsListRegistry, parentRegistry);
    }
 
    public KinematicsToolboxController(CommandInputManager commandInputManager, StatusMessageOutputManager statusOutputManager,
                                       FloatingInverseDynamicsJoint rootJoint, OneDoFJoint[] oneDoFJoints,
                                       THashMap<RigidBody, FrameConvexPolytope> collisionMeshes, Collection<RigidBody> controllableRigidBodies,
                                       YoGraphicsListRegistry yoGraphicsListRegistry, YoVariableRegistry parentRegistry)
-   {
-      this(commandInputManager, statusOutputManager, rootJoint, oneDoFJoints, collisionMeshes, controllableRigidBodies, yoGraphicsListRegistry, parentRegistry,
-           null);
-   }
-
-   public KinematicsToolboxController(CommandInputManager commandInputManager, StatusMessageOutputManager statusOutputManager,
-                                      FloatingInverseDynamicsJoint rootJoint, OneDoFJoint[] oneDoFJoints,
-                                      THashMap<RigidBody, FrameConvexPolytope> collisionMeshes, Collection<RigidBody> controllableRigidBodies,
-                                      YoGraphicsListRegistry yoGraphicsListRegistry, YoVariableRegistry parentRegistry, FrameConvexPolytopeVisualizer viz)
    {
       super(statusOutputManager, parentRegistry);
       this.commandInputManager = commandInputManager;
@@ -280,14 +263,13 @@ public class KinematicsToolboxController extends ToolboxController
       privilegedConfigurationGain.set(50.0);
       privilegedMaxVelocity.set(Double.POSITIVE_INFINITY);
       //TODO move the settings to be configurable by 
-      collisionAvoidanceModule = createAndInitializeCollisionAvoidanceModule(controlledJoints, collisionMeshes, viz);
+      collisionAvoidanceModule = createAndInitializeCollisionAvoidanceModule(controlledJoints, collisionMeshes);
    }
 
    private CollisionAvoidanceModule createAndInitializeCollisionAvoidanceModule(InverseDynamicsJoint[] controlledOneDoFJoints,
-                                                                                THashMap<RigidBody, FrameConvexPolytope> collisionMeshes,
-                                                                                FrameConvexPolytopeVisualizer viz)
+                                                                                THashMap<RigidBody, FrameConvexPolytope> collisionMeshes)
    {
-      CollisionAvoidanceModule module = new CollisionAvoidanceModule(rootBody, controlledOneDoFJoints, viz, yoGraphicsListRegistry, registry);
+      CollisionAvoidanceModule module = new CollisionAvoidanceModule(rootBody, controlledOneDoFJoints, yoGraphicsListRegistry, registry);
       module.setRigidBodyCollisionMeshes(collisionMeshes);
       return module;
    }

@@ -8,7 +8,6 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-import us.ihmc.avatar.collisionAvoidance.FrameConvexPolytopeVisualizer;
 import us.ihmc.commonWalkingControlModules.controllerCore.WholeBodyControllerCore;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.feedbackController.CenterOfMassFeedbackControlCommand;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.feedbackController.FeedbackControlCommand;
@@ -106,15 +105,8 @@ public class HumanoidKinematicsToolboxController extends KinematicsToolboxContro
                                               FullHumanoidRobotModel desiredFullRobotModel, YoGraphicsListRegistry yoGraphicsListRegistry,
                                               YoVariableRegistry parentRegistry)
    {
-      this(commandInputManager, statusOutputManager, desiredFullRobotModel, yoGraphicsListRegistry, parentRegistry, null);
-   }
-   
-   public HumanoidKinematicsToolboxController(CommandInputManager commandInputManager, StatusMessageOutputManager statusOutputManager,
-                                              FullHumanoidRobotModel desiredFullRobotModel, YoGraphicsListRegistry yoGraphicsListRegistry,
-                                              YoVariableRegistry parentRegistry, FrameConvexPolytopeVisualizer visualizer)
-   {
       super(commandInputManager, statusOutputManager, desiredFullRobotModel.getRootJoint(), getAllJointsExcludingHands(desiredFullRobotModel), 
-            null, createListOfControllableRigidBodies(desiredFullRobotModel), yoGraphicsListRegistry, parentRegistry, visualizer);
+            null, createListOfControllableRigidBodies(desiredFullRobotModel), yoGraphicsListRegistry, parentRegistry);
 
       this.desiredFullRobotModel = desiredFullRobotModel;
 

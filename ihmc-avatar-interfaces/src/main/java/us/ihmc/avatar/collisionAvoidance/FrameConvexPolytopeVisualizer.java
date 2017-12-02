@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.ConvexPolytopeReadOnly;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeHalfEdgeReadOnly;
@@ -33,7 +34,7 @@ public class FrameConvexPolytopeVisualizer
       this(maxNumberOfPolytopes, 150, 50, registry, graphicsListRegistry);
    }
 
-   public FrameConvexPolytopeVisualizer(int maxNumberOfPolytopes, int maxNumberOfVerticesPerPolytope, int maxNumberOfEdgesPerPolytope,
+   public FrameConvexPolytopeVisualizer(int maxNumberOfPolytopes, int maxNumberOfEdgesPerPolytope, int maxNumberOfVerticesPerPolytope,
                                         YoVariableRegistry registry, YoGraphicsListRegistry graphicsListRegistry)
    {
       this.polytopes = new ConvexPolytopeReadOnly[maxNumberOfPolytopes];
@@ -41,6 +42,9 @@ public class FrameConvexPolytopeVisualizer
 
       int maxNumberOfEdges = maxNumberOfPolytopes * maxNumberOfEdgesPerPolytope;
       int maxNumberOfVertices = maxNumberOfPolytopes * maxNumberOfVerticesPerPolytope;
+
+      PrintTools.info("Max number of edges: " + maxNumberOfEdges);
+      PrintTools.info("Max number of vertices: " + maxNumberOfVertices);
 
       polytopeVerticesViz = new ArrayList<>(maxNumberOfVertices);
       polytopeEdgesViz = new ArrayList<>(maxNumberOfEdges);
@@ -118,6 +122,9 @@ public class FrameConvexPolytopeVisualizer
             vertexIndex++;
          }
       }
+
+      PrintTools.info("Number of edges: " + (edgeIndex + 1));
+      PrintTools.info("Number of vertices: " + (vertexIndex + 1));
 
       for (; edgeIndex < polytopeEdgesViz.size(); edgeIndex++)
       {

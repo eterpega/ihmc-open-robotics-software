@@ -14,7 +14,6 @@ import org.junit.Before;
 
 import com.badlogic.gdx.math.collision.BoundingBox;
 
-import us.ihmc.avatar.collisionAvoidance.FrameConvexPolytopeVisualizer;
 import us.ihmc.avatar.collisionAvoidance.RobotCollisionMeshProvider;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
 import us.ihmc.avatar.jointAnglesWriter.JointAnglesWriter;
@@ -101,7 +100,6 @@ public abstract class AvatarInverseKinematicsObstacleAvoidanceTest
    public abstract DRCRobotModel getRobotModel();
 
    private final List<FrameConvexPolytope> obstacleList = new ArrayList<>();
-   private FrameConvexPolytopeVisualizer visualizer = new FrameConvexPolytopeVisualizer(40, testRegistry, graphicsRegistry);
 
    YoBoolean initializationSucceeded = new YoBoolean("ControllerInitializationSucceeded", testRegistry);
    
@@ -137,8 +135,7 @@ public abstract class AvatarInverseKinematicsObstacleAvoidanceTest
       commandInputManager = new CommandInputManager(KinematicsToolboxModule.supportedCommands());
       commandInputManager.registerConversionHelper(new KinematicsToolboxCommandConverter(controllerRobotModel.getElevator()));
       StatusMessageOutputManager statusOutputManager = new StatusMessageOutputManager(KinematicsToolboxModule.supportedStatus());
-      toolbox = new HumanoidKinematicsToolboxController(commandInputManager, statusOutputManager, controllerRobotModel, graphicsRegistry, testRegistry,
-                                                        visualizer);
+      toolbox = new HumanoidKinematicsToolboxController(commandInputManager, statusOutputManager, controllerRobotModel, graphicsRegistry, testRegistry);
       scsRobot.setGravity(0.0);
       scsRobot.setDynamic(false);
       controllerRobotWriter = new JointAnglesWriter(scsRobot, controllerRobotModel.getRootJoint(), controllerRobotModel.getOneDoFJoints());
@@ -250,7 +247,6 @@ public abstract class AvatarInverseKinematicsObstacleAvoidanceTest
             {
                toolbox.updateInternal();
                controllerRobotWriter.updateRobotConfigurationBasedOnFullRobotModel();
-               visualizer.update();
             }
          }
       };

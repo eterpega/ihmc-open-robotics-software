@@ -15,7 +15,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import us.ihmc.avatar.collisionAvoidance.FrameConvexPolytopeVisualizer;
 import us.ihmc.avatar.collisionAvoidance.RobotCollisionMeshProvider;
 import us.ihmc.avatar.jointAnglesWriter.JointAnglesWriter;
 import us.ihmc.commons.PrintTools;
@@ -86,8 +85,6 @@ public class KinematicsToolboxCollisionDetectionTest
    private Robot ghost;
    private RobotController toolboxUpdater;
 
-   private FrameConvexPolytopeVisualizer visualizer;
-
    @Before
    public void setup()
    {
@@ -105,9 +102,8 @@ public class KinematicsToolboxCollisionDetectionTest
 
       StatusMessageOutputManager statusOutputManager = new StatusMessageOutputManager(KinematicsToolboxModule.supportedStatus());
 
-      visualizer = new FrameConvexPolytopeVisualizer(10, mainRegistry, yoGraphicsListRegistry);
       toolboxController = new KinematicsToolboxController(commandInputManager, statusOutputManager, desiredFullRobotModel.getLeft(),
-                                                          desiredFullRobotModel.getRight(), yoGraphicsListRegistry, mainRegistry, visualizer);
+                                                          desiredFullRobotModel.getRight(), yoGraphicsListRegistry, mainRegistry);
 
       RobotCollisionMeshProvider robotCollisionMeshProvider = new RobotCollisionMeshProvider(8);
       Map<RigidBody, FrameConvexPolytope> collisionMeshes = robotCollisionMeshProvider.createCollisionMeshesFromRobotDescription(rootBody,
@@ -361,7 +357,6 @@ public class KinematicsToolboxCollisionDetectionTest
                toolboxController.updateInternal();
                jointAnglesWriter.updateRobotConfigurationBasedOnFullRobotModel();
                numberOfIterations.increment();
-               visualizer.update();
             }
          }
 

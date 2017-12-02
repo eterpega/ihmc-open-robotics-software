@@ -8,6 +8,7 @@ import us.ihmc.atlas.AtlasRobotVersion;
 import us.ihmc.avatar.collisionAvoidance.FrameConvexPolytopeVisualizer;
 import us.ihmc.avatar.collisionAvoidance.RobotCollisionMeshProvider;
 import us.ihmc.avatar.drcRobot.RobotTarget;
+import us.ihmc.commons.PrintTools;
 import us.ihmc.geometry.polytope.DCELPolytope.Frame.FrameConvexPolytope;
 import us.ihmc.graphicsDescription.Graphics3DObject;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
@@ -50,6 +51,8 @@ public class AtlasCollisionMeshProviderVisualizer
       SimulationConstructionSet scs = new SimulationConstructionSet(atlasRobotModel.createHumanoidFloatingRootJointRobot(false), parameters);
       scs.addYoGraphicsListRegistry(graphicsListRegistry);
       scs.getRootRegistry().addChild(registry);
+
+      PrintTools.info("Number of YoVariables: " + registry.getAllVariablesIncludingDescendants().size());
 
       Graphics3DObject coordinateSystem = new Graphics3DObject();
       coordinateSystem.addCoordinateSystem(.5);
