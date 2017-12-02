@@ -11,9 +11,7 @@ import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.euclid.Axis;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
-import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Point3D;
-import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.geometry.polytope.ConvexPolytopeConstructor;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.ConvexPolytopeReadOnly;
 import us.ihmc.geometry.polytope.DCELPolytope.Basics.PolytopeHalfEdgeReadOnly;
@@ -24,9 +22,6 @@ import us.ihmc.graphicsDescription.appearance.YoAppearanceRGBColor;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicLineSegment;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
-import us.ihmc.robotics.referenceFrames.PoseReferenceFrame;
-import us.ihmc.robotics.robotDescription.CollisionMeshDescription;
-import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.simulationconstructionset.Robot;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
 import us.ihmc.simulationconstructionset.SimulationConstructionSetParameters;
@@ -67,11 +62,6 @@ public class FrameConvexPolytopeVisualizer
       this.numberOfCollisionVectors = maxNumberOfPolytopes * 1;
       createVizArrays();
       createPolytopeVisualizationElements();
-   }
-
-   public FrameConvexPolytopeVisualizer(int maxNumberOfPolytopes)
-   {
-      this(maxNumberOfPolytopes, false);
    }
 
    public FrameConvexPolytopeVisualizer(int maxNumberOfPolytopes, boolean keepSCSUp, Robot... robots)
@@ -172,9 +162,6 @@ public class FrameConvexPolytopeVisualizer
       }
    }
 
-   private Point3D tempPoint1 = new Point3D();
-   private Point3D tempPoint2 = new Point3D();
-
    public void showCollisionVector(Point3D point1, Point3D point2)
    {
       this.collisionVectors.get(collisionVectorIndex++).setStartAndEnd(point1, point2);
@@ -236,9 +223,6 @@ public class FrameConvexPolytopeVisualizer
       graphicsListRegistry.registerYoGraphic("VisualPoint", position);
    }
 
-   private FramePoint3D tempFramePoint1 = new FramePoint3D();
-   private FramePoint3D tempFramePoint2 = new FramePoint3D();
-
    public void updatePolytopeVisualization(ConvexPolytopeReadOnly... polytopes)
    {
       int edgeIndex = 0;
@@ -266,47 +250,6 @@ public class FrameConvexPolytopeVisualizer
       for (; vertexIndex < polytopeVerticesViz.size(); vertexIndex++)
          polytopeVerticesViz.get(vertexIndex).setPositionToNaN();
       tickSCS();
-   }
-
-   public void addVerticesForViz(ArrayList<Point3D> pointList)
-   {
-      int index;
-      for (index = 0; index < pointList.size(); index++)
-      {
-         polytopeVerticesViz.get(index).setPosition(pointList.get(index));
-      }
-      for (; index < polytopeVerticesViz.size(); index++)
-      {
-         polytopeVerticesViz.get(index).setPositionToNaN();
-      }
-
-      tickSCS();
-   }
-
-   public static void main(String args[])
-   {
-      FrameConvexPolytopeVisualizer viz = new FrameConvexPolytopeVisualizer(1);
-      //ArrayList<Point3D> pointList = ConvexPolytopeConstructor.getCollisionMeshPointsForCapsule(0.0, 0.0, 0.0, Axis.Z, 1, 0.2, 8);
-      //viz.addVerticesForViz(pointList);
-      FrameConvexPolytope capsule = ConvexPolytopeConstructor.getFrameCapsuleCollisionMesh(new FramePoint3D(), Axis.Z, 1, 0.5, 4);
-      viz.addPolytope(capsule, Color.BLUE);
-      viz.update();
-   }
-
-   private static void testRobotMeshProvider()
-   {
-      FrameConvexPolytopeVisualizer viz = new FrameConvexPolytopeVisualizer(1);
-      RobotCollisionMeshProvider meshProvider = new RobotCollisionMeshProvider(10);
-      RigidBodyTransform transform = new RigidBodyTransform();
-      RigidBody rigidBody = new RigidBody("RigidBody", transform, worldFrame);
-      ArrayList<CollisionMeshDescription> collisionMeshDescriptionList = new ArrayList<>();
-      CollisionMeshDescription collisionMesh = new CollisionMeshDescription();
-      collisionMesh.addCylinderReferencedAtCenter(0.5, 2);
-      collisionMesh.addCubeReferencedAtCenter(1, 1, 1);
-      collisionMeshDescriptionList.add(collisionMesh);
-      FrameConvexPolytope frameConvexPolytope = meshProvider.createCollisionMesh(rigidBody, collisionMeshDescriptionList);
-      viz.addPolytope(frameConvexPolytope, Color.CYAN);
-      viz.update();
    }
 
    public void updateColor(FrameConvexPolytope polytopeToChange, Color newColor)
@@ -349,32 +292,5 @@ public class FrameConvexPolytopeVisualizer
          }
       }
       addPolytope(simplex);
-   }
-
-   private Point3D origin = new Point3D();
-   private Vector3D xAxis = new Vector3D();
-   private Vector3D yAxis = new Vector3D();
-   private Vector3D zAxis = new Vector3D();
-
-   public void showRigidBodyCollidingPoint(PoseReferenceFrame referenceFrame)
-   {
-      //      RigidBodyTransform transform = referenceFrame.getTransformToWorldFrame();
-      //      origin.setToZero();
-      //      origin.applyTransform(transform);
-      //      xAxis.set(.1, 0.0, 0.0);
-      //      xAxis.applyTransform(transform);
-      //      yAxis.set(0.0, .1, 0.0);
-      //      yAxis.applyTransform(transform);
-      //      zAxis.set(0.0, 0.0, .1);
-      //      zAxis.applyTransform(transform);
-      //      tempPoint1.set(origin);
-      //      tempPoint1.add(xAxis);
-      //      xVector.setStartAndEnd(origin, tempPoint1);
-      //      tempPoint1.set(origin);
-      //      tempPoint1.add(yAxis);
-      //      yVector.setStartAndEnd(origin, tempPoint1);
-      //      tempPoint1.set(origin);
-      //      tempPoint1.add(zAxis);
-      //      zVector.setStartAndEnd(origin, tempPoint1);
    }
 }
