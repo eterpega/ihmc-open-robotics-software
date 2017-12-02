@@ -662,6 +662,8 @@ public class KinematicsToolboxController extends ToolboxController
       return inverseKinematicsSolution;
    }
 
+   // TODO The following has to change such that it is configurable using messages.
+
    public void submitObstacleCollisionMesh(FrameConvexPolytope obstacleMesh)
    {
       collisionAvoidanceModule.submitObstacleCollisionMesh(obstacleMesh);
