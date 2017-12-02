@@ -57,9 +57,9 @@ public class FrameConvexPolytopeVisualizer
       this.graphicsListRegistry = graphicsListRegistry;
       this.polytopes = new ConvexPolytopeReadOnly[maxNumberOfPolytopes];
       this.polytopeColors = new Color[maxNumberOfPolytopes];
-      this.numberOfVizEdges = maxNumberOfPolytopes * 100;
+      this.numberOfVizEdges = maxNumberOfPolytopes * 150;
       this.numberOfVizVertices = maxNumberOfPolytopes * 50;
-      this.numberOfCollisionVectors = maxNumberOfPolytopes * 1;
+      this.numberOfCollisionVectors = maxNumberOfPolytopes * 3;
       createVizArrays();
       createPolytopeVisualizationElements();
    }
