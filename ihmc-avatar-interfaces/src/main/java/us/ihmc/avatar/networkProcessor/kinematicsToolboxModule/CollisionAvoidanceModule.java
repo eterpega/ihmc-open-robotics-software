@@ -17,6 +17,7 @@ import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.robotics.screwTheory.InverseDynamicsJoint;
 import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoBoolean;
 
 /**
  * Simple module that checks if the rigid bodies are colliding with the list of obstacles submitted
@@ -33,7 +34,10 @@ public class CollisionAvoidanceModule
    private final static boolean visualizeRigidBodyMeshes = false;
    private final static boolean visualizeObstacleMeshes = true;
    private final static boolean visualizeCollisionVectors = true;
-   private final static boolean debug = false;
+   private final static boolean DEBUG = false;
+
+   private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
+   private final YoGraphicsListRegistry yoGraphicsListRegistry;
 
    /**
     * Stores the collision detectors for the individual rigid bodies the idea here being that
@@ -64,7 +68,7 @@ public class CollisionAvoidanceModule
    /**
     * Maintains the status if the collision avoidance is enabled
     */
-   private boolean isEnabled = false;
+   private YoBoolean isEnabled = new YoBoolean("isCollisionAvoidanceModuleEnabled", registry);
 
    /**
     * List of collision avoidance commands to submit to the controller core
@@ -82,9 +86,6 @@ public class CollisionAvoidanceModule
     * In case the collision avoidance is disabled it is set to zero
     */
    private double collisionQuality = 0.0;
-
-   private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
-   private final YoGraphicsListRegistry yoGraphicsListRegistry;
 
    /**
     * @param rootBody the root body is the first rigid body of the kinematic chain that will be used
@@ -203,9 +204,10 @@ public class CollisionAvoidanceModule
    public boolean checkCollisionsAndAddAvoidanceCommands()
    {
       commandList.clear();
-      if (!isEnabled)
+      if (!isEnabled.getBooleanValue())
          return false;
-      if (debug)
+
+      if (DEBUG)
          PrintTools.debug("Checking for collisions...");
 
       boolean collisionDetected = false;
@@ -215,7 +217,7 @@ public class CollisionAvoidanceModule
       for (int i = 0; i < rigidBodies.size(); i++)
       {
          RigidBody rigidBody = rigidBodies.get(i);
-         if (debug)
+         if (DEBUG)
             PrintTools.debug("Checking collisions: " + rigidBody.toString());
 
          RigidBodyCollisionDetector collisionDetector = collisionDetectorMap.get(rigidBody);
@@ -230,7 +232,7 @@ public class CollisionAvoidanceModule
       if (visualizer != null)
          visualizer.update();
 
-      if (debug)
+      if (DEBUG)
          PrintTools.debug("Done checking collisions");
 
       return collisionDetected;
@@ -254,7 +256,7 @@ public class CollisionAvoidanceModule
     */
    public boolean isEnabled()
    {
-      return isEnabled;
+      return isEnabled.getBooleanValue();
    }
 
    /**
@@ -264,7 +266,7 @@ public class CollisionAvoidanceModule
     */
    public void enable(boolean enabled)
    {
-      this.isEnabled = enabled;
+      this.isEnabled.set(enabled);
    }
 
    /**
