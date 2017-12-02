@@ -334,8 +334,7 @@ public abstract class AvatarInverseKinematicsObstacleAvoidanceTest
          obstacleMeshes.clear();
          toolbox.clearObstacleMeshes();
          handMessages.clear();
-         RobotConfigurationData robotConfigurationData = new RobotConfigurationData(initialConfigurationData);
-         toolbox.updateRobotConfigurationData(robotConfigurationData);
+         toolbox.updateRobotConfigurationData(initialConfigurationData);
          toolbox.enableCollisionAvoidance(false);
          for (RobotSide side : new RobotSide[]{RobotSide.RIGHT})
          {
@@ -373,8 +372,7 @@ public abstract class AvatarInverseKinematicsObstacleAvoidanceTest
             obstacleMeshes.add(ConvexPolytopeConstructor.getFrameCylindericalCollisionMesh(worldFrame, obstacleCentroid.getPoint(), Axis.Z, 0.075, 0.2, 8));
             commandInputManager.submitMessage(handMessages.get(side));
          }
-         robotConfigurationData = new RobotConfigurationData(initialConfigurationData);
-         toolbox.updateRobotConfigurationData(robotConfigurationData);
+         toolbox.updateRobotConfigurationData(initialConfigurationData);
          toolbox.submitObstacleCollisionMesh(obstacleMeshes);
          toolbox.enableCollisionAvoidance(true);
          runControllerToolbox(600);

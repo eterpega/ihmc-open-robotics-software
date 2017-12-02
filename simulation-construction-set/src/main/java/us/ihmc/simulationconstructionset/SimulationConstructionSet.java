@@ -1546,7 +1546,7 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
     * @return Did the data buffer roll between the in and out points?
     */
    private boolean tick(int ticks, boolean notifySimulationRewoundListeners)
-   {      
+   {
       boolean ret;
 
       if (notifySimulationRewoundListeners)
