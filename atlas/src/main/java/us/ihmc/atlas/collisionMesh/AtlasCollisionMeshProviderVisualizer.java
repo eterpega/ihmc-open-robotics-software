@@ -1,5 +1,6 @@
 package us.ihmc.atlas.collisionMesh;
 
+import java.awt.Color;
 import java.util.Map;
 
 import us.ihmc.atlas.AtlasRobotModel;
@@ -7,14 +8,12 @@ import us.ihmc.atlas.AtlasRobotVersion;
 import us.ihmc.avatar.collisionAvoidance.FrameConvexPolytopeVisualizer;
 import us.ihmc.avatar.collisionAvoidance.RobotCollisionMeshProvider;
 import us.ihmc.avatar.drcRobot.RobotTarget;
-import us.ihmc.commons.PrintTools;
 import us.ihmc.geometry.polytope.DCELPolytope.Frame.FrameConvexPolytope;
 import us.ihmc.graphicsDescription.Graphics3DObject;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotics.robotDescription.RobotDescription;
 import us.ihmc.robotics.screwTheory.RigidBody;
-import us.ihmc.robotics.screwTheory.ScrewTools;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
 import us.ihmc.simulationconstructionset.SimulationConstructionSetParameters;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
@@ -34,12 +33,14 @@ public class AtlasCollisionMeshProviderVisualizer
       YoGraphicsListRegistry graphicsListRegistry = new YoGraphicsListRegistry();
 
       FrameConvexPolytopeVisualizer viz = new FrameConvexPolytopeVisualizer(atlasCollisionMesh.size(), registry, graphicsListRegistry);
-      for (RigidBody rigidBody : ScrewTools.computeRigidBodiesAfterThisJoint(atlasFullRobotModel.getRootJoint()))
+
+      float hue = 0.0f;
+
+      for (FrameConvexPolytope polytope : atlasCollisionMesh.values())
       {
-         if (atlasCollisionMesh.get(rigidBody) != null)
-            viz.addPolytope(atlasCollisionMesh.get(rigidBody));
-         else
-            PrintTools.debug("Getting a null for rigid body " + rigidBody.getName());
+         Color color = Color.getHSBColor(hue, 1.0f, 1.0f);
+         hue += 1.0 / atlasCollisionMesh.size();
+         viz.addPolytope(polytope, color);
       }
 
       viz.update();

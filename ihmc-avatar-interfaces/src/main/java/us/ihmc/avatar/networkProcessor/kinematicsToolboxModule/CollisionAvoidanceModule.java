@@ -185,10 +185,7 @@ public class CollisionAvoidanceModule
    public void clearObstacleMeshList()
    {
       if (visualizer != null)
-      {
-         for (int i = 0; i < obstacleMeshes.size(); i++)
-            visualizer.removePolytope(obstacleMeshes.get(i));
-      }
+         visualizer.clear();
       obstacleMeshes.clear();
    }
 
