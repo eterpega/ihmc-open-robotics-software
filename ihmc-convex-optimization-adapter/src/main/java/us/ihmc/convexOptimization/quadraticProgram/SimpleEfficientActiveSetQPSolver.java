@@ -37,6 +37,8 @@ public class SimpleEfficientActiveSetQPSolver extends AbstractSimpleActiveSetQPS
 
    private final DenseMatrix64F activeVariables = new DenseMatrix64F(0, 0);
 
+   private final DenseMatrix64F quadraticCostQMatrixCopy = new DenseMatrix64F(0, 0);
+
    private final TIntArrayList activeInequalityIndices = new TIntArrayList();
    private final TIntArrayList activeUpperBoundIndices = new TIntArrayList();
    private final TIntArrayList activeLowerBoundIndices = new TIntArrayList();
@@ -94,7 +96,9 @@ public class SimpleEfficientActiveSetQPSolver extends AbstractSimpleActiveSetQPS
 
    protected final DenseMatrix64F computedObjectiveFunctionValue = new DenseMatrix64F(1, 1);
 
-   private final LinearSolver<DenseMatrix64F> solver;
+   private final boolean assumeSymmetricHessian;
+   private final LinearSolver<DenseMatrix64F> symmetricSolver = LinearSolverFactory.symmPosDef(100000);
+   private final LinearSolver<DenseMatrix64F> solver = LinearSolverFactory.linear(0);
 
    private final DenseMatrix64F lowerBoundViolations = new DenseMatrix64F(0, 0);
    private final DenseMatrix64F upperBoundViolations = new DenseMatrix64F(0, 0);
@@ -114,10 +118,7 @@ public class SimpleEfficientActiveSetQPSolver extends AbstractSimpleActiveSetQPS
 
    public SimpleEfficientActiveSetQPSolver(boolean isHessianMatrixSymmetric)
    {
-      if (isHessianMatrixSymmetric)
-         solver = LinearSolverFactory.symmPosDef(0);
-      else
-         solver = LinearSolverFactory.linear(0);
+      assumeSymmetricHessian = isHessianMatrixSymmetric;
    }
 
    @Override
@@ -449,8 +450,25 @@ public class SimpleEfficientActiveSetQPSolver extends AbstractSimpleActiveSetQPS
       CommonOps.transpose(linearEqualityConstraintsAMatrix, ATranspose);
       QInverse.reshape(numberOfVariables, numberOfVariables);
 
-      solver.setA(quadraticCostQMatrix);
-      solver.invert(QInverse);
+      boolean useLinearSolver = true;
+      if (assumeSymmetricHessian)
+      {
+         quadraticCostQMatrixCopy.set(quadraticCostQMatrix);
+         if (symmetricSolver.setA(quadraticCostQMatrixCopy)) // have to do this since the cholesky decomposition modifies the matrix
+         {
+            symmetricSolver.invert(QInverse);
+            useLinearSolver = false;
+         }
+         else
+         {
+            PrintTools.warn("Hessian is not symmetric positive definite.");
+         }
+      }
+      if (useLinearSolver)
+      {
+         solver.setA(quadraticCostQMatrix);
+         solver.invert(QInverse);
+      }
 
       AQInverse.reshape(numberOfEqualityConstraints, numberOfVariables);
       QInverseATranspose.reshape(numberOfVariables, numberOfEqualityConstraints);
@@ -914,8 +932,27 @@ public class SimpleEfficientActiveSetQPSolver extends AbstractSimpleActiveSetQPS
       }
 
       augmentedLagrangeMultipliers.reshape(numberOfAugmentedEqualityConstraints, 1);
-      solver.setA(bigMatrixForLagrangeMultiplierSolution);
-      solver.solve(bigVectorForLagrangeMultiplierSolution, augmentedLagrangeMultipliers);
+
+      boolean useLinearSolver = true;
+      if (assumeSymmetricHessian)
+      {
+         quadraticCostQMatrixCopy.set(bigMatrixForLagrangeMultiplierSolution);
+         if (symmetricSolver.setA(quadraticCostQMatrixCopy)) // have to do this since the cholesky decomposition modifies the matrix
+         {
+            symmetricSolver.solve(bigVectorForLagrangeMultiplierSolution, augmentedLagrangeMultipliers);
+            useLinearSolver = false;
+         }
+         else
+         {
+            PrintTools.warn("Big matrix for lagrange multipliers is not symmetric positive definite.");
+         }
+      }
+
+      if (useLinearSolver)
+      {
+         solver.setA(bigMatrixForLagrangeMultiplierSolution);
+         solver.solve(bigVectorForLagrangeMultiplierSolution, augmentedLagrangeMultipliers);
+      }
 
       ATransposeAndCTranspose.reshape(numberOfVariables, numberOfAugmentedEqualityConstraints);
       CommonOps.insert(ATranspose, ATransposeAndCTranspose, 0, 0);
