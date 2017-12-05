@@ -367,7 +367,7 @@ public abstract class EndToEndSpineJointTrajectoryMessageTest implements MultiRo
       return new SpineTrajectoryMessage(trajectoryTime, jointDesireds);
    }
 
-   private double getRandomJointAngleInRange(Random random, OneDoFJoint joint)
+   public static double getRandomJointAngleInRange(Random random, OneDoFJoint joint)
    {
       double jointLimitUpper = joint.getJointLimitUpper();
       double jointLimitLower = joint.getJointLimitLower();
@@ -418,7 +418,7 @@ public abstract class EndToEndSpineJointTrajectoryMessageTest implements MultiRo
       assertDesiredsMatchAfterExecution(message, spineJoints, drcSimulationTestHelper.getSimulationConstructionSet());
    }
 
-   private static void assertDesiredsMatchAfterExecution(SpineTrajectoryMessage message, OneDoFJoint[] spineJoints, SimulationConstructionSet scs)
+   public static void assertDesiredsMatchAfterExecution(SpineTrajectoryMessage message, OneDoFJoint[] spineJoints, SimulationConstructionSet scs)
    {
       for (int jointIdx = 0; jointIdx < spineJoints.length; jointIdx++)
       {

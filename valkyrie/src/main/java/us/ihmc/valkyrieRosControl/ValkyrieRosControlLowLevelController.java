@@ -37,6 +37,7 @@ import us.ihmc.valkyrie.fingers.ValkyrieHandJointName;
 import us.ihmc.valkyrie.parameters.ValkyrieJointMap;
 import us.ihmc.valkyrieRosControl.dataHolders.YoEffortJointHandleHolder;
 import us.ihmc.valkyrieRosControl.dataHolders.YoPositionJointHandleHolder;
+import us.ihmc.wholeBodyController.ExceptionHandler;
 import us.ihmc.wholeBodyController.diagnostics.JointTorqueOffsetEstimator;
 import us.ihmc.yoVariables.listener.VariableChangedListener;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
@@ -92,6 +93,7 @@ public class ValkyrieRosControlLowLevelController
 
    private ForceSensorCalibrationModule forceSensorCalibrationModule;
    private JointTorqueOffsetEstimator jointTorqueOffsetEstimator;
+   private ExceptionHandler controllerExceptionHandler;
 
    @SuppressWarnings("unchecked")
    public ValkyrieRosControlLowLevelController(TimestampProvider timestampProvider, final double updateDT, List<YoEffortJointHandleHolder> yoEffortJointHandleHolders,
@@ -452,6 +454,11 @@ public class ValkyrieRosControlLowLevelController
    public void attachJointTorqueOffsetEstimator(JointTorqueOffsetEstimator jointTorqueOffsetEstimator)
    {
       this.jointTorqueOffsetEstimator = jointTorqueOffsetEstimator;
+   }
+
+   public ExceptionHandler getControllerExceptionHandler()
+   {
+      return controllerExceptionHandler;
    }
 
    private abstract class AbstractLowLevelTask implements Task
