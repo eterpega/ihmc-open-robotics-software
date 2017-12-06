@@ -43,6 +43,7 @@ import us.ihmc.sensorProcessing.simulatedSensors.SensorNoiseParameters;
 import us.ihmc.sensorProcessing.stateEstimation.FootSwitchType;
 import us.ihmc.sensorProcessing.stateEstimation.StateEstimatorParameters;
 import us.ihmc.valkyrie.fingers.ValkyrieHandJointName;
+import us.ihmc.valkyrieRosControl.ValkyrieRosControlController;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
 
@@ -191,8 +192,11 @@ public class ValkyrieStateEstimatorParameters extends StateEstimatorParameters
       sensorProcessing.addSensorAlphaFilter(angularVelocityAlphaFilter, false, IMU_ANGULAR_VELOCITY);
       sensorProcessing.addSensorAlphaFilter(linearAccelerationAlphaFilter, false, IMU_LINEAR_ACCELERATION);
 
-      if (runningOnRealRobot)
-         configureFingerProcessing(sensorProcessing);
+      if (ValkyrieRosControlController.INCLUDE_FINGER_JOINTS)
+      {
+         if (runningOnRealRobot)
+            configureFingerProcessing(sensorProcessing);
+      }
    }
 
    private void configureFingerProcessing(SensorProcessing sensorProcessing)

@@ -64,8 +64,8 @@ public class ValkyrieRosControlController extends IHMCWholeRobotControlJavaBridg
          "rightShoulderPitch", "rightShoulderRoll", "rightShoulderYaw", "rightElbowPitch",
          "leftForearmYaw", "leftWristRoll", "leftWristPitch", 
          "rightForearmYaw", "rightWristRoll", "rightWristPitch",
-         "leftIndexFingerPitch1", "leftMiddleFingerPitch1", "leftPinkyPitch1", "leftThumbRoll", "leftThumbPitch1", "leftThumbPitch2",
-         "rightIndexFingerPitch1", "rightMiddleFingerPitch1", "rightPinkyPitch1", "rightThumbRoll", "rightThumbPitch1", "rightThumbPitch2"
+//         "leftIndexFingerPitch1", "leftMiddleFingerPitch1", "leftPinkyPitch1", "leftThumbRoll", "leftThumbPitch1", "leftThumbPitch2",
+//         "rightIndexFingerPitch1", "rightMiddleFingerPitch1", "rightPinkyPitch1", "rightThumbRoll", "rightThumbPitch1", "rightThumbPitch2"
          };
 
    private static final String[] torqueControlledJoints = {
@@ -76,17 +76,24 @@ public class ValkyrieRosControlController extends IHMCWholeRobotControlJavaBridg
          "rightShoulderPitch", "rightShoulderRoll", "rightShoulderYaw", "rightElbowPitch",
          "leftForearmYaw", "leftWristRoll", "leftWristPitch",
          "rightForearmYaw", "rightWristRoll", "rightWristPitch",
-         "leftIndexFingerPitch1", "leftMiddleFingerPitch1", "leftPinkyPitch1", "leftThumbRoll", "leftThumbPitch1", "leftThumbPitch2",
-         "rightIndexFingerPitch1", "rightMiddleFingerPitch1", "rightPinkyPitch1", "rightThumbRoll", "rightThumbPitch1", "rightThumbPitch2"
+//         "leftIndexFingerPitch1", "leftMiddleFingerPitch1", "leftPinkyPitch1", "leftThumbRoll", "leftThumbPitch1", "leftThumbPitch2",
+//         "rightIndexFingerPitch1", "rightMiddleFingerPitch1", "rightPinkyPitch1", "rightThumbRoll", "rightThumbPitch1", "rightThumbPitch2"
          };
 
    private static final String[] positionControlledJoints = {
          "lowerNeckPitch", "neckYaw", "upperNeckPitch",
    };
 
+   /**
+    * Whether finger joints should be included to the IHMC state estimator and controller.
+    * Make sure that the state of this boolean is consistent the joint handles that are to be claimed.
+    */
+   public static final boolean INCLUDE_FINGER_JOINTS = false;
+
    public static final boolean USE_YOVARIABLE_DESIREDS = true;
    public static final boolean USE_USB_MICROSTRAIN_IMUS = false;
    public static final boolean USE_SWITCHABLE_FILTER_HOLDER_FOR_NON_USB_IMUS = false;
+
    public static final String[] readIMUs = USE_USB_MICROSTRAIN_IMUS ? new String[0] : new String[ValkyrieSensorInformation.imuSensorsToUse.length];
 
    static

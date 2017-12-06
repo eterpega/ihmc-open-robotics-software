@@ -112,7 +112,10 @@ public class ValkyrieRosControlLowLevelController
       standPrepStartTime.set(Double.NaN);
       calibrationStartTime.set(Double.NaN);
       
-      fingerController = new ValkyrieFingerController(yoTime, updateDT, yoEffortJointHandleHolders, registry);
+      if (ValkyrieRosControlController.INCLUDE_FINGER_JOINTS)
+         fingerController = new ValkyrieFingerController(yoTime, updateDT, yoEffortJointHandleHolders, registry);
+      else
+         fingerController = null;
 
       // Remove the finger joints to let the finger controller be the only controlling them
       yoEffortJointHandleHolders = yoEffortJointHandleHolders.stream().filter(h -> !isFingerJoint(h)).collect(Collectors.toList());
@@ -367,7 +370,8 @@ public class ValkyrieRosControlLowLevelController
          break;
       }
 
-      fingerController.doControl();
+      if (fingerController != null)
+         fingerController.doControl();
       updateCommandCalculators();
    }
 
@@ -481,7 +485,9 @@ public class ValkyrieRosControlLowLevelController
 
    public void setupLowLevelControlWithPacketCommunicator(PacketCommunicator packetCommunicator)
    {
-      fingerController.setupCommunication(packetCommunicator);
+      if (fingerController != null)
+         fingerController.setupCommunication(packetCommunicator);
+
       packetCommunicator.attachListener(ValkyrieLowLevelControlModeMessage.class, new PacketConsumer<ValkyrieLowLevelControlModeMessage>()
       {
          @Override
