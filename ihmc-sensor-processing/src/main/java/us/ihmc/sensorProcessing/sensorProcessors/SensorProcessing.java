@@ -33,6 +33,7 @@ import us.ihmc.robotics.math.filters.BacklashProcessingYoVariable;
 import us.ihmc.robotics.math.filters.FilteredVelocityYoVariable;
 import us.ihmc.robotics.math.filters.ProcessingYoVariable;
 import us.ihmc.robotics.math.filters.RevisedBacklashCompensatingVelocityYoVariable;
+import us.ihmc.robotics.math.filters.YoIMUMahonyFilter;
 import us.ihmc.robotics.math.frames.YoFrameQuaternion;
 import us.ihmc.robotics.math.frames.YoFrameVector;
 import us.ihmc.robotics.math.trajectories.YoPolynomial;
@@ -69,6 +70,7 @@ public class SensorProcessing implements SensorOutputMapReadOnly, SensorRawOutpu
    private static final String POLYNOMIAL = "poly";
    private static final String CONSTANT = "cst";
    private static final String AFFINE = "aff";
+   private static final String MAHONY = "mah";
    private static final String COUPLING = "cpl";
    private static final String ALPHA_FILTER = "filt";
    private static final String FINITE_DIFFERENCE = "fd";
@@ -1172,7 +1174,7 @@ public class SensorProcessing implements SensorOutputMapReadOnly, SensorRawOutpu
     * This is cumulative, by calling this method twice for instance, you will obtain a two pole low-pass filter.
     * @param alphaFilter low-pass filter parameter.
     * @param forVizOnly if set to true, the result will not be used as the input of the next processing stage, nor as the output of the sensor processing.
-    * @param jointsToIgnore list of the names of the sensors to ignore.
+    * @param sensorsToIgnore list of the names of the sensors to ignore.
     */
    private Map<String, Integer> addIMUOrientationAlphaFilterWithSensorsToIgnore(YoDouble alphaFilter, boolean forVizOnly, List<String> sensorsToIgnore)
    {
@@ -1197,6 +1199,87 @@ public class SensorProcessing implements SensorOutputMapReadOnly, SensorRawOutpu
          
          if (!forVizOnly)
             intermediateOrientations.put(imuDefinition, filteredOrientation);
+      }
+
+      return processorIDs;
+   }
+
+   /**
+    * Add an orientation estimator based on the Mahony filter, see <a href="http://www.olliw.eu/2013/imu-data-fusing/">IMU Data Fusing</a>.
+    * <p>
+    * This estimator only uses gyro and accelerometer data to estimate the orientation.
+    * </p>
+    * 
+    * @param proportionalGain gain used to correct the orientation resulting from integrating angular velocity using the accelerometer.
+    * @param integralGain gain used to update the angular velocity bias.
+    * @param forVizOnly if set to true, the result will not be used as the input of the next processing stage, nor as the output of the sensor processing.
+    */
+   public Map<String, Integer> addIMUMahony6DFusion(double proportionalGain, double integralGain, boolean forVizOnly)
+   {
+      return addIMUMahony6DFusionWithSensorsToIgnore(proportionalGain, integralGain, forVizOnly);
+   }
+
+   /**
+    * Add an orientation estimator based on the Mahony filter, see <a href="http://www.olliw.eu/2013/imu-data-fusing/">IMU Data Fusing</a>.
+    * <p>
+    * This estimator only uses gyro and accelerometer data to estimate the orientation.
+    * </p>
+    * 
+    * @param proportionalGain gain used to correct the orientation resulting from integrating angular velocity using the accelerometer.
+    * @param integralGain gain used to update the angular velocity bias.
+    * @param forVizOnly if set to true, the result will not be used as the input of the next processing stage, nor as the output of the sensor processing.
+    * @param sensorsToBeProcessed list of the names of the sensors that need to be filtered.
+    */
+   public Map<String, Integer> addIMUMahony6DFusionOnlyForSpecifiedSensors(double proportionalGain, double integralGain, boolean forVizOnly, String... sensorsToBeProcessed)
+   {
+      return addIMUMahony6DFusionWithSensorsToIgnore(proportionalGain, integralGain, forVizOnly,
+                                                             invertSensorSelection(IMU_ORIENTATION, sensorsToBeProcessed));
+   }
+
+   /**
+    * Add an orientation estimator based on the Mahony filter, see <a href="http://www.olliw.eu/2013/imu-data-fusing/">IMU Data Fusing</a>.
+    * <p>
+    * This estimator only uses gyro and accelerometer data to estimate the orientation.
+    * </p>
+    * 
+    * @param proportionalGain gain used to correct the orientation resulting from integrating angular velocity using the accelerometer.
+    * @param integralGain gain used to update the angular velocity bias.
+    * @param forVizOnly if set to true, the result will not be used as the input of the next processing stage, nor as the output of the sensor processing.
+    * @param sensorsToIgnore list of the names of the sensors to ignore.
+    */
+   public Map<String, Integer> addIMUMahony6DFusionWithSensorsToIgnore(double proportionalGain, double integralGain, boolean forVizOnly, String... sensorsToIgnore)
+   {
+      Map<String, Integer> processorIDs = new HashMap<>();
+
+      List<String> sensorToIgnoreList = new ArrayList<>();
+      if (sensorsToIgnore != null && sensorsToIgnore.length > 0)
+         sensorToIgnoreList.addAll(Arrays.asList(sensorsToIgnore));
+
+      for (int i = 0; i < imuSensorDefinitions.size(); i++)
+      {
+         IMUDefinition imuDefinition = imuSensorDefinitions.get(i);
+         String imuName = imuDefinition.getName();
+
+         if (sensorToIgnoreList.contains(imuName))
+            continue;
+
+         YoFrameVector intermediateAngularVelocity = intermediateAngularVelocities.get(imuDefinition);
+         YoFrameVector intermediateLinearAcceleration = intermediateLinearAccelerations.get(imuDefinition);
+
+         List<ProcessingYoVariable> processors = processedOrientations.get(imuDefinition);
+         String prefix = IMU_ORIENTATION.getProcessorNamePrefix(MAHONY);
+         int newProcessorID = processors.size();
+         processorIDs.put(imuName, newProcessorID);
+         String suffix = IMU_ORIENTATION.getProcessorNameSuffix(imuName, newProcessorID);
+         ReferenceFrame sensorFrame = imuDefinition.getIMUFrame();
+         YoIMUMahonyFilter filter = new YoIMUMahonyFilter(imuName, prefix, suffix, updateDT, sensorFrame, intermediateAngularVelocity,
+                                                                          intermediateLinearAcceleration, registry);
+         filter.setGains(proportionalGain, integralGain);
+
+         processors.add(filter);
+
+         if (!forVizOnly)
+            intermediateOrientations.put(imuDefinition, filter.getEstimatedOrientation());
       }
 
       return processorIDs;
@@ -1233,7 +1316,7 @@ public class SensorProcessing implements SensorOutputMapReadOnly, SensorRawOutpu
     * Implemented as a cumulative processor but should probably be called only once.
     * @param slopTime every time the velocity changes sign, a slop is engaged during which a confidence factor is ramped up from 0 to 1.
     * @param forVizOnly if set to true, the result will not be used as the input of the next processing stage, nor as the output of the sensor processing.
-    * @param jointsToIgnore list of the names of the sensors to ignore.
+    * @param sensorsToIgnore list of the names of the sensors to ignore.
     */
    public Map<String, Integer> addIMUAngularVelocityBacklashFilterWithSensorsToIgnore(YoDouble slopTime, boolean forVizOnly, String... sensorsToIgnore)
    {
