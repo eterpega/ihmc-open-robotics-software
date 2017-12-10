@@ -201,7 +201,9 @@ public class DRCEstimatorThread implements MultiThreadedRobotControlElement
                forceSensorDataHolderToSend);
 
          poseCommunicator = new DRCPoseCommunicator(estimatorFullRobotModel, jointConfigurationGathererAndProducer, sensorReader, dataProducer,
-               sensorOutputMapReadOnly, sensorRawOutputMapReadOnly, robotMotionStatusFromController, sensorInformation, poseCommunicatorScheduler, new IHMCCommunicationKryoNetClassList());
+                                                    sensorOutputMapReadOnly, sensorOutputMapReadOnly, sensorRawOutputMapReadOnly,
+                                                    robotMotionStatusFromController, sensorInformation, poseCommunicatorScheduler,
+                                                    new IHMCCommunicationKryoNetClassList());
          estimatorController.setRawOutputWriter(poseCommunicator);
       }
       else

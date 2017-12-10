@@ -24,6 +24,7 @@ import us.ihmc.sensorProcessing.model.RobotMotionStatusHolder;
 import us.ihmc.sensorProcessing.parameters.DRCRobotSensorInformation;
 import us.ihmc.sensorProcessing.sensorData.ForceSensorDistalMassCompensator;
 import us.ihmc.sensorProcessing.sensorData.JointConfigurationGatherer;
+import us.ihmc.sensorProcessing.sensorProcessors.SensorOutputMapReadOnly;
 import us.ihmc.sensorProcessing.sensorProcessors.SensorRawOutputMapReadOnly;
 import us.ihmc.sensorProcessing.sensorProcessors.SensorTimestampHolder;
 import us.ihmc.sensorProcessing.simulatedSensors.AuxiliaryRobotDataProvider;
@@ -45,6 +46,7 @@ public class DRCPoseCommunicator implements RawOutputWriter
    private final GlobalDataProducer dataProducer;
    private final JointConfigurationGatherer jointConfigurationGathererAndProducer;
    private final SensorTimestampHolder sensorTimestampHolder;
+   private final SensorOutputMapReadOnly sensorOutputMapReadOnly;
    private final SensorRawOutputMapReadOnly sensorRawOutputMapReadOnly;
    //   private final SideDependentList<String> wristForceSensorNames;
    private final RobotMotionStatusHolder robotMotionStatusFromController;
@@ -66,9 +68,20 @@ public class DRCPoseCommunicator implements RawOutputWriter
                               RobotMotionStatusHolder robotMotionStatusFromController, DRCRobotSensorInformation sensorInformation,
                               PeriodicThreadScheduler scheduler, NetClassList netClassList)
    {
+      this(estimatorModel, jointConfigurationGathererAndProducer, auxiliaryRobotDataProvider, dataProducer, sensorTimestampHolder, null,
+           sensorRawOutputMapReadOnly, robotMotionStatusFromController, sensorInformation, scheduler, netClassList);
+   }
+
+   public DRCPoseCommunicator(FullRobotModel estimatorModel, JointConfigurationGatherer jointConfigurationGathererAndProducer,
+                              AuxiliaryRobotDataProvider auxiliaryRobotDataProvider, GlobalDataProducer dataProducer,
+                              SensorTimestampHolder sensorTimestampHolder, SensorOutputMapReadOnly sensorOutputMapReadOnly,
+                              SensorRawOutputMapReadOnly sensorRawOutputMapReadOnly, RobotMotionStatusHolder robotMotionStatusFromController,
+                              DRCRobotSensorInformation sensorInformation, PeriodicThreadScheduler scheduler, NetClassList netClassList)
+   {
       this.dataProducer = dataProducer;
       this.jointConfigurationGathererAndProducer = jointConfigurationGathererAndProducer;
       this.sensorTimestampHolder = sensorTimestampHolder;
+      this.sensorOutputMapReadOnly = sensorOutputMapReadOnly;
       this.sensorRawOutputMapReadOnly = sensorRawOutputMapReadOnly;
       this.robotMotionStatusFromController = robotMotionStatusFromController;
       this.scheduler = scheduler;
@@ -189,7 +202,6 @@ public class DRCPoseCommunicator implements RawOutputWriter
    @Override
    public void write()
    {
-
       RobotConfigurationData state = robotConfigurationDataRingBuffer.next();
       if (state == null)
       {
@@ -200,21 +212,30 @@ public class DRCPoseCommunicator implements RawOutputWriter
       long pps = sensorTimestampHolder.getSensorHeadPPSTimestamp();
       jointConfigurationGathererAndProducer.packEstimatorJoints(timestamp, pps, state);
 
-      if (sensorRawOutputMapReadOnly != null)
-      {
-         List<? extends IMUSensorReadOnly> imuRawOutputs = sensorRawOutputMapReadOnly.getIMURawOutputs();
-         for (int sensorNumber = 0; sensorNumber < imuRawOutputs.size(); sensorNumber++)
-         {
-            IMUSensorReadOnly imuSensor = imuRawOutputs.get(sensorNumber);
-            IMUPacket imuPacketToPack = state.getImuPacketForSensor(sensorNumber);
+      List<? extends IMUSensorReadOnly> imuOutputs = null;
+      if (sensorOutputMapReadOnly != null)
+         imuOutputs = sensorOutputMapReadOnly.getIMUProcessedOutputs();
+      else if (sensorRawOutputMapReadOnly != null)
+         imuOutputs = sensorRawOutputMapReadOnly.getIMURawOutputs();
 
+      if (imuOutputs != null)
+      {
+         for (int sensorNumber = 0; sensorNumber < imuOutputs.size(); sensorNumber++)
+         {
+            IMUSensorReadOnly imuSensor = imuOutputs.get(sensorNumber);
+            IMUPacket imuPacketToPack = state.getImuPacketForSensor(sensorNumber);
+            
             imuSensor.getLinearAccelerationMeasurement(imuLinearAccelerations[sensorNumber]);
             imuSensor.getOrientationMeasurement(imuOrientationsAsMatrix[sensorNumber]);
             imuOrientations[sensorNumber].set(imuOrientationsAsMatrix[sensorNumber]);
             imuSensor.getAngularVelocityMeasurement(rawImuAngularVelocities[sensorNumber]);
-
+            
             imuPacketToPack.set(imuLinearAccelerations[sensorNumber], imuOrientations[sensorNumber], rawImuAngularVelocities[sensorNumber]);
          }
+      }
+      
+      if (sensorRawOutputMapReadOnly != null)
+      {
          state.setAuxiliaryRobotData(sensorRawOutputMapReadOnly.getAuxiliaryRobotData());
       }
 

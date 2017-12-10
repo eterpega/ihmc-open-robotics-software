@@ -301,8 +301,8 @@ public class QuadrupedSimulationFactory
          JointConfigurationGatherer jointConfigurationGathererAndProducer = new JointConfigurationGatherer(fullRobotModel.get());
          PeriodicThreadScheduler scheduler = new PeriodicNonRealtimeThreadScheduler("PoseCommunicator");
          poseCommunicator = new DRCPoseCommunicator(fullRobotModel.get(), jointConfigurationGathererAndProducer, null, globalDataProducer,
-                                                    timestampProvider.get(), sensorReader.getSensorRawOutputMapReadOnly(),
-                                                    controllerManager.getMotionStatusHolder(), null, scheduler, netClassList.get());
+                                                    timestampProvider.get(), null,
+                                                    sensorReader.getSensorRawOutputMapReadOnly(), controllerManager.getMotionStatusHolder(), null, scheduler, netClassList.get());
       }
       else
       {
