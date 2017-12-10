@@ -55,6 +55,7 @@ public class AtlasStateEstimatorParameters extends StateEstimatorParameters
 
    private final DRCRobotJointMap jointMap;
 
+   private final String chestIMUName;
    private final ImmutablePair<String, String> imusForSpineJointEstimation;
 
    private final boolean applyJointPositionPolynomialApproximation;
@@ -65,6 +66,7 @@ public class AtlasStateEstimatorParameters extends StateEstimatorParameters
       this.runningOnRealRobot = runningOnRealRobot;
       this.estimatorDT = estimatorDT;
 
+      chestIMUName = sensorInformation.getChestImu();
       imusForSpineJointEstimation = new ImmutablePair<String, String>(sensorInformation.getPrimaryBodyImu(), sensorInformation.getChestImu());
 
       wristForceSensorNames = sensorInformation.getWristForceSensorNames();
@@ -150,6 +152,8 @@ public class AtlasStateEstimatorParameters extends StateEstimatorParameters
       sensorProcessing.addJointVelocityBacklashFilterOnlyForSpecifiedJoints(armJointVelocitySlopTime, false, armJointNames);
 
       sensorProcessing.computeJointAccelerationFromFiniteDifference(jointVelocityAlphaFilter, false);
+      
+      sensorProcessing.addIMUMahonyFusionOnlyForSpecifiedSensors(0.5, 0.005, true, false, chestIMUName);
 
       sensorProcessing.addSensorAlphaFilter(orientationAlphaFilter, false, IMU_ORIENTATION);
       sensorProcessing.addSensorAlphaFilter(angularVelocityAlphaFilter, false, IMU_ANGULAR_VELOCITY);
