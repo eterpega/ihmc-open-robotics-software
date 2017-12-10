@@ -32,9 +32,8 @@ public class YoIMUMahonyFilterTest
       YoFrameVector inputAngularVelocity = new YoFrameVector("angularVelocity", sensorFrame, registry);
       YoFrameVector inputLinearAcceleration = new YoFrameVector("linearAcceleration", sensorFrame, registry);
       YoFrameVector inputMagneticVector = new YoFrameVector("magneticDirection", sensorFrame, registry);
-      YoIMUMahonyFilter mahonyFilter = new YoIMUMahonyFilter(imuName, namePrefix, nameSuffix, updateDT, sensorFrame, inputAngularVelocity,
-                                                             inputLinearAcceleration, inputMagneticVector, registry);
-
+      YoIMUMahonyFilter mahonyFilter = new YoIMUMahonyFilter(imuName, namePrefix, nameSuffix, updateDT, sensorFrame, registry);
+      mahonyFilter.setInputs(inputAngularVelocity, inputLinearAcceleration, inputMagneticVector);
       mahonyFilter.setGains(0.5, 0.0);
       mahonyFilter.getEstimatedOrientation().set(EuclidCoreRandomTools.nextQuaternion(random));
 
@@ -70,8 +69,8 @@ public class YoIMUMahonyFilterTest
       YoFrameVector inputAngularVelocity = new YoFrameVector("angularVelocity", sensorFrame, registry);
       YoFrameVector inputLinearAcceleration = new YoFrameVector("linearAcceleration", sensorFrame, registry);
       YoFrameVector inputMagneticVector = new YoFrameVector("magneticDirection", sensorFrame, registry);
-      YoIMUMahonyFilter mahonyFilter = new YoIMUMahonyFilter(imuName, namePrefix, nameSuffix, updateDT, sensorFrame, inputAngularVelocity,
-                                                             inputLinearAcceleration, inputMagneticVector, registry);
+      YoIMUMahonyFilter mahonyFilter = new YoIMUMahonyFilter(imuName, namePrefix, nameSuffix, updateDT, sensorFrame, registry);
+      mahonyFilter.setInputs(inputAngularVelocity, inputLinearAcceleration, inputMagneticVector);
       mahonyFilter.setHasBeenInitialized(true); // So the estimated orientation does not get snapped to the actual
 
       mahonyFilter.setGains(0.5, 0.0);
@@ -117,8 +116,8 @@ public class YoIMUMahonyFilterTest
       YoFrameVector inputAngularVelocity = new YoFrameVector("angularVelocity", sensorFrame, registry);
       YoFrameVector inputLinearAcceleration = new YoFrameVector("linearAcceleration", sensorFrame, registry);
       YoFrameVector inputMagneticVector = new YoFrameVector("magneticDirection", sensorFrame, registry);
-      YoIMUMahonyFilter mahonyFilter = new YoIMUMahonyFilter(imuName, namePrefix, nameSuffix, updateDT, sensorFrame, inputAngularVelocity,
-                                                             inputLinearAcceleration, inputMagneticVector, registry);
+      YoIMUMahonyFilter mahonyFilter = new YoIMUMahonyFilter(imuName, namePrefix, nameSuffix, updateDT, sensorFrame, registry);
+      mahonyFilter.setInputs(inputAngularVelocity, inputLinearAcceleration, inputMagneticVector);
       mahonyFilter.setHasBeenInitialized(true); // So the estimated orientation does not get snapped to the actual
       mahonyFilter.setGains(0.5, 0.05);
 
