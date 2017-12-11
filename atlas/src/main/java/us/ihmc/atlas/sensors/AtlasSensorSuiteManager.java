@@ -7,6 +7,8 @@ import us.ihmc.atlas.parameters.AtlasSensorInformation;
 import us.ihmc.avatar.drcRobot.RobotPhysicalProperties;
 import us.ihmc.avatar.drcRobot.RobotTarget;
 import us.ihmc.avatar.networkProcessor.lidarScanPublisher.LidarScanPublisher;
+import us.ihmc.avatar.networkProcessor.lidarScanPublisher.LidarScanPublisher.ScanData;
+import us.ihmc.avatar.networkProcessor.lidarScanPublisher.LidarScanPublisher.ScanTransformer;
 import us.ihmc.avatar.networkProcessor.stereoPointCloudPublisher.StereoVisionPointCloudPublisher;
 import us.ihmc.avatar.ros.DRCROSPPSTimestampOffsetProvider;
 import us.ihmc.avatar.sensors.DRCSensorSuiteManager;
@@ -15,18 +17,23 @@ import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.communication.configuration.NetworkParameters;
 import us.ihmc.communication.net.ObjectCommunicator;
 import us.ihmc.communication.packetCommunicator.PacketCommunicator;
+import us.ihmc.communication.packets.IMUPacket;
 import us.ihmc.communication.util.NetworkPorts;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.humanoidRobotics.kryo.IHMCCommunicationKryoNetClassList;
 import us.ihmc.ihmcPerception.camera.FisheyeCameraReceiver;
 import us.ihmc.ihmcPerception.camera.SCSCameraDataReceiver;
 import us.ihmc.ihmcPerception.depthData.CollisionBoxProvider;
+import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotModels.FullHumanoidRobotModelFactory;
+import us.ihmc.robotModels.FullRobotModel;
+import us.ihmc.robotics.sensors.IMUDefinition;
 import us.ihmc.sensorProcessing.communication.packets.dataobjects.RobotConfigurationData;
 import us.ihmc.sensorProcessing.communication.producers.RobotConfigurationDataBuffer;
 import us.ihmc.sensorProcessing.parameters.DRCRobotCameraParameters;
 import us.ihmc.sensorProcessing.parameters.DRCRobotLidarParameters;
 import us.ihmc.sensorProcessing.parameters.DRCRobotPointCloudParameters;
-import us.ihmc.sensorProcessing.parameters.DRCRobotSensorInformation;
 import us.ihmc.utilities.ros.RosMainNode;
 import us.ihmc.wholeBodyController.DRCRobotJointMap;
 
@@ -39,12 +46,12 @@ public class AtlasSensorSuiteManager implements DRCSensorSuiteManager
    private final StereoVisionPointCloudPublisher stereoVisionPointCloudPublisher;
 
    private final DRCROSPPSTimestampOffsetProvider ppsTimestampOffsetProvider;
-   private final DRCRobotSensorInformation sensorInformation;
+   private final AtlasSensorInformation sensorInformation;
    private final RobotConfigurationDataBuffer robotConfigurationDataBuffer;
    private final FullHumanoidRobotModelFactory modelFactory;
 
    public AtlasSensorSuiteManager(FullHumanoidRobotModelFactory modelFactory, CollisionBoxProvider collisionBoxProvider,
-                                  DRCROSPPSTimestampOffsetProvider ppsTimestampOffsetProvider, DRCRobotSensorInformation sensorInformation,
+                                  DRCROSPPSTimestampOffsetProvider ppsTimestampOffsetProvider, AtlasSensorInformation sensorInformation,
                                   DRCRobotJointMap jointMap, RobotPhysicalProperties physicalProperties, RobotTarget targetDeployment)
    {
       this.ppsTimestampOffsetProvider = ppsTimestampOffsetProvider;
@@ -98,6 +105,7 @@ public class AtlasSensorSuiteManager implements DRCSensorSuiteManager
 
       lidarScanPublisher.receiveLidarFromROSAsPointCloud2WithSource(multisenseLidarParameters.getRosTopic(), rosMainNode);
       lidarScanPublisher.setScanFrameToWorldFrame();
+      lidarScanPublisher.setCustomScanTransformer(createCustomScanTransformer());
 
       stereoVisionPointCloudPublisher.receiveStereoPointCloudFromROS(multisenseStereoParameters.getRosTopic(), rosMainNode);
 
@@ -129,6 +137,46 @@ public class AtlasSensorSuiteManager implements DRCSensorSuiteManager
          System.out.println("waiting for " + rosMainNode.getDefaultNodeName() + " to start. ");
          ThreadTools.sleep(2000);
       }
+   }
+
+   private ScanTransformer createCustomScanTransformer()
+   {
+      return new ScanTransformer()
+      {
+         private final int chestIMUIndex = findChestIMUIndex();
+         private final IMUPacket chestIMUPacket = new IMUPacket();
+         private final RigidBodyTransform transform = new RigidBodyTransform();
+         private final RigidBodyTransform transformFromIMUToWorld = new RigidBodyTransform();
+
+         @Override
+         public void transform(long robotTimestamp, FullHumanoidRobotModel fullRobotModel, RobotConfigurationDataBuffer robotConfigurationDataBuffer,
+                               ReferenceFrame scanPointsFrame, ScanData scanDataToTransformToWorld)
+         {
+            IMUDefinition chestIMUDefinition = fullRobotModel.getIMUDefinitions()[chestIMUIndex];
+            ReferenceFrame chestIMUFrame = chestIMUDefinition.getIMUFrame();
+            robotConfigurationDataBuffer.getIMUPacket(true, robotTimestamp, chestIMUIndex, chestIMUPacket);
+
+            scanPointsFrame.getTransformToDesiredFrame(transform, chestIMUFrame);
+            chestIMUFrame.getTransformToDesiredFrame(transformFromIMUToWorld, ReferenceFrame.getWorldFrame());
+            transformFromIMUToWorld.setRotation(chestIMUPacket.orientation);
+
+            transform.multiply(transformFromIMUToWorld);
+            scanDataToTransformToWorld.transform(transform);
+         }
+      };
+   }
+
+   private int findChestIMUIndex()
+   {
+      FullRobotModel fullRobotModel = modelFactory.createFullRobotModel();
+      IMUDefinition[] imuDefinitions = fullRobotModel.getIMUDefinitions();
+
+      for (int i = 0; i < imuDefinitions.length; i++)
+      {
+         if (imuDefinitions[i].getName().equals(sensorInformation.getChestImu()))
+            return i;
+      }
+      throw new RuntimeException("Could not find the chest IMU");
    }
 
    @Override

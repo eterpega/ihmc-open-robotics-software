@@ -6,6 +6,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 import us.ihmc.communication.net.PacketConsumer;
+import us.ihmc.communication.packets.IMUPacket;
 import us.ihmc.euclid.tuple3D.Vector3D32;
 import us.ihmc.euclid.tuple4D.Quaternion32;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
@@ -116,6 +117,24 @@ public class RobotConfigurationDataBuffer implements PacketConsumer<RobotConfigu
          }
       }
       return null;
+   }
+
+   public boolean getIMUPacket(boolean waitForTimestamp, long timestamp, int imuIndex, IMUPacket packetToPack)
+   {
+      if (waitForTimestamp)
+      {
+         waitForTimestamp(timestamp);
+      }
+
+      RobotConfigurationData robotConfigurationData = floorIndex(timestamp);
+      if (robotConfigurationData == null)
+      {
+         return false;
+      }
+
+      IMUPacket imuPacket = robotConfigurationData.getImuPacketForSensor(imuIndex);
+      packetToPack.set(imuPacket.linearAcceleration, imuPacket.orientation, imuPacket.angularVelocity);
+      return true;
    }
 
    /**

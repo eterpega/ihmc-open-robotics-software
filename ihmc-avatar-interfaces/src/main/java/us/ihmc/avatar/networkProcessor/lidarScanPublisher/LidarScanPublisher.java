@@ -67,6 +67,7 @@ public class LidarScanPublisher
    private final ReferenceFrame lidarBaseFrame;
    private final ReferenceFrame lidarSensorFrame;
    private ReferenceFrame scanPointsFrame = worldFrame;
+   private ScanTransformer scanTransformer = null;
    private final RobotConfigurationDataBuffer robotConfigurationDataBuffer = new RobotConfigurationDataBuffer();
 
    private CollisionShapeTester collisionBoxNode = null;
@@ -131,6 +132,11 @@ public class LidarScanPublisher
    public void setScanFrameToLidarSensorFrame()
    {
       scanPointsFrame = lidarSensorFrame;
+   }
+
+   public void setCustomScanTransformer(ScanTransformer scanTransformer)
+   {
+      this.scanTransformer = scanTransformer;
    }
 
    public void setCollisionBoxProvider(CollisionBoxProvider collisionBoxProvider)
@@ -260,7 +266,11 @@ public class LidarScanPublisher
                   return;
             }
 
-            if (!scanPointsFrame.isWorldFrame())
+            if (scanTransformer != null)
+            {
+               scanTransformer.transform(robotTimestamp, fullRobotModel, robotConfigurationDataBuffer, scanPointsFrame, scanData);
+            }
+            else if (!scanPointsFrame.isWorldFrame())
             {
                scanPointsFrame.getTransformToDesiredFrame(transformToWorld, worldFrame);
                scanData.transform(transformToWorld);
@@ -332,7 +342,7 @@ public class LidarScanPublisher
       };
    }
 
-   private class ScanData
+   public static final class ScanData
    {
       private final long timestamp;
       private final Point3D[] scanPoints;
@@ -452,5 +462,11 @@ public class LidarScanPublisher
 
          return scanPointBuffer.toArray();
       }
+   }
+
+   public static interface ScanTransformer
+   {
+      void transform(long robotTimestamp, FullHumanoidRobotModel fullRobotModel, RobotConfigurationDataBuffer robotConfigurationDataBuffer,
+                     ReferenceFrame scanPointsFrame, ScanData scanDataToTransformToWorld);
    }
 }
