@@ -1,11 +1,12 @@
 package us.ihmc.robotics.math;
 
+import us.ihmc.euclid.interfaces.GeometryObject;
 import us.ihmc.euclid.tuple2D.interfaces.Point2DBasics;
 import us.ihmc.robotics.math.frames.YoFrameVariableNameTools;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
 
-public class YoPoint2D implements Point2DBasics
+public class YoPoint2D implements Point2DBasics, GeometryObject<YoPoint2D>
 {
    private final YoDouble x;
    private final YoDouble y;
@@ -50,5 +51,23 @@ public class YoPoint2D implements Point2DBasics
    public double getY()
    {
       return y.getDoubleValue();
+   }
+
+   @Override
+   public boolean epsilonEquals(YoPoint2D other, double epsilon)
+   {
+      return Point2DBasics.super.epsilonEquals(other, epsilon);
+   }
+
+   @Override
+   public boolean geometricallyEquals(YoPoint2D other, double epsilon)
+   {
+      return Point2DBasics.super.geometricallyEquals(other, epsilon);
+   }
+
+   @Override
+   public void set(YoPoint2D other)
+   {
+      Point2DBasics.super.set(other);
    }
 }

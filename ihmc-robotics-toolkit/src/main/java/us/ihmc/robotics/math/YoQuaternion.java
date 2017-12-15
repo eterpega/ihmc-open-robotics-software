@@ -1,11 +1,12 @@
 package us.ihmc.robotics.math;
 
+import us.ihmc.euclid.interfaces.GeometryObject;
 import us.ihmc.euclid.tuple4D.interfaces.QuaternionBasics;
 import us.ihmc.robotics.math.frames.YoFrameVariableNameTools;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
 
-public class YoQuaternion implements QuaternionBasics
+public class YoQuaternion implements QuaternionBasics, GeometryObject<YoQuaternion>
 {
    private final YoDouble x;
    private final YoDouble y;
@@ -71,5 +72,23 @@ public class YoQuaternion implements QuaternionBasics
    public double getS()
    {
       return s.getDoubleValue();
+   }
+
+   @Override
+   public boolean epsilonEquals(YoQuaternion other, double epsilon)
+   {
+      return QuaternionBasics.super.epsilonEquals(other, epsilon);
+   }
+
+   @Override
+   public boolean geometricallyEquals(YoQuaternion other, double epsilon)
+   {
+      return QuaternionBasics.super.geometricallyEquals(other, epsilon);
+   }
+
+   @Override
+   public void set(YoQuaternion other)
+   {
+      QuaternionBasics.super.set(other);
    }
 }

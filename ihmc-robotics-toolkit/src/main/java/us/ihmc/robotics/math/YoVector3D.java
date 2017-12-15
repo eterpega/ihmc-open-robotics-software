@@ -1,11 +1,12 @@
 package us.ihmc.robotics.math;
 
+import us.ihmc.euclid.interfaces.GeometryObject;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DBasics;
 import us.ihmc.robotics.math.frames.YoFrameVariableNameTools;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
 
-public class YoVector3D implements Vector3DBasics
+public class YoVector3D implements Vector3DBasics, GeometryObject<YoVector3D>
 {
    private final YoDouble x;
    private final YoDouble y;
@@ -66,5 +67,23 @@ public class YoVector3D implements Vector3DBasics
    public double getZ()
    {
       return z.getDoubleValue();
+   }
+
+   @Override
+   public boolean epsilonEquals(YoVector3D other, double epsilon)
+   {
+      return Vector3DBasics.super.epsilonEquals(other, epsilon);
+   }
+
+   @Override
+   public boolean geometricallyEquals(YoVector3D other, double epsilon)
+   {
+      return Vector3DBasics.super.geometricallyEquals(other, epsilon);
+   }
+
+   @Override
+   public void set(YoVector3D other)
+   {
+      Vector3DBasics.super.set(other);
    }
 }

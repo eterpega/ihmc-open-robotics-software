@@ -1,11 +1,12 @@
 package us.ihmc.robotics.math;
 
+import us.ihmc.euclid.interfaces.GeometryObject;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DBasics;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.math.frames.YoFrameVariableNameTools;
 
-public class YoPoint3D implements Point3DBasics
+public class YoPoint3D implements Point3DBasics, GeometryObject<YoPoint3D>
 {
    private final YoDouble x;
    private final YoDouble y;
@@ -66,5 +67,23 @@ public class YoPoint3D implements Point3DBasics
    public double getZ()
    {
       return z.getDoubleValue();
+   }
+
+   @Override
+   public boolean epsilonEquals(YoPoint3D other, double epsilon)
+   {
+      return Point3DBasics.super.epsilonEquals(other, epsilon);
+   }
+
+   @Override
+   public boolean geometricallyEquals(YoPoint3D other, double epsilon)
+   {
+      return Point3DBasics.super.geometricallyEquals(other, epsilon);
+   }
+
+   @Override
+   public void set(YoPoint3D other)
+   {
+      Point3DBasics.super.set(other);
    }
 }
