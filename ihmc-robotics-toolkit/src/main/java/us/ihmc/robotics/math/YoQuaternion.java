@@ -26,6 +26,8 @@ public class YoQuaternion implements QuaternionBasics
       y = new YoDouble(YoFrameVariableNameTools.createQyName(namePrefix, ""), registry);
       z = new YoDouble(YoFrameVariableNameTools.createQzName(namePrefix, ""), registry);
       s = new YoDouble(YoFrameVariableNameTools.createQsName(namePrefix, ""), registry);
+      
+      s.set(1.0);
    }
 
    public YoQuaternion(String namePrefix, String nameSuffix, YoVariableRegistry registry)
@@ -34,6 +36,8 @@ public class YoQuaternion implements QuaternionBasics
       y = new YoDouble(YoFrameVariableNameTools.createQyName(namePrefix, nameSuffix), registry);
       z = new YoDouble(YoFrameVariableNameTools.createQzName(namePrefix, nameSuffix), registry);
       s = new YoDouble(YoFrameVariableNameTools.createQsName(namePrefix, nameSuffix), registry);
+      
+      s.set(1.0);
    }
    
    @Override
