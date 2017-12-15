@@ -11,7 +11,7 @@ public class YoPoint3D implements Point3DBasics
    private final YoDouble y;
    private final YoDouble z;
    
-    public YoPoint3D(YoDouble xVariable, YoDouble yVariable, YoDouble zVariable)
+   public YoPoint3D(YoDouble xVariable, YoDouble yVariable, YoDouble zVariable)
    {
       this.x = xVariable;
       this.y = yVariable;
