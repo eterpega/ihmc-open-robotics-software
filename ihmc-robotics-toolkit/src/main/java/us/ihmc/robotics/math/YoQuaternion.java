@@ -22,18 +22,18 @@ public class YoQuaternion implements QuaternionBasics
 
    public YoQuaternion(String namePrefix, YoVariableRegistry registry)
    {
-      x = new YoDouble(YoFrameVariableNameTools.createXName(namePrefix, ""), registry);
-      y = new YoDouble(YoFrameVariableNameTools.createYName(namePrefix, ""), registry);
-      z = new YoDouble(YoFrameVariableNameTools.createYName(namePrefix, ""), registry);
-      s = new YoDouble(YoFrameVariableNameTools.createYName(namePrefix, ""), registry);
+      x = new YoDouble(YoFrameVariableNameTools.createQxName(namePrefix, ""), registry);
+      y = new YoDouble(YoFrameVariableNameTools.createQyName(namePrefix, ""), registry);
+      z = new YoDouble(YoFrameVariableNameTools.createQzName(namePrefix, ""), registry);
+      s = new YoDouble(YoFrameVariableNameTools.createQsName(namePrefix, ""), registry);
    }
 
    public YoQuaternion(String namePrefix, String nameSuffix, YoVariableRegistry registry)
    {
-      x = new YoDouble(YoFrameVariableNameTools.createXName(namePrefix, nameSuffix), registry);
-      y = new YoDouble(YoFrameVariableNameTools.createYName(namePrefix, nameSuffix), registry);
-      z = new YoDouble(YoFrameVariableNameTools.createYName(namePrefix, nameSuffix), registry);
-      s = new YoDouble(YoFrameVariableNameTools.createYName(namePrefix, nameSuffix), registry);
+      x = new YoDouble(YoFrameVariableNameTools.createQxName(namePrefix, nameSuffix), registry);
+      y = new YoDouble(YoFrameVariableNameTools.createQyName(namePrefix, nameSuffix), registry);
+      z = new YoDouble(YoFrameVariableNameTools.createQzName(namePrefix, nameSuffix), registry);
+      s = new YoDouble(YoFrameVariableNameTools.createQsName(namePrefix, nameSuffix), registry);
    }
    
    @Override
