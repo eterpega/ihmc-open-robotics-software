@@ -2,10 +2,10 @@ package us.ihmc.humanoidRobotics.communication.packets.manipulation;
 
 import java.util.Random;
 
+import us.ihmc.commons.MathTools;
 import us.ihmc.communication.ros.generators.RosExportedField;
 import us.ihmc.communication.ros.generators.RosMessagePacket;
 import us.ihmc.humanoidRobotics.communication.packets.Abstract1DTrajectoryMessage;
-import us.ihmc.commons.MathTools;
 import us.ihmc.robotics.math.trajectories.waypoints.SimpleTrajectoryPoint1DList;
 
 @RosMessagePacket(documentation =
@@ -14,7 +14,9 @@ import us.ihmc.robotics.math.trajectories.waypoints.SimpleTrajectoryPoint1DList;
       rosPackage = RosMessagePacket.CORE_IHMC_PACKAGE)
 public class OneDoFJointTrajectoryMessage extends Abstract1DTrajectoryMessage<OneDoFJointTrajectoryMessage>
 {
-   @RosExportedField(documentation = "QP Weight, if Too low, in the event the qp can't achieve all of the objectives it may stop trying to achieve the desireds, if too high, it will favor this joint over other objectives. If set to NaN it will use the default weight for that joint")
+   @RosExportedField(documentation = "QP Weight, if too low, in the event the qp can't achieve all of the objectives it may "
+         + "stop trying to achieve the desireds, if too high, it will favor this joint over other objectives. If set to NaN "
+         + "or to a negative value it will use the default weight for that joint.")
    public double weight = Double.NaN;
    
    /**
