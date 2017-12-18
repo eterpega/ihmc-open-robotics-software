@@ -4,17 +4,26 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
-import geometry_msgs.Point;
-import ihmc_msgs.*;
 import org.ros.internal.message.Message;
 import org.ros.message.MessageFactory;
 
+import geometry_msgs.Point;
+import ihmc_msgs.ArmTrajectoryRosMessage;
+import ihmc_msgs.ChestTrajectoryRosMessage;
+import ihmc_msgs.FootTrajectoryRosMessage;
+import ihmc_msgs.FootstepDataListRosMessage;
+import ihmc_msgs.FootstepDataRosMessage;
+import ihmc_msgs.FrameInformationRosMessage;
+import ihmc_msgs.HandTrajectoryRosMessage;
+import ihmc_msgs.PelvisTrajectoryRosMessage;
+import ihmc_msgs.Point2dRosMessage;
+import ihmc_msgs.WholeBodyTrajectoryRosMessage;
+import us.ihmc.communication.packets.ExecutionMode;
+import us.ihmc.communication.packets.ExecutionTiming;
 import us.ihmc.communication.packets.Packet;
 import us.ihmc.communication.ros.generators.RosMessagePacket;
 import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.euclid.tuple3D.Point3D;
-import us.ihmc.communication.packets.ExecutionMode;
-import us.ihmc.communication.packets.ExecutionTiming;
 import us.ihmc.humanoidRobotics.communication.packets.FrameInformation;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.ArmTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.HandTrajectoryMessage;
@@ -23,6 +32,7 @@ import us.ihmc.humanoidRobotics.communication.packets.walking.FootTrajectoryMess
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataListMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.PelvisTrajectoryMessage;
+import us.ihmc.humanoidRobotics.communication.packets.walking.SpineTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.wholebody.WholeBodyTrajectoryMessage;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.trajectories.TrajectoryType;
@@ -162,6 +172,7 @@ public class IHMCROSTranslationRuntimeTools
          wholeBodyTrajectoryMessage.leftFootTrajectoryMessage = (FootTrajectoryMessage) convertToIHMCMessage(message.getLeftFootTrajectoryMessage());
          wholeBodyTrajectoryMessage.rightFootTrajectoryMessage = (FootTrajectoryMessage) convertToIHMCMessage(message.getRightFootTrajectoryMessage());
          wholeBodyTrajectoryMessage.chestTrajectoryMessage = (ChestTrajectoryMessage) convertToIHMCMessage(message.getChestTrajectoryMessage());
+         wholeBodyTrajectoryMessage.spineTrajectoryMessage = (SpineTrajectoryMessage) convertToIHMCMessage(message.getSpineTrajectoryMessage());
          wholeBodyTrajectoryMessage.pelvisTrajectoryMessage = (PelvisTrajectoryMessage) convertToIHMCMessage(message.getPelvisTrajectoryMessage());
       }
       catch(ClassNotFoundException | InvocationTargetException | IllegalAccessException | RosEnumConversionException | NoSuchFieldException | InstantiationException e)

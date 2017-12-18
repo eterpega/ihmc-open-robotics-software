@@ -569,6 +569,7 @@ public abstract class EndToEndWholeBodyTrajectoryMessageTest implements MultiRob
          rosMessageClassNameFromIHMCMessage = GenericROSTranslationTools.getRosMessageClassNameFromIHMCMessage(ihmcMessageClass.getSimpleName());
          rosAnnotation = ihmcMessageClass.getAnnotation(RosMessagePacket.class);
          OneDoFJointTrajectoryRosMessage jointMessage = GenericROSTranslationTools.getMessageFactory().newFromType(rosAnnotation.rosPackage() + "/" + rosMessageClassNameFromIHMCMessage);
+         jointMessage.setWeight(-1.0);
 
          ihmcMessageClass = TrajectoryPoint1DMessage.class;
          rosMessageClassNameFromIHMCMessage = GenericROSTranslationTools.getRosMessageClassNameFromIHMCMessage(ihmcMessageClass.getSimpleName());

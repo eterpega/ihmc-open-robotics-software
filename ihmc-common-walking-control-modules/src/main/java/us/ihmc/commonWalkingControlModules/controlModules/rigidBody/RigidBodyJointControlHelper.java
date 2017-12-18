@@ -8,9 +8,9 @@ import gnu.trove.map.hash.TObjectDoubleHashMap;
 import us.ihmc.commonWalkingControlModules.controlModules.ControllerCommandValidationTools;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.feedbackController.JointspaceFeedbackControlCommand;
 import us.ihmc.commons.PrintTools;
+import us.ihmc.communication.packets.ExecutionMode;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.JointspaceTrajectoryCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.OneDoFJointTrajectoryCommand;
-import us.ihmc.communication.packets.ExecutionMode;
 import us.ihmc.robotics.controllers.YoPIDGains;
 import us.ihmc.robotics.lists.RecyclingArrayDeque;
 import us.ihmc.robotics.math.trajectories.waypoints.MultipleWaypointsTrajectoryGenerator;
@@ -283,7 +283,7 @@ public class RigidBodyJointControlHelper
             weight = trajectoryPoints.getWeight();
          }
 
-         if (Double.isNaN(weight))
+         if (Double.isNaN(weight) || weight < 0.0)
          {
             currentWeights.get(jointIdx).set(defaultWeights.get(jointIdx).getDoubleValue());
          }
