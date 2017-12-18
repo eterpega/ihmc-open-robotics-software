@@ -2,24 +2,37 @@ package us.ihmc.avatar.controllerAPI;
 
 import static org.junit.Assert.assertTrue;
 
+import java.util.List;
 import java.util.Random;
 
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 
+import ihmc_msgs.ArmTrajectoryRosMessage;
+import ihmc_msgs.FootTrajectoryRosMessage;
+import ihmc_msgs.HandTrajectoryRosMessage;
+import ihmc_msgs.OneDoFJointTrajectoryRosMessage;
+import ihmc_msgs.SpineTrajectoryRosMessage;
+import ihmc_msgs.TrajectoryPoint1DRosMessage;
+import ihmc_msgs.WholeBodyTrajectoryRosMessage;
 import us.ihmc.avatar.MultiRobotTestInterface;
+import us.ihmc.avatar.ros.IHMCROSTranslationRuntimeTools;
 import us.ihmc.avatar.testTools.DRCSimulationTestHelper;
 import us.ihmc.commons.PrintTools;
 import us.ihmc.commons.RandomNumbers;
 import us.ihmc.commons.thread.ThreadTools;
+import us.ihmc.communication.packets.Packet;
+import us.ihmc.communication.ros.generators.RosMessagePacket;
 import us.ihmc.euclid.referenceFrame.FrameQuaternion;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.humanoidRobotics.communication.packets.TrajectoryPoint1DMessage;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.ArmTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.HandTrajectoryMessage;
+import us.ihmc.humanoidRobotics.communication.packets.manipulation.OneDoFJointTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.AutomaticManipulationAbortMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.ChestTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootTrajectoryMessage;
@@ -40,6 +53,7 @@ import us.ihmc.simulationConstructionSetTools.bambooTools.BambooTools;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
 import us.ihmc.simulationconstructionset.util.simulationTesting.SimulationTestingParameters;
 import us.ihmc.tools.MemoryTools;
+import us.ihmc.utilities.ros.msgToPacket.converter.GenericROSTranslationTools;
 
 public abstract class EndToEndWholeBodyTrajectoryMessageTest implements MultiRobotTestInterface
 {
@@ -532,23 +546,58 @@ public abstract class EndToEndWholeBodyTrajectoryMessageTest implements MultiRob
       OneDoFJoint[] spineJoints = ScrewTools.createOneDoFJointPath(pelvis, chest);
       int numberOfJoints = spineJoints.length;
 
+      Class<? extends Packet<?>> ihmcMessageClass = WholeBodyTrajectoryMessage.class;
+      String rosMessageClassNameFromIHMCMessage = GenericROSTranslationTools.getRosMessageClassNameFromIHMCMessage(ihmcMessageClass.getSimpleName());
+      RosMessagePacket rosAnnotation = ihmcMessageClass.getAnnotation(RosMessagePacket.class);
+      WholeBodyTrajectoryRosMessage message = GenericROSTranslationTools.getMessageFactory().newFromType(rosAnnotation.rosPackage() + "/" + rosMessageClassNameFromIHMCMessage);
+      message.setUniqueId(Packet.VALID_MESSAGE_DEFAULT_ID);
+      message.getLeftArmTrajectoryMessage().setRobotSide(ArmTrajectoryRosMessage.LEFT);
+      message.getLeftHandTrajectoryMessage().setRobotSide(HandTrajectoryRosMessage.LEFT);
+      message.getLeftFootTrajectoryMessage().setRobotSide(FootTrajectoryRosMessage.LEFT);
+      message.getRightArmTrajectoryMessage().setRobotSide(ArmTrajectoryRosMessage.RIGHT);
+      message.getRightHandTrajectoryMessage().setRobotSide(HandTrajectoryRosMessage.RIGHT);
+      message.getRightFootTrajectoryMessage().setRobotSide(FootTrajectoryRosMessage.RIGHT);
+
+      SpineTrajectoryRosMessage spineTrajectory = message.getSpineTrajectoryMessage();
+      spineTrajectory.setUniqueId(Packet.VALID_MESSAGE_DEFAULT_ID);
+      List<OneDoFJointTrajectoryRosMessage> jointTrajectoryMessages = spineTrajectory.getJointTrajectoryMessages();
+
       double[] jointDesireds = new double[numberOfJoints];
       for (int jointIdx = 0; jointIdx < numberOfJoints; jointIdx++)
       {
+         ihmcMessageClass = OneDoFJointTrajectoryMessage.class;
+         rosMessageClassNameFromIHMCMessage = GenericROSTranslationTools.getRosMessageClassNameFromIHMCMessage(ihmcMessageClass.getSimpleName());
+         rosAnnotation = ihmcMessageClass.getAnnotation(RosMessagePacket.class);
+         OneDoFJointTrajectoryRosMessage jointMessage = GenericROSTranslationTools.getMessageFactory().newFromType(rosAnnotation.rosPackage() + "/" + rosMessageClassNameFromIHMCMessage);
+
+         ihmcMessageClass = TrajectoryPoint1DMessage.class;
+         rosMessageClassNameFromIHMCMessage = GenericROSTranslationTools.getRosMessageClassNameFromIHMCMessage(ihmcMessageClass.getSimpleName());
+         rosAnnotation = ihmcMessageClass.getAnnotation(RosMessagePacket.class);
+         TrajectoryPoint1DRosMessage trajectoryPoint = GenericROSTranslationTools.getMessageFactory().newFromType(rosAnnotation.rosPackage() + "/" + rosMessageClassNameFromIHMCMessage);
+
          OneDoFJoint joint = spineJoints[jointIdx];
          double desired = EndToEndSpineJointTrajectoryMessageTest.getRandomJointAngleInRange(random, joint);
          jointDesireds[jointIdx] = desired;
+         trajectoryPoint.setPosition(desired);
+         trajectoryPoint.setTime(trajectoryTime);
+
+         List<TrajectoryPoint1DRosMessage> trajectoryPoints = jointMessage.getTrajectoryPoints();
+         trajectoryPoints.add(trajectoryPoint);
+         jointTrajectoryMessages.add(jointMessage);
       }
-      SpineTrajectoryMessage spineMessage = new SpineTrajectoryMessage(trajectoryTime, jointDesireds);
 
-      WholeBodyTrajectoryMessage wholeBodyTrajectoryMessage = new WholeBodyTrajectoryMessage();
-      wholeBodyTrajectoryMessage.setSpineTrajectoryMessage(spineMessage);
-
-      drcSimulationTestHelper.send(wholeBodyTrajectoryMessage);
+      Packet<?> convertedMessage = IHMCROSTranslationRuntimeTools.convertToIHMCMessage(message);
+      drcSimulationTestHelper.send(convertedMessage);
       double controllerDT = getRobotModel().getControllerDT();
       assertTrue(drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(trajectoryTime + 5.0 * controllerDT));
       SimulationConstructionSet simulationConstructionSet = drcSimulationTestHelper.getSimulationConstructionSet();
-      EndToEndSpineJointTrajectoryMessageTest.assertDesiredsMatchAfterExecution(spineMessage, spineJoints, simulationConstructionSet);
+
+      for (int jointIdx = 0; jointIdx < spineJoints.length; jointIdx++)
+      {
+         OneDoFJoint joint = spineJoints[jointIdx];
+         double desired = jointDesireds[jointIdx];
+         EndToEndSpineJointTrajectoryMessageTest.assertJointDesired(simulationConstructionSet, joint, desired );
+      }
    }
 
    @Before
