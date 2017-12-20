@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import us.ihmc.commons.MathTools;
+import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.geometry.Line2D;
 import us.ihmc.euclid.geometry.tools.EuclidGeometryTools;
 import us.ihmc.euclid.tools.EuclidCoreTools;
@@ -14,6 +15,7 @@ import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.euclid.tuple2D.Vector2D;
 import us.ihmc.euclid.tuple2D.interfaces.Point2DReadOnly;
+import us.ihmc.euclid.tuple2D.interfaces.Vector2DReadOnly;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
@@ -75,7 +77,18 @@ public class ClusterTools
 
          if (shouldExtrudeCorner)
          {
-            extrusions.addAll(extrudeCorner(pointToExtrude, edgePrev, edgeNext, extrudeToTheLeft, 3, extrusionDistance));
+            List<Point2D> cornerExtrusions = extrudeCorner(pointToExtrude, edgePrev, edgeNext, extrudeToTheLeft, 3, extrusionDistance);
+            for (Point2D cornerExtrusion : cornerExtrusions)
+            {
+               Vector2D extrusionDirection = new Vector2D();
+               extrusionDirection.sub(cornerExtrusion, pointToExtrude);
+               extrusionDirection.normalize();
+               if (extrudeToTheLeft)
+               {
+                  cornerExtrusion.set(adjustExtrusionPoint(i, cornerExtrusion, extrusionDirection, pointsToExtrude, extrusionDistances));
+               }
+            }
+            extrusions.addAll(cornerExtrusions);
          }
          else
          {
@@ -87,7 +100,11 @@ public class ClusterTools
 
             Point2D extrusion = new Point2D();
             extrusion.scaleAdd(extrusionDistance, extrusionDirection, pointToExtrude);
-            extrusions.add(extrusion);
+
+            if (extrudeToTheLeft)
+               extrusions.add(adjustExtrusionPoint(i, extrusion, extrusionDirection, pointsToExtrude, extrusionDistances));
+            else
+               extrusions.add(extrusion);
          }
       }
 
@@ -251,6 +268,122 @@ public class ClusterTools
       extrusions.add(lastExtrusion);
 
       return extrusions;
+   }
+
+   public static void extrudeCluster(Cluster cluster, ObstacleExtrusionDistanceCalculator calculator, List<Cluster> listOfClusters)
+   {
+      ObstacleExtrusionDistanceCalculator nonNavigableCalculator = (p, h) -> calculator.computeExtrusionDistance(p, h) - NAV_TO_NON_NAV_DISTANCE;
+      ObstacleExtrusionDistanceCalculator navigableCalculator = calculator;
+      int numberOfExtrusionsAtEndpoints = 5;
+
+      switch (cluster.getType())
+      {
+      case LINE:
+      case MULTI_LINE:
+         cluster.addNonNavigableExtrusionsInLocal2D(extrudeMultiLine(cluster, nonNavigableCalculator, numberOfExtrusionsAtEndpoints));
+         cluster.addNavigableExtrusionsInLocal2D(extrudeMultiLine(cluster, navigableCalculator, numberOfExtrusionsAtEndpoints));
+         break;
+      case POLYGON:
+         boolean extrudeToTheLeft = cluster.getExtrusionSide() != ExtrusionSide.INSIDE;
+         cluster.addNonNavigableExtrusionsInLocal2D(extrudePolygon(extrudeToTheLeft, cluster, nonNavigableCalculator));
+         cluster.addNavigableExtrusionsInLocal2D(extrudePolygon(extrudeToTheLeft, cluster, navigableCalculator));
+         break;
+
+      default:
+         throw new RuntimeException("Unhandled cluster type: " + cluster.getType());
+      }
+      cluster.updateBoundingBox();
+   }
+
+   /**
+    * Adjust the given extrusion point {@code initialExtrusion} considering the extrusions for the
+    * other points.
+    * <p>
+    * It is particularly useful when two points are close and with high difference in extrusion
+    * distance.
+    * </p>
+    * <p>
+    * The returned extrusion lies on the ray [intialExtrusion, extrusionDirection) such that none of
+    * the extrusions from the other points contain the extrusion.
+    * </p>
+    * 
+    * @param extrudedPointIndex the index of the extruded that resulted in the given extrusion.
+    * @param initialExtrusionPoint the initially computed extrusion. Not modified.
+    * @param extrusionDirection the desired direction of the extrusion. Not modified.
+    * @param allPointsToBeExtruded the list containing all the points to be extruded (including the
+    *           one extruded resulting in the given extrusion). Not modified.
+    * @param allPointsExtrusionDistances the extrusion distance for all the points (including the
+    *           one that was used for the given extrusion). Not modified.
+    * @return the adjusted extrusion.
+    */
+   static Point2D adjustExtrusionPoint(int extrudedPointIndex, Point2DReadOnly initialExtrusionPoint, Vector2DReadOnly extrusionDirection,
+                                       List<? extends Point2DReadOnly> allPointsToBeExtruded, double[] allPointsExtrusionDistances)
+   {
+      boolean extrusionPointHasBeenAdjusted = false;
+      Point2D adjustedExtrusion = new Point2D(initialExtrusionPoint);
+
+      extrusionPointHasBeenAdjusted = false;
+
+      for (int i = 0; i < extrudedPointIndex; i++)
+      {
+         extrusionPointHasBeenAdjusted |= adjustExtrusionPoint(adjustedExtrusion, extrusionDirection, allPointsToBeExtruded.get(i),
+                                                               allPointsExtrusionDistances[i]);
+         // Let's keep going until none of the other points' extrusion can contain this extrusion point.
+      }
+
+      // We skip the point that resulted in initialExtrusionPoint.
+
+      for (int i = extrudedPointIndex + 1; i < allPointsToBeExtruded.size(); i++)
+      {
+         extrusionPointHasBeenAdjusted |= adjustExtrusionPoint(adjustedExtrusion, extrusionDirection, allPointsToBeExtruded.get(i),
+                                                               allPointsExtrusionDistances[i]);
+         // Let's keep going until none of the other points' extrusion can contain this extrusion point.
+      }
+
+      if (extrusionPointHasBeenAdjusted)
+      {
+         if (!EuclidGeometryTools.isPoint2DInFrontOfRay2D(adjustedExtrusion, initialExtrusionPoint, extrusionDirection))
+            PrintTools.error("Adjusted in the wrong direction."); // This should never happen, it would highlight a bug.
+      }
+
+      return extrusionPointHasBeenAdjusted ? adjustedExtrusion : new Point2D(initialExtrusionPoint);
+   }
+
+   static boolean adjustExtrusionPoint(Point2D extrusionToBeAdjusted, Vector2DReadOnly extrusionDirection, Point2DReadOnly otherPointToBeExtruded,
+                                       double otherPointExtrusionDistance)
+   {
+      if (extrusionToBeAdjusted.distanceSquared(otherPointToBeExtruded) >= MathTools.square(otherPointExtrusionDistance))
+         return false;
+      // The other extrusion would contain the current extrusion. Let's move it along the extrusion direction until we're at otherExtrusionDistance from the other point.
+      Point2D adjusted = new Point2D();
+      int numberOfIntersections = VisibilityGraphsGeometryTools.intersectionBetweenRay2DAndCircle2D(extrusionToBeAdjusted, extrusionDirection,
+                                                                                                    otherPointToBeExtruded, otherPointExtrusionDistance,
+                                                                                                    adjusted, null);
+      if (numberOfIntersections == 0)
+         return false;
+      extrusionToBeAdjusted.set(adjusted);
+      return true;
+   }
+
+   public static void classifyExtrusions(List<PlanarRegion> regionsToProject, PlanarRegion regionToProjectTo, List<PlanarRegion> lineObstaclesToPack,
+                                         List<PlanarRegion> polygonObstaclesToPack, double orthogonalAngle)
+   {
+      Vector3D referenceNormal = regionToProjectTo.getNormal();
+      double zThresholdBeforeOrthogonal = Math.cos(orthogonalAngle);
+
+      for (PlanarRegion regionToProject : regionsToProject)
+      {
+         Vector3D otherNormal = regionToProject.getNormal();
+
+         if (Math.abs(otherNormal.dot(referenceNormal)) < zThresholdBeforeOrthogonal)
+         {
+            lineObstaclesToPack.add(regionToProject);
+         }
+         else
+         {
+            polygonObstaclesToPack.add(regionToProject);
+         }
+      }
    }
 
    public static Cluster getTheClosestCluster(Point3DReadOnly pointToSortFrom, List<Cluster> clusters)
