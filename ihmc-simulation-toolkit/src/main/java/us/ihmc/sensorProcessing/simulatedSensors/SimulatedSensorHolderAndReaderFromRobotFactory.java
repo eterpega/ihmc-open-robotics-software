@@ -85,6 +85,27 @@ public class SimulatedSensorHolderAndReaderFromRobotFactory implements SensorRea
 
       parentRegistry.addChild(registry);
    }
+   
+   public void build(OneDegreeOfFreedomJoint rootOneDegreeOfFreedomJoint, OneDoFJoint rootOneDoFJoint, IMUDefinition[] imuDefinition, YoVariableRegistry parentRegistry)
+   {
+      SCSToInverseDynamicsJointMap scsToInverseDynamicsJointMap = SCSToInverseDynamicsJointMap.createByName(rootOneDegreeOfFreedomJoint, rootOneDoFJoint);
+      
+      StateEstimatorSensorDefinitionsFromRobotFactory stateEstimatorSensorDefinitionsFromRobotFactory = new StateEstimatorSensorDefinitionsFromRobotFactory(
+            scsToInverseDynamicsJointMap, imuMounts, groundContactPointBasedWrenchCalculators);
+
+      this.stateEstimatorSensorDefinitions = stateEstimatorSensorDefinitionsFromRobotFactory.getStateEstimatorSensorDefinitions();
+      Map<IMUMount, IMUDefinition> imuDefinitions = stateEstimatorSensorDefinitionsFromRobotFactory.getIMUDefinitions();
+      Map<WrenchCalculatorInterface, ForceSensorDefinition> forceSensors = stateEstimatorSensorDefinitionsFromRobotFactory.getForceSensorDefinitions();
+      this.simulatedSensorHolderAndReader = new SimulatedSensorHolderAndReader(stateEstimatorSensorDefinitions, sensorProcessingConfiguration, robot.getYoTime(), registry);
+
+      createAndAddOrientationSensors(imuDefinitions, registry);
+      createAndAddAngularVelocitySensors(imuDefinitions, registry);
+      createAndAddForceSensors(forceSensors, registry);
+      createAndAddLinearAccelerationSensors(imuDefinitions, registry);
+      createAndAddOneDoFPositionAndVelocitySensors(scsToInverseDynamicsJointMap);
+
+      parentRegistry.addChild(registry);
+   }
 
    private void createAndAddForceSensors(Map<WrenchCalculatorInterface, ForceSensorDefinition> forceSensorDefinitions2, YoVariableRegistry registry)
    {

@@ -14,17 +14,13 @@ import java.util.ArrayList;
 
 
 /**
- * JointStateUpdater simply reads the joint position/velocity sensors and updates the FullInverseDynamicsStructure.
- * (Based on {@link us.ihmc.sensorProcessing.stateEstimation.JointStateFullRobotModelUpdater}.)
- * @author Sylvain
+ * JointStateUpdater simply reads the joint position/velocity sensors and computes joint position/velocity estimates based on IMU data.
+ * @author Patrick Hammer
  *
  */
 public class JointStateUpdater
 {
    private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
-
-   private final SpatialAccelerationCalculator spatialAccelerationCalculator;
-   private final RigidBody rootBody;
 
    private OneDoFJoint[] oneDoFJoints;
    private final SensorOutputMapReadOnly sensorMap;
@@ -32,16 +28,12 @@ public class JointStateUpdater
 
    private final YoBoolean enableIMUBasedJointVelocityEstimator = new YoBoolean("enableIMUBasedJointVelocityEstimator", registry);
 
-   public JointStateUpdater(FullInverseDynamicsStructure inverseDynamicsStructure, SensorOutputMapReadOnly sensorOutputMapReadOnly,
+   public JointStateUpdater(OneDoFJoint[] oneDoFJoints, SensorOutputMapReadOnly sensorOutputMapReadOnly,
          StateEstimatorParameters stateEstimatorParameters, YoVariableRegistry parentRegistry)
    {
-      spatialAccelerationCalculator = inverseDynamicsStructure.getSpatialAccelerationCalculator();
-      rootBody = inverseDynamicsStructure.getElevator();
-
       this.sensorMap = sensorOutputMapReadOnly;
 
-      InverseDynamicsJoint[] joints = ScrewTools.computeSupportAndSubtreeJoints(inverseDynamicsStructure.getRootJoint().getSuccessor());
-      this.oneDoFJoints = ScrewTools.filterJoints(joints, OneDoFJoint.class);
+      this.oneDoFJoints = oneDoFJoints;
 
       for (ImmutablePair<String, String> imuPair : stateEstimatorParameters.getIMUSensorsToUseInJointStateEstimator())
       {
@@ -54,6 +46,12 @@ public class JointStateUpdater
       }
 
       parentRegistry.addChild(registry);
+   }
+   
+   public JointStateUpdater(FullInverseDynamicsStructure inverseDynamicsStructure, SensorOutputMapReadOnly sensorOutputMapReadOnly,
+         StateEstimatorParameters stateEstimatorParameters, YoVariableRegistry parentRegistry) {
+      this.sensorMap = sensorOutputMapReadOnly;
+      this.oneDoFJoints = null;
    }
 
    public void setJointsToUpdate(OneDoFJoint[] oneDoFJoints)
@@ -127,7 +125,7 @@ public class JointStateUpdater
 
          if (enableIMUBasedJointVelocityEstimator.getBooleanValue())
          {
-            // TODO: seems like there should be a joint to esimator mapping
+            // TODO: seems like there should be a joint to estimator mapping
             for (IMUBasedJointVelocityEstimator jointVelocityEstimator : iMUBasedJointVelocityEstimators)
             {
                double estimatedJointVelocity = jointVelocityEstimator.getEstimatedJointVelocitiy(oneDoFJoint);
@@ -145,8 +143,5 @@ public class JointStateUpdater
          oneDoFJoint.setTauMeasured(torqueSensorData);
          oneDoFJoint.setEnabled(jointEnabledIndicator);
       }
-
-      rootBody.updateFramesRecursively();
-      spatialAccelerationCalculator.compute();
    }
 }

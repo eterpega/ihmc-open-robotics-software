@@ -74,6 +74,43 @@ public class SCSToInverseDynamicsJointMap
       }
    }
 
+   public static SCSToInverseDynamicsJointMap createByName(OneDegreeOfFreedomJoint rootOneDegreeOfFreedomJoint, OneDoFJoint rootOneDoFJoint)
+   {
+      SCSToInverseDynamicsJointMap scsToInverseDynamicsJointMap = new SCSToInverseDynamicsJointMap();
+      
+      
+      InverseDynamicsJoint[] inverseDynamicsJoints = ScrewTools.computeSubtreeJoints(rootOneDoFJoint.getSuccessor());
+      LinkedHashMap<String, OneDoFJoint> inverseDynamicsJointsByName = new LinkedHashMap<String, OneDoFJoint>();
+      
+      for(InverseDynamicsJoint inverseDynamicsJoint : inverseDynamicsJoints)
+      {
+         if(inverseDynamicsJoint instanceof OneDoFJoint)
+         {
+            inverseDynamicsJointsByName.put(inverseDynamicsJoint.getName(), (OneDoFJoint) inverseDynamicsJoint);
+         }
+         else
+         {
+            throw new RuntimeException(inverseDynamicsJoint.getName() + " is not an OneDoFJoint");
+         }
+      }
+      
+      ArrayList<OneDegreeOfFreedomJoint> oneDegreeOfFreedomJoints = new ArrayList<OneDegreeOfFreedomJoint>();
+      rootOneDegreeOfFreedomJoint.recursiveGetOneDegreeOfFreedomJoints(oneDegreeOfFreedomJoints);
+      
+      for (OneDegreeOfFreedomJoint oneDegreeOfFreedomJoint : oneDegreeOfFreedomJoints)
+      {
+         String name = oneDegreeOfFreedomJoint.getName();
+         if(inverseDynamicsJointsByName.containsKey(name))
+         {
+            OneDoFJoint oneDoFJoint = inverseDynamicsJointsByName.get(name);
+            
+            scsToInverseDynamicsJointMap.addLinkedJoints(oneDegreeOfFreedomJoint, oneDoFJoint);
+         }
+      }
+      
+      return scsToInverseDynamicsJointMap;
+   }
+   
    public static SCSToInverseDynamicsJointMap createByName(FloatingJoint floatingRootJoint, FloatingInverseDynamicsJoint sixDoFRootJoint)
    {
       SCSToInverseDynamicsJointMap scsToInverseDynamicsJointMap = new SCSToInverseDynamicsJointMap();
