@@ -1,5 +1,7 @@
 package us.ihmc.footstepPlanning.graphSearch;
 
+import us.ihmc.footstepPlanning.FootstepPlan;
+import us.ihmc.footstepPlanning.FootstepPlanningResult;
 import us.ihmc.footstepPlanning.graphSearch.graph.FootstepNode;
 import us.ihmc.footstepPlanning.polygonWiggling.PolygonWiggler;
 
@@ -255,7 +257,7 @@ public interface FootstepPlannerParameters
    public abstract double getMaximumStepWidth();
 
    /**
-    * The planner can be setup to shift footsteps away from "cliffs". When the footstep has a planar region
+    * The planner can be setup to avoid footsteps near the bottom of "cliffs". When the footstep has a planar region
     * nearby that is cliffHeightToShiftAwayFrom higher than the candidate footstep, it will move away from it
     * until it is minimumDistanceFromCliffBottoms away from it.
     *
@@ -265,14 +267,14 @@ public interface FootstepPlannerParameters
     * generator is capable of swinging over.
     * </p>
     */
-   public default double getCliffHeightToShiftAwayFrom()
+   public default double getCliffHeightToAvoid()
    {
-      return 0.0;
+      return Double.MAX_VALUE;
    }
 
    /**
-    * The planner can be setup to shift footsteps away from "cliffs". When the footstep has a planar region
-    * nearby that is cliffHeightToShiftAwayFrom higher than the candidate footstep, it will move away from it
+    * The planner can be setup to avoid footsteps near the bottom of "cliffs". When the footstep has a planar region
+    * nearby that is {@link #getCliffHeightToAvoid} higher than the candidate footstep, it will move away from it
     * until it is minimumDistanceFromCliffBottoms away from it.
     *
     * <p>
@@ -287,6 +289,27 @@ public interface FootstepPlannerParameters
    }
 
    /**
+    * When the planner is done planning and cannot find a path to the goal, this flag indicates whether the
+    * planner should return the best plan that it found. If this value is false, the planner will return
+    * a {@link FootstepPlan} of type {@link FootstepPlanningResult#NO_PATH_EXISTS}. Otherwise it will return
+    * the "best" effort plan, where the plan is at least {@link #getMinimumStepsForBestEffortPlan()} steps long
+    * "best" is determined by the planner.
+    */
+   public default boolean getReturnBestEffortPlan()
+   {
+      return false;
+   }
+
+   /**
+    * When {@link #getReturnBestEffortPlan()} is true, the planner will return the best effort plan if the plan
+    * contains at least this many footsteps.
+    */
+   public default int getMinimumStepsForBestEffortPlan()
+   {
+      return 0;
+   }
+
+   /**
     * When using a cost based planning approach this value defined how the yaw of a footstep will be
     * weighted in comparison to its position.
     */
@@ -297,10 +320,41 @@ public interface FootstepPlannerParameters
 
    /**
     * When using a cost based planning approach this value defines the cost that is added for each step
-    * taken. Setting this value to a high number will favour plans with less steps.
+    * taken. Setting this value to a high number will favor plans with less steps.
     */
    public default double getCostPerStep()
    {
       return 0.15;
+   }
+
+   /**
+    * Some node checkers will check if the body of the robot will move through a higher planar region
+    * (e.g. a wall) when going from one footstep to the next one. To avoid planar regions close to the
+    * ground triggering this this parameter defines a ground clearance under which obstacles are allowed.
+    * This should be set to be slightly above cinder block height (20.3cm) for Atlas.
+    */
+   public default double getBodyGroundClearance()
+   {
+      return 0.25;
+   }
+
+   /**
+    * Parameter used inside the node expansion to avoid footsteps that would be on top of the stance foot.
+    * Nodes are only added to the expanded list if they are outside the box around the stance foot defined by
+    * this parameter.
+    */
+   public default double getMinXClearanceFromStance()
+   {
+      return 0.0;
+   }
+
+   /**
+    * Parameter used inside the node expansion to avoid footsteps that would be on top of the stance foot.
+    * Nodes are only added to the expanded list if they are outside the box around the stance foot defined by
+    * this parameter.
+    */
+   public default double getMinYClearanceFromStance()
+   {
+      return 0.0;
    }
 }

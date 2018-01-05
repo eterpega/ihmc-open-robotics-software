@@ -29,14 +29,20 @@ public class ValkyrieEndToEndCinderBlockFieldTest extends EndToEndCinderBlockFie
    }
 
    @Override
+   public double getStepHeightOffset()
+   {
+      return 0.02;
+   }
+
+   @Override
    public String getSimpleRobotName()
    {
       return BambooTools.getSimpleRobotNameFor(BambooTools.SimpleRobotNameKeys.VALKYRIE);
    }
-   
+
    @Override
    @ContinuousIntegrationTest(estimatedDuration = 167.7)
-   @Test(timeout = 30000)
+   @Test(timeout = 300000)
    public void testWalkingOverCinderBlockField() throws Exception
    {
       super.testWalkingOverCinderBlockField();

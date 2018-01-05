@@ -3,6 +3,7 @@ package us.ihmc.footstepPlanning.graphSearch;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoInteger;
 
 public class YoFootstepPlannerParameters implements FootstepPlannerParameters
 {
@@ -31,6 +32,11 @@ public class YoFootstepPlannerParameters implements FootstepPlannerParameters
    private final YoDouble maximumZPenetrationOnValleyRegions = new YoDouble("maximumZPenetrationOnValleyRegions", registry);
    private final YoDouble yawWeight = new YoDouble("yawWeight", registry);
    private final YoDouble costPerStep = new YoDouble("costPerStep", registry);
+   private final YoDouble bodyGroundClearance = new YoDouble("bodyGroundClearance", registry);
+   private final YoBoolean returnBestEffortPlan = new YoBoolean("returnBestEffortPlan", registry);
+   private final YoInteger minimumStepForBestEffortPlan = new YoInteger("minimumStepForBestEffortPlan", registry);
+   private final YoDouble minXClearanceFromStance = new YoDouble("minXClearanceFromStance", registry);
+   private final YoDouble minYClearanceFromStance = new YoDouble("minYClearanceFromStance", registry);
 
    public YoFootstepPlannerParameters(YoVariableRegistry parentRegistry, FootstepPlannerParameters defaults)
    {
@@ -57,12 +63,17 @@ public class YoFootstepPlannerParameters implements FootstepPlannerParameters
       wiggleIntoConvexHullOfPlanarRegions.set(defaults.getWiggleIntoConvexHullOfPlanarRegions());
       maximumXYWiggleDistance.set(defaults.getMaximumXYWiggleDistance());
       maximumYawWiggle.set(defaults.getMaximumYawWiggle());
-      cliffHeightToShiftAwayFrom.set(defaults.getCliffHeightToShiftAwayFrom());
+      cliffHeightToShiftAwayFrom.set(defaults.getCliffHeightToAvoid());
       minimumDistanceFromCliffBottoms.set(defaults.getMinimumDistanceFromCliffBottoms());
       minimumSurfaceInclineRadians.set(defaults.getMinimumSurfaceInclineRadians());
       maximumZPenetrationOnValleyRegions.set(defaults.getMaximumZPenetrationOnValleyRegions());
       yawWeight.set(defaults.getYawWeight());
       costPerStep.set(defaults.getCostPerStep());
+      bodyGroundClearance.set(defaults.getBodyGroundClearance());
+      returnBestEffortPlan.set(defaults.getReturnBestEffortPlan());
+      minimumStepForBestEffortPlan.set(defaults.getMinimumStepsForBestEffortPlan());
+      minXClearanceFromStance.set(defaults.getMinXClearanceFromStance());
+      minYClearanceFromStance.set(defaults.getMinYClearanceFromStance());
    }
 
    @Override
@@ -180,7 +191,7 @@ public class YoFootstepPlannerParameters implements FootstepPlannerParameters
    }
 
    @Override
-   public double getCliffHeightToShiftAwayFrom()
+   public double getCliffHeightToAvoid()
    {
       return cliffHeightToShiftAwayFrom.getDoubleValue();
    }
@@ -203,4 +214,33 @@ public class YoFootstepPlannerParameters implements FootstepPlannerParameters
       return costPerStep.getDoubleValue();
    }
 
+   @Override
+   public double getBodyGroundClearance()
+   {
+      return bodyGroundClearance.getDoubleValue();
+   }
+
+   @Override
+   public boolean getReturnBestEffortPlan()
+   {
+      return returnBestEffortPlan.getBooleanValue();
+   }
+
+   @Override
+   public int getMinimumStepsForBestEffortPlan()
+   {
+      return minimumStepForBestEffortPlan.getIntegerValue();
+   }
+
+   @Override
+   public double getMinXClearanceFromStance()
+   {
+      return minXClearanceFromStance.getDoubleValue();
+   }
+
+   @Override
+   public double getMinYClearanceFromStance()
+   {
+      return minYClearanceFromStance.getDoubleValue();
+   }
 }
