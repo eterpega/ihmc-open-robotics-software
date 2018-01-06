@@ -19,7 +19,7 @@ public abstract class StateEstimatorParameters implements SensorProcessingConfig
       return false;
    }
 
-   public boolean useIMUsForSpineJointVelocityEstimation()
+   public boolean useIMUsForJointVelocityEstimation()
    {
       return false;
    }
@@ -36,11 +36,6 @@ public abstract class StateEstimatorParameters implements SensorProcessingConfig
    public double getAlphaIMUsForSpineJointPositionEstimation()
    {
       return Double.NaN;
-   }
-
-   public ImmutablePair<String, String> getIMUsForSpineJointVelocityEstimation()
-   {
-      return null;
    }
 
    public double getIMUJointVelocityEstimationBacklashSlopTime()

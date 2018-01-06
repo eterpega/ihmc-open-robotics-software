@@ -66,7 +66,7 @@ public class JointStateUpdater
       if (stateEstimatorParameters == null)
          return null;
 
-      enableIMUBasedJointVelocityEstimator.set(stateEstimatorParameters.useIMUsForSpineJointVelocityEstimation());
+      enableIMUBasedJointVelocityEstimator.set(stateEstimatorParameters.useIMUsForJointVelocityEstimation());
 
       final String parentImuName = imuPair.getLeft();
       final String childImuName = imuPair.getRight();

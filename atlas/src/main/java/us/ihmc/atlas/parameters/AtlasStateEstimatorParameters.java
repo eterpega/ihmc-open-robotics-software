@@ -1,18 +1,6 @@
 package us.ihmc.atlas.parameters;
 
-import static us.ihmc.sensorProcessing.sensorProcessors.SensorProcessing.SensorType.FORCE_SENSOR;
-import static us.ihmc.sensorProcessing.sensorProcessors.SensorProcessing.SensorType.IMU_ANGULAR_VELOCITY;
-import static us.ihmc.sensorProcessing.sensorProcessors.SensorProcessing.SensorType.IMU_LINEAR_ACCELERATION;
-import static us.ihmc.sensorProcessing.sensorProcessors.SensorProcessing.SensorType.IMU_ORIENTATION;
-import static us.ihmc.sensorProcessing.sensorProcessors.SensorProcessing.SensorType.JOINT_TAU;
-import static us.ihmc.sensorProcessing.sensorProcessors.SensorProcessing.SensorType.TORQUE_SENSOR;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.commons.lang3.tuple.ImmutablePair;
-
 import us.ihmc.robotics.math.trajectories.YoPolynomial;
 import us.ihmc.robotics.partNames.ArmJointName;
 import us.ihmc.robotics.partNames.LegJointName;
@@ -27,6 +15,12 @@ import us.ihmc.sensorProcessing.stateEstimation.StateEstimatorParameters;
 import us.ihmc.wholeBodyController.DRCRobotJointMap;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+import static us.ihmc.sensorProcessing.sensorProcessors.SensorProcessing.SensorType.*;
 
 public class AtlasStateEstimatorParameters extends StateEstimatorParameters
 {
@@ -55,7 +49,7 @@ public class AtlasStateEstimatorParameters extends StateEstimatorParameters
 
    private final DRCRobotJointMap jointMap;
 
-   private final ImmutablePair<String, String> imusForSpineJointEstimation;
+   private final ArrayList<ImmutablePair<String, String>> imusForSpineJointEstimation;
 
    private final boolean applyJointPositionPolynomialApproximation;
 
@@ -65,7 +59,8 @@ public class AtlasStateEstimatorParameters extends StateEstimatorParameters
       this.runningOnRealRobot = runningOnRealRobot;
       this.estimatorDT = estimatorDT;
 
-      imusForSpineJointEstimation = new ImmutablePair<String, String>(sensorInformation.getPrimaryBodyImu(), sensorInformation.getChestImu());
+      imusForSpineJointEstimation = new ArrayList<>();
+      imusForSpineJointEstimation.add(new ImmutablePair<String, String>(sensorInformation.getPrimaryBodyImu(), sensorInformation.getChestImu()));
 
       wristForceSensorNames = sensorInformation.getWristForceSensorNames();
       footForceSensorNames = sensorInformation.getFeetForceSensorNames();
@@ -369,7 +364,7 @@ public class AtlasStateEstimatorParameters extends StateEstimatorParameters
    }
 
    @Override
-   public boolean useIMUsForSpineJointVelocityEstimation()
+   public boolean useIMUsForJointVelocityEstimation()
    {
       return true;
    }
@@ -389,7 +384,7 @@ public class AtlasStateEstimatorParameters extends StateEstimatorParameters
    }
 
    @Override
-   public ImmutablePair<String, String> getIMUsForSpineJointVelocityEstimation()
+   public ArrayList<ImmutablePair<String, String>> getIMUSensorsToUseInJointStateEstimator()
    {
       return imusForSpineJointEstimation;
    }

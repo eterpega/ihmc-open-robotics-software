@@ -1,17 +1,13 @@
 package us.ihmc.sensorProcessing.simulatedSensors;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-
-import us.ihmc.robotics.screwTheory.FloatingInverseDynamicsJoint;
-import us.ihmc.robotics.screwTheory.InverseDynamicsJoint;
-import us.ihmc.robotics.screwTheory.OneDoFJoint;
-import us.ihmc.robotics.screwTheory.RigidBody;
-import us.ihmc.robotics.screwTheory.ScrewTools;
+import us.ihmc.robotics.screwTheory.*;
 import us.ihmc.simulationconstructionset.FloatingJoint;
 import us.ihmc.simulationconstructionset.Joint;
 import us.ihmc.simulationconstructionset.OneDegreeOfFreedomJoint;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 
 public class SCSToInverseDynamicsJointMap
 {
@@ -74,14 +70,17 @@ public class SCSToInverseDynamicsJointMap
       }
    }
 
+   /*
+   Created to allow creation of inverse dynamics joint map with generic Joints, not full floating joints.
+   for kiwi testleg configuration. May not work on normal robots.
+    */
    public static SCSToInverseDynamicsJointMap createByName(OneDegreeOfFreedomJoint rootOneDegreeOfFreedomJoint, OneDoFJoint rootOneDoFJoint)
    {
       SCSToInverseDynamicsJointMap scsToInverseDynamicsJointMap = new SCSToInverseDynamicsJointMap();
-      
-      
-      InverseDynamicsJoint[] inverseDynamicsJoints = ScrewTools.computeSubtreeJoints(rootOneDoFJoint.getSuccessor());
+
+      InverseDynamicsJoint[] inverseDynamicsJoints = ScrewTools.computeSubtreeJoints(rootOneDoFJoint.getPredecessor());
       LinkedHashMap<String, OneDoFJoint> inverseDynamicsJointsByName = new LinkedHashMap<String, OneDoFJoint>();
-      
+
       for(InverseDynamicsJoint inverseDynamicsJoint : inverseDynamicsJoints)
       {
          if(inverseDynamicsJoint instanceof OneDoFJoint)
@@ -93,21 +92,21 @@ public class SCSToInverseDynamicsJointMap
             throw new RuntimeException(inverseDynamicsJoint.getName() + " is not an OneDoFJoint");
          }
       }
-      
+
       ArrayList<OneDegreeOfFreedomJoint> oneDegreeOfFreedomJoints = new ArrayList<OneDegreeOfFreedomJoint>();
       rootOneDegreeOfFreedomJoint.recursiveGetOneDegreeOfFreedomJoints(oneDegreeOfFreedomJoints);
-      
+
       for (OneDegreeOfFreedomJoint oneDegreeOfFreedomJoint : oneDegreeOfFreedomJoints)
       {
          String name = oneDegreeOfFreedomJoint.getName();
          if(inverseDynamicsJointsByName.containsKey(name))
          {
             OneDoFJoint oneDoFJoint = inverseDynamicsJointsByName.get(name);
-            
+
             scsToInverseDynamicsJointMap.addLinkedJoints(oneDegreeOfFreedomJoint, oneDoFJoint);
          }
       }
-      
+
       return scsToInverseDynamicsJointMap;
    }
    

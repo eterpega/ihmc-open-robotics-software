@@ -1,19 +1,6 @@
 package us.ihmc.escher.parameters;
 
-import static us.ihmc.sensorProcessing.sensorProcessors.SensorProcessing.SensorType.IMU_ANGULAR_VELOCITY;
-import static us.ihmc.sensorProcessing.sensorProcessors.SensorProcessing.SensorType.IMU_LINEAR_ACCELERATION;
-import static us.ihmc.sensorProcessing.sensorProcessors.SensorProcessing.SensorType.IMU_ORIENTATION;
-import static us.ihmc.sensorProcessing.sensorProcessors.SensorProcessing.SensorType.JOINT_POSITION;
-import static us.ihmc.sensorProcessing.sensorProcessors.SensorProcessing.SensorType.JOINT_TAU;
-import static us.ihmc.sensorProcessing.sensorProcessors.SensorProcessing.SensorType.JOINT_VELOCITY;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.commons.lang3.tuple.ImmutablePair;
-
 import us.ihmc.robotics.partNames.ArmJointName;
 import us.ihmc.robotics.partNames.LegJointName;
 import us.ihmc.robotics.robotSide.RobotSide;
@@ -25,6 +12,13 @@ import us.ihmc.sensorProcessing.stateEstimation.FootSwitchType;
 import us.ihmc.sensorProcessing.stateEstimation.StateEstimatorParameters;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static us.ihmc.sensorProcessing.sensorProcessors.SensorProcessing.SensorType.*;
 
 public class EscherStateEstimatorParameters extends StateEstimatorParameters
 {
@@ -307,7 +301,7 @@ public class EscherStateEstimatorParameters extends StateEstimatorParameters
    }
 
    @Override
-   public boolean useIMUsForSpineJointVelocityEstimation()
+   public boolean useIMUsForJointVelocityEstimation()
    {
       return runningOnRealRobot;
    }
@@ -323,11 +317,11 @@ public class EscherStateEstimatorParameters extends StateEstimatorParameters
     * @return {@code Pair<String, String>} the first element is the name of one pelvis IMU, the second is the name of one IMU of the trunk. 
     */
    @Override
-   public ImmutablePair<String, String> getIMUsForSpineJointVelocityEstimation()
+   public ArrayList<ImmutablePair<String, String>> getIMUSensorsToUseInJointStateEstimator()
    {
       return null;
    }
-   
+
    @Override
    public double getContactThresholdHeight()
    {

@@ -46,6 +46,7 @@ import us.ihmc.valkyrie.fingers.ValkyrieHandJointName;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
 
+
 public class ValkyrieStateEstimatorParameters extends StateEstimatorParameters
 {
    private static final boolean DEBUG_VELOCITY_WITH_FD = false;
@@ -502,7 +503,7 @@ public class ValkyrieStateEstimatorParameters extends StateEstimatorParameters
    }
 
    @Override
-   public boolean useIMUsForSpineJointVelocityEstimation()
+   public boolean useIMUsForJointVelocityEstimation()
    {
       return runningOnRealRobot;
    }
@@ -513,14 +514,12 @@ public class ValkyrieStateEstimatorParameters extends StateEstimatorParameters
       return 0.95; // 35 Hz
    }
 
-   /**
-    * IMUs to use to compute the spine joint velocities.
-    * @return {@code Pair<String, String>} the first element is the name of one pelvis IMU, the second is the name of one IMU of the trunk. 
-    */
    @Override
-   public ImmutablePair<String, String> getIMUsForSpineJointVelocityEstimation()
+   public ArrayList<ImmutablePair<String, String>> getIMUSensorsToUseInJointStateEstimator()
    {
-      return new ImmutablePair<String, String>(sensorInformation.getRearPelvisIMUSensor(), sensorInformation.getLeftTrunkIMUSensor());
+      ArrayList<ImmutablePair<String, String>> ImuSensorsToUseInJointStateEstimator = new ArrayList<>();
+      ImuSensorsToUseInJointStateEstimator.add(new ImmutablePair<>(sensorInformation.getRearPelvisIMUSensor(), sensorInformation.getLeftTrunkIMUSensor()));
+      return ImuSensorsToUseInJointStateEstimator;
    }
 
    @Override
