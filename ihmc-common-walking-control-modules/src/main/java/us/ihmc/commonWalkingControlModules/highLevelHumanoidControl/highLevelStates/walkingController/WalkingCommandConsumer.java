@@ -7,8 +7,8 @@ import us.ihmc.commonWalkingControlModules.controlModules.rigidBody.RigidBodyCon
 import us.ihmc.commonWalkingControlModules.messageHandlers.WalkingMessageHandler;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.HighLevelControlManagerFactory;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.highLevelStates.walkingController.states.WalkingState;
-import us.ihmc.commonWalkingControlModules.instantaneousCapturePoint.BalanceManager;
-import us.ihmc.commonWalkingControlModules.instantaneousCapturePoint.CenterOfMassHeightManager;
+import us.ihmc.commonWalkingControlModules.capturePoint.BalanceManager;
+import us.ihmc.commonWalkingControlModules.capturePoint.CenterOfMassHeightManager;
 import us.ihmc.commonWalkingControlModules.momentumBasedController.HighLevelHumanoidControllerToolbox;
 import us.ihmc.commons.PrintTools;
 import us.ihmc.communication.controllerAPI.CommandInputManager;
@@ -436,6 +436,7 @@ public class WalkingCommandConsumer
       {
          walkingMessageHandler.handleComTrajectoryCommand(commandConsumerWithDelayBuffers.pollNewestCommand(CenterOfMassTrajectoryCommand.class));
       }
+
    }
 
    public void consumeAbortWalkingCommands(YoBoolean abortWalkingRequested)
@@ -443,5 +444,13 @@ public class WalkingCommandConsumer
       if (!commandConsumerWithDelayBuffers.isNewCommandAvailable(AbortWalkingCommand.class))
          return;
       abortWalkingRequested.set(commandConsumerWithDelayBuffers.pollNewestCommand(AbortWalkingCommand.class).isAbortWalkingRequested());
+   }
+
+   public void consumePlanarRegionsListCommand()
+   {
+      if (commandConsumerWithDelayBuffers.isNewCommandAvailable(PlanarRegionsListCommand.class))
+      {
+         walkingMessageHandler.handlePlanarRegionsListCommand(commandConsumerWithDelayBuffers.pollNewestCommand(PlanarRegionsListCommand.class));
+      }
    }
 }

@@ -6,9 +6,6 @@ import org.ejml.ops.MatrixFeatures;
 import org.junit.Test;
 import us.ihmc.commonWalkingControlModules.bipedSupportPolygons.BipedSupportPolygons;
 import us.ihmc.commonWalkingControlModules.bipedSupportPolygons.YoPlaneContactState;
-import us.ihmc.commonWalkingControlModules.instantaneousCapturePoint.icpOptimization.ICPOptimizationCoPConstraintHandler;
-import us.ihmc.commonWalkingControlModules.instantaneousCapturePoint.icpOptimization.ICPOptimizationParameters;
-import us.ihmc.commonWalkingControlModules.instantaneousCapturePoint.icpOptimization.simpleController.SimpleICPOptimizationQPSolver;
 import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
 import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationPlan;
 import us.ihmc.continuousIntegration.IntegrationCategory;
@@ -26,6 +23,7 @@ import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoBoolean;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,9 +51,10 @@ public class ICPOptimizationCoPConstraintHandlerTest
 
       SideDependentList<FootSpoof> contactableFeet = setupContactableFeet(footLength, 0.1, stanceWidth);
       BipedSupportPolygons bipedSupportPolygons = setupBipedSupportPolygons(contactableFeet, registry);
-      ICPOptimizationCoPConstraintHandler constraintHandler = new ICPOptimizationCoPConstraintHandler(bipedSupportPolygons, null);
+      YoBoolean useControlPolygons = new YoBoolean("useControlPolygons", registry);
+      ICPOptimizationCoPConstraintHandler constraintHandler = new ICPOptimizationCoPConstraintHandler(bipedSupportPolygons, null, useControlPolygons);
       ICPOptimizationParameters parameters = new TestICPOptimizationParameters();
-      SimpleICPOptimizationQPSolver solver = new SimpleICPOptimizationQPSolver(parameters, 5, false);
+      ICPOptimizationQPSolver solver = new ICPOptimizationQPSolver(parameters, 5, false);
 
       constraintHandler.updateCoPConstraintForDoubleSupport(solver);
       solver.setMaxCMPDistanceFromEdge(0.05);
@@ -115,9 +114,10 @@ public class ICPOptimizationCoPConstraintHandlerTest
 
       SideDependentList<FootSpoof> contactableFeet = setupContactableFeet(footLength, 0.1, stanceWidth);
       BipedSupportPolygons bipedSupportPolygons = setupBipedSupportPolygons(contactableFeet, registry);
-      ICPOptimizationCoPConstraintHandler constraintHandler = new ICPOptimizationCoPConstraintHandler(bipedSupportPolygons, null);
+      YoBoolean useControlPolygons = new YoBoolean("useControlPolygons", registry);
+      ICPOptimizationCoPConstraintHandler constraintHandler = new ICPOptimizationCoPConstraintHandler(bipedSupportPolygons, null, useControlPolygons);
       ICPOptimizationParameters parameters = new TestICPOptimizationParameters();
-      SimpleICPOptimizationQPSolver solver = new SimpleICPOptimizationQPSolver(parameters, 5, false);
+      ICPOptimizationQPSolver solver = new ICPOptimizationQPSolver(parameters, 5, false);
 
       // test left support
       constraintHandler.updateCoPConstraintForSingleSupport(RobotSide.LEFT, solver);
@@ -220,9 +220,10 @@ public class ICPOptimizationCoPConstraintHandlerTest
 
       SideDependentList<FootSpoof> contactableFeet = setupContactableFeet(footLength, 0.1, stanceWidth);
       BipedSupportPolygons bipedSupportPolygons = setupBipedSupportPolygons(contactableFeet, registry);
-      ICPOptimizationCoPConstraintHandler constraintHandler = new ICPOptimizationCoPConstraintHandler(bipedSupportPolygons, null);
+      YoBoolean useControlPolygons = new YoBoolean("useControlPolygons", registry);
+      ICPOptimizationCoPConstraintHandler constraintHandler = new ICPOptimizationCoPConstraintHandler(bipedSupportPolygons, null, useControlPolygons);
       ICPOptimizationParameters parameters = new TestICPOptimizationParameters();
-      SimpleICPOptimizationQPSolver solver = new SimpleICPOptimizationQPSolver(parameters, 5, false);
+      ICPOptimizationQPSolver solver = new ICPOptimizationQPSolver(parameters, 5, false);
 
       constraintHandler.updateCoPConstraintForDoubleSupport(solver);
       solver.setMaxCMPDistanceFromEdge(0.05);
@@ -276,9 +277,10 @@ public class ICPOptimizationCoPConstraintHandlerTest
 
       SideDependentList<FootSpoof> contactableFeet = setupContactableFeet(footLength, 0.1, stanceWidth);
       BipedSupportPolygons bipedSupportPolygons = setupBipedSupportPolygons(contactableFeet, registry);
-      ICPOptimizationCoPConstraintHandler constraintHandler = new ICPOptimizationCoPConstraintHandler(bipedSupportPolygons, null);
+      YoBoolean useControlPolygons = new YoBoolean("useControlPolygons", registry);
+      ICPOptimizationCoPConstraintHandler constraintHandler = new ICPOptimizationCoPConstraintHandler(bipedSupportPolygons, null, useControlPolygons);
       ICPOptimizationParameters parameters = new TestICPOptimizationParameters();
-      SimpleICPOptimizationQPSolver solver = new SimpleICPOptimizationQPSolver(parameters, 5, false);
+      ICPOptimizationQPSolver solver = new ICPOptimizationQPSolver(parameters, 5, false);
 
       // test left support
       constraintHandler.updateCoPConstraintForSingleSupport(RobotSide.LEFT, solver);
@@ -424,12 +426,6 @@ public class ICPOptimizationCoPConstraintHandlerTest
    private class TestICPOptimizationParameters extends ICPOptimizationParameters
    {
       @Override
-      public boolean useSimpleOptimization()
-      {
-         return true;
-      }
-
-      @Override
       public int numberOfFootstepsToConsider()
       {
          return 1;
@@ -484,13 +480,13 @@ public class ICPOptimizationCoPConstraintHandlerTest
       }
 
       @Override
-      public double getDynamicRelaxationWeight()
+      public double getDynamicsObjectiveWeight()
       {
          return 500.0;
       }
 
       @Override
-      public double getDynamicRelaxationDoubleSupportWeightModifier()
+      public double getDynamicsObjectiveDoubleSupportWeightModifier()
       {
          return 1.0;
       }
@@ -514,12 +510,6 @@ public class ICPOptimizationCoPConstraintHandlerTest
       }
 
       @Override
-      public boolean scaleUpcomingStepWeights()
-      {
-         return false;
-      }
-
-      @Override
       public boolean useFeedbackRegularization()
       {
          return false;
@@ -533,12 +523,6 @@ public class ICPOptimizationCoPConstraintHandlerTest
 
       @Override
       public boolean useAngularMomentum()
-      {
-         return false;
-      }
-
-      @Override
-      public boolean useTimingOptimization()
       {
          return false;
       }
