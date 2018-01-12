@@ -22,17 +22,19 @@ public class AtlasHighLevelControllerParameters implements HighLevelControllerPa
 {
    private final AtlasJointMap jointMap;
    private boolean runningOnRealRobot;
+   private final AtlasStandPrepParameters standPrepParameters;
 
    public AtlasHighLevelControllerParameters(boolean runningOnRealRobot, AtlasJointMap jointMap)
    {
       this.runningOnRealRobot = runningOnRealRobot;
       this.jointMap = jointMap;
+      standPrepParameters = new AtlasStandPrepParameters(jointMap);
    }
 
    @Override
    public WholeBodySetpointParameters getStandPrepParameters()
    {
-      return null;
+      return standPrepParameters;
    }
 
    @Override
@@ -44,6 +46,8 @@ public class AtlasHighLevelControllerParameters implements HighLevelControllerPa
          return getDesiredJointBehaviorForWalking();
       case DO_NOTHING_BEHAVIOR:
          return getDesiredJointBehaviorForDoNothing();
+      case DIAGNOSTICS:
+         return getDesiredJointBehaviorForDiagnostic();
       default:
          throw new RuntimeException("Implement a desired joint behavior for the high level state " + state);
       }
@@ -68,6 +72,30 @@ public class AtlasHighLevelControllerParameters implements HighLevelControllerPa
 
       // legs
       JointDesiredBehavior legJointBehavior = new JointDesiredBehavior(JointDesiredControlMode.EFFORT);
+      behaviors.add(new GroupParameter<>("Legs", legJointBehavior, jointMap.getLegJointNamesAsStrings()));
+
+      return behaviors;
+   }
+
+   private List<GroupParameter<JointDesiredBehaviorReadOnly>> getDesiredJointBehaviorForDiagnostic()
+   {
+      List<GroupParameter<JointDesiredBehaviorReadOnly>> behaviors = new ArrayList<>();
+      JointDesiredControlMode positionControlMode = runningOnRealRobot ? JointDesiredControlMode.POSITION : JointDesiredControlMode.EFFORT;
+
+      // neck
+      JointDesiredBehavior neckJointBehavior = new JointDesiredBehavior(positionControlMode, 1.0, 0.1);
+      behaviors.add(new GroupParameter<>("Neck", neckJointBehavior, jointMap.getNeckJointNamesAsStrings()));
+
+      // arms
+      JointDesiredBehavior armJointBehavior = new JointDesiredBehavior(positionControlMode, 10.0, 1.0);
+      behaviors.add(new GroupParameter<>("Arms", armJointBehavior, jointMap.getArmJointNamesAsStrings()));
+
+      // spine
+      JointDesiredBehavior spineJointBehavior = new JointDesiredBehavior(JointDesiredControlMode.EFFORT, 30.0, 3.0);
+      behaviors.add(new GroupParameter<>("Spine", spineJointBehavior, jointMap.getSpineJointNamesAsStrings()));
+
+      // legs
+      JointDesiredBehavior legJointBehavior = new JointDesiredBehavior(JointDesiredControlMode.EFFORT, 30.0, 3.0);
       behaviors.add(new GroupParameter<>("Legs", legJointBehavior, jointMap.getLegJointNamesAsStrings()));
 
       return behaviors;
