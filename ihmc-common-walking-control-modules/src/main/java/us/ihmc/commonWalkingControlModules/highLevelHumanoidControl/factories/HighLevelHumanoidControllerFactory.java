@@ -215,7 +215,10 @@ public class HighLevelHumanoidControllerFactory implements CloseableAndDisposabl
 
    public void useDefaultDiagnosticControlState()
    {
-      //TODO
+      DiagnosticHighLevelManagerStateFactory controllerStateFactory = new DiagnosticHighLevelManagerStateFactory();
+
+      controllerStateFactories.add(controllerStateFactory);
+      controllerFactoriesMap.put(HighLevelControllerName.DIAGNOSTICS, controllerStateFactory);
    }
 
    public void useDefaultCalibrationControlState()
