@@ -8,7 +8,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
-import us.ihmc.robotics.MathTools;
+import us.ihmc.commons.MathTools;
 
 /**
  * A text field that only allows numerical entries and supports limiting entries to min/max values.
