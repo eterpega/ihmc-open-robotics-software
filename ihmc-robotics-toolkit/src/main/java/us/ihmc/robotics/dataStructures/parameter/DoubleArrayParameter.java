@@ -4,7 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.primitives.Doubles;
 
-public class DoubleArrayParameter extends Parameter
+public class DoubleArrayParameter extends ArrayParameter
 {
    private double[] value;
 
@@ -40,6 +40,12 @@ public class DoubleArrayParameter extends Parameter
    {
       this.value[idx] = value;
       super.notifyChangeListeners();
+   }
+
+   @Override
+   public int length()
+   {
+      return value.length;
    }
 
    @Override

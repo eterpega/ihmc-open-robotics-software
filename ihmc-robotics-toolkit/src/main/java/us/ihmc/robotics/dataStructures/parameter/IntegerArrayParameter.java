@@ -4,7 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.primitives.Ints;
 
-public class IntegerArrayParameter extends Parameter
+public class IntegerArrayParameter extends ArrayParameter
 {
    private int[] value;
 
@@ -40,6 +40,12 @@ public class IntegerArrayParameter extends Parameter
    {
       this.value[idx] = value;
       super.notifyChangeListeners();
+   }
+
+   @Override
+   public int length()
+   {
+      return value.length;
    }
 
    @Override
