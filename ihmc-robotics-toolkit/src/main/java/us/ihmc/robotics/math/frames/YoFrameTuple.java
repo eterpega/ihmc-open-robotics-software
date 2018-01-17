@@ -19,8 +19,6 @@ import us.ihmc.euclid.referenceFrame.interfaces.ReferenceFrameHolder;
 import us.ihmc.euclid.transform.interfaces.Transform;
 import us.ihmc.euclid.tuple2D.interfaces.Tuple2DReadOnly;
 import us.ihmc.euclid.tuple3D.Point3D;
-import us.ihmc.euclid.tuple3D.Vector3D;
-import us.ihmc.euclid.tuple3D.interfaces.Tuple3DBasics;
 import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 import us.ihmc.yoVariables.listener.VariableChangedListener;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
@@ -59,12 +57,6 @@ public abstract class YoFrameTuple<S, T extends FrameTuple3D<T, ?>> implements R
       z = new YoDouble(YoFrameVariableNameTools.createZName(namePrefix, nameSuffix), registry);
       this.referenceFrame = referenceFrame;
       this.frameTuple = createEmptyFrameTuple();
-   }
-
-   public final void get(Tuple3DBasics tuple3dToPack)
-   {
-      putYoValuesIntoFrameTuple();
-      tuple3dToPack.set(frameTuple);
    }
 
    /**
@@ -106,18 +98,9 @@ public abstract class YoFrameTuple<S, T extends FrameTuple3D<T, ?>> implements R
       frameTuple.get(startRow, column, tupleMatrixToPack);
    }
 
-   public final Vector3D getVector3dCopy()
-   {
-      Vector3D vector3d = new Vector3D();
-      get(vector3d);
-      return vector3d;
-   }
-
    public final Point3D getPoint3dCopy()
    {
-      Point3D point3d = new Point3D();
-      get(point3d);
-      return point3d;
+      return new Point3D(this);
    }
 
    public final void getFrameTuple2d(FrameTuple2D<?, ?> frameTuple2d)
