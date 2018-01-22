@@ -1,11 +1,11 @@
 package us.ihmc.robotModels;
 
-import java.util.ArrayList;
-
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
 import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.robotics.screwTheory.ScrewTools;
+
+import java.util.ArrayList;
 
 public class FullRobotModelUtils
 {
@@ -15,18 +15,22 @@ public class FullRobotModelUtils
       getAllJointsExcludingHands(joints, model);
       return joints.toArray(new OneDoFJoint[joints.size()]);
    }
-   public static void getAllJointsExcludingHands(ArrayList<OneDoFJoint> jointsToPack, FullHumanoidRobotModel model)
+
+   public static void getAllJointsExcludingHands(ArrayList<OneDoFJoint> jointsToPack, FullRobotModel model)
    {
       model.getOneDoFJoints(jointsToPack);
       for (RobotSide robotSide : RobotSide.values)
       {
-         RigidBody hand = model.getHand(robotSide);
-         if (hand != null)
+         if (model instanceof FullHumanoidRobotModel)
          {
-            OneDoFJoint[] fingerJoints = ScrewTools.filterJoints(ScrewTools.computeSubtreeJoints(hand), OneDoFJoint.class);
-            for (OneDoFJoint fingerJoint : fingerJoints)
+            RigidBody hand = ((FullHumanoidRobotModel) model).getHand(robotSide);
+            if (hand != null)
             {
-               jointsToPack.remove(fingerJoint);
+               OneDoFJoint[] fingerJoints = ScrewTools.filterJoints(ScrewTools.computeSubtreeJoints(hand), OneDoFJoint.class);
+               for (OneDoFJoint fingerJoint : fingerJoints)
+               {
+                  jointsToPack.remove(fingerJoint);
+               }
             }
          }
       }
