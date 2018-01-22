@@ -54,6 +54,8 @@ public interface FloatingInverseDynamicsJoint extends InverseDynamicsJoint
 
    public abstract Vector3DReadOnly getAngularVelocityForReading();
 
+   public abstract Vector3DReadOnly getLinearAccelerationForReading();
+
    public abstract void getLinearAcceleration(Vector3DBasics linearAccelerationToPack);
 
    public abstract void getWrench(Wrench wrenchToPack);

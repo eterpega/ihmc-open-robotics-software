@@ -350,6 +350,13 @@ public class PlanarJoint extends AbstractInverseDynamicsJoint implements Floatin
    }
 
    @Override
+   public Vector3DReadOnly getLinearAccelerationForReading()
+   {
+      jointAcceleration.setLinearPartY(0.0);
+      return jointAcceleration.getLinearPart();
+   }
+
+   @Override
    public void getConfigurationMatrix(DenseMatrix64F matrix, int rowStart)
    {
       int index = rowStart;

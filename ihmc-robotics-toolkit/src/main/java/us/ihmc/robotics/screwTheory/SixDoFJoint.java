@@ -431,4 +431,10 @@ public class SixDoFJoint extends AbstractInverseDynamicsJoint implements Floatin
       linearAccelerationToPack.setY(jointAcceleration.getLinearPartY());
       linearAccelerationToPack.setZ(jointAcceleration.getLinearPartZ());
    }
+
+   @Override
+   public Vector3DReadOnly getLinearAccelerationForReading()
+   {
+      return jointAcceleration.getLinearPart();
+   }
 }
