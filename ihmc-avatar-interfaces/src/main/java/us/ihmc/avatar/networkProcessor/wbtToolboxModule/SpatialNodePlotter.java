@@ -1,4 +1,4 @@
-package us.ihmc.avatar.networkProcessor.rrtToolboxModule;
+package us.ihmc.avatar.networkProcessor.wbtToolboxModule;
 
 import java.awt.Color;
 import java.util.ArrayList;

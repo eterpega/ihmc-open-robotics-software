@@ -1,4 +1,4 @@
-package us.ihmc.avatar.networkProcessor.rrtToolboxModule;
+package us.ihmc.avatar.networkProcessor.wbtToolboxModule;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
@@ -27,6 +27,10 @@ import us.ihmc.avatar.networkProcessor.kinematicsToolboxModule.HumanoidKinematic
 import us.ihmc.avatar.networkProcessor.kinematicsToolboxModule.KinematicsToolboxCommandConverter;
 import us.ihmc.avatar.networkProcessor.kinematicsToolboxModule.KinematicsToolboxControllerTest;
 import us.ihmc.avatar.networkProcessor.kinematicsToolboxModule.KinematicsToolboxModule;
+import us.ihmc.avatar.networkProcessor.wbtToolboxModule.WholeBodyTrajectoryToolboxCommandConverter;
+import us.ihmc.avatar.networkProcessor.wbtToolboxModule.WholeBodyTrajectoryToolboxController;
+import us.ihmc.avatar.networkProcessor.wbtToolboxModule.WholeBodyTrajectoryToolboxHelper;
+import us.ihmc.avatar.networkProcessor.wbtToolboxModule.WholeBodyTrajectoryToolboxModule;
 import us.ihmc.commons.PrintTools;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.communication.controllerAPI.CommandInputManager;
