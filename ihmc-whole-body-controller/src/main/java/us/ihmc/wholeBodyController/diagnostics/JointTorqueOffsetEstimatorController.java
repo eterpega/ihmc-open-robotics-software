@@ -24,6 +24,7 @@ import us.ihmc.robotics.screwTheory.OneDoFJoint;
 import us.ihmc.sensorProcessing.outputData.JointDesiredControlMode;
 import us.ihmc.sensorProcessing.outputData.JointDesiredOutputListReadOnly;
 import us.ihmc.wholeBodyController.JointTorqueOffsetProcessor;
+import us.ihmc.yoVariables.parameters.DoubleParameter;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
@@ -41,10 +42,10 @@ public class JointTorqueOffsetEstimatorController implements RobotController, Jo
    private final LinkedHashMap<OneDoFJoint, YoDouble> desiredPositions = new LinkedHashMap<OneDoFJoint, YoDouble>();
    private final LinkedHashMap<OneDoFJoint, DiagnosticsWhenHangingHelper> helpers = new LinkedHashMap<OneDoFJoint, DiagnosticsWhenHangingHelper>();
 
-   private final YoDouble ditherAmplitude = new YoDouble("ditherAmplitude", registry);
-   private final YoDouble ditherFrequency = new YoDouble("ditherFrequency", registry);
+   private final DoubleParameter ditherAmplitude = new DoubleParameter("ditherAmplitude", registry, 0.3, 0.0, 1.0);
+   private final DoubleParameter ditherFrequency = new DoubleParameter("ditherFrequency", registry, 5.0, 0.0, 10.0);
 
-   private final YoDouble maximumTorqueOffset = new YoDouble("maximumTorqueOffset", registry);
+   private final DoubleParameter maximumTorqueOffset = new DoubleParameter("maximumTorqueOffset", registry, 5.0, 2.0, 15.0);
 
    private final YoBoolean estimateTorqueOffset = new YoBoolean("estimateTorqueOffset", registry);
    private final YoBoolean transferTorqueOffsets = new YoBoolean("transferTorqueOffsets", registry);
@@ -73,10 +74,6 @@ public class JointTorqueOffsetEstimatorController implements RobotController, Jo
       this.torqueOffsetPrinter = torqueOffsetPrinter;
       this.fullRobotModel = highLevelControllerToolbox.getFullRobotModel();
       this.currentTime = highLevelControllerToolbox.getYoTime();
-
-      ditherAmplitude.set(0.3);
-      ditherFrequency.set(5.0);
-      maximumTorqueOffset.set(5.0);
 
       estimateTorqueOffset.set(false);
       transferTorqueOffsets.set(false);
@@ -174,16 +171,16 @@ public class JointTorqueOffsetEstimatorController implements RobotController, Jo
       DiagnosticsWhenHangingHelper diagnosticsWhenHangingHelper = helpers.get(oneDoFJoint);
       if (diagnosticsWhenHangingHelper != null)
       {
-         tau = diagnosticsWhenHangingHelper.getTorqueToApply(tau, estimateTorqueOffset.getBooleanValue(), maximumTorqueOffset.getDoubleValue());
+         tau = diagnosticsWhenHangingHelper.getTorqueToApply(tau, estimateTorqueOffset.getBooleanValue(), maximumTorqueOffset.getValue());
          if (hasReachedMaximumTorqueOffset.getBooleanValue()
-               && Math.abs(diagnosticsWhenHangingHelper.getTorqueOffset()) == maximumTorqueOffset.getDoubleValue())
+               && Math.abs(diagnosticsWhenHangingHelper.getTorqueOffset()) == maximumTorqueOffset.getValue())
          {
             PrintTools.warn(this, "Reached maximum torque for at least one joint.");
             hasReachedMaximumTorqueOffset.set(true);
          }
       }
 
-      double ditherTorque = ditherAmplitude.getDoubleValue() * Math.sin(2.0 * Math.PI * ditherFrequency.getDoubleValue() * timeInCurrentState);
+      double ditherTorque = ditherAmplitude.getValue() * Math.sin(2.0 * Math.PI * ditherFrequency.getValue() * timeInCurrentState);
       oneDoFJoint.setTau(tau + ditherTorque);
    }
 
