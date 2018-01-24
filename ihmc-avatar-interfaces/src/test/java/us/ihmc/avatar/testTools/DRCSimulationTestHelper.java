@@ -141,10 +141,8 @@ public class DRCSimulationTestHelper
    {
       simulationStarter.setRunMultiThreaded(simulationTestingParameters.getRunMultiThreaded());
       simulationStarter.setUsePerfectSensors(simulationTestingParameters.getUsePefectSensors());
-      if (controllerStateFactory != null)
-         simulationStarter.registerHighLevelControllerState(controllerStateFactory);
-      if (controllerStateTransitionFactory != null)
-         simulationStarter.registerControllerStateTransition(controllerStateTransitionFactory);
+      simulationStarter.addHighLevelControllerConfiguration(factory -> factory.addCustomControlState(controllerStateFactory));
+      simulationStarter.addHighLevelControllerConfiguration(factory -> factory.addCustomStateTransition(controllerStateTransitionFactory));
       if (initialSetup != null)
          simulationStarter.setRobotInitialSetup(initialSetup);
       simulationStarter.setStartingLocationOffset(startingLocation);

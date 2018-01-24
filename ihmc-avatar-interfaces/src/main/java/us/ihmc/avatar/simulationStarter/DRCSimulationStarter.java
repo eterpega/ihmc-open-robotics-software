@@ -1,5 +1,8 @@
 package us.ihmc.avatar.simulationStarter;
 
+import static us.ihmc.humanoidRobotics.communication.packets.dataobjects.HighLevelControllerName.DO_NOTHING_BEHAVIOR;
+import static us.ihmc.humanoidRobotics.communication.packets.dataobjects.HighLevelControllerName.WALKING;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +23,8 @@ import us.ihmc.commonWalkingControlModules.configurations.HighLevelControllerPar
 import us.ihmc.commonWalkingControlModules.configurations.ICPWithTimeFreezingPlannerParameters;
 import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParameters;
 import us.ihmc.commonWalkingControlModules.desiredHeadingAndVelocity.HeadingAndVelocityEvaluationScriptParameters;
-import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.*;
+import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.ContactableBodiesFactory;
+import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.HighLevelHumanoidControllerFactory;
 import us.ihmc.commonWalkingControlModules.momentumBasedController.HighLevelHumanoidControllerToolbox;
 import us.ihmc.communication.PacketRouter;
 import us.ihmc.communication.controllerAPI.command.Command;
@@ -32,7 +36,6 @@ import us.ihmc.communication.util.NetworkPorts;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.humanoidBehaviors.behaviors.scripts.engine.ScriptBasedControllerCommandGenerator;
-import us.ihmc.humanoidRobotics.communication.packets.HighLevelStateMessage;
 import us.ihmc.humanoidRobotics.communication.packets.dataobjects.HighLevelControllerName;
 import us.ihmc.humanoidRobotics.communication.producers.RawVideoDataServer;
 import us.ihmc.humanoidRobotics.communication.streamingData.HumanoidGlobalDataProducer;
@@ -58,8 +61,6 @@ import us.ihmc.tools.processManagement.JavaProcessSpawner;
 import us.ihmc.util.PeriodicNonRealtimeThreadScheduler;
 import us.ihmc.wholeBodyController.DRCRobotJointMap;
 import us.ihmc.wholeBodyController.RobotContactPointParameters;
-
-import static us.ihmc.humanoidRobotics.communication.packets.dataobjects.HighLevelControllerName.*;
 
 public class DRCSimulationStarter implements SimulationStarterInterface
 {
@@ -106,8 +107,8 @@ public class DRCSimulationStarter implements SimulationStarterInterface
    private final Point3D scsCameraPosition = new Point3D(6.0, -2.0, 4.5);
    private final Point3D scsCameraFix = new Point3D(-0.44, -0.17, 0.75);
 
-   private final List<HighLevelControllerStateFactory> highLevelControllerFactories = new ArrayList<>();
-   private final List<ControllerStateTransitionFactory<HighLevelControllerName>> controllerTransitionFactories = new ArrayList<>();
+   private HighLevelControllerName initialHighLevelControllerName = HighLevelControllerName.WALKING;
+   private List<HighLevelControllerConfiguration> highLevelControllerConfigurations = new ArrayList<>();
    private DRCNetworkProcessor networkProcessor;
 
    private final ArrayList<ControllerFailureListener> controllerFailureListeners = new ArrayList<>();
@@ -151,20 +152,22 @@ public class DRCSimulationStarter implements SimulationStarterInterface
       return environment;
    }
 
-   /**
-    * Register a controller to be created in addition to the walking controller.
-    * For instance, the {@link CarIngressEgressController} can be created by passing its factory, i.e. {@link CarIngressEgressControllerFactory}.
-    * The active controller can then be switched by either changing the variable {@code requestedHighLevelState} from SCS or by sending a {@link HighLevelStateMessage} to the controller.
-    * @param controllerFactory a factory to create an additional controller.
-    */
-   public void registerHighLevelControllerState(HighLevelControllerStateFactory controllerFactory)
+   public void setInitialHighLevelControllerName(HighLevelControllerName initialHighLevelControllerName)
    {
-      this.highLevelControllerFactories.add(controllerFactory);
+      this.initialHighLevelControllerName = initialHighLevelControllerName;
    }
 
-   public void registerControllerStateTransition(ControllerStateTransitionFactory<HighLevelControllerName> controllerStateTransitionFactory)
+   /**
+    * Register a configuration for the high-level controller factory.
+    * <p>
+    * The configuration can for instance setup new control state and transition, as well as change the initial control state.
+    * </p>
+    *
+    * @param highLevelControllerConfiguration the configuration to be applied on the controller factory.
+    */
+   public void addHighLevelControllerConfiguration(HighLevelControllerConfiguration highLevelControllerConfiguration)
    {
-      this.controllerTransitionFactories.add(controllerStateTransitionFactory);
+      highLevelControllerConfigurations.add(highLevelControllerConfiguration);
    }
 
    /**
@@ -412,12 +415,7 @@ public class DRCSimulationStarter implements SimulationStarterInterface
          controllerFactory.createControllerNetworkSubscriber(new PeriodicNonRealtimeThreadScheduler("CapturabilityBasedStatusProducer"),
                                                              controllerPacketCommunicator);
 
-      for (int i = 0; i < highLevelControllerFactories.size(); i++)
-         controllerFactory.addCustomControlState(highLevelControllerFactories.get(i));
-      for (int i = 0; i < controllerTransitionFactories.size(); i++)
-         controllerFactory.addCustomStateTransition(controllerTransitionFactories.get(i));
-
-      controllerFactory.setInitialState(HighLevelControllerName.WALKING);
+      controllerFactory.setInitialState(initialHighLevelControllerName);
 
       controllerFactory.createQueuedControllerCommandGenerator(controllerCommands);
 
@@ -427,6 +425,8 @@ public class DRCSimulationStarter implements SimulationStarterInterface
          controllerFactory.createComponentBasedFootstepDataMessageGenerator(useHeadingAndVelocityScript, scsInitialSetup.getHeightMap());
       else if (addFootstepMessageGenerator)
          controllerFactory.createComponentBasedFootstepDataMessageGenerator(useHeadingAndVelocityScript);
+
+      highLevelControllerConfigurations.forEach(config -> config.configure(controllerFactory));
 
       AvatarSimulationFactory avatarSimulationFactory = new AvatarSimulationFactory();
       avatarSimulationFactory.setRobotModel(robotModel);
