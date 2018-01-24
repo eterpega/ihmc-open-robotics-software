@@ -5,58 +5,37 @@ import org.junit.Before;
 import us.ihmc.avatar.DRCObstacleCourseStartingLocation;
 import us.ihmc.avatar.MultiRobotTestInterface;
 import us.ihmc.avatar.testTools.DRCSimulationTestHelper;
-import us.ihmc.avatar.testTools.ScriptedFootstepGenerator;
 import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParameters;
 import us.ihmc.commonWalkingControlModules.momentumBasedController.HighLevelHumanoidControllerToolbox;
-import us.ihmc.commons.RandomNumbers;
 import us.ihmc.commons.thread.ThreadTools;
-import us.ihmc.communication.controllerAPI.command.Command;
 import us.ihmc.euclid.geometry.BoundingBox3D;
-import us.ihmc.euclid.geometry.ConvexPolygon2D;
-import us.ihmc.euclid.geometry.Line2D;
-import us.ihmc.euclid.referenceFrame.FramePoint2D;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
-import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple2D.Point2D;
-import us.ihmc.euclid.tuple2D.Vector2D;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple4D.Quaternion;
-import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
-import us.ihmc.graphicsDescription.yoGraphics.plotting.YoArtifactPolygon;
-import us.ihmc.humanoidRobotics.communication.controllerAPI.command.FootTrajectoryCommand;
-import us.ihmc.humanoidRobotics.communication.packets.TrajectoryPoint1DMessage;
-import us.ihmc.humanoidRobotics.communication.packets.manipulation.ArmTrajectoryMessage;
-import us.ihmc.humanoidRobotics.communication.packets.manipulation.OneDoFJointTrajectoryMessage;
-import us.ihmc.humanoidRobotics.communication.packets.walking.FootTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataListMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.PauseWalkingMessage;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotics.geometry.FrameConvexPolygon2d;
-import us.ihmc.robotics.math.frames.YoFrameConvexPolygon2d;
 import us.ihmc.robotics.partNames.LimbName;
-import us.ihmc.robotics.robotController.RobotController;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.simulationConstructionSetTools.bambooTools.BambooTools;
 import us.ihmc.simulationConstructionSetTools.util.environments.FlatGroundEnvironment;
-import us.ihmc.simulationToolkit.controllers.PushRobotController;
 import us.ihmc.simulationconstructionset.*;
 import us.ihmc.simulationconstructionset.util.simulationRunner.BlockingSimulationRunner.SimulationExceededMaximumTimeException;
 import us.ihmc.simulationconstructionset.util.simulationTesting.SimulationTestingParameters;
 import us.ihmc.tools.MemoryTools;
 import us.ihmc.yoVariables.listener.VariableChangedListener;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.yoVariables.variable.YoVariable;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.Random;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -82,7 +61,6 @@ public abstract class AvatarICPPlannerFlatGroundTest implements MultiRobotTestIn
    {
       MemoryTools.printCurrentMemoryUsageAndReturnUsedMemoryInMB(getClass().getSimpleName() + " before test.");
       simulationTestingParameters = SimulationTestingParameters.createFromEnvironmentVariables();
-      simulationTestingParameters.setKeepSCSUp(true);
    }
 
    @After
@@ -205,7 +183,7 @@ public abstract class AvatarICPPlannerFlatGroundTest implements MultiRobotTestIn
    }
 
    /**
-    * This test will drop the floor out from underneath the sim randomly while standing. Tests if detection and hold position are working well.
+    * This test pauses walking after the first two steps to check that functionality, and then finishes the plan.
     */
    public void testPauseWalkingInSwing() throws SimulationExceededMaximumTimeException, RuntimeException
    {
@@ -269,16 +247,79 @@ public abstract class AvatarICPPlannerFlatGroundTest implements MultiRobotTestIn
 
       assertTrue(success);
 
-      Point3D center = new Point3D(-0.06095496955280358, -0.001119333179390724, 0.7875020745919501);
-      Vector3D plusMinusVector = new Vector3D(0.2, 0.2, 0.5);
-      BoundingBox3D boundingBox = BoundingBox3D.createUsingCenterAndPlusMinusVector(center, plusMinusVector);
-      drcSimulationTestHelper.assertRobotsRootJointIsInBoundingBox(boundingBox);
+      BambooTools.reportTestFinishedMessage(simulationTestingParameters.getShowWindows());
+   }
+
+   /**
+    * This test pauses walking on the first step to check that functionality, and then finishes the plan.
+    */
+   public void testPauseWalkingInTransferFirstStep() throws SimulationExceededMaximumTimeException, RuntimeException
+   {
+      BambooTools.reportTestStartedMessage(simulationTestingParameters.getShowWindows());
+
+      DRCObstacleCourseStartingLocation selectedLocation = DRCObstacleCourseStartingLocation.DEFAULT;
+      FlatGroundEnvironment flatEnvironment = new FlatGroundEnvironment();
+      drcSimulationTestHelper = new DRCSimulationTestHelper(simulationTestingParameters, getRobotModel());
+      drcSimulationTestHelper = new DRCSimulationTestHelper(simulationTestingParameters, getRobotModel());
+      drcSimulationTestHelper.setTestEnvironment(flatEnvironment);
+      drcSimulationTestHelper.setStartingLocation(selectedLocation);
+      drcSimulationTestHelper.createSimulation("ICPFlatGroundTest");
+
+      YoDouble desiredICPX = (YoDouble) drcSimulationTestHelper.getYoVariable("desiredICPX");
+      YoDouble desiredICPY = (YoDouble) drcSimulationTestHelper.getYoVariable("desiredICPY");
+
+      desiredICPX.addVariableChangedListener(new VariableChangedListener()
+      {
+         @Override
+         public void notifyOfVariableChange(YoVariable<?> v)
+         {
+            if (Double.isNaN(v.getValueAsDouble()))
+            {
+               fail("Desired ICP X value is NaN.");
+            }
+         }
+      });
+      desiredICPY.addVariableChangedListener(new VariableChangedListener()
+      {
+         @Override
+         public void notifyOfVariableChange(YoVariable<?> v)
+         {
+            if (Double.isNaN(v.getValueAsDouble()))
+            {
+               fail("Desired ICP Y value is NaN.");
+            }
+         }
+      });
+
+
+      setupCameraForWalkingUpToRamp();
+
+      ThreadTools.sleep(1000);
+      boolean success = drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(1.0);
+
+      int numberOfSteps = 5;
+      double swingDuration = 1.0;
+      double transferDuration = 0.3;
+      FootstepDataListMessage message = createForwardWalkingFootsteps(numberOfSteps, 0.3, 0.3, swingDuration, transferDuration);
+      drcSimulationTestHelper.send(message);
+
+      drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(0.8 * transferDuration);
+      drcSimulationTestHelper.send(new PauseWalkingMessage(true));
+
+      drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(4.0);
+      drcSimulationTestHelper.send(new PauseWalkingMessage(false));
+
+      drcSimulationTestHelper.simulateAndBlockAndCatchExceptions((numberOfSteps + 1) * (swingDuration + transferDuration));
+
+      drcSimulationTestHelper.checkNothingChanged();
+
+      assertTrue(success);
 
       BambooTools.reportTestFinishedMessage(simulationTestingParameters.getShowWindows());
    }
 
    /**
-    * This test will drop the floor out from underneath the sim randomly while standing. Tests if detection and hold position are working well.
+    * This test pauses walking after the first two steps to check that functionality, and then finishes the plan.
     */
    public void testPauseWalkingInTransfer() throws SimulationExceededMaximumTimeException, RuntimeException
    {
@@ -342,87 +383,9 @@ public abstract class AvatarICPPlannerFlatGroundTest implements MultiRobotTestIn
 
       assertTrue(success);
 
-      Point3D center = new Point3D(-0.06095496955280358, -0.001119333179390724, 0.7875020745919501);
-      Vector3D plusMinusVector = new Vector3D(0.2, 0.2, 0.5);
-      BoundingBox3D boundingBox = BoundingBox3D.createUsingCenterAndPlusMinusVector(center, plusMinusVector);
-      drcSimulationTestHelper.assertRobotsRootJointIsInBoundingBox(boundingBox);
-
       BambooTools.reportTestFinishedMessage(simulationTestingParameters.getShowWindows());
    }
 
-   /**
-    * This test will drop the floor out from underneath the sim randomly while standing. Tests if detection and hold position are working well.
-    */
-   public void testPauseWalkingInTransferOfLongPlan() throws SimulationExceededMaximumTimeException, RuntimeException
-   {
-      BambooTools.reportTestStartedMessage(simulationTestingParameters.getShowWindows());
-
-      DRCObstacleCourseStartingLocation selectedLocation = DRCObstacleCourseStartingLocation.DEFAULT;
-      FlatGroundEnvironment flatEnvironment = new FlatGroundEnvironment();
-      drcSimulationTestHelper = new DRCSimulationTestHelper(simulationTestingParameters, getRobotModel());
-      drcSimulationTestHelper = new DRCSimulationTestHelper(simulationTestingParameters, getRobotModel());
-      drcSimulationTestHelper.setTestEnvironment(flatEnvironment);
-      drcSimulationTestHelper.setStartingLocation(selectedLocation);
-      drcSimulationTestHelper.createSimulation("ICPFlatGroundTest");
-
-      YoDouble desiredICPX = (YoDouble) drcSimulationTestHelper.getYoVariable("desiredICPX");
-      YoDouble desiredICPY = (YoDouble) drcSimulationTestHelper.getYoVariable("desiredICPY");
-
-      desiredICPX.addVariableChangedListener(new VariableChangedListener()
-      {
-         @Override
-         public void notifyOfVariableChange(YoVariable<?> v)
-         {
-            if (Double.isNaN(v.getValueAsDouble()))
-            {
-               fail("Desired ICP X value is NaN.");
-            }
-         }
-      });
-      desiredICPY.addVariableChangedListener(new VariableChangedListener()
-      {
-         @Override
-         public void notifyOfVariableChange(YoVariable<?> v)
-         {
-            if (Double.isNaN(v.getValueAsDouble()))
-            {
-               fail("Desired ICP Y value is NaN.");
-            }
-         }
-      });
-
-
-      setupCameraForWalkingUpToRamp();
-
-      ThreadTools.sleep(1000);
-      boolean success = drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(1.0);
-
-      int numberOfSteps = 12;
-      int stepToPauseOn = numberOfSteps - 2;
-      double swingDuration = 1.0;
-      double transferDuration = 0.3;
-      FootstepDataListMessage message = createForwardWalkingFootsteps(numberOfSteps, 0.3, 0.3, swingDuration, transferDuration);
-      drcSimulationTestHelper.send(message);
-
-      drcSimulationTestHelper.simulateAndBlockAndCatchExceptions((stepToPauseOn - 1) * (swingDuration + transferDuration) + 0.8 * transferDuration);
-      drcSimulationTestHelper.send(new PauseWalkingMessage(true));
-
-      drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(4.0);
-      drcSimulationTestHelper.send(new PauseWalkingMessage(false));
-
-      drcSimulationTestHelper.simulateAndBlockAndCatchExceptions((numberOfSteps + 2 - stepToPauseOn) * (swingDuration + transferDuration));
-
-      drcSimulationTestHelper.checkNothingChanged();
-
-      assertTrue(success);
-
-      Point3D center = new Point3D(-0.06095496955280358, -0.001119333179390724, 0.7875020745919501);
-      Vector3D plusMinusVector = new Vector3D(0.2, 0.2, 0.5);
-      BoundingBox3D boundingBox = BoundingBox3D.createUsingCenterAndPlusMinusVector(center, plusMinusVector);
-      drcSimulationTestHelper.assertRobotsRootJointIsInBoundingBox(boundingBox);
-
-      BambooTools.reportTestFinishedMessage(simulationTestingParameters.getShowWindows());
-   }
 
    private FootstepDataListMessage createForwardWalkingFootsteps(int numberOfSteps, double length, double stanceWidth, double swingDuration, double transferDuration)
    {
