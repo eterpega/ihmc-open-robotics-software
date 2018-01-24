@@ -273,8 +273,11 @@ public class HighLevelHumanoidControllerFactory implements CloseableAndDisposabl
 
    public void addCustomControlState(HighLevelControllerStateFactory customControllerStateFactory)
    {
-      controllerStateFactories.add(customControllerStateFactory);
-      controllerFactoriesMap.put(customControllerStateFactory.getStateEnum(), customControllerStateFactory);
+      if (customControllerStateFactory != null)
+      {
+         controllerStateFactories.add(customControllerStateFactory);
+         controllerFactoriesMap.put(customControllerStateFactory.getStateEnum(), customControllerStateFactory);
+      }
    }
 
    public void addFinishedTransition(HighLevelControllerName currentControlStateEnum, HighLevelControllerName nextControlStateEnum)
@@ -295,7 +298,8 @@ public class HighLevelHumanoidControllerFactory implements CloseableAndDisposabl
 
    public void addCustomStateTransition(ControllerStateTransitionFactory<HighLevelControllerName> stateTransitionFactory)
    {
-      stateTransitionFactories.add(stateTransitionFactory);
+      if (stateTransitionFactory != null)
+         stateTransitionFactories.add(stateTransitionFactory);
    }
 
    public void setInitialState(HighLevelControllerName initialStateEnum)
