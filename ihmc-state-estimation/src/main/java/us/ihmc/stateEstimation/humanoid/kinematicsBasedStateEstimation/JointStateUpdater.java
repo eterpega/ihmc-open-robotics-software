@@ -123,10 +123,10 @@ public class JointStateUpdater
 
       for (OneDoFJoint oneDoFJoint : oneDoFJoints)
       {
-         double positionSensorData = sensorMap.getJointPositionProcessedOutput(oneDoFJoint);
-         double velocitySensorData = sensorMap.getJointVelocityProcessedOutput(oneDoFJoint);
-         double torqueSensorData = sensorMap.getJointTauProcessedOutput(oneDoFJoint);
-         boolean jointEnabledIndicator = sensorMap.isJointEnabled(oneDoFJoint);
+         double positionSensorData = oneDoFJoint.getQ();//sensorMap.getJointPositionProcessedOutput(oneDoFJoint);
+         double velocitySensorData = oneDoFJoint.getQd();//sensorMap.getJointVelocityProcessedOutput(oneDoFJoint);
+         //double torqueSensorData = sensorMap.getJointTauProcessedOutput(oneDoFJoint);
+         //boolean jointEnabledIndicator = sensorMap.isJointEnabled(oneDoFJoint);
 
          if (enableIMUBasedJointVelocityEstimator.getBooleanValue())
          {
@@ -143,10 +143,10 @@ public class JointStateUpdater
             }
          }
 
-         oneDoFJoint.setQ(positionSensorData);
+         //oneDoFJoint.setQ(positionSensorData);
          oneDoFJoint.setQd(velocitySensorData);
-         oneDoFJoint.setTauMeasured(torqueSensorData);
-         oneDoFJoint.setEnabled(jointEnabledIndicator);
+         //oneDoFJoint.setTauMeasured(torqueSensorData);
+         //oneDoFJoint.setEnabled(jointEnabledIndicator);
       }
    }
 }

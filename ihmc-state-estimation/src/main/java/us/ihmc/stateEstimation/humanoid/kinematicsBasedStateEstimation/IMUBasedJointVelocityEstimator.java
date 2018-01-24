@@ -80,6 +80,8 @@ public class IMUBasedJointVelocityEstimator
       qd_estimated = new DenseMatrix64F(joints.length, 1);
       inverse = new DenseMatrix64F(joints.length, joints.length);
 
+      // TODO: change alpha values to saveable parameters
+      // TODO: add a fake pelvis IMU that always outputs zero
       for (OneDoFJoint joint : joints)
       {
          jointVelocitiesFromIMUOnly.put(joint, new YoDouble("qd_" + joint.getName() + "_IMUBased", registry));
