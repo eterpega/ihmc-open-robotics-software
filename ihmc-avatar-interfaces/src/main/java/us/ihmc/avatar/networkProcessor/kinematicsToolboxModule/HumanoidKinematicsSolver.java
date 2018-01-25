@@ -9,6 +9,7 @@ import us.ihmc.communication.packets.KinematicsToolboxRigidBodyMessage;
 import us.ihmc.euclid.tuple3D.Vector3D32;
 import us.ihmc.euclid.tuple4D.Quaternion32;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.manipulation.collision.FullRobotModelCollisionSet;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotModels.FullHumanoidRobotModelFactory;
 import us.ihmc.sensorProcessing.communication.packets.dataobjects.RobotConfigurationData;
@@ -42,6 +43,8 @@ public class HumanoidKinematicsSolver
    private final YoDouble computationTime = new YoDouble("computationTime", registry);
 
    private final YoDouble solutionQuality = new YoDouble("solutionQuality", registry);
+   
+   public final FullRobotModelCollisionSet collisionSet;
 
    public HumanoidKinematicsSolver(FullHumanoidRobotModelFactory fullRobotModelFactory, YoGraphicsListRegistry yoGraphicsListRegistry,
                                    YoVariableRegistry parentRegistry)
@@ -58,6 +61,8 @@ public class HumanoidKinematicsSolver
       solutionStabilityThreshold.set(DEFAULT_STABILITY_THRESHOLD);
       solutionMinimumProgression.set(DEFAULT_MIN_PROGRESSION);
 
+      collisionSet = new FullRobotModelCollisionSet(fullRobotModelFactory, desiredFullRobotModel, registry);
+      
       parentRegistry.addChild(registry);
    }
 
@@ -152,6 +157,8 @@ public class HumanoidKinematicsSolver
             break;
       }
 
+      collisionSet.update(getSolution());
+      
       numberOfIterations.set(iteration);
       hasConverged.set(isSolutionGood);
 
@@ -160,6 +167,12 @@ public class HumanoidKinematicsSolver
       computationTime.set(Conversions.nanosecondsToSeconds(endTime - startTime));
 
       return isSolutionGood;
+   }
+   
+   public boolean isCollisionFree()
+   {
+      
+      return true;
    }
 
    public FullHumanoidRobotModel getDesiredFullRobotModel()

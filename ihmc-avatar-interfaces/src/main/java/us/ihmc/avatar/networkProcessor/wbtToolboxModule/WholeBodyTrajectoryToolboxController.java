@@ -128,7 +128,7 @@ public class WholeBodyTrajectoryToolboxController extends ToolboxController
 
    private YoInteger numberOfIterationForShortcutOptimization = new YoInteger("numberOfIterationForShortcutOptimization", registry);
 
-   /**
+   /*
     * Toolbox state
     */
    private final YoEnum<CWBToolboxState> state = new YoEnum<>("state", registry, CWBToolboxState.class);
@@ -195,6 +195,10 @@ public class WholeBodyTrajectoryToolboxController extends ToolboxController
       testFramePose = new YoFramePose("testFramePose", ReferenceFrame.getWorldFrame(), registry);
       testFrameViz = new YoGraphicCoordinateSystem("testFrameViz", testFramePose, 0.25);
       yoGraphicsListRegistry.registerYoGraphic("testFrameYoGraphic", testFrameViz);
+      
+      PrintTools.info("aa");
+      yoGraphicsListRegistry.registerYoGraphicsList(humanoidKinematicsSolver.collisionSet.yoGraphicsList);
+      PrintTools.info("aa");
    }
 
    @Override
@@ -783,6 +787,7 @@ public class WholeBodyTrajectoryToolboxController extends ToolboxController
          totalTime += motionGenerationComputationTime.getDoubleValue();
       totalComputationTime.set(totalTime);
 
+      humanoidKinematicsSolver.collisionSet.hideYoGraphics();
       if (VERBOSE)
       {
          PrintTools.info("===========================================");
