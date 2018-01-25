@@ -2,12 +2,7 @@ package us.ihmc.stateEstimation.humanoid.kinematicsBasedStateEstimation;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import us.ihmc.commons.PrintTools;
-import us.ihmc.robotics.screwTheory.*;
-import us.ihmc.robotics.screwTheory.InverseDynamicsJoint;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
-import us.ihmc.robotics.screwTheory.RigidBody;
-import us.ihmc.robotics.screwTheory.ScrewTools;
-import us.ihmc.robotics.screwTheory.SpatialAccelerationCalculator;
 import us.ihmc.sensorProcessing.sensorProcessors.SensorOutputMapReadOnly;
 import us.ihmc.sensorProcessing.stateEstimation.IMUSensorReadOnly;
 import us.ihmc.sensorProcessing.stateEstimation.StateEstimatorParameters;
@@ -88,10 +83,10 @@ public class JointStateUpdater
          double slopTime = stateEstimatorParameters.getIMUJointVelocityEstimationBacklashSlopTime();
          IMUBasedJointVelocityEstimator iMUBasedJointVelocityEstimator = new IMUBasedJointVelocityEstimator(parentImu, childImu, sensorOutputMapReadOnly,
                                                                                                             estimatorDT, slopTime, parentRegistry);
-         iMUBasedJointVelocityEstimator.compute();
-         double alphaIMUsForSpineJointVelocityEstimation = stateEstimatorParameters.getAlphaIMUsForSpineJointVelocityEstimation();
-         double alphaIMUsForSpineJointPositionEstimation = stateEstimatorParameters.getAlphaIMUsForSpineJointPositionEstimation();
-         iMUBasedJointVelocityEstimator.setAlphaFuse(alphaIMUsForSpineJointVelocityEstimation, alphaIMUsForSpineJointPositionEstimation);
+         //         iMUBasedJointVelocityEstimator.compute();
+         //         double alphaIMUsForSpineJointVelocityEstimation = stateEstimatorParameters.getAlphaIMUsForSpineJointVelocityEstimation();
+         //         double alphaIMUsForSpineJointPositionEstimation = stateEstimatorParameters.getAlphaIMUsForSpineJointPositionEstimation();
+         //         iMUBasedJointVelocityEstimator.setAlphaFuse(alphaIMUsForSpineJointVelocityEstimation, alphaIMUsForSpineJointPositionEstimation);
          return iMUBasedJointVelocityEstimator;
       }
       else
@@ -125,8 +120,8 @@ public class JointStateUpdater
       {
          double positionSensorData = oneDoFJoint.getQ();//sensorMap.getJointPositionProcessedOutput(oneDoFJoint);
          double velocitySensorData = oneDoFJoint.getQd();//sensorMap.getJointVelocityProcessedOutput(oneDoFJoint);
-         //double torqueSensorData = sensorMap.getJointTauProcessedOutput(oneDoFJoint);
-         //boolean jointEnabledIndicator = sensorMap.isJointEnabled(oneDoFJoint);
+         double torqueSensorData = oneDoFJoint.getTau();//sensorMap.getJointTauProcessedOutput(oneDoFJoint);
+         boolean jointEnabledIndicator = oneDoFJoint.isEnabled();//sensorMap.isJointEnabled(oneDoFJoint);
 
          if (enableIMUBasedJointVelocityEstimator.getBooleanValue())
          {

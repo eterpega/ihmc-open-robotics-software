@@ -12,6 +12,7 @@ import us.ihmc.robotics.screwTheory.OneDoFJoint;
 import us.ihmc.robotics.screwTheory.ScrewTools;
 import us.ihmc.sensorProcessing.sensorProcessors.SensorOutputMapReadOnly;
 import us.ihmc.sensorProcessing.stateEstimation.IMUSensorReadOnly;
+import us.ihmc.yoVariables.parameters.DoubleParameter;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
 
@@ -32,8 +33,8 @@ import java.util.Map;
  */
 public class IMUBasedJointVelocityEstimator
 {
-   private final YoDouble alphaVelocity;
-   private final YoDouble alphaPosition;
+   private final DoubleParameter alphaVelocity;
+   private final DoubleParameter alphaPosition;
    private final GeometricJacobian jacobian;
    private final IMUSensorReadOnly parentIMU;
    private final IMUSensorReadOnly childIMU;
@@ -66,10 +67,8 @@ public class IMUBasedJointVelocityEstimator
       joints = ScrewTools.filterJoints(jacobian.getJointsInOrder(), OneDoFJoint.class);
 
       String namePrefix = childIMU.getSensorName() + "JointVelocityEstimator";
-      alphaVelocity = new YoDouble(namePrefix + "AlphaFuseVelocity", registry);
-      alphaVelocity.set(0.0);
-      alphaPosition = new YoDouble(namePrefix + "AlphaFusePosition", registry);
-      alphaPosition.set(0.0);
+      alphaVelocity = new DoubleParameter(namePrefix + "AlphaFuseVelocity", registry, 0.0);
+      alphaPosition = new DoubleParameter(namePrefix + "AlphaFusePosition", registry, 0.0);
 
       this.estimatorDT = estimatorDT;
       this.slopTime = new YoDouble(namePrefix + "SlopTime", registry);
@@ -94,8 +93,7 @@ public class IMUBasedJointVelocityEstimator
 
    public void setAlphaFuse(double alphaVelocity, double alphaPosition)
    {
-      this.alphaVelocity.set(alphaVelocity);
-      this.alphaPosition.set(alphaPosition);
+      return;
    }
 
    public void compute()
@@ -141,14 +139,14 @@ public class IMUBasedJointVelocityEstimator
 
          double qd_sensorMap = joint.getQd();//sensorMap.getJointVelocityProcessedOutput(joint);
          double qd_IMU = qd_estimated.get(i, 0);
-         double qd_fused = (1.0 - alphaVelocity.getDoubleValue()) * qd_sensorMap + alphaVelocity.getDoubleValue() * qd_IMU;
+         double qd_fused = (1.0 - alphaVelocity.getValue()) * qd_sensorMap + alphaVelocity.getValue() * qd_IMU;
 
          jointVelocitiesFromIMUOnly.get(joint).set(qd_IMU);
          jointVelocities.get(joint).update(qd_fused);
 
          double q_sensorMap = joint.getQ();//sensorMap.getJointPositionProcessedOutput(joint);
          double q_IMU = jointPositions.get(joint).getDoubleValue() + estimatorDT * qd_IMU; // is qd_IMU or qd_fused better here?
-         double q_fused = (1.0 - alphaPosition.getDoubleValue()) * q_sensorMap + alphaPosition.getDoubleValue() * q_IMU;
+         double q_fused = (1.0 - alphaPosition.getValue()) * q_sensorMap + alphaPosition.getValue() * q_IMU;
 
          jointPositionsFromIMUOnly.get(joint).set(q_IMU);
          jointPositions.get(joint).set(q_fused);
