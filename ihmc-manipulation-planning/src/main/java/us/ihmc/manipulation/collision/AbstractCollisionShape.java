@@ -88,6 +88,11 @@ public abstract class AbstractCollisionShape
    {
       yoGraphic.hideGraphicObject();
    }
+   
+   public String getName()
+   {
+      return name;
+   }
 
    public CollisionShape getCollisionShape()
    {

@@ -44,7 +44,7 @@ public class HumanoidKinematicsSolver
 
    private final YoDouble solutionQuality = new YoDouble("solutionQuality", registry);
    
-   public final FullRobotModelCollisionSet collisionSet;
+   private final FullRobotModelCollisionSet collisionSet;
 
    public HumanoidKinematicsSolver(FullHumanoidRobotModelFactory fullRobotModelFactory, YoGraphicsListRegistry yoGraphicsListRegistry,
                                    YoVariableRegistry parentRegistry)
@@ -62,6 +62,7 @@ public class HumanoidKinematicsSolver
       solutionMinimumProgression.set(DEFAULT_MIN_PROGRESSION);
 
       collisionSet = new FullRobotModelCollisionSet(fullRobotModelFactory, desiredFullRobotModel, registry);
+      collisionSet.registerYoGraphicsList(yoGraphicsListRegistry);
       
       parentRegistry.addChild(registry);
    }
@@ -167,6 +168,11 @@ public class HumanoidKinematicsSolver
       computationTime.set(Conversions.nanosecondsToSeconds(endTime - startTime));
 
       return isSolutionGood;
+   }
+   
+   public void hideCollisionShapes()
+   {
+      collisionSet.hideYoGraphics();
    }
    
    public boolean isCollisionFree()
