@@ -186,6 +186,7 @@ public class WholeBodyTrajectoryToolboxController extends ToolboxController
       terminalConditionNumberOfValidInitialGuesses.set(TERMINAL_CONDITION_NUMBER_OF_VALID_INITIAL_GUESSES);
 
       humanoidKinematicsSolver = new HumanoidKinematicsSolver(drcRobotModel, yoGraphicsListRegistry, registry);
+      PrintTools.info("aa");
       
       toolboxSolution = new WholeBodyTrajectoryToolboxOutputStatus();
       toolboxSolution.setDestination(-1);
@@ -783,7 +784,8 @@ public class WholeBodyTrajectoryToolboxController extends ToolboxController
          totalTime += motionGenerationComputationTime.getDoubleValue();
       totalComputationTime.set(totalTime);
 
-      humanoidKinematicsSolver.hideCollisionShapes();
+      // TODO : activate at final.
+      //humanoidKinematicsSolver.hideCollisionShapes();
       if (VERBOSE)
       {
          PrintTools.info("===========================================");

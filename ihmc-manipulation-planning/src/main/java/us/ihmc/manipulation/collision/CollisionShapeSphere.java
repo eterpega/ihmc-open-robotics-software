@@ -16,7 +16,6 @@ public class CollisionShapeSphere extends AbstractCollisionShape
                                RigidBodyTransform transformToReferenceFrame, double radius)
    {
       super(name, parentRegistry, shapeFactory, referenceFrame, transformToReferenceFrame);
-
       this.radius = radius;
    }
 

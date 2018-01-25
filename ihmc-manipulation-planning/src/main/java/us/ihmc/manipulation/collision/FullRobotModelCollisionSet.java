@@ -13,6 +13,7 @@ import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.humanoidRobotics.communication.packets.KinematicsToolboxOutputConverter;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotModels.FullHumanoidRobotModelFactory;
+import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.simulationconstructionset.physics.collision.CollisionDetectionResult;
 import us.ihmc.simulationconstructionset.physics.collision.simple.SimpleCollisionDetector;
 import us.ihmc.simulationconstructionset.physics.collision.simple.SimpleCollisionShapeFactory;
@@ -57,16 +58,25 @@ public class FullRobotModelCollisionSet
       nameToCollisionShapeMap = new HashMap<>();
 
       RigidBodyTransform transformToReferenceFrame = new RigidBodyTransform();
-      collisionShapesList.add(new CollisionShapeSphere("chest", parentRegistry, shapeFactory, fullRobotModel.getChest().getBodyFixedFrame(),
-                                                       transformToReferenceFrame, 0.25));
+//      collisionShapesList.add(new CollisionShapeSphere("chest", parentRegistry, shapeFactory, fullRobotModel.getChest().getBodyFixedFrame(),
+//                                                       transformToReferenceFrame, 0.25));
       collisionShapesList.add(new CollisionShapeSphere("head", parentRegistry, shapeFactory, fullRobotModel.getHead().getBodyFixedFrame(),
-                                                       transformToReferenceFrame, 0.3));
+                                                       transformToReferenceFrame, 0.2));
+      
+      RigidBodyTransform handOffset = new RigidBodyTransform();
+      handOffset.appendTranslation(0.5, 0.0, 0.0);
+      collisionShapesList.add(new CollisionShapeSphere("righthand", parentRegistry, shapeFactory, fullRobotModel.getHand(RobotSide.RIGHT).getBodyFixedFrame(),
+                                                       handOffset, 0.1));
+      
+//      collisionShapesList.add(new CollisionShapeSphere("lefthand", parentRegistry, shapeFactory, fullRobotModel.getHand(RobotSide.LEFT).getBodyFixedFrame(),
+//                                                       transformToReferenceFrame, 0.1));
+      
 
       collisionShapesList.forEach(collisionShape -> nameToCollisionShapeMap.put(collisionShape.getName(), collisionShape));
 
       for (int i = 0; i < collisionShapesList.size(); i++)
       {
-         //PrintTools.info("" + i + " " + collisionShapesList.get(i).getName());
+         PrintTools.info("" + i + " " + collisionShapesList.get(i).getName());
          collisionShapesList.get(i).initialize();
          collisionShapesList.get(i).addYoGraphic(yoGraphicsList);
       }

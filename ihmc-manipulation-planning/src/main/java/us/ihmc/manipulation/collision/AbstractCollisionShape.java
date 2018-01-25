@@ -1,5 +1,6 @@
 package us.ihmc.manipulation.collision;
 
+import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Point3D;
@@ -63,7 +64,8 @@ public abstract class AbstractCollisionShape
    public void updatePose()
    {
       RigidBodyTransform rigidbodyTransform = referenceFrame.getTransformToWorldFrame();
-      rigidbodyTransform.transform(transformToReferenceFrame);
+
+      rigidbodyTransform.multiply(transformToReferenceFrame);
       
       Point3D position = new Point3D(rigidbodyTransform.getTranslationVector());
       Quaternion orientation = new Quaternion(rigidbodyTransform.getRotationMatrix());
