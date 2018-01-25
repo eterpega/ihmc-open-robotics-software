@@ -64,7 +64,7 @@ public class FullRobotModelCollisionSet
                                                        transformToReferenceFrame, 0.2));
       
       RigidBodyTransform handOffset = new RigidBodyTransform();
-      handOffset.appendTranslation(0.5, 0.0, 0.0);
+      handOffset.appendTranslation(0.0, -0.1, 0.0);
       collisionShapesList.add(new CollisionShapeSphere("righthand", parentRegistry, shapeFactory, fullRobotModel.getHand(RobotSide.RIGHT).getBodyFixedFrame(),
                                                        handOffset, 0.1));
       

@@ -1,10 +1,9 @@
 package us.ihmc.manipulation.collision;
 
 import us.ihmc.commons.PrintTools;
+import us.ihmc.euclid.referenceFrame.FramePose3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.RigidBodyTransform;
-import us.ihmc.euclid.tuple3D.Point3D;
-import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphic;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsList;
 import us.ihmc.robotics.math.frames.YoFramePose;
@@ -18,9 +17,18 @@ public abstract class AbstractCollisionShape
    protected SimpleCollisionShapeFactory shapeFactory;
    protected CollisionShape collisionShape;
 
-   protected YoFramePose framePose;
+   /**
+    * ReferenceFrame on rigidbody
+    */
+   protected ReferenceFrame parentFrame;
+   /**
+    * Customized ReferenceFrame from parentFrame.
+    */
    protected ReferenceFrame referenceFrame;
-   protected RigidBodyTransform transformToReferenceFrame;
+   /**
+    * For updating YoGraphics.
+    */
+   protected YoFramePose yoFramePose;
 
    protected YoGraphic yoGraphic;
    protected YoVariableRegistry parentRegistry;
@@ -32,65 +40,71 @@ public abstract class AbstractCollisionShape
    public abstract void createCollisionShape();
 
    public abstract void createYoGraphic();
-   
-   public AbstractCollisionShape(String name, YoVariableRegistry parentRegistry, SimpleCollisionShapeFactory shapeFactory, ReferenceFrame referenceFrame,
-                                 RigidBodyTransform transformToReferenceFrame)
+
+   public AbstractCollisionShape(String name, YoVariableRegistry parentRegistry, SimpleCollisionShapeFactory shapeFactory, ReferenceFrame parentFrame,
+                                 RigidBodyTransform transformToParentFrame)
    {
       this.name = name;
       this.shapeFactory = shapeFactory;
-      this.referenceFrame = referenceFrame;
-      this.transformToReferenceFrame = new RigidBodyTransform(transformToReferenceFrame);
+      this.parentFrame = parentFrame;
       this.parentRegistry = parentRegistry;
-      this.framePose = new YoFramePose(name + "pose", ReferenceFrame.getWorldFrame(), parentRegistry);
+
+      this.referenceFrame = new ReferenceFrame(name + "ReferenceFrame", parentFrame)
+      {
+         @Override
+         protected void updateTransformToParent(RigidBodyTransform transformToParent)
+         {
+            transformToParent.set(transformToParentFrame);
+         }
+      };
+
+      this.yoFramePose = new YoFramePose(name + "pose", ReferenceFrame.getWorldFrame(), parentRegistry);
    }
 
    public void initialize()
    {
-      updatePose();
-      
+      updateReferenceFrame();
+
       createCollisionShape();
       updateCollisionShape();
       createYoGraphic();
       updateYoGraphic();
    }
-   
+
    public void update()
    {
-      updatePose();
+      updateReferenceFrame();
       updateCollisionShape();
       updateYoGraphic();
    }
-   
-   public void updatePose()
-   {
-      RigidBodyTransform rigidbodyTransform = referenceFrame.getTransformToWorldFrame();
 
-      rigidbodyTransform.multiply(transformToReferenceFrame);
-      
-      Point3D position = new Point3D(rigidbodyTransform.getTranslationVector());
-      Quaternion orientation = new Quaternion(rigidbodyTransform.getRotationMatrix());
-      
-      framePose.setPosition(position);
-      framePose.setOrientation(orientation);
+   public void updateReferenceFrame()
+   {
+      referenceFrame.update();
    }
 
    public void updateCollisionShape()
-   {
-      RigidBodyTransform rigidbodyTransform = new RigidBodyTransform();
-      framePose.getPose(rigidbodyTransform);
+   {      
+      RigidBodyTransform rigidbodyTransform = new RigidBodyTransform(referenceFrame.getTransformToWorldFrame());
       collisionShape.setTransformToWorld(rigidbodyTransform);
    }
-   
+
    public void updateYoGraphic()
    {
+      FramePose3D framePose = new FramePose3D(referenceFrame);
+
+      framePose.setToZero();
+      framePose.changeFrame(ReferenceFrame.getWorldFrame());
+
+      yoFramePose.set(framePose);
       yoGraphic.update();
    }
-   
+
    public void hide()
    {
       yoGraphic.hideGraphicObject();
    }
-   
+
    public String getName()
    {
       return name;
