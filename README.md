@@ -1,75 +1,84 @@
 # IHMC Open Robotics Software
 
-## Minutiae
+### 0.11 Build Info
+Build 4570
+https://bamboo.ihmc.us/browse/LIBS-IHMCOPENROBOTICSSOFTWARE-1067
 
 ### Tested Platforms
-We test all of our software on OS X 10.12 Sierra, Windows 7/8/10, and Ubuntu 14.04 and 16.04 LTS, Desktop and Server. It is likely to work on other platforms but not necessarily tested.
+
+#### Robots
+
+- Atlas
+   * This release is fully tested on Atlas hardware. See 0.11 Release Notes for detailed results.
+
+**This release DOES NOT support the Valkyrie hardware platform, as we do not have hardware to test on.**
+
+#### Developers
+
+We test all of our software on OS X 10.12 Sierra, Windows 7/8/10, and Ubuntu 14.04 and 16.04 LTS, Desktop and Server. It is likely to work on other platforms but
+not necessarily tested.
 
 ### Branches
 This repository uses the git-flow branching model. You can find more about git-flow [here](https://www.atlassian.com/git/tutorials/comparing-workflows/feature-branch-workflow).
 
 ### Licensing
-All of the software in IHMCOpenRoboticsSoftware is licensed under the Apache 2.0 license.
+All of the software in *IHMC Open Robotics Software* is licensed under the Apache 2.0 license.
 
 ## Getting Started
 
 ### Using IHMC Open Robotics Software .jar releases with Maven/Gradle
-The release .jars for the various *IHMCOpenRoboticsSoftware* packages are hosted on Bintray. You can browse the release packages at https://bintray.com/ihmcrobotics/maven-release. Instructions for adding the Maven repository and identifying the artifacts can also be found on Bintray for each package.
+The release .jars for the various *IHMC Open Robotics Software* packages are hosted on Bintray. You can browse the release packages at https://bintray.com/ihmcrobotics/maven-release.
+Instructions for adding the Maven repository and identifying the artifacts can also be found on Bintray for each package.
 
-At a minimum, you will need to have the following repositories declared in your build script to use the IHMCOpenRoboticsSoftware .jars:
+At a minimum, you will need to have the following repositories declared in your build script to use *IHMC Open Robotics Software* .jars:
 
 ```gradle
 repositories {
    maven {
       url  "http://dl.bintray.com/ihmcrobotics/maven-release" // IHMC Code releases
    }
-
    maven {
       url  "http://dl.bintray.com/ihmcrobotics/maven-vendor" // Third-party libraries that we have vendored for various reasons
-   }
-
-   /*  Artifactory instance hosted at IHMC for some legacy vendored
-    *  dependencies without live source access that can't be uploaded
-    *  to Bintray.
-   */
-   maven {
-   		url "https://artifactory.ihmc.us/artifactory/thirdparty/"
    }
 
    /* You will also need to add either jcenter() or mavenCentral() or both, depending on your preference */
 }
 ```
 
-### Developing with IHMC Open Robotics Software from source
+### Developing with *IHMC Open Robotics Software* from source
 
 #### Requirements
-*IHMCOpenRoboticsSoftware* uses the [Gradle](https://gradle.org) build system, and requires JDK 7 or 8. We also strongly suggest an IDE, either Eclipse Mars.1 or IntelliJ IDEA 14+ (Ultimate or Community is fine). Currently, we require **Gradle 2.10+**. We provide a versioned [Gradle wrapper](https://docs.gradle.org/current/userguide/gradle_wrapper.html) for getting started quickly. The Gradle wrapper will always reflect the minimum version of Gradle required to build the software; if we adopt features only present in newer versions of Gradle as they are release we will update the wrapper. You can also install Gradle system-wide:
+*IHMC Open Robotics Software* uses the [Gradle](https://gradle.org) build system, and requires JDK 8 with JavaFX. We also strongly suggest an IDE, either Eclipse Mars.1
+or IntelliJ IDEA 15+ (Ultimate or Community is fine). Currently, we require **Gradle 4.1+**. We provide a versioned [Gradle wrapper](https://docs.gradle.org/current/userguide/gradle_wrapper.html)
+for getting started quickly. The Gradle wrapper will always reflect the minimum version of Gradle required to build the software; if we adopt features only present
+in newer versions of Gradle as they are release we will update the wrapper. You can also install Gradle system-wide (local installation):
 
-* *OS X*: The latest Gradle is available via [Homebrew](https://github.com/homebrew/homebrew)
-* *Ubuntu 14.04*: The version pre-packaged with Ubuntu is woefully out of date. You will need to add the following PPA: https://launchpad.net/~cwchien/+archive/ubuntu/gradle
-* *Windows*: Consult the official Gradle documentation installation instructions.
+Installing Gradle: https://gradle.org/install/
 
 #### IDE Support
-Our Gradle models are tested in IntelliJ IDEA 14+ (both Community and Ultimate) with the built-in Gradle integration, and Eclipse Mars.1 or higher with the Buildship plugin. The Buildship plugin is bundled with the Eclipse IDE for Java Developers as of Mars.1 (but *not* Java EE Developers), or it can be downloaded from the Eclipse Marketplace in other versions of Eclipse.
+Our Gradle models are tested in IntelliJ IDEA 2017.3+ (both Community and Ultimate) with the Gradle plugin.
+Eclipse Oxygen+ or higher with the Buildship plugin. The Buildship plugin is bundled with the Eclipse IDE for Java Developers (but *not* Java EE Developers). It can always be manually installed to any version of Eclipse using the [installation instructions] (https://github.com/eclipse/buildship/blob/master/docs/user/Installation.md).
 
 #### Building .jars
-IHMCOpenRoboticsSoftware is pre-configured for generating Maven publications. You can publish directly from the source code right in to your local Maven repository, e.g. the `$HOME/.m2` directory. These builds will be tagged with a build "version" of `"LOCAL"` instead of an incrementing version number.
+*IHMC Open Robotics Software* is pre-configured for generating Maven publications. You can publish directly from the source code right in to your local Maven
+repository, e.g. the `$HOME/.m2` directory. These builds will be tagged with a build "version" of `"LOCAL"` instead of an incrementing version number.
 
 An example workflow for developing against a local clone of the software:
 
-1. Clone IHMCOpenRoboticsSoftware
+1. Clone *IHMC Open Robotics Software*
 2. Make modifications
 3. Publish to your local `$HOME/.m2` repository
 
 **To publish jars to your local Maven repository:**  
 ```bash
-$ cd <IHMCOpenRoboticsSoftware directory>
-$ ./gradlew publishAllToMavenLocal
+$ cd /path/to/ihmc-open-robotics-software
+$ ./gradlew compositeTask -PtaskName=publishToMavenLocal -PdepthFromWorkspaceDirectory=0 -PpublishMode=STABLE
 ```
 
 **To depend on the jars in your local Maven repository:**
 
-In this example we'll have a compile-time dependency of the locally built SimulationConstructionSet project. In the `build.gradle` of the project you wish to have link against SimulationConstructionSet:
+In this example we'll have a compile-time dependency of the locally built Simulation Construction Set project. In the `build.gradle` of the project you wish to
+have link against Simulation Construction Set:
 
 ```gradle
 repositories {
@@ -78,63 +87,61 @@ repositories {
 }
 
 dependencies {
-  compile group: 'us.ihmc', name: 'SimulationConstructionSet', version: 'LOCAL', changing: true
+  compile group: 'us.ihmc', name: 'simulation-construction-set', version: 'LOCAL', changing: true
 }
 ```  
 
 #### Depending directly on the source
-For the IHMCOpenRoboticsSoftware and [ihmc-build](https://github.com/ihmcrobotics/ihmc-build) to work correctly when depending directly on the source, the Gradle project hierarchy needs to take a particular form. Let's assume you have a directory structure such as:
+For *IHMC Open Robotics Software* and [ihmc-build](https://github.com/ihmcrobotics/ihmc-build) to work correctly when depending directly on the source, your
+project hierarchy needs to take a particular form.
+
+1. In your system home folder (or C:/ drive in Windows), create a directory called `ihmc-workspace`.
+1. Initialize the `ihmc-workspace` directory as an IHMC repository group using the "Convert an existing project group" instructions in [this README] (https://github.com/ihmcrobotics/repository-group).
+1. This is also the directory where you'll put any of your own projects that need to depend
+on IHMC source code. Your directory structure should look something like:
 
 ```
-.<your Gradle root project>
+ihmc-workspace
 ├── build.gradle
 ├── settings.gradle
-├── ProjectA
-├── ProjectB
-├── IHMCOpenRoboticsSoftware
-│   └── Acsell
-│   └── Atlas
-│   └── CommonWalkingControlModules
-├── ProjectC
+├── gradle.properties
+├── MyProjectA
+│   └── build.gradle
+│   └── gradle.properties
+├── MyProjectB
+├── ihmc-open-robotics-software
+│   └── acsell
+│   └── atlas
+│   └── common-walking-control-modules
+├── MyProjectC
 └── ...
 ```
 
-You will need to modify the **root project** `settings.gradle` to set up your project hierarchy correctly. The important thing is that you will need both `:IHMCOpenRoboticsSoftware` as well as the various `:IHMCOpenRoboticsSoftware:<Sub Project>` items in the Gradle hierarchy, even though IHMCOpenRoboticsSoftware doesn't contain any of its own Java source. This can be tedious to set up by hand, so we usually write our settings.gradle to do some naive dynamic generation of dependencies.
-
-An example `settings.gradle` similar to what our developers use could look like the following:
-
-```gradle
-rootProject.name = '_Foo' // Your root project name goes here
-
-def codeDir = rootProject.projectDir
-
-def isGradleProjectFilter = new FilenameFilter() {
-    @Override
-    boolean accept(File dir, String name) {
-        File f = new File(dir, name).getCanonicalFile();
-        return f.isDirectory() && new File(f, "build.gradle").exists();
-    }
-}
-
-codeDir.list(isGradleProjectFilter).each { mainProject ->
-    include "${mainProject}"
-
-    project(":${mainProject}").projectDir.list(isGradleProjectFilter).each { subProject ->
-        include "${mainProject}:${subProject}"
-    }
-}
-```
-
-If this is set up correctly, you can either apply the `ihmc-build` plugin from the [Plugin portal](https://plugins.gradle.org/plugin/us.ihmc.gradle.ihmc-build) and use the dependency resolver methods exposed by the build extensions, or you can manually identify dependencies on projects using the normal Gradle syntax for project dependencies. A sample build.gradle dependency block:
+If this is set up correctly, you can either apply the `ihmc-build` plugin from the [Plugin portal](https://plugins.gradle.org/plugin/us.ihmc.gradle.ihmc-build)
+and use the dependency resolver methods exposed by the build extensions, or you can manually identify dependencies on projects using the normal Gradle syntax for
+project dependencies. A sample build.gradle dependency block:
 
 ```gradle
 dependencies {
-  compile project(':IHMCOpenRoboticsSoftware:IHMCJavaToolkit') // normal Gradle way of doing things
+  compile project(':ihmc-open-robotics-software:ihmc-java-toolkit') // normal Gradle way of doing things
 }
 
 /* OR */
 
-dependencies {
-  compile ihmc.getProjectDependency(':IHMCJavaToolkit') // ihmc-build way of doing things
+mainDependencies {
+  compile group: "us.ihmc", name: "ihmc-java-toolkit", version: "source" // ihmc-build way of doing things
 }
 ```
+
+## Support
+
+Chat support is provided via the IHMC Robotics Slack on the #help-desk channel.
+
+## Maintainers
+
+Duncan Calvert (dcalvert@ihmc.us)
+Doug Stephen (dstephen@ihmc.us)
+Stephen McCrory (smcrory@ihmc.us)
+Sylvain Bertrand (sbertrand@ihmc.us)
+Georg Wiedebach (gwiedebach@ihmc.us)
+Robert Griffin (rgriffin@ihmc.us)
