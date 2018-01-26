@@ -28,7 +28,7 @@ public abstract class AbstractCollisionShape
    /**
     * For updating YoGraphics.
     */
-   protected YoFramePose yoFramePose;
+   protected YoFramePose yoGraphicFramePose;
 
    protected YoGraphic yoGraphic;
    protected YoVariableRegistry parentRegistry;
@@ -58,7 +58,7 @@ public abstract class AbstractCollisionShape
          }
       };
 
-      this.yoFramePose = new YoFramePose(name + "pose", ReferenceFrame.getWorldFrame(), parentRegistry);
+      this.yoGraphicFramePose = new YoFramePose(name + "pose", ReferenceFrame.getWorldFrame(), parentRegistry);
    }
 
    public void initialize()
@@ -78,9 +78,19 @@ public abstract class AbstractCollisionShape
       updateYoGraphic();
    }
 
+   /**
+    * if collisionshape need any other YoFramePose, this method should be override along with the others. 
+    */
    public void updateReferenceFrame()
    {
       referenceFrame.update();
+      
+      FramePose3D framePose = new FramePose3D(referenceFrame);
+
+      framePose.setToZero();
+      framePose.changeFrame(ReferenceFrame.getWorldFrame());
+
+      yoGraphicFramePose.set(framePose);
    }
 
    public void updateCollisionShape()
@@ -91,12 +101,6 @@ public abstract class AbstractCollisionShape
 
    public void updateYoGraphic()
    {
-      FramePose3D framePose = new FramePose3D(referenceFrame);
-
-      framePose.setToZero();
-      framePose.changeFrame(ReferenceFrame.getWorldFrame());
-
-      yoFramePose.set(framePose);
       yoGraphic.update();
    }
 

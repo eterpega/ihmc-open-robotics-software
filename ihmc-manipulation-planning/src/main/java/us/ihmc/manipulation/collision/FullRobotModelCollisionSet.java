@@ -57,21 +57,31 @@ public class FullRobotModelCollisionSet
       collisionShapesList = new ArrayList<>();
       nameToCollisionShapeMap = new HashMap<>();
 
+      /*
+       * start to add shapes.
+       */
       RigidBodyTransform transformToReferenceFrame = new RigidBodyTransform();
 //      collisionShapesList.add(new CollisionShapeSphere("chest", parentRegistry, shapeFactory, fullRobotModel.getChest().getBodyFixedFrame(),
 //                                                       transformToReferenceFrame, 0.25));
       collisionShapesList.add(new CollisionShapeSphere("head", parentRegistry, shapeFactory, fullRobotModel.getHead().getBodyFixedFrame(),
                                                        transformToReferenceFrame, 0.2));
       
-      RigidBodyTransform handOffset = new RigidBodyTransform();
-      handOffset.appendTranslation(0.0, -0.1, 0.0);
-      collisionShapesList.add(new CollisionShapeSphere("righthand", parentRegistry, shapeFactory, fullRobotModel.getHand(RobotSide.RIGHT).getBodyFixedFrame(),
-                                                       handOffset, 0.1));
+      RigidBodyTransform rightHandOffset = new RigidBodyTransform();
+      rightHandOffset.appendTranslation(-0.035, -0.02, 0.0);
+      rightHandOffset.appendPitchRotation(Math.PI*0.5);
+      collisionShapesList.add(new CollisionShapeCylinder("righthand", parentRegistry, shapeFactory, fullRobotModel.getHand(RobotSide.RIGHT).getBodyFixedFrame(),
+                                                       rightHandOffset, 0.10, 0.05));
       
-//      collisionShapesList.add(new CollisionShapeSphere("lefthand", parentRegistry, shapeFactory, fullRobotModel.getHand(RobotSide.LEFT).getBodyFixedFrame(),
-//                                                       transformToReferenceFrame, 0.1));
-      
+      RigidBodyTransform leftHandOffset = new RigidBodyTransform();
+      leftHandOffset.appendTranslation(-0.035, 0.02, 0.0);
+      leftHandOffset.appendPitchRotation(Math.PI*0.5);
+      collisionShapesList.add(new CollisionShapeCylinder("lefthand", parentRegistry, shapeFactory, fullRobotModel.getHand(RobotSide.LEFT).getBodyFixedFrame(),
+                                                         leftHandOffset, 0.10, 0.05));
+            
 
+      /*
+       * define as a map.
+       */
       collisionShapesList.forEach(collisionShape -> nameToCollisionShapeMap.put(collisionShape.getName(), collisionShape));
 
       for (int i = 0; i < collisionShapesList.size(); i++)
@@ -81,6 +91,9 @@ public class FullRobotModelCollisionSet
          collisionShapesList.get(i).addYoGraphic(yoGraphicsList);
       }
 
+      /*
+       * grouping and masking.
+       */
       //      collisionShapeChest.getCollisionShape().setCollisionMask(0b01);
       //      collisionShapeChest.getCollisionShape().setCollisionGroup(0b10);
       //

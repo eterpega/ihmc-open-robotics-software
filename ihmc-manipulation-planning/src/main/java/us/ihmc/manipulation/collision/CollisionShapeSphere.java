@@ -1,6 +1,5 @@
 package us.ihmc.manipulation.collision;
 
-import us.ihmc.euclid.referenceFrame.FramePose3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.graphicsDescription.appearance.YoAppearance;
@@ -30,14 +29,7 @@ public class CollisionShapeSphere extends AbstractCollisionShape
    @Override
    public void createYoGraphic()
    {
-      FramePose3D framePose = new FramePose3D(referenceFrame);
-
-      framePose.setToZero();
-      framePose.changeFrame(ReferenceFrame.getWorldFrame());
-
-      yoFramePose.set(framePose);
-
-      yoGraphic = new YoGraphicPosition(name + "yographics", yoFramePose.getPosition(), radius, YoAppearance.Yellow());
+      yoGraphic = new YoGraphicPosition(name + "yographics", yoGraphicFramePose.getPosition(), radius, YoAppearance.Yellow());
       yoGraphic.setVisible(true);
    }
 }
