@@ -7,13 +7,17 @@ import java.util.Map;
 
 import us.ihmc.commons.PrintTools;
 import us.ihmc.communication.packets.KinematicsToolboxOutputStatus;
+import us.ihmc.euclid.referenceFrame.FramePose3D;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsList;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.humanoidRobotics.communication.packets.KinematicsToolboxOutputConverter;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotModels.FullHumanoidRobotModelFactory;
+import us.ihmc.robotics.partNames.ArmJointName;
 import us.ihmc.robotics.robotSide.RobotSide;
+import us.ihmc.robotics.screwTheory.InverseDynamicsJoint;
 import us.ihmc.simulationconstructionset.physics.collision.CollisionDetectionResult;
 import us.ihmc.simulationconstructionset.physics.collision.simple.SimpleCollisionDetector;
 import us.ihmc.simulationconstructionset.physics.collision.simple.SimpleCollisionShapeFactory;
@@ -60,24 +64,55 @@ public class FullRobotModelCollisionSet
       /*
        * start to add shapes.
        */
+      // Head, Chest and Pelvis
       RigidBodyTransform transformToReferenceFrame = new RigidBodyTransform();
-//      collisionShapesList.add(new CollisionShapeSphere("chest", parentRegistry, shapeFactory, fullRobotModel.getChest().getBodyFixedFrame(),
-//                                                       transformToReferenceFrame, 0.25));
+      //      collisionShapesList.add(new CollisionShapeSphere("chest", parentRegistry, shapeFactory, fullRobotModel.getChest().getBodyFixedFrame(),
+      //                                                       transformToReferenceFrame, 0.25));
       collisionShapesList.add(new CollisionShapeSphere("head", parentRegistry, shapeFactory, fullRobotModel.getHead().getBodyFixedFrame(),
                                                        transformToReferenceFrame, 0.2));
-      
+
+      // Hands
       RigidBodyTransform rightHandOffset = new RigidBodyTransform();
       rightHandOffset.appendTranslation(-0.035, -0.02, 0.0);
-      rightHandOffset.appendPitchRotation(Math.PI*0.5);
+      rightHandOffset.appendPitchRotation(Math.PI * 0.5);
       collisionShapesList.add(new CollisionShapeCylinder("righthand", parentRegistry, shapeFactory, fullRobotModel.getHand(RobotSide.RIGHT).getBodyFixedFrame(),
-                                                       rightHandOffset, 0.10, 0.05));
-      
+                                                         rightHandOffset, 0.10, 0.05));
+
       RigidBodyTransform leftHandOffset = new RigidBodyTransform();
       leftHandOffset.appendTranslation(-0.035, 0.02, 0.0);
-      leftHandOffset.appendPitchRotation(Math.PI*0.5);
+      leftHandOffset.appendPitchRotation(Math.PI * 0.5);
       collisionShapesList.add(new CollisionShapeCylinder("lefthand", parentRegistry, shapeFactory, fullRobotModel.getHand(RobotSide.LEFT).getBodyFixedFrame(),
                                                          leftHandOffset, 0.10, 0.05));
-            
+
+      // Foots
+
+      // Arms
+
+      // Legs
+      InverseDynamicsJoint rightKneeJoint = fullRobotModel.getFoot(RobotSide.RIGHT).getParentJoint().getPredecessor().getParentJoint().getPredecessor()
+                                                          .getParentJoint();
+      InverseDynamicsJoint rightPelvisJoint = rightKneeJoint.getPredecessor().getParentJoint().getPredecessor().getParentJoint().getPredecessor()
+                                                            .getParentJoint();
+      InverseDynamicsJoint leftKneeJoint = fullRobotModel.getFoot(RobotSide.LEFT).getParentJoint().getPredecessor().getParentJoint().getPredecessor()
+                                                         .getParentJoint();
+
+      FramePose3D framePoseAnkle = new FramePose3D(fullRobotModel.getFoot(RobotSide.RIGHT).getBodyFixedFrame());
+      FramePose3D framePoseKnee = new FramePose3D(rightKneeJoint.getFrameBeforeJoint());
+      FramePose3D framePosePelvis = new FramePose3D(rightPelvisJoint.getFrameBeforeJoint());
+
+      framePoseAnkle.changeFrame(ReferenceFrame.getWorldFrame());
+      framePoseKnee.changeFrame(ReferenceFrame.getWorldFrame());
+      framePosePelvis.changeFrame(ReferenceFrame.getWorldFrame());
+      double distanceFromAnkleToKnee = framePoseAnkle.getPositionDistance(framePoseKnee);
+      double distanceFromKneeToPelvis = framePoseKnee.getPositionDistance(framePosePelvis);
+
+      RigidBodyTransform lowerLegOffset = new RigidBodyTransform();
+      lowerLegOffset.appendTranslation(-0.00, -0.00, -distanceFromAnkleToKnee);
+      collisionShapesList.add(new CollisionShapeCylinder("rightlowerleg", parentRegistry, shapeFactory, rightKneeJoint.getFrameAfterJoint(), lowerLegOffset, 0.08, distanceFromAnkleToKnee));      
+      collisionShapesList.add(new CollisionShapeCylinder("rightupperleg", parentRegistry, shapeFactory, rightKneeJoint.getFrameBeforeJoint(), new RigidBodyTransform(), 0.08, distanceFromKneeToPelvis));
+      
+      collisionShapesList.add(new CollisionShapeCylinder("leftlowerleg", parentRegistry, shapeFactory, leftKneeJoint.getFrameAfterJoint(), lowerLegOffset, 0.08, distanceFromAnkleToKnee));      
+      collisionShapesList.add(new CollisionShapeCylinder("leftupperleg", parentRegistry, shapeFactory, leftKneeJoint.getFrameBeforeJoint(), new RigidBodyTransform(), 0.08, distanceFromKneeToPelvis));
 
       /*
        * define as a map.
@@ -102,7 +137,7 @@ public class FullRobotModelCollisionSet
 
       outputConverter = new KinematicsToolboxOutputConverter(fullRobotModelFactory);
    }
-   
+
    public void update(KinematicsToolboxOutputStatus configuration)
    {
       fullRobotModel.updateFrames();
@@ -116,7 +151,7 @@ public class FullRobotModelCollisionSet
       for (int i = 0; i < collisionShapesList.size(); i++)
          collisionShapesList.get(i).hide();
    }
-   
+
    public void registerYoGraphicsList(YoGraphicsListRegistry yoGraphicsListRegistry)
    {
       yoGraphicsListRegistry.registerYoGraphicsList(yoGraphicsList);
