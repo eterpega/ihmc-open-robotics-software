@@ -72,21 +72,51 @@ public class FullRobotModelCollisionSet
                                                        transformToReferenceFrame, 0.2));
 
       // Hands
-      RigidBodyTransform rightHandOffset = new RigidBodyTransform();
-      rightHandOffset.appendTranslation(-0.035, -0.02, 0.0);
-      rightHandOffset.appendPitchRotation(Math.PI * 0.5);
-      collisionShapesList.add(new CollisionShapeCylinder("righthand", parentRegistry, shapeFactory, fullRobotModel.getHand(RobotSide.RIGHT).getBodyFixedFrame(),
-                                                         rightHandOffset, 0.10, 0.05));
-
-      RigidBodyTransform leftHandOffset = new RigidBodyTransform();
-      leftHandOffset.appendTranslation(-0.035, 0.02, 0.0);
-      leftHandOffset.appendPitchRotation(Math.PI * 0.5);
-      collisionShapesList.add(new CollisionShapeCylinder("lefthand", parentRegistry, shapeFactory, fullRobotModel.getHand(RobotSide.LEFT).getBodyFixedFrame(),
-                                                         leftHandOffset, 0.10, 0.05));
+//      RigidBodyTransform rightHandOffset = new RigidBodyTransform();
+//      rightHandOffset.appendTranslation(-0.035, -0.02, 0.0);
+//      rightHandOffset.appendPitchRotation(Math.PI * 0.5);
+//      collisionShapesList.add(new CollisionShapeCylinder("righthand", parentRegistry, shapeFactory, fullRobotModel.getHand(RobotSide.RIGHT).getBodyFixedFrame(),
+//                                                         rightHandOffset, 0.10, 0.05));
+//
+//      RigidBodyTransform leftHandOffset = new RigidBodyTransform();
+//      leftHandOffset.appendTranslation(-0.035, 0.02, 0.0);
+//      leftHandOffset.appendPitchRotation(Math.PI * 0.5);
+//      collisionShapesList.add(new CollisionShapeCylinder("lefthand", parentRegistry, shapeFactory, fullRobotModel.getHand(RobotSide.LEFT).getBodyFixedFrame(),
+//                                                         leftHandOffset, 0.10, 0.05));
 
       // Foots
 
       // Arms
+      InverseDynamicsJoint rightElbowJoint = fullRobotModel.getHand(RobotSide.RIGHT).getParentJoint().getPredecessor().getParentJoint().getPredecessor()
+                                                           .getParentJoint().getPredecessor().getParentJoint();
+      InverseDynamicsJoint rightShoulderJoint = rightElbowJoint.getPredecessor().getParentJoint().getPredecessor().getParentJoint().getPredecessor()
+                                                               .getParentJoint();
+      InverseDynamicsJoint leftElbowJoint = fullRobotModel.getHand(RobotSide.LEFT).getParentJoint().getPredecessor().getParentJoint().getPredecessor()
+                                                          .getParentJoint().getPredecessor().getParentJoint();
+
+      FramePose3D framePoseWrist = new FramePose3D(fullRobotModel.getHand(RobotSide.RIGHT).getParentJoint().getPredecessor().getBodyFixedFrame());
+      FramePose3D framePoseElbow = new FramePose3D(rightElbowJoint.getFrameBeforeJoint());
+      FramePose3D framePoseShoulder = new FramePose3D(rightShoulderJoint.getFrameBeforeJoint());
+
+      framePoseWrist.changeFrame(ReferenceFrame.getWorldFrame());
+      framePoseElbow.changeFrame(ReferenceFrame.getWorldFrame());
+      framePoseShoulder.changeFrame(ReferenceFrame.getWorldFrame());
+      double distanceFromWristToElbow = framePoseWrist.getPositionDistance(framePoseElbow);
+      double distanceFromElbowToShoulder = framePoseElbow.getPositionDistance(framePoseShoulder);
+      
+      RigidBodyTransform armOffsetOne = new RigidBodyTransform();
+      armOffsetOne.appendRollRotation(-Math.PI*0.5);
+      RigidBodyTransform armOffsetTwo = new RigidBodyTransform();
+      armOffsetTwo.appendRollRotation(Math.PI*0.5);
+
+      collisionShapesList.add(new CollisionShapeCylinder("rightlowerarm", parentRegistry, shapeFactory, rightElbowJoint.getFrameAfterJoint(), armOffsetTwo,
+                                                         0.08, distanceFromWristToElbow));
+      collisionShapesList.add(new CollisionShapeCylinder("rightUpperarm", parentRegistry, shapeFactory, rightElbowJoint.getFrameBeforeJoint(), armOffsetOne,
+                                                         0.08, distanceFromElbowToShoulder));
+      collisionShapesList.add(new CollisionShapeCylinder("leftlowerarm", parentRegistry, shapeFactory, leftElbowJoint.getFrameAfterJoint(), armOffsetOne,
+                                                         0.08, distanceFromWristToElbow));
+      collisionShapesList.add(new CollisionShapeCylinder("leftUpperarm", parentRegistry, shapeFactory, leftElbowJoint.getFrameBeforeJoint(), armOffsetTwo,
+                                                         0.08, distanceFromElbowToShoulder));
 
       // Legs
       InverseDynamicsJoint rightKneeJoint = fullRobotModel.getFoot(RobotSide.RIGHT).getParentJoint().getPredecessor().getParentJoint().getPredecessor()
@@ -96,7 +126,7 @@ public class FullRobotModelCollisionSet
       InverseDynamicsJoint leftKneeJoint = fullRobotModel.getFoot(RobotSide.LEFT).getParentJoint().getPredecessor().getParentJoint().getPredecessor()
                                                          .getParentJoint();
 
-      FramePose3D framePoseAnkle = new FramePose3D(fullRobotModel.getFoot(RobotSide.RIGHT).getBodyFixedFrame());
+      FramePose3D framePoseAnkle = new FramePose3D(fullRobotModel.getFoot(RobotSide.RIGHT).getParentJoint().getPredecessor().getBodyFixedFrame());
       FramePose3D framePoseKnee = new FramePose3D(rightKneeJoint.getFrameBeforeJoint());
       FramePose3D framePosePelvis = new FramePose3D(rightPelvisJoint.getFrameBeforeJoint());
 
@@ -108,14 +138,17 @@ public class FullRobotModelCollisionSet
 
       RigidBodyTransform lowerLegOffset = new RigidBodyTransform();
       lowerLegOffset.appendTranslation(-0.00, -0.00, -distanceFromAnkleToKnee);
-      collisionShapesList.add(new CollisionShapeCylinder("rightlowerleg", parentRegistry, shapeFactory, rightKneeJoint.getFrameAfterJoint(), lowerLegOffset, 0.08, distanceFromAnkleToKnee));      
-      collisionShapesList.add(new CollisionShapeCylinder("rightupperleg", parentRegistry, shapeFactory, rightKneeJoint.getFrameBeforeJoint(), new RigidBodyTransform(), 0.08, distanceFromKneeToPelvis));
-      
-      collisionShapesList.add(new CollisionShapeCylinder("leftlowerleg", parentRegistry, shapeFactory, leftKneeJoint.getFrameAfterJoint(), lowerLegOffset, 0.08, distanceFromAnkleToKnee));      
-      collisionShapesList.add(new CollisionShapeCylinder("leftupperleg", parentRegistry, shapeFactory, leftKneeJoint.getFrameBeforeJoint(), new RigidBodyTransform(), 0.08, distanceFromKneeToPelvis));
+      collisionShapesList.add(new CollisionShapeCylinder("rightlowerleg", parentRegistry, shapeFactory, rightKneeJoint.getFrameAfterJoint(), lowerLegOffset,
+                                                         0.08, distanceFromAnkleToKnee));
+      collisionShapesList.add(new CollisionShapeCylinder("rightupperleg", parentRegistry, shapeFactory, rightKneeJoint.getFrameBeforeJoint(),
+                                                         new RigidBodyTransform(), 0.08, distanceFromKneeToPelvis));
+      collisionShapesList.add(new CollisionShapeCylinder("leftlowerleg", parentRegistry, shapeFactory, leftKneeJoint.getFrameAfterJoint(), lowerLegOffset, 0.08,
+                                                         distanceFromAnkleToKnee));
+      collisionShapesList.add(new CollisionShapeCylinder("leftupperleg", parentRegistry, shapeFactory, leftKneeJoint.getFrameBeforeJoint(),
+                                                         new RigidBodyTransform(), 0.08, distanceFromKneeToPelvis));
 
       /*
-       * define as a map.
+       * define on map.
        */
       collisionShapesList.forEach(collisionShape -> nameToCollisionShapeMap.put(collisionShape.getName(), collisionShape));
 
@@ -129,6 +162,7 @@ public class FullRobotModelCollisionSet
       /*
        * grouping and masking.
        */
+
       //      collisionShapeChest.getCollisionShape().setCollisionMask(0b01);
       //      collisionShapeChest.getCollisionShape().setCollisionGroup(0b10);
       //
