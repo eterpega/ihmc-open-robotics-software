@@ -7,14 +7,16 @@ import us.ihmc.commonWalkingControlModules.capturePoint.optimization.*;
 import us.ihmc.commonWalkingControlModules.capturePoint.optimization.ICPOptimizationController;
 import us.ihmc.euclid.referenceFrame.FramePoint2D;
 import us.ihmc.euclid.referenceFrame.FramePose3D;
-import us.ihmc.euclid.referenceFrame.FrameVector2D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.referenceFrame.interfaces.FramePoint2DReadOnly;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.humanoidRobotics.bipedSupportPolygons.ContactablePlaneBody;
 import us.ihmc.humanoidRobotics.footstep.Footstep;
 import us.ihmc.humanoidRobotics.footstep.FootstepTiming;
 import us.ihmc.commons.MathTools;
+import us.ihmc.robotics.geometry.PlanarRegion;
+import us.ihmc.robotics.lists.RecyclingArrayList;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
@@ -110,7 +112,7 @@ public class ICPOptimizationLinearMomentumRateOfChangeControlModule extends Legg
    }
 
    @Override
-   public void computeCMPInternal(FramePoint2D desiredCMPPreviousValue)
+   public void computeCMPInternal(FramePoint2DReadOnly desiredCMPPreviousValue)
    {
       icpOptimizationController.compute(yoTime.getDoubleValue(), desiredCapturePoint, desiredCapturePointVelocity, perfectCMP, capturePoint, omega0);
       icpOptimizationController.getDesiredCMP(desiredCMP);
@@ -159,6 +161,12 @@ public class ICPOptimizationLinearMomentumRateOfChangeControlModule extends Legg
    public ICPOptimizationControllerInterface getICPOptimizationController()
    {
       return icpOptimizationController;
+   }
+
+   @Override
+   public void submitCurrentPlanarRegions(RecyclingArrayList<PlanarRegion> planarRegions)
+   {
+      icpOptimizationController.submitCurrentPlanarRegions(planarRegions);
    }
 
    @Override
