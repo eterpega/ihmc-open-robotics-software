@@ -32,6 +32,23 @@ public enum ConfigurationSpaceName
          throw new RuntimeException("Unexpected value: " + this);
       }
    }
+   
+   public boolean isLinear()
+   {
+      switch(this)
+      {
+      case X:
+      case Y:
+      case Z:
+         return true;
+      case ROLL:
+      case PITCH:
+      case YAW:
+         return false;
+      default:
+         throw new RuntimeException("Unexpected value: " + this);
+      }
+   }
 
    public RigidBodyTransform getLocalRigidBodyTransform(double configuration)
    {
