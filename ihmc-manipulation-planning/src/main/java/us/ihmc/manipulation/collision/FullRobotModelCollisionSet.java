@@ -68,14 +68,15 @@ public class FullRobotModelCollisionSet
       RigidBodyTransform transformToReferenceFrame = new RigidBodyTransform();
       //      collisionShapesList.add(new CollisionShapeSphere("chest", parentRegistry, shapeFactory, fullRobotModel.getChest().getBodyFixedFrame(),
       //                                                       transformToReferenceFrame, 0.25));
-      collisionShapesList.add(new CollisionShapeSphere("head", parentRegistry, shapeFactory, fullRobotModel.getHead().getBodyFixedFrame(),
-                                                       transformToReferenceFrame, 0.2));
+//      collisionShapesList.add(new CollisionShapeSphere("head", parentRegistry, shapeFactory, fullRobotModel.getHead().getBodyFixedFrame(),
+//                                                       transformToReferenceFrame, 0.2));
 
       // Hands
 //      RigidBodyTransform rightHandOffset = new RigidBodyTransform();
 //      rightHandOffset.appendTranslation(-0.035, -0.02, 0.0);
 //      rightHandOffset.appendPitchRotation(Math.PI * 0.5);
-//      collisionShapesList.add(new CollisionShapeCylinder("righthand", parentRegistry, shapeFactory, fullRobotModel.getHand(RobotSide.RIGHT).getBodyFixedFrame(),
+//      
+//      collisionShapesList.add(new CollisionShapeCylinder("righthand", parentRegistry, shapeFactory, fullRobotModel.getHandControlFrame(RobotSide.RIGHT),
 //                                                         rightHandOffset, 0.10, 0.05));
 //
 //      RigidBodyTransform leftHandOffset = new RigidBodyTransform();
@@ -89,8 +90,8 @@ public class FullRobotModelCollisionSet
       // Arms
       InverseDynamicsJoint rightElbowJoint = fullRobotModel.getHand(RobotSide.RIGHT).getParentJoint().getPredecessor().getParentJoint().getPredecessor()
                                                            .getParentJoint().getPredecessor().getParentJoint();
-      InverseDynamicsJoint rightShoulderJoint = rightElbowJoint.getPredecessor().getParentJoint().getPredecessor().getParentJoint().getPredecessor()
-                                                               .getParentJoint();
+      // second joint of the shoulder
+      InverseDynamicsJoint rightShoulderJoint = rightElbowJoint.getPredecessor().getParentJoint().getPredecessor().getParentJoint();
       InverseDynamicsJoint leftElbowJoint = fullRobotModel.getHand(RobotSide.LEFT).getParentJoint().getPredecessor().getParentJoint().getPredecessor()
                                                           .getParentJoint().getPredecessor().getParentJoint();
 
