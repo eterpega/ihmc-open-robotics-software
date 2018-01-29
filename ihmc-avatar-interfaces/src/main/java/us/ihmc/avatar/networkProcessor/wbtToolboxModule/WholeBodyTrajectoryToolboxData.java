@@ -199,7 +199,7 @@ public class WholeBodyTrajectoryToolboxData
       return messages;
    }
    
-   public double getMaximumDistanceFromManifolds(SpatialNode node)
+   public double getMinimumDistanceFromManifolds(SpatialNode node)
    {
       double distance = Double.MAX_VALUE;
       for (int j = 0; j < reachingManifolds.size(); j++)

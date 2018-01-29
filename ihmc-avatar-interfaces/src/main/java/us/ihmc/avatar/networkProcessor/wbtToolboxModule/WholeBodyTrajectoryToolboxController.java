@@ -439,9 +439,9 @@ public class WholeBodyTrajectoryToolboxController extends ToolboxController
                   testFrameViz.update();
 
                   // TODO : terminal condition for manifold command.
-                  double maximumDistanceFromManifolds = toolboxData.getMaximumDistanceFromManifolds(tree.getLastNodeAdded());
-                  minimumDistanceFromManifold.set(maximumDistanceFromManifolds);
-                  if(maximumDistanceFromManifolds < 0.05)
+                  double minimumDistanceFromManifolds = toolboxData.getMinimumDistanceFromManifolds(tree.getLastNodeAdded());
+                  minimumDistanceFromManifold.set(minimumDistanceFromManifolds);
+                  if(minimumDistanceFromManifolds < 0.05)
                      isExpandingTerminalCondition = true;
                }
                else
