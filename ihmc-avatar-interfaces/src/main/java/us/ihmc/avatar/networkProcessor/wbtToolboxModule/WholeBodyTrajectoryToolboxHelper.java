@@ -198,8 +198,8 @@ public class WholeBodyTrajectoryToolboxHelper
       manifoldMessage.setOrigin(originPosition, new Quaternion());
 
       ConfigurationSpaceName[] manifoldSpaces = {YAW, PITCH, ConfigurationSpaceName.X};
-      double[] lowerLimits = new double[] {-Math.PI, -Math.PI * 0.5, 0.0};
-      double[] upperLimits = new double[] {Math.PI, Math.PI * 0.5, radius};
+      double[] lowerLimits = new double[] {-Math.PI*0.5, -Math.PI * 0.5, -radius};
+      double[] upperLimits = new double[] {Math.PI*0.5, Math.PI * 0.5, radius};
       manifoldMessage.setManifold(manifoldSpaces, lowerLimits, upperLimits);
 
       return manifoldMessage;
@@ -224,8 +224,8 @@ public class WholeBodyTrajectoryToolboxHelper
       manifoldMessage.setOrigin(originPosition, originOrientation);
 
       ConfigurationSpaceName[] manifoldSpaces = {ConfigurationSpaceName.YAW, ConfigurationSpaceName.X, ConfigurationSpaceName.Z};
-      double[] lowerLimits = new double[] {-Math.PI, 0.0, 0.0};
-      double[] upperLimits = new double[] {Math.PI, radius, height};
+      double[] lowerLimits = new double[] {-Math.PI*0.5, -radius, 0.0};
+      double[] upperLimits = new double[] {Math.PI*0.5, radius, height};
       manifoldMessage.setManifold(manifoldSpaces, lowerLimits, upperLimits);
 
       return manifoldMessage;
@@ -250,7 +250,7 @@ public class WholeBodyTrajectoryToolboxHelper
 
       manifoldMessage.setOrigin(originPosition, originOrientation);
 
-      ConfigurationSpaceName[] manifoldSpaces = {YAW, PITCH, ConfigurationSpaceName.X};
+      ConfigurationSpaceName[] manifoldSpaces = {ConfigurationSpaceName.X, ConfigurationSpaceName.Y, ConfigurationSpaceName.Z};
       double[] lowerLimits = new double[] {-lengthX * 0.5, -lengthY * 0.5, -lengthZ * 0.5};
       double[] upperLimits = new double[] {lengthX * 0.5, lengthY * 0.5, lengthZ * 0.5};
       manifoldMessage.setManifold(manifoldSpaces, lowerLimits, upperLimits);

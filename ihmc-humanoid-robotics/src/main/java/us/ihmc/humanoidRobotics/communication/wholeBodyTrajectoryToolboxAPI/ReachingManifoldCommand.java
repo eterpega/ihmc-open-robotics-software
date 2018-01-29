@@ -127,7 +127,8 @@ public class ReachingManifoldCommand
       double closestDistance = Double.MAX_VALUE;
       double distanceOld = closestDistance;
 
-      double alpha = -7.0;
+      double alphaLinear = -0.02;
+      double alphaAngular = -1.0;
       double perturb = 0.01;
 
       int maximumNumberOfIteration = 100;
@@ -168,7 +169,10 @@ public class ReachingManifoldCommand
          TDoubleArrayList currentConfigurationSpace = new TDoubleArrayList();
          for (int j = 0; j < getDimensionOfManifold(); j++)
          {
-            currentConfigurationSpace.add(closestConfigurationSpace.get(j) + alpha * gradientDecent.get(j));
+            if (manifoldConfigurationSpaces.get(j).isLinear())
+               currentConfigurationSpace.add(closestConfigurationSpace.get(j) + alphaLinear * gradientDecent.get(j));
+            else
+               currentConfigurationSpace.add(closestConfigurationSpace.get(j) + alphaAngular * gradientDecent.get(j));
 
             currentConfigurationSpace.set(j, MathTools.clamp(currentConfigurationSpace.get(j), getLowerLimit(j), getUpperLimit(j)));
          }

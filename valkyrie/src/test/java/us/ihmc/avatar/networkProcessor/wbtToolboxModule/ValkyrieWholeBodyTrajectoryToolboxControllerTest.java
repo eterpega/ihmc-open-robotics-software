@@ -275,18 +275,18 @@ public class ValkyrieWholeBodyTrajectoryToolboxControllerTest extends AvatarWhol
 
       WholeBodyTrajectoryToolboxConfigurationMessage configuration = new WholeBodyTrajectoryToolboxConfigurationMessage();
       configuration.setInitialConfigration(fullRobotModel);
-      configuration.setMaximumExpansionSize(2300);
+      configuration.setMaximumExpansionSize(500);
 
       RigidBody hand = fullRobotModel.getHand(RobotSide.RIGHT);
       List<ReachingManifoldMessage> reachingManifolds = new ArrayList<>();
       
-      Point3D manifoldOrigin = new Point3D(0.7, -0.35, 1.2);
+      Point3D manifoldOrigin = new Point3D(1.3, -0.35, 0.95);
       Quaternion manifoldOrientation = new Quaternion();
-      manifoldOrientation.appendPitchRotation(Math.PI*0.25);
+      manifoldOrientation.appendPitchRotation(-Math.PI*0.01);
 
-      //ReachingManifoldMessage manifoldMessage = WholeBodyTrajectoryToolboxHelper.createSphereManifoldMessages(hand, manifoldOrigin, 0.1);
-      ReachingManifoldMessage manifoldMessage = WholeBodyTrajectoryToolboxHelper.createCylinderManifoldMessages(hand, manifoldOrigin, manifoldOrientation, 0.1, 0.2);
-      //ReachingManifoldMessage manifoldMessage = WholeBodyTrajectoryToolboxHelper.createBoxManifoldMessages(hand, manifoldOrigin, manifoldOrientation, 0.1, 0.2, 0.15);
+      //ReachingManifoldMessage manifoldMessage = WholeBodyTrajectoryToolboxHelper.createSphereManifoldMessages(hand, manifoldOrigin, 0.2);
+      //ReachingManifoldMessage manifoldMessage = WholeBodyTrajectoryToolboxHelper.createCylinderManifoldMessages(hand, manifoldOrigin, manifoldOrientation, 0.3, 0.4);
+      ReachingManifoldMessage manifoldMessage = WholeBodyTrajectoryToolboxHelper.createBoxManifoldMessages(hand, manifoldOrigin, manifoldOrientation, 0.2, 0.3, 0.4);
       reachingManifolds.add(manifoldMessage);      
 
       List<RigidBodyExplorationConfigurationMessage> rigidBodyConfigurations = new ArrayList<>();
