@@ -1,8 +1,5 @@
 package us.ihmc.avatar.networkProcessor.wbtToolboxModule;
 
-import static us.ihmc.humanoidRobotics.communication.packets.manipulation.wholeBodyTrajectory.ConfigurationSpaceName.PITCH;
-import static us.ihmc.humanoidRobotics.communication.packets.manipulation.wholeBodyTrajectory.ConfigurationSpaceName.YAW;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,7 +7,6 @@ import org.junit.Test;
 
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
 import us.ihmc.avatar.drcRobot.RobotTarget;
-import us.ihmc.avatar.networkProcessor.wbtToolboxModule.AvatarWholeBodyTrajectoryToolboxControllerTest;
 import us.ihmc.commons.PrintTools;
 import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations;
 import us.ihmc.continuousIntegration.IntegrationCategory;
@@ -283,16 +279,15 @@ public class ValkyrieWholeBodyTrajectoryToolboxControllerTest extends AvatarWhol
 
       RigidBody hand = fullRobotModel.getHand(RobotSide.RIGHT);
       List<ReachingManifoldMessage> reachingManifolds = new ArrayList<>();
+      
+      Point3D manifoldOrigin = new Point3D(0.7, -0.35, 1.2);
+      Quaternion manifoldOrientation = new Quaternion();
+      manifoldOrientation.appendPitchRotation(Math.PI*0.25);
 
-      ReachingManifoldMessage reachingManifold = new ReachingManifoldMessage(hand);
-
-      reachingManifold.setOrigin(new Point3D(0.7, -0.2, 1.0), new Quaternion());
-
-      ConfigurationSpaceName[] manifoldSpaces = {YAW, PITCH, ConfigurationSpaceName.X};
-      double[] lowerLimits = new double[] {-Math.PI * 0.5, -Math.PI * 0.5, -0.1};
-      double[] upperLimits = new double[] {Math.PI * 0.5, Math.PI * 0.5, 0.0};
-      reachingManifold.setManifold(manifoldSpaces, lowerLimits, upperLimits);
-      reachingManifolds.add(reachingManifold);
+      //ReachingManifoldMessage manifoldMessage = WholeBodyTrajectoryToolboxHelper.createSphereManifoldMessages(hand, manifoldOrigin, 0.1);
+      ReachingManifoldMessage manifoldMessage = WholeBodyTrajectoryToolboxHelper.createCylinderManifoldMessages(hand, manifoldOrigin, manifoldOrientation, 0.1, 0.2);
+      //ReachingManifoldMessage manifoldMessage = WholeBodyTrajectoryToolboxHelper.createBoxManifoldMessages(hand, manifoldOrigin, manifoldOrientation, 0.1, 0.2, 0.15);
+      reachingManifolds.add(manifoldMessage);      
 
       List<RigidBodyExplorationConfigurationMessage> rigidBodyConfigurations = new ArrayList<>();
 
