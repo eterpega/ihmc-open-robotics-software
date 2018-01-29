@@ -221,7 +221,7 @@ public class WholeBodyTrajectoryToolboxHelper
    {
       ReachingManifoldMessage manifoldMessage = new ReachingManifoldMessage(rigidBody);
 
-      manifoldMessage.setOrigin(originPosition, new Quaternion());
+      manifoldMessage.setOrigin(originPosition, originOrientation);
 
       ConfigurationSpaceName[] manifoldSpaces = {ConfigurationSpaceName.YAW, ConfigurationSpaceName.X, ConfigurationSpaceName.Z};
       double[] lowerLimits = new double[] {-Math.PI, 0.0, 0.0};
@@ -248,7 +248,7 @@ public class WholeBodyTrajectoryToolboxHelper
    {
       ReachingManifoldMessage manifoldMessage = new ReachingManifoldMessage(rigidBody);
 
-      manifoldMessage.setOrigin(originPosition, new Quaternion());
+      manifoldMessage.setOrigin(originPosition, originOrientation);
 
       ConfigurationSpaceName[] manifoldSpaces = {YAW, PITCH, ConfigurationSpaceName.X};
       double[] lowerLimits = new double[] {-lengthX * 0.5, -lengthY * 0.5, -lengthZ * 0.5};
