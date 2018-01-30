@@ -21,44 +21,91 @@ import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.yoVariables.variable.YoEnum;
 
+/**
+ * {@code ManualDiagnosticController} provides a basic control to debug each joint at a time.
+ * <p>
+ * Once the user changed the joint to focus on, by changing {@link #selectedJointEnum}, the
+ * following can be achieved:
+ * <ul>
+ * <li>the gains and setpoints of a PD controller running on the selected joint can be changed,
+ * <li>a function generator can be used to add function based offset to either the desired joint
+ * position and/or the desired joint torque.
+ * </ul>
+ * </p>
+ * <p>
+ * This controller also provides a set of available parameters/states variable related to the
+ * selected joints, such as:<br>
+ * {@link #kpSelected}, {@link #kdSelected}, {@link #qDesiredSelected}, {@link #qdDesiredSelected},
+ * {@link #qSelected}, {@link #qdSelected}, {@link #tauDesiredSelected}, {@link #tauSelected}.<br>
+ * These variables get automatically updated to match the selected joint such that the user does not
+ * have to bring up a thousand graphs or entry boxes.
+ * </p>
+ */
 public class ManualDiagnosticController extends DiagnosticControllerState
 {
    private static final DiagnosticMode stateEnum = DiagnosticMode.MANUAL;
 
    private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
 
+   /**
+    * This YoEnum is used to select a robot joint to focus on. It can be changed via the remote
+    * visualizer.
+    */
    private final YoEnum<?> selectedJointEnum;
 
    private final YoBoolean hasSelectedJointChanged = new YoBoolean("hasSelectedJointChanged", registry);
    private final YoBoolean resetFunctionGenerators = new YoBoolean("resetFunctionGenerators", registry);
 
+   /**
+    * The master scale is clamped to remain in [0, 1] and is used to scale the output of all the PD
+    * controllers.
+    */
    private final YoDouble masterScale = new YoDouble("masterScale", registry);
 
+   /** Proportional gain of the selected joint. */
    private final YoDouble kpSelected = new YoDouble("kpSelected", registry);
+   /** Derivative gain of the selected joint. */
    private final YoDouble kdSelected = new YoDouble("kdSelected", registry);
 
+   /** Desired position for the selected joint. */
    private final YoDouble qDesiredSelected = new YoDouble("qDesiredSelected", registry);
+   /** Desired velocity for the selected joint. */
    private final YoDouble qdDesiredSelected = new YoDouble("qdDesiredSelected", registry);
+   /** Position output of the joint position function generator used as an offset added to {@link #qDesiredSelected} when updating the joint PD controller. */
    private final YoDouble qOffsetFunctionSelected = new YoDouble("qOffsetFunctionSelected", registry);
+   /** Velocity output of the joint position function generator used as an offset added to {@link #qdDesiredSelected} when updating the joint PD controller. */
    private final YoDouble qdOffsetFunctionSelected = new YoDouble("qdOffsetFunctionSelected", registry);
 
+   /** Measured position of the selected joint. */
    private final YoDouble qSelected = new YoDouble("qSelected", registry);
+   /** Measured velocity of the selected joint. */
    private final YoDouble qdSelected = new YoDouble("qdSelected", registry);
 
+   /** Measured torque of the selected joint. */
    private final YoDouble tauSelected = new YoDouble("tauSelected", registry);
+   /** Constant offset torque to add to the desired torque for the selected joint. */
    private final YoDouble tauOffsetSelected = new YoDouble("tauOffsetSelected", registry);
+   /** Torque output of the PD controller for the selected joint. */
    private final YoDouble tauPDSelected = new YoDouble("tauPDSelected", registry);
+   /** Torque output of the function generator for the selected joint. */
    private final YoDouble tauFunctionSelected = new YoDouble("tauFunctionSelected", registry);
+   /** Desired torque submitted to the selected joint low-level controller. */
    private final YoDouble tauDesiredSelected = new YoDouble("tauDesiredSelected", registry);
 
+   /** Desired position function mode for the selected joint, allows for instance to switch between chirp, sine, and square signals. */
    private final YoEnum<YoFunctionGeneratorMode> positionFunctionGenModeSelected = new YoEnum<>("positionFunctionGenModeSelected", registry,
                                                                                                 YoFunctionGeneratorMode.class);
+   /** Desired signal amplitude of the position function generator for the selected joint. */
    private final YoDouble positionFunctionGenAmplitudeSelected = new YoDouble("positionFunctionGenAmplitudeSelected", registry);
+   /** Desired signal frequency of the position function generator for the selected joint. */
    private final YoDouble positionFunctionGenFrequencySelected = new YoDouble("positionFunctionGenFrequencySelected", registry);
 
+   /** Desired torque function mode for the selected joint, allows for instance to switch between chirp, sine, and square signals. */
    private final YoEnum<YoFunctionGeneratorMode> tauFunctionGenModeSelected = new YoEnum<>("tauFunctionGenModeSelected", registry,
                                                                                            YoFunctionGeneratorMode.class);
+   /** Desired signal amplitude of the torque function generator for the selected joint. */
    private final YoDouble tauFunctionGenAmplitudeSelected = new YoDouble("tauFunctionGenAmplitudeSelected", registry);
+   /** Desired signal frequency of the torque function generator for the selected joint. */
    private final YoDouble tauFunctionGenFrequencySelected = new YoDouble("tauFunctionGenFrequencySelected", registry);
 
    private final List<JointDiagnosticDataHolder> jointDiagnosticDataHolders = new ArrayList<>();

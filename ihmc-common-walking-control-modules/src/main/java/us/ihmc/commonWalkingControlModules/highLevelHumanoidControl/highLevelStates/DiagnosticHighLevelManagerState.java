@@ -18,6 +18,13 @@ import us.ihmc.sensorProcessing.outputData.JointDesiredOutputListReadOnly;
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
 
+/**
+ * This is the top level for the diagnostic section of the high-level controller.
+ * <p>
+ * {@code DiagnosticHighLevelManagerState} only provides a state machine allowing to switch between
+ * different types of diagnostics.
+ * </p>
+ */
 public class DiagnosticHighLevelManagerState extends HighLevelControllerState
 {
    private static final HighLevelControllerName stateEnum = HighLevelControllerName.DIAGNOSTICS;
@@ -43,14 +50,19 @@ public class DiagnosticHighLevelManagerState extends HighLevelControllerState
       lowLevelOneDoFJointDesiredDataHolder.registerJointsWithEmptyData(controllableOneDoFJoints);
    }
 
-   private GenericStateMachine<DiagnosticMode, DiagnosticControllerState> createStateMachine(OneDoFJoint[] controlledJoints, FullHumanoidRobotModel fullRobotModel,
+   /**
+    * This is where new diagnostics should be registered to the state machine to enable them on the robot.
+    */
+   private GenericStateMachine<DiagnosticMode, DiagnosticControllerState> createStateMachine(OneDoFJoint[] controlledJoints,
+                                                                                             FullHumanoidRobotModel fullRobotModel,
                                                                                              HighLevelControllerParameters parameters, YoDouble yoTime,
                                                                                              double controlDT)
    {
       GenericStateMachine<DiagnosticMode, DiagnosticControllerState> stateMachine = new GenericStateMachine<>("diagnosticMode", "diagnosticModeSwitchTime",
                                                                                                               DiagnosticMode.class, yoTime, registry);
 
-      ManualDiagnosticController manualDiagnosticController = new ManualDiagnosticController(controlledJoints, fullRobotModel, yoTime, controlDT, parameters, registry);
+      ManualDiagnosticController manualDiagnosticController = new ManualDiagnosticController(controlledJoints, fullRobotModel, yoTime, controlDT, parameters,
+                                                                                             registry);
       stateMachine.addState(manualDiagnosticController);
       allStates.add(manualDiagnosticController);
 
