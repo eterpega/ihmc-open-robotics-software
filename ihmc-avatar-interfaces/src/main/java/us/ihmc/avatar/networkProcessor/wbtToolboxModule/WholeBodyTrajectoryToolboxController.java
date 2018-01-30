@@ -440,7 +440,8 @@ public class WholeBodyTrajectoryToolboxController extends ToolboxController
 
                   // TODO : terminal condition for manifold command.
                   double minimumDistanceFromManifolds = toolboxData.getMinimumDistanceFromManifolds(tree.getLastNodeAdded());
-                  minimumDistanceFromManifold.set(minimumDistanceFromManifolds);
+                  if(minimumDistanceFromManifolds < minimumDistanceFromManifold.getDoubleValue())
+                     minimumDistanceFromManifold.set(minimumDistanceFromManifolds);
                   if(minimumDistanceFromManifolds < 0.05)
                      isExpandingTerminalCondition = true;
                }
@@ -639,6 +640,7 @@ public class WholeBodyTrajectoryToolboxController extends ToolboxController
       toolboxData = new WholeBodyTrajectoryToolboxData(configurationConverter.getFullRobotModel(), trajectoryCommands, manifoldCommands, rigidBodyCommands);
 
       bestScoreInitialGuess.set(0.0);
+      minimumDistanceFromManifold.set(Double.MAX_VALUE);
 
       initialGuessStartTime = System.nanoTime();
 
@@ -785,7 +787,7 @@ public class WholeBodyTrajectoryToolboxController extends ToolboxController
       totalComputationTime.set(totalTime);
 
       // TODO : activate at final.
-      //humanoidKinematicsSolver.hideCollisionShapes();
+      humanoidKinematicsSolver.hideCollisionShapes();
       if (VERBOSE)
       {
          PrintTools.info("===========================================");
