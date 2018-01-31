@@ -275,19 +275,19 @@ public class ValkyrieWholeBodyTrajectoryToolboxControllerTest extends AvatarWhol
 
       WholeBodyTrajectoryToolboxConfigurationMessage configuration = new WholeBodyTrajectoryToolboxConfigurationMessage();
       configuration.setInitialConfigration(fullRobotModel);
-      configuration.setMaximumExpansionSize(500);
+      configuration.setMaximumExpansionSize(1500);
 
       RigidBody hand = fullRobotModel.getHand(RobotSide.RIGHT);
       List<ReachingManifoldMessage> reachingManifolds = new ArrayList<>();
-      
-      Point3D manifoldOrigin = new Point3D(1.3, -0.35, 0.95);
-      Quaternion manifoldOrientation = new Quaternion();
-      manifoldOrientation.appendPitchRotation(-Math.PI*0.01);
 
-      //ReachingManifoldMessage manifoldMessage = WholeBodyTrajectoryToolboxHelper.createSphereManifoldMessages(hand, manifoldOrigin, 0.2);
-      //ReachingManifoldMessage manifoldMessage = WholeBodyTrajectoryToolboxHelper.createCylinderManifoldMessages(hand, manifoldOrigin, manifoldOrientation, 0.3, 0.4);
-      ReachingManifoldMessage manifoldMessage = WholeBodyTrajectoryToolboxHelper.createBoxManifoldMessages(hand, manifoldOrigin, manifoldOrientation, 0.2, 0.3, 0.4);
-      reachingManifolds.add(manifoldMessage);      
+      Point3D manifoldOrigin = new Point3D(0.6, -0.25, 0.2);
+      Quaternion manifoldOrientation = new Quaternion();
+      manifoldOrientation.appendPitchRotation(-Math.PI * 0.01);
+
+      ReachingManifoldMessage manifoldMessage = WholeBodyTrajectoryToolboxMessageTools.createSphereManifoldMessages(hand, manifoldOrigin, 0.2);
+      //ReachingManifoldMessage manifoldMessage = WholeBodyTrajectoryToolboxMessageTools.createCylinderManifoldMessages(hand, manifoldOrigin, manifoldOrientation, 0.3, 0.4);
+      //ReachingManifoldMessage manifoldMessage = WholeBodyTrajectoryToolboxMessageTools.createBoxManifoldMessages(hand, manifoldOrigin, manifoldOrientation, 0.2, 0.3, 0.4);
+      reachingManifolds.add(manifoldMessage);
 
       List<RigidBodyExplorationConfigurationMessage> rigidBodyConfigurations = new ArrayList<>();
 
@@ -296,10 +296,12 @@ public class ValkyrieWholeBodyTrajectoryToolboxControllerTest extends AvatarWhol
        * RABIT @link https://www.ri.cmu.edu/pub_files/2016/5/main.pdf.
        * Implement BIT, RABIT for adaptive random regions.
        */
-      // test for position only.
+      // test for position only.      
       ConfigurationSpaceName[] explorationSpaces = {ConfigurationSpaceName.X, ConfigurationSpaceName.Y, ConfigurationSpaceName.Z,};
+      // TODO : initial spatical pose coordinate is on first pose of valkyrie.
+      // Wrong coordinate comparing to my guess.
       double[] explorationUpperLimits = {0.15, 0.05, 0.2};
-      double[] explorationLowerLimits = {-0.0, -0.5, -0.2};
+      double[] explorationLowerLimits = {-0.15, -0.5, -1.0};
 
       rigidBodyConfigurations.add(new RigidBodyExplorationConfigurationMessage(hand, explorationSpaces, explorationUpperLimits, explorationLowerLimits));
 
