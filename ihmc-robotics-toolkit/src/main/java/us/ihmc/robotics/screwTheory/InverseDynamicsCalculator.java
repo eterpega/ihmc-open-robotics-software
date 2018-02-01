@@ -8,8 +8,8 @@ import java.util.Map;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 
 /**
- * Computes joint torques based on desired joint accelerations.
- * Uses a recursive Newton-Euler algorithm, as described in Featherstone - Rigid Body Dynamics Algorithms (2008)
+ * Computes joint torques based on desired joint accelerations. Uses a recursive Newton-Euler
+ * algorithm, as described in Featherstone - Rigid Body Dynamics Algorithms (2008)
  *
  * @author Twan Koolen
  *
@@ -33,24 +33,34 @@ public class InverseDynamicsCalculator
    private final boolean doVelocityTerms;
 
    private InverseDynamicsCalculatorListener inverseDynamicsCalculatorListener;
-   
+
    public InverseDynamicsCalculator(RigidBody body, double gravity)
    {
-      this(body, gravity, new ArrayList<InverseDynamicsJoint>());
+      this(body, gravity, new ArrayList<>());
+   }
+
+   public InverseDynamicsCalculator(RigidBody body, double gravity, boolean doVelocityTerms, boolean doAccelerationTerms)
+   {
+      this(body, gravity, new ArrayList<>(), doVelocityTerms, doAccelerationTerms);
    }
 
    public InverseDynamicsCalculator(RigidBody body, double gravity, List<InverseDynamicsJoint> jointsToIgnore)
    {
-      this(body, ScrewTools.createGravitationalSpatialAcceleration(ScrewTools.getRootBody(body), gravity),
-            jointsToIgnore, true, true);
+      this(body, gravity, jointsToIgnore, true, true);
+   }
+
+   public InverseDynamicsCalculator(RigidBody body, double gravity, List<InverseDynamicsJoint> jointsToIgnore, boolean doVelocityTerms,
+                                    boolean doAccelerationTerms)
+   {
+      this(body, ScrewTools.createGravitationalSpatialAcceleration(ScrewTools.getRootBody(body), gravity), jointsToIgnore, doVelocityTerms,
+           doAccelerationTerms);
    }
 
    // FIXME: doVelocityTerms = false does not seem to work
    public InverseDynamicsCalculator(RigidBody body, SpatialAccelerationVector rootAcceleration, List<InverseDynamicsJoint> jointsToIgnore,
-         boolean doVelocityTerms, boolean doAccelerationTerms)
+                                    boolean doVelocityTerms, boolean doAccelerationTerms)
    {
-      this(jointsToIgnore, new SpatialAccelerationCalculator(body, rootAcceleration, doVelocityTerms,
-            doAccelerationTerms, true));
+      this(jointsToIgnore, new SpatialAccelerationCalculator(body, rootAcceleration, doVelocityTerms, doAccelerationTerms, true));
    }
 
    public InverseDynamicsCalculator(List<InverseDynamicsJoint> jointsToIgnore, SpatialAccelerationCalculator spatialAccelerationCalculator)
@@ -72,28 +82,29 @@ public class InverseDynamicsCalculator
 
    public void setInverseDynamicsCalculatorListener(InverseDynamicsCalculatorListener inverseDynamicsCalculatorListener)
    {
-      if (this.inverseDynamicsCalculatorListener != null) 
+      if (this.inverseDynamicsCalculatorListener != null)
       {
          throw new RuntimeException("Can only be one InverseDynamicsCalculatorListener");
       }
-      
+
       this.inverseDynamicsCalculatorListener = inverseDynamicsCalculatorListener;
    }
-   
+
    public void compute()
    {
       computeTwistsAndSpatialAccelerations();
       computeNetWrenches();
       computeJointWrenchesAndTorques();
-      
-      if (inverseDynamicsCalculatorListener != null) inverseDynamicsCalculatorListener.inverseDynamicsCalculatorIsDone(this);
+
+      if (inverseDynamicsCalculatorListener != null)
+         inverseDynamicsCalculatorListener.inverseDynamicsCalculatorIsDone(this);
    }
 
    public void setExternalWrench(RigidBody rigidBody, Wrench externalWrench)
    {
       externalWrenches.get(rigidBody).set(externalWrench);
    }
-   
+
    public void getExternalWrench(RigidBody rigidBody, Wrench externalWrenchToPack)
    {
       externalWrenchToPack.set(externalWrenches.get(rigidBody));

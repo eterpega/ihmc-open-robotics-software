@@ -1,8 +1,9 @@
 package us.ihmc.wholeBodyController.diagnostics;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import us.ihmc.commonWalkingControlModules.bipedSupportPolygons.BipedSupportPolygons;
 import us.ihmc.commonWalkingControlModules.bipedSupportPolygons.YoPlaneContactState;
@@ -10,7 +11,11 @@ import us.ihmc.commonWalkingControlModules.controllerCore.command.lowLevel.LowLe
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.DiagnosticsWhenHangingHelper;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.highLevelStates.WholeBodySetpointParameters;
 import us.ihmc.commonWalkingControlModules.momentumBasedController.HighLevelHumanoidControllerToolbox;
+import us.ihmc.commons.MathTools;
 import us.ihmc.commons.PrintTools;
+import us.ihmc.euclid.referenceFrame.FrameVector3D;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.referenceFrame.interfaces.FrameVector3DReadOnly;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotics.controllers.PDController;
 import us.ihmc.robotics.partNames.ArmJointName;
@@ -19,8 +24,11 @@ import us.ihmc.robotics.partNames.SpineJointName;
 import us.ihmc.robotics.robotController.RobotController;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
+import us.ihmc.robotics.screwTheory.InverseDynamicsCalculator;
 import us.ihmc.robotics.screwTheory.InverseDynamicsJoint;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
+import us.ihmc.robotics.screwTheory.RigidBody;
+import us.ihmc.robotics.screwTheory.Wrench;
 import us.ihmc.sensorProcessing.outputData.JointDesiredControlMode;
 import us.ihmc.sensorProcessing.outputData.JointDesiredOutputListReadOnly;
 import us.ihmc.wholeBodyController.JointTorqueOffsetProcessor;
@@ -36,21 +44,29 @@ public class JointTorqueOffsetEstimatorController implements RobotController, Jo
    private JointTorqueOffsetProcessor jointTorqueOffsetProcessor;
 
    private FullHumanoidRobotModel fullRobotModel;
-   private final ArrayList<OneDoFJoint> oneDoFJoints = new ArrayList<OneDoFJoint>();
+   private final List<OneDoFJoint> oneDoFJoints = new ArrayList<>();
 
-   private final LinkedHashMap<OneDoFJoint, PDController> pdControllers = new LinkedHashMap<OneDoFJoint, PDController>();
-   private final LinkedHashMap<OneDoFJoint, YoDouble> desiredPositions = new LinkedHashMap<OneDoFJoint, YoDouble>();
-   private final LinkedHashMap<OneDoFJoint, DiagnosticsWhenHangingHelper> helpers = new LinkedHashMap<OneDoFJoint, DiagnosticsWhenHangingHelper>();
+   private final Map<OneDoFJoint, PDController> pdControllers = new HashMap<>();
+   private final Map<OneDoFJoint, YoDouble> desiredPositions = new HashMap<>();
+   private final Map<OneDoFJoint, YoDouble> tauGravitys = new HashMap<>();
+   private final Map<OneDoFJoint, YoDouble> tauPDControllers = new HashMap<>();
+   private final Map<OneDoFJoint, YoDouble> tauOffsets = new HashMap<>();
 
    private final DoubleParameter ditherAmplitude = new DoubleParameter("ditherAmplitude", registry, 0.3, 0.0, 1.0);
    private final DoubleParameter ditherFrequency = new DoubleParameter("ditherFrequency", registry, 5.0, 0.0, 10.0);
-
+   private final YoDouble ditherTorque = new YoDouble("tau_dither", registry);
    private final DoubleParameter maximumTorqueOffset = new DoubleParameter("maximumTorqueOffset", registry, 5.0, 2.0, 15.0);
 
    private final YoBoolean estimateTorqueOffset = new YoBoolean("estimateTorqueOffset", registry);
    private final YoBoolean transferTorqueOffsets = new YoBoolean("transferTorqueOffsets", registry);
    private final YoBoolean exportJointTorqueOffsetsToFile = new YoBoolean("recordTorqueOffsets", registry);
 
+   private final YoDouble torqueCorrectionAlpha = new YoDouble("torqueCorrectionAlpha", registry);
+
+   private final RigidBody attachedRigidBody;
+   private final FrameVector3DReadOnly hoistForce;
+   private final Wrench hoistWrench = new Wrench();
+   private final InverseDynamicsCalculator gravityCompensationCalculator;
    private final boolean useArms = true;
 
    private final TorqueOffsetPrinter torqueOffsetPrinter;
@@ -78,11 +94,18 @@ public class JointTorqueOffsetEstimatorController implements RobotController, Jo
       estimateTorqueOffset.set(false);
       transferTorqueOffsets.set(false);
 
+      torqueCorrectionAlpha.set(0.001);
       fullRobotModel.getOneDoFJoints(oneDoFJoints);
 
       OneDoFJoint[] jointArray = fullRobotModel.getOneDoFJoints();
       lowLevelOneDoFJointDesiredDataHolder.registerJointsWithEmptyData(jointArray);
       lowLevelOneDoFJointDesiredDataHolder.setJointsControlMode(jointArray, JointDesiredControlMode.EFFORT);
+
+      double gravityZ = highLevelControllerToolbox.getGravityZ();
+      attachedRigidBody = fullRobotModel.getChest();
+      hoistForce = new FrameVector3D(ReferenceFrame.getWorldFrame(), 0.0, 0.0, fullRobotModel.getTotalMass() * gravityZ);
+      hoistWrench.setToZero(attachedRigidBody.getBodyFixedFrame(), attachedRigidBody.getBodyFixedFrame());
+      gravityCompensationCalculator = new InverseDynamicsCalculator(fullRobotModel.getElevator(), gravityZ, false, false);
 
       createHelpers(true);
 
@@ -100,6 +123,10 @@ public class JointTorqueOffsetEstimatorController implements RobotController, Jo
          YoDouble desiredPosition = new YoDouble("q_d_calib_" + jointName, registry);
          desiredPosition.set(wholeBodySetpointParameters.getSetpoint(jointName));
          desiredPositions.put(joint, desiredPosition);
+
+         tauGravitys.put(joint, new YoDouble("tau_grav_" + jointName, registry));
+         tauPDControllers.put(joint, new YoDouble("tau_pd_" + jointName, registry));
+         tauOffsets.put(joint, new YoDouble("tau_off_" + jointName, registry));
       }
 
       setDefaultPDControllerGains();
@@ -116,13 +143,48 @@ public class JointTorqueOffsetEstimatorController implements RobotController, Jo
       hasReachedMaximumTorqueOffset.set(false);
    }
 
+   private final FrameVector3D tempFrameVector = new FrameVector3D();
+
    @Override
    public void doControl()
    {
       bipedSupportPolygons.updateUsingContactStates(footContactStates);
       controllerToolbox.update();
 
-      updateDiagnosticsWhenHangingHelpers();
+      tempFrameVector.setIncludingFrame(hoistForce);
+      tempFrameVector.changeFrame(attachedRigidBody.getBodyFixedFrame());
+      hoistWrench.setLinearPart(tempFrameVector);
+      gravityCompensationCalculator.setExternalWrench(attachedRigidBody, hoistWrench);
+      gravityCompensationCalculator.compute();
+
+      ditherTorque.set(ditherAmplitude.getValue() * Math.sin(2.0 * Math.PI * ditherFrequency.getValue() * currentTime.getDoubleValue()));
+
+      for (int i = 0; i < oneDoFJoints.size(); i++)
+      {
+         OneDoFJoint joint = oneDoFJoints.get(i);
+         double tauGravity = joint.getTau();
+         tauGravitys.get(joint).set(tauGravity);
+
+         PDController pdController = pdControllers.get(joint);
+         double desiredPosition = desiredPositions.get(joint).getDoubleValue();
+         double desiredVelocity = 0.0;
+         double tauPD = pdController.compute(joint.getQ(), desiredPosition, joint.getQd(), desiredVelocity);
+         tauPDControllers.get(joint).set(tauPD);
+
+         YoDouble yoTauOffset = tauOffsets.get(joint);
+         double tauOffset = yoTauOffset.getValue();
+
+         if (estimateTorqueOffset.getValue())
+         {
+            tauOffset += torqueCorrectionAlpha.getDoubleValue() * tauPD;
+            tauOffset = MathTools.clamp(tauOffset, maximumTorqueOffset.getValue());
+            yoTauOffset.set(tauOffset);
+         }
+
+         double tauDesired = ditherTorque.getValue() + tauGravity + tauPD + tauOffset;
+         lowLevelOneDoFJointDesiredDataHolder.setDesiredJointTorque(joint, tauDesired);
+      }
+
       updatePDControllers();
 
       if (transferTorqueOffsets.getBooleanValue())
@@ -138,16 +200,6 @@ public class JointTorqueOffsetEstimatorController implements RobotController, Jo
       }
 
       lowLevelOneDoFJointDesiredDataHolder.setDesiredTorqueFromJoints(oneDoFJoints);
-   }
-
-   public void updateDiagnosticsWhenHangingHelpers()
-   {
-      for (int i = 0; i < oneDoFJoints.size(); i++)
-      {
-         DiagnosticsWhenHangingHelper diagnosticsWhenHangingHelper = helpers.get(oneDoFJoints.get(i));
-         if (diagnosticsWhenHangingHelper != null)
-            diagnosticsWhenHangingHelper.update();
-      }
    }
 
    private void updatePDControllers()
@@ -172,8 +224,7 @@ public class JointTorqueOffsetEstimatorController implements RobotController, Jo
       if (diagnosticsWhenHangingHelper != null)
       {
          tau = diagnosticsWhenHangingHelper.getTorqueToApply(tau, estimateTorqueOffset.getBooleanValue(), maximumTorqueOffset.getValue());
-         if (hasReachedMaximumTorqueOffset.getBooleanValue()
-               && Math.abs(diagnosticsWhenHangingHelper.getTorqueOffset()) == maximumTorqueOffset.getValue())
+         if (hasReachedMaximumTorqueOffset.getBooleanValue() && Math.abs(diagnosticsWhenHangingHelper.getTorqueOffset()) == maximumTorqueOffset.getValue())
          {
             PrintTools.warn(this, "Reached maximum torque for at least one joint.");
             hasReachedMaximumTorqueOffset.set(true);
