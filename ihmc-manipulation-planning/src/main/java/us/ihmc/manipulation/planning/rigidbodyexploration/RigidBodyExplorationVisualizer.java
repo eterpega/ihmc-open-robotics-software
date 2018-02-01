@@ -3,6 +3,7 @@ package us.ihmc.manipulation.planning.rigidbodyexploration;
 import java.util.ArrayList;
 import java.util.Random;
 
+import us.ihmc.commons.PrintTools;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.euclid.geometry.Pose3D;
 import us.ihmc.euclid.matrix.RotationMatrix;
@@ -17,6 +18,7 @@ import us.ihmc.graphicsDescription.SegmentedLine3DMeshDataGenerator;
 import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
 import us.ihmc.graphicsDescription.appearance.YoAppearance;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicCoordinateSystem;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicCylinder;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.wholeBodyTrajectory.ReachingManifoldMessage;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.wholeBodyTrajectory.WholeBodyTrajectoryToolboxMessageTools;
@@ -42,6 +44,7 @@ public class RigidBodyExplorationVisualizer
    public RigidBodyExplorationVisualizer()
    {
       SimulationConstructionSetParameters parameters = new SimulationConstructionSetParameters();
+
       parameters.setCreateGUI(true);
       parameters.setDataBufferSize(bufferSize);
 
@@ -54,29 +57,147 @@ public class RigidBodyExplorationVisualizer
       FramePose3D initialRigidBody = new FramePose3D(worldFrame);
 
       RigidBody dummyHand = new RigidBody("dummyHand", worldFrame);
-      Point3D manifoldOrigin = new Point3D(0.8, -0.3, 0.5);
+      Point3D manifoldOrigin = new Point3D(1.0, 1.0, 1.0);
       Quaternion manifoldOrientation = new Quaternion();
-      ReachingManifoldMessage manifoldMessage = WholeBodyTrajectoryToolboxMessageTools.createSphereManifoldMessages(dummyHand, manifoldOrigin, 0.2);
+      ReachingManifoldMessage manifoldMessage = WholeBodyTrajectoryToolboxMessageTools.createSphereManifoldMessages(dummyHand, manifoldOrigin, 0.1);
 
-      scs.addStaticLinkGraphics(createTrajectoryMessageVisualization(manifoldMessage, 0.01, YoAppearance.AliceBlue()));
-      
+      scs.addStaticLinkGraphics(createManifoldMessageVisualization(manifoldMessage, 0.01, YoAppearance.AliceBlue()));
+
       // SpatialDataRegion
       SpatialDataRegion spatialDataRegion = new SpatialDataRegion();
-      spatialDataRegion.setPositionLowerLimitSpace(0, 0, 0);
-      spatialDataRegion.setPositionUpperLimitSpace(1, 0, 1);
-      
-      spatialDataRegion.setRotationVectorLowerLimitSpace(0, 1, 0);
-      spatialDataRegion.setRotationVectorUpperLimitSpace(0, 1, 0);
-      
+      spatialDataRegion.setPositionLowerLimitSpace(-1.0, -1.0, -1.0);
+      spatialDataRegion.setPositionUpperLimitSpace(1, 1, 1);
+//      spatialDataRegion.setPositionLowerLimitSpace(-0.5, -0.5, -0.5);
+//      spatialDataRegion.setPositionUpperLimitSpace(1, 1, 1);
+
+      spatialDataRegion.setRotationVectorLowerLimitSpace(-1, -1, -1);
+      spatialDataRegion.setRotationVectorUpperLimitSpace(1, 1, 1);
+
       // Initial ExploringRigidBody
-      
-      //
-
       Pose3D initialSpatialData = new Pose3D();
-      initialSpatialData.appendTranslation(2.0, 0.0, 5.0);
-      ExploringRigidBody testExploringRigidBody = new ExploringRigidBody(initialSpatialData);
-      scs.addStaticLinkGraphics(createExploringRigidBodyVisualization(testExploringRigidBody));
+      initialSpatialData.appendTranslation(0.0, 0.0, 0.0);
+      ExploringRigidBody initialExploringRigidBody = new ExploringRigidBody(initialSpatialData);
+      scs.addStaticLinkGraphics(createExploringRigidBodyVisualization(initialExploringRigidBody));
 
+      //      // ********************************************** //
+      //      // adaptive random region test
+      //      // ********************************************** //
+      //      int numberOfExpansion = 1000;
+      //      double a = 0.01;
+      //      double b = 0.3;
+      //      double c = 1.0;
+      //
+      //      double ak = a;
+      //      double bk = b;
+      //      double ck = c;
+      //
+      //      double max = 0.0;
+      //      if (a > max)
+      //         max = a;
+      //      if (b > max)
+      //         max = b;
+      //      if (c > max)
+      //         max = c;
+      //      double expandingLimitRatio = 1.0;
+      //
+      //      double expandingLimit = max * (1 + expandingLimitRatio);
+      //
+      //      double ampA = expandingLimit - a;
+      //      double ampB = expandingLimit - b;
+      //      double ampC = expandingLimit - c;
+      //
+      //      for (int i = 0; i < numberOfExpansion; i++)
+      //      {
+      //         double alpha = (double) ((double) i / (double) numberOfExpansion) * Math.PI;
+      //         ak = a + 0.5 * ampA * (1 - Math.cos(alpha));
+      //         bk = b + 0.5 * ampB * (1 - Math.cos(alpha));
+      //         ck = c + 0.5 * ampC * (1 - Math.cos(alpha));
+      //      }
+      //      // ********************************************** //      
+
+      // Random exploring      
+      int numberOfExploring = 500;
+      double stepSize = 0.1;
+      ArrayList<ExploringRigidBody> exploringRigidBodies = new ArrayList<>();
+      exploringRigidBodies.add(initialExploringRigidBody);
+
+      for (int i = 0; i < numberOfExploring; i++)
+      {
+         // random spatial data.
+         Pose3D randomSpatialData = new Pose3D();
+         spatialDataRegion.getRandomSpatialData(randomSpatialData);
+
+         // find closest one.
+         double minimumDistance = Double.MAX_VALUE;
+         int minimumIndex = 0;
+         for (int j = 0; j < exploringRigidBodies.size(); j++)
+         {
+            double distance = exploringRigidBodies.get(j).getDistance(randomSpatialData);
+            if (minimumDistance > distance)
+            {
+               minimumIndex = j;
+               minimumDistance = distance;
+            }
+         }
+
+         // create new expanding one.
+         double alpha = stepSize / minimumDistance;
+         ExploringRigidBody candidateParentRigidBody = exploringRigidBodies.get(minimumIndex);
+         Pose3D newSpatialData = new Pose3D(candidateParentRigidBody.getSpatialData());
+         newSpatialData.interpolate(randomSpatialData, alpha);
+
+         // test validity
+         boolean validity = true;
+         Point3D originOfObstacle = new Point3D(-0.1, 0.3, -0.1);
+         double distanceWObstacle = originOfObstacle.distance(newSpatialData.getPosition());
+         if(distanceWObstacle < 0.3)
+            validity = false;
+         
+         
+         
+         ExploringRigidBody exploringRigidBody = new ExploringRigidBody();
+         if (validity)
+         {
+            exploringRigidBody.setSpatialData(newSpatialData);
+            exploringRigidBody.setParentRigidBody(candidateParentRigidBody);
+
+            // add it.
+            exploringRigidBodies.add(exploringRigidBody);
+
+            // visualize it.
+            scs.addStaticLinkGraphics(createExploringRigidBodyVisualization(exploringRigidBody));
+            scs.addStaticLinkGraphics(createConnectionVisualization(candidateParentRigidBody, exploringRigidBody));
+
+         }
+         else
+         {
+            scs.addStaticLinkGraphics(createExploringRigidBodyVisualization(exploringRigidBody));
+            continue;
+         }
+      }
+      
+      PrintTools.info("numberOfTrialsToExpand is "+numberOfExploring);
+      PrintTools.info("numberOfValidExpanding is "+exploringRigidBodies.size());
+      
+      
+      
+      // rotation vector distance test
+      Vector3D rv1 = new Vector3D(0.5, 0.5, 0.5);
+      Vector3D rv2 = new Vector3D(1.0, 1.0, 1.0);
+      Vector3D rv3 = new Vector3D(1.0, 0.0, 1.0);
+      
+      Quaternion qt1 = new Quaternion(rv1);
+      Quaternion qt2 = new Quaternion(rv2);
+      Quaternion qt3 = new Quaternion(rv3);
+      
+      PrintTools.info(""+qt1.distance(qt2));
+      PrintTools.info(""+qt1.distance(qt3));
+      PrintTools.info(""+qt2.distance(qt3));
+      
+ 
+      
+      
+      
 
       YoFramePose yoWorldFrame = new YoFramePose("yoWorldFrame", worldFrame, registry);
       FramePose3D pose = new FramePose3D(worldFrame);
@@ -85,55 +206,18 @@ public class RigidBodyExplorationVisualizer
       yoGraphicsListRegistry.registerYoGraphic("worldGraphic", worldFrameGraphic);
       worldFrameGraphic.setPose(pose);
       
-//      // ********************************************** //
-//      // adaptive random region test
-//      // ********************************************** //
-//      int numberOfExpansion = 1000;
-//      double a = 0.01;
-//      double b = 0.3;
-//      double c = 1.0;
-//
-//      double ak = a;
-//      double bk = b;
-//      double ck = c;
-//
-//      double max = 0.0;
-//      if (a > max)
-//         max = a;
-//      if (b > max)
-//         max = b;
-//      if (c > max)
-//         max = c;
-//      double expandingLimitRatio = 1.0;
-//
-//      double expandingLimit = max * (1 + expandingLimitRatio);
-//
-//      double ampA = expandingLimit - a;
-//      double ampB = expandingLimit - b;
-//      double ampC = expandingLimit - c;
-//
-//      for (int i = 0; i < numberOfExpansion; i++)
-//      {
-//         double alpha = (double) ((double) i / (double) numberOfExpansion) * Math.PI;
-//         ak = a + 0.5 * ampA * (1 - Math.cos(alpha));
-//         bk = b + 0.5 * ampB * (1 - Math.cos(alpha));
-//         ck = c + 0.5 * ampC * (1 - Math.cos(alpha));
-//      }
-//      // ********************************************** //      
+      YoGraphicCoordinateSystem randomSpatialGraphic = new YoGraphicCoordinateSystem("randomSpatial", yoWorldFrame, 0.3);
+      yoGraphicsListRegistry.registerYoGraphic("randomSpatialGraphic", randomSpatialGraphic);
+      
+      //YoGraphicCylinder asymptoteGraphic = new YoGraphicCylinder("asymptote", yoWorldFrame, 0.3);
+      
+      
+      
+      
+      
+      
+      
 
-      // Random exploring
-      int numberOfExploring = 10;
-      for (int i=0;i<numberOfExploring;i++)
-      {
-         ExploringRigidBody exploringRigidBody = new ExploringRigidBody();
-         spatialDataRegion.getRandomSpatialData(exploringRigidBody);
-         scs.addStaticLinkGraphics(createExploringRigidBodyVisualization(exploringRigidBody));
-      }
-      
-      
-      
-      
-      
       int numberOfWaypoints = 200;
       double t = 0.0;
 
@@ -164,7 +248,7 @@ public class RigidBodyExplorationVisualizer
       new RigidBodyExplorationVisualizer();
    }
 
-   private static Graphics3DObject createTrajectoryMessageVisualization(ReachingManifoldMessage reachingMessage, double radius, AppearanceDefinition appearance)
+   private static Graphics3DObject createManifoldMessageVisualization(ReachingManifoldMessage reachingMessage, double radius, AppearanceDefinition appearance)
    {
       int configurationValueResolution = 20;
       int numberOfPoints = (int) Math.pow(configurationValueResolution, reachingMessage.manifoldConfigurationSpaces.length);
@@ -232,6 +316,9 @@ public class RigidBodyExplorationVisualizer
 
    private static ArrayList<Graphics3DObject> createExploringRigidBodyVisualization(ExploringRigidBody exploringRigidBody)
    {
+      double height = 0.015;
+      double radius = 0.003;
+      
       ArrayList<Graphics3DObject> graphics = new ArrayList<>();
 
       RotationMatrix rotationMatrixX = new RotationMatrix(exploringRigidBody.getSpatialData().getOrientation());
@@ -240,25 +327,24 @@ public class RigidBodyExplorationVisualizer
 
       Graphics3DObject point = new Graphics3DObject();
       point.translate(exploringRigidBody.getSpatialData().getPosition());
-      point.addSphere(0.005, YoAppearance.Black());
+      point.addSphere(radius, YoAppearance.Black());
 
       Graphics3DObject zAxis = new Graphics3DObject();
       zAxis.translate(exploringRigidBody.getSpatialData().getPosition());
       zAxis.rotate(rotationMatrixZ);
-      zAxis.addCylinder(0.025, 0.005, YoAppearance.Blue());
+      zAxis.addCylinder(height, radius, YoAppearance.Blue());
 
       Graphics3DObject yAxis = new Graphics3DObject();
       yAxis.translate(exploringRigidBody.getSpatialData().getPosition());
       rotationMatrixY.appendRollRotation(-0.5 * Math.PI);
       yAxis.rotate(rotationMatrixY);
-
-      yAxis.addCylinder(0.025, 0.005, YoAppearance.Green());
+      yAxis.addCylinder(height, radius, YoAppearance.Green());
 
       Graphics3DObject xAxis = new Graphics3DObject();
       xAxis.translate(exploringRigidBody.getSpatialData().getPosition());
       rotationMatrixX.appendPitchRotation(0.5 * Math.PI);
       xAxis.rotate(rotationMatrixX);
-      xAxis.addCylinder(0.025, 0.005, YoAppearance.Red());
+      xAxis.addCylinder(height, radius, YoAppearance.Red());
 
       graphics.add(point);
       graphics.add(zAxis);
