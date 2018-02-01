@@ -7,33 +7,39 @@ public class ExploringRigidBody
    private final Pose3D spatialData;
    private ExploringRigidBody parentRigidBody;
 
-   public ExploringRigidBody(Pose3D pose)
+   public ExploringRigidBody()
    {
-      this.spatialData = new Pose3D(pose);
+      this.spatialData = new Pose3D();
+   }
+   
+   public ExploringRigidBody(Pose3D spatialData)
+   {
+      this.spatialData = new Pose3D(spatialData);
+   }
+
+   public void setSpatialData(Pose3D spatialData)
+   {
+      this.spatialData.set(spatialData);
    }
 
    public double getPositionDistance(ExploringRigidBody other)
    {
-
-      return 0.0;
+      return spatialData.getPositionDistance(other.getSpatialData());
    }
 
    public double getOrientationDistance(ExploringRigidBody other)
    {
-
-      return 0.0;
+      return spatialData.getOrientationDistance(other.getSpatialData());
    }
 
    public double getDistance(ExploringRigidBody other)
    {
-
-      return 0.0;
+      return getPositionDistance(other) + getOrientationDistance(other);
    }
 
    public double getDistanceToParent()
    {
-
-      return 0.0;
+      return getDistance(this.parentRigidBody);
    }
 
    public Pose3D getSpatialData()
