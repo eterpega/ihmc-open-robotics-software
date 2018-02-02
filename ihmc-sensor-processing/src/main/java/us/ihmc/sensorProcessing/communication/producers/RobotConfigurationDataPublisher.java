@@ -111,9 +111,11 @@ public class RobotConfigurationDataPublisher implements RawOutputWriter
       if (sensorRawOutputMapReadOnly != null)
       {
          List<? extends IMUSensorReadOnly> imuRawOutputs = sensorRawOutputMapReadOnly.getIMURawOutputs();
+         robotConfigurationData.getImu_sensor_data().clear();
          for (int sensorNumber = 0; sensorNumber < imuRawOutputs.size(); sensorNumber++)
          {
             IMUSensorReadOnly imuSensor = imuRawOutputs.get(sensorNumber);
+            robotConfigurationData.getImu_sensor_data().add();
             imuSensor.getLinearAccelerationMeasurement(robotConfigurationData.getImu_sensor_data().get(sensorNumber).getLinear_acceleration());
             imuSensor.getOrientationMeasurement(imuOrientationsAsMatrix[sensorNumber]);
             robotConfigurationData.getImu_sensor_data().get(sensorNumber).getOrientation().set(imuOrientationsAsMatrix[sensorNumber]);
