@@ -464,7 +464,7 @@ public class DRCEstimatorThread implements MultiThreadedRobotControlElement
    }
 
    /**
-    * used primarily for unit tests, but could be useful. 
+    * used primarily for unit tests, but could be useful.
     */
    public void addRobotController(RobotController controller)
    {
