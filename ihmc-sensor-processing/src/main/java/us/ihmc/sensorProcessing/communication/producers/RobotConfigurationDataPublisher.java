@@ -2,6 +2,7 @@ package us.ihmc.sensorProcessing.communication.producers;
 
 import controller_msgs.msg.dds.RobotConfigurationData;
 import controller_msgs.msg.dds.RobotConfigurationDataPubSubType;
+import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.matrix.RotationMatrix;
 import us.ihmc.robotModels.FullRobotModel;
 import us.ihmc.robotModels.FullRobotModelUtils;
@@ -14,6 +15,7 @@ import us.ihmc.robotics.sensors.ForceSensorDataReadOnly;
 import us.ihmc.robotics.sensors.ForceSensorDefinition;
 import us.ihmc.ros2.RealtimeNode;
 import us.ihmc.ros2.RealtimePublisher;
+import us.ihmc.ros2.RosQosProfile;
 import us.ihmc.sensorProcessing.model.RobotMotionStatusHolder;
 import us.ihmc.sensorProcessing.parameters.DRCRobotSensorInformation;
 import us.ihmc.sensorProcessing.sensorProcessors.SensorRawOutputMapReadOnly;
@@ -30,6 +32,8 @@ import java.util.List;
  */
 public class RobotConfigurationDataPublisher implements RawOutputWriter
 {
+   public static final int QUEUE_SIZE = 10;
+
    private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
    private final SensorTimestampHolder sensorTimestampHolder;
    private final SensorRawOutputMapReadOnly sensorRawOutputMapReadOnly;
@@ -46,6 +50,8 @@ public class RobotConfigurationDataPublisher implements RawOutputWriter
 
    private final RobotConfigurationData robotConfigurationData = new RobotConfigurationData();
    private final RealtimePublisher<RobotConfigurationData> robotConfigurationDataPublisher;
+
+   private long publishCount = 0;
 
    public RobotConfigurationDataPublisher(FullRobotModel estimatorModel, ForceSensorDataHolderReadOnly forceSensorDataHolder, RealtimeNode realtimeNode,
                                           SensorTimestampHolder sensorTimestampHolder, SensorRawOutputMapReadOnly sensorRawOutputMapReadOnly,
@@ -72,7 +78,8 @@ public class RobotConfigurationDataPublisher implements RawOutputWriter
          imuOrientationsAsMatrix[i] = new RotationMatrix();
       }
 
-      robotConfigurationDataPublisher = realtimeNode.createPublisher(new RobotConfigurationDataPubSubType(), "/robot_configuration_data");
+      robotConfigurationDataPublisher = realtimeNode.createPublisher(new RobotConfigurationDataPubSubType(), "/robot_configuration_data", RosQosProfile.DEFAULT(),
+                                                                     QUEUE_SIZE);
    }
 
    // puts the state data into the ring buffer for the output thread
@@ -95,7 +102,10 @@ public class RobotConfigurationDataPublisher implements RawOutputWriter
          robotConfigurationData.getJoint_velocities().set(i, (float) joints.get(i).getQd());
          robotConfigurationData.getJoint_torques().set(i, (float) joints.get(i).getTauMeasured());
       }
-      robotConfigurationData.getHeader().getStamp().setNanosec(sensorTimestampHolder.getVisionSensorTimestamp());
+      // Use publish count as timestamp for now. I don't under stand what vision sensor
+      // timestamp actually is. @dcalvert
+      robotConfigurationData.getHeader().getStamp().setNanosec(publishCount);
+//      robotConfigurationData.getHeader().getStamp().setNanosec(sensorTimestampHolder.getVisionSensorTimestamp());
       robotConfigurationData.setSensor_head_pps_timestamp(sensorTimestampHolder.getSensorHeadPPSTimestamp());
       robotConfigurationData.setRobot_motion_status(robotMotionStatusFromController.getCurrentRobotMotionStatus().getBehaviorId());
 
@@ -123,7 +133,14 @@ public class RobotConfigurationDataPublisher implements RawOutputWriter
          }
       }
 
-      robotConfigurationDataPublisher.publish(robotConfigurationData);
+      if (!robotConfigurationDataPublisher.publish(robotConfigurationData))
+      {
+//         String message = "No space left in queue! publishCount: " + publishCount + " spinCount: " + RealtimeNode.spinCount + " readMessages: " + RealtimePublisher.readMessages + " queueSize: " + QUEUE_SIZE;
+//         throw new RuntimeException(message);
+//         PrintTools.error(this, message);
+         publishCount = 0;
+      }
+      ++publishCount;
    }
 
    @Override
