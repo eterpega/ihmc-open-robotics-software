@@ -22,14 +22,14 @@ public class QuadrupedSimulationController implements RobotController
    private final RobotController gaitControlManager;
    private RobotController headController; //not implemented yet
    private DRCKinematicsBasedStateEstimator stateEstimator; //not implemented yet
-   private final RobotConfigurationDataPublisher poseCommunicator;
+   private final RobotConfigurationDataPublisher robotConfigurationDataPublisher;
    private boolean firstTick = true;
    
    public QuadrupedSimulationController(FloatingRootJointRobot simulationRobot, SensorReader sensorReader, OutputWriter outputWriter, RobotController gaitControlManager, DRCKinematicsBasedStateEstimator stateEstimator,
-                                        RobotConfigurationDataPublisher poseCommunicator, RobotController headController)
+                                        RobotConfigurationDataPublisher robotConfigurationDataPublisher, RobotController headController)
    {
       this.sdfRobot = simulationRobot;
-      this.poseCommunicator = poseCommunicator;
+      this.robotConfigurationDataPublisher = robotConfigurationDataPublisher;
       this.sensorReader = sensorReader;
       this.outputWriter = outputWriter;
       this.gaitControlManager = gaitControlManager;
@@ -78,9 +78,9 @@ public class QuadrupedSimulationController implements RobotController
          stateEstimator.doControl();
       }
       gaitControlManager.doControl();
-      if(poseCommunicator != null)
+      if(robotConfigurationDataPublisher != null)
       {
-         poseCommunicator.write();
+         robotConfigurationDataPublisher.write();
       }
 
       if(headController != null)

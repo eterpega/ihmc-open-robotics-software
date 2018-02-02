@@ -112,7 +112,7 @@ public class QuadrupedSimulationFactory
    private GlobalDataProducer globalDataProducer;
    private RobotController headController;
    private QuadrupedControllerManager controllerManager;
-   private RobotConfigurationDataPublisher poseCommunicator;
+   private RobotConfigurationDataPublisher robotConfigurationDataPublisher;
    private GroundProfile3D groundProfile3D;
    private LinearGroundContactModel groundContactModel;
    private QuadrupedSimulationController simulationController;
@@ -309,11 +309,11 @@ public class QuadrupedSimulationFactory
             ioException.printStackTrace();
             tempPoseCommunicator = null;
          }
-         poseCommunicator = tempPoseCommunicator;
+         robotConfigurationDataPublisher = tempPoseCommunicator;
       }
       else
       {
-         poseCommunicator = null;
+         robotConfigurationDataPublisher = null;
       }
    }
 
@@ -365,7 +365,7 @@ public class QuadrupedSimulationFactory
    private void createSimulationController()
    {
       simulationController = new QuadrupedSimulationController(sdfRobot.get(), sensorReader, outputWriter.get(), controllerManager,
-                                                               stateEstimator, poseCommunicator, headController);
+                                                               stateEstimator, robotConfigurationDataPublisher, headController);
    }
 
    private void setupSDFRobot()

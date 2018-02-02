@@ -57,7 +57,7 @@ public class WandererControllerFactory
    private final PriorityParameters estimatorPriority = new PriorityParameters(PriorityParameters.getMaximumPriority() - 1);
    private final PriorityParameters controllerPriority = new PriorityParameters(PriorityParameters.getMaximumPriority() - 5);
    private final PriorityParameters loggerPriority = new PriorityParameters(40);
-   private final PriorityParameters poseCommunicatorPriority = new PriorityParameters(45);
+   private final PriorityParameters controllerSubscriberPriority = new PriorityParameters(45);
 
    public WandererControllerFactory() throws IOException, JAXBException
    {
@@ -219,7 +219,7 @@ public class WandererControllerFactory
       // Configure the HighLevelHumanoidControllerFactory so we start with the diagnostic controller
       diagnosticsWhenHangingHighLevelBehaviorFactory.setTransitionRequested(true);
       controllerFactory.addCustomControlState(diagnosticsWhenHangingHighLevelBehaviorFactory);
-      controllerFactory.createControllerNetworkSubscriber(new PeriodicRealtimeThreadScheduler(poseCommunicatorPriority), packetCommunicator);
+      controllerFactory.createControllerNetworkSubscriber(new PeriodicRealtimeThreadScheduler(controllerSubscriberPriority), packetCommunicator);
 
       if (walkingProvider == WalkingProvider.VELOCITY_HEADING_COMPONENT)
          controllerFactory.createComponentBasedFootstepDataMessageGenerator();
