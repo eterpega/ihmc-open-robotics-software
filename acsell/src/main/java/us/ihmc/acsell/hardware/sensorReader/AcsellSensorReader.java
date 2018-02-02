@@ -166,9 +166,4 @@ public class AcsellSensorReader<JOINT extends Enum<JOINT> & AcsellJoint> impleme
    {
       return sensorProcessing;
    }
-
-   @Override public AuxiliaryRobotData newAuxiliaryRobotDataInstance()
-   {
-      return null;
-   }
 }

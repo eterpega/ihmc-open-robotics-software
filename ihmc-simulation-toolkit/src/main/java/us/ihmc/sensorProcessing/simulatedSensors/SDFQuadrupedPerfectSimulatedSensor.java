@@ -135,12 +135,6 @@ public class SDFQuadrupedPerfectSimulatedSensor extends SDFPerfectSimulatedSenso
    }
 
    @Override
-   public AuxiliaryRobotData newAuxiliaryRobotDataInstance()
-   {
-      return null;
-   }
-
-   @Override
    public SensorOutputMapReadOnly getSensorOutputMapReadOnly()
    {
       return null;

@@ -147,9 +147,4 @@ public class SimulatedSensorHolderAndReader implements SensorReader
 
       step.increment();
    }
-
-   @Override public AuxiliaryRobotData newAuxiliaryRobotDataInstance()
-   {
-      return null;
-   }
 }

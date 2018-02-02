@@ -1,8 +1,5 @@
 package us.ihmc.quadrupedRobotics.controller;
 
-import java.io.IOException;
-import java.net.BindException;
-
 import us.ihmc.commons.PrintTools;
 import us.ihmc.communication.net.NetClassList;
 import us.ihmc.communication.packetCommunicator.PacketCommunicator;
@@ -45,9 +42,9 @@ import us.ihmc.robotics.sensors.ContactSensorHolder;
 import us.ihmc.robotics.sensors.FootSwitchInterface;
 import us.ihmc.robotics.sensors.ForceSensorDefinition;
 import us.ihmc.robotics.sensors.IMUDefinition;
-import us.ihmc.sensorProcessing.communication.producers.DRCPoseCommunicator;
+import us.ihmc.ros2.RealtimeNode;
+import us.ihmc.sensorProcessing.communication.producers.RobotConfigurationDataPublisher;
 import us.ihmc.sensorProcessing.outputData.JointDesiredOutputList;
-import us.ihmc.sensorProcessing.sensorData.JointConfigurationGatherer;
 import us.ihmc.sensorProcessing.sensorProcessors.SensorTimestampHolder;
 import us.ihmc.sensorProcessing.sensors.RawJointSensorDataHolderMap;
 import us.ihmc.sensorProcessing.simulatedSensors.SDFQuadrupedPerfectSimulatedSensor;
@@ -58,24 +55,18 @@ import us.ihmc.sensorProcessing.stateEstimation.StateEstimatorParameters;
 import us.ihmc.simulationToolkit.controllers.PushRobotController;
 import us.ihmc.simulationToolkit.controllers.SpringJointOutputWriter;
 import us.ihmc.simulationToolkit.parameters.SimulatedElasticityParameters;
-import us.ihmc.simulationconstructionset.FloatingRootJointRobot;
-import us.ihmc.simulationconstructionset.OneDegreeOfFreedomJoint;
-import us.ihmc.simulationconstructionset.SimulationConstructionSet;
-import us.ihmc.simulationconstructionset.SimulationConstructionSetParameters;
-import us.ihmc.simulationconstructionset.UnreasonableAccelerationException;
+import us.ihmc.simulationconstructionset.*;
 import us.ihmc.simulationconstructionset.gui.tools.SimulationOverheadPlotterFactory;
 import us.ihmc.simulationconstructionset.util.LinearGroundContactModel;
-import us.ihmc.simulationconstructionset.util.ground.AlternatingSlopesGroundProfile;
-import us.ihmc.simulationconstructionset.util.ground.FlatGroundProfile;
-import us.ihmc.simulationconstructionset.util.ground.RollingGroundProfile;
-import us.ihmc.simulationconstructionset.util.ground.RotatablePlaneTerrainProfile;
-import us.ihmc.simulationconstructionset.util.ground.VaryingStairGroundProfile;
+import us.ihmc.simulationconstructionset.util.ground.*;
 import us.ihmc.stateEstimation.humanoid.kinematicsBasedStateEstimation.DRCKinematicsBasedStateEstimator;
 import us.ihmc.tools.factories.FactoryTools;
 import us.ihmc.tools.factories.OptionalFactoryField;
 import us.ihmc.tools.factories.RequiredFactoryField;
-import us.ihmc.util.PeriodicNonRealtimeThreadScheduler;
-import us.ihmc.util.PeriodicThreadScheduler;
+import us.ihmc.util.PeriodicRealtimeThreadSchedulerFactory;
+
+import java.io.IOException;
+import java.net.BindException;
 
 public class QuadrupedSimulationFactory
 {
@@ -121,7 +112,7 @@ public class QuadrupedSimulationFactory
    private GlobalDataProducer globalDataProducer;
    private RobotController headController;
    private QuadrupedControllerManager controllerManager;
-   private DRCPoseCommunicator poseCommunicator;
+   private RobotConfigurationDataPublisher poseCommunicator;
    private GroundProfile3D groundProfile3D;
    private LinearGroundContactModel groundContactModel;
    private QuadrupedSimulationController simulationController;
@@ -298,11 +289,27 @@ public class QuadrupedSimulationFactory
    {
       if (useNetworking.get())
       {
-         JointConfigurationGatherer jointConfigurationGathererAndProducer = new JointConfigurationGatherer(fullRobotModel.get());
-         PeriodicThreadScheduler scheduler = new PeriodicNonRealtimeThreadScheduler("PoseCommunicator");
-         poseCommunicator = new DRCPoseCommunicator(fullRobotModel.get(), jointConfigurationGathererAndProducer, null, globalDataProducer,
-                                                    timestampProvider.get(), sensorReader.getSensorRawOutputMapReadOnly(),
-                                                    controllerManager.getMotionStatusHolder(), null, scheduler, netClassList.get());
+         RobotConfigurationDataPublisher tempPoseCommunicator;
+         try
+         {
+            RealtimeNode realtimeNode = null;
+            try
+            {
+               realtimeNode = new RealtimeNode(new PeriodicRealtimeThreadSchedulerFactory(10), "QuadrupedSimulationFactory", "/us_ihmc");
+            }
+            catch (IOException ioException)
+            {
+               ioException.printStackTrace();
+            }
+            tempPoseCommunicator = new RobotConfigurationDataPublisher(fullRobotModel.get(), null, realtimeNode, timestampProvider.get(),
+                                                                       sensorReader.getSensorRawOutputMapReadOnly(), controllerManager.getMotionStatusHolder());
+         }
+         catch (IOException ioException)
+         {
+            ioException.printStackTrace();
+            tempPoseCommunicator = null;
+         }
+         poseCommunicator = tempPoseCommunicator;
       }
       else
       {

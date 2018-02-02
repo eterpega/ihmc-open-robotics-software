@@ -1,11 +1,5 @@
 package us.ihmc.avatar.networkProcessor.kinematicsToolboxModule;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
 import us.ihmc.avatar.initialSetup.DRCRobotInitialSetup;
 import us.ihmc.avatar.networkProcessor.DRCNetworkModuleParameters;
@@ -13,26 +7,28 @@ import us.ihmc.avatar.networkProcessor.DRCNetworkProcessor;
 import us.ihmc.commons.Conversions;
 import us.ihmc.communication.packetCommunicator.PacketCommunicator;
 import us.ihmc.communication.util.NetworkPorts;
-import us.ihmc.humanoidRobotics.communication.streamingData.HumanoidGlobalDataProducer;
 import us.ihmc.humanoidRobotics.kryo.IHMCCommunicationKryoNetClassList;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
 import us.ihmc.robotics.sensors.ForceSensorDataHolder;
 import us.ihmc.robotics.sensors.ForceSensorDataHolderReadOnly;
 import us.ihmc.robotics.sensors.ForceSensorDefinition;
+import us.ihmc.ros2.RealtimeNode;
 import us.ihmc.sensorProcessing.communication.packets.dataobjects.AuxiliaryRobotData;
-import us.ihmc.sensorProcessing.communication.producers.DRCPoseCommunicator;
+import us.ihmc.sensorProcessing.communication.producers.RobotConfigurationDataPublisher;
 import us.ihmc.sensorProcessing.model.RobotMotionStatusHolder;
-import us.ihmc.sensorProcessing.parameters.DRCRobotSensorInformation;
-import us.ihmc.sensorProcessing.sensorData.JointConfigurationGatherer;
 import us.ihmc.sensorProcessing.sensorProcessors.SensorOutputMapReadOnly;
 import us.ihmc.sensorProcessing.sensorProcessors.SensorRawOutputMapReadOnly;
-import us.ihmc.sensorProcessing.simulatedSensors.AuxiliaryRobotDataProvider;
 import us.ihmc.sensorProcessing.simulatedSensors.SDFPerfectSimulatedSensorReader;
 import us.ihmc.sensorProcessing.stateEstimation.IMUSensorReadOnly;
 import us.ihmc.simulationconstructionset.HumanoidFloatingRootJointRobot;
-import us.ihmc.util.PeriodicNonRealtimeThreadScheduler;
+import us.ihmc.util.PeriodicNonRealtimeThreadSchedulerFactory;
 import us.ihmc.wholeBodyController.DRCRobotJointMap;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 public class KinematicToolboxDiagnosticEnvironment
 {
@@ -52,7 +48,6 @@ public class KinematicToolboxDiagnosticEnvironment
       ForceSensorDefinition[] forceSensorDefinitionArray = humanoidFullRobotModel.getForceSensorDefinitions();
       List<ForceSensorDefinition> forceSensorDefinitionList = Arrays.asList(forceSensorDefinitionArray);
       ForceSensorDataHolder forceSensorDataHolder = new ForceSensorDataHolder(forceSensorDefinitionList);
-      JointConfigurationGatherer jointConfigurationGatherer = new JointConfigurationGatherer(humanoidFullRobotModel, forceSensorDataHolder);
 
       IHMCCommunicationKryoNetClassList netClassList = new IHMCCommunicationKryoNetClassList();
       PacketCommunicator controllerPacketCommunicator = PacketCommunicator.createIntraprocessPacketCommunicator(NetworkPorts.CONTROLLER_PORT, netClassList);
@@ -65,25 +60,21 @@ public class KinematicToolboxDiagnosticEnvironment
          throw new RuntimeException(e);
       }
 
-      AuxiliaryRobotDataProvider auxiliaryRobotDataProvider = initializeAuxiliaryRobotDataProvider();
-      HumanoidGlobalDataProducer dataProducer = new HumanoidGlobalDataProducer(controllerPacketCommunicator);
       SensorOutputMapReadOnly sensorOutputMapReadOnly = initializeSensorOutputMapReadOnly();
       SensorRawOutputMapReadOnly sensorRawOutputMapReadOnly = initializeSensorRawOutputMapReadOnly();
       RobotMotionStatusHolder robotMotionStatusFromController = new RobotMotionStatusHolder();
-      DRCRobotSensorInformation sensorInformation = drcRobotModel.getSensorInformation();
-      PeriodicNonRealtimeThreadScheduler scheduler1 = new PeriodicNonRealtimeThreadScheduler(threadName);
-      final DRCPoseCommunicator poseCommunicator = new DRCPoseCommunicator(humanoidFullRobotModel, jointConfigurationGatherer, auxiliaryRobotDataProvider,
-                                                                     dataProducer, sensorOutputMapReadOnly, sensorRawOutputMapReadOnly,
-                                                                     robotMotionStatusFromController, sensorInformation, scheduler1, netClassList);
-      PeriodicNonRealtimeThreadScheduler scheduler2 = new PeriodicNonRealtimeThreadScheduler(threadName);
-      scheduler2.schedule(new Runnable()
+      RealtimeNode realtimeNode;
+      try
       {
-         @Override
-         public void run()
-         {
-            poseCommunicator.write();
-         }
-      }, 1, TimeUnit.MILLISECONDS);
+         realtimeNode = new RealtimeNode(new PeriodicNonRealtimeThreadSchedulerFactory(), getClass().getSimpleName(), "/us_ihmc");
+         new RobotConfigurationDataPublisher(humanoidFullRobotModel, forceSensorDataHolder, realtimeNode,
+                                             sensorOutputMapReadOnly, sensorRawOutputMapReadOnly,
+                                             robotMotionStatusFromController);
+      }
+      catch (IOException e)
+      {
+         e.printStackTrace();
+      }
 
       DRCNetworkModuleParameters parameters = new DRCNetworkModuleParameters();
       parameters.enableNetworkProcessor(true);
@@ -92,19 +83,6 @@ public class KinematicToolboxDiagnosticEnvironment
       parameters.enableKinematicsToolboxVisualizer(true);
       parameters.enableLocalControllerCommunicator(true);
       new DRCNetworkProcessor(drcRobotModel, parameters);
-   }
-
-   private AuxiliaryRobotDataProvider initializeAuxiliaryRobotDataProvider()
-   {
-      return new AuxiliaryRobotDataProvider()
-      {
-
-         @Override
-         public AuxiliaryRobotData newAuxiliaryRobotDataInstance()
-         {
-            return null;
-         }
-      };
    }
 
    private SensorRawOutputMapReadOnly initializeSensorRawOutputMapReadOnly()

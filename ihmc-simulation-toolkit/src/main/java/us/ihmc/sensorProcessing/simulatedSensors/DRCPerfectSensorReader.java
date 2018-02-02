@@ -57,10 +57,4 @@ public class DRCPerfectSensorReader implements SensorReader
          rawSensorReader.read();
       }
    }
-
-   @Override
-   public AuxiliaryRobotData newAuxiliaryRobotDataInstance()
-   {
-      return null;
-   }
 }

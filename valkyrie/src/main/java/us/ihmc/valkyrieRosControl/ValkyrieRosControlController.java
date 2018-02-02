@@ -1,15 +1,5 @@
 package us.ihmc.valkyrieRosControl;
 
-import static us.ihmc.humanoidRobotics.communication.packets.dataobjects.HighLevelControllerName.STAND_PREP_STATE;
-import static us.ihmc.humanoidRobotics.communication.packets.dataobjects.HighLevelControllerName.STAND_READY;
-import static us.ihmc.humanoidRobotics.communication.packets.dataobjects.HighLevelControllerName.STAND_TRANSITION_STATE;
-import static us.ihmc.humanoidRobotics.communication.packets.dataobjects.HighLevelControllerName.WALKING;
-
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-
 import us.ihmc.affinity.Affinity;
 import us.ihmc.avatar.DRCEstimatorThread;
 import us.ihmc.avatar.drcRobot.RobotTarget;
@@ -34,6 +24,7 @@ import us.ihmc.multicastLogDataProtocol.modelLoaders.LogModelProvider;
 import us.ihmc.robotDataLogger.YoVariableServer;
 import us.ihmc.robotDataLogger.logger.LogSettings;
 import us.ihmc.robotics.robotSide.SideDependentList;
+import us.ihmc.ros2.RealtimeNode;
 import us.ihmc.rosControl.EffortJointHandle;
 import us.ihmc.rosControl.wholeRobot.*;
 import us.ihmc.sensorProcessing.parameters.DRCRobotSensorInformation;
@@ -53,6 +44,13 @@ import us.ihmc.wholeBodyController.concurrent.MultiThreadedRealTimeRobotControll
 import us.ihmc.wholeBodyController.concurrent.MultiThreadedRobotControlElementCoordinator;
 import us.ihmc.wholeBodyController.concurrent.SynchronousMultiThreadedRobotController;
 import us.ihmc.wholeBodyController.concurrent.ThreadDataSynchronizer;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+
+import static us.ihmc.humanoidRobotics.communication.packets.dataobjects.HighLevelControllerName.*;
 
 public class ValkyrieRosControlController extends IHMCWholeRobotControlJavaBridge
 {
@@ -318,12 +316,20 @@ public class ValkyrieRosControlController extends IHMCWholeRobotControlJavaBridg
       /*
        * Build controller
        */
+      RealtimeNode realtimeNode = null;
+      try
+      {
+         realtimeNode = new RealtimeNode(new PeriodicRealtimeThreadSchedulerFactory(10), "ValkyrieRosControlController", "/us_ihmc");
+      }
+      catch (IOException ioException)
+      {
+         ioException.printStackTrace();
+      }
       ThreadDataSynchronizer threadDataSynchronizer = new ThreadDataSynchronizer(robotModel);
       RobotContactPointParameters contactPointParameters = robotModel.getContactPointParameters();
-      PeriodicRealtimeThreadScheduler estimatorScheduler = new PeriodicRealtimeThreadScheduler(ValkyriePriorityParameters.POSECOMMUNICATOR_PRIORITY);
-      DRCEstimatorThread estimatorThread = new DRCEstimatorThread(sensorInformation, contactPointParameters, robotModel, stateEstimatorParameters, sensorReaderFactory,
-                                                                  threadDataSynchronizer, estimatorScheduler, dataProducer, valkyrieLowLevelOutputWriter,
-                                                                  yoVariableServer, gravity);
+      DRCEstimatorThread estimatorThread = new DRCEstimatorThread(sensorInformation, contactPointParameters, robotModel, stateEstimatorParameters,
+                                                                  sensorReaderFactory, threadDataSynchronizer, dataProducer, realtimeNode,
+                                                                  valkyrieLowLevelOutputWriter, yoVariableServer, gravity);
       estimatorThread.setExternalPelvisCorrectorSubscriber(externalPelvisPoseSubscriber);
 
       PeriodicRealtimeThreadScheduler handStateCommunicatorScheduler = new PeriodicRealtimeThreadScheduler(ValkyriePriorityParameters.HAND_COMMUNICATOR_PRIORITY);

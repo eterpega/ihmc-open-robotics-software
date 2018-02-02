@@ -4,7 +4,7 @@ import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.robotModels.OutputWriter;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.robotics.robotController.RobotController;
-import us.ihmc.sensorProcessing.communication.producers.DRCPoseCommunicator;
+import us.ihmc.sensorProcessing.communication.producers.RobotConfigurationDataPublisher;
 import us.ihmc.sensorProcessing.simulatedSensors.SensorReader;
 import us.ihmc.simulationconstructionset.FloatingRootJointRobot;
 import us.ihmc.stateEstimation.humanoid.kinematicsBasedStateEstimation.DRCKinematicsBasedStateEstimator;
@@ -22,11 +22,11 @@ public class QuadrupedSimulationController implements RobotController
    private final RobotController gaitControlManager;
    private RobotController headController; //not implemented yet
    private DRCKinematicsBasedStateEstimator stateEstimator; //not implemented yet
-   private final DRCPoseCommunicator poseCommunicator;
+   private final RobotConfigurationDataPublisher poseCommunicator;
    private boolean firstTick = true;
    
    public QuadrupedSimulationController(FloatingRootJointRobot simulationRobot, SensorReader sensorReader, OutputWriter outputWriter, RobotController gaitControlManager, DRCKinematicsBasedStateEstimator stateEstimator,
-         DRCPoseCommunicator poseCommunicator, RobotController headController)
+                                        RobotConfigurationDataPublisher poseCommunicator, RobotController headController)
    {
       this.sdfRobot = simulationRobot;
       this.poseCommunicator = poseCommunicator;

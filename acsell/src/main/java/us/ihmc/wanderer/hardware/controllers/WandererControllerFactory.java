@@ -30,6 +30,7 @@ import us.ihmc.realtime.PriorityParameters;
 import us.ihmc.robotDataLogger.YoVariableServer;
 import us.ihmc.robotics.partNames.LegJointName;
 import us.ihmc.robotics.robotSide.SideDependentList;
+import us.ihmc.ros2.RealtimeNode;
 import us.ihmc.sensorProcessing.parameters.DRCRobotSensorInformation;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.util.PeriodicRealtimeThreadScheduler;
@@ -124,9 +125,18 @@ public class WandererControllerFactory
       /*
        * Build controller
        */
+      RealtimeNode realtimeNode = null;
+      try
+      {
+         realtimeNode = new RealtimeNode(new PeriodicRealtimeThreadSchedulerFactory(10), "WandererControllerFactory", "/us_ihmc");
+      }
+      catch (IOException ioException)
+      {
+         ioException.printStackTrace();
+      }
       ThreadDataSynchronizer threadDataSynchronizer = new ThreadDataSynchronizer(robotModel);
       DRCEstimatorThread estimatorThread = new DRCEstimatorThread(robotModel.getSensorInformation(), robotModel.getContactPointParameters(),
-            robotModel, robotModel.getStateEstimatorParameters(), sensorReaderFactory, threadDataSynchronizer, new PeriodicRealtimeThreadScheduler(poseCommunicatorPriority), dataProducer, null, costOfTransportCalculator, gravity);
+            robotModel, robotModel.getStateEstimatorParameters(), sensorReaderFactory, threadDataSynchronizer, dataProducer, realtimeNode, null, costOfTransportCalculator, gravity);
       estimatorThread.setExternalPelvisCorrectorSubscriber(externalPelvisPoseSubscriber);
       DRCControllerThread controllerThread = new DRCControllerThread(robotModel, robotModel.getSensorInformation(), controllerFactory, threadDataSynchronizer,
             drcOutputWriter, dataProducer, yoVariableServer, gravity, robotModel.getEstimatorDT());

@@ -31,6 +31,7 @@ import us.ihmc.realtime.PriorityParameters;
 import us.ihmc.robotDataLogger.YoVariableServer;
 import us.ihmc.robotics.partNames.LegJointName;
 import us.ihmc.robotics.robotSide.SideDependentList;
+import us.ihmc.ros2.RealtimeNode;
 import us.ihmc.sensorProcessing.parameters.DRCRobotSensorInformation;
 import us.ihmc.steppr.hardware.output.StepprOutputWriter;
 import us.ihmc.steppr.hardware.sensorReader.StepprSensorReaderFactory;
@@ -119,8 +120,17 @@ public class StepprControllerFactory
        * Build controller
        */
       ThreadDataSynchronizer threadDataSynchronizer = new ThreadDataSynchronizer(robotModel);
+      RealtimeNode realtimeNode = null;
+      try
+      {
+         realtimeNode = new RealtimeNode(new PeriodicRealtimeThreadSchedulerFactory(10), "StepprControllerFactory", "/us_ihmc");
+      }
+      catch (IOException ioException)
+      {
+         ioException.printStackTrace();
+      }
       DRCEstimatorThread estimatorThread = new DRCEstimatorThread(robotModel.getSensorInformation(), robotModel.getContactPointParameters(),
-            robotModel, robotModel.getStateEstimatorParameters(), sensorReaderFactory, threadDataSynchronizer, new PeriodicRealtimeThreadScheduler(poseCommunicatorPriority), dataProducer, null, yoVariableServer, gravity);
+            robotModel, robotModel.getStateEstimatorParameters(), sensorReaderFactory, threadDataSynchronizer, dataProducer, realtimeNode, null, yoVariableServer, gravity);
       estimatorThread.setExternalPelvisCorrectorSubscriber(externalPelvisPoseSubscriber);
       DRCControllerThread controllerThread = new DRCControllerThread(robotModel, robotModel.getSensorInformation(), controllerFactory, threadDataSynchronizer,
             drcOutputWriter, dataProducer, yoVariableServer, gravity, robotModel.getEstimatorDT());

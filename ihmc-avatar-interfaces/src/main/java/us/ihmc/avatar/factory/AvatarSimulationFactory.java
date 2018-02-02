@@ -1,10 +1,6 @@
 package us.ihmc.avatar.factory;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.commons.lang3.tuple.ImmutablePair;
-
 import us.ihmc.avatar.DRCEstimatorThread;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
 import us.ihmc.avatar.drcRobot.SimulatedDRCRobotTimeProvider;
@@ -25,6 +21,7 @@ import us.ihmc.robotModels.FullRobotModel;
 import us.ihmc.robotics.controllers.pidGains.implementations.YoPDGains;
 import us.ihmc.robotics.partNames.JointRole;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
+import us.ihmc.ros2.RealtimeNode;
 import us.ihmc.sensorProcessing.outputData.JointDesiredOutput;
 import us.ihmc.sensorProcessing.outputData.JointDesiredOutputList;
 import us.ihmc.sensorProcessing.outputData.JointDesiredOutputWriter;
@@ -37,17 +34,8 @@ import us.ihmc.simulationConstructionSetTools.robotController.MultiThreadedRobot
 import us.ihmc.simulationConstructionSetTools.robotController.MultiThreadedRobotController;
 import us.ihmc.simulationConstructionSetTools.robotController.SingleThreadedRobotController;
 import us.ihmc.simulationConstructionSetTools.util.environments.CommonAvatarEnvironmentInterface;
-import us.ihmc.simulationToolkit.controllers.ActualCMPComputer;
-import us.ihmc.simulationToolkit.controllers.JointLowLevelJointControlSimulator;
-import us.ihmc.simulationToolkit.controllers.PIDLidarTorqueController;
-import us.ihmc.simulationToolkit.controllers.PassiveJointController;
-import us.ihmc.simulationToolkit.controllers.SimulatedRobotCenterOfMassVisualizer;
-import us.ihmc.simulationconstructionset.HumanoidFloatingRootJointRobot;
-import us.ihmc.simulationconstructionset.OneDegreeOfFreedomJoint;
-import us.ihmc.simulationconstructionset.Robot;
-import us.ihmc.simulationconstructionset.SimulationConstructionSet;
-import us.ihmc.simulationconstructionset.SimulationConstructionSetParameters;
-import us.ihmc.simulationconstructionset.UnreasonableAccelerationException;
+import us.ihmc.simulationToolkit.controllers.*;
+import us.ihmc.simulationconstructionset.*;
 import us.ihmc.simulationconstructionset.gui.tools.SimulationOverheadPlotterFactory;
 import us.ihmc.tools.factories.FactoryTools;
 import us.ihmc.tools.factories.OptionalFactoryField;
@@ -55,15 +43,16 @@ import us.ihmc.tools.factories.RequiredFactoryField;
 import us.ihmc.tools.thread.CloseableAndDisposableRegistry;
 import us.ihmc.util.PeriodicNonRealtimeThreadScheduler;
 import us.ihmc.util.PeriodicNonRealtimeThreadSchedulerFactory;
-import us.ihmc.wholeBodyController.DRCControllerThread;
-import us.ihmc.wholeBodyController.DRCOutputProcessor;
-import us.ihmc.wholeBodyController.DRCOutputProcessorWithStateChangeSmoother;
-import us.ihmc.wholeBodyController.DRCOutputProcessorWithTorqueOffsets;
-import us.ihmc.wholeBodyController.DRCRobotJointMap;
+import us.ihmc.util.PeriodicRealtimeThreadSchedulerFactory;
+import us.ihmc.wholeBodyController.*;
 import us.ihmc.wholeBodyController.concurrent.SingleThreadedThreadDataSynchronizer;
 import us.ihmc.wholeBodyController.concurrent.ThreadDataSynchronizer;
 import us.ihmc.wholeBodyController.concurrent.ThreadDataSynchronizerInterface;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class AvatarSimulationFactory
 {
@@ -190,10 +179,18 @@ public class AvatarSimulationFactory
 
    private void setupStateEstimationThread()
    {
-      stateEstimationThread = new DRCEstimatorThread(robotModel.get().getSensorInformation(), robotModel.get().getContactPointParameters(),
-                                                     robotModel.get(), robotModel.get().getStateEstimatorParameters(), sensorReaderFactory, threadDataSynchronizer,
-                                                     new PeriodicNonRealtimeThreadScheduler("DRCSimGazeboYoVariableServer"), humanoidGlobalDataProducer.get(),
-                                                     simulationOutputWriter, yoVariableServer, gravity.get());
+      RealtimeNode realtimeNode = null;
+      try
+      {
+         realtimeNode = new RealtimeNode(new PeriodicRealtimeThreadSchedulerFactory(10), "AvatarSimulationFactory", "/us_ihmc");
+      }
+      catch (IOException ioException)
+      {
+         ioException.printStackTrace();
+      }
+      stateEstimationThread = new DRCEstimatorThread(robotModel.get().getSensorInformation(), robotModel.get().getContactPointParameters(), robotModel.get(),
+                                                     robotModel.get().getStateEstimatorParameters(), sensorReaderFactory, threadDataSynchronizer, humanoidGlobalDataProducer.get(),
+                                                     realtimeNode, simulationOutputWriter, yoVariableServer, gravity.get());
 
       if (humanoidGlobalDataProducer.get() != null)
       {

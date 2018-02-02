@@ -152,12 +152,6 @@ public class ValkyrieRosControlSensorReader implements SensorReader, JointTorque
    }
 
    @Override
-   public AuxiliaryRobotData newAuxiliaryRobotDataInstance()
-   {
-      return null;
-   }
-
-   @Override
    public void subtractTorqueOffset(OneDoFJoint oneDoFJoint, double torqueOffset)
    {
       lowlLevelController.subtractTorqueOffset(oneDoFJoint, torqueOffset);

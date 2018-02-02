@@ -1,19 +1,9 @@
 package us.ihmc.avatar;
 
-import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Random;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import org.junit.After;
 import org.junit.Before;
 import org.ros.RosCore;
 import org.ros.internal.message.Message;
-
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
 import us.ihmc.avatar.factory.AvatarSimulation;
 import us.ihmc.avatar.initialSetup.DRCRobotInitialSetup;
@@ -26,6 +16,7 @@ import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParam
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.ContactableBodiesFactory;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.HighLevelHumanoidControllerFactory;
 import us.ihmc.commons.Conversions;
+import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.communication.PacketRouter;
 import us.ihmc.communication.packetCommunicator.PacketCommunicator;
 import us.ihmc.communication.packets.Packet;
@@ -37,6 +28,7 @@ import us.ihmc.humanoidRobotics.communication.streamingData.HumanoidGlobalDataPr
 import us.ihmc.humanoidRobotics.kryo.IHMCCommunicationKryoNetClassList;
 import us.ihmc.robotDataLogger.RobotVisualizer;
 import us.ihmc.robotics.robotSide.SideDependentList;
+import us.ihmc.ros2.RealtimeNode;
 import us.ihmc.sensorProcessing.parameters.DRCRobotSensorInformation;
 import us.ihmc.sensorProcessing.simulatedSensors.DRCPerfectSensorReaderFactory;
 import us.ihmc.simulationConstructionSetTools.robotController.AbstractThreadedRobotController;
@@ -48,13 +40,22 @@ import us.ihmc.simulationconstructionset.Robot;
 import us.ihmc.simulationconstructionset.util.simulationRunner.BlockingSimulationRunner;
 import us.ihmc.simulationconstructionset.util.simulationTesting.SimulationTestingParameters;
 import us.ihmc.tools.MemoryTools;
-import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.util.PeriodicNonRealtimeThreadScheduler;
+import us.ihmc.util.PeriodicRealtimeThreadSchedulerFactory;
 import us.ihmc.utilities.ros.msgToPacket.converter.GenericROSTranslationTools;
 import us.ihmc.wholeBodyController.DRCControllerThread;
 import us.ihmc.wholeBodyController.concurrent.SingleThreadedThreadDataSynchronizer;
 import us.ihmc.wholeBodyController.concurrent.ThreadDataSynchronizerInterface;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
+
+import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Random;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static us.ihmc.humanoidRobotics.communication.packets.dataobjects.HighLevelControllerName.DO_NOTHING_BEHAVIOR;
 import static us.ihmc.humanoidRobotics.communication.packets.dataobjects.HighLevelControllerName.WALKING;
@@ -314,9 +315,18 @@ public abstract class IHMCROSAPIPacketTest implements MultiRobotTestInterface
       DRCPerfectSensorReaderFactory sensorReaderFactory = new DRCPerfectSensorReaderFactory(sdfRobot,
             threadDataSynchronizer.getEstimatorForceSensorDataHolder(), robotModel.getEstimatorDT());
 
-      DRCEstimatorThread estimatorThread = new DRCEstimatorThread(robotModel.getSensorInformation(), robotModel.getContactPointParameters(),
-            robotModel, robotModel.getStateEstimatorParameters(), sensorReaderFactory, threadDataSynchronizer,
-            new PeriodicNonRealtimeThreadScheduler("DRCPoseCommunicator"), dataProducer, null, robotVisualizer, gravity);
+      RealtimeNode realtimeNode = null;
+      try
+      {
+         realtimeNode = new RealtimeNode(new PeriodicRealtimeThreadSchedulerFactory(10), "AtlasROSAPIPacketTest", "/us_ihmc");
+      }
+      catch (IOException ioException)
+      {
+         ioException.printStackTrace();
+      }
+      DRCEstimatorThread estimatorThread = new DRCEstimatorThread(robotModel.getSensorInformation(), robotModel.getContactPointParameters(), robotModel,
+                                                                  robotModel.getStateEstimatorParameters(), sensorReaderFactory, threadDataSynchronizer,
+                                                                  dataProducer, realtimeNode, null, robotVisualizer, gravity);
 
       DRCControllerThread controllerThread = new DRCControllerThread(robotModel, robotModel.getSensorInformation(), controllerFactory, threadDataSynchronizer,
             outputWriter, dataProducer, robotVisualizer, gravity, robotModel.getEstimatorDT());
