@@ -1,14 +1,15 @@
-package us.ihmc.llaQuadruped;
+package us.ihmc.llama;
 
 import java.io.IOException;
 
 import us.ihmc.communication.net.NetClassList;
 import us.ihmc.jMonkeyEngineToolkit.GroundProfile3D;
-import us.ihmc.llaQuadruped.simulation.LLAQuadrupedGroundContactParameters;
-import us.ihmc.llaQuadrupedController.model.LLAQuadrupedModelFactory;
-import us.ihmc.llaQuadrupedController.model.LLAQuadrupedPhysicalProperties;
-import us.ihmc.llaQuadrupedController.model.LLAQuadrupedSensorInformation;
-import us.ihmc.llaQuadrupedController.parameters.LLAQuadrupedStateEstimatorParameters;
+import us.ihmc.llama.parameters.LlamaPositionBasedCrawlControllerParameters;
+import us.ihmc.llama.simulation.LlamaGroundContactParameters;
+import us.ihmc.llama.model.LlamaModelFactory;
+import us.ihmc.llama.model.LlamaPhysicalProperties;
+import us.ihmc.llama.model.LlamaSensorInformation;
+import us.ihmc.llama.parameters.LlamaStateEstimatorParameters;
 import us.ihmc.quadrupedRobotics.QuadrupedTestFactory;
 import us.ihmc.quadrupedRobotics.controller.QuadrupedControlMode;
 import us.ihmc.quadrupedRobotics.controller.QuadrupedSimulationFactory;
@@ -34,7 +35,7 @@ import us.ihmc.tools.factories.FactoryTools;
 import us.ihmc.tools.factories.OptionalFactoryField;
 import us.ihmc.tools.factories.RequiredFactoryField;
 
-public class LLAQuadrupedTestFactory implements QuadrupedTestFactory
+public class LlamaTestFactory implements QuadrupedTestFactory
 {
    private static final SimulationTestingParameters simulationTestingParameters = SimulationTestingParameters.createFromSystemProperties();
    private static final double SIMULATION_DT = 0.00006;
@@ -61,26 +62,27 @@ public class LLAQuadrupedTestFactory implements QuadrupedTestFactory
 
       FactoryTools.checkAllFactoryFieldsAreSet(this);
 
-      QuadrupedModelFactory modelFactory = new LLAQuadrupedModelFactory();
-      QuadrupedPhysicalProperties physicalProperties = new LLAQuadrupedPhysicalProperties();
-      NetClassList netClassList = new LLAQuadrupedNetClassList();
-      QuadrupedSimulationInitialPositionParameters initialPositionParameters = new LLAQuadrupedSimulationInitialPositionParameters();
-      GroundContactParameters groundContactParameters = new LLAQuadrupedGroundContactParameters();
-      QuadrupedSensorInformation sensorInformation = new LLAQuadrupedSensorInformation();
+      QuadrupedModelFactory modelFactory = new LlamaModelFactory();
+      QuadrupedPhysicalProperties physicalProperties = new LlamaPhysicalProperties();
+      NetClassList netClassList = new LlamaNetClassList();
+      QuadrupedSimulationInitialPositionParameters initialPositionParameters = new LlamaSimulationInitialPositionParameters();
+      GroundContactParameters groundContactParameters = new LlamaGroundContactParameters();
+      QuadrupedSensorInformation sensorInformation = new LlamaSensorInformation();
       ParameterRegistry.getInstance().loadFromResources(QuadrupedParameterSet.SIMULATION_IDEAL.getPath());
-      StateEstimatorParameters stateEstimatorParameters = new LLAQuadrupedStateEstimatorParameters();
-      QuadrupedPositionBasedCrawlControllerParameters positionBasedCrawlControllerParameters = new LLAQuadrupedPositionBasedCrawlControllerParameters();
+      StateEstimatorParameters stateEstimatorParameters = new LlamaStateEstimatorParameters();
+      QuadrupedPositionBasedCrawlControllerParameters positionBasedCrawlControllerParameters = new LlamaPositionBasedCrawlControllerParameters();
 
       FullQuadrupedRobotModel fullRobotModel = modelFactory.createFullRobotModel();
       FloatingRootJointRobot sdfRobot = new FloatingRootJointRobot(modelFactory.createSdfRobot());
 
-      SensorTimestampHolder timestampProvider = new LLAQuadrupedTimestampProvider(sdfRobot);
+      SensorTimestampHolder timestampProvider = new LlamaTimestampProvider(sdfRobot);
 
       QuadrupedReferenceFrames referenceFrames = new QuadrupedReferenceFrames(fullRobotModel, physicalProperties);
       OutputWriter outputWriter = new PerfectSimulatedOutputWriter(sdfRobot, fullRobotModel);
 
       QuadrupedSimulationFactory simulationFactory = new QuadrupedSimulationFactory();
       simulationFactory.setControlDT(SIMULATION_DT);
+      simulationFactory.setSimulationDT(SIMULATION_DT);
       simulationFactory.setGravity(SIMULATION_GRAVITY);
       simulationFactory.setRecordFrequency(RECORD_FREQUENCY);
       simulationFactory.setGroundContactParameters(groundContactParameters);
