@@ -3,16 +3,23 @@ package us.ihmc.parameterTuner.guiElements.main;
 import java.util.HashMap;
 import java.util.List;
 
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import us.ihmc.commons.PrintTools;
@@ -34,6 +41,8 @@ public class GuiController
    @FXML
    private ParameterTree tree;
    @FXML
+   private ScrollPane scrollPane;
+   @FXML
    private VBox tuningBox;
    @FXML
    private StackPane inputPane;
@@ -48,34 +57,70 @@ public class GuiController
       searchFieldNamespaces.textProperty().addListener(observable -> updateTree());
       tuningBoxManager = new TuningBoxManager(tuningBox);
 
+      tree.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
       tree.setOnMouseClicked(new EventHandler<MouseEvent>()
       {
          @Override
          public void handle(MouseEvent mouseEvent)
          {
-            TreeItem<ParameterTreeValue> selectedItem = tree.getSelectionModel().getSelectedItem();
-            if (selectedItem == null || selectedItem.getValue().isRegistry() || mouseEvent.getClickCount() < 2)
+            if (mouseEvent.getClickCount() >= 2)
             {
-               return;
+               addSelectedParametersToTuner();
             }
-            GuiParameter parameter = ((ParameterTreeParameter) selectedItem.getValue()).getParameter();
-            tuningBoxManager.handleNewParameter(parameter);
          }
+
       });
       tree.setOnKeyPressed(new EventHandler<KeyEvent>()
       {
          @Override
          public void handle(KeyEvent event)
          {
-            TreeItem<ParameterTreeValue> selectedItem = tree.getSelectionModel().getSelectedItem();
-            if (selectedItem == null || selectedItem.getValue().isRegistry() || event.getCode() != KeyCode.ENTER)
+            if (event.getCode() == KeyCode.ENTER)
             {
-               return;
+               addSelectedParametersToTuner();
             }
+         }
+      });
+      tree.setOnDragDetected(new EventHandler<MouseEvent>()
+      {
+         @Override
+         public void handle(MouseEvent event)
+         {
+            Dragboard dragboard = tree.startDragAndDrop(TransferMode.MOVE);
+            ClipboardContent clipboardContent = new ClipboardContent();
+            clipboardContent.putString("");
+            dragboard.setContent(clipboardContent);
+         }
+      });
+      scrollPane.setOnDragOver(new EventHandler<DragEvent>()
+      {
+         @Override
+         public void handle(DragEvent event)
+         {
+            event.acceptTransferModes(TransferMode.MOVE);
+         }
+      });
+      scrollPane.setOnDragDropped(new EventHandler<DragEvent>()
+      {
+         @Override
+         public void handle(DragEvent event)
+         {
+            addSelectedParametersToTuner();
+         }
+      });
+   }
+
+   private void addSelectedParametersToTuner()
+   {
+      ObservableList<TreeItem<ParameterTreeValue>> selectedItems = tree.getSelectionModel().getSelectedItems();
+      for (TreeItem<ParameterTreeValue> selectedItem : selectedItems)
+      {
+         if (selectedItem != null && !selectedItem.getValue().isRegistry())
+         {
             GuiParameter parameter = ((ParameterTreeParameter) selectedItem.getValue()).getParameter();
             tuningBoxManager.handleNewParameter(parameter);
          }
-      });
+      }
    }
 
    @FXML
