@@ -106,7 +106,8 @@ public class ReferenceCoPTrajectoryGenerator implements ReferenceCoPTrajectoryGe
    private final YoEnum<CoPSplineType> orderOfSplineInterpolation;
 
    private final YoBoolean isDoneWalking;
-   private final YoBoolean holdDesiredState;
+   private final YoBoolean requestedHoldPosition;
+   private final YoBoolean isHoldingPosition;
    private final YoBoolean putExitCoPOnToes;
    private final YoBoolean planIsAvailable;
 
@@ -164,9 +165,19 @@ public class ReferenceCoPTrajectoryGenerator implements ReferenceCoPTrajectoryGe
            touchdownDurations, swingSplitFractions, swingDurationShiftFractions, transferSplitFractions, false, parentRegistry);
 
    }
+   public ReferenceCoPTrajectoryGenerator(String namePrefix, int maxNumberOfFootstepsToConsider, BipedSupportPolygons bipedSupportPolygons,
+                                          SideDependentList<? extends ContactablePlaneBody> contactableFeet, YoInteger numberFootstepsToConsider,
+                                          List<YoDouble> swingDurations, List<YoDouble> transferDurations, List<YoDouble> touchdownDurations,
+                                          List<YoDouble> swingSplitFractions, List<YoDouble> swingDurationShiftFractions, List<YoDouble> transferSplitFractions,
+                                          boolean debug, YoVariableRegistry parentRegistry)
+   {
+      this(namePrefix, maxNumberOfFootstepsToConsider, bipedSupportPolygons, contactableFeet, numberFootstepsToConsider, null, null, swingDurations,
+           transferDurations, touchdownDurations, swingSplitFractions, swingDurationShiftFractions, transferSplitFractions, debug, parentRegistry);
+   }
 
    public ReferenceCoPTrajectoryGenerator(String namePrefix, int maxNumberOfFootstepsToConsider, BipedSupportPolygons bipedSupportPolygons,
                                           SideDependentList<? extends ContactablePlaneBody> contactableFeet, YoInteger numberFootstepsToConsider,
+                                          YoBoolean requestedHoldPosition, YoBoolean isHoldingPosition,
                                           List<YoDouble> swingDurations, List<YoDouble> transferDurations, List<YoDouble> touchdownDurations,
                                           List<YoDouble> swingSplitFractions, List<YoDouble> swingDurationShiftFractions, List<YoDouble> transferSplitFractions,
                                           boolean debug, YoVariableRegistry parentRegistry)
@@ -200,9 +211,18 @@ public class ReferenceCoPTrajectoryGenerator implements ReferenceCoPTrajectoryGe
       this.numberOfPointsPerFoot = new YoInteger(fullPrefix + "NumberOfPointsPerFootstep", registry);
       this.orderOfSplineInterpolation = new YoEnum<>(fullPrefix + "OrderOfSplineInterpolation", registry, CoPSplineType.class);
       this.isDoneWalking = new YoBoolean(fullPrefix + "IsDoneWalking", registry);
-      this.holdDesiredState = new YoBoolean(fullPrefix + "HoldDesiredState", parentRegistry);
       this.putExitCoPOnToes = new YoBoolean(fullPrefix + "PutExitCoPOnToes", parentRegistry);
       this.planIsAvailable = new YoBoolean(fullPrefix + "CoPPlanAvailable", parentRegistry);
+
+      if (requestedHoldPosition == null)
+         this.requestedHoldPosition = new YoBoolean(fullPrefix + "RequestedHoldPosition", parentRegistry);
+      else
+         this.requestedHoldPosition = requestedHoldPosition;
+
+      if (isHoldingPosition == null)
+         this.isHoldingPosition = new YoBoolean(fullPrefix + "IsHoldingPosition", parentRegistry);
+      else
+         this.isHoldingPosition = isHoldingPosition;
 
       for (CoPPointName pointName : CoPPointName.values)
       {
@@ -354,18 +374,13 @@ public class ReferenceCoPTrajectoryGenerator implements ReferenceCoPTrajectoryGe
 
    public void holdPosition(FramePoint3DReadOnly desiredCoPPositionToHold)
    {
-      holdDesiredState.set(true);
+      requestedHoldPosition.set(true);
       heldCoPPosition.setIncludingFrame(desiredCoPPositionToHold);
    }
 
-   public void holdPosition()
+   private void clearHeldPosition()
    {
-      holdPosition(desiredCoPPosition);
-   }
-
-   public void clearHeldPosition()
-   {
-      holdDesiredState.set(false);
+      requestedHoldPosition.set(false);
       heldCoPPosition.setToNaN(worldFrame);
    }
 
@@ -524,21 +539,32 @@ public class ReferenceCoPTrajectoryGenerator implements ReferenceCoPTrajectoryGe
       int footstepIndex = 0;
       int copLocationIndex = 1;
       CoPPointsInFoot copLocationWaypoint = copLocationWaypoints.get(footstepIndex);
-      // Put first CoP as per chicken support computations in case starting from rest
-      if (atAStop && numberOfUpcomingFootsteps.getIntegerValue() == 0)
+      if (requestedHoldPosition.getBooleanValue())
       {
+         tempPointForCoPCalculation.setIncludingFrame(heldCoPPosition);
+         isHoldingPosition.set(true);
+         clearHeldPosition();
+
+         initializeFootPolygons(transferToSide.getOppositeSide(), footstepIndex);
+
+         computeCoPPointLocation(tempPointForCoPCalculation, copPointParametersMap.get(exitCoPName), transferToSide.getOppositeSide(), footstepIndex);
+         copLocationWaypoint.addAndSetIncludingFrame(exitCoPName, 0.0, tempPointForCoPCalculation);
+
+         // set swing parameters for angular momentum estimation
+         convertToFramePointRetainingZ(tempFramePoint1, supportFootPolygon.getCentroid(), worldFrame);
+         copLocationWaypoint.setSupportFootLocation(tempFramePoint1);
+         convertToFramePointRetainingZ(tempFramePoint1, swingFootInitialPolygon.getCentroid(), worldFrame);
+         copLocationWaypoint.setSwingFootLocation(tempFramePoint1);
+
+         // compute all the upcoming footsteps
+         computeCoPPointsForFinalTransfer(copLocationIndex, transferToSide, true, footstepIndex);
+      }
+      else if (atAStop && numberOfUpcomingFootsteps.getIntegerValue() == 0)
+      { // Put first CoP as per chicken support computations in case starting from rest
          isDoneWalking.set(true);
 
-         if (holdDesiredState.getBooleanValue())
-         {
-            tempPointForCoPCalculation.setIncludingFrame(heldCoPPosition);
-            clearHeldPosition();
-         }
-         else
-         {
-            initializeFootPolygons(transferToSide, footstepIndex);
-            getDoubleSupportPolygonCentroid(tempPointForCoPCalculation, supportFootPolygon, swingFootInitialPolygon, worldFrame);
-         }
+         initializeFootPolygons(transferToSide, footstepIndex);
+         getDoubleSupportPolygonCentroid(tempPointForCoPCalculation, supportFootPolygon, swingFootInitialPolygon, worldFrame);
          copLocationWaypoint.addAndSetIncludingFrame(CoPPointName.START_COP, 0.0, tempPointForCoPCalculation);
 
          // set swing parameters for angular momentum estimation
@@ -556,15 +582,7 @@ public class ReferenceCoPTrajectoryGenerator implements ReferenceCoPTrajectoryGe
          updateFootPolygons(null, footstepIndex);
 
          // compute initial waypoint
-         if (holdDesiredState.getBooleanValue())
-         {
-            tempPointForCoPCalculation.setIncludingFrame(heldCoPPosition);
-            clearHeldPosition();
-         }
-         else
-         {
-            computeMidFeetPointWithChickenSupportForInitialTransfer(tempPointForCoPCalculation);
-         }
+         computeMidFeetPointWithChickenSupportForInitialTransfer(tempPointForCoPCalculation);
          tempPointForCoPCalculation.changeFrame(worldFrame);
          copLocationWaypoint.addAndSetIncludingFrame(CoPPointName.START_COP, 0.0, tempPointForCoPCalculation);
 
@@ -578,7 +596,7 @@ public class ReferenceCoPTrajectoryGenerator implements ReferenceCoPTrajectoryGe
          computeCoPPointsForUpcomingFootsteps(copLocationIndex, footstepIndex);
       }
       else if (numberOfUpcomingFootsteps.getIntegerValue() == 0)
-      {
+      { // currently in final transfer
          // Put first CoP at the exitCoP of the swing foot if not starting from rest
          clearHeldPosition();
          isDoneWalking.set(true);
@@ -597,7 +615,7 @@ public class ReferenceCoPTrajectoryGenerator implements ReferenceCoPTrajectoryGe
          computeCoPPointsForFinalTransfer(copLocationIndex, transferToSide, true, footstepIndex);
       }
       else
-      {
+      { // in regular transfer
          clearHeldPosition();
          isDoneWalking.set(false);
          updateFootPolygons(null, footstepIndex);
@@ -630,6 +648,7 @@ public class ReferenceCoPTrajectoryGenerator implements ReferenceCoPTrajectoryGe
       int footstepIndex = 0;
       CoPPointsInFoot copLocationWaypoint = copLocationWaypoints.get(footstepIndex);
       FootstepData upcomingFootstepData = upcomingFootstepsData.get(footstepIndex);
+      isHoldingPosition.set(false);
 
       if (numberOfUpcomingFootsteps.getIntegerValue() == 0)
       {
@@ -1347,7 +1366,7 @@ public class ReferenceCoPTrajectoryGenerator implements ReferenceCoPTrajectoryGe
    {
       if (planIsAvailable.getBooleanValue())
          getDesiredCenterOfPressure(framePointToPack);
-      else if (holdDesiredState.getBooleanValue())
+      else if (requestedHoldPosition.getBooleanValue())
          framePointToPack.setIncludingFrame(heldCoPPosition);
       else
       {
