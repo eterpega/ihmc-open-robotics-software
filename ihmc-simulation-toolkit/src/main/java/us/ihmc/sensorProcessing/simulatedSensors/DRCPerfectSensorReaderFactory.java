@@ -9,6 +9,7 @@ import us.ihmc.robotics.sensors.ContactSensorHolder;
 import us.ihmc.robotics.sensors.ForceSensorDataHolder;
 import us.ihmc.robotics.sensors.ForceSensorDefinition;
 import us.ihmc.robotics.sensors.IMUDefinition;
+import us.ihmc.ros2.RealtimeNode;
 import us.ihmc.sensorProcessing.outputData.JointDesiredOutputList;
 import us.ihmc.sensorProcessing.sensors.RawJointSensorDataHolderMap;
 import us.ihmc.simulationconstructionset.FloatingJoint;
@@ -36,7 +37,7 @@ public class DRCPerfectSensorReaderFactory implements SensorReaderFactory
    @Override
    public void build(FloatingInverseDynamicsJoint rootJoint, IMUDefinition[] imuDefinitions, ForceSensorDefinition[] forceSensorDefinitions,
          ContactSensorHolder contactSensorDataHolder, RawJointSensorDataHolderMap rawJointSensorDataHolderMap,
-         JointDesiredOutputList estimatorDesiredJointDataHolder, YoVariableRegistry parentRegistry)
+         JointDesiredOutputList estimatorDesiredJointDataHolder, YoVariableRegistry parentRegistry, RealtimeNode realtimeNode)
    {
       final Joint scsRootJoint = robot.getRootJoints().get(0);
       SCSToInverseDynamicsJointMap scsToInverseDynamicsJointMap = SCSToInverseDynamicsJointMap.createByName((FloatingJoint) scsRootJoint, rootJoint);

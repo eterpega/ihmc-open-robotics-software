@@ -1,39 +1,13 @@
 package us.ihmc.sensorProcessing.sensorProcessors;
 
-import static us.ihmc.sensorProcessing.sensorProcessors.SensorProcessing.SensorType.FORCE_SENSOR;
-import static us.ihmc.sensorProcessing.sensorProcessors.SensorProcessing.SensorType.IMU_ANGULAR_VELOCITY;
-import static us.ihmc.sensorProcessing.sensorProcessors.SensorProcessing.SensorType.IMU_LINEAR_ACCELERATION;
-import static us.ihmc.sensorProcessing.sensorProcessors.SensorProcessing.SensorType.IMU_ORIENTATION;
-import static us.ihmc.sensorProcessing.sensorProcessors.SensorProcessing.SensorType.JOINT_ACCELERATION;
-import static us.ihmc.sensorProcessing.sensorProcessors.SensorProcessing.SensorType.JOINT_POSITION;
-import static us.ihmc.sensorProcessing.sensorProcessors.SensorProcessing.SensorType.JOINT_TAU;
-import static us.ihmc.sensorProcessing.sensorProcessors.SensorProcessing.SensorType.JOINT_VELOCITY;
-import static us.ihmc.sensorProcessing.sensorProcessors.SensorProcessing.SensorType.TORQUE_SENSOR;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.ejml.data.DenseMatrix64F;
-
 import us.ihmc.euclid.matrix.RotationMatrix;
 import us.ihmc.euclid.matrix.interfaces.RotationMatrixReadOnly;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
-import us.ihmc.robotics.math.filters.AlphaFilteredYoFrameQuaternion;
-import us.ihmc.robotics.math.filters.AlphaFilteredYoFrameVector;
-import us.ihmc.robotics.math.filters.AlphaFilteredYoVariable;
-import us.ihmc.robotics.math.filters.BacklashProcessingYoFrameVector;
-import us.ihmc.robotics.math.filters.BacklashProcessingYoVariable;
-import us.ihmc.robotics.math.filters.FilteredVelocityYoVariable;
-import us.ihmc.robotics.math.filters.ProcessingYoVariable;
-import us.ihmc.robotics.math.filters.RevisedBacklashCompensatingVelocityYoVariable;
+import us.ihmc.robotics.math.filters.*;
 import us.ihmc.robotics.math.frames.YoFrameQuaternion;
 import us.ihmc.robotics.math.frames.YoFrameVector;
 import us.ihmc.robotics.math.trajectories.YoPolynomial;
@@ -43,15 +17,7 @@ import us.ihmc.robotics.sensors.ForceSensorDataHolder;
 import us.ihmc.robotics.sensors.ForceSensorDataHolderReadOnly;
 import us.ihmc.robotics.sensors.ForceSensorDefinition;
 import us.ihmc.robotics.sensors.IMUDefinition;
-import us.ihmc.sensorProcessing.communication.packets.dataobjects.AuxiliaryRobotData;
-import us.ihmc.sensorProcessing.diagnostic.DiagnosticUpdatable;
-import us.ihmc.sensorProcessing.diagnostic.IMUSensorValidityChecker;
-import us.ihmc.sensorProcessing.diagnostic.OneDoFJointForceTrackingDelayEstimator;
-import us.ihmc.sensorProcessing.diagnostic.OneDoFJointFourierAnalysis;
-import us.ihmc.sensorProcessing.diagnostic.OneDoFJointSensorValidityChecker;
-import us.ihmc.sensorProcessing.diagnostic.OrientationAngularVelocityConsistencyChecker;
-import us.ihmc.sensorProcessing.diagnostic.PositionVelocity1DConsistencyChecker;
-import us.ihmc.sensorProcessing.diagnostic.WrenchSensorValidityChecker;
+import us.ihmc.sensorProcessing.diagnostic.*;
 import us.ihmc.sensorProcessing.imu.IMUSensor;
 import us.ihmc.sensorProcessing.outputData.JointDesiredOutputListReadOnly;
 import us.ihmc.sensorProcessing.simulatedSensors.SensorNoiseParameters;
@@ -62,6 +28,10 @@ import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.yoVariables.variable.YoLong;
+
+import java.util.*;
+
+import static us.ihmc.sensorProcessing.sensorProcessors.SensorProcessing.SensorType.*;
 
 public class SensorProcessing implements SensorOutputMapReadOnly, SensorRawOutputMapReadOnly
 {
@@ -230,9 +200,6 @@ public class SensorProcessing implements SensorOutputMapReadOnly, SensorRawOutpu
    private final FrameVector3D tempTorque = new FrameVector3D();
    private final Wrench tempWrench = new Wrench();
 
-   private AuxiliaryRobotData auxiliaryRobotData;
-   
-
    public SensorProcessing(StateEstimatorSensorDefinitions stateEstimatorSensorDefinitions, SensorProcessingConfiguration sensorProcessingConfiguration,
          YoVariableRegistry parentRegistry)
    {
@@ -241,7 +208,6 @@ public class SensorProcessing implements SensorOutputMapReadOnly, SensorRawOutpu
       jointSensorDefinitions = stateEstimatorSensorDefinitions.getJointSensorDefinitions();
       imuSensorDefinitions = stateEstimatorSensorDefinitions.getIMUSensorDefinitions();
       forceSensorDefinitions = stateEstimatorSensorDefinitions.getForceSensorDefinitions();
-      this.auxiliaryRobotData = null;
 
       String prefix = null;
       String suffix = null;
@@ -1758,16 +1724,5 @@ public class SensorProcessing implements SensorOutputMapReadOnly, SensorRawOutpu
    public ForceSensorDataHolderReadOnly getForceSensorRawOutputs()
    {
       return inputForceSensors;
-   }
-
-   @Override
-   public AuxiliaryRobotData getAuxiliaryRobotData()
-   {
-      return this.auxiliaryRobotData;
-   }
-
-   public void setAuxiliaryRobotData(AuxiliaryRobotData auxiliaryRobotData)
-   {
-      this.auxiliaryRobotData = auxiliaryRobotData;
    }
 }

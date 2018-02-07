@@ -1,12 +1,10 @@
 package us.ihmc.humanoidRobotics.communication.packets.dataobjects;
 
-import us.ihmc.sensorProcessing.communication.packets.dataobjects.AuxiliaryRobotData;
-
 /**
  *
  * @author Doug Stephen <a href="mailto:dstephen@ihmc.us">(dstephen@ihmc.us)</a>
  */
-public class AtlasAuxiliaryRobotData implements AuxiliaryRobotData
+public class AtlasAuxiliaryRobotData
 {
    public float[] electricJointTemperatures;
    public float[] electricJointCurrents;
@@ -61,50 +59,50 @@ public class AtlasAuxiliaryRobotData implements AuxiliaryRobotData
       electricJointCurrents[index] = driveCurrent;
    }
 
-   @Override public void setAuxiliaryRobotData(AuxiliaryRobotData auxiliaryRobotData)
-   {
-      if(!(auxiliaryRobotData instanceof AtlasAuxiliaryRobotData))
-      {
-         throw new RuntimeException("Mismatches in Auxiliary Robot Data, cannot proceed");
-      }
-      else
-      {
-         this.batteryCharging = ((AtlasAuxiliaryRobotData) auxiliaryRobotData).batteryCharging;
-         this.batteryVoltage = ((AtlasAuxiliaryRobotData) auxiliaryRobotData).batteryVoltage;
-         this.batteryCurrent = ((AtlasAuxiliaryRobotData) auxiliaryRobotData).batteryCurrent;
-         this.remainingBatteryTime = ((AtlasAuxiliaryRobotData) auxiliaryRobotData).remainingBatteryTime;
-         this.remainingAmpHours = ((AtlasAuxiliaryRobotData) auxiliaryRobotData).remainingAmpHours;
-         this.remainingChargePercentage = ((AtlasAuxiliaryRobotData) auxiliaryRobotData).remainingChargePercentage;
-         this.batteryCycleCount = ((AtlasAuxiliaryRobotData) auxiliaryRobotData).batteryCycleCount;
-
-         this.pumpInletPressure = ((AtlasAuxiliaryRobotData) auxiliaryRobotData).pumpInletPressure;
-         this.pumpSupplyPressure = ((AtlasAuxiliaryRobotData) auxiliaryRobotData).pumpSupplyPressure;
-         this.airSumpPressure = ((AtlasAuxiliaryRobotData) auxiliaryRobotData).airSumpPressure;
-         this.pumpSupplyTemperature = ((AtlasAuxiliaryRobotData) auxiliaryRobotData).pumpSupplyTemperature;
-         this.pumpRPM = ((AtlasAuxiliaryRobotData) auxiliaryRobotData).pumpRPM;
-         this.motorTemperature = ((AtlasAuxiliaryRobotData) auxiliaryRobotData).motorTemperature;
-         this.motorDriverTemperature = ((AtlasAuxiliaryRobotData) auxiliaryRobotData).motorDriverTemperature;
-
-         for(int i = 0; i < 6; i++)
-         {
-            this.electricJointCurrents[i] = ((AtlasAuxiliaryRobotData) auxiliaryRobotData).electricJointCurrents[i];
-            this.electricJointTemperatures[i] = ((AtlasAuxiliaryRobotData) auxiliaryRobotData).electricJointTemperatures[i];
-            this.electricJointEnabledArray[i] = ((AtlasAuxiliaryRobotData) auxiliaryRobotData).electricJointEnabledArray[i];
-         }
-
-         for(int i = 0; i < 15; i++)
-         {
-            this.rawImuTimestamps[i] = ((AtlasAuxiliaryRobotData) auxiliaryRobotData).rawImuTimestamps[i];
-            this.rawImuPacketCounts[i] = ((AtlasAuxiliaryRobotData) auxiliaryRobotData).rawImuPacketCounts[i];
-
-            for(int j = 0; j < 3; j++)
-            {
-               this.rawImuRates[i][j] = ((AtlasAuxiliaryRobotData) auxiliaryRobotData).rawImuRates[i][j];
-               this.rawImuDeltas[i][j] = ((AtlasAuxiliaryRobotData) auxiliaryRobotData).rawImuDeltas[i][j];
-            }
-         }
-      }
-   }
+//   public void setAuxiliaryRobotData(AuxiliaryRobotData auxiliaryRobotData)
+//   {
+//      if(!(auxiliaryRobotData instanceof AtlasAuxiliaryRobotData))
+//      {
+//         throw new RuntimeException("Mismatches in Auxiliary Robot Data, cannot proceed");
+//      }
+//      else
+//      {
+//         this.batteryCharging = ((AtlasAuxiliaryRobotData) auxiliaryRobotData).batteryCharging;
+//         this.batteryVoltage = ((AtlasAuxiliaryRobotData) auxiliaryRobotData).batteryVoltage;
+//         this.batteryCurrent = ((AtlasAuxiliaryRobotData) auxiliaryRobotData).batteryCurrent;
+//         this.remainingBatteryTime = ((AtlasAuxiliaryRobotData) auxiliaryRobotData).remainingBatteryTime;
+//         this.remainingAmpHours = ((AtlasAuxiliaryRobotData) auxiliaryRobotData).remainingAmpHours;
+//         this.remainingChargePercentage = ((AtlasAuxiliaryRobotData) auxiliaryRobotData).remainingChargePercentage;
+//         this.batteryCycleCount = ((AtlasAuxiliaryRobotData) auxiliaryRobotData).batteryCycleCount;
+//
+//         this.pumpInletPressure = ((AtlasAuxiliaryRobotData) auxiliaryRobotData).pumpInletPressure;
+//         this.pumpSupplyPressure = ((AtlasAuxiliaryRobotData) auxiliaryRobotData).pumpSupplyPressure;
+//         this.airSumpPressure = ((AtlasAuxiliaryRobotData) auxiliaryRobotData).airSumpPressure;
+//         this.pumpSupplyTemperature = ((AtlasAuxiliaryRobotData) auxiliaryRobotData).pumpSupplyTemperature;
+//         this.pumpRPM = ((AtlasAuxiliaryRobotData) auxiliaryRobotData).pumpRPM;
+//         this.motorTemperature = ((AtlasAuxiliaryRobotData) auxiliaryRobotData).motorTemperature;
+//         this.motorDriverTemperature = ((AtlasAuxiliaryRobotData) auxiliaryRobotData).motorDriverTemperature;
+//
+//         for(int i = 0; i < 6; i++)
+//         {
+//            this.electricJointCurrents[i] = ((AtlasAuxiliaryRobotData) auxiliaryRobotData).electricJointCurrents[i];
+//            this.electricJointTemperatures[i] = ((AtlasAuxiliaryRobotData) auxiliaryRobotData).electricJointTemperatures[i];
+//            this.electricJointEnabledArray[i] = ((AtlasAuxiliaryRobotData) auxiliaryRobotData).electricJointEnabledArray[i];
+//         }
+//
+//         for(int i = 0; i < 15; i++)
+//         {
+//            this.rawImuTimestamps[i] = ((AtlasAuxiliaryRobotData) auxiliaryRobotData).rawImuTimestamps[i];
+//            this.rawImuPacketCounts[i] = ((AtlasAuxiliaryRobotData) auxiliaryRobotData).rawImuPacketCounts[i];
+//
+//            for(int j = 0; j < 3; j++)
+//            {
+//               this.rawImuRates[i][j] = ((AtlasAuxiliaryRobotData) auxiliaryRobotData).rawImuRates[i][j];
+//               this.rawImuDeltas[i][j] = ((AtlasAuxiliaryRobotData) auxiliaryRobotData).rawImuDeltas[i][j];
+//            }
+//         }
+//      }
+//   }
 
    public boolean isBatteryCharging()
    {

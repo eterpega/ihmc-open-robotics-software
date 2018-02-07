@@ -14,6 +14,7 @@ import us.ihmc.robotics.screwTheory.ScrewTools;
 import us.ihmc.robotics.sensors.ContactSensorHolder;
 import us.ihmc.robotics.sensors.ForceSensorDefinition;
 import us.ihmc.robotics.sensors.IMUDefinition;
+import us.ihmc.ros2.RealtimeNode;
 import us.ihmc.sensorProcessing.outputData.JointDesiredOutputList;
 import us.ihmc.sensorProcessing.parameters.DRCRobotSensorInformation;
 import us.ihmc.sensorProcessing.sensors.RawJointSensorDataHolderMap;
@@ -45,7 +46,7 @@ public class WandererSensorReaderFactory implements SensorReaderFactory
 
    @Override
    public void build(FloatingInverseDynamicsJoint rootJoint, IMUDefinition[] imuDefinitions, ForceSensorDefinition[] forceSensorDefinitions,
-         ContactSensorHolder contactSensorHolder, RawJointSensorDataHolderMap rawJointSensorDataHolderMap, JointDesiredOutputList estimatorDesiredJointDataHolder, YoVariableRegistry parentRegistry)
+         ContactSensorHolder contactSensorHolder, RawJointSensorDataHolderMap rawJointSensorDataHolderMap, JointDesiredOutputList estimatorDesiredJointDataHolder, YoVariableRegistry parentRegistry, RealtimeNode realtimeNode)
    {
       stateEstimatorSensorDefinitions = new StateEstimatorSensorDefinitions();
 

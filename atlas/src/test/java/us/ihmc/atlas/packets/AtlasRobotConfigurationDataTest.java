@@ -67,7 +67,7 @@ public class AtlasRobotConfigurationDataTest
 
       AtlasAuxiliaryRobotData auxiliaryRobotData = new AtlasAuxiliaryRobotData();
 
-      RobotConfigurationData data = new RobotConfigurationData(joints, forceSensorDefinitions, auxiliaryRobotData, imuSensorDefinitions);
+      RobotConfigurationData data = new RobotConfigurationData(joints, forceSensorDefinitions, imuSensorDefinitions);
       kryo.writeClassAndObject(output, data);
       output.flush();
 

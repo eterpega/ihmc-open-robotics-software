@@ -412,7 +412,7 @@ public abstract class AvatarHumanoidKinematicsToolboxControllerTest implements M
       HumanoidFloatingRootJointRobot robot = robotModel.createHumanoidFloatingRootJointRobot(false);
       robotModel.getDefaultRobotInitialSetup(0.0, 0.0).initializeRobot(robot, robotModel.getJointMap());
       DRCPerfectSensorReaderFactory drcPerfectSensorReaderFactory = new DRCPerfectSensorReaderFactory(robot, null, 0);
-      drcPerfectSensorReaderFactory.build(initialFullRobotModel.getRootJoint(), null, null, null, null, null, null);
+      drcPerfectSensorReaderFactory.build(initialFullRobotModel.getRootJoint(), null, null, null, null, null, null, null);
       drcPerfectSensorReaderFactory.getSensorReader().read();
       return initialFullRobotModel;
    }
@@ -511,7 +511,7 @@ public abstract class AvatarHumanoidKinematicsToolboxControllerTest implements M
    public static RobotConfigurationData extractRobotConfigurationData(FullHumanoidRobotModel fullRobotModel)
    {
       OneDoFJoint[] joints = FullRobotModelUtils.getAllJointsExcludingHands(fullRobotModel);
-      RobotConfigurationData robotConfigurationData = new RobotConfigurationData(joints, new ForceSensorDefinition[0], null, new IMUDefinition[0]);
+      RobotConfigurationData robotConfigurationData = new RobotConfigurationData(joints, new ForceSensorDefinition[0], new IMUDefinition[0]);
       robotConfigurationData.setJointState(Arrays.stream(joints).collect(Collectors.toList()));
       robotConfigurationData.setRootTranslation(fullRobotModel.getRootJoint().getTranslationForReading());
       robotConfigurationData.setRootOrientation(fullRobotModel.getRootJoint().getRotationForReading());

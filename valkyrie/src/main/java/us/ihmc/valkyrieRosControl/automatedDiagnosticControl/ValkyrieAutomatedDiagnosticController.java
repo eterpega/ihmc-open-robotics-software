@@ -173,7 +173,7 @@ public class ValkyrieAutomatedDiagnosticController extends IHMCWholeRobotControl
       ContactSensorHolder contactSensorHolder = new ContactSensorHolder(Arrays.asList(fullRobotModel.getContactSensorDefinitions()));
       RawJointSensorDataHolderMap rawJointSensorDataHolderMap = new RawJointSensorDataHolderMap(fullRobotModel);
       sensorReaderFactory.build(rootJoint, imuDefinitions, forceSensorDefinitions, contactSensorHolder, rawJointSensorDataHolderMap,
-                                estimatorDesiredJointDataHolder, registry);
+                                estimatorDesiredJointDataHolder, registry, null);
       sensorReader = sensorReaderFactory.getSensorReader();
       SensorOutputMapReadOnly sensorOutputMap = sensorReader.getSensorOutputMapReadOnly();
 

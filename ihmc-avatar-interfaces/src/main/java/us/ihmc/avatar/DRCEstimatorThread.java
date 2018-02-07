@@ -128,7 +128,7 @@ public class DRCEstimatorThread implements MultiThreadedRobotControlElement
       JointDesiredOutputList estimatorDesiredJointDataHolder = threadDataSynchronizer.getEstimatorDesiredJointDataHolder();
 
       sensorReaderFactory.build(rootJoint, imuDefinitions, forceSensorDefinitions, estimatorContactSensorHolder, estimatorRawJointSensorDataHolderMap,
-            estimatorDesiredJointDataHolder, estimatorRegistry);
+            estimatorDesiredJointDataHolder, estimatorRegistry, null);
 
       sensorReader = sensorReaderFactory.getSensorReader();
 

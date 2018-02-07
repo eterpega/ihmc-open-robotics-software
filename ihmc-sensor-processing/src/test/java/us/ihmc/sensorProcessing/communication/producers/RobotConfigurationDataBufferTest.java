@@ -32,7 +32,7 @@ public abstract class RobotConfigurationDataBufferTest
 
       for (int i = 0; i < RobotConfigurationDataBuffer.BUFFER_SIZE * 2; i++)
       {
-         RobotConfigurationData test = new RobotConfigurationData(setterJoints, forceSensorDefinitions, null, imuDefinitions);
+         RobotConfigurationData test = new RobotConfigurationData(setterJoints, forceSensorDefinitions, imuDefinitions);
          test.timestamp = i * 10;
          test.jointAngles[0] = i * 10;
          buffer.receivedPacket(test);

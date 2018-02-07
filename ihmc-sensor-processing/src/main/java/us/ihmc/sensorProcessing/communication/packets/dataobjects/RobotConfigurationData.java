@@ -38,7 +38,7 @@ public class RobotConfigurationData extends Packet<RobotConfigurationData>
    public float[][] momentAndForceDataAllForceSensors;
    public IMUPacket[] imuSensorData;
    public RobotMotionStatus robotMotionStatus;
-   public AuxiliaryRobotData auxiliaryRobotData;
+//   public AuxiliaryRobotData auxiliaryRobotData;
 
    public int lastReceivedPacketTypeID;
    public long lastReceivedPacketUniqueId;
@@ -89,7 +89,7 @@ public class RobotConfigurationData extends Packet<RobotConfigurationData>
       // empty constructor for serialization
    }
 
-   public RobotConfigurationData(OneDoFJoint[] joints, ForceSensorDefinition[] forceSensorDefinitions, AuxiliaryRobotData auxiliaryRobotData,
+   public RobotConfigurationData(OneDoFJoint[] joints, ForceSensorDefinition[] forceSensorDefinitions,
          IMUDefinition[] imuDefinitions)
    {
       jointAngles = new float[joints.length];
@@ -104,7 +104,7 @@ public class RobotConfigurationData extends Packet<RobotConfigurationData>
       }
 
       jointNameHash = calculateJointNameHash(joints, forceSensorDefinitions, imuDefinitions);
-      this.auxiliaryRobotData = auxiliaryRobotData;
+//      this.auxiliaryRobotData = auxiliaryRobotData;
    }
 
    public void setJointState(OneDoFJoint[] newJointData)
@@ -274,18 +274,18 @@ public class RobotConfigurationData extends Packet<RobotConfigurationData>
       pelvisAngularVelocity.set(pelvisAngularVelocityToPack);
    }
 
-   public AuxiliaryRobotData getAuxiliaryRobotData()
-   {
-      return auxiliaryRobotData;
-   }
-
-   public void setAuxiliaryRobotData(AuxiliaryRobotData auxiliaryRobotData)
-   {
-      if (this.auxiliaryRobotData != null && auxiliaryRobotData != null)
-      {
-         this.auxiliaryRobotData.setAuxiliaryRobotData(auxiliaryRobotData);
-      }
-   }
+//   public AuxiliaryRobotData getAuxiliaryRobotData()
+//   {
+//      return auxiliaryRobotData;
+//   }
+//
+//   public void setAuxiliaryRobotData(AuxiliaryRobotData auxiliaryRobotData)
+//   {
+//      if (this.auxiliaryRobotData != null && auxiliaryRobotData != null)
+//      {
+//         this.auxiliaryRobotData.setAuxiliaryRobotData(auxiliaryRobotData);
+//      }
+//   }
 
    public Vector3D32 getPelvisLinearAcceleration()
    {

@@ -32,8 +32,6 @@ import java.util.List;
  */
 public class RobotConfigurationDataPublisher implements RawOutputWriter
 {
-   public static final int QUEUE_SIZE = 10;
-
    private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
    private final SensorTimestampHolder sensorTimestampHolder;
    private final SensorRawOutputMapReadOnly sensorRawOutputMapReadOnly;
@@ -51,7 +49,8 @@ public class RobotConfigurationDataPublisher implements RawOutputWriter
    private final RobotConfigurationData robotConfigurationData = new RobotConfigurationData();
    private final RealtimePublisher<RobotConfigurationData> robotConfigurationDataPublisher;
 
-   private long publishCount = 0;
+   private long droppedMessages = 0;
+   private long estimatorTick = 0;
 
    public RobotConfigurationDataPublisher(FullRobotModel estimatorModel, ForceSensorDataHolderReadOnly forceSensorDataHolder, RealtimeNode realtimeNode,
                                           SensorTimestampHolder sensorTimestampHolder, SensorRawOutputMapReadOnly sensorRawOutputMapReadOnly,
@@ -78,8 +77,7 @@ public class RobotConfigurationDataPublisher implements RawOutputWriter
          imuOrientationsAsMatrix[i] = new RotationMatrix();
       }
 
-      robotConfigurationDataPublisher = realtimeNode.createPublisher(new RobotConfigurationDataPubSubType(), "/robot_configuration_data", RosQosProfile.DEFAULT(),
-                                                                     QUEUE_SIZE);
+      robotConfigurationDataPublisher = realtimeNode.createPublisher(new RobotConfigurationDataPubSubType(), "/robot_configuration_data");
    }
 
    // puts the state data into the ring buffer for the output thread
@@ -91,23 +89,27 @@ public class RobotConfigurationDataPublisher implements RawOutputWriter
       // robotConfigurationData.setLast_received_packet_type_id();
       // robotConfigurationData.setLast_received_packet_unique_id();
 
+      robotConfigurationData.setDropped_messages(droppedMessages);
+      robotConfigurationData.getHeader().getStamp().setNanosec(estimatorTick++);
+//      robotConfigurationData.getHeader().getStamp().setNanosec(sensorTimestampHolder.getVisionSensorTimestamp());
+      robotConfigurationData.setSensor_head_pps_timestamp(sensorTimestampHolder.getSensorHeadPPSTimestamp());
+      robotConfigurationData.setRobot_motion_status(robotMotionStatusFromController.getCurrentRobotMotionStatus().getBehaviorId());
+
       robotConfigurationData.getPelvis_angular_velocity().set(rootJoint.getAngularVelocityForReading());
       robotConfigurationData.getPelvis_linear_velocity().set(rootJoint.getLinearVelocityForReading());
       robotConfigurationData.getPelvis_linear_acceleration().set(rootJoint.getLinearAccelerationForReading());
       robotConfigurationData.getRoot_translation().set(rootJoint.getTranslationForReading());
       robotConfigurationData.getRoot_orientation().set(rootJoint.getRotationForReading());
-      for (int i = 0; i < robotConfigurationData.getJoint_angles().size(); i++)
+
+      robotConfigurationData.getJoint_angles().clear();
+      robotConfigurationData.getJoint_velocities().clear();
+      robotConfigurationData.getJoint_torques().clear();
+      for (int i = 0; i < joints.size(); i++)
       {
-         robotConfigurationData.getJoint_angles().set(i, (float) joints.get(i).getQ());
-         robotConfigurationData.getJoint_velocities().set(i, (float) joints.get(i).getQd());
-         robotConfigurationData.getJoint_torques().set(i, (float) joints.get(i).getTauMeasured());
+         robotConfigurationData.getJoint_angles().add((float) joints.get(i).getQ());
+         robotConfigurationData.getJoint_velocities().add((float) joints.get(i).getQd());
+         robotConfigurationData.getJoint_torques().add((float) joints.get(i).getTauMeasured());
       }
-      // Use publish count as timestamp for now. I don't under stand what vision sensor
-      // timestamp actually is. @dcalvert
-      robotConfigurationData.getHeader().getStamp().setNanosec(publishCount);
-//      robotConfigurationData.getHeader().getStamp().setNanosec(sensorTimestampHolder.getVisionSensorTimestamp());
-      robotConfigurationData.setSensor_head_pps_timestamp(sensorTimestampHolder.getSensorHeadPPSTimestamp());
-      robotConfigurationData.setRobot_motion_status(robotMotionStatusFromController.getCurrentRobotMotionStatus().getBehaviorId());
 
       robotConfigurationData.getForce_sensor_data().clear();
       for (int sensorNumber = 0; sensorNumber < forceSensorDataList.size(); sensorNumber++)
@@ -135,12 +137,8 @@ public class RobotConfigurationDataPublisher implements RawOutputWriter
 
       if (!robotConfigurationDataPublisher.publish(robotConfigurationData))
       {
-//         String message = "No space left in queue! publishCount: " + publishCount + " spinCount: " + RealtimeNode.spinCount + " readMessages: " + RealtimePublisher.readMessages + " queueSize: " + QUEUE_SIZE;
-//         throw new RuntimeException(message);
-//         PrintTools.error(this, message);
-         publishCount = 0;
+         ++droppedMessages; // debug dropped messages
       }
-      ++publishCount;
    }
 
    @Override

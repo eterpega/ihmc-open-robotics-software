@@ -48,7 +48,7 @@ public class PointCloudDataReceiverSimulation implements Runnable, PacketConsume
       AtlasRobotModel robotModel = new AtlasRobotModel(AtlasRobotVersion.ATLAS_UNPLUGGED_V5_DUAL_ROBOTIQ, RobotTarget.REAL_ROBOT, true);
       robotConfigurationDataBuffer = new RobotConfigurationDataBuffer();
       FullHumanoidRobotModel fullRobotModel = robotModel.createFullRobotModel();
-      robotConfigurationData = new RobotConfigurationData(FullRobotModelUtils.getAllJointsExcludingHands(fullRobotModel), fullRobotModel.getForceSensorDefinitions(), null, fullRobotModel.getIMUDefinitions());
+      robotConfigurationData = new RobotConfigurationData(FullRobotModelUtils.getAllJointsExcludingHands(fullRobotModel), fullRobotModel.getForceSensorDefinitions(), fullRobotModel.getIMUDefinitions());
       PPSTimestampOffsetProvider ppsTimestampOffsetProvider = new DRCROSAlwaysZeroOffsetPPSTimestampOffsetProvider();
 
       PacketCommunicator sensorSuitePacketCommunicatorServer = PacketCommunicator.createIntraprocessPacketCommunicator(NetworkPorts.SENSOR_MANAGER,

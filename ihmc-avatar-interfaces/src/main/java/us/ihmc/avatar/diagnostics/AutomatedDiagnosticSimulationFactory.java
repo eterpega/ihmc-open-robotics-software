@@ -148,7 +148,7 @@ public class AutomatedDiagnosticSimulationFactory implements RobotController
       SimulatedSensorHolderAndReaderFromRobotFactory sensorReaderFactory = new SimulatedSensorHolderAndReaderFromRobotFactory(simulatedRobot,
             sensorProcessingConfiguration);
       sensorReaderFactory.build(rootJoint, imuDefinitions, forceSensorDefinitions, contactSensorHolder, rawJointSensorDataHolderMap,
-            estimatorDesiredJointDataHolder, simulationRegistry);
+            estimatorDesiredJointDataHolder, simulationRegistry, null);
       sensorReader = sensorReaderFactory.getSensorReader();
 
       FullInverseDynamicsStructure inverseDynamicsStructure = DRCControllerThread.createInverseDynamicsStructure(fullRobotModel);

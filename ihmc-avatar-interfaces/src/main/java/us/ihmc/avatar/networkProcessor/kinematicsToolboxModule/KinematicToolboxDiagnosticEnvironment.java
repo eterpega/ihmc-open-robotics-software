@@ -14,7 +14,6 @@ import us.ihmc.robotics.sensors.ForceSensorDataHolder;
 import us.ihmc.robotics.sensors.ForceSensorDataHolderReadOnly;
 import us.ihmc.robotics.sensors.ForceSensorDefinition;
 import us.ihmc.ros2.RealtimeNode;
-import us.ihmc.sensorProcessing.communication.packets.dataobjects.AuxiliaryRobotData;
 import us.ihmc.sensorProcessing.communication.producers.RobotConfigurationDataPublisher;
 import us.ihmc.sensorProcessing.model.RobotMotionStatusHolder;
 import us.ihmc.sensorProcessing.sensorProcessors.SensorOutputMapReadOnly;
@@ -140,12 +139,6 @@ public class KinematicToolboxDiagnosticEnvironment
 
          @Override
          public ForceSensorDataHolderReadOnly getForceSensorRawOutputs()
-         {
-            return null;
-         }
-
-         @Override
-         public AuxiliaryRobotData getAuxiliaryRobotData()
          {
             return null;
          }

@@ -157,7 +157,7 @@ public class QuadrupedSimulationFactory
          SimulatedSensorHolderAndReaderFromRobotFactory sensorReaderFactory;
          sensorReaderFactory = new SimulatedSensorHolderAndReaderFromRobotFactory(sdfRobot.get(), stateEstimatorParameters.get());
          sensorReaderFactory.build(rootInverseDynamicsJoint, imuDefinitions, forceSensorDefinitions, contactSensorHolder, rawJointSensorDataHolderMap,
-                                   estimatorDesiredJointDataHolder, sdfRobot.get().getRobotsYoVariableRegistry());
+                                   estimatorDesiredJointDataHolder, sdfRobot.get().getRobotsYoVariableRegistry(), null);
 
          sensorReader = sensorReaderFactory.getSensorReader();
       }
