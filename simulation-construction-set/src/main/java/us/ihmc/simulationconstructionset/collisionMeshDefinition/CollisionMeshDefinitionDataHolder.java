@@ -9,11 +9,6 @@ public class CollisionMeshDefinitionDataHolder
 {
    private List<CollisionMeshDefinitionData> collisionMeshDefinitionDataList = new ArrayList<>();
 
-   public CollisionMeshDefinitionDataHolder()
-   {
-
-   }
-   
    public void addCollisionMeshDefinitionData(CollisionMeshDefinitionData collisionMeshData)
    {
       collisionMeshDefinitionDataList.add(collisionMeshData);
