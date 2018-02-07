@@ -111,6 +111,8 @@ public class ReferenceCoPTrajectoryGenerator implements ReferenceCoPTrajectoryGe
    private final YoBoolean putExitCoPOnToes;
    private final YoBoolean planIsAvailable;
 
+   private final YoFramePoint icpPositionToHold;
+
    // Output variables
    private final List<CoPPointsInFoot> copLocationWaypoints = new ArrayList<>();
    private final List<TransferCoPTrajectory> transferCoPTrajectories = new ArrayList<>();
@@ -120,7 +122,6 @@ public class ReferenceCoPTrajectoryGenerator implements ReferenceCoPTrajectoryGe
    private final FramePoint3D desiredCoPPosition = new FramePoint3D();
    private final FrameVector3D desiredCoPVelocity = new FrameVector3D();
    private final FrameVector3D desiredCoPAcceleration = new FrameVector3D();
-   private final FramePoint3D heldCoPPosition = new FramePoint3D();
 
    private int plannedFootstepIndex = -1;
    private CoPTrajectory activeTrajectory;
@@ -171,13 +172,13 @@ public class ReferenceCoPTrajectoryGenerator implements ReferenceCoPTrajectoryGe
                                           List<YoDouble> swingSplitFractions, List<YoDouble> swingDurationShiftFractions, List<YoDouble> transferSplitFractions,
                                           boolean debug, YoVariableRegistry parentRegistry)
    {
-      this(namePrefix, maxNumberOfFootstepsToConsider, bipedSupportPolygons, contactableFeet, numberFootstepsToConsider, null, null, swingDurations,
+      this(namePrefix, maxNumberOfFootstepsToConsider, bipedSupportPolygons, contactableFeet, numberFootstepsToConsider, null, null, null, swingDurations,
            transferDurations, touchdownDurations, swingSplitFractions, swingDurationShiftFractions, transferSplitFractions, debug, parentRegistry);
    }
 
    public ReferenceCoPTrajectoryGenerator(String namePrefix, int maxNumberOfFootstepsToConsider, BipedSupportPolygons bipedSupportPolygons,
                                           SideDependentList<? extends ContactablePlaneBody> contactableFeet, YoInteger numberFootstepsToConsider,
-                                          YoBoolean requestedHoldPosition, YoBoolean isHoldingPosition,
+                                          YoFramePoint icpPositionToHold, YoBoolean requestedHoldPosition, YoBoolean isHoldingPosition,
                                           List<YoDouble> swingDurations, List<YoDouble> transferDurations, List<YoDouble> touchdownDurations,
                                           List<YoDouble> swingSplitFractions, List<YoDouble> swingDurationShiftFractions, List<YoDouble> transferSplitFractions,
                                           boolean debug, YoVariableRegistry parentRegistry)
@@ -223,6 +224,11 @@ public class ReferenceCoPTrajectoryGenerator implements ReferenceCoPTrajectoryGe
          this.isHoldingPosition = new YoBoolean(fullPrefix + "IsHoldingPosition", parentRegistry);
       else
          this.isHoldingPosition = isHoldingPosition;
+
+      if (icpPositionToHold == null)
+         this.icpPositionToHold = new YoFramePoint(fullPrefix + "CapturePointPositionToHold", worldFrame, registry);
+      else
+         this.icpPositionToHold = icpPositionToHold;
 
       for (CoPPointName pointName : CoPPointName.values)
       {
@@ -375,13 +381,13 @@ public class ReferenceCoPTrajectoryGenerator implements ReferenceCoPTrajectoryGe
    public void holdPosition(FramePoint3DReadOnly desiredCoPPositionToHold)
    {
       requestedHoldPosition.set(true);
-      heldCoPPosition.setIncludingFrame(desiredCoPPositionToHold);
+      icpPositionToHold.setAndMatchFrame(desiredCoPPositionToHold);
    }
 
    private void clearHeldPosition()
    {
       requestedHoldPosition.set(false);
-      heldCoPPosition.setToNaN(worldFrame);
+      icpPositionToHold.setToNaN();
    }
 
    @Override
@@ -541,7 +547,7 @@ public class ReferenceCoPTrajectoryGenerator implements ReferenceCoPTrajectoryGe
       CoPPointsInFoot copLocationWaypoint = copLocationWaypoints.get(footstepIndex);
       if (requestedHoldPosition.getBooleanValue())
       {
-         tempPointForCoPCalculation.setIncludingFrame(heldCoPPosition);
+         tempPointForCoPCalculation.setIncludingFrame(icpPositionToHold);
          isHoldingPosition.set(true);
          clearHeldPosition();
 
@@ -701,9 +707,6 @@ public class ReferenceCoPTrajectoryGenerator implements ReferenceCoPTrajectoryGe
 
    /**
     * Assumes foot polygon and double support polygon has been updated
-    * 
-    * @param framePointToPack
-    * @param transferToSide
     */
    private void computeMidFeetPointWithChickenSupport(FramePoint3D framePointToPack, FrameConvexPolygon2d supportFootPolygon,
                                                       FrameConvexPolygon2d swingFootPolygon)
@@ -1367,7 +1370,7 @@ public class ReferenceCoPTrajectoryGenerator implements ReferenceCoPTrajectoryGe
       if (planIsAvailable.getBooleanValue())
          getDesiredCenterOfPressure(framePointToPack);
       else if (requestedHoldPosition.getBooleanValue())
-         framePointToPack.setIncludingFrame(heldCoPPosition);
+         framePointToPack.setIncludingFrame(icpPositionToHold);
       else
       {
          // The selection of swing and support is arbitrary here. 

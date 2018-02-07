@@ -126,8 +126,8 @@ public class SmoothCMPBasedICPPlanner extends AbstractICPPlanner
       }
 
       referenceCoPGenerator = new ReferenceCoPTrajectoryGenerator(namePrefix, maxNumberOfFootstepsToConsider, bipedSupportPolygons,
-                                                                  contactableFeet, numberFootstepsToConsider, requestedHoldPosition, isHoldingPosition,
-                                                                  swingDurations, transferDurations, touchdownDurations, swingDurationAlphas,
+                                                                  contactableFeet, numberFootstepsToConsider, icpPositionToHold, requestedHoldPosition,
+                                                                  isHoldingPosition, swingDurations, transferDurations, touchdownDurations, swingDurationAlphas,
                                                                   swingDurationShiftFractions, transferDurationAlphas, debug, registry);
       referenceCMPGenerator = new ReferenceCMPTrajectoryGenerator(namePrefix, maxNumberOfFootstepsToConsider, numberFootstepsToConsider, registry);
 
@@ -389,8 +389,6 @@ public class SmoothCMPBasedICPPlanner extends AbstractICPPlanner
       referenceICPGenerator.getICPPhaseEntryCornerPoints(icpPhaseEntryCornerPoints);
       referenceICPGenerator.getICPPhaseExitCornerPoints(icpPhaseExitCornerPoints);
       updateListeners();
-      // TODO implement requested hold position
-      // TODO implement is done walking
    }
 
    /** {@inheritDoc} */
@@ -636,7 +634,6 @@ public class SmoothCMPBasedICPPlanner extends AbstractICPPlanner
    @Override
    public void holdCurrentICP(FramePoint3D icpPositionToHold)
    {
-      this.icpPositionToHold.set(icpPositionToHold);
       // Asking the CoP and ICP to be the same since we assume that holds can be requested in static conditions only
       referenceCoPGenerator.holdPosition(icpPositionToHold);
    }
