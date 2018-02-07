@@ -14,7 +14,6 @@ import us.ihmc.avatar.testTools.DRCSimulationTestHelper;
 import us.ihmc.commonWalkingControlModules.controlModules.foot.FootControlModule.ConstraintType;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.highLevelStates.walkingController.states.WalkingStateEnum;
 import us.ihmc.commons.PrintTools;
-import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
@@ -27,12 +26,11 @@ import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.robotics.stateMachines.conditionBasedStateMachine.StateTransitionCondition;
 import us.ihmc.simulationConstructionSetTools.util.environments.FlatGroundEnvironment;
 import us.ihmc.simulationToolkit.controllers.PushRobotController;
-import us.ihmc.simulationconstructionset.Robot;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
-import us.ihmc.simulationconstructionset.collisionMeshDefinition.GroundRobot;
 import us.ihmc.simulationconstructionset.util.simulationRunner.BlockingSimulationRunner.SimulationExceededMaximumTimeException;
 import us.ihmc.simulationconstructionset.util.simulationTesting.SimulationTestingParameters;
 import us.ihmc.tools.MemoryTools;
+import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.yoVariables.variable.YoEnum;
 
 public abstract class AvatarFlatGroundForwardWalkingTest implements MultiRobotTestInterface
@@ -264,7 +262,7 @@ public abstract class AvatarFlatGroundForwardWalkingTest implements MultiRobotTe
    @After
    public void destroySimulationAndRecycleMemory()
    {
-      if (true)
+      if (simulationTestingParameters.getKeepSCSUp())
       {
          ThreadTools.sleepForever();
       }
@@ -314,17 +312,6 @@ public abstract class AvatarFlatGroundForwardWalkingTest implements MultiRobotTe
       pushRobotController = new PushRobotController(drcSimulationTestHelper.getRobot(), fullRobotModel.getChest().getParentJoint().getName(), new Vector3D(0, 0, z));
       SimulationConstructionSet scs = drcSimulationTestHelper.getSimulationConstructionSet();
       scs.addYoGraphic(pushRobotController.getForceVisualizer());
-      
-      // For ground contact with collision mesh definition.
-      int estimatedNumberOfContactPoints = 100;
-      GroundRobot groundRobot = new GroundRobot();
-      groundRobot.setFloorLength(15.0);
-      groundRobot.setFloorWidth(15.0);
-      groundRobot.setEstimatedNumberOfContactPoints(estimatedNumberOfContactPoints);
-      groundRobot.setCollisionMask(0xff);
-      Robot environmentRobot = groundRobot.createRobot();
-      scs.addRobot(environmentRobot);
-      scs.setGroundVisible(false);
 
       for (RobotSide robotSide : RobotSide.values)
       {
