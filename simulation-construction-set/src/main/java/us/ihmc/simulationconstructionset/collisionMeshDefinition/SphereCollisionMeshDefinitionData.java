@@ -1,4 +1,4 @@
-package us.ihmc.simulationconstructionset;
+package us.ihmc.simulationconstructionset.collisionMeshDefinition;
 
 import us.ihmc.euclid.matrix.RotationMatrix;
 import us.ihmc.robotics.robotDescription.CollisionMeshDescription;

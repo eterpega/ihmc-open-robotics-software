@@ -1,4 +1,4 @@
-package us.ihmc.simulationconstructionset;
+package us.ihmc.simulationconstructionset.collisionMeshDefinition;
 
 import java.util.ArrayList;
 import java.util.List;
