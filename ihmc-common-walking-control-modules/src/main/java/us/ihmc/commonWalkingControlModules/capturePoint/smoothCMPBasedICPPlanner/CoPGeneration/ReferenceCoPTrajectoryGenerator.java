@@ -581,6 +581,7 @@ public class ReferenceCoPTrajectoryGenerator implements ReferenceCoPTrajectoryGe
 
          // this is the last step
          computeCoPPointsForFinalTransfer(copLocationIndex, transferToSide, true, footstepIndex);
+         isHoldingPosition.set(false);
       }
       else if (atAStop)
       { // plan the whole thing, starting from rest
@@ -600,6 +601,7 @@ public class ReferenceCoPTrajectoryGenerator implements ReferenceCoPTrajectoryGe
 
          // compute all the upcoming footsteps
          computeCoPPointsForUpcomingFootsteps(copLocationIndex, footstepIndex);
+         isHoldingPosition.set(false);
       }
       else if (numberOfUpcomingFootsteps.getIntegerValue() == 0)
       { // currently in final transfer
@@ -619,6 +621,7 @@ public class ReferenceCoPTrajectoryGenerator implements ReferenceCoPTrajectoryGe
 
          // compute all the upcoming footsteps
          computeCoPPointsForFinalTransfer(copLocationIndex, transferToSide, true, footstepIndex);
+         isHoldingPosition.set(false);
       }
       else
       { // in regular transfer
@@ -640,6 +643,7 @@ public class ReferenceCoPTrajectoryGenerator implements ReferenceCoPTrajectoryGe
 
          // compute all the upcoming footsteps
          computeCoPPointsForUpcomingFootsteps(copLocationIndex, footstepIndex);
+         isHoldingPosition.set(false);
       }
 
       // generate the cop trajectory
