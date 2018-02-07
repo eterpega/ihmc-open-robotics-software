@@ -7,13 +7,6 @@ import us.ihmc.robotics.robotDescription.RobotDescription;
 
 public abstract class CollisionMeshDefinitionData
 {
-   //   enum CollisionMeshType
-   //   {
-   //      Sphere, Box, Cylinder, Capsule
-   //   }
-   //
-   //   private CollisionMeshType collisionMeshType;
-
    protected String parentJointName;
 
    /**

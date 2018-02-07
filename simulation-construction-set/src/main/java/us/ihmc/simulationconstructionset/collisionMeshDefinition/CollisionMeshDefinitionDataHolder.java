@@ -7,11 +7,16 @@ import us.ihmc.robotics.robotDescription.RobotDescription;
 
 public class CollisionMeshDefinitionDataHolder
 {
-   protected List<CollisionMeshDefinitionData> collisionMeshDefinitionDataList = new ArrayList<>();
+   private List<CollisionMeshDefinitionData> collisionMeshDefinitionDataList = new ArrayList<>();
 
    public CollisionMeshDefinitionDataHolder()
    {
 
+   }
+   
+   public void addCollisionMeshDefinitionData(CollisionMeshDefinitionData collisionMeshData)
+   {
+      collisionMeshDefinitionDataList.add(collisionMeshData);
    }
 
    public void addCollisionMeshOnRobotDescription(RobotDescription robotDescription)
