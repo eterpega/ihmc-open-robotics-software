@@ -26,6 +26,10 @@ public class SensorNoiseParameters
    private final Vector3D initialLinearVelocityBias = new Vector3D();
    private final Vector3D initialAngularVelocityBias = new Vector3D();
 
+   public void configureSensorNoiseSimulator(SensorNoiseSimulator sensorNoiseSimulator)
+   {
+   }
+
    public double getJointPositionMeasurementStandardDeviation()
    {
       return this.jointPositionMeasurementStandardDeviation;
