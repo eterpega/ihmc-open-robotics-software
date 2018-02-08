@@ -386,13 +386,13 @@ public class StepprSensorPostProcessor implements LogDataProcessorFunction
       {
          IMUSensorReadOnly imuProcessedOutput = imuProcessedOutputs.get(i);
 
-         imuProcessedOutput.getOrientationMeasurement(processedOrientation);
+         processedOrientation.set(imuProcessedOutput.getOrientationMeasurement());
          processedIMUOrientationMap.get(i).set(processedOrientation);
          
-         imuProcessedOutput.getAngularVelocityMeasurement(processedAngularVelocity);
+         processedAngularVelocity.set(imuProcessedOutput.getAngularVelocityMeasurement());
          processedIMUAngularVelocityMap.get(i).set(processedAngularVelocity);
          
-         imuProcessedOutput.getLinearAccelerationMeasurement(processedLinearAcceleration);
+         processedLinearAcceleration.set(imuProcessedOutput.getLinearAccelerationMeasurement());
          processedIMULinearAccelerationMap.get(i).set(processedLinearAcceleration);
       }
    }

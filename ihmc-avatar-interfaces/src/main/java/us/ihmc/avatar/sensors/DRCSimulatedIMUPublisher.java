@@ -40,7 +40,7 @@ public class DRCSimulatedIMUPublisher implements MultiThreadedRobotControlElemen
    {
       if (imuSensorReader != null)
       {
-         imuSensorReader.getLinearAccelerationMeasurement(packet.linearAcceleration);
+         packet.linearAcceleration.set(imuSensorReader.getLinearAccelerationMeasurement());
          packet.timestampInNanoSecond = currentClockTime;
          if (globalDataProducer != null)
             globalDataProducer.queueDataToSend(packet);
