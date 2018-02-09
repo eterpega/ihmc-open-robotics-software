@@ -83,10 +83,8 @@ public class AtlasSimInitialSetup implements DRCRobotInitialSetup<HumanoidFloati
             }
          }
 
-         //double pelvisToFoot = positionInWorld.getZ() - lowestGroundContactPoint.getPositionPoint().getZ();
+         double pelvisToFoot = positionInWorld.getZ() - lowestGroundContactPoint.getPositionPoint().getZ();
 
-         double pelvisToFoot = 0.89;
-         
          // Hardcoded for gazebo integration
          //      double pelvisToFoot = 0.887;
 
