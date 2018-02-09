@@ -52,11 +52,25 @@ public class CylinderCollisionMeshDefinitionData extends CollisionMeshDefinition
    public void addLinkGraphics(RobotDescription robotDescription)
    {
       LinkDescription linkDescription = robotDescription.getLinkDescription(parentJointName);
-
-      LinkGraphicsDescription linkGraphics = linkDescription.getLinkGraphics();
-      linkGraphics.identity();
-      linkGraphics.transform(transformToParent);
-      linkGraphics.addCylinder(height, radius, yoAppearance);
+      LinkGraphicsDescription linkGraphics;
+      if(linkDescription.getLinkGraphics() != null)
+      {
+         linkGraphics = linkDescription.getLinkGraphics();      
+         linkGraphics.identity();
+         linkGraphics.transform(transformToParent);
+         linkGraphics.addCylinder(height, radius, yoAppearance);
+      }
+      else
+      {
+         linkGraphics = new LinkGraphicsDescription();
+         linkGraphics.identity();
+         linkGraphics.transform(transformToParent);
+         linkGraphics.addCylinder(height, radius, yoAppearance);
+         linkDescription.setLinkGraphics(linkGraphics);
+      }
+         
+      
+      
    }
 
 }
