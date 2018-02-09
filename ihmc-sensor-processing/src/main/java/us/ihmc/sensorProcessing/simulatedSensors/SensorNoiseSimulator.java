@@ -294,6 +294,7 @@ public class SensorNoiseSimulator
     * twice for instance, you will obtain a signal with additional noise.
     * 
     * @param standardDeviation the noise standard deviation.
+    * @return a map from sensor name to the index of the noise simulator that was created.
     */
    public Map<String, Integer> addSensorGaussianNoise(DoubleProvider standardDeviation, SensorType sensorType)
    {
@@ -306,10 +307,11 @@ public class SensorNoiseSimulator
     * 
     * @param sensorsToBeProcessed list of the names of the sensors that need to be processed.
     * @param standardDeviation the noise standard deviation.
+    * @return a map from sensor name to the index of the noise simulator that was created.
     */
-   public Map<String, Integer> addSensorGaussianNoiseOnlyForSpecifiedSensors(DoubleProvider alphaFilter, SensorType sensorType, String... sensorsToBeProcessed)
+   public Map<String, Integer> addSensorGaussianNoiseOnlyForSpecifiedSensors(DoubleProvider standardDeviation, SensorType sensorType, String... sensorsToBeProcessed)
    {
-      return addSensorGaussianNoiseWithSensorsToIgnore(alphaFilter, sensorType, invertSensorSelection(sensorType, sensorsToBeProcessed));
+      return addSensorGaussianNoiseWithSensorsToIgnore(standardDeviation, sensorType, invertSensorSelection(sensorType, sensorsToBeProcessed));
    }
 
    /**
@@ -318,6 +320,7 @@ public class SensorNoiseSimulator
     * 
     * @param standardDeviation the noise standard deviation.
     * @param sensorsToIgnore list of the names of the sensors to ignore.
+    * @return a map from sensor name to the index of the noise simulator that was created.
     */
    public Map<String, Integer> addSensorGaussianNoiseWithSensorsToIgnore(DoubleProvider standardDeviation, SensorType sensorType, String... sensorsToIgnore)
    {
