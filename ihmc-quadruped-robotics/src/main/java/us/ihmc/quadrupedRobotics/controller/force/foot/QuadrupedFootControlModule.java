@@ -2,6 +2,7 @@ package us.ihmc.quadrupedRobotics.controller.force.foot;
 
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
+import us.ihmc.euclid.referenceFrame.interfaces.FramePoint3DReadOnly;
 import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedSolePositionController;
 import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedStepTransitionCallback;
 import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedTaskSpaceEstimates;
@@ -83,7 +84,7 @@ public class QuadrupedFootControlModule
       }
    }
 
-   public void adjustStep(FramePoint3D newGoalPosition)
+   public void adjustStep(FramePoint3DReadOnly newGoalPosition)
    {
       this.stepCommand.setGoalPosition(newGoalPosition);
    }

@@ -11,7 +11,6 @@ import us.ihmc.quadrupedRobotics.communication.packets.QuadrupedForceControllerS
 import us.ihmc.quadrupedRobotics.controller.ControllerEvent;
 import us.ihmc.quadrupedRobotics.controller.QuadrupedController;
 import us.ihmc.quadrupedRobotics.controller.QuadrupedControllerManager;
-import us.ihmc.quadrupedRobotics.controller.force.foot.QuadrupedFootStates;
 import us.ihmc.quadrupedRobotics.controller.force.states.QuadrupedDcmBasedStandController;
 import us.ihmc.quadrupedRobotics.controller.force.states.QuadrupedDcmBasedStepController;
 import us.ihmc.quadrupedRobotics.controller.force.states.QuadrupedForceBasedDoNothingController;
@@ -35,7 +34,6 @@ import us.ihmc.quadrupedRobotics.providers.QuadrupedPostureInputProviderInterfac
 import us.ihmc.quadrupedRobotics.providers.QuadrupedSoleWaypointInputProvider;
 import us.ihmc.quadrupedRobotics.providers.QuadrupedPreplannedStepInputProvider;
 import us.ihmc.quadrupedRobotics.providers.QuadrupedXGaitSettingsInputProvider;
-import us.ihmc.robotics.stateMachines.conditionBasedStateMachine.StateChangedListener;
 import us.ihmc.robotics.stateMachines.eventBasedStateMachine.FiniteStateMachine;
 import us.ihmc.robotics.stateMachines.eventBasedStateMachine.FiniteStateMachineBuilder;
 import us.ihmc.robotics.stateMachines.eventBasedStateMachine.FiniteStateMachineState;
@@ -106,8 +104,8 @@ public class QuadrupedForceControllerManager implements QuadrupedControllerManag
       StateChangeSmootherComponent stateChangeSmootherComponent = new StateChangeSmootherComponent(runtimeEnvironment.getControlDT(),
             runtimeEnvironment.getRobotTimestamp(), registry);
       FiniteStateMachineStateChangedListener stateChangedListener = stateChangeSmootherComponent.createFiniteStateMachineStateChangedListener();
-      for (RobotQuadrant robotQuadrant : RobotQuadrant.values)
-         controllerToolbox.getFootStateMachine().get(robotQuadrant).attachStateChangedListener(stateChangedListener);
+      controllerToolbox.getFeetManager().attachStateChangedListener(stateChangedListener);
+
       OutputProcessorBuilder outputProcessorBuilder = new OutputProcessorBuilder(runtimeEnvironment.getFullRobotModel());
       outputProcessorBuilder.addComponent(stateChangeSmootherComponent);
       outputProcessor = outputProcessorBuilder.build();
