@@ -4,9 +4,12 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import us.ihmc.quadrupedRobotics.controller.force.foot.QuadrupedFootStates;
 import us.ihmc.robotModels.FullRobotModel;
 import us.ihmc.robotics.dataStructures.parameter.DoubleParameter;
 import us.ihmc.robotics.dataStructures.parameter.ParameterFactory;
+import us.ihmc.robotics.stateMachines.conditionBasedStateMachine.State;
+import us.ihmc.robotics.stateMachines.conditionBasedStateMachine.StateChangedListener;
 import us.ihmc.robotics.stateMachines.eventBasedStateMachine.FiniteStateMachineStateChangedListener;
 import us.ihmc.robotics.controllers.ControllerStateChangedListener;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
@@ -111,6 +114,20 @@ public class StateChangeSmootherComponent implements OutputProcessorComponent
       };
 
       return finiteStateMachineStateChangedListener;
+   }
+
+   public StateChangedListener<QuadrupedFootStates> createFootStateChangedListener()
+   {
+      StateChangedListener<QuadrupedFootStates> stateChangedListener = new StateChangedListener<QuadrupedFootStates>()
+      {
+         @Override
+         public void stateChanged(State<QuadrupedFootStates> oldState, State<QuadrupedFootStates> newState, double time)
+         {
+            hasHighLevelControllerStateChanged.set(true);
+         }
+      };
+
+      return stateChangedListener;
    }
 
    public ControllerStateChangedListener createControllerStateChangedListener()

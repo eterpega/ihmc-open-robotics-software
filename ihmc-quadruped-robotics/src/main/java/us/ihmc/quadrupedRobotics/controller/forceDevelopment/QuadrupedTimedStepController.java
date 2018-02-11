@@ -7,9 +7,7 @@ import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
 import us.ihmc.graphicsDescription.appearance.YoAppearance;
 import us.ihmc.graphicsDescription.yoGraphics.BagOfBalls;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
-import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedSolePositionController;
-import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedStepTransitionCallback;
-import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedTaskSpaceEstimator;
+import us.ihmc.quadrupedRobotics.controller.force.toolbox.*;
 import us.ihmc.quadrupedRobotics.optimization.contactForceOptimization.QuadrupedContactForceLimits;
 import us.ihmc.robotics.dataStructures.parameter.DoubleArrayParameter;
 
@@ -53,13 +51,13 @@ public class QuadrupedTimedStepController
    // control variables
    private final YoDouble timestamp;
    private final QuadrantDependentList<QuadrupedSolePositionController> solePositionController;
-   private final QuadrantDependentList<QuadrupedSolePositionController.Setpoints> solePositionControllerSetpoints;
+   private final QuadrantDependentList<QuadrupedSolePositionControllerSetpoints> solePositionControllerSetpoints;
    private final PreallocatedList<QuadrupedTimedStep> stepSequence;
    private final QuadrantDependentList<FramePoint3D> solePositionEstimate;
    private final QuadrantDependentList<FrameVector3D> soleForceCommand;
    private final QuadrantDependentList<ContactState> contactState;
    private final QuadrupedContactForceLimits contactForceLimits;
-   private final QuadrupedTaskSpaceEstimator.Estimates taskSpaceEstimates;
+   private final QuadrupedTaskSpaceEstimates taskSpaceEstimates;
 
    // graphics
    private final FramePoint3D stepSequenceVisualizationPosition;
@@ -90,7 +88,7 @@ public class QuadrupedTimedStepController
       this.solePositionControllerSetpoints = new QuadrantDependentList<>();
       for (RobotQuadrant robotQuadrant : RobotQuadrant.values)
       {
-         this.solePositionControllerSetpoints.set(robotQuadrant, new QuadrupedSolePositionController.Setpoints(robotQuadrant));
+         this.solePositionControllerSetpoints.set(robotQuadrant, new QuadrupedSolePositionControllerSetpoints(robotQuadrant));
       }
       stepSequence = new PreallocatedList<>(100, QuadrupedTimedStep.class);
       contactState = new QuadrantDependentList<>();
@@ -103,7 +101,7 @@ public class QuadrupedTimedStepController
          contactState.set(robotQuadrant, ContactState.IN_CONTACT);
       }
       contactForceLimits = new QuadrupedContactForceLimits();
-      taskSpaceEstimates = new QuadrupedTaskSpaceEstimator.Estimates();
+      taskSpaceEstimates = new QuadrupedTaskSpaceEstimates();
 
       // state machine
       stepStateMachine = new QuadrantDependentList<>();
@@ -227,7 +225,7 @@ public class QuadrupedTimedStepController
    }
 
    public void compute(QuadrantDependentList<ContactState> contactState, QuadrupedContactForceLimits contactForceLimits,
-         QuadrantDependentList<FrameVector3D> soleForceCommand, QuadrupedTaskSpaceEstimator.Estimates taskSpaceEsimates)
+         QuadrantDependentList<FrameVector3D> soleForceCommand, QuadrupedTaskSpaceEstimates taskSpaceEsimates)
    {
       // copy inputs
       this.taskSpaceEstimates.set(taskSpaceEsimates);

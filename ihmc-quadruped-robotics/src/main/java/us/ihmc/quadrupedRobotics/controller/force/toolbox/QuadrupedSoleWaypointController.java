@@ -21,7 +21,7 @@ public class QuadrupedSoleWaypointController
 
    // Feedback controller
    private final QuadrantDependentList<QuadrupedSolePositionController> solePositionController;
-   private final QuadrantDependentList<QuadrupedSolePositionController.Setpoints> solePositionControllerSetpoints;
+   private final QuadrantDependentList<QuadrupedSolePositionControllerSetpoints> solePositionControllerSetpoints;
    private final QuadrantDependentList<FrameVector3D> initialSoleForces;
 
    private ReferenceFrame bodyFrame;
@@ -42,7 +42,7 @@ public class QuadrupedSoleWaypointController
       initialSoleForces = new QuadrantDependentList<>();
       for (RobotQuadrant robotQuadrant : RobotQuadrant.values)
       {
-         solePositionControllerSetpoints.set(robotQuadrant, new QuadrupedSolePositionController.Setpoints(robotQuadrant));
+         solePositionControllerSetpoints.set(robotQuadrant, new QuadrupedSolePositionControllerSetpoints(robotQuadrant));
          initialSoleForces.set(robotQuadrant, new FrameVector3D());
       }
       // Create waypoint trajectory for each quadrant
@@ -57,7 +57,7 @@ public class QuadrupedSoleWaypointController
 
 
    public void initialize(QuadrupedSoleWaypointList quadrupedSoleWaypointList, YoPID3DGains positionControllerGains,
-         QuadrupedTaskSpaceEstimator.Estimates taskSpaceEstimates, boolean useInitialSoleForceAsFeedforwardTerm)
+                          QuadrupedTaskSpaceEstimates taskSpaceEstimates, boolean useInitialSoleForceAsFeedforwardTerm)
    {
       this.quadrupedSoleWaypointList = quadrupedSoleWaypointList;
       for (RobotQuadrant robotQuadrant : RobotQuadrant.values)
@@ -79,7 +79,7 @@ public class QuadrupedSoleWaypointController
       taskStartTime = robotTime.getDoubleValue();
    }
 
-   public boolean compute(QuadrantDependentList<FrameVector3D> soleForceCommand, QuadrupedTaskSpaceEstimator.Estimates taskSpaceEstimates)
+   public boolean compute(QuadrantDependentList<FrameVector3D> soleForceCommand, QuadrupedTaskSpaceEstimates taskSpaceEstimates)
    {
       double currentTrajectoryTime = robotTime.getDoubleValue() - taskStartTime;
       if (currentTrajectoryTime > quadrupedSoleWaypointList.getFinalTime())

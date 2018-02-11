@@ -1,4 +1,4 @@
-package us.ihmc.quadrupedRobotics.controller.force.toolbox;
+package us.ihmc.quadrupedRobotics.controller.force.foot;
 
 import us.ihmc.robotics.dataStructures.parameter.DoubleArrayParameter;
 import us.ihmc.robotics.dataStructures.parameter.DoubleParameter;
@@ -9,10 +9,10 @@ import us.ihmc.yoVariables.registry.YoVariableRegistry;
 public class QuadrupedFootStateMachineParameters
 {
    // final registry
-   private final YoVariableRegistry finalRegistry = new YoVariableRegistry("QuadrupedFootStateMachine");
+   private final YoVariableRegistry finalRegistry = new YoVariableRegistry("QuadrupedFootControlModule");
 
    // final parameters
-   private final ParameterFactory parameterFactory = ParameterFactory.createWithRegistry(QuadrupedFootStateMachine.class, finalRegistry);
+   private final ParameterFactory parameterFactory = ParameterFactory.createWithRegistry(QuadrupedFootControlModule.class, finalRegistry);
    private final DoubleArrayParameter solePositionProportionalGainsParameter = parameterFactory
          .createDoubleArray("solePositionProportionalGains", 10000, 10000, 5000);
    private final DoubleArrayParameter solePositionDerivativeGainsParameter = parameterFactory.createDoubleArray("solePositionDerivativeGains", 200, 200, 200);
