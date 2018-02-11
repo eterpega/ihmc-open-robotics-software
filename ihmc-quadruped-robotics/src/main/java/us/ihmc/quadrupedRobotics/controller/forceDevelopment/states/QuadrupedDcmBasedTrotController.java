@@ -106,7 +106,7 @@ public class QuadrupedDcmBasedTrotController implements QuadrupedController
       TIMEOUT
    }
 
-   private final FiniteStateMachine<TrotState, TrotEvent> trotStateMachine;
+   private final FiniteStateMachine<TrotState, TrotEvent, FiniteStateMachineState<TrotEvent>>  trotStateMachine;
 
    public QuadrupedDcmBasedTrotController(QuadrupedRuntimeEnvironment runtimeEnvironment, QuadrupedForceControllerToolbox controllerToolbox,
          QuadrupedPostureInputProviderInterface inputProvider, QuadrupedPlanarVelocityInputProvider planarVelocityProvider,
@@ -155,8 +155,8 @@ public class QuadrupedDcmBasedTrotController implements QuadrupedController
       nominalPeriodicDcmTrajectory = new PiecewisePeriodicDcmTrajectory(1, gravity, inputProvider.getComPositionInput().getZ());
 
       // state machine
-      FiniteStateMachineBuilder<TrotState, TrotEvent> stateMachineBuilder = new FiniteStateMachineBuilder<>(TrotState.class, TrotEvent.class, "TrotState",
-            registry);
+      FiniteStateMachineBuilder<TrotState, TrotEvent, FiniteStateMachineState<TrotEvent>> stateMachineBuilder = new FiniteStateMachineBuilder<>(TrotState.class,
+                                                                                                                                                TrotEvent.class, "TrotState", registry);
       stateMachineBuilder.addState(TrotState.QUAD_SUPPORT, new QuadSupportState());
       stateMachineBuilder.addState(TrotState.HIND_LEFT_FRONT_RIGHT_SUPPORT, new DoubleSupportState(RobotQuadrant.HIND_LEFT, RobotQuadrant.FRONT_RIGHT));
       stateMachineBuilder.addState(TrotState.HIND_RIGHT_FRONT_LEFT_SUPPORT, new DoubleSupportState(RobotQuadrant.HIND_RIGHT, RobotQuadrant.FRONT_LEFT));
@@ -204,7 +204,7 @@ public class QuadrupedDcmBasedTrotController implements QuadrupedController
       comPositionController.compute(taskSpaceControllerCommands.getComForce(), comPositionControllerSetpoints, taskSpaceEstimates);
 
       // update desired body orientation, angular velocity, and torque
-      if (trotStateMachine.getState() != TrotState.QUAD_SUPPORT)
+      if (trotStateMachine.getCurrentStateEnum() != TrotState.QUAD_SUPPORT)
       {
          bodyYawSetpoint += planarVelocityProvider.get().getZ() * controlDT;
       }

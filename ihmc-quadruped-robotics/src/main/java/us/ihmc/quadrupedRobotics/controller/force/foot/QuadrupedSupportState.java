@@ -1,5 +1,6 @@
 package us.ihmc.quadrupedRobotics.controller.force.foot;
 
+import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedStepTransitionCallback;
 import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedTaskSpaceEstimates;
 import us.ihmc.quadrupedRobotics.planning.YoQuadrupedTimedStep;
 import us.ihmc.robotics.robotSide.RobotQuadrant;
@@ -15,15 +16,17 @@ public class QuadrupedSupportState extends QuadrupedFootState
    private final YoDouble timestamp;
    private final YoQuadrupedTimedStep stepCommand;
 
-   public QuadrupedSupportState(RobotQuadrant robotQuadrant, YoBoolean stepCommandIsValid, YoDouble timestamp, YoQuadrupedTimedStep stepCommand)
-   {
-      super(QuadrupedFootStates.SUPPORT);
+   private final QuadrupedStepTransitionCallback stepTransitionCallback;
 
+   public QuadrupedSupportState(RobotQuadrant robotQuadrant, YoBoolean stepCommandIsValid, YoDouble timestamp, YoQuadrupedTimedStep stepCommand,
+                                QuadrupedStepTransitionCallback stepTransitionCallback)
+   {
       this.robotQuadrant = robotQuadrant;
       this.stepCommandIsValid = stepCommandIsValid;
       this.timestamp = timestamp;
       this.stepCommand = stepCommand;
       this.estimates = new QuadrupedTaskSpaceEstimates();
+      this.stepTransitionCallback = stepTransitionCallback;
    }
 
    @Override
@@ -33,13 +36,13 @@ public class QuadrupedSupportState extends QuadrupedFootState
    }
 
    @Override
-   public void doTransitionIntoAction()
+   public void onEntry()
    {
       soleForceCommand.setToZero();
    }
 
    @Override
-   public boolean isDone()
+   public QuadrupedFootControlModule.FootEvent process()
    {
       if (stepCommandIsValid.getBooleanValue())
       {
@@ -49,19 +52,20 @@ public class QuadrupedSupportState extends QuadrupedFootState
 
          // trigger swing phase
          if (currentTime >= liftOffTime && currentTime < touchDownTime)
-            return true;
+         {
+            if (stepTransitionCallback != null)
+            {
+               stepTransitionCallback.onLiftOff(robotQuadrant);
+            }
+            return QuadrupedFootControlModule.FootEvent.TIMEOUT;
+         }
       }
 
-      return false;
+      return null;
    }
 
    @Override
-   public void doAction()
-   {
-   }
-
-   @Override
-   public void doTransitionOutOfAction()
+   public void onExit()
    {
    }
 }

@@ -10,6 +10,10 @@ import us.ihmc.quadrupedRobotics.planning.QuadrupedTimedStep;
 import us.ihmc.quadrupedRobotics.planning.YoQuadrupedTimedStep;
 import us.ihmc.robotics.stateMachines.conditionBasedStateMachine.GenericStateMachine;
 import us.ihmc.robotics.stateMachines.conditionBasedStateMachine.StateChangedListener;
+import us.ihmc.robotics.stateMachines.conditionBasedStateMachine.StateMachineTools;
+import us.ihmc.robotics.stateMachines.eventBasedStateMachine.FiniteStateMachine;
+import us.ihmc.robotics.stateMachines.eventBasedStateMachine.FiniteStateMachineBuilder;
+import us.ihmc.robotics.stateMachines.eventBasedStateMachine.FiniteStateMachineStateChangedListener;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
@@ -22,9 +26,10 @@ public class QuadrupedFootControlModule
    private final YoQuadrupedTimedStep stepCommand;
    private final YoBoolean stepCommandIsValid;
 
-   private final GenericStateMachine<QuadrupedFootStates, QuadrupedFootState> footStateMachine;
-
+   private final FiniteStateMachine<QuadrupedFootStates, FootEvent, QuadrupedFootState> footStateMachine;
    private QuadrupedStepTransitionCallback stepTransitionCallback;
+
+   public enum FootEvent {TIMEOUT}
 
    public QuadrupedFootControlModule(QuadrupedFootStateMachineParameters parameters, RobotQuadrant robotQuadrant, QuadrupedSolePositionController solePositionController,
                                      YoDouble timestamp, YoVariableRegistry parentRegistry)
@@ -36,16 +41,18 @@ public class QuadrupedFootControlModule
       this.stepCommandIsValid = new YoBoolean(prefix + "StepCommandIsValid", registry);
 
       // state machine
-      QuadrupedSupportState supportState = new QuadrupedSupportState(robotQuadrant, stepCommandIsValid, timestamp, stepCommand);
-      QuadrupedSwingState swingState = new QuadrupedSwingState(robotQuadrant, solePositionController, stepCommandIsValid, timestamp, stepCommand, parameters, registry);
+      QuadrupedSupportState supportState = new QuadrupedSupportState(robotQuadrant, stepCommandIsValid, timestamp, stepCommand, stepTransitionCallback);
+      QuadrupedSwingState swingState = new QuadrupedSwingState(robotQuadrant, solePositionController, stepCommandIsValid, timestamp, stepCommand, parameters, registry,
+                                                               stepTransitionCallback);
 
-      supportState.setDefaultNextState(QuadrupedFootStates.SWING);
-      swingState.setDefaultNextState(QuadrupedFootStates.SUPPORT);
+      FiniteStateMachineBuilder<QuadrupedFootStates, FootEvent, QuadrupedFootState> stateMachineBuilder = new FiniteStateMachineBuilder<>(QuadrupedFootStates.class, FootEvent.class,
+                                                                                                                      prefix + "FootState", registry);
+      stateMachineBuilder.addState(QuadrupedFootStates.SUPPORT, supportState);
+      stateMachineBuilder.addState(QuadrupedFootStates.SWING, swingState);
+      stateMachineBuilder.addTransition(FootEvent.TIMEOUT, QuadrupedFootStates.SUPPORT, QuadrupedFootStates.SWING);
+      stateMachineBuilder.addTransition(FootEvent.TIMEOUT, QuadrupedFootStates.SWING, QuadrupedFootStates.SUPPORT);
+      footStateMachine = stateMachineBuilder.build(QuadrupedFootStates.SUPPORT);
 
-      footStateMachine = new GenericStateMachine<>(prefix + "FootState", "", QuadrupedFootStates.class, timestamp, registry);
-      footStateMachine.addState(supportState);
-      footStateMachine.addState(swingState);
-      footStateMachine.setCurrentState(QuadrupedFootStates.SUPPORT);
       stepTransitionCallback = null;
 
       parentRegistry.addChild(registry);
@@ -56,7 +63,7 @@ public class QuadrupedFootControlModule
       this.stepTransitionCallback = stepTransitionCallback;
    }
 
-   public void attachStateChangedListener(StateChangedListener<QuadrupedFootStates> stateChangedListener)
+   public void attachStateChangedListener(FiniteStateMachineStateChangedListener stateChangedListener)
    {
       footStateMachine.attachStateChangedListener(stateChangedListener);
    }
@@ -64,6 +71,7 @@ public class QuadrupedFootControlModule
    public void reset()
    {
       stepCommandIsValid.set(false);
+      footStateMachine.reset();
    }
 
    public void triggerStep(QuadrupedTimedStep stepCommand)
@@ -88,15 +96,15 @@ public class QuadrupedFootControlModule
          return ContactState.NO_CONTACT;
    }
 
-   public void compute(FrameVector3D soleForceCommand, QuadrupedTaskSpaceEstimates taskSpaceEstimates)
+   public void compute(FrameVector3D soleForceCommandToPack, QuadrupedTaskSpaceEstimates taskSpaceEstimates)
    {
       // Update estimates.
       footStateMachine.getCurrentState().updateEstimates(taskSpaceEstimates);
 
       // Update foot state machine.
-      footStateMachine.doAction();
+      footStateMachine.process();
 
       // Pack sole force command result.
-      soleForceCommand.set(footStateMachine.getCurrentState().getSoleForceCommand());
+      soleForceCommandToPack.set(footStateMachine.getCurrentState().getSoleForceCommand());
    }
 }

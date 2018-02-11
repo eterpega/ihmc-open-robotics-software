@@ -72,7 +72,7 @@ public class QuadrupedForceControllerManager implements QuadrupedControllerManag
    private final QuadrupedXGaitStepStream xGaitStepStream;
    private final QuadrupedStepStreamMultiplexer<QuadrupedForceControllerState> stepStreamMultiplexer;
 
-   private final FiniteStateMachine<QuadrupedForceControllerState, ControllerEvent> stateMachine;
+   private final FiniteStateMachine<QuadrupedForceControllerState, ControllerEvent, QuadrupedController> stateMachine;
    private final FiniteStateMachineYoVariableTrigger<QuadrupedForceControllerRequestedEvent> userEventTrigger;
    private final QuadrupedRuntimeEnvironment runtimeEnvironment;
    private final QuadrupedForceControllerToolbox controllerToolbox;
@@ -105,7 +105,7 @@ public class QuadrupedForceControllerManager implements QuadrupedControllerManag
       // Initialize output processor
       StateChangeSmootherComponent stateChangeSmootherComponent = new StateChangeSmootherComponent(runtimeEnvironment.getControlDT(),
             runtimeEnvironment.getRobotTimestamp(), registry);
-      StateChangedListener<QuadrupedFootStates> stateChangedListener = stateChangeSmootherComponent.createFootStateChangedListener();
+      FiniteStateMachineStateChangedListener stateChangedListener = stateChangeSmootherComponent.createFiniteStateMachineStateChangedListener();
       for (RobotQuadrant robotQuadrant : RobotQuadrant.values)
          controllerToolbox.getFootStateMachine().get(robotQuadrant).attachStateChangedListener(stateChangedListener);
       OutputProcessorBuilder outputProcessorBuilder = new OutputProcessorBuilder(runtimeEnvironment.getFullRobotModel());
@@ -191,7 +191,7 @@ public class QuadrupedForceControllerManager implements QuadrupedControllerManag
       }
       if (preplannedStepProvider.isStepPlanAvailable())
       {
-         if (stateMachine.getState() == QuadrupedForceControllerState.STAND)
+         if (stateMachine.getCurrentStateEnum() == QuadrupedForceControllerState.STAND)
          {
             // trigger step event if preplanned steps are available in stand state
             lastEvent.set(QuadrupedForceControllerRequestedEvent.REQUEST_STEP);
@@ -203,7 +203,7 @@ public class QuadrupedForceControllerManager implements QuadrupedControllerManag
       stateMachine.process();
 
       // update contact state used for state estimation
-      switch (stateMachine.getState())
+      switch (stateMachine.getCurrentStateEnum())
       {
       case DO_NOTHING:
       case STAND_PREP:
@@ -240,7 +240,7 @@ public class QuadrupedForceControllerManager implements QuadrupedControllerManag
       outputProcessor.update();
 
       // Send state information
-      quadrupedForceControllerStatePacket.set(stateMachine.getState());
+      quadrupedForceControllerStatePacket.set(stateMachine.getCurrentStateEnum());
       
       if (runtimeEnvironment.getGlobalDataProducer() != null)
       {
@@ -272,7 +272,7 @@ public class QuadrupedForceControllerManager implements QuadrupedControllerManag
       return motionStatusHolder;
    }
 
-   private FiniteStateMachine<QuadrupedForceControllerState, ControllerEvent> buildStateMachine(QuadrupedRuntimeEnvironment runtimeEnvironment,
+   private FiniteStateMachine<QuadrupedForceControllerState, ControllerEvent, QuadrupedController> buildStateMachine(QuadrupedRuntimeEnvironment runtimeEnvironment,
          QuadrupedPostureInputProviderInterface inputProvider)
    {
       // Initialize controllers.
@@ -287,7 +287,7 @@ public class QuadrupedForceControllerManager implements QuadrupedControllerManag
       final QuadrupedController soleWaypointController = new QuadrupedForceBasedSoleWaypointController(runtimeEnvironment, controllerToolbox,
             soleWaypointInputProvider);
 
-      FiniteStateMachineBuilder<QuadrupedForceControllerState, ControllerEvent> builder = new FiniteStateMachineBuilder<>(QuadrupedForceControllerState.class,
+      FiniteStateMachineBuilder<QuadrupedForceControllerState, ControllerEvent, QuadrupedController> builder = new FiniteStateMachineBuilder<>(QuadrupedForceControllerState.class,
             ControllerEvent.class, "forceControllerState", registry);
 
       builder.addState(QuadrupedForceControllerState.JOINT_INITIALIZATION, jointInitializationController);

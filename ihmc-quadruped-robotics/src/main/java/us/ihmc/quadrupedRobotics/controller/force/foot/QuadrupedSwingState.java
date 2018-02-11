@@ -5,6 +5,7 @@ import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedSolePositionController;
 import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedSolePositionControllerSetpoints;
+import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedStepTransitionCallback;
 import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedTaskSpaceEstimates;
 import us.ihmc.quadrupedRobotics.planning.YoQuadrupedTimedStep;
 import us.ihmc.quadrupedRobotics.planning.trajectory.ThreeDoFSwingFootTrajectory;
@@ -32,11 +33,11 @@ public class QuadrupedSwingState extends QuadrupedFootState
    private final QuadrupedSolePositionController solePositionController;
    private final QuadrupedSolePositionControllerSetpoints solePositionControllerSetpoints;
 
-   public QuadrupedSwingState(RobotQuadrant robotQuadrant, QuadrupedSolePositionController solePositionController, YoBoolean stepCommandIsValid, YoDouble timestamp, YoQuadrupedTimedStep stepCommand,
-                              QuadrupedFootStateMachineParameters parameters, YoVariableRegistry registry)
-   {
-      super(QuadrupedFootStates.SWING);
+   private final QuadrupedStepTransitionCallback stepTransitionCallback;
 
+   public QuadrupedSwingState(RobotQuadrant robotQuadrant, QuadrupedSolePositionController solePositionController, YoBoolean stepCommandIsValid, YoDouble timestamp, YoQuadrupedTimedStep stepCommand,
+                              QuadrupedFootStateMachineParameters parameters, YoVariableRegistry registry, QuadrupedStepTransitionCallback stepTransitionCallback)
+   {
       this.solePositionController = solePositionController;
 
       this.robotQuadrant = robotQuadrant;
@@ -49,6 +50,8 @@ public class QuadrupedSwingState extends QuadrupedFootState
       this.stepCommand = stepCommand;
       this.parameters = parameters;
 
+      this.stepTransitionCallback = stepTransitionCallback;
+
       solePositionControllerSetpoints = new QuadrupedSolePositionControllerSetpoints(robotQuadrant);
       estimates = new QuadrupedTaskSpaceEstimates();
    }
@@ -60,7 +63,7 @@ public class QuadrupedSwingState extends QuadrupedFootState
    }
 
    @Override
-   public void doTransitionIntoAction()
+   public void onEntry()
    {
       // initialize swing trajectory
       double groundClearance = stepCommand.getGroundClearance();
@@ -84,20 +87,7 @@ public class QuadrupedSwingState extends QuadrupedFootState
    }
 
    @Override
-   public boolean isDone()
-   {
-      double currentTime = timestamp.getDoubleValue();
-      double touchDownTime = stepCommand.getTimeInterval().getEndTime();
-
-      // Trigger support phase.
-      if (currentTime >= touchDownTime)
-         return true;
-
-      return false;
-   }
-
-   @Override
-   public void doAction()
+   public QuadrupedFootControlModule.FootEvent process()
    {
       double currentTime = timestamp.getDoubleValue();
       double touchDownTime = stepCommand.getTimeInterval().getEndTime();
@@ -139,10 +129,21 @@ public class QuadrupedSwingState extends QuadrupedFootState
          soleForceCommand.changeFrame(ReferenceFrame.getWorldFrame());
       }
 
+      // Trigger support phase.
+      if (currentTime >= touchDownTime)
+      {
+         if (stepTransitionCallback != null)
+         {
+            stepTransitionCallback.onTouchDown(robotQuadrant);
+         }
+         return QuadrupedFootControlModule.FootEvent.TIMEOUT;
+      }
+      else
+         return null;
    }
 
    @Override
-   public void doTransitionOutOfAction()
+   public void onExit()
    {
       soleForceCommand.setToZero();
       stepCommandIsValid.set(false);
