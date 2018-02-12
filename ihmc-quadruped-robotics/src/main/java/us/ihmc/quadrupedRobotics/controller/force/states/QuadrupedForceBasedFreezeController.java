@@ -1,5 +1,6 @@
 package us.ihmc.quadrupedRobotics.controller.force.states;
 
+import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.quadrupedRobotics.controller.force.toolbox.*;
 import us.ihmc.robotModels.FullQuadrupedRobotModel;
 import us.ihmc.robotics.partNames.JointRole;
@@ -41,7 +42,7 @@ public class QuadrupedForceBasedFreezeController implements QuadrupedController
    // Yo variables
    private final YoBoolean yoUseForceFeedbackControl;
 
-   private final QuadrantDependentList<Double[]> initialSoleForces;
+   private final QuadrantDependentList<FrameVector3D> initialSoleForces = new QuadrantDependentList<>();
    // Reference frames
    private final ReferenceFrame bodyFrame;
 
@@ -67,11 +68,9 @@ public class QuadrupedForceBasedFreezeController implements QuadrupedController
       bodyFrame = controllerToolbox.getReferenceFrames().getBodyFrame();
       // Yo variables
       yoUseForceFeedbackControl = new YoBoolean("useForceFeedbackControl", registry);
-      initialSoleForces = new QuadrantDependentList<>();
       for (RobotQuadrant quadrant : RobotQuadrant.values())
-      {
-         initialSoleForces.set(quadrant, new Double[3]);
-      }
+         initialSoleForces.set(quadrant, new FrameVector3D());
+
       // Feedback controller
       solePositionController = controllerToolbox.getSolePositionController();
       solePositionControllerSetpoints = new QuadrantDependentList<>();
@@ -117,9 +116,7 @@ public class QuadrupedForceBasedFreezeController implements QuadrupedController
          solePositionControllerSetpoints.get(quadrant).getSolePosition().setIncludingFrame(taskSpaceEstimates.getSolePosition(quadrant));
          solePositionControllerSetpoints.get(quadrant).getSolePosition().changeFrame(bodyFrame);
          taskSpaceEstimates.getSoleVirtualForce(quadrant).changeFrame(bodyFrame);
-         initialSoleForces.get(quadrant)[0] = taskSpaceEstimates.getSoleVirtualForce(quadrant).getX();
-         initialSoleForces.get(quadrant)[1] = taskSpaceEstimates.getSoleVirtualForce(quadrant).getY();
-         initialSoleForces.get(quadrant)[2] = taskSpaceEstimates.getSoleVirtualForce(quadrant).getZ();
+         initialSoleForces.get(quadrant).set(taskSpaceEstimates.getSoleVirtualForce(quadrant));
       }
       yoUseForceFeedbackControl.set(useForceFeedbackControlParameter.get());
       // Initialize force feedback
@@ -183,13 +180,13 @@ public class QuadrupedForceBasedFreezeController implements QuadrupedController
       {
          if (useSoleForceFeedForwardParameter.get())
          {
-            double rampMultiplier = 1 - Math.min(1.0, (currentTime - initialTime) / feedForwardRampTimeParameter.get());
-            solePositionControllerSetpoints.get(quadrant).getSoleForceFeedforward()
-                  .set(rampMultiplier * initialSoleForces.get(quadrant)[0],
-                        rampMultiplier * initialSoleForces.get(quadrant)[1],
-                        rampMultiplier * initialSoleForces.get(quadrant)[2]);
-         } solePositionController.get(quadrant)
-            .compute(taskSpaceControllerCommands.getSoleForce(quadrant), solePositionControllerSetpoints.get(quadrant), taskSpaceEstimates);
-      } taskSpaceController.compute(taskSpaceControllerSettings, taskSpaceControllerCommands);
+            double rampMultiplier = 1.0 - Math.min(1.0, (currentTime - initialTime) / feedForwardRampTimeParameter.get());
+            FrameVector3D feedforward = solePositionControllerSetpoints.get(quadrant).getSoleForceFeedforward();
+            feedforward.set(initialSoleForces.get(quadrant));
+            feedforward.scale(rampMultiplier);
+         }
+         solePositionController.get(quadrant).compute(taskSpaceControllerCommands.getSoleForce(quadrant), solePositionControllerSetpoints.get(quadrant), taskSpaceEstimates);
+      }
+      taskSpaceController.compute(taskSpaceControllerSettings, taskSpaceControllerCommands);
    }
 }
