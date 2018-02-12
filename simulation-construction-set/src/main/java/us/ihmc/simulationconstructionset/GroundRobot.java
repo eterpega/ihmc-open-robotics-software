@@ -1,13 +1,10 @@
-package us.ihmc.simulationconstructionset.collisionMeshDefinition;
+package us.ihmc.simulationconstructionset;
 
 import us.ihmc.euclid.Axis;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.graphicsDescription.Graphics3DObject;
 import us.ihmc.graphicsDescription.appearance.YoAppearance;
 import us.ihmc.robotics.robotDescription.CollisionMeshDescription;
-import us.ihmc.simulationconstructionset.Link;
-import us.ihmc.simulationconstructionset.RigidJoint;
-import us.ihmc.simulationconstructionset.Robot;
 
 public class GroundRobot
 {
