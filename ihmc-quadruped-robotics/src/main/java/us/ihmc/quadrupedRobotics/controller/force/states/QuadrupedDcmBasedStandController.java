@@ -222,7 +222,7 @@ public class QuadrupedDcmBasedStandController implements QuadrupedController
       bodyOrientationControllerSetpoints.initialize(taskSpaceEstimates);
       bodyOrientationController.reset();
 
-      feetManager.setFullContact();
+      feetManager.requestFullContact();
 
       // initialize task space controller
       taskSpaceControllerSettings.initialize();

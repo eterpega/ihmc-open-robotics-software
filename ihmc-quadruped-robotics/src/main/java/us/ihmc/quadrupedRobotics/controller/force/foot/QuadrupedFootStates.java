@@ -4,6 +4,7 @@ public enum QuadrupedFootStates
 {
    SUPPORT,
    SWING,
-   MOVE_VIA_WAYPOINTS
+   MOVE_VIA_WAYPOINTS,
+   HOLD
 
 }

@@ -7,6 +7,8 @@ import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedSolePositionC
 import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedStepTransitionCallback;
 import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedTaskSpaceEstimates;
 import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedWaypointCallback;
+import us.ihmc.quadrupedRobotics.estimator.referenceFrames.QuadrupedReferenceFrames;
+import us.ihmc.quadrupedRobotics.model.QuadrupedRuntimeEnvironment;
 import us.ihmc.quadrupedRobotics.planning.ContactState;
 import us.ihmc.quadrupedRobotics.planning.QuadrupedSoleWaypointList;
 import us.ihmc.quadrupedRobotics.planning.QuadrupedTimedStep;
@@ -14,26 +16,25 @@ import us.ihmc.robotics.robotSide.QuadrantDependentList;
 import us.ihmc.robotics.robotSide.RobotQuadrant;
 import us.ihmc.robotics.stateMachines.eventBasedStateMachine.FiniteStateMachineStateChangedListener;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
-import us.ihmc.yoVariables.variable.YoDouble;
 
 public class QuadrupedFeetManager
 {
    private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
 
-   private final QuadrantDependentList<QuadrupedFootControlModule> footControlModules;
+   private final QuadrantDependentList<QuadrupedFootControlModule> footControlModules = new QuadrantDependentList<>();
 
-   public QuadrupedFeetManager(QuadrupedFootControlModuleParameters parameters, ReferenceFrame bodyFrame,
-                               QuadrantDependentList<QuadrupedSolePositionController> solePositionController,
-                               YoDouble timestamp, YoVariableRegistry parentRegistry)
+   public QuadrupedFeetManager(QuadrupedFootControlModuleParameters parameters, QuadrupedReferenceFrames referenceFrames, QuadrupedRuntimeEnvironment environment,
+                               YoVariableRegistry parentRegistry)
    {
-      footControlModules = new QuadrantDependentList<>();
       for (RobotQuadrant robotQuadrant : RobotQuadrant.values)
-      {
-        footControlModules.set(robotQuadrant,
-                                new QuadrupedFootControlModule(parameters, robotQuadrant, bodyFrame, solePositionController.get(robotQuadrant), timestamp, registry));
-      }
+        footControlModules.set(robotQuadrant, new QuadrupedFootControlModule(parameters, robotQuadrant, referenceFrames, environment, registry));
 
       parentRegistry.addChild(registry);
+   }
+
+   public QuadrupedSolePositionController getSolePositionController(RobotQuadrant robotQuadrant)
+   {
+      return footControlModules.get(robotQuadrant).getSolePositionController();
    }
 
    public void attachStateChangedListener(FiniteStateMachineStateChangedListener stateChangedListener)
@@ -105,10 +106,16 @@ public class QuadrupedFeetManager
       footControlModules.get(robotQuadrant).compute(soleForceToPack, taskSpaceEstimates);
    }
 
-   public void setFullContact()
+   public void requestFullContact()
    {
       for (RobotQuadrant robotQuadrant : RobotQuadrant.values)
          footControlModules.get(robotQuadrant).requestSupport();
+   }
+
+   public void requestHoldAll()
+   {
+      for (RobotQuadrant robotQuadrant : RobotQuadrant.values)
+         footControlModules.get(robotQuadrant).requestHold();
    }
 
 }

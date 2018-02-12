@@ -436,7 +436,7 @@ public class QuadrupedDcmBasedStepController implements QuadrupedController, Qua
       bodyOrientationController.reset();
       feetManager.registerStepTransitionCallback(this);
       feetManager.reset();
-      feetManager.setFullContact();
+      feetManager.requestFullContact();
 
       // initialize task space controller
       taskSpaceControllerSettings.initialize();

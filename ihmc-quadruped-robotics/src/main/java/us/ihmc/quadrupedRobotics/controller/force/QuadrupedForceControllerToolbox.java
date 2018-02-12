@@ -21,7 +21,6 @@ public class QuadrupedForceControllerToolbox
    private final DivergentComponentOfMotionController dcmPositionController;
    private final QuadrupedComPositionController comPositionController;
    private final QuadrupedBodyOrientationController bodyOrientationController;
-   private final QuadrantDependentList<QuadrupedSolePositionController> solePositionController;
    private final QuadrupedFeetManager feetManager;
    private final GroundPlaneEstimator groundPlaneEstimator;
    private final QuadrupedFallDetector fallDetector;
@@ -44,14 +43,7 @@ public class QuadrupedForceControllerToolbox
       dcmPositionController = new DivergentComponentOfMotionController(referenceFrames.getCenterOfMassZUpFrame(), runtimeEnvironment.getControlDT(), linearInvertedPendulumModel, registry, runtimeEnvironment.getGraphicsListRegistry());
       comPositionController = new QuadrupedComPositionController(referenceFrames.getCenterOfMassZUpFrame(), runtimeEnvironment.getControlDT(), registry);
       bodyOrientationController = new QuadrupedBodyOrientationController(referenceFrames.getBodyFrame(), runtimeEnvironment.getControlDT(), registry);
-      solePositionController = new QuadrantDependentList<>();
-      for (RobotQuadrant robotQuadrant : RobotQuadrant.values)
-      {
-         solePositionController.set(robotQuadrant,
-               new QuadrupedSolePositionController(robotQuadrant, referenceFrames.getFootReferenceFrames().get(robotQuadrant),
-                     runtimeEnvironment.getControlDT(), registry));
-      }
-      feetManager = new QuadrupedFeetManager(parameters, referenceFrames.getBodyFrame(), solePositionController, runtimeEnvironment.getRobotTimestamp(), registry);
+      feetManager = new QuadrupedFeetManager(parameters, referenceFrames, runtimeEnvironment, registry);
       groundPlaneEstimator = new GroundPlaneEstimator(registry, runtimeEnvironment.getGraphicsListRegistry());
       fallDetector = new QuadrupedFallDetector(taskSpaceEstimator, dcmPositionEstimator, registry);
    }
@@ -96,9 +88,9 @@ public class QuadrupedForceControllerToolbox
       return bodyOrientationController;
    }
 
-   public QuadrantDependentList<QuadrupedSolePositionController> getSolePositionController()
+   public QuadrupedSolePositionController getSolePositionController(RobotQuadrant robotQuadrant)
    {
-      return solePositionController;
+      return feetManager.getSolePositionController(robotQuadrant);
    }
 
    public QuadrupedFeetManager getFeetManager()
