@@ -1,10 +1,5 @@
 package us.ihmc.simulationconstructionset.collisionMeshDefinition;
 
-import us.ihmc.robotics.robotDescription.CollisionMeshDescription;
-import us.ihmc.robotics.robotDescription.LinkDescription;
-import us.ihmc.robotics.robotDescription.LinkGraphicsDescription;
-import us.ihmc.robotics.robotDescription.RobotDescription;
-
 public class BoxCollisionMeshDefinitionData extends CollisionMeshDefinitionData
 {
    private double length = 1.0;
@@ -39,29 +34,18 @@ public class BoxCollisionMeshDefinitionData extends CollisionMeshDefinitionData
       this.height = height;
    }
 
-   @Override
-   public void addCollisionMesh(RobotDescription robotDescription)
+   public double getLength()
    {
-      LinkDescription linkDescription = robotDescription.getLinkDescription(parentJointName);
-
-      CollisionMeshDescription collisionMesh = new CollisionMeshDescription();
-      collisionMesh.identity();
-      collisionMesh.translate(transformToParent.getTranslationX(), transformToParent.getTranslationY(), transformToParent.getTranslationZ());
-      collisionMesh.rotate(transformToParent.getRotationMatrix());
-      collisionMesh.addCubeReferencedAtCenter(length, width, height);
-      collisionMesh.setCollisionGroup(collisionGroup);
-      collisionMesh.setCollisionMask(collisionMask);
-      linkDescription.addCollisionMesh(collisionMesh);
+      return length;
    }
 
-   @Override
-   public void addLinkGraphics(RobotDescription robotDescription)
+   public double getWidth()
    {
-      LinkDescription linkDescription = robotDescription.getLinkDescription(parentJointName);
+      return width;
+   }
 
-      LinkGraphicsDescription linkGraphics = linkDescription.getLinkGraphics();
-      linkGraphics.identity();
-      linkGraphics.transform(transformToParent);
-      linkGraphics.addCube(length, width, height, yoAppearance);
+   public double getHeight()
+   {
+      return height;
    }
 }

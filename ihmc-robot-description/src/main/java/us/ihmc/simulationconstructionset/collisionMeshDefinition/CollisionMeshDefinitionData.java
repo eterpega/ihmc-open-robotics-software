@@ -3,38 +3,70 @@ package us.ihmc.simulationconstructionset.collisionMeshDefinition;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
 import us.ihmc.graphicsDescription.appearance.YoAppearance;
-import us.ihmc.robotics.robotDescription.RobotDescription;
 
 public abstract class CollisionMeshDefinitionData
 {
    protected String parentJointName;
 
-   /**
-    * CollisionMesh will be created after transform from the parent joint.
-    */
-   protected RigidBodyTransform transformToParent = new RigidBodyTransform();
+   protected RigidBodyTransform transformToParentJoint = new RigidBodyTransform();
 
    protected AppearanceDefinition yoAppearance = YoAppearance.Beige();
 
-   protected int collisionGroup = 0xffffffff;
-   protected int collisionMask = 0xffffffff;
+   private int collisionGroup = 0xffffffff;
+   private int collisionMask = 0xffffffff;
 
    public CollisionMeshDefinitionData(String parentJointName)
    {
       this.parentJointName = parentJointName;
    }
 
-   public void setTransformToParent(RigidBodyTransform transformToParent)
+   public String getParentJointName()
    {
-      this.transformToParent.set(transformToParent);
+      return parentJointName;
    }
 
-   public void setYoApperance(AppearanceDefinition yoAppearance)
+   public RigidBodyTransform getTransformToParentJoint()
+   {
+      return transformToParentJoint;
+   }
+
+   public AppearanceDefinition getYoAppearance()
+   {
+      return yoAppearance;
+   }
+
+   public int getCollisionGroup()
+   {
+      return collisionGroup;
+   }
+
+   public int getCollisionMask()
+   {
+      return collisionMask;
+   }
+
+   public void setParentJointName(String parentJointName)
+   {
+      this.parentJointName = parentJointName;
+   }
+
+   public void setTransformToParentJoint(RigidBodyTransform transformToParentJoint)
+   {
+      this.transformToParentJoint = transformToParentJoint;
+   }
+
+   public void setYoAppearance(AppearanceDefinition yoAppearance)
    {
       this.yoAppearance = yoAppearance;
    }
 
-   public abstract void addCollisionMesh(RobotDescription robotDescription);
+   public void setCollisionGroup(int collisionGroup)
+   {
+      this.collisionGroup = collisionGroup;
+   }
 
-   public abstract void addLinkGraphics(RobotDescription robotDescription);
+   public void setCollisionMask(int collisionMask)
+   {
+      this.collisionMask = collisionMask;
+   }
 }

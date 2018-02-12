@@ -14,12 +14,12 @@ public class CollisionMeshDefinitionDataHolder
       collisionMeshDefinitionDataList.add(collisionMeshData);
    }
 
-   public void addCollisionMeshOnRobotDescription(RobotDescription robotDescription)
-   {
-      for (int i = 0; i < collisionMeshDefinitionDataList.size(); i++)
-      {
-         collisionMeshDefinitionDataList.get(i).addCollisionMesh(robotDescription);
-         collisionMeshDefinitionDataList.get(i).addLinkGraphics(robotDescription);
-      }
-   }
+//   public void addCollisionMeshOnRobotDescription(RobotDescription robotDescription)
+//   {
+//      for (int i = 0; i < collisionMeshDefinitionDataList.size(); i++)
+//      {
+//         collisionMeshDefinitionDataList.get(i).addCollisionMesh(robotDescription);
+//         collisionMeshDefinitionDataList.get(i).addLinkGraphics(robotDescription);
+//      }
+//   }
 }

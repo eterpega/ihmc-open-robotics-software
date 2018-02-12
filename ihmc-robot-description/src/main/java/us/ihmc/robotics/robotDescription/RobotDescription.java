@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import us.ihmc.graphicsDescription.Graphics3DObject;
+import us.ihmc.simulationconstructionset.collisionMeshDefinition.BoxCollisionMeshDefinitionData;
+import us.ihmc.simulationconstructionset.collisionMeshDefinition.CylinderCollisionMeshDefinitionData;
+import us.ihmc.simulationconstructionset.collisionMeshDefinition.SphereCollisionMeshDefinitionData;
 
 public class RobotDescription implements RobotDescriptionNode, GraphicsObjectsHolder
 {
@@ -88,13 +91,13 @@ public class RobotDescription implements RobotDescriptionNode, GraphicsObjectsHo
 
       return jointDescription.getLink().getLinkGraphics();
    }
-   
+
    public LinkDescription getLinkDescription(String name)
    {
       JointDescription jointDescription = getJointDescription(name);
       if (jointDescription == null)
          return null;
-      
+
       return jointDescription.getLink();
    }
 
@@ -102,5 +105,100 @@ public class RobotDescription implements RobotDescriptionNode, GraphicsObjectsHo
    public void scale(double factor, double massScalePower, List<String> ignoreInertiaScaleJointList)
    {
       JointDescription.scaleChildrenJoint(getChildrenJoints(), factor, massScalePower, ignoreInertiaScaleJointList);
+   }
+
+   public void addBoxCollisionMeshDescriptionData(BoxCollisionMeshDefinitionData collisionMeshDefinitionData)
+   {
+      LinkDescription linkDescription = getLinkDescription(collisionMeshDefinitionData.getParentJointName());
+
+      CollisionMeshDescription collisionMesh = new CollisionMeshDescription();
+      collisionMesh.identity();
+      collisionMesh.transform(collisionMeshDefinitionData.getTransformToParentJoint());
+      collisionMesh.addCubeReferencedAtCenter(collisionMeshDefinitionData.getLength(), collisionMeshDefinitionData.getWidth(),
+                                              collisionMeshDefinitionData.getWidth());
+      collisionMesh.setCollisionGroup(collisionMeshDefinitionData.getCollisionGroup());
+      collisionMesh.setCollisionMask(collisionMeshDefinitionData.getCollisionMask());
+      linkDescription.addCollisionMesh(collisionMesh);
+
+      LinkGraphicsDescription linkGraphics;
+      if (linkDescription.getLinkGraphics() != null)
+      {
+         linkGraphics = linkDescription.getLinkGraphics();
+         linkGraphics.identity();
+         linkGraphics.transform(collisionMeshDefinitionData.getTransformToParentJoint());
+         linkGraphics.addCube(collisionMeshDefinitionData.getLength(), collisionMeshDefinitionData.getWidth(), collisionMeshDefinitionData.getWidth(),
+                              collisionMeshDefinitionData.getYoAppearance());
+      }
+      else
+      {
+         linkGraphics = new LinkGraphicsDescription();
+         linkGraphics.identity();
+         linkGraphics.transform(collisionMeshDefinitionData.getTransformToParentJoint());
+         linkGraphics.addCube(collisionMeshDefinitionData.getLength(), collisionMeshDefinitionData.getWidth(), collisionMeshDefinitionData.getWidth(),
+                              collisionMeshDefinitionData.getYoAppearance());
+         linkDescription.setLinkGraphics(linkGraphics);
+      }
+   }
+
+   public void addSphereCollisionMeshDescriptionData(SphereCollisionMeshDefinitionData collisionMeshDefinitionData)
+   {
+      LinkDescription linkDescription = getLinkDescription(collisionMeshDefinitionData.getParentJointName());
+
+      CollisionMeshDescription collisionMesh = new CollisionMeshDescription();
+      collisionMesh.identity();
+      collisionMesh.transform(collisionMeshDefinitionData.getTransformToParentJoint());
+      collisionMesh.addSphere(collisionMeshDefinitionData.getRadius());
+      collisionMesh.setCollisionGroup(collisionMeshDefinitionData.getCollisionGroup());
+      collisionMesh.setCollisionMask(collisionMeshDefinitionData.getCollisionMask());
+      linkDescription.addCollisionMesh(collisionMesh);
+
+      LinkGraphicsDescription linkGraphics;
+      if (linkDescription.getLinkGraphics() != null)
+      {
+         linkGraphics = linkDescription.getLinkGraphics();
+         linkGraphics.identity();
+         linkGraphics.transform(collisionMeshDefinitionData.getTransformToParentJoint());
+         linkGraphics.addSphere(collisionMeshDefinitionData.getRadius(), collisionMeshDefinitionData.getYoAppearance());
+      }
+      else
+      {
+         linkGraphics = new LinkGraphicsDescription();
+         linkGraphics.identity();
+         linkGraphics.transform(collisionMeshDefinitionData.getTransformToParentJoint());
+         linkGraphics.addSphere(collisionMeshDefinitionData.getRadius(), collisionMeshDefinitionData.getYoAppearance());
+         linkDescription.setLinkGraphics(linkGraphics);
+      }
+   }
+
+   public void addCylinderCollisionMeshDescriptionData(CylinderCollisionMeshDefinitionData collisionMeshDefinitionData)
+   {
+      LinkDescription linkDescription = getLinkDescription(collisionMeshDefinitionData.getParentJointName());
+
+      CollisionMeshDescription collisionMesh = new CollisionMeshDescription();
+      collisionMesh.identity();
+      collisionMesh.transform(collisionMeshDefinitionData.getTransformToParentJoint());
+      collisionMesh.addCylinderReferencedAtBottomMiddle(collisionMeshDefinitionData.getRadius(), collisionMeshDefinitionData.getHeight());
+      collisionMesh.setCollisionGroup(collisionMeshDefinitionData.getCollisionGroup());
+      collisionMesh.setCollisionMask(collisionMeshDefinitionData.getCollisionMask());
+      linkDescription.addCollisionMesh(collisionMesh);
+
+      LinkGraphicsDescription linkGraphics;
+      if (linkDescription.getLinkGraphics() != null)
+      {
+         linkGraphics = linkDescription.getLinkGraphics();
+         linkGraphics.identity();
+         linkGraphics.transform(collisionMeshDefinitionData.getTransformToParentJoint());
+         linkGraphics.addCylinder(collisionMeshDefinitionData.getHeight(), collisionMeshDefinitionData.getRadius(),
+                                  collisionMeshDefinitionData.getYoAppearance());
+      }
+      else
+      {
+         linkGraphics = new LinkGraphicsDescription();
+         linkGraphics.identity();
+         linkGraphics.transform(collisionMeshDefinitionData.getTransformToParentJoint());
+         linkGraphics.addCylinder(collisionMeshDefinitionData.getHeight(), collisionMeshDefinitionData.getRadius(),
+                                  collisionMeshDefinitionData.getYoAppearance());
+         linkDescription.setLinkGraphics(linkGraphics);
+      }
    }
 }
