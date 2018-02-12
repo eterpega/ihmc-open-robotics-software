@@ -54,7 +54,7 @@ public class FiniteStateMachine<S extends Enum<S>, E extends Enum<E>, C extends 
    /**
     * The present state.
     */
-   private YoEnum<S> state;
+   private YoEnum<S> stateEnum;
 
    /**
     * Whether or not the current state's {@link FiniteStateMachineState#onEntry()} needs to be called at the beginning of the next {@link #process()} call. This
@@ -77,8 +77,8 @@ public class FiniteStateMachine<S extends Enum<S>, E extends Enum<E>, C extends 
       this.stateChangedListeners = new ArrayList<>();
       this.initialState = initialState;
       this.standardEventType = standardEventType;
-      this.state = new YoEnum<>(yoVariableName, registry, enumType);
-      this.state.set(initialState);
+      this.stateEnum = new YoEnum<>(yoVariableName, registry, enumType);
+      this.stateEnum.set(initialState);
    }
 
    /**
@@ -176,7 +176,7 @@ public class FiniteStateMachine<S extends Enum<S>, E extends Enum<E>, C extends 
     */
    public S getCurrentStateEnum()
    {
-      return state.getEnumValue();
+      return stateEnum.getEnumValue();
    }
 
    /**
@@ -184,11 +184,11 @@ public class FiniteStateMachine<S extends Enum<S>, E extends Enum<E>, C extends 
     * <p/>
     * NOTE: Use this method with caution. It does not enforce reachability of the new state.
     *
-    * @param state the new state
+    * @param stateEnum the new state
     */
-   public void setState(S state)
+   public void setState(S stateEnum)
    {
-      this.state.set(state);
+      this.stateEnum.set(stateEnum);
    }
 
    /**
@@ -221,9 +221,9 @@ public class FiniteStateMachine<S extends Enum<S>, E extends Enum<E>, C extends 
       needToCallOnEntry = true;
    }
    
-   public C getState(S state)
+   public C getState(S stateEnum)
    {
-      return states.get(state);
+      return states.get(stateEnum);
    }
 
    public C getCurrentState()

@@ -143,4 +143,3 @@ public class QuadrupedTaskSpaceEstimates
       return soleContactForce;
    }
 }
-

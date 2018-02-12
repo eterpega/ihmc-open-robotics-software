@@ -1,6 +1,7 @@
 package us.ihmc.exampleSimulations.planarWalker;
 
 import us.ihmc.commons.MathTools;
+import us.ihmc.exampleSimulations.selfStablePlanarRunner.Controller;
 import us.ihmc.robotics.controllers.PIDController;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
