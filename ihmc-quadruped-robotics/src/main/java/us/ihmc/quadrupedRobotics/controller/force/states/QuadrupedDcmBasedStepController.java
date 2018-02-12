@@ -266,11 +266,9 @@ public class QuadrupedDcmBasedStepController implements QuadrupedController, Qua
       bodyOrientationController.compute(taskSpaceControllerCommands.getComTorque(), bodyOrientationControllerSetpoints, taskSpaceEstimates);
 
       // update desired contact state and sole forces
+      feetManager.compute(taskSpaceControllerCommands.getSoleForce(), taskSpaceEstimates);
       for (RobotQuadrant robotQuadrant : RobotQuadrant.values)
-      {
-         feetManager.compute(taskSpaceControllerCommands.getSoleForce(robotQuadrant), taskSpaceEstimates, robotQuadrant);
          taskSpaceControllerSettings.setContactState(robotQuadrant, feetManager.getContactState(robotQuadrant));
-      }
 
       // update joint setpoints
       taskSpaceController.compute(taskSpaceControllerSettings, taskSpaceControllerCommands);

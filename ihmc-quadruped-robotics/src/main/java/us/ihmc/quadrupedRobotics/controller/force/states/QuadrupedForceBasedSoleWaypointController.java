@@ -3,10 +3,8 @@ package us.ihmc.quadrupedRobotics.controller.force.states;
 import us.ihmc.quadrupedRobotics.controller.ControllerEvent;
 import us.ihmc.quadrupedRobotics.controller.QuadrupedController;
 import us.ihmc.quadrupedRobotics.controller.force.QuadrupedForceControllerToolbox;
-import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedSoleWaypointController;
-import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedTaskSpaceController;
-import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedTaskSpaceEstimator;
-import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedTaskSpaceEstimates;
+import us.ihmc.quadrupedRobotics.controller.force.foot.QuadrupedFeetManager;
+import us.ihmc.quadrupedRobotics.controller.force.toolbox.*;
 import us.ihmc.quadrupedRobotics.model.QuadrupedRuntimeEnvironment;
 import us.ihmc.quadrupedRobotics.planning.ContactState;
 import us.ihmc.quadrupedRobotics.providers.QuadrupedSoleWaypointInputProvider;
@@ -25,7 +23,7 @@ import us.ihmc.robotics.screwTheory.OneDoFJoint;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
 
-public class QuadrupedForceBasedSoleWaypointController implements QuadrupedController
+public class QuadrupedForceBasedSoleWaypointController implements QuadrupedController, QuadrupedWaypointCallback
 {
    // Yo variables
    private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
@@ -44,17 +42,19 @@ public class QuadrupedForceBasedSoleWaypointController implements QuadrupedContr
    private final QuadrupedTaskSpaceController taskSpaceController;
 
    private final QuadrupedSoleWaypointInputProvider soleWaypointInputProvider;
-   private final QuadrupedSoleWaypointController quadrupedSoleWaypointController;
+   private final QuadrupedFeetManager feetManager;
    private final QuadrupedTaskSpaceEstimates taskSpaceEstimates;
    private final QuadrupedTaskSpaceEstimator taskSpaceEstimator;
 
-   private FullQuadrupedRobotModel fullRobotModel;
+   private final FullQuadrupedRobotModel fullRobotModel;
+
+   private final YoBoolean isDoneMoving = new YoBoolean("soleWaypointDoneMoving", registry);
 
    public QuadrupedForceBasedSoleWaypointController(QuadrupedRuntimeEnvironment environment, QuadrupedForceControllerToolbox controllerToolbox,
          QuadrupedSoleWaypointInputProvider inputProvider)
    {
       soleWaypointInputProvider = inputProvider;
-      quadrupedSoleWaypointController = controllerToolbox.getSoleWaypointController();
+      feetManager = controllerToolbox.getFeetManager();
       taskSpaceEstimates = new QuadrupedTaskSpaceEstimates();
       taskSpaceEstimator = controllerToolbox.getTaskSpaceEstimator();
       taskSpaceControllerCommands = new QuadrupedTaskSpaceController.Commands();
@@ -64,6 +64,13 @@ public class QuadrupedForceBasedSoleWaypointController implements QuadrupedContr
       fullRobotModel = environment.getFullRobotModel();
 
       environment.getParentRegistry().addChild(registry);
+   }
+
+   @Override
+   public void isDoneMoving(boolean doneMoving)
+   {
+      boolean done = doneMoving && isDoneMoving.getBooleanValue();
+      isDoneMoving.set(done);
    }
 
    @Override
@@ -82,9 +89,7 @@ public class QuadrupedForceBasedSoleWaypointController implements QuadrupedContr
       }
       taskSpaceController.reset();
 
-      quadrupedSoleWaypointController.handleWaypointList(soleWaypointInputProvider.get());
-      quadrupedSoleWaypointController.updateEstimates(taskSpaceEstimates);
-      quadrupedSoleWaypointController.initialize(useInitialSoleForces.get());
+      feetManager.initializeWaypointTrajectory(soleWaypointInputProvider.get(), taskSpaceEstimates, false);
 
       yoUseForceFeedbackControl.set(useForceFeedbackControlParameter.get());
       // Initialize force feedback
@@ -96,16 +101,19 @@ public class QuadrupedForceBasedSoleWaypointController implements QuadrupedContr
             oneDoFJoint.setUseFeedBackForceControl(yoUseForceFeedbackControl.getBooleanValue());
          }
       }
+
+      feetManager.registerWaypointCallback(this);
    }
 
    @Override
    public ControllerEvent process()
    {
       taskSpaceEstimator.compute(taskSpaceEstimates);
-      quadrupedSoleWaypointController.updateEstimates(taskSpaceEstimates);
-      boolean done = quadrupedSoleWaypointController.compute(taskSpaceControllerCommands.getSoleForce());
+
+      feetManager.compute(taskSpaceControllerCommands.getSoleForce(), taskSpaceEstimates);
       taskSpaceController.compute(taskSpaceControllerSettings, taskSpaceControllerCommands);
-      return done ? ControllerEvent.DONE : null;
+
+      return isDoneMoving.getBooleanValue() ? ControllerEvent.DONE : null;
    }
 
    @Override
@@ -120,5 +128,7 @@ public class QuadrupedForceBasedSoleWaypointController implements QuadrupedContr
             oneDoFJoint.setUseFeedBackForceControl(yoUseForceFeedbackControl.getBooleanValue());
          }
       }
+
+      feetManager.registerWaypointCallback(null);
    }
 }

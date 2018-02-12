@@ -6,7 +6,9 @@ import us.ihmc.euclid.referenceFrame.interfaces.FramePoint3DReadOnly;
 import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedSolePositionController;
 import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedStepTransitionCallback;
 import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedTaskSpaceEstimates;
+import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedWaypointCallback;
 import us.ihmc.quadrupedRobotics.planning.ContactState;
+import us.ihmc.quadrupedRobotics.planning.QuadrupedSoleWaypointList;
 import us.ihmc.quadrupedRobotics.planning.QuadrupedTimedStep;
 import us.ihmc.robotics.robotSide.QuadrantDependentList;
 import us.ihmc.robotics.robotSide.RobotQuadrant;
@@ -40,6 +42,24 @@ public class QuadrupedFeetManager
          footControlModules.get(robotQuadrant).attachStateChangedListener(stateChangedListener);
    }
 
+   public void initializeWaypointTrajectory(QuadrantDependentList<QuadrupedSoleWaypointList> quadrupedSoleWaypointLists,
+                                            QuadrupedTaskSpaceEstimates taskSpaceEstimates, boolean useInitialSoleForceAsFeedforwardTerm)
+   {
+      for (RobotQuadrant robotQuadrant : RobotQuadrant.values)
+      {
+         QuadrupedSoleWaypointList waypointList = quadrupedSoleWaypointLists.get(robotQuadrant);
+         QuadrupedFootControlModule footControlModule = footControlModules.get(robotQuadrant);
+         if (waypointList.size() > 0)
+         {
+            footControlModule.requestMoveViaWaypoints();
+            footControlModule.initializeWaypointTrajectory(waypointList, taskSpaceEstimates, useInitialSoleForceAsFeedforwardTerm);
+         }
+         else
+         {
+            footControlModule.requestSupport();
+         }
+      }
+   }
 
    public void triggerStep(RobotQuadrant robotQuadrant, QuadrupedTimedStep stepSequence)
    {
@@ -63,9 +83,21 @@ public class QuadrupedFeetManager
          footControlModules.get(robotQuadrant).registerStepTransitionCallback(stepTransitionCallback);
    }
 
+   public void registerWaypointCallback(QuadrupedWaypointCallback waypointCallback)
+   {
+      for (RobotQuadrant robotQuadrant : RobotQuadrant.values)
+         footControlModules.get(robotQuadrant).registerWaypointCallback(waypointCallback);
+   }
+
    public ContactState getContactState(RobotQuadrant robotQuadrant)
    {
       return footControlModules.get(robotQuadrant).getContactState();
+   }
+
+   public void compute(QuadrantDependentList<FrameVector3D> soleForcesToPack, QuadrupedTaskSpaceEstimates taskSpaceEstimates)
+   {
+      for (RobotQuadrant quadrant : RobotQuadrant.values)
+         compute(soleForcesToPack.get(quadrant), taskSpaceEstimates, quadrant);
    }
 
    public void compute(FrameVector3D soleForceToPack, QuadrupedTaskSpaceEstimates taskSpaceEstimates, RobotQuadrant robotQuadrant)

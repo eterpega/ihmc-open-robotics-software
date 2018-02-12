@@ -5,10 +5,8 @@ import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.quadrupedRobotics.controller.ControllerEvent;
 import us.ihmc.quadrupedRobotics.controller.QuadrupedController;
 import us.ihmc.quadrupedRobotics.controller.force.QuadrupedForceControllerToolbox;
-import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedSoleWaypointController;
-import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedTaskSpaceController;
-import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedTaskSpaceEstimator;
-import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedTaskSpaceEstimates;
+import us.ihmc.quadrupedRobotics.controller.force.foot.QuadrupedFeetManager;
+import us.ihmc.quadrupedRobotics.controller.force.toolbox.*;
 import us.ihmc.quadrupedRobotics.estimator.referenceFrames.QuadrupedReferenceFrames;
 import us.ihmc.quadrupedRobotics.model.QuadrupedRuntimeEnvironment;
 import us.ihmc.quadrupedRobotics.planning.ContactState;
@@ -30,7 +28,7 @@ import us.ihmc.robotics.screwTheory.OneDoFJoint;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
 
-public class QuadrupedForceBasedStandPrepController implements QuadrupedController
+public class QuadrupedForceBasedStandPrepController implements QuadrupedController, QuadrupedWaypointCallback
 {
    //Yo Variables
    private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
@@ -58,7 +56,7 @@ public class QuadrupedForceBasedStandPrepController implements QuadrupedControll
    private final QuadrupedTaskSpaceController taskSpaceController;
 
    private final QuadrantDependentList<QuadrupedSoleWaypointList> quadrupedSoleWaypointLists = new QuadrantDependentList<>();
-   private final QuadrupedSoleWaypointController quadrupedSoleWaypointController;
+   private final QuadrupedFeetManager feetManager;
    private final QuadrupedTaskSpaceEstimates taskSpaceEstimates;
    private final QuadrupedTaskSpaceEstimator taskSpaceEstimator;
    private final QuadrupedReferenceFrames referenceFrames;
@@ -67,9 +65,11 @@ public class QuadrupedForceBasedStandPrepController implements QuadrupedControll
    private final double robotLength;
    private FullQuadrupedRobotModel fullRobotModel;
 
+   private final YoBoolean isDoneMoving = new YoBoolean("standPrepDoneMoving", registry);
+
    public QuadrupedForceBasedStandPrepController(QuadrupedRuntimeEnvironment environment, QuadrupedForceControllerToolbox controllerToolbox)
    {
-      quadrupedSoleWaypointController = controllerToolbox.getSoleWaypointController();
+      feetManager = controllerToolbox.getFeetManager();
       taskSpaceEstimates = new QuadrupedTaskSpaceEstimates();
       taskSpaceEstimator = controllerToolbox.getTaskSpaceEstimator();
       referenceFrames = controllerToolbox.getReferenceFrames();
@@ -101,6 +101,13 @@ public class QuadrupedForceBasedStandPrepController implements QuadrupedControll
    }
 
    @Override
+   public void isDoneMoving(boolean doneMoving)
+   {
+      boolean done = doneMoving && isDoneMoving.getBooleanValue();
+      isDoneMoving.set(done);
+   }
+
+   @Override
    public void onEntry()
    {
       taskSpaceEstimator.compute(taskSpaceEstimates);
@@ -117,9 +124,7 @@ public class QuadrupedForceBasedStandPrepController implements QuadrupedControll
                quadrant.getEnd().negateIfHindEnd(Math.sin(stancePitchParameter.get())) * robotLength / 2 - stanceHeightParameter.get());
          quadrupedSoleWaypointLists.get(quadrant).get(1).set(solePositionSetpoint, zeroVelocity, trajectoryTimeParameter.get());
       }
-      quadrupedSoleWaypointController.handleWaypointList(quadrupedSoleWaypointLists);
-      quadrupedSoleWaypointController.updateEstimates(taskSpaceEstimates);
-      quadrupedSoleWaypointController.initialize(false);
+      feetManager.initializeWaypointTrajectory(quadrupedSoleWaypointLists, taskSpaceEstimates, false);
 
       // Initialize task space controller
       taskSpaceControllerSettings.initialize();
@@ -142,16 +147,17 @@ public class QuadrupedForceBasedStandPrepController implements QuadrupedControll
             oneDoFJoint.setUseFeedBackForceControl(useForceFeedbackControlParameter.get());
          }
       }
+
+      feetManager.registerWaypointCallback(this);
    }
 
    @Override
    public ControllerEvent process()
    {
       taskSpaceEstimator.compute(taskSpaceEstimates);
-      quadrupedSoleWaypointController.updateEstimates(taskSpaceEstimates);
-      boolean done = quadrupedSoleWaypointController.compute(taskSpaceControllerCommands.getSoleForce());
+      feetManager.compute(taskSpaceControllerCommands.getSoleForce(), taskSpaceEstimates);
       taskSpaceController.compute(taskSpaceControllerSettings, taskSpaceControllerCommands);
-      return done ? ControllerEvent.DONE : null;
+      return isDoneMoving.getBooleanValue() ? ControllerEvent.DONE : null;
    }
 
    @Override
@@ -166,5 +172,6 @@ public class QuadrupedForceBasedStandPrepController implements QuadrupedControll
             oneDoFJoint.setUseFeedBackForceControl(yoUseForceFeedbackControl.getBooleanValue());
          }
       }
+      feetManager.registerWaypointCallback(null);
    }
 }

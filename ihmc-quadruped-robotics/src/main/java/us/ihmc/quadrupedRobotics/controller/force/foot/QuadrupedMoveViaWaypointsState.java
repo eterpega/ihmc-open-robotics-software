@@ -5,6 +5,7 @@ import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedSolePositionController;
 import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedSolePositionControllerSetpoints;
 import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedTaskSpaceEstimates;
+import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedWaypointCallback;
 import us.ihmc.quadrupedRobotics.planning.QuadrupedSoleWaypointList;
 import us.ihmc.robotics.controllers.pidGains.YoPID3DGains;
 import us.ihmc.robotics.math.trajectories.waypoints.MultipleWaypointsPositionTrajectoryGenerator;
@@ -36,12 +37,16 @@ public class QuadrupedMoveViaWaypointsState extends QuadrupedFootState
    private final QuadrupedFootControlModuleParameters parameters;
    private final RobotQuadrant robotQuadrant;
 
+   private final QuadrupedWaypointCallback waypointCallback;
+
    public QuadrupedMoveViaWaypointsState(RobotQuadrant robotQuadrant, ReferenceFrame bodyFrame, QuadrupedSolePositionController solePositionController,
-                                         YoDouble robotTimeStamp, QuadrupedFootControlModuleParameters parameters, YoVariableRegistry parentRegistry)
+                                         YoDouble robotTimeStamp, QuadrupedFootControlModuleParameters parameters, QuadrupedWaypointCallback waypointCallback,
+                                         YoVariableRegistry parentRegistry)
    {
       this.robotQuadrant = robotQuadrant;
       this.bodyFrame = bodyFrame;
       this.parameters = parameters;
+      this.waypointCallback = waypointCallback;
       robotTime = robotTimeStamp;
       taskSpaceEstimates = new QuadrupedTaskSpaceEstimates();
 
@@ -105,6 +110,10 @@ public class QuadrupedMoveViaWaypointsState extends QuadrupedFootState
       if (currentTrajectoryTime > quadrupedSoleWaypointList.getFinalTime())
       {
          soleForceCommand.setToZero();
+
+         if (waypointCallback != null)
+            waypointCallback.isDoneMoving(true);
+
          return QuadrupedFootControlModule.FootEvent.TIMEOUT;
       }
       else
@@ -114,6 +123,10 @@ public class QuadrupedMoveViaWaypointsState extends QuadrupedFootState
          solePositionControllerSetpoints.getSoleLinearVelocity().setToZero();
          solePositionControllerSetpoints.getSoleForceFeedforward().setIncludingFrame(initialSoleForces);
          solePositionController.compute(soleForceCommand, solePositionControllerSetpoints, taskSpaceEstimates);
+
+         if (waypointCallback != null)
+            waypointCallback.isDoneMoving(false);
+
          return null;
       }
    }
