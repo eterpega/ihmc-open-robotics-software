@@ -1,7 +1,7 @@
 package us.ihmc.quadrupedRobotics.controller.force.foot;
 
-import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.referenceFrame.interfaces.FramePoint3DReadOnly;
 import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedSolePositionController;
 import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedStepTransitionCallback;
@@ -9,9 +9,6 @@ import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedTaskSpaceEsti
 import us.ihmc.quadrupedRobotics.planning.ContactState;
 import us.ihmc.quadrupedRobotics.planning.QuadrupedTimedStep;
 import us.ihmc.quadrupedRobotics.planning.YoQuadrupedTimedStep;
-import us.ihmc.robotics.stateMachines.conditionBasedStateMachine.GenericStateMachine;
-import us.ihmc.robotics.stateMachines.conditionBasedStateMachine.StateChangedListener;
-import us.ihmc.robotics.stateMachines.conditionBasedStateMachine.StateMachineTools;
 import us.ihmc.robotics.stateMachines.eventBasedStateMachine.FiniteStateMachine;
 import us.ihmc.robotics.stateMachines.eventBasedStateMachine.FiniteStateMachineBuilder;
 import us.ihmc.robotics.stateMachines.eventBasedStateMachine.FiniteStateMachineStateChangedListener;
@@ -27,13 +24,14 @@ public class QuadrupedFootControlModule
    private final YoQuadrupedTimedStep stepCommand;
    private final YoBoolean stepCommandIsValid;
 
+   private final QuadrupedMoveViaWaypointsState moveViaWaypointsState;
    private final FiniteStateMachine<QuadrupedFootStates, FootEvent, QuadrupedFootState> footStateMachine;
    private QuadrupedStepTransitionCallback stepTransitionCallback;
 
    public enum FootEvent {TIMEOUT}
 
-   public QuadrupedFootControlModule(QuadrupedFootStateMachineParameters parameters, RobotQuadrant robotQuadrant, QuadrupedSolePositionController solePositionController,
-                                     YoDouble timestamp, YoVariableRegistry parentRegistry)
+   public QuadrupedFootControlModule(QuadrupedFootControlModuleParameters parameters, RobotQuadrant robotQuadrant, ReferenceFrame bodyFrame,
+                                     QuadrupedSolePositionController solePositionController, YoDouble timestamp, YoVariableRegistry parentRegistry)
    {
       // control variables
       String prefix = robotQuadrant.getCamelCaseName();
@@ -43,8 +41,9 @@ public class QuadrupedFootControlModule
 
       // state machine
       QuadrupedSupportState supportState = new QuadrupedSupportState(robotQuadrant, stepCommandIsValid, timestamp, stepCommand, stepTransitionCallback);
-      QuadrupedSwingState swingState = new QuadrupedSwingState(robotQuadrant, solePositionController, stepCommandIsValid, timestamp, stepCommand, parameters, registry,
-                                                               stepTransitionCallback);
+      QuadrupedSwingState swingState = new QuadrupedSwingState(robotQuadrant, solePositionController, stepCommandIsValid, timestamp, stepCommand, parameters,
+                                                               stepTransitionCallback, registry);
+      moveViaWaypointsState = new QuadrupedMoveViaWaypointsState(robotQuadrant, bodyFrame, solePositionController, timestamp, parameters, registry);
 
       FiniteStateMachineBuilder<QuadrupedFootStates, FootEvent, QuadrupedFootState> stateMachineBuilder = new FiniteStateMachineBuilder<>(QuadrupedFootStates.class, FootEvent.class,
                                                                                                                       prefix + "FootState", registry);

@@ -1,8 +1,7 @@
 package us.ihmc.quadrupedRobotics.controller.force;
 
 import us.ihmc.quadrupedRobotics.controller.force.foot.QuadrupedFeetManager;
-import us.ihmc.quadrupedRobotics.controller.force.foot.QuadrupedFootControlModule;
-import us.ihmc.quadrupedRobotics.controller.force.foot.QuadrupedFootStateMachineParameters;
+import us.ihmc.quadrupedRobotics.controller.force.foot.QuadrupedFootControlModuleParameters;
 import us.ihmc.quadrupedRobotics.estimator.GroundPlaneEstimator;
 import us.ihmc.quadrupedRobotics.model.QuadrupedPhysicalProperties;
 import us.ihmc.quadrupedRobotics.model.QuadrupedRuntimeEnvironment;
@@ -33,7 +32,7 @@ public class QuadrupedForceControllerToolbox
       double gravity = 9.81;
       double mass = runtimeEnvironment.getFullRobotModel().getTotalMass();
       
-      QuadrupedFootStateMachineParameters parameters = new QuadrupedFootStateMachineParameters();
+      QuadrupedFootControlModuleParameters parameters = new QuadrupedFootControlModuleParameters();
       
       runtimeEnvironment.getParentRegistry().addChild(parameters.getYoVariableRegistry());
 
@@ -53,8 +52,8 @@ public class QuadrupedForceControllerToolbox
                new QuadrupedSolePositionController(robotQuadrant, referenceFrames.getFootReferenceFrames().get(robotQuadrant),
                      runtimeEnvironment.getControlDT(), registry));
       }
-      feetManager = new QuadrupedFeetManager(parameters, solePositionController, runtimeEnvironment.getRobotTimestamp(), registry);
-      soleWaypointController = new QuadrupedSoleWaypointController(referenceFrames.getBodyFrame(), solePositionController, runtimeEnvironment.getRobotTimestamp(), registry);
+      feetManager = new QuadrupedFeetManager(parameters, referenceFrames.getBodyFrame(), solePositionController, runtimeEnvironment.getRobotTimestamp(), registry);
+      soleWaypointController = new QuadrupedSoleWaypointController(referenceFrames.getBodyFrame(), solePositionController, runtimeEnvironment.getRobotTimestamp(), parameters, registry);
       groundPlaneEstimator = new GroundPlaneEstimator(registry, runtimeEnvironment.getGraphicsListRegistry());
       fallDetector = new QuadrupedFallDetector(taskSpaceEstimator, dcmPositionEstimator, registry);
    }

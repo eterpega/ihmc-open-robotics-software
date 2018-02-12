@@ -34,7 +34,6 @@ public class QuadrupedForceBasedStandPrepController implements QuadrupedControll
 {
    //Yo Variables
    private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
-   private final YoPID3DGains yoPositionControllerGains;
 
    // Parameters
    private final ParameterFactory parameterFactory = ParameterFactory.createWithRegistry(getClass(), registry);
@@ -48,11 +47,6 @@ public class QuadrupedForceBasedStandPrepController implements QuadrupedControll
    private final DoubleParameter jointDampingParameter = parameterFactory.createDouble("jointDamping", 15.0);
    private final DoubleParameter jointPositionLimitDampingParameter = parameterFactory.createDouble("jointPositionLimitDamping", 10);
    private final DoubleParameter jointPositionLimitStiffnessParameter = parameterFactory.createDouble("jointPositionLimitStiffness", 100);
-   private final DoubleArrayParameter solePositionProportionalGainsParameter = parameterFactory
-         .createDoubleArray("solePositionProportionalGains", 10000, 10000, 10000);
-   private final DoubleArrayParameter solePositionDerivativeGainsParameter = parameterFactory.createDoubleArray("solePositionDerivativeGains", 100, 100, 100);
-   private final DoubleArrayParameter solePositionIntegralGainsParameter = parameterFactory.createDoubleArray("solePositionIntegralGains", 0, 0, 0);
-   private final DoubleParameter solePositionMaxIntegralErrorParameter = parameterFactory.createDouble("solePositionMaxIntegralError", 0);
    private final BooleanParameter useForceFeedbackControlParameter = parameterFactory.createBoolean("useForceFeedbackControl", false);
 
    // Yo variables
@@ -91,7 +85,6 @@ public class QuadrupedForceBasedStandPrepController implements QuadrupedControll
       taskSpaceControllerCommands = new QuadrupedTaskSpaceController.Commands();
       taskSpaceControllerSettings = new QuadrupedTaskSpaceController.Settings();
       this.taskSpaceController = controllerToolbox.getTaskSpaceController();
-      yoPositionControllerGains = new DefaultYoPID3DGains("positionControllerGains", GainCoupling.NONE, true, registry);
       yoUseForceFeedbackControl = new YoBoolean("useForceFeedbackControl", registry);
 
       // Calculate the robot length
@@ -111,7 +104,6 @@ public class QuadrupedForceBasedStandPrepController implements QuadrupedControll
    public void onEntry()
    {
       taskSpaceEstimator.compute(taskSpaceEstimates);
-      updateGains();
       // Create sole waypoint trajectories
       for (RobotQuadrant quadrant : RobotQuadrant.values)
       {
@@ -127,7 +119,7 @@ public class QuadrupedForceBasedStandPrepController implements QuadrupedControll
       }
       quadrupedSoleWaypointController.handleWaypointList(quadrupedSoleWaypointLists);
       quadrupedSoleWaypointController.updateEstimates(taskSpaceEstimates);
-      quadrupedSoleWaypointController.initialize(yoPositionControllerGains, false);
+      quadrupedSoleWaypointController.initialize(false);
 
       // Initialize task space controller
       taskSpaceControllerSettings.initialize();
@@ -157,9 +149,9 @@ public class QuadrupedForceBasedStandPrepController implements QuadrupedControll
    {
       taskSpaceEstimator.compute(taskSpaceEstimates);
       quadrupedSoleWaypointController.updateEstimates(taskSpaceEstimates);
-      boolean success = quadrupedSoleWaypointController.compute(taskSpaceControllerCommands.getSoleForce());
+      boolean done = quadrupedSoleWaypointController.compute(taskSpaceControllerCommands.getSoleForce());
       taskSpaceController.compute(taskSpaceControllerSettings, taskSpaceControllerCommands);
-      return success ? null : ControllerEvent.DONE;
+      return done ? ControllerEvent.DONE : null;
    }
 
    @Override
@@ -174,12 +166,5 @@ public class QuadrupedForceBasedStandPrepController implements QuadrupedControll
             oneDoFJoint.setUseFeedBackForceControl(yoUseForceFeedbackControl.getBooleanValue());
          }
       }
-   }
-
-   private void updateGains()
-   {
-      yoPositionControllerGains.setProportionalGains(solePositionProportionalGainsParameter.get());
-      yoPositionControllerGains.setIntegralGains(solePositionIntegralGainsParameter.get(), solePositionMaxIntegralErrorParameter.get());
-      yoPositionControllerGains.setDerivativeGains(solePositionDerivativeGainsParameter.get());
    }
 }

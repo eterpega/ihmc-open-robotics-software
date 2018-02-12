@@ -6,7 +6,7 @@ import us.ihmc.robotics.dataStructures.parameter.IntegerParameter;
 import us.ihmc.robotics.dataStructures.parameter.ParameterFactory;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
-public class QuadrupedFootStateMachineParameters
+public class QuadrupedFootControlModuleParameters
 {
    // final registry
    private final YoVariableRegistry finalRegistry = new YoVariableRegistry("QuadrupedFootControlModule");
@@ -23,8 +23,7 @@ public class QuadrupedFootStateMachineParameters
    private final DoubleParameter minimumStepAdjustmentTimeParameter = parameterFactory.createDouble("minimumStepAdjustmentTime", 0.1);
    private final DoubleParameter stepGoalOffsetZParameter = parameterFactory.createDouble("stepGoalOffsetZ", 0.0);
 
-   
-   public QuadrupedFootStateMachineParameters()
+   public QuadrupedFootControlModuleParameters()
    {
       
    }

@@ -2,6 +2,8 @@ package us.ihmc.quadrupedRobotics.controller.force.toolbox;
 
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.quadrupedRobotics.controller.force.foot.QuadrupedFootControlModule;
+import us.ihmc.quadrupedRobotics.controller.force.foot.QuadrupedFootControlModuleParameters;
 import us.ihmc.quadrupedRobotics.controller.force.foot.QuadrupedMoveViaWaypointsState;
 import us.ihmc.quadrupedRobotics.planning.QuadrupedSoleWaypointList;
 import us.ihmc.robotics.controllers.pidGains.YoPID3DGains;
@@ -18,12 +20,12 @@ public class QuadrupedSoleWaypointController
    private final QuadrantDependentList<QuadrupedMoveViaWaypointsState> moveViaWaypointsStates = new QuadrantDependentList<>();
 
    public QuadrupedSoleWaypointController(ReferenceFrame bodyFrame, QuadrantDependentList<QuadrupedSolePositionController> solePositionController,
-         YoDouble robotTimeStamp, YoVariableRegistry parentRegistry)
+                                          YoDouble robotTimeStamp, QuadrupedFootControlModuleParameters parameters, YoVariableRegistry parentRegistry)
    {
       for (RobotQuadrant robotQuadrant : RobotQuadrant.values)
       {
          moveViaWaypointsStates.set(robotQuadrant, new QuadrupedMoveViaWaypointsState(robotQuadrant, bodyFrame, solePositionController.get(robotQuadrant),
-                                                                                      robotTimeStamp, parentRegistry));
+                                                                                      robotTimeStamp, parameters, parentRegistry));
       }
    }
 
@@ -33,10 +35,10 @@ public class QuadrupedSoleWaypointController
          moveViaWaypointsStates.get(robotQuadrant).handleWaypointList(quadrupedSoleWaypointList.get(robotQuadrant));
    }
 
-   public void initialize(YoPID3DGains positionControllerGains, boolean useInitialSoleForceAsFeedforwardTerm)
+   public void initialize(boolean useInitialSoleForceAsFeedforwardTerm)
    {
       for (RobotQuadrant robotQuadrant : RobotQuadrant.values)
-         moveViaWaypointsStates.get(robotQuadrant).initialize(positionControllerGains, useInitialSoleForceAsFeedforwardTerm);
+         moveViaWaypointsStates.get(robotQuadrant).initialize(useInitialSoleForceAsFeedforwardTerm);
    }
 
    public void updateEstimates(QuadrupedTaskSpaceEstimates taskSpaceEstimates)
@@ -47,10 +49,15 @@ public class QuadrupedSoleWaypointController
 
    public boolean compute(QuadrantDependentList<FrameVector3D> soleForceCommand)
    {
-      boolean hasValue = false;
+      boolean done = true;
       for (RobotQuadrant robotQuadrant : RobotQuadrant.values)
-         hasValue = hasValue || moveViaWaypointsStates.get(robotQuadrant).compute(soleForceCommand.get(robotQuadrant));
+      {
+         QuadrupedFootControlModule.FootEvent event = moveViaWaypointsStates.get(robotQuadrant).process();
+         soleForceCommand.get(robotQuadrant).set(moveViaWaypointsStates.get(robotQuadrant).getSoleForceCommand());
+         if (event != QuadrupedFootControlModule.FootEvent.TIMEOUT)
+            done = false;
+      }
 
-      return hasValue;
+      return done;
    }
 }

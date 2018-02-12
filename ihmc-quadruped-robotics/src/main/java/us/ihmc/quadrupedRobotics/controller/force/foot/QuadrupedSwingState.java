@@ -23,7 +23,7 @@ public class QuadrupedSwingState extends QuadrupedFootState
    private final FramePoint3D goalPosition;
    private final GlitchFilteredYoBoolean touchdownTrigger;
 
-   private final QuadrupedFootStateMachineParameters parameters;
+   private final QuadrupedFootControlModuleParameters parameters;
    private final QuadrupedTaskSpaceEstimates estimates;
 
    private final YoBoolean stepCommandIsValid;
@@ -35,8 +35,9 @@ public class QuadrupedSwingState extends QuadrupedFootState
 
    private final QuadrupedStepTransitionCallback stepTransitionCallback;
 
-   public QuadrupedSwingState(RobotQuadrant robotQuadrant, QuadrupedSolePositionController solePositionController, YoBoolean stepCommandIsValid, YoDouble timestamp, YoQuadrupedTimedStep stepCommand,
-                              QuadrupedFootStateMachineParameters parameters, YoVariableRegistry registry, QuadrupedStepTransitionCallback stepTransitionCallback)
+   public QuadrupedSwingState(RobotQuadrant robotQuadrant, QuadrupedSolePositionController solePositionController, YoBoolean stepCommandIsValid,
+                              YoDouble timestamp, YoQuadrupedTimedStep stepCommand, QuadrupedFootControlModuleParameters parameters,
+                              QuadrupedStepTransitionCallback stepTransitionCallback, YoVariableRegistry registry)
    {
       this.solePositionController = solePositionController;
 

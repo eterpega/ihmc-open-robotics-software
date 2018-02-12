@@ -52,16 +52,10 @@ public class QuadrupedForceBasedFallController implements QuadrupedController
    private final DoubleParameter jointPositionLimitDampingParameter = parameterFactory.createDouble("jointPositionLimitDamping", 10);
    private final DoubleParameter jointPositionLimitStiffnessParameter = parameterFactory.createDouble("jointPositionLimitStiffness", 100);
    private final BooleanParameter useForceFeedbackControlParameter = parameterFactory.createBoolean("useForceFeedbackControl", false);
-   private final DoubleArrayParameter solePositionProportionalGainsParameter = parameterFactory
-         .createDoubleArray("solePositionProportionalGains", 10000, 10000, 10000);
-   private final DoubleArrayParameter solePositionDerivativeGainsParameter = parameterFactory.createDoubleArray("solePositionDerivativeGains", 100, 100, 100);
-   private final DoubleArrayParameter solePositionIntegralGainsParameter = parameterFactory.createDoubleArray("solePositionIntegralGains", 0, 0, 0);
-   private final DoubleParameter solePositionMaxIntegralErrorParameter = parameterFactory.createDouble("solePositionMaxIntegralError", 0);
 
    // YoVariables
    private final YoBoolean yoUseForceFeedbackControl;
    private final YoEnum<FallBehaviorType> fallBehaviorType = YoEnum.create("fallBehaviorType", FallBehaviorType.class, registry);
-   private final YoPID3DGains yoPositionControllerGains;
 
    // Task space controller
    private final QuadrupedTaskSpaceController.Commands taskSpaceControllerCommands;
@@ -99,7 +93,6 @@ public class QuadrupedForceBasedFallController implements QuadrupedController
       this.taskSpaceController = controllerToolbox.getTaskSpaceController();
       fullRobotModel = environment.getFullRobotModel();
 
-      yoPositionControllerGains = new DefaultYoPID3DGains("positionControllerGains", GainCoupling.NONE, true, registry);
       yoUseForceFeedbackControl = new YoBoolean("useForceFeedbackControl", registry);
 
       environment.getParentRegistry().addChild(registry);
@@ -109,7 +102,6 @@ public class QuadrupedForceBasedFallController implements QuadrupedController
    public void onEntry()
    {
       taskSpaceEstimator.compute(taskSpaceEstimates);
-      updateGains();
       // Create sole waypoint trajectories
       for (RobotQuadrant quadrant : RobotQuadrant.values)
       {
@@ -127,17 +119,13 @@ public class QuadrupedForceBasedFallController implements QuadrupedController
             solePositionSetpoint.setZ(-stanceHeightParameter.get());
             break;
          case DO_NOTHING:
-            solePositionProportionalGainsParameter.set(0, 0.0);
-            solePositionProportionalGainsParameter.set(1, 0.0);
-            solePositionProportionalGainsParameter.set(2, 0.0);
-            updateGains();
             break;
          }
          quadrupedSoleWaypointLists.get(quadrant).get(1).set(solePositionSetpoint, zeroVelocity, trajectoryTimeParameter.get());
       }
       quadrupedSoleWaypointController.handleWaypointList(quadrupedSoleWaypointLists);
       quadrupedSoleWaypointController.updateEstimates(taskSpaceEstimates);
-      quadrupedSoleWaypointController.initialize(yoPositionControllerGains, false);
+      quadrupedSoleWaypointController.initialize(false);
 
       // Initialize task space controller
       taskSpaceControllerSettings.initialize();
@@ -167,9 +155,9 @@ public class QuadrupedForceBasedFallController implements QuadrupedController
    {
       taskSpaceEstimator.compute(taskSpaceEstimates);
       quadrupedSoleWaypointController.updateEstimates(taskSpaceEstimates);
-      boolean success = quadrupedSoleWaypointController.compute(taskSpaceControllerCommands.getSoleForce());
+      boolean done = quadrupedSoleWaypointController.compute(taskSpaceControllerCommands.getSoleForce());
       taskSpaceController.compute(taskSpaceControllerSettings, taskSpaceControllerCommands);
-      return success ? null : ControllerEvent.DONE;
+      return done ? ControllerEvent.DONE : null;
    }
 
    @Override
@@ -184,12 +172,5 @@ public class QuadrupedForceBasedFallController implements QuadrupedController
             oneDoFJoint.setUseFeedBackForceControl(yoUseForceFeedbackControl.getBooleanValue());
          }
       }
-   }
-
-   private void updateGains()
-   {
-      yoPositionControllerGains.setProportionalGains(solePositionProportionalGainsParameter.get());
-      yoPositionControllerGains.setIntegralGains(solePositionIntegralGainsParameter.get(), solePositionMaxIntegralErrorParameter.get());
-      yoPositionControllerGains.setDerivativeGains(solePositionDerivativeGainsParameter.get());
    }
 }

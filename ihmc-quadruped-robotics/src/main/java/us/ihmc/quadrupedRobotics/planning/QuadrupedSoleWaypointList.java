@@ -16,14 +16,23 @@ public class QuadrupedSoleWaypointList extends ArrayList<SoleWaypoint>
 
    public QuadrupedSoleWaypointList(QuadrupedSoleWaypointList other)
    {
-      set(other);
+      copy(other);
    }
 
-   public void set(QuadrupedSoleWaypointList other)
+   public void copy(QuadrupedSoleWaypointList other)
    {
       for (int i = 0; i < other.size(); ++i)
       {
          add(new SoleWaypoint(other.get(i)));
+      }
+   }
+
+   public void set(QuadrupedSoleWaypointList other)
+   {
+      clear();
+      for (int i = 0; i < other.size(); ++i)
+      {
+         add(other.get(i));
       }
    }
 

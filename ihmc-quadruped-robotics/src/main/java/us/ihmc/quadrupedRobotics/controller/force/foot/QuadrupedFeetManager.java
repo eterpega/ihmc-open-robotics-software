@@ -1,6 +1,7 @@
 package us.ihmc.quadrupedRobotics.controller.force.foot;
 
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.referenceFrame.interfaces.FramePoint3DReadOnly;
 import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedSolePositionController;
 import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedStepTransitionCallback;
@@ -19,14 +20,15 @@ public class QuadrupedFeetManager
 
    private final QuadrantDependentList<QuadrupedFootControlModule> footControlModules;
 
-   public QuadrupedFeetManager(QuadrupedFootStateMachineParameters parameters, QuadrantDependentList<QuadrupedSolePositionController> solePositionController,
+   public QuadrupedFeetManager(QuadrupedFootControlModuleParameters parameters, ReferenceFrame bodyFrame,
+                               QuadrantDependentList<QuadrupedSolePositionController> solePositionController,
                                YoDouble timestamp, YoVariableRegistry parentRegistry)
    {
       footControlModules = new QuadrantDependentList<>();
       for (RobotQuadrant robotQuadrant : RobotQuadrant.values)
       {
         footControlModules.set(robotQuadrant,
-                                new QuadrupedFootControlModule(parameters, robotQuadrant, solePositionController.get(robotQuadrant), timestamp, registry));
+                                new QuadrupedFootControlModule(parameters, robotQuadrant, bodyFrame, solePositionController.get(robotQuadrant), timestamp, registry));
       }
 
       parentRegistry.addChild(registry);
