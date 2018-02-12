@@ -103,11 +103,6 @@ public class QuadrupedForceControllerToolbox
       return solePositionController;
    }
 
-   public QuadrupedSolePositionController getSolePositionController(RobotQuadrant robotQuadrant)
-   {
-      return solePositionController.get(robotQuadrant);
-   }
-
    public QuadrupedFeetManager getFeetManager()
    {
       return feetManager;

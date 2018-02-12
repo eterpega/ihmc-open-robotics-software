@@ -72,4 +72,11 @@ public class QuadrupedFeetManager
    {
       footControlModules.get(robotQuadrant).compute(soleForceToPack, taskSpaceEstimates);
    }
+
+   public void setFullContact()
+   {
+      for (RobotQuadrant robotQuadrant : RobotQuadrant.values)
+         footControlModules.get(robotQuadrant).requestSupport();
+   }
+
 }
