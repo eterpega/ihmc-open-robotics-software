@@ -6,11 +6,17 @@ import us.ihmc.graphicsDescription.appearance.YoAppearance;
 
 public abstract class CollisionMeshDefinitionData
 {
-   protected String parentJointName;
+   public enum CollisionMeshType
+   {
+      SPHERE, BOX, CYLINDER;
+   }
 
-   protected RigidBodyTransform transformToParentJoint = new RigidBodyTransform();
+   private CollisionMeshType type;
+   private String parentJointName;
 
-   protected AppearanceDefinition yoAppearance = YoAppearance.Beige();
+   private RigidBodyTransform transformToParentJoint = new RigidBodyTransform();
+
+   private AppearanceDefinition yoAppearance = YoAppearance.Beige();
 
    private int collisionGroup = 0xffffffff;
    private int collisionMask = 0xffffffff;
@@ -18,6 +24,11 @@ public abstract class CollisionMeshDefinitionData
    public CollisionMeshDefinitionData(String parentJointName)
    {
       this.parentJointName = parentJointName;
+   }
+   
+   public CollisionMeshType getCollisionMeshType()
+   {
+      return type;
    }
 
    public String getParentJointName()
@@ -45,6 +56,11 @@ public abstract class CollisionMeshDefinitionData
       return collisionMask;
    }
 
+   public void setCollisionMeshType(CollisionMeshType type)
+   {
+      this.type = type;
+   }
+   
    public void setParentJointName(String parentJointName)
    {
       this.parentJointName = parentJointName;

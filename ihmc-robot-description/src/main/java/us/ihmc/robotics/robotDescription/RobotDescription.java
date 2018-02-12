@@ -5,6 +5,8 @@ import java.util.List;
 
 import us.ihmc.graphicsDescription.Graphics3DObject;
 import us.ihmc.simulationconstructionset.collisionMeshDefinition.BoxCollisionMeshDefinitionData;
+import us.ihmc.simulationconstructionset.collisionMeshDefinition.CollisionMeshDefinitionData;
+import us.ihmc.simulationconstructionset.collisionMeshDefinition.CollisionMeshDefinitionDataHolder;
 import us.ihmc.simulationconstructionset.collisionMeshDefinition.CylinderCollisionMeshDefinitionData;
 import us.ihmc.simulationconstructionset.collisionMeshDefinition.SphereCollisionMeshDefinitionData;
 
@@ -107,7 +109,30 @@ public class RobotDescription implements RobotDescriptionNode, GraphicsObjectsHo
       JointDescription.scaleChildrenJoint(getChildrenJoints(), factor, massScalePower, ignoreInertiaScaleJointList);
    }
 
-   public void addBoxCollisionMeshDescriptionData(BoxCollisionMeshDefinitionData collisionMeshDefinitionData)
+   public void addCollisionMeshDefinitionData(CollisionMeshDefinitionDataHolder collisionMeshDefinitionDataHolder)
+   {
+      List<CollisionMeshDefinitionData> collisionMeshDefinitionDataList = collisionMeshDefinitionDataHolder.getCollisionMeshDefinitionData();
+      int numberOfDefinitionData = collisionMeshDefinitionDataList.size();
+
+      for (int i = 0; i < numberOfDefinitionData; i++)
+      {
+         switch (collisionMeshDefinitionDataList.get(i).getCollisionMeshType())
+         {
+         case SPHERE:
+            addSphereCollisionMeshDefinitionData((SphereCollisionMeshDefinitionData) collisionMeshDefinitionDataList.get(i));
+            break;
+         case CYLINDER:
+            addCylinderCollisionMeshDefinitionData((CylinderCollisionMeshDefinitionData) collisionMeshDefinitionDataList
+                                                                                                                          .get(i));
+            break;
+         case BOX:
+            addBoxCollisionMeshDefinitionData((BoxCollisionMeshDefinitionData) collisionMeshDefinitionDataList.get(i));
+            break;
+         }
+      }
+   }
+
+   public void addBoxCollisionMeshDefinitionData(BoxCollisionMeshDefinitionData collisionMeshDefinitionData)
    {
       LinkDescription linkDescription = getLinkDescription(collisionMeshDefinitionData.getParentJointName());
 
@@ -140,7 +165,7 @@ public class RobotDescription implements RobotDescriptionNode, GraphicsObjectsHo
       }
    }
 
-   public void addSphereCollisionMeshDescriptionData(SphereCollisionMeshDefinitionData collisionMeshDefinitionData)
+   public void addSphereCollisionMeshDefinitionData(SphereCollisionMeshDefinitionData collisionMeshDefinitionData)
    {
       LinkDescription linkDescription = getLinkDescription(collisionMeshDefinitionData.getParentJointName());
 
@@ -170,7 +195,7 @@ public class RobotDescription implements RobotDescriptionNode, GraphicsObjectsHo
       }
    }
 
-   public void addCylinderCollisionMeshDescriptionData(CylinderCollisionMeshDefinitionData collisionMeshDefinitionData)
+   public void addCylinderCollisionMeshDefinitionData(CylinderCollisionMeshDefinitionData collisionMeshDefinitionData)
    {
       LinkDescription linkDescription = getLinkDescription(collisionMeshDefinitionData.getParentJointName());
 

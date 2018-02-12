@@ -8,11 +8,13 @@ public class CylinderCollisionMeshDefinitionData extends CollisionMeshDefinition
    public CylinderCollisionMeshDefinitionData(String parentJointName)
    {
       super(parentJointName);
+      setCollisionMeshType(CollisionMeshType.CYLINDER);
    }
 
    public CylinderCollisionMeshDefinitionData(String parentJointName, double radius, double height)
    {
       super(parentJointName);
+      setCollisionMeshType(CollisionMeshType.CYLINDER);
       this.radius = radius;
       this.height = height;
    }

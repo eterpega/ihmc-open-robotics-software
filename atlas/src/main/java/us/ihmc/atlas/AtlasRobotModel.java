@@ -174,7 +174,7 @@ public class AtlasRobotModel implements DRCRobotModel, SDFDescriptionMutator
       walkingControllerParameters = new AtlasWalkingControllerParameters(target, jointMap, contactPointParameters);
       stateEstimatorParameters = new AtlasStateEstimatorParameters(jointMap, sensorInformation, runningOnRealRobot, getEstimatorDT());
       collisionMeshDefinitionDataHolder = new AtlasCollisionMeshDefinitionDataHolder(jointMap);
-      
+
       robotDescription = createRobotDescription();
    }
 
@@ -186,9 +186,9 @@ public class AtlasRobotModel implements DRCRobotModel, SDFDescriptionMutator
       RobotDescriptionFromSDFLoader descriptionLoader = new RobotDescriptionFromSDFLoader();
       RobotDescription robotDescription = descriptionLoader.loadRobotDescriptionFromSDF(generalizedSDFRobotModel, jointMap, contactPointParameters,
                                                                                         useCollisionMeshes);
-      
-      collisionMeshDefinitionDataHolder.addCollisionMeshOnRobotDescription(robotDescription);
-      
+
+      robotDescription.addCollisionMeshDefinitionData(collisionMeshDefinitionDataHolder);
+
       return robotDescription;
    }
 

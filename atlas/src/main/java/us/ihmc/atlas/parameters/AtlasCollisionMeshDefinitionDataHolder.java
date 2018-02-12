@@ -22,14 +22,14 @@ public class AtlasCollisionMeshDefinitionDataHolder extends CollisionMeshDefinit
       CollisionMeshDefinitionData rightFootCollisionMeshData = new BoxCollisionMeshDefinitionData(jointMap.getLegJointName(RobotSide.RIGHT,
                                                                                                                            LegJointName.ANKLE_ROLL),
                                                                                                   footLength, footWidth, footHeight);
-      rightFootCollisionMeshData.setTransformToParent(transformToAnkle);
+      rightFootCollisionMeshData.setTransformToParentJoint(transformToAnkle);
 
       addCollisionMeshDefinitionData(rightFootCollisionMeshData);
 
       CollisionMeshDefinitionData leftFootCollisionMeshData = new BoxCollisionMeshDefinitionData(jointMap.getLegJointName(RobotSide.LEFT,
                                                                                                                           LegJointName.ANKLE_ROLL),
                                                                                                  footLength, footWidth, footHeight);
-      leftFootCollisionMeshData.setTransformToParent(transformToAnkle);
+      leftFootCollisionMeshData.setTransformToParentJoint(transformToAnkle);
 
       addCollisionMeshDefinitionData(leftFootCollisionMeshData);
 
