@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import us.ihmc.quadrupedRobotics.controller.force.foot.QuadrupedFootStates;
+import us.ihmc.quadrupedRobotics.controlModules.foot.QuadrupedFootStates;
 import us.ihmc.robotModels.FullRobotModel;
 import us.ihmc.robotics.dataStructures.parameter.DoubleParameter;
 import us.ihmc.robotics.dataStructures.parameter.ParameterFactory;

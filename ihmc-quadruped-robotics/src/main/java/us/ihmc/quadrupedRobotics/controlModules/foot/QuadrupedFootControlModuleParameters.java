@@ -1,4 +1,4 @@
-package us.ihmc.quadrupedRobotics.controller.force.foot;
+package us.ihmc.quadrupedRobotics.controlModules.foot;
 
 import us.ihmc.robotics.dataStructures.parameter.DoubleArrayParameter;
 import us.ihmc.robotics.dataStructures.parameter.DoubleParameter;

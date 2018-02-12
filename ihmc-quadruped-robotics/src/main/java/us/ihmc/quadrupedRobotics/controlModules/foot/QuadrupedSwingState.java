@@ -1,8 +1,9 @@
-package us.ihmc.quadrupedRobotics.controller.force.foot;
+package us.ihmc.quadrupedRobotics.controlModules.foot;
 
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.quadrupedRobotics.controller.force.QuadrupedForceControllerToolbox;
 import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedSolePositionController;
 import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedSolePositionControllerSetpoints;
 import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedStepTransitionCallback;
@@ -35,21 +36,22 @@ public class QuadrupedSwingState extends QuadrupedFootState
 
    private final QuadrupedStepTransitionCallback stepTransitionCallback;
 
-   public QuadrupedSwingState(RobotQuadrant robotQuadrant, QuadrupedSolePositionController solePositionController, YoBoolean stepCommandIsValid,
-                              YoDouble timestamp, YoQuadrupedTimedStep stepCommand, QuadrupedFootControlModuleParameters parameters,
-                              QuadrupedStepTransitionCallback stepTransitionCallback, YoVariableRegistry registry)
+   public QuadrupedSwingState(RobotQuadrant robotQuadrant, QuadrupedForceControllerToolbox toolbox, QuadrupedSolePositionController solePositionController,
+                              YoBoolean stepCommandIsValid, YoQuadrupedTimedStep stepCommand, QuadrupedStepTransitionCallback stepTransitionCallback,
+                              YoVariableRegistry registry)
    {
       this.solePositionController = solePositionController;
 
       this.robotQuadrant = robotQuadrant;
       this.goalPosition = new FramePoint3D();
       this.swingTrajectory = new ThreeDoFSwingFootTrajectory(this.robotQuadrant.getPascalCaseName(), registry);
-      this.touchdownTrigger = new GlitchFilteredYoBoolean(this.robotQuadrant.getCamelCaseName() + "TouchdownTriggered", registry,
-                                                          parameters.getTouchdownTriggerWindowParameter());
       this.stepCommandIsValid = stepCommandIsValid;
-      this.timestamp = timestamp;
+      this.timestamp = toolbox.getRuntimeEnvironment().getRobotTimestamp();
       this.stepCommand = stepCommand;
-      this.parameters = parameters;
+      this.parameters = toolbox.getFootControlModuleParameters();
+
+      touchdownTrigger = new GlitchFilteredYoBoolean(this.robotQuadrant.getCamelCaseName() + "TouchdownTriggered", registry,
+                                                          parameters.getTouchdownTriggerWindowParameter());
 
       this.stepTransitionCallback = stepTransitionCallback;
 

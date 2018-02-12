@@ -1,4 +1,4 @@
-package us.ihmc.quadrupedRobotics.controller.force.foot;
+package us.ihmc.quadrupedRobotics.controlModules.foot;
 
 import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedStepTransitionCallback;
 import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedTaskSpaceEstimates;

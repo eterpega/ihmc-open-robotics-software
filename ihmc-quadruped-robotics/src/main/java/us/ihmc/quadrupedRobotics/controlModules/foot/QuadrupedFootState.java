@@ -1,4 +1,4 @@
-package us.ihmc.quadrupedRobotics.controller.force.foot;
+package us.ihmc.quadrupedRobotics.controlModules.foot;
 
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.interfaces.FrameVector3DReadOnly;

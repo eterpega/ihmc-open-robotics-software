@@ -1,8 +1,9 @@
-package us.ihmc.quadrupedRobotics.controller.force.foot;
+package us.ihmc.quadrupedRobotics.controlModules.foot;
 
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.quadrupedRobotics.controller.force.QuadrupedForceControllerToolbox;
 import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedSolePositionController;
 import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedSolePositionControllerSetpoints;
 import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedTaskSpaceEstimates;
@@ -37,13 +38,13 @@ public class QuadrupedHoldPositionState extends QuadrupedFootState
    private final QuadrupedFootControlModuleParameters parameters;
    private final RobotQuadrant robotQuadrant;
 
-   public QuadrupedHoldPositionState(RobotQuadrant robotQuadrant, ReferenceFrame bodyFrame, QuadrupedSolePositionController solePositionController,
-                                     YoDouble robotTimeStamp, QuadrupedFootControlModuleParameters parameters, YoVariableRegistry parentRegistry)
+   public QuadrupedHoldPositionState(RobotQuadrant robotQuadrant, QuadrupedForceControllerToolbox toolbox, QuadrupedSolePositionController solePositionController,
+                                     YoVariableRegistry parentRegistry)
    {
       this.robotQuadrant = robotQuadrant;
-      this.bodyFrame = bodyFrame;
-      this.parameters = parameters;
-      robotTime = robotTimeStamp;
+      this.bodyFrame = toolbox.getReferenceFrames().getBodyFrame();
+      this.parameters = toolbox.getFootControlModuleParameters();
+      robotTime = toolbox.getRuntimeEnvironment().getRobotTimestamp();
       taskSpaceEstimates = new QuadrupedTaskSpaceEstimates();
 
       registry = new YoVariableRegistry(robotQuadrant.getShortName() + getClass().getSimpleName());

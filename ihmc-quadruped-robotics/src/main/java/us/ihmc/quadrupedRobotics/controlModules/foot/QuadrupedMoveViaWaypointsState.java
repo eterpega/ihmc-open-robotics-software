@@ -1,15 +1,14 @@
-package us.ihmc.quadrupedRobotics.controller.force.foot;
+package us.ihmc.quadrupedRobotics.controlModules.foot;
 
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.quadrupedRobotics.controller.force.QuadrupedForceControllerToolbox;
 import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedSolePositionController;
 import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedSolePositionControllerSetpoints;
 import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedTaskSpaceEstimates;
 import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedWaypointCallback;
 import us.ihmc.quadrupedRobotics.planning.QuadrupedSoleWaypointList;
-import us.ihmc.robotics.controllers.pidGains.YoPID3DGains;
 import us.ihmc.robotics.math.trajectories.waypoints.MultipleWaypointsPositionTrajectoryGenerator;
-import us.ihmc.robotics.robotSide.QuadrantDependentList;
 import us.ihmc.robotics.robotSide.RobotQuadrant;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
@@ -39,15 +38,14 @@ public class QuadrupedMoveViaWaypointsState extends QuadrupedFootState
 
    private final QuadrupedWaypointCallback waypointCallback;
 
-   public QuadrupedMoveViaWaypointsState(RobotQuadrant robotQuadrant, ReferenceFrame bodyFrame, QuadrupedSolePositionController solePositionController,
-                                         YoDouble robotTimeStamp, QuadrupedFootControlModuleParameters parameters, QuadrupedWaypointCallback waypointCallback,
-                                         YoVariableRegistry parentRegistry)
+   public QuadrupedMoveViaWaypointsState(RobotQuadrant robotQuadrant, QuadrupedForceControllerToolbox toolbox, QuadrupedSolePositionController solePositionController,
+                                         QuadrupedWaypointCallback waypointCallback, YoVariableRegistry parentRegistry)
    {
       this.robotQuadrant = robotQuadrant;
-      this.bodyFrame = bodyFrame;
-      this.parameters = parameters;
+      this.bodyFrame = toolbox.getReferenceFrames().getBodyFrame();
+      this.parameters = toolbox.getFootControlModuleParameters();
       this.waypointCallback = waypointCallback;
-      robotTime = robotTimeStamp;
+      robotTime = toolbox.getRuntimeEnvironment().getRobotTimestamp();
       taskSpaceEstimates = new QuadrupedTaskSpaceEstimates();
 
       registry = new YoVariableRegistry(robotQuadrant.getShortName() + getClass().getSimpleName());

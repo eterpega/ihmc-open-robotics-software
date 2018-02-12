@@ -1,6 +1,7 @@
 package us.ihmc.quadrupedRobotics.controller.force.states;
 
-import us.ihmc.quadrupedRobotics.controller.force.foot.QuadrupedFeetManager;
+import us.ihmc.quadrupedRobotics.controlModules.QuadrupedControlManagerFactory;
+import us.ihmc.quadrupedRobotics.controlModules.foot.QuadrupedFeetManager;
 import us.ihmc.quadrupedRobotics.controller.force.toolbox.*;
 import us.ihmc.robotModels.FullQuadrupedRobotModel;
 import us.ihmc.robotics.partNames.JointRole;
@@ -41,13 +42,14 @@ public class QuadrupedForceBasedFreezeController implements QuadrupedController
 
    private final FullQuadrupedRobotModel fullRobotModel;
 
-   public QuadrupedForceBasedFreezeController(QuadrupedRuntimeEnvironment environment, QuadrupedForceControllerToolbox controllerToolbox)
+   public QuadrupedForceBasedFreezeController(QuadrupedRuntimeEnvironment environment, QuadrupedForceControllerToolbox controllerToolbox,
+                                              QuadrupedControlManagerFactory controlManagerFactory)
    {
       // Yo variables
       yoUseForceFeedbackControl = new YoBoolean("useForceFeedbackControl", registry);
 
       // Feedback controller
-      feetManager = controllerToolbox.getFeetManager();
+      feetManager = controlManagerFactory.getOrCreateFeetManager();
 
       // Task space controller
       taskSpaceEstimates = new QuadrupedTaskSpaceEstimates();
