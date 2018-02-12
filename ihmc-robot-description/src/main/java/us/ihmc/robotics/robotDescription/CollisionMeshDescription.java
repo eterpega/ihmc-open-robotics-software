@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import us.ihmc.euclid.Axis;
 import us.ihmc.euclid.geometry.LineSegment3D;
 import us.ihmc.euclid.matrix.interfaces.RotationMatrixReadOnly;
+import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.geometry.polytope.ConvexPolytope;
 import us.ihmc.robotics.geometry.RigidBodyTransformGenerator;
@@ -139,6 +140,11 @@ public class CollisionMeshDescription implements CollisionMaskHolder
    public void translate(Vector3D translationVector)
    {
       transformGenerator.translate(translationVector);
+   }
+   
+   public void transform(RigidBodyTransform transform)
+   {
+      transformGenerator.setTransform(transform);
    }
 
    public void identity()
