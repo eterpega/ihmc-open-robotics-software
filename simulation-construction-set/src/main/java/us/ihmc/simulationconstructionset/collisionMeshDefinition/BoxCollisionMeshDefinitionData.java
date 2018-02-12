@@ -1,6 +1,5 @@
 package us.ihmc.simulationconstructionset.collisionMeshDefinition;
 
-import us.ihmc.euclid.matrix.RotationMatrix;
 import us.ihmc.robotics.robotDescription.CollisionMeshDescription;
 import us.ihmc.robotics.robotDescription.LinkDescription;
 import us.ihmc.robotics.robotDescription.LinkGraphicsDescription;
@@ -48,9 +47,8 @@ public class BoxCollisionMeshDefinitionData extends CollisionMeshDefinitionData
       CollisionMeshDescription collisionMesh = new CollisionMeshDescription();
       collisionMesh.identity();
       collisionMesh.translate(transformToParent.getTranslationX(), transformToParent.getTranslationY(), transformToParent.getTranslationZ());
-      collisionMesh.rotate(new RotationMatrix(transformToParent.getRotationMatrix()));
-      collisionMesh.translate(0, 0, -0.5 * height);
-      collisionMesh.addCubeReferencedAtBottomMiddle(length, width, height);
+      collisionMesh.rotate(transformToParent.getRotationMatrix());
+      collisionMesh.addCubeReferencedAtCenter(length, width, height);
       collisionMesh.setCollisionGroup(collisionGroup);
       collisionMesh.setCollisionMask(collisionMask);
       linkDescription.addCollisionMesh(collisionMesh);

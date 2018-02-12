@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 import us.ihmc.euclid.Axis;
 import us.ihmc.euclid.geometry.LineSegment3D;
-import us.ihmc.euclid.matrix.RotationMatrix;
+import us.ihmc.euclid.matrix.interfaces.RotationMatrixReadOnly;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.geometry.polytope.ConvexPolytope;
 import us.ihmc.robotics.geometry.RigidBodyTransformGenerator;
@@ -18,7 +18,7 @@ public class CollisionMeshDescription implements CollisionMaskHolder
    private int collisionMask = 0x00;
 
    private int estimatedNumberOfContactPoints = 24;
-   
+
    public void setEstimatedNumberOfContactPoints(int estimatedNumberOfContactPoints)
    {
       this.estimatedNumberOfContactPoints = estimatedNumberOfContactPoints;
@@ -99,7 +99,7 @@ public class CollisionMeshDescription implements CollisionMaskHolder
 
    public boolean getIsGround()
    {
-     return isGround;
+      return isGround;
    }
 
    @Override
@@ -151,7 +151,7 @@ public class CollisionMeshDescription implements CollisionMaskHolder
       transformGenerator.rotateEuler(eulerAngles);
    }
 
-   public void rotate(RotationMatrix rotation)
+   public void rotate(RotationMatrixReadOnly rotation)
    {
       transformGenerator.rotate(rotation);
    }
