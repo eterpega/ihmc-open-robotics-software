@@ -13,7 +13,7 @@ import us.ihmc.robotics.geometry.RigidBodyTransformGenerator;
 public class CollisionMeshDescription implements CollisionMaskHolder
 {
    private final RigidBodyTransformGenerator transformGenerator = new RigidBodyTransformGenerator();
-   private final ArrayList<ConvexShapeDescription> convexShapeDescriptions = new ArrayList<>();
+   protected final ArrayList<ConvexShapeDescription> convexShapeDescriptions = new ArrayList<>();
    private boolean isGround = false;
    private int collisionGroup = 0x00;
    private int collisionMask = 0x00;
