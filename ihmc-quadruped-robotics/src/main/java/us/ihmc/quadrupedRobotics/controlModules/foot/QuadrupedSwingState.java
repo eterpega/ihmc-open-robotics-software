@@ -6,7 +6,6 @@ import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.quadrupedRobotics.controller.force.QuadrupedForceControllerToolbox;
 import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedSolePositionController;
 import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedSolePositionControllerSetpoints;
-import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedStepTransitionCallback;
 import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedTaskSpaceEstimates;
 import us.ihmc.quadrupedRobotics.planning.YoQuadrupedTimedStep;
 import us.ihmc.quadrupedRobotics.planning.trajectory.ThreeDoFSwingFootTrajectory;
@@ -25,7 +24,6 @@ public class QuadrupedSwingState extends QuadrupedFootState
    private final GlitchFilteredYoBoolean touchdownTrigger;
 
    private final QuadrupedFootControlModuleParameters parameters;
-   private final QuadrupedTaskSpaceEstimates estimates;
 
    private final YoBoolean stepCommandIsValid;
    private final YoDouble timestamp;
@@ -34,11 +32,8 @@ public class QuadrupedSwingState extends QuadrupedFootState
    private final QuadrupedSolePositionController solePositionController;
    private final QuadrupedSolePositionControllerSetpoints solePositionControllerSetpoints;
 
-   private final QuadrupedStepTransitionCallback stepTransitionCallback;
-
    public QuadrupedSwingState(RobotQuadrant robotQuadrant, QuadrupedForceControllerToolbox toolbox, QuadrupedSolePositionController solePositionController,
-                              YoBoolean stepCommandIsValid, YoQuadrupedTimedStep stepCommand, QuadrupedStepTransitionCallback stepTransitionCallback,
-                              YoVariableRegistry registry)
+                              YoBoolean stepCommandIsValid, YoQuadrupedTimedStep stepCommand, YoVariableRegistry registry)
    {
       this.solePositionController = solePositionController;
 
@@ -53,10 +48,7 @@ public class QuadrupedSwingState extends QuadrupedFootState
       touchdownTrigger = new GlitchFilteredYoBoolean(this.robotQuadrant.getCamelCaseName() + "TouchdownTriggered", registry,
                                                           parameters.getTouchdownTriggerWindowParameter());
 
-      this.stepTransitionCallback = stepTransitionCallback;
-
       solePositionControllerSetpoints = new QuadrupedSolePositionControllerSetpoints(robotQuadrant);
-      estimates = new QuadrupedTaskSpaceEstimates();
    }
 
    @Override

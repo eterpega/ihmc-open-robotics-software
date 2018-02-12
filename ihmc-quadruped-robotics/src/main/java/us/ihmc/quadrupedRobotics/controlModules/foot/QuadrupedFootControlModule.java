@@ -31,8 +31,6 @@ public class QuadrupedFootControlModule
 
    private final QuadrupedMoveViaWaypointsState moveViaWaypointsState;
    private final FiniteStateMachine<QuadrupedFootStates, FootEvent, QuadrupedFootState> footStateMachine;
-   private QuadrupedStepTransitionCallback stepTransitionCallback;
-   private QuadrupedWaypointCallback waypointCallback;
 
    private final QuadrupedSolePositionController solePositionController;
 
@@ -52,9 +50,9 @@ public class QuadrupedFootControlModule
 
       // state machine
       YoDouble timestamp = toolbox.getRuntimeEnvironment().getRobotTimestamp();
-      QuadrupedSupportState supportState = new QuadrupedSupportState(robotQuadrant, stepCommandIsValid, timestamp, stepCommand, stepTransitionCallback);
-      QuadrupedSwingState swingState = new QuadrupedSwingState(robotQuadrant, toolbox, solePositionController, stepCommandIsValid, stepCommand, stepTransitionCallback, registry);
-      moveViaWaypointsState = new QuadrupedMoveViaWaypointsState(robotQuadrant, toolbox, solePositionController, waypointCallback, registry);
+      QuadrupedSupportState supportState = new QuadrupedSupportState(robotQuadrant, stepCommandIsValid, timestamp, stepCommand);
+      QuadrupedSwingState swingState = new QuadrupedSwingState(robotQuadrant, toolbox, solePositionController, stepCommandIsValid, stepCommand, registry);
+      moveViaWaypointsState = new QuadrupedMoveViaWaypointsState(robotQuadrant, toolbox, solePositionController, registry);
       QuadrupedHoldPositionState holdState = new QuadrupedHoldPositionState(robotQuadrant, toolbox, solePositionController, registry);
 
       FiniteStateMachineBuilder<QuadrupedFootStates, FootEvent, QuadrupedFootState> stateMachineBuilder = new FiniteStateMachineBuilder<>(QuadrupedFootStates.class, FootEvent.class,
@@ -88,8 +86,6 @@ public class QuadrupedFootControlModule
 
       footStateMachine = stateMachineBuilder.build(QuadrupedFootStates.MOVE_VIA_WAYPOINTS);
 
-      stepTransitionCallback = null;
-
       parentRegistry.addChild(registry);
    }
 
@@ -100,12 +96,20 @@ public class QuadrupedFootControlModule
 
    public void registerStepTransitionCallback(QuadrupedStepTransitionCallback stepTransitionCallback)
    {
-      this.stepTransitionCallback = stepTransitionCallback;
+      for (QuadrupedFootStates footState : QuadrupedFootStates.values)
+      {
+         if (footStateMachine.getState(footState) != null)
+            footStateMachine.getState(footState).registerStepTransitionCallback(stepTransitionCallback);
+      }
    }
 
    public void registerWaypointCallback(QuadrupedWaypointCallback waypointCallback)
    {
-      this.waypointCallback = waypointCallback;
+      for (QuadrupedFootStates footState : QuadrupedFootStates.values)
+      {
+         if (footStateMachine.getState(footState) != null)
+            footStateMachine.getState(footState).registerWaypointCallback(waypointCallback);
+      }
    }
 
    public void attachStateChangedListener(FiniteStateMachineStateChangedListener stateChangedListener)

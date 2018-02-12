@@ -1,6 +1,5 @@
 package us.ihmc.quadrupedRobotics.controller.force;
 
-import us.ihmc.quadrupedRobotics.controlModules.foot.QuadrupedFeetManager;
 import us.ihmc.quadrupedRobotics.controlModules.foot.QuadrupedFootControlModuleParameters;
 import us.ihmc.quadrupedRobotics.estimator.GroundPlaneEstimator;
 import us.ihmc.quadrupedRobotics.model.QuadrupedPhysicalProperties;
@@ -8,7 +7,6 @@ import us.ihmc.quadrupedRobotics.model.QuadrupedRuntimeEnvironment;
 import us.ihmc.quadrupedRobotics.estimator.referenceFrames.QuadrupedReferenceFrames;
 import us.ihmc.quadrupedRobotics.controller.force.toolbox.*;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
-import us.ihmc.robotics.robotSide.RobotQuadrant;
 
 public class QuadrupedForceControllerToolbox
 {
@@ -49,11 +47,6 @@ public class QuadrupedForceControllerToolbox
       fallDetector = new QuadrupedFallDetector(taskSpaceEstimator, dcmPositionEstimator, registry);
    }
 
-   public QuadrupedReferenceFrames getReferenceFrames()
-   {
-      return referenceFrames;
-   }
-
    public QuadrupedRuntimeEnvironment getRuntimeEnvironment()
    {
       return runtimeEnvironment;
@@ -62,6 +55,11 @@ public class QuadrupedForceControllerToolbox
    public QuadrupedFootControlModuleParameters getFootControlModuleParameters()
    {
       return footControlModuleParameters;
+   }
+
+   public QuadrupedReferenceFrames getReferenceFrames()
+   {
+      return referenceFrames;
    }
 
    public QuadrupedTaskSpaceEstimator getTaskSpaceEstimator()

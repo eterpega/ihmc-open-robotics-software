@@ -36,15 +36,12 @@ public class QuadrupedMoveViaWaypointsState extends QuadrupedFootState
    private final QuadrupedFootControlModuleParameters parameters;
    private final RobotQuadrant robotQuadrant;
 
-   private final QuadrupedWaypointCallback waypointCallback;
-
    public QuadrupedMoveViaWaypointsState(RobotQuadrant robotQuadrant, QuadrupedForceControllerToolbox toolbox, QuadrupedSolePositionController solePositionController,
-                                         QuadrupedWaypointCallback waypointCallback, YoVariableRegistry parentRegistry)
+                                         YoVariableRegistry parentRegistry)
    {
       this.robotQuadrant = robotQuadrant;
       this.bodyFrame = toolbox.getReferenceFrames().getBodyFrame();
       this.parameters = toolbox.getFootControlModuleParameters();
-      this.waypointCallback = waypointCallback;
       robotTime = toolbox.getRuntimeEnvironment().getRobotTimestamp();
       taskSpaceEstimates = new QuadrupedTaskSpaceEstimates();
 

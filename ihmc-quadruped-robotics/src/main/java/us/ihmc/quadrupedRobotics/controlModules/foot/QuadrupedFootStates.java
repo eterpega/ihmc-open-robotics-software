@@ -5,6 +5,7 @@ public enum QuadrupedFootStates
    SUPPORT,
    SWING,
    MOVE_VIA_WAYPOINTS,
-   HOLD
+   HOLD;
 
+   public static final QuadrupedFootStates[] values = values();
 }
