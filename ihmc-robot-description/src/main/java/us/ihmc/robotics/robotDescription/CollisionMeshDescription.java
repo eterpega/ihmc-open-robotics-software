@@ -12,7 +12,7 @@ import us.ihmc.robotics.geometry.RigidBodyTransformGenerator;
 public class CollisionMeshDescription implements CollisionMaskHolder
 {
    private final RigidBodyTransformGenerator transformGenerator = new RigidBodyTransformGenerator();
-   private final ArrayList<ConvexShapeDescription> convexShapeDescriptions = new ArrayList<>();
+   private final ArrayList<ConvexShapeDescriptionReadOnly> convexShapeDescriptions = new ArrayList<>();
    private boolean isGround = false;
    private int collisionGroup = 0x00;
    private int collisionMask = 0x00;
@@ -29,7 +29,7 @@ public class CollisionMeshDescription implements CollisionMaskHolder
       return estimatedNumberOfContactPoints;
    }
 
-   public void addConvexShape(ConvexShapeDescription convexShapeDescription)
+   public void addConvexShape(ConvexShapeDescriptionReadOnly convexShapeDescription)
    {
       convexShapeDescriptions.add(convexShapeDescription);
    }
@@ -92,7 +92,7 @@ public class CollisionMeshDescription implements CollisionMaskHolder
       convexShapeDescriptions.add(polytopeReadOnly);
    }
 
-   public void getConvexShapeDescriptions(ArrayList<ConvexShapeDescription> convexShapeDescriptionsToPack)
+   public void getConvexShapeDescriptions(ArrayList<ConvexShapeDescriptionReadOnly> convexShapeDescriptionsToPack)
    {
       convexShapeDescriptionsToPack.addAll(convexShapeDescriptions);
    }
