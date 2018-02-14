@@ -8,6 +8,7 @@ import us.ihmc.exampleSimulations.newtonsCradle.GroundAsABoxRobot;
 import us.ihmc.exampleSimulations.newtonsCradle.PileOfRandomObjectsRobot;
 import us.ihmc.graphicsDescription.Graphics3DObject;
 import us.ihmc.robotics.robotDescription.CollisionMasksHelper;
+import us.ihmc.simulationConstructionSetTools.util.environments.SmallStepDownEnvironment;
 import us.ihmc.simulationConstructionSetTools.util.environments.StairsUpAndDownEnvironment;
 import us.ihmc.simulationconstructionset.FloatingJoint;
 import us.ihmc.simulationconstructionset.Robot;
@@ -26,7 +27,7 @@ public class CartRobotEnvironmentSimulation
 
       double dt = 0.001;
 
-      Vector3D startingPoint = new Vector3D(-3.0, 0.0, 0.3);
+      Vector3D startingPoint = new Vector3D(0.0, 0.0, 0.3);
 
       List<Robot> allSimulatedRobotList = new ArrayList<Robot>();
 
@@ -47,15 +48,46 @@ public class CartRobotEnvironmentSimulation
       allSimulatedRobotList.add(cartRobot);
 
       // Stair Env Robot
-      StairsUpAndDownEnvironment stairsEnvironment = new StairsUpAndDownEnvironment();
-      allSimulatedRobotList.addAll(stairsEnvironment.getEnvironmentRobots());
+      double stepLength = 0.35;
+      double stepDownHeight = 0.15;
+      int stepsBeforeDrop = 1;
+      double dropHeight = -stepDownHeight;
+
+      int numberOfDrops = 4;
+
+      ArrayList<Double> stepHeights = new ArrayList<>();
+      ArrayList<Double> stepLengths = new ArrayList<>();
+
+      double currentHeight = 0.0;
+
+      for (int i = 0; i < numberOfDrops; i++)
+      {
+         for (int j = 0; j < stepsBeforeDrop; j++)
+         {
+            stepHeights.add(currentHeight);
+            stepLengths.add(stepLength);
+         }
+
+         currentHeight += dropHeight;
+
+         stepHeights.add(currentHeight);
+         stepLengths.add(stepLength);
+      }
+
+      double starterLength = 0.35;
+      SmallStepDownEnvironment environment = new SmallStepDownEnvironment(stepHeights, stepLengths, starterLength, 0.0, currentHeight);
+
+      
+      
+      
+      allSimulatedRobotList.addAll(environment.getEnvironmentRobots());
       
       // Scs
       SimulationConstructionSet scs = new SimulationConstructionSet(allSimulatedRobotList.toArray(new Robot[0]), parameters);
       Graphics3DObject staticLinkGraphics = new Graphics3DObject();
       staticLinkGraphics.addCoordinateSystem(0.1);
       scs.addStaticLinkGraphics(staticLinkGraphics);
-      scs.addStaticLinkGraphics(stairsEnvironment.getTerrainObject3D().getLinkGraphics());
+      scs.addStaticLinkGraphics(environment.getTerrainObject3D().getLinkGraphics());
 
       // simulate.
       DefaultCollisionVisualizer collisionVisualizer = new DefaultCollisionVisualizer(100.0, 100.0, 0.01, scs, 1000);
@@ -66,6 +98,7 @@ public class CartRobotEnvironmentSimulation
 
       scs.setDT(dt, 1);
       scs.setFastSimulate(true);
+      scs.setGroundVisible(false);
 
       scs.setCameraFix(0.0, 0.0, 0.8);
       scs.setCameraPosition(0.0, -8.0, 1.4);
