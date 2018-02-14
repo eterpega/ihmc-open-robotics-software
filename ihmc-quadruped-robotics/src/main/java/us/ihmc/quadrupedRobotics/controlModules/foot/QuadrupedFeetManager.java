@@ -64,9 +64,9 @@ public class QuadrupedFeetManager
       footControlModules.get(robotQuadrant).triggerStep(stepSequence);
    }
 
-   public void adjustStep(RobotQuadrant robotQuadrant, FramePoint3DReadOnly adjustedStepGoalPosition)
+   public void adjustStep(RobotQuadrant robotQuadrant, FramePoint3DReadOnly adjustedStep)
    {
-      footControlModules.get(robotQuadrant).adjustStep(adjustedStepGoalPosition);
+      footControlModules.get(robotQuadrant).adjustStep(adjustedStep);
    }
 
    public void reset()
@@ -114,5 +114,4 @@ public class QuadrupedFeetManager
       for (RobotQuadrant robotQuadrant : RobotQuadrant.values)
          footControlModules.get(robotQuadrant).requestHold();
    }
-
 }
