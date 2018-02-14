@@ -26,7 +26,7 @@ public class CartRobotSimulation
       
       Vector3D startingPoint = new Vector3D(-3.0, 0.0, 0.3);
       
-      CartRobotDescription robotDesription = new CartRobotDescription("rollingRobot");
+      CartRobotDescription robotDescription = new CartRobotDescription("rollingRobot");
       
       SimulationConstructionSetParameters parameters = new SimulationConstructionSetParameters();
       parameters.setCreateGUI(true);
@@ -44,7 +44,7 @@ public class CartRobotSimulation
       // add group and mask for every links for robot.
 
       // create robot.
-      Robot cartRobot = scs.addRobot(robotDesription);      
+      Robot cartRobot = scs.addRobot(robotDescription);      
       FloatingJoint floatingJoint = (FloatingJoint) cartRobot.getRootJoints().get(0);
       floatingJoint.setPosition(startingPoint);
       

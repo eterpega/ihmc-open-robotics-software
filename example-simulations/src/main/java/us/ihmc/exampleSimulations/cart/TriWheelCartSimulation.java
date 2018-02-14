@@ -22,9 +22,9 @@ public class TriWheelCartSimulation
 
       double dt = 0.001;
 
-      TriWheelCartDescription robotDesription = new TriWheelCartDescription("triwheel");
+      TriWheelCartDescription robotDescription = new TriWheelCartDescription("triwheel");
       
-      Vector3D startingPoint = new Vector3D(-2.0, 0.0, robotDesription.getInitialHeight());
+      Vector3D startingPoint = new Vector3D(-2.0, 0.0, robotDescription.getInitialHeight());
 
       SimulationConstructionSetParameters parameters = new SimulationConstructionSetParameters();
       parameters.setCreateGUI(true);
@@ -39,7 +39,7 @@ public class TriWheelCartSimulation
       // add group and mask for every links for robot.
 
       // create robot.
-      Robot triWheelRobot = scs.addRobot(robotDesription);
+      Robot triWheelRobot = scs.addRobot(robotDescription);
       FloatingJoint floatingJoint = (FloatingJoint) triWheelRobot.getRootJoints().get(0);
       floatingJoint.setPosition(startingPoint);
 
