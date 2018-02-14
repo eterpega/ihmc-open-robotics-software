@@ -1,7 +1,7 @@
 package us.ihmc.robotics.geometry;
 
 import us.ihmc.euclid.Axis;
-import us.ihmc.euclid.matrix.RotationMatrix;
+import us.ihmc.euclid.matrix.interfaces.RotationMatrixReadOnly;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
@@ -113,7 +113,7 @@ public class RigidBodyTransformGenerator
       transform.multiply(tempTransform);
    }
 
-   public void rotate(RotationMatrix rotationMatrix)
+   public void rotate(RotationMatrixReadOnly rotationMatrix)
    {
       tempTransform.setRotationAndZeroTranslation(rotationMatrix);
       transform.set(transform);
