@@ -17,8 +17,8 @@ public class QuadrupedSoleWaypointPacket extends Packet<QuadrupedSoleWaypointPac
 
    public QuadrupedSoleWaypointPacket(QuadrantDependentList<QuadrupedSoleWaypointList> quadrupedSoleWaypointLists)
    {
-      for (RobotQuadrant quadrant : RobotQuadrant.values)
-         quadrupedSoleWaypointLists.set(quadrant, new QuadrupedSoleWaypointList(quadrupedSoleWaypointLists.get(quadrant)));
+      for (RobotQuadrant robotQuadrant : RobotQuadrant.values)
+         this.quadrupedSoleWaypointLists.set(robotQuadrant, new QuadrupedSoleWaypointList(quadrupedSoleWaypointLists.get(robotQuadrant)));
    }
 
    @Override

@@ -8,7 +8,7 @@ import us.ihmc.robotics.robotSide.RobotQuadrant;
 
 public class QuadrupedSoleWaypointList extends ArrayList<SoleWaypoint>
 {
-   private Point3D solePosition;
+   private final Point3D solePosition = new Point3D();
 
    public QuadrupedSoleWaypointList()
    {
@@ -21,7 +21,8 @@ public class QuadrupedSoleWaypointList extends ArrayList<SoleWaypoint>
 
    public void copy(QuadrupedSoleWaypointList other)
    {
-      for (int i = 0; i < other.size(); ++i)
+      clear();
+      for (int i = 0; i < other.size(); i++)
       {
          add(new SoleWaypoint(other.get(i)));
       }
@@ -60,6 +61,6 @@ public class QuadrupedSoleWaypointList extends ArrayList<SoleWaypoint>
 
    public double getFinalTime()
    {
-      return (size() == 0) ? 0 : get(size() - 1).getTime();
+      return (size() == 0.0) ? 0.0 : get(size() - 1).getTime();
    }
 }
