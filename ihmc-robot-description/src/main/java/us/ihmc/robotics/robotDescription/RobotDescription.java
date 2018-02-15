@@ -122,17 +122,19 @@ public class RobotDescription implements RobotDescriptionNode, GraphicsObjectsHo
             addSphereCollisionMeshDefinitionData((SphereCollisionMeshDefinitionData) collisionMeshDefinitionDataList.get(i));
             break;
          case CYLINDER:
-            addCylinderCollisionMeshDefinitionData((CylinderCollisionMeshDefinitionData) collisionMeshDefinitionDataList
-                                                                                                                          .get(i));
+            addCylinderCollisionMeshDefinitionData((CylinderCollisionMeshDefinitionData) collisionMeshDefinitionDataList.get(i));
             break;
          case BOX:
             addBoxCollisionMeshDefinitionData((BoxCollisionMeshDefinitionData) collisionMeshDefinitionDataList.get(i));
+            break;
+         default:
+            // TODO throw exception.
             break;
          }
       }
    }
 
-   public void addBoxCollisionMeshDefinitionData(BoxCollisionMeshDefinitionData collisionMeshDefinitionData)
+   private void addBoxCollisionMeshDefinitionData(BoxCollisionMeshDefinitionData collisionMeshDefinitionData)
    {
       LinkDescription linkDescription = getLinkDescription(collisionMeshDefinitionData.getParentJointName());
 
@@ -165,7 +167,7 @@ public class RobotDescription implements RobotDescriptionNode, GraphicsObjectsHo
       }
    }
 
-   public void addSphereCollisionMeshDefinitionData(SphereCollisionMeshDefinitionData collisionMeshDefinitionData)
+   private void addSphereCollisionMeshDefinitionData(SphereCollisionMeshDefinitionData collisionMeshDefinitionData)
    {
       LinkDescription linkDescription = getLinkDescription(collisionMeshDefinitionData.getParentJointName());
 
@@ -195,7 +197,7 @@ public class RobotDescription implements RobotDescriptionNode, GraphicsObjectsHo
       }
    }
 
-   public void addCylinderCollisionMeshDefinitionData(CylinderCollisionMeshDefinitionData collisionMeshDefinitionData)
+   private void addCylinderCollisionMeshDefinitionData(CylinderCollisionMeshDefinitionData collisionMeshDefinitionData)
    {
       LinkDescription linkDescription = getLinkDescription(collisionMeshDefinitionData.getParentJointName());
 
