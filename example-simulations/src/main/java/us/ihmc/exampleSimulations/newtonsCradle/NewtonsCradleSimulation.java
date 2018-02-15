@@ -2,6 +2,7 @@ package us.ihmc.exampleSimulations.newtonsCradle;
 
 import java.util.ArrayList;
 
+import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.euclid.geometry.Box3D;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
@@ -12,27 +13,26 @@ import us.ihmc.exampleSimulations.collidingArms.SingleCylinderRobotDescription;
 import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
 import us.ihmc.graphicsDescription.appearance.YoAppearance;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.simulationconstructionset.FloatingJoint;
 import us.ihmc.simulationconstructionset.Robot;
 import us.ihmc.simulationconstructionset.RobotFromDescription;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
 import us.ihmc.simulationconstructionset.SimulationConstructionSetParameters;
 import us.ihmc.simulationconstructionset.physics.CollisionHandler;
+import us.ihmc.simulationconstructionset.physics.collision.DefaultCollisionHandler;
 import us.ihmc.simulationconstructionset.physics.collision.DefaultCollisionVisualizer;
-import us.ihmc.simulationconstructionset.physics.collision.HybridImpulseSpringDamperCollisionHandler;
 import us.ihmc.simulationconstructionset.util.LinearStickSlipGroundContactModel;
 import us.ihmc.simulationconstructionset.util.ground.CombinedTerrainObject3D;
-import us.ihmc.commons.thread.ThreadTools;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 public class NewtonsCradleSimulation
 {
    private static CollisionHandler createCollisionHandler(double coefficientOfRestitution, double coefficientOfFriction, YoVariableRegistry registry,
                                                           YoGraphicsListRegistry yoGraphicsListRegistry)
    {
-      //      CollisionHandler collisionHandler =  new DefaultCollisionHandler(coefficientOfRestitution, coefficientOfFriction);
-      CollisionHandler collisionHandler = new HybridImpulseSpringDamperCollisionHandler(coefficientOfRestitution, coefficientOfFriction, registry,
-                                                                                        yoGraphicsListRegistry);
+            CollisionHandler collisionHandler =  new DefaultCollisionHandler(coefficientOfRestitution, coefficientOfFriction);
+//      CollisionHandler collisionHandler = new HybridImpulseSpringDamperCollisionHandler(coefficientOfRestitution, coefficientOfFriction, registry,
+//                                                                                        yoGraphicsListRegistry);
 
       //      CollisionHandler collisionHandler = new SpringCollisionHandler(2.0, 1.1, 1.1, robot.getRobotsYoVariableRegistry());
       //      CollisionHandler collisionHandler = new SpringCollisionHandler(1, 1000, 10.0, robot.getRobotsYoVariableRegistry());
@@ -720,7 +720,7 @@ public class NewtonsCradleSimulation
 
    public static void main(String[] args)
    {
-//                  createNewtonsCradleSimulation();
+                  createNewtonsCradleSimulation();
       //    createSpinningCoinSimulation();
       //            createStackOfBouncyBallsSimulation();
       //            createBoxDownRampSimulation();
@@ -729,7 +729,7 @@ public class NewtonsCradleSimulation
 //            createRollingObjectsSimulation();
 //            createSpinningAndDroppingObjectsSimulation();
 //      createTeeteringEdgeToEdgeContactSimulation();
-            createPileOfRandomObjectsSimulation();
+           // createPileOfRandomObjectsSimulation();
    }
 
 }
