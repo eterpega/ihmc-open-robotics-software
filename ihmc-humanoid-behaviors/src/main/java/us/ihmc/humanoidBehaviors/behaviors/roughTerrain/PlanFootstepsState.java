@@ -1,5 +1,6 @@
 package us.ihmc.humanoidBehaviors.behaviors.roughTerrain;
 
+import us.ihmc.communication.packets.MessageTools;
 import us.ihmc.communication.packets.PacketDestination;
 import us.ihmc.communication.packets.PlanarRegionsListMessage;
 import us.ihmc.communication.packets.ToolboxStateMessage;
@@ -7,6 +8,7 @@ import us.ihmc.euclid.referenceFrame.FramePose3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.footstepPlanning.FootstepPlannerType;
 import us.ihmc.humanoidBehaviors.communication.CommunicationBridge;
+import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataListMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepPlanningRequestPacket;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepPlanningToolboxOutputStatus;
@@ -71,7 +73,7 @@ class PlanFootstepsState extends State<WalkOverTerrainStateMachineBehavior.WalkO
          throw new RuntimeException("Goal pose must be set before executing this state");
       }
 
-      ToolboxStateMessage wakeUp = new ToolboxStateMessage(ToolboxStateMessage.ToolboxState.WAKE_UP);
+      ToolboxStateMessage wakeUp = MessageTools.createToolboxStateMessage(ToolboxStateMessage.ToolboxState.WAKE_UP);
       wakeUp.setDestination(PacketDestination.FOOTSTEP_PLANNING_TOOLBOX_MODULE);
       communicationBridge.sendPacket(wakeUp);
 
@@ -116,7 +118,7 @@ class PlanFootstepsState extends State<WalkOverTerrainStateMachineBehavior.WalkO
       FramePose3D stanceFootPose = new FramePose3D(soleFrames.get(stanceSide));
       stanceFootPose.changeFrame(ReferenceFrame.getWorldFrame());
 
-      FootstepPlanningRequestPacket planningRequestPacket = new FootstepPlanningRequestPacket(stanceFootPose, stanceSide, goalPose, FootstepPlannerType.VIS_GRAPH_WITH_A_STAR);
+      FootstepPlanningRequestPacket planningRequestPacket = HumanoidMessageTools.createFootstepPlanningRequestPacket(stanceFootPose, stanceSide, goalPose, FootstepPlannerType.VIS_GRAPH_WITH_A_STAR);
       planningRequestPacket.planarRegionsListMessage = planarRegionsListMessage.get();
       planningRequestPacket.timeout = swingTime.getValue() - 0.25;
       planningRequestPacket.planId = planId.getIntegerValue();

@@ -1,5 +1,8 @@
 package us.ihmc.humanoidBehaviors.behaviors.roughTerrain;
 
+import java.util.concurrent.atomic.AtomicReference;
+
+import us.ihmc.communication.packets.MessageTools;
 import us.ihmc.communication.packets.PacketDestination;
 import us.ihmc.communication.packets.RequestPlanarRegionsListMessage;
 import us.ihmc.communication.packets.RequestPlanarRegionsListMessage.RequestType;
@@ -10,9 +13,9 @@ import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.humanoidBehaviors.behaviors.AbstractBehavior;
 import us.ihmc.humanoidBehaviors.communication.CommunicationBridge;
+import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepStatus;
 import us.ihmc.humanoidRobotics.communication.packets.walking.HeadTrajectoryMessage;
-import us.ihmc.humanoidRobotics.communication.packets.walking.WalkingStatusMessage;
 import us.ihmc.humanoidRobotics.frames.HumanoidReferenceFrames;
 import us.ihmc.robotics.stateMachines.conditionBasedStateMachine.State;
 import us.ihmc.robotics.stateMachines.conditionBasedStateMachine.StateMachine;
@@ -21,8 +24,6 @@ import us.ihmc.robotics.stateMachines.conditionBasedStateMachine.StateTransition
 import us.ihmc.robotics.time.YoStopwatch;
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
-
-import java.util.concurrent.atomic.AtomicReference;
 
 public class WalkOverTerrainStateMachineBehavior extends AbstractBehavior
 {
@@ -175,14 +176,14 @@ public class WalkOverTerrainStateMachineBehavior extends AbstractBehavior
          AxisAngle orientationAxisAngle = new AxisAngle(0.0, 1.0, 0.0, Math.PI / 2.0);
          Quaternion headOrientation = new Quaternion();
          headOrientation.set(orientationAxisAngle);
-         HeadTrajectoryMessage headTrajectoryMessage = new HeadTrajectoryMessage(2.0, headOrientation, ReferenceFrame.getWorldFrame(), chestFrame);
+         HeadTrajectoryMessage headTrajectoryMessage = HumanoidMessageTools.createHeadTrajectoryMessage(2.0, headOrientation, ReferenceFrame.getWorldFrame(), chestFrame);
          headTrajectoryMessage.setDestination(PacketDestination.CONTROLLER);
          sendPacket(headTrajectoryMessage);
       }
 
       private void clearPlanarRegionsList()
       {
-         RequestPlanarRegionsListMessage requestPlanarRegionsListMessage = new RequestPlanarRegionsListMessage(RequestType.CLEAR);
+         RequestPlanarRegionsListMessage requestPlanarRegionsListMessage = MessageTools.createRequestPlanarRegionsListMessage(RequestType.CLEAR);
          requestPlanarRegionsListMessage.setDestination(PacketDestination.REA_MODULE);
          sendPacket(requestPlanarRegionsListMessage);
       }
