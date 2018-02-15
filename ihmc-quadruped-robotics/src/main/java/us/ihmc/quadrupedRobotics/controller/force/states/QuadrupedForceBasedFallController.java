@@ -60,7 +60,7 @@ public class QuadrupedForceBasedFallController implements QuadrupedController, Q
    private final QuadrupedTaskSpaceController.Settings taskSpaceControllerSettings;
    private final QuadrupedTaskSpaceController taskSpaceController;
 
-   private final QuadrantDependentList<QuadrupedSoleWaypointList> quadrupedSoleWaypointLists;
+   private final QuadrantDependentList<QuadrupedSoleWaypointList> quadrupedSoleWaypointLists = new QuadrantDependentList<>();
    private final QuadrupedFeetManager feetManager;
    private final QuadrupedTaskSpaceEstimates taskSpaceEstimates;
    private final QuadrupedTaskSpaceEstimator taskSpaceEstimator;
@@ -81,7 +81,6 @@ public class QuadrupedForceBasedFallController implements QuadrupedController, Q
       taskSpaceEstimator = controllerToolbox.getTaskSpaceEstimator();
       referenceFrames = controllerToolbox.getReferenceFrames();
       solePositionSetpoint = new FramePoint3D();
-      quadrupedSoleWaypointLists = new QuadrantDependentList<>();
       for (RobotQuadrant quadrant : RobotQuadrant.values)
       {
          QuadrupedSoleWaypointList quadrupedSoleWaypointList = new QuadrupedSoleWaypointList();
@@ -160,6 +159,7 @@ public class QuadrupedForceBasedFallController implements QuadrupedController, Q
 
       feetManager.registerWaypointCallback(this);
    }
+
 
    @Override
    public ControllerEvent process()

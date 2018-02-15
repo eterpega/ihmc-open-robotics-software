@@ -74,7 +74,6 @@ public class QuadrupedForceBasedSoleWaypointController implements QuadrupedContr
    public void onEntry()
    {
       taskSpaceEstimator.compute(taskSpaceEstimates);
-
       // Initialize task space controller
       taskSpaceControllerSettings.initialize();
       taskSpaceControllerSettings.getVirtualModelControllerSettings().setJointDamping(jointDampingParameter.get());
@@ -86,7 +85,7 @@ public class QuadrupedForceBasedSoleWaypointController implements QuadrupedContr
       }
       taskSpaceController.reset();
 
-      feetManager.initializeWaypointTrajectory(soleWaypointInputProvider.get(), taskSpaceEstimates, false);
+      feetManager.initializeWaypointTrajectory(soleWaypointInputProvider.get(), taskSpaceEstimates, useInitialSoleForces.get());
 
       yoUseForceFeedbackControl.set(useForceFeedbackControlParameter.get());
       // Initialize force feedback
@@ -106,10 +105,8 @@ public class QuadrupedForceBasedSoleWaypointController implements QuadrupedContr
    public ControllerEvent process()
    {
       taskSpaceEstimator.compute(taskSpaceEstimates);
-
       feetManager.compute(taskSpaceControllerCommands.getSoleForce(), taskSpaceEstimates);
       taskSpaceController.compute(taskSpaceControllerSettings, taskSpaceControllerCommands);
-
       return isDoneMoving.getBooleanValue() ? ControllerEvent.DONE : null;
    }
 

@@ -60,7 +60,7 @@ public class QuadrupedForceBasedStandPrepController implements QuadrupedControll
    private FramePoint3D solePositionSetpoint;
    private final Vector3D zeroVelocity;
    private final double robotLength;
-   private FullQuadrupedRobotModel fullRobotModel;
+   private final FullQuadrupedRobotModel fullRobotModel;
 
    private final YoBoolean isDoneMoving = new YoBoolean("standPrepDoneMoving", registry);
 
@@ -170,6 +170,7 @@ public class QuadrupedForceBasedStandPrepController implements QuadrupedControll
             oneDoFJoint.setUseFeedBackForceControl(yoUseForceFeedbackControl.getBooleanValue());
          }
       }
+
       feetManager.registerWaypointCallback(null);
    }
 }

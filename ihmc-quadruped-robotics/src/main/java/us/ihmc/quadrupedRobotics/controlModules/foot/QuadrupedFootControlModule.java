@@ -16,8 +16,8 @@ import us.ihmc.robotics.stateMachines.eventBasedStateMachine.FiniteStateMachineB
 import us.ihmc.robotics.stateMachines.eventBasedStateMachine.FiniteStateMachineStateChangedListener;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
-import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.robotSide.RobotQuadrant;
+import us.ihmc.yoVariables.variable.YoDouble;
 
 public class QuadrupedFootControlModule
 {

@@ -103,15 +103,15 @@ public class QuadrupedFeetManager
       footControlModules.get(robotQuadrant).compute(soleForceToPack, taskSpaceEstimates);
    }
 
-   public void requestFullContact()
-   {
-      for (RobotQuadrant robotQuadrant : RobotQuadrant.values)
-         footControlModules.get(robotQuadrant).requestSupport();
-   }
-
    public void requestHoldAll()
    {
       for (RobotQuadrant robotQuadrant : RobotQuadrant.values)
          footControlModules.get(robotQuadrant).requestHold();
+   }
+
+   public void requestFullContact()
+   {
+      for (RobotQuadrant robotQuadrant : RobotQuadrant.values)
+         footControlModules.get(robotQuadrant).requestSupport();
    }
 }
