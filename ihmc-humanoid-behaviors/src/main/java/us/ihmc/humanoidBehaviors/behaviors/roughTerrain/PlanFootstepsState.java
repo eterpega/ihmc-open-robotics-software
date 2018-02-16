@@ -3,10 +3,12 @@ package us.ihmc.humanoidBehaviors.behaviors.roughTerrain;
 import us.ihmc.communication.packets.MessageTools;
 import us.ihmc.communication.packets.PacketDestination;
 import us.ihmc.communication.packets.PlanarRegionsListMessage;
+import us.ihmc.communication.packets.ToolboxState;
 import us.ihmc.communication.packets.ToolboxStateMessage;
 import us.ihmc.euclid.referenceFrame.FramePose3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.footstepPlanning.FootstepPlannerType;
+import us.ihmc.footstepPlanning.FootstepPlanningResult;
 import us.ihmc.humanoidBehaviors.communication.CommunicationBridge;
 import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataListMessage;
@@ -73,7 +75,7 @@ class PlanFootstepsState extends State<WalkOverTerrainStateMachineBehavior.WalkO
          throw new RuntimeException("Goal pose must be set before executing this state");
       }
 
-      ToolboxStateMessage wakeUp = MessageTools.createToolboxStateMessage(ToolboxStateMessage.ToolboxState.WAKE_UP);
+      ToolboxStateMessage wakeUp = MessageTools.createToolboxStateMessage(ToolboxState.WAKE_UP);
       wakeUp.setDestination(PacketDestination.FOOTSTEP_PLANNING_TOOLBOX_MODULE);
       communicationBridge.sendPacket(wakeUp);
 
@@ -105,7 +107,7 @@ class PlanFootstepsState extends State<WalkOverTerrainStateMachineBehavior.WalkO
 
    boolean planIsValidForExecution()
    {
-      return plannerOutputStatus.get().planningResult.validForExecution();
+      return FootstepPlanningResult.fromByte(plannerOutputStatus.get().planningResult).validForExecution();
    }
 
    private FootstepPlanningRequestPacket createPlanningRequestPacket()

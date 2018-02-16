@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import us.ihmc.communication.packets.MessageTools;
 import us.ihmc.communication.packets.PacketDestination;
 import us.ihmc.communication.packets.RequestPlanarRegionsListMessage;
-import us.ihmc.communication.packets.RequestPlanarRegionsListMessage.RequestType;
+import us.ihmc.communication.packets.PlanarRegionsRequestType;
 import us.ihmc.euclid.axisAngle.AxisAngle;
 import us.ihmc.euclid.geometry.tools.EuclidGeometryTools;
 import us.ihmc.euclid.referenceFrame.FramePose3D;
@@ -14,8 +14,9 @@ import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.humanoidBehaviors.behaviors.AbstractBehavior;
 import us.ihmc.humanoidBehaviors.communication.CommunicationBridge;
 import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
-import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepStatus;
+import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepStatusMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.HeadTrajectoryMessage;
+import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepStatus;
 import us.ihmc.humanoidRobotics.frames.HumanoidReferenceFrames;
 import us.ihmc.robotics.stateMachines.conditionBasedStateMachine.State;
 import us.ihmc.robotics.stateMachines.conditionBasedStateMachine.StateMachine;
@@ -183,7 +184,7 @@ public class WalkOverTerrainStateMachineBehavior extends AbstractBehavior
 
       private void clearPlanarRegionsList()
       {
-         RequestPlanarRegionsListMessage requestPlanarRegionsListMessage = MessageTools.createRequestPlanarRegionsListMessage(RequestType.CLEAR);
+         RequestPlanarRegionsListMessage requestPlanarRegionsListMessage = MessageTools.createRequestPlanarRegionsListMessage(PlanarRegionsRequestType.CLEAR);
          requestPlanarRegionsListMessage.setDestination(PacketDestination.REA_MODULE);
          sendPacket(requestPlanarRegionsListMessage);
       }
@@ -202,12 +203,12 @@ public class WalkOverTerrainStateMachineBehavior extends AbstractBehavior
 
    class WalkingState extends State<WalkOverTerrainState>
    {
-      private final AtomicReference<FootstepStatus> footstepStatusMessage = new AtomicReference<>();
+      private final AtomicReference<FootstepStatusMessage> footstepStatusMessage = new AtomicReference<>();
 
       WalkingState(CommunicationBridge communicationBridge)
       {
          super(WalkOverTerrainState.WALKING);
-         communicationBridge.attachListener(FootstepStatus.class, footstepStatusMessage::set);
+         communicationBridge.attachListener(FootstepStatusMessage.class, footstepStatusMessage::set);
       }
 
       @Override
@@ -230,8 +231,8 @@ public class WalkOverTerrainStateMachineBehavior extends AbstractBehavior
 
       boolean stepHasCompleted()
       {
-         FootstepStatus footstepStatus = this.footstepStatusMessage.getAndSet(null);
-         return (footstepStatus != null) && (footstepStatus.status == FootstepStatus.Status.COMPLETED);
+         FootstepStatusMessage footstepStatus = this.footstepStatusMessage.getAndSet(null);
+         return (footstepStatus != null) && (footstepStatus.status == FootstepStatus.COMPLETED.toByte());
       }
    }
 }
