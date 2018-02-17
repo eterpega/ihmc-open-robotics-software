@@ -107,7 +107,7 @@ class PlanFootstepsState extends State<WalkOverTerrainStateMachineBehavior.WalkO
 
    boolean planIsValidForExecution()
    {
-      return FootstepPlanningResult.fromByte(plannerOutputStatus.get().planningResult).validForExecution();
+      return FootstepPlanningResult.fromByte(plannerOutputStatus.get().footstepPlanningResult).validForExecution();
    }
 
    private FootstepPlanningRequestPacket createPlanningRequestPacket()

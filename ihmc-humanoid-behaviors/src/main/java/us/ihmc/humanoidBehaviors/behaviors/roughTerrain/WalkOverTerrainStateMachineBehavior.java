@@ -232,7 +232,7 @@ public class WalkOverTerrainStateMachineBehavior extends AbstractBehavior
       boolean stepHasCompleted()
       {
          FootstepStatusMessage footstepStatus = this.footstepStatusMessage.getAndSet(null);
-         return (footstepStatus != null) && (footstepStatus.status == FootstepStatus.COMPLETED.toByte());
+         return (footstepStatus != null) && (footstepStatus.footstepStatus == FootstepStatus.COMPLETED.toByte());
       }
    }
 }
