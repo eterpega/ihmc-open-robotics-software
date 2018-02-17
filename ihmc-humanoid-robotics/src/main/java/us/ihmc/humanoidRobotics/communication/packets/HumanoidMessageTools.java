@@ -360,7 +360,7 @@ public class HumanoidMessageTools
    public static BehaviorStatusPacket createBehaviorStatusPacket(CurrentBehaviorStatus requestedControl)
    {
       BehaviorStatusPacket message = new BehaviorStatusPacket();
-      message.currentStatus = requestedControl.toByte();
+      message.currentBehaviorStatus = requestedControl.toByte();
       return message;
    }
 
@@ -1098,7 +1098,7 @@ public class HumanoidMessageTools
    public static FootstepStatusMessage createFootstepStatus(FootstepStatus status, int footstepIndex)
    {
       FootstepStatusMessage message = new FootstepStatusMessage();
-      message.status = status.toByte();
+      message.footstepStatus = status.toByte();
       message.footstepIndex = footstepIndex;
       message.desiredFootPositionInWorld = null;
       message.desiredFootOrientationInWorld = null;
@@ -1112,7 +1112,7 @@ public class HumanoidMessageTools
                                                      Quaternion actualFootOrientationInWorld)
    {
       FootstepStatusMessage message = new FootstepStatusMessage();
-      message.status = status.toByte();
+      message.footstepStatus = status.toByte();
       message.footstepIndex = footstepIndex;
       message.desiredFootPositionInWorld = null;
       message.desiredFootOrientationInWorld = null;
@@ -1127,7 +1127,7 @@ public class HumanoidMessageTools
                                                      Quaternion actualFootOrientationInWorld, RobotSide robotSide)
    {
       FootstepStatusMessage message = new FootstepStatusMessage();
-      message.status = status.toByte();
+      message.footstepStatus = status.toByte();
       message.footstepIndex = footstepIndex;
       message.desiredFootPositionInWorld = null;
       message.desiredFootOrientationInWorld = null;
@@ -1142,7 +1142,7 @@ public class HumanoidMessageTools
                                                      Quaternion actualFootOrientationInWorld, RobotSide robotSide)
    {
       FootstepStatusMessage message = new FootstepStatusMessage();
-      message.status = status.toByte();
+      message.footstepStatus = status.toByte();
       message.footstepIndex = footstepIndex;
       message.desiredFootPositionInWorld = desiredFootPositionInWorld;
       message.desiredFootOrientationInWorld = desiredFootOrientationInWorld;
