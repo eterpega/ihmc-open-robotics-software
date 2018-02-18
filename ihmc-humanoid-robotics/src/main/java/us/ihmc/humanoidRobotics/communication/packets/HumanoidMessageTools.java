@@ -29,8 +29,8 @@ import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
 import us.ihmc.footstepPlanning.FootstepPlannerType;
-import us.ihmc.humanoidRobotics.communication.packets.atlas.AtlasLowLevelControlModeMessage;
 import us.ihmc.humanoidRobotics.communication.packets.atlas.AtlasLowLevelControlMode;
+import us.ihmc.humanoidRobotics.communication.packets.atlas.AtlasLowLevelControlModeMessage;
 import us.ihmc.humanoidRobotics.communication.packets.bdi.BDIBehaviorCommandPacket;
 import us.ihmc.humanoidRobotics.communication.packets.bdi.BDIBehaviorStatusPacket;
 import us.ihmc.humanoidRobotics.communication.packets.bdi.BDIRobotBehavior;
@@ -86,7 +86,6 @@ import us.ihmc.humanoidRobotics.communication.packets.sensing.StateEstimatorMode
 import us.ihmc.humanoidRobotics.communication.packets.sensing.VideoPacket;
 import us.ihmc.humanoidRobotics.communication.packets.walking.AdjustFootstepMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.AutomaticManipulationAbortMessage;
-import us.ihmc.humanoidRobotics.communication.packets.walking.HumanoidBodyPart;
 import us.ihmc.humanoidRobotics.communication.packets.walking.ChestTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootLoadBearingMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootTrajectoryMessage;
@@ -94,10 +93,13 @@ import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataListMe
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepPathPlanPacket;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepPlanRequestPacket;
+import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepPlanRequestType;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepPlanningRequestPacket;
+import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepStatus;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepStatusMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.GoHomeMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.HeadTrajectoryMessage;
+import us.ihmc.humanoidRobotics.communication.packets.walking.HumanoidBodyPart;
 import us.ihmc.humanoidRobotics.communication.packets.walking.LoadBearingRequest;
 import us.ihmc.humanoidRobotics.communication.packets.walking.NeckDesiredAccelerationsMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.NeckTrajectoryMessage;
@@ -107,11 +109,9 @@ import us.ihmc.humanoidRobotics.communication.packets.walking.PelvisOrientationT
 import us.ihmc.humanoidRobotics.communication.packets.walking.PelvisTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.PlanOffsetStatus;
 import us.ihmc.humanoidRobotics.communication.packets.walking.PrepareForLocomotionMessage;
-import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepPlanRequestType;
 import us.ihmc.humanoidRobotics.communication.packets.walking.SnapFootstepPacket;
 import us.ihmc.humanoidRobotics.communication.packets.walking.SpineDesiredAccelerationsMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.SpineTrajectoryMessage;
-import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepStatus;
 import us.ihmc.humanoidRobotics.communication.packets.walking.WalkingControllerFailureStatusMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.hybridRigidBodyManager.ChestHybridJointspaceTaskspaceTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.hybridRigidBodyManager.HandHybridJointspaceTaskspaceTrajectoryMessage;
@@ -433,6 +433,11 @@ public class HumanoidMessageTools
    }
 
    public static DoorLocationPacket createDoorLocationPacket(RigidBodyTransform doorTransformToWorld)
+   {
+      return createDoorLocationPacket(new Pose3D(doorTransformToWorld));
+   }
+
+   public static DoorLocationPacket createDoorLocationPacket(Pose3D doorTransformToWorld)
    {
       DoorLocationPacket message = new DoorLocationPacket();
       message.doorTransformToWorld = doorTransformToWorld;
@@ -1803,7 +1808,8 @@ public class HumanoidMessageTools
    {
       StampedPosePacket message = new StampedPosePacket();
       message.frameId = frameId;
-      message.transform = transform;
+      message.pose = new Pose3D(transform.getTransform3D());
+      message.timeStamp = transform.getTimeStamp();
       message.confidenceFactor = confidenceFactor;
       return message;
    }
@@ -1840,7 +1846,7 @@ public class HumanoidMessageTools
       return message;
    }
 
-   public static DetectedObjectPacket createDetectedObjectPacket(RigidBodyTransform pose, int id)
+   public static DetectedObjectPacket createDetectedObjectPacket(Pose3D pose, int id)
    {
       DetectedObjectPacket message = new DetectedObjectPacket();
       message.pose = pose;
@@ -2014,7 +2020,15 @@ public class HumanoidMessageTools
    public static ValveLocationPacket createValveLocationPacket(RigidBodyTransform valveTransformToWorld, double valveRadius)
    {
       ValveLocationPacket message = new ValveLocationPacket();
-      message.valveTransformToWorld = valveTransformToWorld;
+      message.valvePoseInWorld = new Pose3D(valveTransformToWorld);
+      message.valveRadius = valveRadius;
+      return message;
+   }
+
+   public static ValveLocationPacket createValveLocationPacket(Pose3D valvePoseInWorld, double valveRadius)
+   {
+      ValveLocationPacket message = new ValveLocationPacket();
+      message.valvePoseInWorld = valvePoseInWorld;
       message.valveRadius = valveRadius;
       return message;
    }
