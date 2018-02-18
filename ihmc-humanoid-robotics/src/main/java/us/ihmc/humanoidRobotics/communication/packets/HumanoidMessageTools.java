@@ -2,6 +2,7 @@ package us.ihmc.humanoidRobotics.communication.packets;
 
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import boofcv.struct.calib.IntrinsicParameters;
@@ -1114,7 +1115,7 @@ public class HumanoidMessageTools
    }
 
    public static FootstepStatusMessage createFootstepStatus(FootstepStatus status, int footstepIndex, Point3D actualFootPositionInWorld,
-                                                     Quaternion actualFootOrientationInWorld)
+                                                            Quaternion actualFootOrientationInWorld)
    {
       FootstepStatusMessage message = new FootstepStatusMessage();
       message.footstepStatus = status.toByte();
@@ -1129,7 +1130,7 @@ public class HumanoidMessageTools
    }
 
    public static FootstepStatusMessage createFootstepStatus(FootstepStatus status, int footstepIndex, Point3D actualFootPositionInWorld,
-                                                     Quaternion actualFootOrientationInWorld, RobotSide robotSide)
+                                                            Quaternion actualFootOrientationInWorld, RobotSide robotSide)
    {
       FootstepStatusMessage message = new FootstepStatusMessage();
       message.footstepStatus = status.toByte();
@@ -1143,8 +1144,8 @@ public class HumanoidMessageTools
    }
 
    public static FootstepStatusMessage createFootstepStatus(FootstepStatus status, int footstepIndex, Point3D desiredFootPositionInWorld,
-                                                     Quaternion desiredFootOrientationInWorld, Point3D actualFootPositionInWorld,
-                                                     Quaternion actualFootOrientationInWorld, RobotSide robotSide)
+                                                            Quaternion desiredFootOrientationInWorld, Point3D actualFootPositionInWorld,
+                                                            Quaternion actualFootOrientationInWorld, RobotSide robotSide)
    {
       FootstepStatusMessage message = new FootstepStatusMessage();
       message.footstepStatus = status.toByte();
@@ -1213,8 +1214,8 @@ public class HumanoidMessageTools
       return message;
    }
 
-   public static FootstepPlanRequestPacket createFootstepPlanRequestPacket(FootstepPlanRequestType requestType, FootstepDataMessage startFootstep, double thetaStart,
-                                                                           ArrayList<FootstepDataMessage> goals)
+   public static FootstepPlanRequestPacket createFootstepPlanRequestPacket(FootstepPlanRequestType requestType, FootstepDataMessage startFootstep,
+                                                                           double thetaStart, ArrayList<FootstepDataMessage> goals)
    {
       FootstepPlanRequestPacket message = new FootstepPlanRequestPacket();
       message.footstepPlanRequestType = requestType.toByte();
@@ -1224,8 +1225,8 @@ public class HumanoidMessageTools
       return message;
    }
 
-   public static FootstepPlanRequestPacket createFootstepPlanRequestPacket(FootstepPlanRequestType requestType, FootstepDataMessage startFootstep, double thetaStart,
-                                                                           ArrayList<FootstepDataMessage> goals, double maxSuboptimality)
+   public static FootstepPlanRequestPacket createFootstepPlanRequestPacket(FootstepPlanRequestType requestType, FootstepDataMessage startFootstep,
+                                                                           double thetaStart, ArrayList<FootstepDataMessage> goals, double maxSuboptimality)
    {
       FootstepPlanRequestPacket message = new FootstepPlanRequestPacket();
       message.footstepPlanRequestType = requestType.toByte();
@@ -1416,7 +1417,7 @@ public class HumanoidMessageTools
       message.data = data;
       message.position = new Point3D(position);
       message.orientation = new Quaternion(orientation);
-      message.intrinsicParameters = intrinsicParameters;
+      message.intrinsicParameters = toIntrinsicParametersMessage(intrinsicParameters);
       return message;
    }
 
@@ -1437,7 +1438,7 @@ public class HumanoidMessageTools
       message.data = data;
       message.position = new Point3D(position);
       message.orientation = new Quaternion(orientation);
-      message.intrinsicParameters = intrinsicParameters;
+      message.intrinsicParameters = toIntrinsicParametersMessage(intrinsicParameters);
       return message;
    }
 
@@ -1446,7 +1447,8 @@ public class HumanoidMessageTools
       LocalVideoPacket message = new LocalVideoPacket();
       message.timeStamp = timeStamp;
       message.image = image;
-      message.intrinsicParameters = intrinsicParameters;
+      IntrinsicParametersMessage intrinsicParametersMessage = toIntrinsicParametersMessage(intrinsicParameters);
+      message.intrinsicParameters = intrinsicParametersMessage;
       return message;
    }
 
@@ -2097,5 +2099,37 @@ public class HumanoidMessageTools
    {
       if (bodyPart.isRobotSideNeeded())
          throw new RuntimeException("Need to provide robotSide for the bodyPart: " + bodyPart);
+   }
+
+   public static IntrinsicParametersMessage toIntrinsicParametersMessage(IntrinsicParameters intrinsicParameters)
+   {
+      IntrinsicParametersMessage intrinsicParametersMessage = new IntrinsicParametersMessage();
+      intrinsicParametersMessage.width = intrinsicParameters.width;
+      intrinsicParametersMessage.height = intrinsicParameters.height;
+      intrinsicParametersMessage.fx = intrinsicParameters.fx;
+      intrinsicParametersMessage.fy = intrinsicParameters.fy;
+      intrinsicParametersMessage.skew = intrinsicParameters.skew;
+      intrinsicParametersMessage.cx = intrinsicParameters.cx;
+      intrinsicParametersMessage.cy = intrinsicParameters.cy;
+      intrinsicParametersMessage.radial = Arrays.copyOf(intrinsicParameters.radial, intrinsicParameters.radial.length);
+      intrinsicParametersMessage.t1 = intrinsicParameters.t1;
+      intrinsicParametersMessage.t2 = intrinsicParameters.t2;
+      return intrinsicParametersMessage;
+   }
+
+   public static IntrinsicParameters toIntrinsicParameters(IntrinsicParametersMessage message)
+   {
+      IntrinsicParameters intrinsicParameters = new IntrinsicParameters();
+      intrinsicParameters.width = message.width;
+      intrinsicParameters.height = message.height;
+      intrinsicParameters.fx = message.fx;
+      intrinsicParameters.fy = message.fy;
+      intrinsicParameters.skew = message.skew;
+      intrinsicParameters.cx = message.cx;
+      intrinsicParameters.cy = message.cy;
+      intrinsicParameters.radial = Arrays.copyOf(message.radial, message.radial.length);
+      intrinsicParameters.t1 = message.t1;
+      intrinsicParameters.t2 = message.t2;
+      return intrinsicParameters;
    }
 }
