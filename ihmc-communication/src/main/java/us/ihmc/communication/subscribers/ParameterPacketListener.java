@@ -74,7 +74,7 @@ public class ParameterPacketListener
    public void onSetDoubleArrayPacket(SetDoubleArrayParameterPacket packet)
    {
       DoubleArrayParameter parameter = lookup(packet.getParameterNameAsString(), DoubleArrayParameter.class);
-      parameter.set(packet.getParameterValue());
+      parameter.set(packet.getParameterValue().toArray()); // FIXME garbage generation.
    }
 
    public void onSetDoublePacket(SetDoubleParameterPacket packet)

@@ -281,7 +281,6 @@ public class FootstepPlanningToolboxController extends ToolboxController
    {
       VisibilityGraphWithAStarPlanner visibilityGraphWithAStarPlanner = (VisibilityGraphWithAStarPlanner) plannerMap
             .get(FootstepPlannerType.VIS_GRAPH_WITH_A_STAR);
-      result.navigableExtrusions = visibilityGraphWithAStarPlanner.getNavigableRegions();
       result.lowLevelPlannerGoal = visibilityGraphWithAStarPlanner.getLowLevelPlannerGoal();
 
       List<Point2D> waypointList = visibilityGraphWithAStarPlanner.getBodyPathWaypoints();
@@ -290,7 +289,7 @@ public class FootstepPlanningToolboxController extends ToolboxController
       {
          waypoints[i] = waypointList.get(i);
       }
-      result.bodyPath = waypoints;
+      MessageTools.copyData(waypointList, result.bodyPath);
    }
 
    private static SideDependentList<ConvexPolygon2D> createFootPolygonsFromContactPoints(RobotContactPointParameters contactPointParameters)

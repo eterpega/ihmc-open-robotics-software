@@ -1,14 +1,14 @@
 package us.ihmc.communication.packets;
 
-import java.util.Arrays;
-
 import com.google.common.math.DoubleMath;
+
+import gnu.trove.list.array.TDoubleArrayList;
 
 public class SetDoubleArrayParameterPacket extends Packet<SetDoubleArrayParameterPacket>
 {
 
    public StringBuilder parameterName = new StringBuilder();
-   public double[] parameterValue;
+   public TDoubleArrayList parameterValue = new TDoubleArrayList();
 
    // Empty constructor for serialization
    public SetDoubleArrayParameterPacket()
@@ -20,7 +20,7 @@ public class SetDoubleArrayParameterPacket extends Packet<SetDoubleArrayParamete
    {
       parameterName.setLength(0);
       parameterName.append(other.parameterName);
-      parameterValue = Arrays.copyOf(other.parameterValue, other.parameterValue.length);
+      MessageTools.copyData(other.parameterValue, parameterValue);
       setPacketInformation(other);
    }
 
@@ -29,7 +29,7 @@ public class SetDoubleArrayParameterPacket extends Packet<SetDoubleArrayParamete
       return parameterName.toString();
    }
 
-   public double[] getParameterValue()
+   public TDoubleArrayList getParameterValue()
    {
       return parameterValue;
    }
@@ -37,14 +37,14 @@ public class SetDoubleArrayParameterPacket extends Packet<SetDoubleArrayParamete
    @Override
    public boolean epsilonEquals(SetDoubleArrayParameterPacket other, double epsilon)
    {
-      if (!parameterName.equals(other.parameterName) || parameterValue.length != other.parameterValue.length)
+      if (!parameterName.equals(other.parameterName) || parameterValue.size() != other.parameterValue.size())
       {
          return false;
       }
 
-      for (int i = 0; i < parameterValue.length; i++)
+      for (int i = 0; i < parameterValue.size(); i++)
       {
-         if (!DoubleMath.fuzzyEquals(parameterValue[i], other.parameterValue[i], 1e-12))
+         if (!DoubleMath.fuzzyEquals(parameterValue.get(i), other.parameterValue.get(i), 1e-12))
          {
             return false;
          }
