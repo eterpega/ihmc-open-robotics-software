@@ -2,7 +2,11 @@ package us.ihmc.simulationconstructionset.physics.collision.simple;
 
 import java.util.ArrayList;
 
+import us.ihmc.euclid.geometry.Box3D;
+import us.ihmc.euclid.geometry.Cylinder3D;
 import us.ihmc.euclid.geometry.LineSegment3D;
+import us.ihmc.euclid.geometry.Shape3D;
+import us.ihmc.euclid.geometry.Sphere3D;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.geometry.polytope.ConvexPolytope;
@@ -36,11 +40,47 @@ public class SimpleCollisionShapeFactory implements CollisionShapeFactory
    }
 
    @Override
+   public CollisionShapeDescription<?> createBox(Shape3D shape3D)
+   {
+      if (!(shape3D instanceof Box3D))
+         throw new RuntimeException("Check Shape3D is Box3D");
+      Box3D box3D = (Box3D) shape3D;
+      return createBox(0.5 * box3D.getLength(), 0.5 * box3D.getWidth(), 0.5 * box3D.getHeight());
+   }
+
+   @Override
+   public CollisionShapeDescription<?> createSphere(Shape3D shape3D)
+   {
+      if (!(shape3D instanceof Sphere3D))
+         throw new RuntimeException("Check Shape3D is Sphere3D");
+      Sphere3D sphere3D = (Sphere3D) shape3D;
+      return createSphere(sphere3D.getRadius());
+   }
+
+   @Override
+   public CollisionShapeDescription<?> createCylinder(Shape3D shape3D)
+   {
+      if (!(shape3D instanceof Cylinder3D))
+         throw new RuntimeException("Check Shape3D is Cylinder3D");
+      Cylinder3D cylinder3D = (Cylinder3D) shape3D;
+      return createCylinder(cylinder3D.getRadius(), cylinder3D.getHeight());
+   }
+
+   @Override
+   public CollisionShapeDescription<?> createCapsule(Shape3D shape3D)
+   {
+      if (!(shape3D instanceof Capsule3D))
+         throw new RuntimeException("Check Shape3D is Capsule3D");
+      Capsule3D capsule3D = (Capsule3D) shape3D;
+      return createCapsule(capsule3D.getRadius(), capsule3D.getLineSegment());
+   }
+
+   @Override
    public CollisionShapeDescription<?> createBox(double halfLengthX, double halfWidthY, double halfHeightZ)
    {
       ConvexPolytope polytope = ConvexPolytopeConstructor.constructBoxWithCenterAtZero(halfLengthX, halfWidthY, halfHeightZ);
       return new PolytopeShapeDescription(polytope);
-//      return new BoxShapeDescription(halfLengthX, halfWidthY, halfHeightZ);
+      //      return new BoxShapeDescription(halfLengthX, halfWidthY, halfHeightZ);
    }
 
    @Override
@@ -67,7 +107,8 @@ public class SimpleCollisionShapeFactory implements CollisionShapeFactory
    }
 
    @Override
-   public CollisionShape addShape(Link link, RigidBodyTransform shapeToLink, CollisionShapeDescription<?> description, boolean isGround, int groupMask, int collisionMask)
+   public CollisionShape addShape(Link link, RigidBodyTransform shapeToLink, CollisionShapeDescription<?> description, boolean isGround, int groupMask,
+                                  int collisionMask)
    {
       SimpleCollisionShapeWithLink collisionShape = new SimpleCollisionShapeWithLink(link, description, shapeToLink);
       collisionShape.setIsGround(isGround);
@@ -106,7 +147,8 @@ public class SimpleCollisionShapeFactory implements CollisionShapeFactory
             capsule.getCapToCapLineSegment(capToCapLineSegment);
 
             CollisionShapeDescription<?> collisionShapeDescription = createCapsule(capsule.getRadius(), capToCapLineSegment);
-            addShape(link, null, collisionShapeDescription, collisionMeshDescription.getIsGround(), collisionMeshDescription.getCollisionGroup(), collisionMeshDescription.getCollisionMask());
+            addShape(link, null, collisionShapeDescription, collisionMeshDescription.getIsGround(), collisionMeshDescription.getCollisionGroup(),
+                     collisionMeshDescription.getCollisionMask());
          }
 
          else if (convexShapeDescription instanceof SphereDescriptionReadOnly)
@@ -115,16 +157,18 @@ public class SimpleCollisionShapeFactory implements CollisionShapeFactory
             CollisionShapeDescription<?> collisionShapeDescription = createSphere(sphere.getRadius());
             RigidBodyTransform transform = new RigidBodyTransform();
             sphere.getRigidBodyTransform(transform);
-            addShape(link, transform, collisionShapeDescription, collisionMeshDescription.getIsGround(), collisionMeshDescription.getCollisionGroup(), collisionMeshDescription.getCollisionMask());
+            addShape(link, transform, collisionShapeDescription, collisionMeshDescription.getIsGround(), collisionMeshDescription.getCollisionGroup(),
+                     collisionMeshDescription.getCollisionMask());
          }
 
          else if (convexShapeDescription instanceof CubeDescriptionReadOnly)
          {
             CubeDescriptionReadOnly cube = (CubeDescriptionReadOnly) convexShapeDescription;
-            CollisionShapeDescription<?> collisionShapeDescription = createBox(cube.getLengthX()/2.0, cube.getWidthY()/2.0, cube.getHeightZ()/2.0);
+            CollisionShapeDescription<?> collisionShapeDescription = createBox(cube.getLengthX() / 2.0, cube.getWidthY() / 2.0, cube.getHeightZ() / 2.0);
             RigidBodyTransform transform = new RigidBodyTransform();
             cube.getRigidBodyTransformToCenter(transform);
-            addShape(link, transform, collisionShapeDescription, collisionMeshDescription.getIsGround(), collisionMeshDescription.getCollisionGroup(), collisionMeshDescription.getCollisionMask());
+            addShape(link, transform, collisionShapeDescription, collisionMeshDescription.getIsGround(), collisionMeshDescription.getCollisionGroup(),
+                     collisionMeshDescription.getCollisionMask());
          }
 
          else if (convexShapeDescription instanceof CylinderDescriptionReadOnly)
@@ -133,7 +177,8 @@ public class SimpleCollisionShapeFactory implements CollisionShapeFactory
             CollisionShapeDescription<?> collisionShapeDescription = createCylinder(cylinder.getRadius(), cylinder.getHeight());
             RigidBodyTransform transform = new RigidBodyTransform();
             cylinder.getRigidBodyTransformToCenter(transform);
-            addShape(link, transform, collisionShapeDescription, collisionMeshDescription.getIsGround(), collisionMeshDescription.getCollisionGroup(), collisionMeshDescription.getCollisionMask());
+            addShape(link, transform, collisionShapeDescription, collisionMeshDescription.getIsGround(), collisionMeshDescription.getCollisionGroup(),
+                     collisionMeshDescription.getCollisionMask());
          }
 
          else
