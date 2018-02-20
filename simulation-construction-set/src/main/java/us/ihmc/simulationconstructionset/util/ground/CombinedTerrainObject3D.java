@@ -1,9 +1,13 @@
 package us.ihmc.simulationconstructionset.util.ground;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import us.ihmc.euclid.geometry.BoundingBox3D;
 import us.ihmc.euclid.geometry.Box3D;
+import us.ihmc.euclid.geometry.Cylinder3D;
+import us.ihmc.euclid.geometry.Shape3D;
+import us.ihmc.euclid.geometry.Sphere3D;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
@@ -23,6 +27,8 @@ public class CombinedTerrainObject3D implements TerrainObject3D, HeightMapWithNo
 
    private final Point3D tempPointToCheck = new Point3D();
 
+   private ArrayList<Shape3D> simpleShapes = new ArrayList<>();
+
    public CombinedTerrainObject3D(String name)
    {
       linkGraphics = new Graphics3DObject();
@@ -38,24 +44,42 @@ public class CombinedTerrainObject3D implements TerrainObject3D, HeightMapWithNo
    {
       SphereTerrainObject sphere = new SphereTerrainObject(xCenter, yCenter, zCenter, radius, appearance);
       addTerrainObject(sphere);
+
+      Sphere3D sphereShape = new Sphere3D(xCenter, yCenter, zCenter, radius);
+      simpleShapes.add(sphereShape);
    }
 
    public void addBox(double xStart, double yStart, double xEnd, double yEnd, double height, AppearanceDefinition appearance)
    {
       BoxTerrainObject box = new BoxTerrainObject(xStart, yStart, xEnd, yEnd, height, appearance);
       addTerrainObject(box);
+
+      Box3D boxShape = new Box3D(Math.abs(xStart - xEnd), Math.abs(yStart - yEnd), Math.abs(0.0 - height));
+      boxShape.appendTranslation((xStart + xEnd) / 2.0, (yStart + yEnd) / 2.0, (0.0 + height) / 2.0);
+
+      simpleShapes.add(boxShape);
    }
 
    public void addBox(double xStart, double yStart, double xEnd, double yEnd, double zStart, double zEnd)
    {
       BoxTerrainObject box = new BoxTerrainObject(xStart, yStart, xEnd, yEnd, zStart, zEnd);
       addTerrainObject(box);
+
+      Box3D boxShape = new Box3D(Math.abs(xStart - xEnd), Math.abs(yStart - yEnd), Math.abs(zStart - zEnd));
+      boxShape.appendTranslation((xStart + xEnd) / 2.0, (yStart + yEnd) / 2.0, (zStart + zEnd) / 2.0);
+
+      simpleShapes.add(boxShape);
    }
 
    public void addBox(double xStart, double yStart, double xEnd, double yEnd, double zStart, double zEnd, AppearanceDefinition appearance)
    {
       BoxTerrainObject box = new BoxTerrainObject(xStart, yStart, xEnd, yEnd, zStart, zEnd, appearance);
       addTerrainObject(box);
+
+      Box3D boxShape = new Box3D(Math.abs(xStart - xEnd), Math.abs(yStart - yEnd), Math.abs(zStart - zEnd));
+      boxShape.appendTranslation((xStart + xEnd) / 2.0, (yStart + yEnd) / 2.0, (zStart + zEnd) / 2.0);
+
+      simpleShapes.add(boxShape);
    }
 
    public void addRotatableBox(RigidBodyTransform configuration, double xLength, double yWidth, double zLength, AppearanceDefinition appearanceDefinition)
@@ -63,24 +87,41 @@ public class CombinedTerrainObject3D implements TerrainObject3D, HeightMapWithNo
       Box3D box3d = new Box3D(configuration, xLength, yWidth, zLength);
       RotatableBoxTerrainObject box = new RotatableBoxTerrainObject(box3d, appearanceDefinition);
       addTerrainObject(box);
+
+      Box3D boxShape = new Box3D(configuration, xLength, yWidth, zLength);
+
+      simpleShapes.add(boxShape);
    }
 
    public void addRotatableBox(Box3D box, AppearanceDefinition appearanceDefinition)
    {
       RotatableBoxTerrainObject terrainObject = new RotatableBoxTerrainObject(box, appearanceDefinition);
       addTerrainObject(terrainObject);
+
+      Box3D boxShape = new Box3D(box);
+
+      simpleShapes.add(boxShape);
    }
 
    public void addBox(double xStart, double yStart, double xEnd, double yEnd, double height)
    {
       BoxTerrainObject box = new BoxTerrainObject(xStart, yStart, xEnd, yEnd, height);
       addTerrainObject(box);
+
+      Box3D boxShape = new Box3D(Math.abs(xStart - xEnd), Math.abs(yStart - yEnd), Math.abs(0.0 - height));
+      boxShape.appendTranslation((xStart + xEnd) / 2.0, (yStart + yEnd) / 2.0, (0.0 + height) / 2.0);
+
+      simpleShapes.add(boxShape);
    }
 
    public void addCylinder(RigidBodyTransform location, double height, double radius, AppearanceDefinition appearance)
    {
       CylinderTerrainObject cylinder = new CylinderTerrainObject(location, height, radius, appearance);
       addTerrainObject(cylinder);
+
+      Cylinder3D cylinderShape = new Cylinder3D(location, height, radius);
+
+      simpleShapes.add(cylinderShape);
    }
 
    public void addCone(double xMiddle, double yMiddle, double bottomRadius, double topRadius, double height, AppearanceDefinition appearance)
@@ -129,6 +170,8 @@ public class CombinedTerrainObject3D implements TerrainObject3D, HeightMapWithNo
    {
       terrainObjects.add(object);
       linkGraphics.combine(object.getLinkGraphics());
+      if (object.getSimpleShapes() != null)
+         simpleShapes.addAll(object.getSimpleShapes());
 
       if (boundingBox == null)
       {
@@ -345,4 +388,9 @@ public class CombinedTerrainObject3D implements TerrainObject3D, HeightMapWithNo
       return boundingBox.getMaxY();
    }
 
+   @Override
+   public List<? extends Shape3D> getSimpleShapes()
+   {
+      return simpleShapes;
+   }
 }
