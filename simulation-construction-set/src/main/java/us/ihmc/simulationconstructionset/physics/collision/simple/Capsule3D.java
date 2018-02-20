@@ -3,6 +3,8 @@ package us.ihmc.simulationconstructionset.physics.collision.simple;
 import us.ihmc.euclid.geometry.LineSegment3D;
 import us.ihmc.euclid.geometry.Pose3D;
 import us.ihmc.euclid.geometry.Shape3D;
+import us.ihmc.euclid.geometry.tools.EuclidGeometryTools;
+import us.ihmc.euclid.tools.EuclidCoreTools;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DBasics;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
@@ -74,8 +76,8 @@ public class Capsule3D extends Shape3D<Capsule3D>
    @Override
    public boolean epsilonEquals(Capsule3D other, double epsilon)
    {
-      // TODO Auto-generated method stub
-      return false;
+      return EuclidCoreTools.epsilonEquals(radius, other.radius, epsilon) && line3D.epsilonEquals(other.line3D, epsilon)
+            && super.epsilonEqualsPose(other, epsilon);
    }
 
    @Override
@@ -89,21 +91,30 @@ public class Capsule3D extends Shape3D<Capsule3D>
    @Override
    public boolean geometricallyEquals(Capsule3D other, double epsilon)
    {
-      // TODO Auto-generated method stub
-      return false;
+      if (Math.abs(radius - other.radius) > epsilon)
+         return false;
+
+      if (!shapePose.getTranslationVector().geometricallyEquals(other.shapePose.getTranslationVector(), epsilon))
+         return false;
+
+      if (!line3D.geometricallyEquals(other.line3D, epsilon))
+         return false;
+
+      return EuclidGeometryTools.areVector3DsParallel(shapePose.getM02(), shapePose.getM12(), shapePose.getM22(), other.shapePose.getM02(),
+                                                      other.shapePose.getM12(), other.shapePose.getM22(), epsilon);
    }
 
    @Override
    protected double evaluateQuery(double x, double y, double z, Point3DBasics closestPointOnSurfaceToPack, Vector3DBasics normalAtClosestPointToPack)
    {
-      // TODO Auto-generated method stub
+      // TODO 
       return 0;
    }
 
    @Override
    protected boolean isInsideEpsilonShapeFrame(double x, double y, double z, double epsilon)
    {
-      // TODO Auto-generated method stub
+      // TODO
       return false;
    }
 
