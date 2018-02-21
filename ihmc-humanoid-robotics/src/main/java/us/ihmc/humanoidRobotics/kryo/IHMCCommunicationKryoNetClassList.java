@@ -360,8 +360,11 @@ public class IHMCCommunicationKryoNetClassList extends NetClassList
       registerPacketClass(RigidBodyExplorationConfigurationMessage.class);
       registerPacketFields(WholeBodyTrajectoryToolboxConfigurationMessage.class);
       registerPacketFields(WaypointBasedTrajectoryMessage.class);
+      registerPacketFields(WaypointBasedTrajectoryMessage[].class);
       registerPacketFields(ReachingManifoldMessage.class);
+      registerPacketFields(ReachingManifoldMessage[].class);
       registerPacketFields(RigidBodyExplorationConfigurationMessage.class);
+      registerPacketFields(RigidBodyExplorationConfigurationMessage[].class);
       registerPacketFields(ConfigurationSpaceName.class);
       registerPacketFields(ConfigurationSpaceName[].class);
 
@@ -386,6 +389,8 @@ public class IHMCCommunicationKryoNetClassList extends NetClassList
       registerPacketClass(PlanOffsetStatus.class);
       registerPacketClass(WalkingStatusMessage.class);
       registerPacketField(TrajectoryType.class);
+      registerPacketField(StringBuilder.class);
+      registerPacketField(StringBuilder[].class);
 
       registerPacketField(ArrayList.class);
       registerPacketField(FootstepStatus.class);
@@ -397,6 +402,8 @@ public class IHMCCommunicationKryoNetClassList extends NetClassList
       registerPacketClass(PlanarRegionsListMessage.class);
       registerPacketField(PlanarRegionsListMessage.class);
       registerPacketClass(PlanarRegionMessage.class);
+      registerPacketField(PlanarRegionMessage.class);
+      registerPacketField(PlanarRegionMessage[].class);
       registerPacketClass(RequestPlanarRegionsListMessage.class);
       registerPacketField(PlanarRegionsRequestType.class);
       registerPacketField(Point3D32.class);
@@ -405,6 +412,7 @@ public class IHMCCommunicationKryoNetClassList extends NetClassList
       registerPacketField(Point2D32[].class);
       registerPacketField(BoundingBox3DMessage.class);
       registerPacketField(Polygon2DMessage.class);
+      registerPacketField(Polygon2DMessage[].class);
 
       //SCS
       registerPacketClass(SCSListenerPacket.class);
@@ -461,6 +469,7 @@ public class IHMCCommunicationKryoNetClassList extends NetClassList
       registerPacketField(WalkToGoalAction.class);
       registerPacketClass(FootstepPlanRequestPacket.class);
       registerPacketField(FootstepDataMessage.class);
+      registerPacketField(FootstepDataMessage[].class);
       registerPacketField(FootstepPlannerType.class);
       registerPacketClass(SimpleCoactiveBehaviorDataPacket.class);
       registerPacketClass(WallPosePacket.class);
