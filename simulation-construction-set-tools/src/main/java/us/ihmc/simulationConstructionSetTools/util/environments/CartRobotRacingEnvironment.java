@@ -15,13 +15,20 @@ public class CartRobotRacingEnvironment implements CommonAvatarEnvironmentInterf
    private final List<ContactableCylinderRobot> envRobots = new ArrayList<ContactableCylinderRobot>();
    private final CombinedTerrainObject3D combinedTerrainObject;
 
+   private double plateSize = 2.0;
+   private double plateHeightGap = 0.3;
+   private double plateThickness = 0.1;
+
    public CartRobotRacingEnvironment()
    {
       combinedTerrainObject = new CombinedTerrainObject3D(getClass().getSimpleName());
-      
-      combinedTerrainObject.addBox(-2.0, -1.0, 2.0, 1.0, -3.6, -3.5);
-      
-      
+
+      for (int i = 0; i < 5; i++)
+      {
+         combinedTerrainObject.addBox(-0.5 * plateSize + plateSize * i, -0.5 * plateSize, 0.5 * plateSize + plateSize * i, 0.5 * plateSize,
+                                      -plateThickness - plateHeightGap * i, -plateHeightGap * i);
+      }
+
       //      RigidBodyTransform robotTransform = new RigidBodyTransform();
       //      ContactableCylinderRobot envRobot = new ContactableCylinderRobot("cylinderRobot", robotTransform, 0.2, 1.0, 100);
       //      envRobots.add(envRobot);
