@@ -89,7 +89,6 @@ import us.ihmc.simulationconstructionset.gui.config.VarGroupList;
 import us.ihmc.simulationconstructionset.gui.dialogConstructors.GUIEnablerAndDisabler;
 import us.ihmc.simulationconstructionset.gui.tools.SimulationOverheadPlotterFactory;
 import us.ihmc.simulationconstructionset.physics.CollisionHandler;
-import us.ihmc.simulationconstructionset.physics.CollisionShapeDescription;
 import us.ihmc.simulationconstructionset.physics.ScsPhysics;
 import us.ihmc.simulationconstructionset.physics.collision.DefaultCollisionVisualizer;
 import us.ihmc.simulationconstructionset.robotdefinition.RobotDefinitionFixedFrame;
@@ -4589,13 +4588,14 @@ public class SimulationConstructionSet implements Runnable, YoVariableHolder, Ru
    {
       mySimulation.addEnvironmentCollisionShapes(simpleShape);
    }
-   
+
    public void addEnvironmentCollisionShapes(List<? extends Shape3D> simpleShapes)
    {
-      for(int i=0;i<simpleShapes.size();i++)
+      for (int i = 0; i < simpleShapes.size(); i++)
       {
-         PrintTools.info("["+ i+"] Env is successfully added "+simpleShapes.get(i));
-         mySimulation.addEnvironmentCollisionShapes(simpleShapes.get(i));   
+         System.out.println(
+                            "[" + i + "] Env is successfully added " + simpleShapes.get(i));
+         mySimulation.addEnvironmentCollisionShapes(simpleShapes.get(i));
       }
    }
 
