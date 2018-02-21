@@ -1,11 +1,11 @@
 package us.ihmc.communication.packets;
 
-import us.ihmc.idl.PreallocatedList;
+import us.ihmc.idl.TempPreallocatedList;
 
 // FIXME Refactor to hold onto a single vertex buffer.
 public class PlanarRegionsListMessage extends Packet<PlanarRegionsListMessage>
 {
-   public PreallocatedList<PlanarRegionMessage> planarRegions = new PreallocatedList<>(PlanarRegionMessage.class, PlanarRegionMessage::new, 500);
+   public TempPreallocatedList<PlanarRegionMessage> planarRegions = new TempPreallocatedList<>(PlanarRegionMessage.class, PlanarRegionMessage::new, 500);
 
    public PlanarRegionsListMessage()
    {
@@ -18,7 +18,7 @@ public class PlanarRegionsListMessage extends Packet<PlanarRegionsListMessage>
       setPacketInformation(other);
    }
 
-   public PreallocatedList<PlanarRegionMessage> getPlanarRegions()
+   public TempPreallocatedList<PlanarRegionMessage> getPlanarRegions()
    {
       return planarRegions;
    }

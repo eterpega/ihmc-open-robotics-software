@@ -24,7 +24,7 @@ import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataListMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.PelvisHeightTrajectoryMessage;
-import us.ihmc.idl.PreallocatedList;
+import us.ihmc.idl.TempPreallocatedList;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.simulationConstructionSetTools.bambooTools.BambooTools;
@@ -225,7 +225,7 @@ public abstract class DRCObstacleCourseTrialsTerrainTest implements MultiRobotTe
       setupCameraForWalkingOntoSlopes(simulationConstructionSet);
       ThreadTools.sleep(1000);
       FootstepDataListMessage footstepDataList = createFootstepsForWalkingToTheSlopesSideways(scriptedFootstepGenerator);
-      PreallocatedList<FootstepDataMessage> dataList = createFootstepsForSteppingOverTheSlopesEdgeSideways(scriptedFootstepGenerator).getDataList();
+      TempPreallocatedList<FootstepDataMessage> dataList = createFootstepsForSteppingOverTheSlopesEdgeSideways(scriptedFootstepGenerator).getDataList();
       for (int i = 0; i < dataList.size(); i++)
       {
          FootstepDataMessage step = dataList.get(i);

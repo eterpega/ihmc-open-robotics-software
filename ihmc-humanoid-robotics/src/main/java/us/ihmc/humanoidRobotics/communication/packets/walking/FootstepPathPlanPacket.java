@@ -4,15 +4,15 @@ import gnu.trove.list.array.TByteArrayList;
 import gnu.trove.list.array.TIntArrayList;
 import us.ihmc.communication.packets.MessageTools;
 import us.ihmc.communication.packets.Packet;
-import us.ihmc.idl.PreallocatedList;
+import us.ihmc.idl.TempPreallocatedList;
 
 public class FootstepPathPlanPacket extends Packet<FootstepPathPlanPacket>
 {
 
    public boolean goalsValid;
    public FootstepDataMessage start;
-   public PreallocatedList<FootstepDataMessage> originalGoals = new PreallocatedList<>(FootstepDataMessage.class, FootstepDataMessage::new, 30);
-   public PreallocatedList<FootstepDataMessage> pathPlan = new PreallocatedList<>(FootstepDataMessage.class, FootstepDataMessage::new, 30);
+   public TempPreallocatedList<FootstepDataMessage> originalGoals = new TempPreallocatedList<>(FootstepDataMessage.class, FootstepDataMessage::new, 30);
+   public TempPreallocatedList<FootstepDataMessage> pathPlan = new TempPreallocatedList<>(FootstepDataMessage.class, FootstepDataMessage::new, 30);
    public TIntArrayList footstepUnknown = new TIntArrayList(); // TODO change back to boolean list with moving to DDS
    public double subOptimality;
    public double pathCost = Double.POSITIVE_INFINITY;

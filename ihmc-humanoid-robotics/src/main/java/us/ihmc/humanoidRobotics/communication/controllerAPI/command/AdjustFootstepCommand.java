@@ -8,7 +8,7 @@ import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.humanoidRobotics.communication.packets.walking.AdjustFootstepMessage;
-import us.ihmc.idl.PreallocatedList;
+import us.ihmc.idl.TempPreallocatedList;
 import us.ihmc.robotics.lists.RecyclingArrayList;
 import us.ihmc.robotics.robotSide.RobotSide;
 
@@ -45,7 +45,7 @@ public class AdjustFootstepCommand implements Command<AdjustFootstepCommand, Adj
       robotSide = RobotSide.fromByte(message.getRobotSide());
       adjustedPosition.setIncludingFrame(ReferenceFrame.getWorldFrame(), message.getLocation());
       adjustedOrientation.setIncludingFrame(ReferenceFrame.getWorldFrame(), message.getOrientation());
-      PreallocatedList<Point2D> originalPredictedContactPoints = message.getPredictedContactPoints();
+      TempPreallocatedList<Point2D> originalPredictedContactPoints = message.getPredictedContactPoints();
       predictedContactPoints.clear();
       executionDelayTime = message.getExecutionDelayTime();
       if (originalPredictedContactPoints != null)

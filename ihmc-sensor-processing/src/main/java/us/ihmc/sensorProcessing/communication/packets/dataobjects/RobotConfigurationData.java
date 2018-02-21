@@ -13,7 +13,7 @@ import us.ihmc.euclid.tuple3D.Vector3D32;
 import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 import us.ihmc.euclid.tuple4D.Quaternion32;
 import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
-import us.ihmc.idl.PreallocatedList;
+import us.ihmc.idl.TempPreallocatedList;
 import us.ihmc.robotics.geometry.RotationTools;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
 import us.ihmc.robotics.sensors.ForceSensorDefinition;
@@ -38,8 +38,8 @@ public class RobotConfigurationData extends Packet<RobotConfigurationData>
 
    public Vector3D32 pelvisLinearAcceleration = new Vector3D32();
    //   public DenseMatrix64F[] momentAndForceDataAllForceSensors;
-   public PreallocatedList<SpatialVectorMessage> momentAndForceDataAllForceSensors = new PreallocatedList<>(SpatialVectorMessage.class, SpatialVectorMessage::new, 50);
-   public PreallocatedList<IMUPacket> imuSensorData = new PreallocatedList<>(IMUPacket.class, IMUPacket::new, 10);
+   public TempPreallocatedList<SpatialVectorMessage> momentAndForceDataAllForceSensors = new TempPreallocatedList<>(SpatialVectorMessage.class, SpatialVectorMessage::new, 50);
+   public TempPreallocatedList<IMUPacket> imuSensorData = new TempPreallocatedList<>(IMUPacket.class, IMUPacket::new, 10);
    public byte robotMotionStatus;
    public AtlasAuxiliaryRobotData auxiliaryRobotData;
 

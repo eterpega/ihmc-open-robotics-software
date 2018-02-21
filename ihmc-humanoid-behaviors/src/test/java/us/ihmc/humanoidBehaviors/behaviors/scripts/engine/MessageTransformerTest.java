@@ -23,7 +23,7 @@ import us.ihmc.humanoidRobotics.communication.packets.walking.AdjustFootstepMess
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataListMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.PelvisHeightTrajectoryMessage;
-import us.ihmc.idl.PreallocatedList;
+import us.ihmc.idl.TempPreallocatedList;
 
 public class MessageTransformerTest
 {
@@ -130,7 +130,7 @@ public class MessageTransformerTest
       RigidBodyTransform transform = EuclidCoreRandomTools.nextRigidBodyTransform(random);
 
       FootstepDataListMessage expected = new FootstepDataListMessage(original);
-      PreallocatedList<FootstepDataMessage> footstepDataList = expected.footstepDataList;
+      TempPreallocatedList<FootstepDataMessage> footstepDataList = expected.footstepDataList;
       for (int i = 0; i < footstepDataList.size(); i++)
       {
          FootstepDataMessage footstepDataMessage = footstepDataList.get(i);

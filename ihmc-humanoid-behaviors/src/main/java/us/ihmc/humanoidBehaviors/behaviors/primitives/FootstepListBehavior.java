@@ -21,7 +21,7 @@ import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepStatusMess
 import us.ihmc.humanoidRobotics.communication.packets.walking.WalkingStatus;
 import us.ihmc.humanoidRobotics.communication.packets.walking.WalkingStatusMessage;
 import us.ihmc.humanoidRobotics.footstep.Footstep;
-import us.ihmc.idl.PreallocatedList;
+import us.ihmc.idl.TempPreallocatedList;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.yoVariables.variable.YoBoolean;
@@ -269,7 +269,7 @@ public class FootstepListBehavior extends AbstractBehavior
          WalkingControllerParameters walkingControllerParameters)
    {
       ArrayList<Double> footStepLengths = new ArrayList<Double>();
-      PreallocatedList<FootstepDataMessage> dataList = footStepList.getDataList();
+      TempPreallocatedList<FootstepDataMessage> dataList = footStepList.getDataList();
       for (int i = 0; i < dataList.size(); i++)
       {
          FootstepDataMessage step = dataList.get(i);

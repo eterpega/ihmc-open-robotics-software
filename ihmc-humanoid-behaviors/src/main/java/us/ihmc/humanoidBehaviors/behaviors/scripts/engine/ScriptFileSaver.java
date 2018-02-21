@@ -13,8 +13,8 @@ import com.thoughtworks.xstream.XStream;
 import us.ihmc.commons.PrintTools;
 import us.ihmc.communication.packets.Packet;
 import us.ihmc.euclid.transform.RigidBodyTransform;
-import us.ihmc.idl.PreallocatedList;
-import us.ihmc.idl.PreallocatedList.ListAllocator;
+import us.ihmc.idl.TempPreallocatedList;
+import us.ihmc.idl.TempPreallocatedList.ListAllocator;
 
 public class ScriptFileSaver
 {
@@ -105,9 +105,9 @@ public class ScriptFileSaver
             {
                field.set(copy, createCopyTrimmedToCurrentSize((Packet) field.get(message)));
             }
-            else if (PreallocatedList.class.isAssignableFrom(fieldType))
+            else if (TempPreallocatedList.class.isAssignableFrom(fieldType))
             {
-               field.set(copy, trimPreallocatedList((PreallocatedList) field.get(message)));
+               field.set(copy, trimPreallocatedList((TempPreallocatedList) field.get(message)));
             }
          }
 
@@ -121,14 +121,14 @@ public class ScriptFileSaver
    }
 
    @SuppressWarnings({"rawtypes", "unchecked"})
-   private static <T> PreallocatedList<T> trimPreallocatedList(PreallocatedList<T> list)
+   private static <T> TempPreallocatedList<T> trimPreallocatedList(TempPreallocatedList<T> list)
          throws IllegalArgumentException, IllegalAccessException, NoSuchFieldException, SecurityException
    {
       if (list.isEnum())
          return list;
       Field clazzField = list.getClass().getDeclaredField("clazz");
       clazzField.setAccessible(true);
-      PreallocatedList<T> trimmed = new PreallocatedList<>((Class<T>) clazzField.get(list), (ListAllocator<T>) null, 0);
+      TempPreallocatedList<T> trimmed = new TempPreallocatedList<>((Class<T>) clazzField.get(list), (ListAllocator<T>) null, 0);
       Field posField = list.getClass().getDeclaredField("pos");
       posField.setAccessible(true);
       posField.setInt(trimmed, list.size() - 1);

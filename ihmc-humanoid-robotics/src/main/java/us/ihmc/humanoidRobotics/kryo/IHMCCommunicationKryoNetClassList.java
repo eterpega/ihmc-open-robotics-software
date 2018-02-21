@@ -42,6 +42,7 @@ import us.ihmc.communication.packets.RequestStereoPointCloudMessage;
 import us.ihmc.communication.packets.SelectionMatrix3DMessage;
 import us.ihmc.communication.packets.SetBooleanParameterPacket;
 import us.ihmc.communication.packets.SimulatedLidarScanPacket;
+import us.ihmc.communication.packets.SpatialVectorMessage;
 import us.ihmc.communication.packets.StereoVisionPointCloudMessage;
 import us.ihmc.communication.packets.TextToSpeechPacket;
 import us.ihmc.communication.packets.ToolboxState;
@@ -188,7 +189,7 @@ import us.ihmc.humanoidRobotics.communication.packets.wholebody.ClearDelayQueueM
 import us.ihmc.humanoidRobotics.communication.packets.wholebody.MessageOfMessages;
 import us.ihmc.humanoidRobotics.communication.packets.wholebody.WholeBodyTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.toolbox.heightQuadTree.command.HeightQuadTreeToolboxRequestMessage;
-import us.ihmc.idl.PreallocatedList;
+import us.ihmc.idl.TempPreallocatedList;
 import us.ihmc.robotics.kinematics.TimeStampedTransform3D;
 import us.ihmc.robotics.lidar.LidarScanParameters;
 import us.ihmc.robotics.robotSide.RobotSide;
@@ -206,7 +207,7 @@ public class IHMCCommunicationKryoNetClassList extends NetClassList
       registerPacketField(TLongArrayList.class);
       registerPacketField(TFloatArrayList.class);
       registerPacketField(TByteArrayList.class);
-      registerPacketField(PreallocatedList.class);
+      registerPacketField(TempPreallocatedList.class);
 
       registerPacketClass(Packet.class);
 
@@ -373,6 +374,8 @@ public class IHMCCommunicationKryoNetClassList extends NetClassList
       registerPacketFields(double[].class, Vector3D.class);
       registerPacketFields(DenseMatrix64F.class);
       registerPacketFields(DenseMatrix64F[].class);
+      registerPacketField(SpatialVectorMessage.class);
+      registerPacketField(SpatialVectorMessage[].class);
 
       // Footstep data
       registerPacketClass(FootstepDataMessage.class);

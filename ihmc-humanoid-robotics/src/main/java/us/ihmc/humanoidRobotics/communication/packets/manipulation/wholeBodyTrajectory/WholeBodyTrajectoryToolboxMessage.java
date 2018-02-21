@@ -4,14 +4,14 @@ import java.util.List;
 
 import us.ihmc.communication.packets.MessageTools;
 import us.ihmc.communication.packets.Packet;
-import us.ihmc.idl.PreallocatedList;
+import us.ihmc.idl.TempPreallocatedList;
 
 public class WholeBodyTrajectoryToolboxMessage extends Packet<WholeBodyTrajectoryToolboxMessage>
 {
    public WholeBodyTrajectoryToolboxConfigurationMessage configuration;
-   public PreallocatedList<WaypointBasedTrajectoryMessage> endEffectorTrajectories = new PreallocatedList<>(WaypointBasedTrajectoryMessage.class, WaypointBasedTrajectoryMessage::new, 10);
-   public PreallocatedList<RigidBodyExplorationConfigurationMessage> explorationConfigurations = new PreallocatedList<>(RigidBodyExplorationConfigurationMessage.class, RigidBodyExplorationConfigurationMessage::new, 10);
-   public PreallocatedList<ReachingManifoldMessage> reachingManifolds = new PreallocatedList<>(ReachingManifoldMessage.class, ReachingManifoldMessage::new, 10);
+   public TempPreallocatedList<WaypointBasedTrajectoryMessage> endEffectorTrajectories = new TempPreallocatedList<>(WaypointBasedTrajectoryMessage.class, WaypointBasedTrajectoryMessage::new, 10);
+   public TempPreallocatedList<RigidBodyExplorationConfigurationMessage> explorationConfigurations = new TempPreallocatedList<>(RigidBodyExplorationConfigurationMessage.class, RigidBodyExplorationConfigurationMessage::new, 10);
+   public TempPreallocatedList<ReachingManifoldMessage> reachingManifolds = new TempPreallocatedList<>(ReachingManifoldMessage.class, ReachingManifoldMessage::new, 10);
 
    public WholeBodyTrajectoryToolboxMessage()
    {
@@ -75,17 +75,17 @@ public class WholeBodyTrajectoryToolboxMessage extends Packet<WholeBodyTrajector
       return configuration;
    }
 
-   public PreallocatedList<WaypointBasedTrajectoryMessage> getEndEffectorTrajectories()
+   public TempPreallocatedList<WaypointBasedTrajectoryMessage> getEndEffectorTrajectories()
    {
       return endEffectorTrajectories;
    }
 
-   public PreallocatedList<RigidBodyExplorationConfigurationMessage> getExplorationConfigurations()
+   public TempPreallocatedList<RigidBodyExplorationConfigurationMessage> getExplorationConfigurations()
    {
       return explorationConfigurations;
    }
 
-   public PreallocatedList<ReachingManifoldMessage> getReachingManifolds()
+   public TempPreallocatedList<ReachingManifoldMessage> getReachingManifolds()
    {
       return reachingManifolds;
    }

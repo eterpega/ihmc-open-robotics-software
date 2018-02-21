@@ -6,7 +6,7 @@ import us.ihmc.euclid.referenceFrame.FramePoint2D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.euclid.tuple3D.Point3D;
-import us.ihmc.idl.PreallocatedList;
+import us.ihmc.idl.TempPreallocatedList;
 import us.ihmc.robotics.geometry.FrameConvexPolygon2d;
 import us.ihmc.robotics.robotSide.RobotSide;
 
@@ -19,8 +19,8 @@ public class CapturabilityBasedStatus extends Packet<CapturabilityBasedStatus>
 
    public Point3D centerOfMass = new Point3D();
 
-   public PreallocatedList<Point2D> leftFootSupportPolygon = new PreallocatedList<>(Point2D.class, Point2D::new, MAXIMUM_NUMBER_OF_VERTICES);
-   public PreallocatedList<Point2D> rightFootSupportPolygon = new PreallocatedList<>(Point2D.class, Point2D::new, MAXIMUM_NUMBER_OF_VERTICES);
+   public TempPreallocatedList<Point2D> leftFootSupportPolygon = new TempPreallocatedList<>(Point2D.class, Point2D::new, MAXIMUM_NUMBER_OF_VERTICES);
+   public TempPreallocatedList<Point2D> rightFootSupportPolygon = new TempPreallocatedList<>(Point2D.class, Point2D::new, MAXIMUM_NUMBER_OF_VERTICES);
 
    public CapturabilityBasedStatus()
    {

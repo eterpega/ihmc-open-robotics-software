@@ -43,7 +43,7 @@ import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessag
 import us.ihmc.humanoidRobotics.footstep.FootSpoof;
 import us.ihmc.humanoidRobotics.footstep.Footstep;
 import us.ihmc.humanoidRobotics.footstep.FootstepTiming;
-import us.ihmc.idl.PreallocatedList;
+import us.ihmc.idl.TempPreallocatedList;
 import us.ihmc.robotics.geometry.ConvexPolygonScaler;
 import us.ihmc.robotics.geometry.ConvexPolygonTools;
 import us.ihmc.robotics.geometry.FrameConvexPolygon2d;
@@ -584,7 +584,7 @@ public class SphereICPPlannerVisualizer
 
          for (FootstepDataListMessage footstepDataList : footstepDataLists)
          {
-            PreallocatedList<FootstepDataMessage> dataList = footstepDataList.getDataList();
+            TempPreallocatedList<FootstepDataMessage> dataList = footstepDataList.getDataList();
             for (int i = 0; i < dataList.size(); i++)
             {
                FootstepDataMessage footstepData = dataList.get(i);

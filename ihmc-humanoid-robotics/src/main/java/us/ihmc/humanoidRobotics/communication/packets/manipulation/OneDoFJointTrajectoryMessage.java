@@ -7,7 +7,7 @@ import us.ihmc.communication.ros.generators.RosExportedField;
 import us.ihmc.communication.ros.generators.RosMessagePacket;
 import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.humanoidRobotics.communication.packets.TrajectoryPoint1DMessage;
-import us.ihmc.idl.PreallocatedList;
+import us.ihmc.idl.TempPreallocatedList;
 import us.ihmc.robotics.math.trajectories.waypoints.SimpleTrajectoryPoint1DList;
 
 @RosMessagePacket(documentation = "This class is used to build trajectory messages in jointspace. It holds all the trajectory points to go through with a one-dimensional trajectory."
@@ -15,7 +15,7 @@ import us.ihmc.robotics.math.trajectories.waypoints.SimpleTrajectoryPoint1DList;
 public class OneDoFJointTrajectoryMessage extends Packet<OneDoFJointTrajectoryMessage>
 {
    @RosExportedField(documentation = "List of trajectory points to go through while executing the trajectory.")
-   public PreallocatedList<TrajectoryPoint1DMessage> trajectoryPoints = new PreallocatedList<>(TrajectoryPoint1DMessage.class, TrajectoryPoint1DMessage::new,
+   public TempPreallocatedList<TrajectoryPoint1DMessage> trajectoryPoints = new TempPreallocatedList<>(TrajectoryPoint1DMessage.class, TrajectoryPoint1DMessage::new,
                                                                                                2000);
    @RosExportedField(documentation = "QP Weight, if Too low, in the event the qp can't achieve all of the objectives it may stop trying to achieve the desireds, if too high, it will favor this joint over other objectives. If set to NaN it will use the default weight for that joint")
    public double weight = Double.NaN;
@@ -61,7 +61,7 @@ public class OneDoFJointTrajectoryMessage extends Packet<OneDoFJointTrajectoryMe
    {
       trajectoryPointListToPack.clear();
 
-      PreallocatedList<TrajectoryPoint1DMessage> trajectoryPointMessages = getTrajectoryPoints();
+      TempPreallocatedList<TrajectoryPoint1DMessage> trajectoryPointMessages = getTrajectoryPoints();
       int numberOfPoints = trajectoryPointMessages.size();
 
       for (int i = 0; i < numberOfPoints; i++)
@@ -81,7 +81,7 @@ public class OneDoFJointTrajectoryMessage extends Packet<OneDoFJointTrajectoryMe
       return trajectoryPoints.get(trajectoryPointIndex);
    }
 
-   public final PreallocatedList<TrajectoryPoint1DMessage> getTrajectoryPoints()
+   public final TempPreallocatedList<TrajectoryPoint1DMessage> getTrajectoryPoints()
    {
       return trajectoryPoints;
    }

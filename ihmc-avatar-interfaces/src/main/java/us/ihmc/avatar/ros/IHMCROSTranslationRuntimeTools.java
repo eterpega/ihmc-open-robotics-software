@@ -38,7 +38,7 @@ import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessag
 import us.ihmc.humanoidRobotics.communication.packets.walking.HeadTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.PelvisTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.wholebody.WholeBodyTrajectoryMessage;
-import us.ihmc.idl.PreallocatedList;
+import us.ihmc.idl.TempPreallocatedList;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.utilities.ros.msgToPacket.converter.CustomFieldConversions;
 import us.ihmc.utilities.ros.msgToPacket.converter.GenericROSTranslationTools;
@@ -396,7 +396,7 @@ public class IHMCROSTranslationRuntimeTools
       }
 
       List<FootstepDataRosMessage> convertedFootsteps = new ArrayList<>();
-      PreallocatedList<FootstepDataMessage> footstepDataList = footstepList.footstepDataList;
+      TempPreallocatedList<FootstepDataMessage> footstepDataList = footstepList.footstepDataList;
       for (int i = 0; i < footstepDataList.size(); i++)
       {
          FootstepDataMessage footstepDataMessage = footstepDataList.get(i);

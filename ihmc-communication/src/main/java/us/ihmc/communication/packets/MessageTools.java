@@ -22,7 +22,7 @@ import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.euclid.tuple4D.Quaternion32;
 import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
 import us.ihmc.euclid.utils.NameBasedHashCodeTools;
-import us.ihmc.idl.PreallocatedList;
+import us.ihmc.idl.TempPreallocatedList;
 import us.ihmc.robotics.dataStructures.parameter.Parameter;
 import us.ihmc.robotics.lidar.LidarScanParameters;
 import us.ihmc.robotics.screwTheory.FloatingInverseDynamicsJoint;
@@ -507,7 +507,7 @@ public class MessageTools
 
    /**
     * Performs a deep copy of the data from {@code source} to {@code destination} after calling
-    * {@link PreallocatedList#clear()} on {@code destination}.
+    * {@link TempPreallocatedList#clear()} on {@code destination}.
     * 
     * @param source the list containing the data to copy. Not modified.
     * @param destination the list to copy the data into. Modified.
@@ -516,7 +516,7 @@ public class MessageTools
     *            {@code StringBuilder}, {@code Settable<T>}.
     */
    @SuppressWarnings("unchecked")
-   public static <T> void copyData(PreallocatedList<T> source, PreallocatedList<T> destination)
+   public static <T> void copyData(TempPreallocatedList<T> source, TempPreallocatedList<T> destination)
    {
       destination.clear();
 
@@ -557,7 +557,7 @@ public class MessageTools
          else
          {
             throw new IllegalArgumentException(MessageTools.class.getSimpleName() + ".copyData(...) can only be used with "
-                  + PreallocatedList.class.getSimpleName() + "s declared with either of the following types: Enum, StringBuilder, and"
+                  + TempPreallocatedList.class.getSimpleName() + "s declared with either of the following types: Enum, StringBuilder, and"
                   + Settable.class.getSimpleName());
          }
       }
@@ -565,12 +565,12 @@ public class MessageTools
 
    /**
     * Copies data from {@code source} to {@code destination} after calling
-    * {@link PreallocatedList#clear()} on {@code destination}.
+    * {@link TempPreallocatedList#clear()} on {@code destination}.
     * 
     * @param source the list containing the data to copy. Not modified.
     * @param destination the list to copy the data into. Modified.
     */
-   public static <T extends Settable<T>> void copyData(List<T> source, PreallocatedList<T> destination)
+   public static <T extends Settable<T>> void copyData(List<T> source, TempPreallocatedList<T> destination)
    {
       destination.clear();
 
@@ -593,12 +593,12 @@ public class MessageTools
 
    /**
     * Copies data from {@code source} to {@code destination} after calling
-    * {@link PreallocatedList#clear()} on {@code destination}.
+    * {@link TempPreallocatedList#clear()} on {@code destination}.
     * 
     * @param source the array containing the data to copy. Not modified.
     * @param destination the list to copy the data into. Modified.
     */
-   public static <T extends Settable<T>> void copyData(T[] source, PreallocatedList<T> destination)
+   public static <T extends Settable<T>> void copyData(T[] source, TempPreallocatedList<T> destination)
    {
       destination.clear();
 
@@ -621,12 +621,12 @@ public class MessageTools
 
    /**
     * Copies data from {@code source} to {@code destination} after calling
-    * {@link PreallocatedList#clear()} on {@code destination}.
+    * {@link TempPreallocatedList#clear()} on {@code destination}.
     * 
     * @param source the array containing the data to copy. Not modified.
     * @param destination the list to copy the data into. Modified.
     */
-   public static void copyData(String[] source, PreallocatedList<StringBuilder> destination)
+   public static void copyData(String[] source, TempPreallocatedList<StringBuilder> destination)
    {
       destination.clear();
 
@@ -643,12 +643,12 @@ public class MessageTools
 
    /**
     * Copies data from {@code source} to {@code destination} after calling
-    * {@link PreallocatedList#clear()} on {@code destination}.
+    * {@link TempPreallocatedList#clear()} on {@code destination}.
     * 
     * @param source the array containing the data to copy. Not modified.
     * @param destination the list to copy the data into. Modified.
     */
-   public static void copyData(StringBuilder[] source, PreallocatedList<StringBuilder> destination)
+   public static void copyData(StringBuilder[] source, TempPreallocatedList<StringBuilder> destination)
    {
       destination.clear();
 
@@ -663,7 +663,7 @@ public class MessageTools
       }
    }
 
-   public static <T> List<T> toList(PreallocatedList<T> original)
+   public static <T> List<T> toList(TempPreallocatedList<T> original)
    {
       List<T> list = new ArrayList<>();
       for (int i = 0; i < original.size(); i++)
@@ -671,7 +671,7 @@ public class MessageTools
       return list;
    }
 
-   public static <T extends EpsilonComparable<T>> boolean epsilonEquals(PreallocatedList<T> listOne, PreallocatedList<T> listTwo, double epsilon)
+   public static <T extends EpsilonComparable<T>> boolean epsilonEquals(TempPreallocatedList<T> listOne, TempPreallocatedList<T> listTwo, double epsilon)
    {
       if (listOne.size() != listTwo.size())
          return false;
@@ -710,7 +710,7 @@ public class MessageTools
    /**
     * @deprecated Should use {@code PreallocatedList.remove(int)} as soon as available.
     */
-   public static <T extends Settable<T>> void removeElement(PreallocatedList<T> listToRemoveElementFrom, int indexOfElementToRemove)
+   public static <T extends Settable<T>> void removeElement(TempPreallocatedList<T> listToRemoveElementFrom, int indexOfElementToRemove)
    {
       if (listToRemoveElementFrom.size() == 0)
          return;

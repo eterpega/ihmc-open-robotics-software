@@ -23,7 +23,7 @@ import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepPlanReques
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepStatus;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepStatusMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.SnapFootstepPacket;
-import us.ihmc.idl.PreallocatedList;
+import us.ihmc.idl.TempPreallocatedList;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.yoVariables.variable.YoBoolean;
@@ -68,7 +68,7 @@ public class WalkToGoalWithPlanningBehavior extends AbstractBehavior
    private FootstepDataMessage currentLocation;
    private FootstepDataMessage predictedLocation;
    private FootstepPathPlanPacket currentPlan;
-   private PreallocatedList<FootstepDataMessage> stepsRequested;
+   private TempPreallocatedList<FootstepDataMessage> stepsRequested;
    private int expectedIndex = 0;
    private RobotSide lastSide = null;
 
