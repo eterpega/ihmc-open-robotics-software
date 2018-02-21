@@ -72,6 +72,12 @@ testDependencies {
    compile group: "us.ihmc", name: "ihmc-avatar-interfaces-test", version: "source"
 }
 
+configurations.all {
+   resolutionStrategy {
+      force 'xml-apis:xml-apis:1.4.01'
+   }
+}
+
 applicationName = "IHMCValkyrieAPI"
 mainClassName = "us.ihmc.valkyrie.ValkyrieROSAPISimulator"
 applicationDefaultJvmArgs = ["-Xmx4g"]
