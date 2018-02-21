@@ -158,7 +158,21 @@ public class GdxCollisionDetector implements ScsCollisionDetector
       }
 
       @Override
-      public CollisionShapeDescription createBox(Shape3D shape3D)
+      public CollisionShapeDescription<?> createSimpleShape(Shape3D shape3D)
+      {
+         if (!(shape3D instanceof Box3D))
+            return createBox(shape3D);
+         if (!(shape3D instanceof Sphere3D))
+            return createSphere(shape3D);
+         if (!(shape3D instanceof Cylinder3D))
+            return createCylinder(shape3D);
+         if (!(shape3D instanceof Capsule3D))
+            return createCapsule(shape3D);
+
+         throw new RuntimeException("There is no matched simple shape");
+      }
+
+      private CollisionShapeDescription createBox(Shape3D shape3D)
       {
          if (!(shape3D instanceof Box3D))
             throw new RuntimeException("Check Shape3D is Box3D");
@@ -166,8 +180,7 @@ public class GdxCollisionDetector implements ScsCollisionDetector
          return createBox(0.5 * box3D.getLength(), 0.5 * box3D.getWidth(), 0.5 * box3D.getHeight());
       }
 
-      @Override
-      public CollisionShapeDescription createCylinder(Shape3D shape3D)
+      private CollisionShapeDescription createCylinder(Shape3D shape3D)
       {
          if (!(shape3D instanceof Cylinder3D))
             throw new RuntimeException("Check Shape3D is Cylinder3D");
@@ -175,8 +188,7 @@ public class GdxCollisionDetector implements ScsCollisionDetector
          return createCylinder(cylinder3D.getRadius(), cylinder3D.getHeight());
       }
 
-      @Override
-      public CollisionShapeDescription createSphere(Shape3D shape3D)
+      private CollisionShapeDescription createSphere(Shape3D shape3D)
       {
          if (!(shape3D instanceof Sphere3D))
             throw new RuntimeException("Check Shape3D is Sphere3D");
@@ -184,8 +196,7 @@ public class GdxCollisionDetector implements ScsCollisionDetector
          return createSphere(sphere3D.getRadius());
       }
 
-      @Override
-      public CollisionShapeDescription createCapsule(Shape3D shape3D)
+      private CollisionShapeDescription createCapsule(Shape3D shape3D)
       {
          if (!(shape3D instanceof Capsule3D))
             throw new RuntimeException("Check Shape3D is Capsule3D");

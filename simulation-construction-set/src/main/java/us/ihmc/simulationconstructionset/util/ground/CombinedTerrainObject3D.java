@@ -170,8 +170,6 @@ public class CombinedTerrainObject3D implements TerrainObject3D, HeightMapWithNo
    {
       terrainObjects.add(object);
       linkGraphics.combine(object.getLinkGraphics());
-      if (object.getSimpleShapes() != null)
-         simpleShapes.addAll(object.getSimpleShapes());
 
       if (boundingBox == null)
       {

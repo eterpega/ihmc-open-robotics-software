@@ -3,8 +3,10 @@ package us.ihmc.exampleSimulations.cart;
 import java.util.ArrayList;
 import java.util.List;
 
+import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.graphicsDescription.Graphics3DObject;
+import us.ihmc.simulationConstructionSetTools.util.environments.CartRobotRacingEnvironment;
 import us.ihmc.simulationConstructionSetTools.util.environments.SmallStepDownEnvironment;
 import us.ihmc.simulationconstructionset.FloatingJoint;
 import us.ihmc.simulationconstructionset.Robot;
@@ -37,16 +39,17 @@ public class CartRobotEnvironmentSimulation
       Robot cartRobot = new RobotFromDescription(robotDescription);
       FloatingJoint floatingJoint = (FloatingJoint) cartRobot.getRootJoints().get(0);
       floatingJoint.setPosition(startingPoint);
+      allSimulatedRobotList.add(cartRobot);
 
       // robot controller.
       CartRobotController controller = new CartRobotController(cartRobot, dt);
       cartRobot.setController(controller);
-      allSimulatedRobotList.add(cartRobot);
 
       // Stair Env Robot
-      SmallStepDownEnvironment environment = createEnvironment();
-      ArrayList<Robot> environmentRobots = environment.getEnvironmentRobots();
-      allSimulatedRobotList.addAll(environmentRobots);
+      //SmallStepDownEnvironment environment = createEnvironment();
+      CartRobotRacingEnvironment environment = new CartRobotRacingEnvironment();
+      //      ArrayList<Robot> environmentRobots = environment.getEnvironmentRobots();
+      //      allSimulatedRobotList.addAll(environmentRobots);
 
       // Scs
       SimulationConstructionSet scs = new SimulationConstructionSet(allSimulatedRobotList.toArray(new Robot[0]), parameters);
@@ -60,7 +63,11 @@ public class CartRobotEnvironmentSimulation
       double coefficientOfRestitution = 0.2;
       double coefficientOfFriction = 0.7;
       CollisionHandler collisionHandler = new DefaultCollisionHandler(coefficientOfRestitution, coefficientOfFriction);
-      scs.initializeCollisionDetectionAndHandling(collisionVisualizer, collisionHandler);
+      // OLD //     scs.initializeCollisionDetectionAndHandling(collisionVisualizer, collisionHandler);
+      scs.initializeCollisionDetector(collisionVisualizer, collisionHandler);
+      scs.addEnvironmentCollisionShapes(environment.getTerrainObject3D().getSimpleShapes());
+      scs.initializeCollisionHandler(collisionVisualizer, collisionHandler);
+      //aaaa
 
       scs.setDT(dt, 1);
       scs.setFastSimulate(true);
@@ -76,7 +83,7 @@ public class CartRobotEnvironmentSimulation
       new CartRobotEnvironmentSimulation();
    }
 
-   public SmallStepDownEnvironment createEnvironment()
+   private SmallStepDownEnvironment createEnvironment()
    {
       double stepLength = 0.35;
       double stepDownHeight = 0.15;
@@ -107,4 +114,5 @@ public class CartRobotEnvironmentSimulation
       double starterLength = 0.35;
       return new SmallStepDownEnvironment(stepHeights, stepLengths, starterLength, 0.0, currentHeight);
    }
+
 }
