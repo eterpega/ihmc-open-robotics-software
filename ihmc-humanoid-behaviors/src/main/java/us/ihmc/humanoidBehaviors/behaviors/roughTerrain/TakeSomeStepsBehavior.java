@@ -159,7 +159,7 @@ public class TakeSomeStepsBehavior extends AbstractBehavior
    private void sendTextToSpeechPacket(String message)
    {
       TextToSpeechPacket textToSpeechPacket = MessageTools.createTextToSpeechPacket(message);
-      textToSpeechPacket.setbeep(false);
+      textToSpeechPacket.setBeep(false);
       sendPacketToUI(textToSpeechPacket);
    }
 
