@@ -23,6 +23,7 @@ import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.euclid.tuple2D.Vector2D;
 import us.ihmc.euclid.tuple2D.Vector2D32;
 import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple3D.Point3D32;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
@@ -82,6 +83,7 @@ import us.ihmc.humanoidRobotics.communication.packets.sensing.LocalizationPacket
 import us.ihmc.humanoidRobotics.communication.packets.sensing.LocalizationStatusPacket;
 import us.ihmc.humanoidRobotics.communication.packets.sensing.MultisenseParameterPacket;
 import us.ihmc.humanoidRobotics.communication.packets.sensing.PelvisPoseErrorPacket;
+import us.ihmc.humanoidRobotics.communication.packets.sensing.PointCloudWorldPacket;
 import us.ihmc.humanoidRobotics.communication.packets.sensing.StateEstimatorMode;
 import us.ihmc.humanoidRobotics.communication.packets.sensing.StateEstimatorModePacket;
 import us.ihmc.humanoidRobotics.communication.packets.sensing.VideoPacket;
@@ -2081,5 +2083,48 @@ public class HumanoidMessageTools
       intrinsicParameters.t1 = message.t1;
       intrinsicParameters.t2 = message.t2;
       return intrinsicParameters;
+   }
+
+   public static void setGroundQuadTreeSupport(PointCloudWorldPacket pointCloudWorldPacket, Point3DReadOnly[] pointCloud)
+   {
+      pointCloudWorldPacket.groundQuadTreeSupport.reset();
+
+      for (int i = 0; i < pointCloud.length; i++)
+      {
+         Point3DReadOnly point = pointCloud[i];
+         pointCloudWorldPacket.groundQuadTreeSupport.add((float) point.getX());
+         pointCloudWorldPacket.groundQuadTreeSupport.add((float) point.getY());
+         pointCloudWorldPacket.groundQuadTreeSupport.add((float) point.getZ());
+      }
+   }
+
+   public static void setDecayingWorldScan(PointCloudWorldPacket pointCloudWorldPacket, Point3DReadOnly[] pointCloud)
+   {
+      pointCloudWorldPacket.decayingWorldScan.reset();
+
+      for (int i = 0; i < pointCloud.length; i++)
+      {
+         Point3DReadOnly point = pointCloud[i];
+         pointCloudWorldPacket.decayingWorldScan.add((float) point.getX());
+         pointCloudWorldPacket.decayingWorldScan.add((float) point.getY());
+         pointCloudWorldPacket.decayingWorldScan.add((float) point.getZ());
+      }
+   }
+
+   public static Point3D32[] getDecayingWorldScan(PointCloudWorldPacket pointCloudWorldPacket)
+   {
+      int numberOfPoints = pointCloudWorldPacket.decayingWorldScan.size() / 3;
+
+      Point3D32[] points = new Point3D32[numberOfPoints];
+      for (int i = 0; i < numberOfPoints; i++)
+      {
+         Point3D32 point = new Point3D32();
+         point.setX(pointCloudWorldPacket.decayingWorldScan.get(3 * i));
+         point.setY(pointCloudWorldPacket.decayingWorldScan.get(3 * i + 1));
+         point.setZ(pointCloudWorldPacket.decayingWorldScan.get(3 * i + 2));
+         points[i] = point;
+      }
+
+      return points;
    }
 }
