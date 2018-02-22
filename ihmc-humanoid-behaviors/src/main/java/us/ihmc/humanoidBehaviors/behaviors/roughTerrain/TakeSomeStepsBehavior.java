@@ -180,9 +180,9 @@ public class TakeSomeStepsBehavior extends AbstractBehavior
          FootstepStatusMessage status = latestFootstepStatus.get(side);
          if (status != null)
          {
-            latestFootstepStatusEnum.get(side).set(status.getStatus());
+            latestFootstepStatusEnum.get(side).set(status.getFootstepStatus());
 
-            if (status.getStatus() == FootstepStatus.STARTED.toByte())
+            if (status.getFootstepStatus() == FootstepStatus.STARTED.toByte())
             {
                currentlySwingingFoot.set(side);
             }

@@ -515,7 +515,7 @@ public class WalkingMessageHandler
       desiredFootPoseInWorld.get(desiredFootPositionInWorld, desiredFootOrientationInWorld);
       actualFootPoseInWorld.get(actualFootPositionInWorld, actualFootOrientationInWorld);
 
-      footstepStatus.setStatus(FootstepStatus.STARTED.toByte());
+      footstepStatus.setFootstepStatus(FootstepStatus.STARTED.toByte());
       footstepStatus.setRobotSide(robotSide.toByte());
       footstepStatus.setFootstepIndex(currentFootstepIndex.getIntegerValue());
       footstepStatus.setActualFootOrientationInWorld(actualFootOrientationInWorld);
@@ -536,7 +536,7 @@ public class WalkingMessageHandler
       desiredFootOrientationInWorld.setToNaN();
       desiredFootPositionInWorld.setToNaN();
 
-      footstepStatus.setStatus(FootstepStatus.COMPLETED.toByte());
+      footstepStatus.setFootstepStatus(FootstepStatus.COMPLETED.toByte());
       footstepStatus.setRobotSide(robotSide.toByte());
       footstepStatus.setFootstepIndex(currentFootstepIndex.getIntegerValue());
       footstepStatus.setActualFootOrientationInWorld(actualFootOrientationInWorld);

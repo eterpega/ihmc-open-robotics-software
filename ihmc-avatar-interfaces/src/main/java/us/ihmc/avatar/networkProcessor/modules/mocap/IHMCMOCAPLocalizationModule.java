@@ -344,7 +344,7 @@ public class IHMCMOCAPLocalizationModule implements MocapRigidbodiesListener, Pa
       @Override
       public void receivedPacket(FootstepStatusMessage packet)
       {
-         if(packet.getStatus() == FootstepStatus.COMPLETED.toByte())
+         if(packet.getFootstepStatus() == FootstepStatus.COMPLETED.toByte())
             footstepsCompleted.increment();
       }
       

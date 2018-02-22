@@ -394,7 +394,7 @@ public class DesiredFootstepTest
       {
          FootstepStatusMessage footstepStatus = sentFootstepStatus.get(i);
          FootstepStatusMessage reconstructedFootstepStatus = receivedFootsteps.get(i);
-         assertTrue(footstepStatus.getStatus() == reconstructedFootstepStatus.getStatus());
+         assertTrue(footstepStatus.getFootstepStatus() == reconstructedFootstepStatus.getFootstepStatus());
       }
    }
 

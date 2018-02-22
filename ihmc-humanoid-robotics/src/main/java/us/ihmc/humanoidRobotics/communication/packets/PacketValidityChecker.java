@@ -285,7 +285,7 @@ public abstract class PacketValidityChecker
          return errorMessage;
       }
 
-      packetFieldErrorType = ObjectValidityChecker.validateEnum(FootstepStatus.fromByte(message.getStatus()));
+      packetFieldErrorType = ObjectValidityChecker.validateEnum(FootstepStatus.fromByte(message.getFootstepStatus()));
       if (packetFieldErrorType != null)
       {
          String messageClassName = message.getClass().getSimpleName();
