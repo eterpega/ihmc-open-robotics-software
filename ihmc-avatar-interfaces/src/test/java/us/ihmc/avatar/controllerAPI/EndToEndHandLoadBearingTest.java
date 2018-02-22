@@ -11,8 +11,8 @@ import us.ihmc.avatar.MultiRobotTestInterface;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
 import us.ihmc.avatar.testTools.DRCSimulationTestHelper;
 import us.ihmc.commons.thread.ThreadTools;
+import us.ihmc.euclid.geometry.Pose3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
-import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple4D.Quaternion;
@@ -100,8 +100,8 @@ public abstract class EndToEndHandLoadBearingTest implements MultiRobotTestInter
       assertTrue(success);
 
       // Activate load bearing
-      RigidBodyTransform transformToContactFrame = new RigidBodyTransform();
-      transformToContactFrame.setTranslation(0.0, 0.09, 0.0);
+      Pose3D transformToContactFrame = new Pose3D();
+      transformToContactFrame.setPosition(0.0, 0.09, 0.0);
       transformToContactFrame.appendRollRotation(Math.PI);
 
       HandLoadBearingMessage loadBearingMessage = HumanoidMessageTools.createHandLoadBearingMessage(RobotSide.LEFT);
