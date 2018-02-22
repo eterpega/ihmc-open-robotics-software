@@ -17,6 +17,7 @@ import us.ihmc.euclid.utils.NameBasedHashCodeTools;
 import us.ihmc.idl.TempPreallocatedList;
 import us.ihmc.robotics.math.trajectories.waypoints.FrameSE3TrajectoryPointList;
 import us.ihmc.robotics.screwTheory.SelectionMatrix6D;
+import us.ihmc.robotics.weightMatrices.WeightMatrix3D;
 import us.ihmc.robotics.weightMatrices.WeightMatrix6D;
 
 @RosMessagePacket(documentation = "", rosPackage = RosMessagePacket.CORE_IHMC_PACKAGE, topic = "/control/se3_trajectory")
@@ -209,12 +210,24 @@ public final class SE3TrajectoryMessage extends Packet<SE3TrajectoryMessage>
       if (angularWeightMatrix == null)
          angularWeightMatrix = MessageTools.createWeightMatrix3DMessage(weightMatrix.getAngularPart());
       else
-         angularWeightMatrix.set(weightMatrix.getAngularPart());
+      {
+         WeightMatrix3D weightMatrix1 = weightMatrix.getAngularPart();
+         angularWeightMatrix.weightFrameId = MessageTools.toFrameId(weightMatrix1.getWeightFrame());
+         angularWeightMatrix.xWeight = weightMatrix1.getXAxisWeight();
+         angularWeightMatrix.yWeight = weightMatrix1.getYAxisWeight();
+         angularWeightMatrix.zWeight = weightMatrix1.getZAxisWeight();
+      }
 
       if (linearWeightMatrix == null)
          linearWeightMatrix = MessageTools.createWeightMatrix3DMessage(weightMatrix.getLinearPart());
       else
-         linearWeightMatrix.set(weightMatrix.getLinearPart());
+      {
+         WeightMatrix3D weightMatrix2 = weightMatrix.getLinearPart();
+         linearWeightMatrix.weightFrameId = MessageTools.toFrameId(weightMatrix2.getWeightFrame());
+         linearWeightMatrix.xWeight = weightMatrix2.getXAxisWeight();
+         linearWeightMatrix.yWeight = weightMatrix2.getYAxisWeight();
+         linearWeightMatrix.zWeight = weightMatrix2.getZAxisWeight();
+      }
    }
 
    public final int getNumberOfTrajectoryPoints()
@@ -266,9 +279,17 @@ public final class SE3TrajectoryMessage extends Packet<SE3TrajectoryMessage>
    {
       weightMatrixToPack.clear();
       if (angularWeightMatrix != null)
-         angularWeightMatrix.getWeightMatrix(weightMatrixToPack.getAngularPart());
+      {
+         WeightMatrix3D weightMatrix3D = weightMatrixToPack.getAngularPart();
+         weightMatrix3D.clearWeightFrame();
+         weightMatrix3D.setWeights(angularWeightMatrix.xWeight, angularWeightMatrix.yWeight, angularWeightMatrix.zWeight);
+      }
       if (linearWeightMatrix != null)
-         linearWeightMatrix.getWeightMatrix(weightMatrixToPack.getLinearPart());
+      {
+         WeightMatrix3D weightMatrix3D1 = weightMatrixToPack.getLinearPart();
+         weightMatrix3D1.clearWeightFrame();
+         weightMatrix3D1.setWeights(linearWeightMatrix.xWeight, linearWeightMatrix.yWeight, linearWeightMatrix.zWeight);
+      }
    }
 
    public FrameInformation getFrameInformation()

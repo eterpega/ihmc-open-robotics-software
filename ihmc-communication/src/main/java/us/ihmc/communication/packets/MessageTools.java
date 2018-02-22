@@ -280,7 +280,10 @@ public class MessageTools
    public static WeightMatrix3DMessage createWeightMatrix3DMessage(WeightMatrix3D weightMatrix)
    {
       WeightMatrix3DMessage message = new WeightMatrix3DMessage();
-      message.set(weightMatrix);
+      message.weightFrameId = MessageTools.toFrameId(weightMatrix.getWeightFrame());
+      message.xWeight = weightMatrix.getXAxisWeight();
+      message.yWeight = weightMatrix.getYAxisWeight();
+      message.zWeight = weightMatrix.getZAxisWeight();
       return message;
    }
 
@@ -732,5 +735,13 @@ public class MessageTools
       }
       
       return colors;
+   }
+
+   public static long toFrameId(ReferenceFrame referenceFrame)
+   {
+      if (referenceFrame == null)
+         return NameBasedHashCodeTools.NULL_HASHCODE;
+      else
+         return referenceFrame.getNameBasedHashCode();
    }
 }

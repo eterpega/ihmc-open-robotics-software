@@ -168,7 +168,13 @@ public final class SO3TrajectoryMessage extends Packet<SO3TrajectoryMessage>
       if (this.weightMatrix == null)
          this.weightMatrix = MessageTools.createWeightMatrix3DMessage(weightMatrix);
       else
-         this.weightMatrix.set(weightMatrix);
+      {
+         WeightMatrix3DMessage r = this.weightMatrix;
+         r.weightFrameId = MessageTools.toFrameId(weightMatrix.getWeightFrame());
+         r.xWeight = weightMatrix.getXAxisWeight();
+         r.yWeight = weightMatrix.getYAxisWeight();
+         r.zWeight = weightMatrix.getZAxisWeight();
+      }
    }
 
    public final int getNumberOfTrajectoryPoints()
@@ -218,7 +224,10 @@ public final class SO3TrajectoryMessage extends Packet<SO3TrajectoryMessage>
    {
       weightMatrixToPack.clear();
       if (weightMatrix != null)
-         weightMatrix.getWeightMatrix(weightMatrixToPack);
+      {
+         weightMatrixToPack.clearWeightFrame();
+         weightMatrixToPack.setWeights(weightMatrix.xWeight, weightMatrix.yWeight, weightMatrix.zWeight);
+      }
    }
 
    public FrameInformation getFrameInformation()

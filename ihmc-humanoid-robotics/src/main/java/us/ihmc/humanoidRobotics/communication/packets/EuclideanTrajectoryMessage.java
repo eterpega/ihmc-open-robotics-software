@@ -188,7 +188,12 @@ public final class EuclideanTrajectoryMessage extends Packet<EuclideanTrajectory
       if (weightMatrix == null)
          weightMatrix = MessageTools.createWeightMatrix3DMessage(weightMatrix3D);
       else
-         weightMatrix.set(weightMatrix3D);
+      {
+         weightMatrix.weightFrameId = MessageTools.toFrameId(weightMatrix3D.getWeightFrame());
+         weightMatrix.xWeight = weightMatrix3D.getXAxisWeight();
+         weightMatrix.yWeight = weightMatrix3D.getYAxisWeight();
+         weightMatrix.zWeight = weightMatrix3D.getZAxisWeight();
+      }
    }
 
    public final int getNumberOfTrajectoryPoints()
@@ -243,7 +248,10 @@ public final class EuclideanTrajectoryMessage extends Packet<EuclideanTrajectory
    {
       weightMatrixToPack.clear();
       if (weightMatrix != null)
-         weightMatrix.getWeightMatrix(weightMatrixToPack);
+      {
+         weightMatrixToPack.clearWeightFrame();
+         weightMatrixToPack.setWeights(weightMatrix.xWeight, weightMatrix.yWeight, weightMatrix.zWeight);
+      }
    }
 
    public FrameInformation getFrameInformation()

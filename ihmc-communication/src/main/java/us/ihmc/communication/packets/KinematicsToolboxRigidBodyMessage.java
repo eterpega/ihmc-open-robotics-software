@@ -9,7 +9,6 @@ import us.ihmc.euclid.referenceFrame.FramePose3D;
 import us.ihmc.euclid.referenceFrame.FrameQuaternion;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.referenceFrame.exceptions.ReferenceFrameMismatchException;
-import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Point3D32;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
@@ -18,6 +17,7 @@ import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
 import us.ihmc.euclid.utils.NameBasedHashCodeTools;
 import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.robotics.screwTheory.SelectionMatrix6D;
+import us.ihmc.robotics.weightMatrices.WeightMatrix3D;
 import us.ihmc.robotics.weightMatrices.WeightMatrix6D;
 
 /**
@@ -267,8 +267,12 @@ public class KinematicsToolboxRigidBodyMessage extends Packet<KinematicsToolboxR
    public void setWeight(double weight)
    {
       initializeWeight();
-      linearWeightMatrix.setWeights(weight, weight, weight);
-      angularWeightMatrix.setWeights(weight, weight, weight);
+      angularWeightMatrix.xWeight = weight;
+      angularWeightMatrix.yWeight = weight;
+      angularWeightMatrix.zWeight = weight;
+      linearWeightMatrix.xWeight = weight;
+      linearWeightMatrix.yWeight = weight;
+      linearWeightMatrix.zWeight = weight;
    }
 
    /**
@@ -284,8 +288,12 @@ public class KinematicsToolboxRigidBodyMessage extends Packet<KinematicsToolboxR
    public void setWeight(double angular, double linear)
    {
       initializeWeight();
-      linearWeightMatrix.setWeights(linear, linear, linear);
-      angularWeightMatrix.setWeights(angular, angular, angular);
+      angularWeightMatrix.xWeight = angular;
+      angularWeightMatrix.yWeight = angular;
+      angularWeightMatrix.zWeight = angular;
+      linearWeightMatrix.xWeight = linear;
+      linearWeightMatrix.yWeight = linear;
+      linearWeightMatrix.zWeight = linear;
    }
 
    /**
@@ -301,8 +309,16 @@ public class KinematicsToolboxRigidBodyMessage extends Packet<KinematicsToolboxR
    public void setWeight(WeightMatrix6D weightMatrix)
    {
       initializeWeight();
-      linearWeightMatrix.set(weightMatrix.getLinearPart());
-      angularWeightMatrix.set(weightMatrix.getAngularPart());
+      WeightMatrix3D weightMatrix1 = weightMatrix.getLinearPart();
+      linearWeightMatrix.weightFrameId = MessageTools.toFrameId(weightMatrix1.getWeightFrame());
+      linearWeightMatrix.xWeight = weightMatrix1.getXAxisWeight();
+      linearWeightMatrix.yWeight = weightMatrix1.getYAxisWeight();
+      linearWeightMatrix.zWeight = weightMatrix1.getZAxisWeight();
+      WeightMatrix3D weightMatrix2 = weightMatrix.getAngularPart();
+      angularWeightMatrix.weightFrameId = MessageTools.toFrameId(weightMatrix2.getWeightFrame());
+      angularWeightMatrix.xWeight = weightMatrix2.getXAxisWeight();
+      angularWeightMatrix.yWeight = weightMatrix2.getYAxisWeight();
+      angularWeightMatrix.zWeight = weightMatrix2.getZAxisWeight();
    }
 
    /**
@@ -506,9 +522,17 @@ public class KinematicsToolboxRigidBodyMessage extends Packet<KinematicsToolboxR
    {
       weightMatrixToPack.clear();
       if (angularWeightMatrix != null)
-         angularWeightMatrix.getWeightMatrix(weightMatrixToPack.getAngularPart());
+      {
+         WeightMatrix3D weightMatrix3D = weightMatrixToPack.getAngularPart();
+         weightMatrix3D.clearWeightFrame();
+         weightMatrix3D.setWeights(angularWeightMatrix.xWeight, angularWeightMatrix.yWeight, angularWeightMatrix.zWeight);
+      }
       if (linearWeightMatrix != null)
-         linearWeightMatrix.getWeightMatrix(weightMatrixToPack.getLinearPart());
+      {
+         WeightMatrix3D weightMatrix3D1 = weightMatrixToPack.getLinearPart();
+         weightMatrix3D1.clearWeightFrame();
+         weightMatrix3D1.setWeights(linearWeightMatrix.xWeight, linearWeightMatrix.yWeight, linearWeightMatrix.zWeight);
+      }
    }
 
    /**
