@@ -21,6 +21,7 @@ import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Point3D32;
 import us.ihmc.euclid.tuple3D.Vector3D32;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
+import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.euclid.tuple4D.Quaternion32;
 import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
@@ -821,5 +822,66 @@ public class MessageTools
       interplateOutputStatus.jointNameHash = outputStatusOne.jointNameHash;
       
       return interplateOutputStatus;
+   }
+
+   /**
+    * Provides a privileged configuration that the {@code KinematicsToolboxController} will use as a
+    * reference and attempt to find the solution that is the closest.
+    * <p>
+    * Avoid calling this method directly, use instead the {@code KinematicsToolboxInputHelper}.
+    * </p>
+    * <p>
+    * Note that by sending a privileged configuration the solver will get reinitialized to start off
+    * that configuration and thus may delay the convergence to the solution. It is therefore
+    * preferable to send the privileged configuration as soon as possible.
+    * </p>
+    * 
+    * @param rootJointPosition the privileged root joint position. Not modified.
+    * @param rootJointOrientation the privileged root joint orientation. Not modified.
+    * @param jointNameBasedHashCodes allows to safely identify to which joint each angle in
+    *           {@link #privilegedJointAngles} belongs to. The name-based hash code can be obtained
+    *           from {@link OneDoFJoint#getNameBasedHashCode()}. Not modified.
+    * @param jointAngles the privileged joint angles. Not modified.
+    * @throws IllegalArgumentException if the lengths of {@code jointAngles} and
+    *            {@code jointNameBasedHashCodes} are different.
+    */
+   public static void packPrivilegedRobotConfiguration(KinematicsToolboxConfigurationMessage kinematicsToolboxConfigurationMessage,
+                                                       Tuple3DReadOnly rootJointPosition, QuaternionReadOnly rootJointOrientation,
+                                                       long[] jointNameBasedHashCodes, float[] jointAngles)
+   {
+      kinematicsToolboxConfigurationMessage.setPrivilegedRootJointPosition(rootJointPosition);
+      kinematicsToolboxConfigurationMessage.setPrivilegedRootJointOrientation(rootJointOrientation);
+      MessageTools.packPrivilegedJointAngles(kinematicsToolboxConfigurationMessage, jointNameBasedHashCodes, jointAngles);
+   }
+
+   /**
+    * When provided, the {@code KinematicsToolboxController} will attempt to find the closest
+    * solution to the privileged configuration.
+    * <p>
+    * Avoid calling this method directly, use instead the {@code KinematicsToolboxInputHelper}.
+    * </p>
+    * <p>
+    * Note that by sending a privileged configuration the solver will get reinitialized to start off
+    * that configuration and thus may delay the convergence to the solution. It is therefore
+    * preferable to send the privileged configuration as soon as possible.
+    * </p>
+    * 
+    * @param jointNameBasedHashCodes allows to safely identify to which joint each angle in
+    *           {@link #privilegedJointAngles} belongs to. The name-based hash code can be obtained
+    *           from {@link OneDoFJoint#getNameBasedHashCode()}. Not modified.
+    * @param jointAngles the privileged joint angles. Not modified.
+    * @throws IllegalArgumentException if the lengths of {@code jointAngles} and
+    *            {@code jointNameBasedHashCodes} are different.
+    */
+   public static void packPrivilegedJointAngles(KinematicsToolboxConfigurationMessage kinematicsToolboxConfigurationMessage, long[] jointNameBasedHashCodes,
+                                                float[] jointAngles)
+   {
+      if (jointNameBasedHashCodes.length != jointAngles.length)
+         throw new IllegalArgumentException("The two arrays jointAngles and jointNameBasedHashCodes have to be of same length.");
+      
+      kinematicsToolboxConfigurationMessage.privilegedJointNameBasedHashCodes.reset();
+      kinematicsToolboxConfigurationMessage.privilegedJointNameBasedHashCodes.add(jointNameBasedHashCodes);
+      kinematicsToolboxConfigurationMessage.privilegedJointAngles.reset();
+      kinematicsToolboxConfigurationMessage.privilegedJointAngles.add(jointAngles);
    }
 }

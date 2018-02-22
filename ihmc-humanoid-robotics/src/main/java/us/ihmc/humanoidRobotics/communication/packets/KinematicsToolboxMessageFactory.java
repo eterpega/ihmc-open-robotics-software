@@ -158,7 +158,7 @@ public class KinematicsToolboxMessageFactory
       Quaternion privilegedRootJointOrientation = new Quaternion();
       rootJoint.getRotation(privilegedRootJointOrientation);
 
-      message.setPrivilegedRobotConfiguration(privilegedRootJointPosition, privilegedRootJointOrientation, jointNameBasedHashCodes, privilegedJointAngles);
+      MessageTools.packPrivilegedRobotConfiguration(message, privilegedRootJointPosition, privilegedRootJointOrientation, jointNameBasedHashCodes, privilegedJointAngles);
       message.setDestination(PacketDestination.KINEMATICS_TOOLBOX_MODULE);
 
       return message;
