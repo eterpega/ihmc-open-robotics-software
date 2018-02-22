@@ -1,5 +1,6 @@
 package us.ihmc.communication.packets;
 
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -705,5 +706,31 @@ public class MessageTools
             return false;
       }
       return true;
+   }
+
+   public static Point3D32[] unpackPointCloud32(StereoVisionPointCloudMessage stereoVisionPointCloudMessage)
+   {
+      Point3D32[] points = new Point3D32[stereoVisionPointCloudMessage.pointCloud.size() / 3];
+      for (int index = 0; index < stereoVisionPointCloudMessage.pointCloud.size() / 3; index++)
+      {
+         Point3D32 scanPoint = new Point3D32();
+         scanPoint.setX(stereoVisionPointCloudMessage.pointCloud.get(3 * index + 0));
+         scanPoint.setY(stereoVisionPointCloudMessage.pointCloud.get(3 * index + 1));
+         scanPoint.setZ(stereoVisionPointCloudMessage.pointCloud.get(3 * index + 2));
+         points[index] = scanPoint;
+      }
+      return points;
+   }
+
+   public static Color[] unpackPointCloudColors(StereoVisionPointCloudMessage stereoVisionPointCloudMessage)
+   {
+      Color[] colors = new Color[stereoVisionPointCloudMessage.colors.size()];
+      
+      for (int i = 0; i < stereoVisionPointCloudMessage.colors.size(); i++)
+      {
+         colors[i] = new Color(stereoVisionPointCloudMessage.colors.get(i));
+      }
+      
+      return colors;
    }
 }
