@@ -53,13 +53,13 @@ public class KinematicsToolboxOutputConverter
 
       for (int i = 0; i < oneDoFJoints.length; i++)
       {
-         float q = solution.getJointAngles().get(i);
+         float q = solution.getDesiredJointAngles().get(i);
          OneDoFJoint joint = oneDoFJoints[i];
          joint.setQ(q);
       }
-      Vector3D32 translation = solution.getPelvisTranslation();
+      Vector3D32 translation = solution.getDesiredRootTranslation();
       rootJoint.setPosition(translation.getX(), translation.getY(), translation.getZ());
-      Quaternion32 orientation = solution.getPelvisOrientation();
+      Quaternion32 orientation = solution.getDesiredRootOrientation();
       rootJoint.setRotation(orientation.getX(), orientation.getY(), orientation.getZ(), orientation.getS());
       fullRobotModelToUseForConversion.updateFrames();
    }

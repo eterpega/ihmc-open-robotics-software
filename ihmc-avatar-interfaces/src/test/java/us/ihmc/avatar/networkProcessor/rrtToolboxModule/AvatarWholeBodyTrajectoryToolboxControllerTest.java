@@ -752,7 +752,7 @@ public abstract class AvatarWholeBodyTrajectoryToolboxControllerTest implements 
       {
          t += timeResolution;
          KinematicsToolboxOutputStatus frame = findFrameFromTime(solution, t);
-         frame.getDesiredJointState(rootJoint, joints);
+         MessageTools.unpackDesiredJointState(frame, rootJoint, joints);
 
          robotForViz.updateFrames();
          snapGhostToFullRobotModel(robotForViz);
@@ -793,7 +793,7 @@ public abstract class AvatarWholeBodyTrajectoryToolboxControllerTest implements 
 
          double alpha = (time - timeOne) / (timeTwo - timeOne);
 
-         return KinematicsToolboxOutputStatus.interpolateOutputStatus(frameOne, frameTwo, alpha);
+         return MessageTools.interpolateMessages(frameOne, frameTwo, alpha);
       }
    }
 

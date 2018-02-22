@@ -835,14 +835,12 @@ public class WholeBodyTrajectoryToolboxController extends ToolboxController
     */
    private void updateVisualizerRobotConfiguration(KinematicsToolboxOutputStatus robotKinematicsConfiguration)
    {
-      robotKinematicsConfiguration.getDesiredJointState(visualizedFullRobotModel.getRootJoint(),
-                                                        FullRobotModelUtils.getAllJointsExcludingHands(visualizedFullRobotModel));
+      MessageTools.unpackDesiredJointState(robotKinematicsConfiguration, visualizedFullRobotModel.getRootJoint(), FullRobotModelUtils.getAllJointsExcludingHands(visualizedFullRobotModel));
    }
 
    private void updateVisualizerRobotConfiguration()
    {
-      visualizedNode.getConfiguration().getDesiredJointState(visualizedFullRobotModel.getRootJoint(),
-                                                             FullRobotModelUtils.getAllJointsExcludingHands(visualizedFullRobotModel));
+      MessageTools.unpackDesiredJointState(visualizedNode.getConfiguration(), visualizedFullRobotModel.getRootJoint(), FullRobotModelUtils.getAllJointsExcludingHands(visualizedFullRobotModel));
    }
 
    /**

@@ -15,9 +15,11 @@ import us.ihmc.euclid.geometry.BoundingBox3D;
 import us.ihmc.euclid.interfaces.EpsilonComparable;
 import us.ihmc.euclid.interfaces.Settable;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.tools.EuclidCoreTools;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Point3D32;
+import us.ihmc.euclid.tuple3D.Vector3D32;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.euclid.tuple4D.Quaternion32;
@@ -306,7 +308,7 @@ public class MessageTools
    {
       KinematicsToolboxOutputStatus message = new KinematicsToolboxOutputStatus();
       message.jointNameHash = (int) NameBasedHashCodeTools.computeArrayHashCode(newJointData);
-      message.setDesiredJointState(rootJoint, newJointData, useQDesired);
+      MessageTools.packDesiredJointState(message, rootJoint, newJointData, useQDesired);
       return message;
    }
 
@@ -711,6 +713,14 @@ public class MessageTools
       return true;
    }
 
+   public static long toFrameId(ReferenceFrame referenceFrame)
+   {
+      if (referenceFrame == null)
+         return NameBasedHashCodeTools.NULL_HASHCODE;
+      else
+         return referenceFrame.getNameBasedHashCode();
+   }
+
    public static Point3D32[] unpackPointCloud32(StereoVisionPointCloudMessage stereoVisionPointCloudMessage)
    {
       Point3D32[] points = new Point3D32[stereoVisionPointCloudMessage.pointCloud.size() / 3];
@@ -728,20 +738,88 @@ public class MessageTools
    public static Color[] unpackPointCloudColors(StereoVisionPointCloudMessage stereoVisionPointCloudMessage)
    {
       Color[] colors = new Color[stereoVisionPointCloudMessage.colors.size()];
-      
+
       for (int i = 0; i < stereoVisionPointCloudMessage.colors.size(); i++)
       {
          colors[i] = new Color(stereoVisionPointCloudMessage.colors.get(i));
       }
-      
+
       return colors;
    }
 
-   public static long toFrameId(ReferenceFrame referenceFrame)
+   public static void unpackDesiredJointState(KinematicsToolboxOutputStatus kinematicsToolboxOutputStatus, FloatingInverseDynamicsJoint rootJointToUpdate,
+                                              OneDoFJoint[] jointsToUpdate)
    {
-      if (referenceFrame == null)
-         return NameBasedHashCodeTools.NULL_HASHCODE;
+      int jointNameHash = (int) NameBasedHashCodeTools.computeArrayHashCode(jointsToUpdate);
+
+      if (jointNameHash != kinematicsToolboxOutputStatus.jointNameHash)
+         throw new RuntimeException("The robots are different.");
+
+      for (int i = 0; i < kinematicsToolboxOutputStatus.desiredJointAngles.size(); i++)
+         jointsToUpdate[i].setQ(kinematicsToolboxOutputStatus.desiredJointAngles.get(i));
+
+      rootJointToUpdate.setPosition(kinematicsToolboxOutputStatus.desiredRootTranslation);
+      rootJointToUpdate.setRotation(kinematicsToolboxOutputStatus.desiredRootOrientation);
+   }
+
+   public static void packDesiredJointState(KinematicsToolboxOutputStatus kinematicsToolboxOutputStatus, FloatingInverseDynamicsJoint rootJoint,
+                                            OneDoFJoint[] newJointData, boolean useQDesired)
+   {
+      int jointNameHash = (int) NameBasedHashCodeTools.computeArrayHashCode(newJointData);
+      
+      if (jointNameHash != kinematicsToolboxOutputStatus.jointNameHash)
+         throw new RuntimeException("The robots are different.");
+      
+      kinematicsToolboxOutputStatus.desiredJointAngles.reset();
+      
+      if (useQDesired)
+      {
+         for (int i = 0; i < newJointData.length; i++)
+         {
+            kinematicsToolboxOutputStatus.desiredJointAngles.add((float) newJointData[i].getqDesired());
+         }
+      }
       else
-         return referenceFrame.getNameBasedHashCode();
+      {
+         for (int i = 0; i < newJointData.length; i++)
+         {
+            kinematicsToolboxOutputStatus.desiredJointAngles.add((float) newJointData[i].getQ());
+         }
+      }
+      
+      if (rootJoint != null)
+      {
+         rootJoint.getTranslation(kinematicsToolboxOutputStatus.desiredRootTranslation);
+         rootJoint.getRotation(kinematicsToolboxOutputStatus.desiredRootOrientation);
+      }
+   }
+
+   public static KinematicsToolboxOutputStatus interpolateMessages(KinematicsToolboxOutputStatus outputStatusOne, KinematicsToolboxOutputStatus outputStatusTwo,
+                                                                   double alpha)
+   {
+      if (outputStatusOne.jointNameHash != outputStatusTwo.jointNameHash)
+         throw new RuntimeException("Output status are not compatible.");
+      
+      KinematicsToolboxOutputStatus interplateOutputStatus = new KinematicsToolboxOutputStatus();
+      
+      TFloatArrayList jointAngles1 = outputStatusOne.getDesiredJointAngles();
+      TFloatArrayList jointAngles2 = outputStatusTwo.getDesiredJointAngles();
+      
+      for (int i = 0; i < jointAngles1.size(); i++)
+      {
+         interplateOutputStatus.desiredJointAngles.add((float) EuclidCoreTools.interpolate(jointAngles1.get(i), jointAngles2.get(i), alpha));
+      }
+      
+      Vector3D32 rootTranslation1 = outputStatusOne.getDesiredRootTranslation();
+      Vector3D32 rootTranslation2 = outputStatusTwo.getDesiredRootTranslation();
+      Quaternion32 rootOrientation1 = outputStatusOne.getDesiredRootOrientation();
+      Quaternion32 rootOrientation2 = outputStatusTwo.getDesiredRootOrientation();
+      
+      interplateOutputStatus.desiredRootTranslation.interpolate(rootTranslation1, rootTranslation2, alpha);
+      interplateOutputStatus.desiredRootOrientation.interpolate(rootOrientation1, rootOrientation2, alpha);
+      
+      interplateOutputStatus.jointNameHash = outputStatusOne.jointNameHash;
+      
+      return interplateOutputStatus;
    }
 }
