@@ -30,7 +30,7 @@ public class HumanoidBehaviorTypeSubscriber implements PacketConsumer<HumanoidBe
    @Override
    public HumanoidBehaviorType getRequestedBehavior()
    {
-      return HumanoidBehaviorType.fromByte(packetReference.getAndSet(null).getBehaviorType());
+      return HumanoidBehaviorType.fromByte(packetReference.getAndSet(null).getHumanoidBehaviorType());
    }
 
    @Override
