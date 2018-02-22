@@ -233,7 +233,7 @@ public abstract class AvatarWholeBodyTrajectoryToolboxControllerTest implements 
       // WBT toolbox configuration message
       FullHumanoidRobotModel fullRobotModel = createFullRobotModelAtInitialConfiguration();
       WholeBodyTrajectoryToolboxConfigurationMessage configuration = new WholeBodyTrajectoryToolboxConfigurationMessage();
-      configuration.setInitialConfigration(fullRobotModel);
+      configuration.initialConfiguration = HumanoidMessageTools.createKinematicsToolboxOutputStatus(fullRobotModel);
       configuration.setMaximumExpansionSize(1000);
 
       // trajectory message, exploration message
@@ -297,7 +297,7 @@ public abstract class AvatarWholeBodyTrajectoryToolboxControllerTest implements 
       // WBT toolbox configuration message
       FullHumanoidRobotModel fullRobotModel = createFullRobotModelAtInitialConfiguration();
       WholeBodyTrajectoryToolboxConfigurationMessage configuration = new WholeBodyTrajectoryToolboxConfigurationMessage();
-      configuration.setInitialConfigration(fullRobotModel);
+      configuration.initialConfiguration = HumanoidMessageTools.createKinematicsToolboxOutputStatus(fullRobotModel);
       configuration.setMaximumExpansionSize(1000);
 
       // trajectory message, exploration message
@@ -356,7 +356,7 @@ public abstract class AvatarWholeBodyTrajectoryToolboxControllerTest implements 
       // WBT toolbox configuration message
       FullHumanoidRobotModel fullRobotModel = createFullRobotModelAtInitialConfiguration();
       WholeBodyTrajectoryToolboxConfigurationMessage configuration = new WholeBodyTrajectoryToolboxConfigurationMessage();
-      configuration.setInitialConfigration(fullRobotModel);
+      configuration.initialConfiguration = HumanoidMessageTools.createKinematicsToolboxOutputStatus(fullRobotModel);
       configuration.setMaximumExpansionSize(1000);
 
       // trajectory message, exploration message
