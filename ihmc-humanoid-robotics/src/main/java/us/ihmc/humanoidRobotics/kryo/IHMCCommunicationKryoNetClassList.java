@@ -1,6 +1,7 @@
 package us.ihmc.humanoidRobotics.kryo;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.ejml.data.DenseMatrix64F;
 
@@ -38,11 +39,16 @@ import us.ihmc.communication.packets.ToolboxStateMessage.ToolboxState;
 import us.ihmc.communication.packets.UIPositionCheckerPacket;
 import us.ihmc.communication.packets.WeightMatrix3DMessage;
 import us.ihmc.communication.producers.VideoSource;
+import us.ihmc.euclid.geometry.BoundingBox3D;
+import us.ihmc.euclid.geometry.Orientation2D;
+import us.ihmc.euclid.geometry.Pose2D;
+import us.ihmc.euclid.geometry.Pose3D;
 import us.ihmc.euclid.matrix.RotationMatrix;
 import us.ihmc.euclid.transform.QuaternionBasedTransform;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.euclid.tuple2D.Point2D32;
+import us.ihmc.euclid.tuple2D.Vector2D;
 import us.ihmc.euclid.tuple2D.Vector2D32;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Point3D32;
@@ -50,19 +56,22 @@ import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.Vector3D32;
 import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.euclid.tuple4D.Quaternion32;
+import us.ihmc.footstepPlanning.FootstepPlannerType;
 import us.ihmc.footstepPlanning.FootstepPlanningResult;
-import us.ihmc.humanoidRobotics.communication.packets.JointspaceTrajectoryMessage;
+import us.ihmc.humanoidRobotics.communication.packets.DesiredAccelerationsMessage;
 import us.ihmc.humanoidRobotics.communication.packets.DetectedObjectPacket;
+import us.ihmc.humanoidRobotics.communication.packets.EuclideanTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.EuclideanTrajectoryPointMessage;
 import us.ihmc.humanoidRobotics.communication.packets.FrameInformation;
 import us.ihmc.humanoidRobotics.communication.packets.HighLevelStateChangeStatusMessage;
 import us.ihmc.humanoidRobotics.communication.packets.HighLevelStateMessage;
+import us.ihmc.humanoidRobotics.communication.packets.JointspaceTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.LegCompliancePacket;
-import us.ihmc.humanoidRobotics.communication.packets.LowLevelDrivingAction;
-import us.ihmc.humanoidRobotics.communication.packets.LowLevelDrivingCommand;
-import us.ihmc.humanoidRobotics.communication.packets.LowLevelDrivingStatus;
+import us.ihmc.humanoidRobotics.communication.packets.LoadBearingMessage;
 import us.ihmc.humanoidRobotics.communication.packets.SCSListenerPacket;
+import us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage;
+import us.ihmc.humanoidRobotics.communication.packets.SO3TrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.SO3TrajectoryPointMessage;
 import us.ihmc.humanoidRobotics.communication.packets.StampedPosePacket;
 import us.ihmc.humanoidRobotics.communication.packets.TrajectoryPoint1DMessage;
@@ -75,29 +84,16 @@ import us.ihmc.humanoidRobotics.communication.packets.behaviors.BehaviorControlM
 import us.ihmc.humanoidRobotics.communication.packets.behaviors.BehaviorControlModeResponsePacket;
 import us.ihmc.humanoidRobotics.communication.packets.behaviors.BehaviorStatusPacket;
 import us.ihmc.humanoidRobotics.communication.packets.behaviors.BehaviorStatusPacket.CurrentBehaviorStatus;
-import us.ihmc.humanoidRobotics.communication.packets.behaviors.ButtonData;
-import us.ihmc.humanoidRobotics.communication.packets.behaviors.DebrisData;
 import us.ihmc.humanoidRobotics.communication.packets.behaviors.DoorLocationPacket;
-import us.ihmc.humanoidRobotics.communication.packets.behaviors.DrillPacket;
-import us.ihmc.humanoidRobotics.communication.packets.behaviors.HumanoidBehaviorButtonPacket;
-import us.ihmc.humanoidRobotics.communication.packets.behaviors.HumanoidBehaviorDebrisPacket;
 import us.ihmc.humanoidRobotics.communication.packets.behaviors.HumanoidBehaviorType;
 import us.ihmc.humanoidRobotics.communication.packets.behaviors.HumanoidBehaviorTypePacket;
 import us.ihmc.humanoidRobotics.communication.packets.behaviors.SimpleCoactiveBehaviorDataPacket;
 import us.ihmc.humanoidRobotics.communication.packets.behaviors.ValveLocationPacket;
 import us.ihmc.humanoidRobotics.communication.packets.behaviors.WalkToGoalBehaviorPacket;
 import us.ihmc.humanoidRobotics.communication.packets.behaviors.WallPosePacket;
-import us.ihmc.humanoidRobotics.communication.packets.behaviors.WallTaskBehaviorData;
-import us.ihmc.humanoidRobotics.communication.packets.behaviors.script.ScriptBehaviorInputPacket;
-import us.ihmc.humanoidRobotics.communication.packets.behaviors.script.ScriptBehaviorStatusEnum;
-import us.ihmc.humanoidRobotics.communication.packets.behaviors.script.ScriptBehaviorStatusPacket;
 import us.ihmc.humanoidRobotics.communication.packets.dataobjects.AtlasAuxiliaryRobotData;
-import us.ihmc.humanoidRobotics.communication.packets.dataobjects.BlindWalkingDirection;
-import us.ihmc.humanoidRobotics.communication.packets.dataobjects.BlindWalkingSpeed;
 import us.ihmc.humanoidRobotics.communication.packets.dataobjects.HandConfiguration;
 import us.ihmc.humanoidRobotics.communication.packets.dataobjects.HighLevelControllerName;
-import us.ihmc.humanoidRobotics.communication.packets.driving.DrivingStatePacket;
-import us.ihmc.humanoidRobotics.communication.packets.driving.DrivingTrajectoryPacket;
 import us.ihmc.humanoidRobotics.communication.packets.driving.VehiclePosePacket;
 import us.ihmc.humanoidRobotics.communication.packets.heightQuadTree.HeightQuadTreeMessage;
 import us.ihmc.humanoidRobotics.communication.packets.heightQuadTree.HeightQuadTreeNodeMessage;
@@ -108,23 +104,15 @@ import us.ihmc.humanoidRobotics.communication.packets.manipulation.AtlasElectric
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.AtlasElectricMotorEnablePacket;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.AtlasElectricMotorPacketEnum;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.AtlasWristSensorCalibrationRequestPacket;
-import us.ihmc.humanoidRobotics.communication.packets.manipulation.BatchedDesiredSteeringAngleAndSingleJointAnglePacket;
-import us.ihmc.humanoidRobotics.communication.packets.manipulation.CalibrateArmPacket;
-import us.ihmc.humanoidRobotics.communication.packets.manipulation.ControlStatusPacket;
-import us.ihmc.humanoidRobotics.communication.packets.manipulation.DesiredSteeringAnglePacket;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.HandCollisionDetectedPacket;
-import us.ihmc.humanoidRobotics.communication.packets.manipulation.HandComplianceControlParametersMessage;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.HandDesiredConfigurationMessage;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.HandJointAnglePacket;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.HandLoadBearingMessage;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.HandPowerCyclePacket;
-import us.ihmc.humanoidRobotics.communication.packets.manipulation.HandRotateAboutAxisPacket;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.HandTrajectoryMessage;
-import us.ihmc.humanoidRobotics.communication.packets.manipulation.HandstepPacket;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.ManualHandControlPacket;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.ObjectWeightPacket;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.OneDoFJointTrajectoryMessage;
-import us.ihmc.humanoidRobotics.communication.packets.manipulation.SteeringWheelInformationPacket;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.StopAllTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.wholeBodyTrajectory.ConfigurationSpaceName;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.wholeBodyTrajectory.ReachingManifoldMessage;
@@ -136,44 +124,27 @@ import us.ihmc.humanoidRobotics.communication.packets.manipulation.wholeBodyTraj
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.wholeBodyTrajectory.WholeBodyTrajectoryToolboxRequestPacket;
 import us.ihmc.humanoidRobotics.communication.packets.momentum.CenterOfMassTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.momentum.MomentumTrajectoryMessage;
-import us.ihmc.humanoidRobotics.communication.packets.sensing.AbstractPointCloudPacket;
 import us.ihmc.humanoidRobotics.communication.packets.sensing.BlackFlyParameterPacket;
-import us.ihmc.humanoidRobotics.communication.packets.sensing.DepthDataClearCommand;
-import us.ihmc.humanoidRobotics.communication.packets.sensing.DepthDataClearCommand.DepthDataTree;
-import us.ihmc.humanoidRobotics.communication.packets.sensing.DepthDataFilterParameters;
-import us.ihmc.humanoidRobotics.communication.packets.sensing.DepthDataStateCommand;
-import us.ihmc.humanoidRobotics.communication.packets.sensing.DepthDataStateCommand.LidarState;
 import us.ihmc.humanoidRobotics.communication.packets.sensing.DrillDetectionPacket;
-import us.ihmc.humanoidRobotics.communication.packets.sensing.FilteredPointCloudPacket;
 import us.ihmc.humanoidRobotics.communication.packets.sensing.FisheyePacket;
-import us.ihmc.humanoidRobotics.communication.packets.sensing.HeadPosePacket;
-import us.ihmc.humanoidRobotics.communication.packets.sensing.LidarPosePacket;
 import us.ihmc.humanoidRobotics.communication.packets.sensing.LocalizationPacket;
 import us.ihmc.humanoidRobotics.communication.packets.sensing.LocalizationPointMapPacket;
 import us.ihmc.humanoidRobotics.communication.packets.sensing.LocalizationStatusPacket;
-import us.ihmc.humanoidRobotics.communication.packets.sensing.MultisenseMocapExperimentPacket;
 import us.ihmc.humanoidRobotics.communication.packets.sensing.MultisenseParameterPacket;
-import us.ihmc.humanoidRobotics.communication.packets.sensing.MultisenseTest;
-import us.ihmc.humanoidRobotics.communication.packets.sensing.MultisenseTest.MultisenseFrameName;
 import us.ihmc.humanoidRobotics.communication.packets.sensing.PelvisPoseErrorPacket;
 import us.ihmc.humanoidRobotics.communication.packets.sensing.PointCloudWorldPacket;
-import us.ihmc.humanoidRobotics.communication.packets.sensing.RawIMUPacket;
 import us.ihmc.humanoidRobotics.communication.packets.sensing.RequestWristForceSensorCalibrationPacket;
 import us.ihmc.humanoidRobotics.communication.packets.sensing.StateEstimatorModePacket;
-import us.ihmc.humanoidRobotics.communication.packets.sensing.TestbedClientPacket;
-import us.ihmc.humanoidRobotics.communication.packets.sensing.TestbedServerPacket;
 import us.ihmc.humanoidRobotics.communication.packets.sensing.UIConnectedPacket;
 import us.ihmc.humanoidRobotics.communication.packets.sensing.VideoPacket;
 import us.ihmc.humanoidRobotics.communication.packets.valkyrie.ValkyrieLowLevelControlModeMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.AbortWalkingMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.AdjustFootstepMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.AutomaticManipulationAbortMessage;
-import us.ihmc.humanoidRobotics.communication.packets.walking.BlindWalkingPacket;
 import us.ihmc.humanoidRobotics.communication.packets.walking.CapturabilityBasedStatus;
 import us.ihmc.humanoidRobotics.communication.packets.walking.ChestTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.EndOfScriptCommand;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootLoadBearingMessage;
-import us.ihmc.humanoidRobotics.communication.packets.walking.FootLoadBearingMessage.LoadBearingRequest;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataListMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage;
@@ -181,7 +152,6 @@ import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepPathPlanPa
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepPlanRequestPacket;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepPlanRequestPacket.RequestType;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepPlanningRequestPacket;
-import us.ihmc.footstepPlanning.FootstepPlannerType;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepPlanningToolboxOutputStatus;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepStatus;
 import us.ihmc.humanoidRobotics.communication.packets.walking.GoHomeMessage;
@@ -205,12 +175,8 @@ import us.ihmc.humanoidRobotics.communication.packets.walking.hybridRigidBodyMan
 import us.ihmc.humanoidRobotics.communication.packets.walking.hybridRigidBodyManager.HandHybridJointspaceTaskspaceTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.hybridRigidBodyManager.HeadHybridJointspaceTaskspaceTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.wholebody.ClearDelayQueueMessage;
-import us.ihmc.humanoidRobotics.communication.packets.wholebody.JointAnglesPacket;
 import us.ihmc.humanoidRobotics.communication.packets.wholebody.MessageOfMessages;
-import us.ihmc.humanoidRobotics.communication.packets.wholebody.MultiJointAnglePacket;
-import us.ihmc.humanoidRobotics.communication.packets.wholebody.SingleJointAnglePacket;
 import us.ihmc.humanoidRobotics.communication.packets.wholebody.WholeBodyTrajectoryMessage;
-import us.ihmc.humanoidRobotics.communication.remote.serialization.JointConfigurationData;
 import us.ihmc.humanoidRobotics.communication.toolbox.heightQuadTree.command.HeightQuadTreeToolboxRequestMessage;
 import us.ihmc.robotics.kinematics.TimeStampedTransform3D;
 import us.ihmc.robotics.lidar.LidarScanParameters;
@@ -232,16 +198,9 @@ public class IHMCCommunicationKryoNetClassList extends NetClassList
       registerPacketField(String[].class);
       registerPacketClass(HandCollisionDetectedPacket.class);
 
-      registerPacketField(MultisenseTest.class);
-      registerPacketField(MultisenseFrameName.class);
-      registerPacketClass(MultisenseMocapExperimentPacket.class);
-
       // Video data
       registerPacketClass(VideoPacket.class);
       registerPacketClass(SimulatedLidarScanPacket.class);
-      registerPacketClass(FilteredPointCloudPacket.class);
-      registerPacketClass(TestbedServerPacket.class);
-      registerPacketClass(JointConfigurationData.class);
 
       registerPacketClass(IMUPacket.class);
       registerPacketField(IMUPacket[].class);
@@ -262,29 +221,25 @@ public class IHMCCommunicationKryoNetClassList extends NetClassList
       registerPacketField(HandConfiguration.class);
       registerPacketFields(RobotSide.class);
       registerPacketClass(ObjectWeightPacket.class);
-      registerPacketClass(HandRotateAboutAxisPacket.class);
-      registerPacketField(HandRotateAboutAxisPacket.DataType.class);
-      registerPacketClass(SteeringWheelInformationPacket.class);
       registerPacketField(RobotSide.class);
       registerPacketField(Point3D.class);
       registerPacketField(Point3D32.class);
       registerPacketField(Vector3D.class);
       registerPacketField(Vector2D32.class);
-      registerPacketClass(DesiredSteeringAnglePacket.class);
-      registerPacketClass(QuaternionBasedTransform.class);
 
-      registerPacketClass(HandComplianceControlParametersMessage.class);
       registerPacketField(Vector3D32.class);
       registerPacketField(boolean[].class);
 
       // Endeffector load bearing message
       registerPacketClass(FootLoadBearingMessage.class);
       registerPacketClass(HandLoadBearingMessage.class);
-      registerPacketClass(LoadBearingRequest.class);
+      registerPacketField(FootLoadBearingMessage.LoadBearingRequest.class);
+      registerPacketField(LoadBearingMessage.class);
 
       // User control mode
       registerPacketClass(ArmDesiredAccelerationsMessage.class);
       registerPacketClass(NeckDesiredAccelerationsMessage.class);
+      registerPacketField(DesiredAccelerationsMessage.class);
 
       // Trajectory messages
       registerPacketClass(HandTrajectoryMessage.class);
@@ -310,17 +265,26 @@ public class IHMCCommunicationKryoNetClassList extends NetClassList
       registerPacketClass(CenterOfMassTrajectoryMessage.class);
 
       // Trajectory message fields
+      registerPacketField(HandTrajectoryMessage.class);
+      registerPacketField(ArmTrajectoryMessage.class);
+      registerPacketField(ChestTrajectoryMessage.class);
+      registerPacketField(PelvisTrajectoryMessage.class);
+      registerPacketField(FootTrajectoryMessage.class);
+      registerPacketField(HeadTrajectoryMessage.class);
+      registerPacketField(SE3TrajectoryMessage.class);
+      registerPacketField(SO3TrajectoryMessage.class);
+      registerPacketField(EuclideanTrajectoryMessage.class);
+      registerPacketField(FrameInformation.class);
+      registerPacketField(QuaternionBasedTransform.class);
       registerPacketField(JointspaceTrajectoryMessage.class);
       registerPacketField(QueueableMessage.class);
-      registerPacketClass(ExecutionMode.class);
-      registerPacketClass(ExecutionTiming.class);
+      registerPacketField(ExecutionMode.class);
+      registerPacketField(ExecutionTiming.class);
       registerPacketClass(OneDoFJointTrajectoryMessage.class);
       registerPacketClass(TrajectoryPoint1DMessage.class);
       registerPacketClass(EuclideanTrajectoryPointMessage.class);
       registerPacketClass(SO3TrajectoryPointMessage.class);
       registerPacketClass(SE3TrajectoryPointMessage.class);
-      registerPacketClass(BodyPart.class);
-      registerPacketClass(FrameInformation.class);
 
       registerPacketField(OneDoFJointTrajectoryMessage.class);
       registerPacketField(OneDoFJointTrajectoryMessage[].class);
@@ -344,9 +308,6 @@ public class IHMCCommunicationKryoNetClassList extends NetClassList
       registerPacketClass(ValkyrieLowLevelControlModeMessage.class);
       registerPacketField(ValkyrieLowLevelControlModeMessage.ControlMode.class);
 
-      // Handstep
-      registerPacketClass(HandstepPacket.class);
-
       //Vehicle
       registerPacketClass(VehiclePosePacket.class);
 
@@ -355,7 +316,13 @@ public class IHMCCommunicationKryoNetClassList extends NetClassList
       registerPacketField(ToolboxState.class);
       registerPacketClass(FootstepPlanningToolboxOutputStatus.class);
       registerPacketClass(FootstepPlanningRequestPacket.class);
-      registerPacketClass(FootstepPlanningResult.class);
+      registerPacketField(FootstepPlanningResult.class);
+      registerPacketField(Pose2D.class);
+      registerPacketField(Orientation2D.class);
+      registerPacketField(Vector2D.class);
+      registerPacketField(Point3D.class);
+      registerPacketField(Point3D[].class);
+      registerPacketField(Point3D[][].class);
 
       // Packets for the kinematics toolbox
       registerPacketClass(KinematicsToolboxOutputStatus.class);
@@ -363,6 +330,9 @@ public class IHMCCommunicationKryoNetClassList extends NetClassList
       registerPacketClass(KinematicsToolboxRigidBodyMessage.class);
       registerPacketClass(KinematicsToolboxConfigurationMessage.class);
       registerPacketClass(HumanoidKinematicsToolboxConfigurationMessage.class);
+      registerPacketField(KinematicsToolboxOutputStatus.class);
+      registerPacketField(Pose3D.class);
+      registerPacketField(Pose3D[].class);
 
       // Packets for whole-body trajectory toolbox
       registerPacketClass(WholeBodyTrajectoryToolboxMessage.class);
@@ -387,18 +357,17 @@ public class IHMCCommunicationKryoNetClassList extends NetClassList
       registerPacketClass(FootstepDataMessage.class);
       registerPacketClass(AdjustFootstepMessage.class);
       registerPacketField(ArrayList.class);
+      registerPacketField(List.class);
 
+      registerPacketField(FootstepDataListMessage.class);
       registerPacketClass(FootstepDataListMessage.class);
       registerPacketField(ArrayList.class);
-
-      registerPacketClass(BlindWalkingPacket.class);
-      registerPacketFields(Point2D.class, BlindWalkingDirection.class, BlindWalkingSpeed.class);
 
       registerPacketClass(PauseWalkingMessage.class);
       registerPacketClass(FootstepStatus.class);
       registerPacketClass(PlanOffsetStatus.class);
       registerPacketClass(WalkingStatusMessage.class);
-      registerPacketClass(TrajectoryType.class);
+      registerPacketField(TrajectoryType.class);
 
       registerPacketField(ArrayList.class);
       registerPacketField(FootstepStatus.Status.class);
@@ -411,21 +380,15 @@ public class IHMCCommunicationKryoNetClassList extends NetClassList
       registerPacketField(PlanarRegionsListMessage.class);
       registerPacketClass(PlanarRegionMessage.class);
       registerPacketClass(RequestPlanarRegionsListMessage.class);
-      registerPacketClass(RequestPlanarRegionsListMessage.RequestType.class);
+      registerPacketField(RequestPlanarRegionsListMessage.RequestType.class);
       registerPacketField(Point3D32.class);
       registerPacketField(Vector3D32.class);
       registerPacketField(Point2D32.class);
       registerPacketField(Point2D32[].class);
+      registerPacketField(BoundingBox3D.class);
 
       //SCS
       registerPacketClass(SCSListenerPacket.class);
-
-      // LIDAR
-      registerPacketClass(AbstractPointCloudPacket.class);
-      registerPacketClass(DepthDataStateCommand.class);
-      registerPacketClass(DepthDataClearCommand.class);
-      registerPacketField(DepthDataTree.class);
-      registerPacketField(LidarState.class);
 
       registerPacketField(int[].class);
       registerPacketField(float[].class);
@@ -443,17 +406,11 @@ public class IHMCCommunicationKryoNetClassList extends NetClassList
 
       // high levle state
       registerPacketClass(HighLevelStateMessage.class);
-      registerPacketClass(HighLevelControllerName.class);
+      registerPacketField(HighLevelControllerName.class);
       registerPacketClass(HighLevelStateChangeStatusMessage.class);
 
       // Recording
       registerPacketClass(EndOfScriptCommand.class);
-
-      // Driving
-      registerPacketClass(LowLevelDrivingCommand.class);
-      registerPacketClass(LowLevelDrivingStatus.class);
-      registerPacketClass(LowLevelDrivingCommand.class);
-      registerPacketField(LowLevelDrivingAction.class);
 
       //hand joint and control packets
       registerPacketClass(ManualHandControlPacket.class);
@@ -471,45 +428,23 @@ public class IHMCCommunicationKryoNetClassList extends NetClassList
 
       registerPacketClass(MultisenseParameterPacket.class);
 
-      registerPacketClass(TestbedClientPacket.class);
-
-      // registerPacketClass(FishEyeControlPacket.class);
-      registerPacketClass(ControlStatusPacket.class);
-      registerPacketField(ControlStatusPacket.ControlStatus.class);
-
       // Humanoid Behaviors
       registerPacketClass(HumanoidBehaviorTypePacket.class);
       registerPacketField(HumanoidBehaviorType.class);
       registerPacketClass(BehaviorControlModePacket.class);
       registerPacketField(BehaviorControlModeEnum.class);
-      registerPacketClass(ScriptBehaviorStatusPacket.class);
-      registerPacketClass(ScriptBehaviorStatusEnum.class);
       registerPacketClass(BehaviorControlModeResponsePacket.class);
-      registerPacketClass(ScriptBehaviorInputPacket.class);
-      registerPacketClass(WallTaskBehaviorData.class);
-      registerPacketField(WallTaskBehaviorData.Commands.class);
 
-      registerPacketClass(DepthDataStateCommand.class);
-      registerPacketClass(DepthDataClearCommand.class);
-      registerPacketClass(DepthDataFilterParameters.class);
-      registerPacketClass(DrivingTrajectoryPacket.class);
-      registerPacketField(DrivingTrajectoryPacket.Length.class);
-      registerPacketClass(DrivingStatePacket.class);
-      registerPacketField(DrivingStatePacket.DrivingState.class);
-      registerPacketClass(CalibrateArmPacket.class);
       registerPacketClass(HandDesiredConfigurationMessage.class);
       registerPacketClass(ManualHandControlPacket.class);
       registerPacketClass(MultisenseParameterPacket.class);
-      registerPacketClass(TestbedClientPacket.class);
       registerPacketClass(SnapFootstepPacket.class);
       registerPacketClass(BlackFlyParameterPacket.class);
-      registerPacketClass(HumanoidBehaviorDebrisPacket.class);
-      registerPacketField(DebrisData.class);
       registerPacketClass(WalkToGoalBehaviorPacket.class);
       registerPacketField(WalkToGoalBehaviorPacket.WalkToGoalAction.class);
       registerPacketClass(FootstepPlanRequestPacket.class);
+      registerPacketField(FootstepDataMessage.class);
       registerPacketField(FootstepPlannerType.class);
-      registerPacketClass(DrillPacket.class);
       registerPacketClass(SimpleCoactiveBehaviorDataPacket.class);
       registerPacketClass(WallPosePacket.class);
 
@@ -521,9 +456,6 @@ public class IHMCCommunicationKryoNetClassList extends NetClassList
       registerPacketClass(CapturabilityBasedStatus.class);
       registerPacketFields(Point2D.class, Point2D[].class);
 
-      registerPacketClass(ButtonData.class);
-      registerPacketClass(HumanoidBehaviorButtonPacket.class);
-
       // Planning
       registerPacketClass(FootstepPathPlanPacket.class);
 
@@ -533,21 +465,11 @@ public class IHMCCommunicationKryoNetClassList extends NetClassList
       registerPacketClass(PelvisPoseErrorPacket.class);
       registerPacketClass(LocalizationPointMapPacket.class);
 
-      registerPacketClass(RawIMUPacket.class);
-      registerPacketClass(HeadPosePacket.class);
-      registerPacketClass(HeadPosePacket.MeasurementStatus.class);
-
-      registerPacketClass(JointAnglesPacket.class);
-      registerPacketClass(SingleJointAnglePacket.class);
-      registerPacketField(SingleJointAnglePacket[].class);
-      registerPacketClass(MultiJointAnglePacket.class);
-
       registerPacketField(Vector3D[].class);
       registerPacketField(Quaternion[].class);
       registerPacketField(Point3D[].class);
 
       registerPacketClass(PointCloudWorldPacket.class);
-      registerPacketClass(LidarPosePacket.class);
 
       // New quadTree
       registerPacketClass(HeightQuadTreeToolboxRequestMessage.class);
@@ -589,7 +511,6 @@ public class IHMCCommunicationKryoNetClassList extends NetClassList
       registerPacketClass(LegCompliancePacket.class);
       registerPacketClass(DrillDetectionPacket.class);
       registerPacketClass(UIPositionCheckerPacket.class);
-      registerPacketClass(BatchedDesiredSteeringAngleAndSingleJointAnglePacket.class);
       registerPacketClass(TextToSpeechPacket.class);
       registerPacketField(VideoSource.class);
 
@@ -601,6 +522,8 @@ public class IHMCCommunicationKryoNetClassList extends NetClassList
       registerPacketClass(ObjectDetectorResultPacket.class);
       registerPacketClass(RequestStereoPointCloudMessage.class);
       registerPacketClass(StereoVisionPointCloudMessage.class);
+      registerPacketField(HeatMapPacket.class);
+      registerPacketField(BoundingBoxesPacket.class);
 
       registerPacketClass(WholeBodyTrajectoryToolboxRequestPacket.class);
       registerPacketClass(WholeBodyTrajectoryToolboxOutputStatus.class);

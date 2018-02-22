@@ -53,8 +53,8 @@ public class WalkOverTerrainStateMachineBehavior extends AbstractBehavior
 
       communicationBridge.attachListener(WalkOverTerrainGoalPacket.class, (packet) ->
       {
-         goalPose.set(packet.goalPose);
-         planPathState.setGoalPose(packet.goalPose);
+         goalPose.set(new FramePose3D(ReferenceFrame.getWorldFrame(), packet.position, packet.orientation));
+         planPathState.setGoalPose(goalPose.get());
       });
 
       this.chestFrame = referenceFrames.getChestFrame();

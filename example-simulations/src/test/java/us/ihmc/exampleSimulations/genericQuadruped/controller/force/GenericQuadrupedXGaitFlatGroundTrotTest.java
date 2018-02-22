@@ -18,64 +18,64 @@ public class GenericQuadrupedXGaitFlatGroundTrotTest extends QuadrupedXGaitFlatG
    }
    
    @Override
-   @ContinuousIntegrationTest(estimatedDuration = 11.1)
-   @Test(timeout = 150000)
+   @ContinuousIntegrationTest(estimatedDuration = 40.0)
+   @Test(timeout = 400000)
    public void testTrottingForwardFast()
    {
       super.testTrottingForwardFast();
    }
    
    @Override
-   @ContinuousIntegrationTest(estimatedDuration = 13.5)
-   @Test(timeout = 150000)
+   @ContinuousIntegrationTest(estimatedDuration = 40.0)
+   @Test(timeout = 400000)
    public void testTrottingForwardSlow()
    {
       super.testTrottingForwardSlow();
    }
    
    @Override
-   @ContinuousIntegrationTest(estimatedDuration = 12.7)
-   @Test(timeout = 150000)
+   @ContinuousIntegrationTest(estimatedDuration = 40.0)
+   @Test(timeout = 400000)
    public void testTrottingBackwardsFast()
    {
       super.testTrottingBackwardsFast();
    }
    
    @Override
-   @ContinuousIntegrationTest(estimatedDuration = 16.8)
-   @Test(timeout = 150000)
+   @ContinuousIntegrationTest(estimatedDuration = 40.0)
+   @Test(timeout = 400000)
    public void testTrottingBackwardsSlow()
    {
       super.testTrottingBackwardsSlow();
    }
    
    @Override
-   @ContinuousIntegrationTest(estimatedDuration = 26.4)
-   @Test(timeout = 250000)
+   @ContinuousIntegrationTest(estimatedDuration = 90.0)
+   @Test(timeout = 400000)
    public void testTrottingInAForwardLeftCircle()
    {
       super.testTrottingInAForwardLeftCircle();
    }
    
    @Override
-   @ContinuousIntegrationTest(estimatedDuration = 24.1)
-   @Test(timeout = 350000)
+   @ContinuousIntegrationTest(estimatedDuration = 90.0)
+   @Test(timeout = 400000)
    public void testTrottingInAForwardRightCircle()
    {
       super.testTrottingInAForwardRightCircle();
    }
    
    @Override
-   @ContinuousIntegrationTest(estimatedDuration = 25.8)
-   @Test(timeout = 350000)
+   @ContinuousIntegrationTest(estimatedDuration = 90.0)
+   @Test(timeout = 400000)
    public void testTrottingInABackwardLeftCircle()
    {
       super.testTrottingInABackwardLeftCircle();
    }
    
    @Override
-   @ContinuousIntegrationTest(estimatedDuration = 22.9)
-   @Test(timeout = 300000)
+   @ContinuousIntegrationTest(estimatedDuration = 90.0)
+   @Test(timeout = 400000)
    public void testTrottingInABackwardRightCircle()
    {
       super.testTrottingInABackwardRightCircle();

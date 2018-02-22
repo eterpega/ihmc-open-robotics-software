@@ -110,20 +110,6 @@ public class DefaultCollisionHandler implements CollisionHandler
       int numberOfContacts = contacts.getNumberOfContacts();
       indices.clear();
 
-      if (DEBUG)
-      {
-         System.out.println("NumberOfContacts = " + numberOfContacts);
-         System.out.println("shape1 = " + shape1);
-         System.out.println("shape2 = " + shape2);
-         
-         System.out.println("Link1 = " + shape1.getLink());
-         System.out.println("Link2 = " + shape2.getLink());
-         
-         
-         
-         
-      }
-
       for (int i = 0; i < numberOfContacts; i++)
       {
          indices.add(i);
@@ -161,16 +147,16 @@ public class DefaultCollisionHandler implements CollisionHandler
 
             negative_normal.set(normal);
             negative_normal.scale(-1.0);
-            
+
             Link linkOne = null;
             ExternalForcePoint externalForcePointOne = null;
             Robot robot1 = null;
-            
+
             Link linkTwo = null;
             ExternalForcePoint externalForcePointTwo = null;
             Robot robot2 = null;
-                        
-            if(!shapeOneIsGround)
+
+            if (!shapeOneIsGround)
             {
                linkOne = shape1.getLink();
                externalForcePointOne = linkOne.getContactingExternalForcePoints().get(0);
@@ -178,21 +164,21 @@ public class DefaultCollisionHandler implements CollisionHandler
                robot1 = linkOne.getParentJoint().getRobot();
             }
 
-            if(!shapeTwoIsGround)
+            if (!shapeTwoIsGround)
             {
                linkTwo = shape2.getLink();
                externalForcePointTwo = linkTwo.getContactingExternalForcePoints().get(0);
                externalForcePointTwo.setOffsetWorld(point2.getX(), point2.getY(), point2.getZ());
                robot2 = linkTwo.getParentJoint().getRobot();
-            }   
-            
-            if(!shapeOneIsGround)
+            }
+
+            if (!shapeOneIsGround)
             {
                robot1.updateVelocities();
-               robot1.update();    
+               robot1.update();
             }
-            
-            if(!shapeTwoIsGround)
+
+            if (!shapeTwoIsGround)
             {
                if (robot2 != robot1)
                {
@@ -200,7 +186,7 @@ public class DefaultCollisionHandler implements CollisionHandler
                   robot2.update();
                }
             }
-            
+
             // Resolve the collision:
             Vector3D p_world = new Vector3D();
 
