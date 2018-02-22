@@ -90,7 +90,7 @@ public class MessageTools
    public static SetBooleanParameterPacket createSetBooleanParameterPacket(String parameterName, boolean parameterValue)
    {
       SetBooleanParameterPacket message = new SetBooleanParameterPacket();
-      message.parameterName = parameterName;
+      message.parameterName.append(parameterName);
       message.parameterValue = parameterValue;
       return message;
    }
@@ -116,7 +116,7 @@ public class MessageTools
    public static SetDoubleArrayParameterPacket createSetDoubleArrayParameterPacket(String parameterName, double[] parameterValue)
    {
       SetDoubleArrayParameterPacket message = new SetDoubleArrayParameterPacket();
-      message.parameterName = parameterName;
+      message.parameterName.append(parameterName);
       message.parameterValue = parameterValue;
       return message;
    }
@@ -124,7 +124,9 @@ public class MessageTools
    public static DetectedFacesPacket createDetectedFacesPacket(String[] ids, Point3D[] positions)
    {
       DetectedFacesPacket message = new DetectedFacesPacket();
-      message.ids = ids;
+      message.ids = new StringBuilder[ids.length];
+      for (int i = 0; i < ids.length; i++)
+         message.ids[i].append(ids[i]);
       message.positions = positions;
       return message;
    }
@@ -248,7 +250,7 @@ public class MessageTools
    public static SetDoubleParameterPacket createSetDoubleParameterPacket(String parameterName, double parameterValue)
    {
       SetDoubleParameterPacket message = new SetDoubleParameterPacket();
-      message.parameterName = parameterName;
+      message.parameterName.append(parameterName);
       message.parameterValue = parameterValue;
       return message;
    }
@@ -300,15 +302,17 @@ public class MessageTools
    public static SetStringParameterPacket createSetStringParameterPacket(String parameterName, String parameterValue)
    {
       SetStringParameterPacket message = new SetStringParameterPacket();
-      message.parameterName = parameterName;
-      message.parameterValue = parameterValue;
+      message.parameterName.append(parameterName);
+      message.parameterValue.append(parameterValue);
       return message;
    }
 
    public static BoundingBoxesPacket createBoundingBoxesPacket(int[] packedBoxes, String[] labels)
    {
       BoundingBoxesPacket message = new BoundingBoxesPacket();
-      message.labels = labels;
+      message.labels = new StringBuilder[labels.length];
+      for (int i = 0; i < labels.length; i++)
+         message.labels[i].append(labels[i]);
       int n = packedBoxes.length / 4;
       message.boundingBoxXCoordinates = new int[n];
       message.boundingBoxYCoordinates = new int[n];
@@ -328,7 +332,7 @@ public class MessageTools
    {
       ControllerCrashNotificationPacket message = new ControllerCrashNotificationPacket();
       message.controllerCrashLocation = location.toByte();
-      message.stacktrace = stackTrace;
+      message.stacktrace.append(stackTrace);
       return message;
    }
 

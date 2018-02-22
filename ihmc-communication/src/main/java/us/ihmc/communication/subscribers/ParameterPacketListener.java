@@ -67,26 +67,26 @@ public class ParameterPacketListener
 
    public void onSetBooleanPacket(SetBooleanParameterPacket packet)
    {
-      BooleanParameter parameter = lookup(packet.getParameterName(), BooleanParameter.class);
+      BooleanParameter parameter = lookup(packet.getParameterNameAsString(), BooleanParameter.class);
       parameter.set(packet.getParameterValue());
    }
 
    public void onSetDoubleArrayPacket(SetDoubleArrayParameterPacket packet)
    {
-      DoubleArrayParameter parameter = lookup(packet.getParameterName(), DoubleArrayParameter.class);
+      DoubleArrayParameter parameter = lookup(packet.getParameterNameAsString(), DoubleArrayParameter.class);
       parameter.set(packet.getParameterValue());
    }
 
    public void onSetDoublePacket(SetDoubleParameterPacket packet)
    {
-      DoubleParameter parameter = lookup(packet.getParameterName(), DoubleParameter.class);
+      DoubleParameter parameter = lookup(packet.getParameterNameAsString(), DoubleParameter.class);
       parameter.set(packet.getParameterValue());
    }
 
    public void onStringPacket(SetStringParameterPacket packet)
    {
-      StringParameter parameter = lookup(packet.getParameterName(), StringParameter.class);
-      parameter.set(packet.getParameterValue());
+      StringParameter parameter = lookup(packet.getParameterNameAsString(), StringParameter.class);
+      parameter.set(packet.getParameterValueAsString());
    }
 
    @SuppressWarnings("unchecked")

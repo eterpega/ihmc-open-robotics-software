@@ -2,8 +2,8 @@ package us.ihmc.communication.packets;
 
 public class SetStringParameterPacket extends Packet<SetStringParameterPacket>
 {
-   public String parameterName;
-   public String parameterValue;
+   public StringBuilder parameterName = new StringBuilder();
+   public StringBuilder parameterValue = new StringBuilder();
 
    // Empty constructor for serialization
    public SetStringParameterPacket()
@@ -13,19 +13,21 @@ public class SetStringParameterPacket extends Packet<SetStringParameterPacket>
    @Override
    public void set(SetStringParameterPacket other)
    {
-      parameterName = other.parameterName;
-      parameterValue = other.parameterValue;
+      parameterName.setLength(0);
+      parameterName.append(other.parameterName);
+      parameterValue.setLength(0);
+      parameterValue.append(other.parameterValue);
       setPacketInformation(other);
    }
 
-   public String getParameterName()
+   public String getParameterNameAsString()
    {
-      return parameterName;
+      return parameterName.toString();
    }
 
-   public String getParameterValue()
+   public String getParameterValueAsString()
    {
-      return parameterValue;
+      return parameterValue.toString();
    }
 
    @Override

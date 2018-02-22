@@ -7,7 +7,7 @@ import com.google.common.math.DoubleMath;
 public class SetDoubleArrayParameterPacket extends Packet<SetDoubleArrayParameterPacket>
 {
 
-   public String parameterName;
+   public StringBuilder parameterName = new StringBuilder();
    public double[] parameterValue;
 
    // Empty constructor for serialization
@@ -18,14 +18,15 @@ public class SetDoubleArrayParameterPacket extends Packet<SetDoubleArrayParamete
    @Override
    public void set(SetDoubleArrayParameterPacket other)
    {
-      parameterName = other.parameterName;
+      parameterName.setLength(0);
+      parameterName.append(other.parameterName);
       parameterValue = Arrays.copyOf(other.parameterValue, other.parameterValue.length);
       setPacketInformation(other);
    }
 
-   public String getParameterName()
+   public String getParameterNameAsString()
    {
-      return parameterName;
+      return parameterName.toString();
    }
 
    public double[] getParameterValue()
