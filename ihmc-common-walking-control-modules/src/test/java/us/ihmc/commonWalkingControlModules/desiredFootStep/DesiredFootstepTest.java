@@ -470,7 +470,7 @@ public class DesiredFootstepTest
       @Override
       public void receivedPacket(PauseWalkingMessage packet)
       {
-         reconstructedCommands.add(packet.isPaused());
+         reconstructedCommands.add(packet.getPause());
       }
 
       public ArrayList<Boolean> getReconstructedCommands()

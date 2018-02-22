@@ -94,7 +94,7 @@ public class ScriptTools
 
          if (scriptObject.getScriptObject() instanceof PauseWalkingMessage)
          {
-            if (((PauseWalkingMessage) scriptObject.getScriptObject()).isPaused())
+            if (((PauseWalkingMessage) scriptObject.getScriptObject()).getPause())
             {
                if (previousWasPause)
                {
