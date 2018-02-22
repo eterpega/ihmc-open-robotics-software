@@ -20,6 +20,7 @@ import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Point3D32;
 import us.ihmc.euclid.tuple3D.Vector3D32;
+import us.ihmc.euclid.tuple3D.interfaces.Point3DBasics;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 import us.ihmc.euclid.tuple4D.Quaternion;
@@ -883,5 +884,39 @@ public class MessageTools
       kinematicsToolboxConfigurationMessage.privilegedJointNameBasedHashCodes.add(jointNameBasedHashCodes);
       kinematicsToolboxConfigurationMessage.privilegedJointAngles.reset();
       kinematicsToolboxConfigurationMessage.privilegedJointAngles.add(jointAngles);
+   }
+
+   public static void packScan(LidarScanMessage lidarScanMessage, Point3DReadOnly[] scan)
+   {
+      lidarScanMessage.scan.reset();
+      
+      for (Point3DReadOnly scanPoint : scan)
+      {
+         lidarScanMessage.scan.add((float) scanPoint.getX());
+         lidarScanMessage.scan.add((float) scanPoint.getY());
+         lidarScanMessage.scan.add((float) scanPoint.getZ());
+      }
+   }
+
+   public static void unpackScanPoint(LidarScanMessage lidarScanMessage, int index, Point3DBasics scanPointToPack)
+   {
+      index *= 3;
+      scanPointToPack.setX(lidarScanMessage.scan.get(index++));
+      scanPointToPack.setY(lidarScanMessage.scan.get(index++));
+      scanPointToPack.setZ(lidarScanMessage.scan.get(index++));
+   }
+
+   public static Point3D[] unpackScanPoint3ds(LidarScanMessage lidarScanMessage)
+   {
+      int numberOfScanPoints = lidarScanMessage.scan.size() / 3;
+      Point3D[] scanPoints = new Point3D[numberOfScanPoints];
+      for (int index = 0; index < numberOfScanPoints; index++)
+      {
+         Point3D scanPoint1 = new Point3D();
+         MessageTools.unpackScanPoint(lidarScanMessage, index, scanPoint1);
+         Point3D scanPoint = scanPoint1;
+         scanPoints[index] = scanPoint;
+      }
+      return scanPoints;
    }
 }
