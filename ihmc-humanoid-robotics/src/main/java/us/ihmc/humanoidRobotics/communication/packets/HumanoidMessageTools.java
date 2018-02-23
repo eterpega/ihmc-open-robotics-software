@@ -988,6 +988,8 @@ public class HumanoidMessageTools
    public static EuclideanTrajectoryMessage createEuclideanTrajectoryMessage(int numberOfTrajectoryPoints)
    {
       EuclideanTrajectoryMessage message = new EuclideanTrajectoryMessage();
+      if (numberOfTrajectoryPoints > message.taskspaceTrajectoryPoints.capacity())
+         throw new ArrayIndexOutOfBoundsException("Attempted to add " + numberOfTrajectoryPoints + " elements while max capacity is " + message.taskspaceTrajectoryPoints.capacity());
       for (int i = 0; i < numberOfTrajectoryPoints; i++)
          message.taskspaceTrajectoryPoints.add();
       return message;
@@ -1152,6 +1154,8 @@ public class HumanoidMessageTools
    public static SO3TrajectoryMessage createSO3TrajectoryMessage(int numberOfTrajectoryPoints)
    {
       SO3TrajectoryMessage message = new SO3TrajectoryMessage();
+      if (numberOfTrajectoryPoints > message.taskspaceTrajectoryPoints.capacity())
+         throw new ArrayIndexOutOfBoundsException("Attempted to add " + numberOfTrajectoryPoints + " elements while max capacity is " + message.taskspaceTrajectoryPoints.capacity());
       for (int i = 0; i < numberOfTrajectoryPoints; i++)
          message.taskspaceTrajectoryPoints.add();
       return message;
@@ -1527,6 +1531,8 @@ public class HumanoidMessageTools
    public static JointspaceTrajectoryMessage createJointspaceTrajectoryMessage(int numberOfJoints)
    {
       JointspaceTrajectoryMessage message = new JointspaceTrajectoryMessage();
+      if (numberOfJoints > message.jointTrajectoryMessages.capacity())
+         throw new ArrayIndexOutOfBoundsException("Attempted to add " + numberOfJoints + " elements while max capacity is " + message.jointTrajectoryMessages.capacity());
       for (int i = 0; i < numberOfJoints; i++)
          message.jointTrajectoryMessages.add();
       return message;
@@ -1629,6 +1635,8 @@ public class HumanoidMessageTools
    public static OneDoFJointTrajectoryMessage createOneDoFJointTrajectoryMessage(int numberOfTrajectoryPoints)
    {
       OneDoFJointTrajectoryMessage message = new OneDoFJointTrajectoryMessage();
+      if (numberOfTrajectoryPoints > message.trajectoryPoints.capacity())
+         throw new ArrayIndexOutOfBoundsException("Attempted to add " + numberOfTrajectoryPoints + " elements while max capacity is " + message.trajectoryPoints.capacity());
       while (message.trajectoryPoints.size() < numberOfTrajectoryPoints)
          message.trajectoryPoints.add();
       return message;
@@ -1799,6 +1807,8 @@ public class HumanoidMessageTools
    public static SE3TrajectoryMessage createSE3TrajectoryMessage(int numberOfTrajectoryPoints)
    {
       SE3TrajectoryMessage message = new SE3TrajectoryMessage();
+      if (numberOfTrajectoryPoints > message.taskspaceTrajectoryPoints.capacity())
+         throw new ArrayIndexOutOfBoundsException("Attempted to add " + numberOfTrajectoryPoints + " elements while max capacity is " + message.taskspaceTrajectoryPoints.capacity());
       for (int i = 0; i < numberOfTrajectoryPoints; i++)
          message.taskspaceTrajectoryPoints.add();
       return message;
