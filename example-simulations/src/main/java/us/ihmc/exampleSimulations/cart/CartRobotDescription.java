@@ -4,7 +4,6 @@ import us.ihmc.euclid.Axis;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
 import us.ihmc.graphicsDescription.appearance.YoAppearance;
-import us.ihmc.robotics.robotDescription.CollisionMeshDescription;
 import us.ihmc.robotics.robotDescription.FloatingJointDescription;
 import us.ihmc.robotics.robotDescription.LinkDescription;
 import us.ihmc.robotics.robotDescription.LinkGraphicsDescription;
@@ -20,7 +19,7 @@ public class CartRobotDescription extends RobotDescription
    private double xLengthBody = 0.8;
    private double yLengthBody = 0.4;
    private double zLengthBody = 0.1;
-   
+
    private double heightPoll = 0.6;
    private double radiusPoll = 0.02;
    private double widthFlag = 0.4;
@@ -45,18 +44,12 @@ public class CartRobotDescription extends RobotDescription
       bodyLinkGraphics.translate(0.0, 0.0, -zLengthBody / 2.0);
       bodyLinkGraphics.addCube(xLengthBody, yLengthBody, zLengthBody, YoAppearance.Red());
       bodyLinkGraphics.identity();
-      bodyLinkGraphics.translate(xLengthBody/2.0-radiusPoll, yLengthBody/2.0-radiusPoll, 0.0);
+      bodyLinkGraphics.translate(xLengthBody / 2.0 - radiusPoll, yLengthBody / 2.0 - radiusPoll, 0.0);
       bodyLinkGraphics.addCylinder(heightPoll, radiusPoll);
       bodyLinkGraphics.translate(0.0, 0.0, heightPoll);
-      bodyLinkGraphics.translate(-widthFlag/2.0, 0.0, -heightFlag);
+      bodyLinkGraphics.translate(-widthFlag / 2.0, 0.0, -heightFlag);
       bodyLinkGraphics.addCube(widthFlag, thicknessFlag, heightFlag, YoAppearance.AliceBlue());
       bodyLink.setLinkGraphics(bodyLinkGraphics);
-
-      CollisionMeshDescription bodyCollisionMesh = new CollisionMeshDescription();
-      bodyCollisionMesh.addCubeReferencedAtCenter(xLengthBody, yLengthBody, zLengthBody);
-      bodyCollisionMesh.setCollisionGroup(collisionGroup);
-      bodyCollisionMesh.setCollisionMask(collisionMask);
-      bodyLink.addCollisionMesh(bodyCollisionMesh);
 
       bodyJoint.setLink(bodyLink);
       this.addRootJoint(bodyJoint);
@@ -79,14 +72,6 @@ public class CartRobotDescription extends RobotDescription
       frontWheelGraphics.addCylinder(lengthWheel, radiusWheel * 0.1, YoAppearance.AliceBlue());
       frontWheelLink.setLinkGraphics(frontWheelGraphics);
 
-      CollisionMeshDescription frontWheelCollisionMesh = new CollisionMeshDescription();
-      frontWheelCollisionMesh.rotate(Math.PI / 2.0, Axis.X);
-      frontWheelCollisionMesh.translate(new Vector3D(0.0, 0.0, -lengthWheel / 2.0));
-      frontWheelCollisionMesh.addCylinderReferencedAtBottomMiddle(radiusWheel, lengthWheel);
-      frontWheelCollisionMesh.setCollisionGroup(collisionGroup);
-      frontWheelCollisionMesh.setCollisionMask(collisionMask);
-      frontWheelLink.addCollisionMesh(frontWheelCollisionMesh);
-
       frontWheelJoint.setLink(frontWheelLink);
       bodyJoint.addJoint(frontWheelJoint);
 
@@ -107,14 +92,6 @@ public class CartRobotDescription extends RobotDescription
       rearWheelGraphics.rotate(Math.PI / 2.0, Axis.X);
       rearWheelGraphics.addCylinder(lengthWheel, radiusWheel * 0.1, YoAppearance.AliceBlue());
       rearWheelLink.setLinkGraphics(rearWheelGraphics);
-
-      CollisionMeshDescription rearWheelCollisionMesh = new CollisionMeshDescription();
-      rearWheelCollisionMesh.rotate(Math.PI / 2.0, Axis.X);
-      rearWheelCollisionMesh.translate(new Vector3D(0.0, 0.0, -lengthWheel / 2.0));
-      rearWheelCollisionMesh.addCylinderReferencedAtBottomMiddle(radiusWheel, lengthWheel);
-      rearWheelCollisionMesh.setCollisionGroup(collisionGroup);
-      rearWheelCollisionMesh.setCollisionMask(collisionMask);
-      rearWheelLink.addCollisionMesh(rearWheelCollisionMesh);
 
       rearWheelJoint.setLink(rearWheelLink);
       bodyJoint.addJoint(rearWheelJoint);

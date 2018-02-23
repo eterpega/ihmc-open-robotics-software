@@ -27,6 +27,8 @@ public class CartRobotSimulation
       Vector3D startingPoint = new Vector3D(-3.0, 0.0, 0.3);
       
       CartRobotDescription robotDescription = new CartRobotDescription("rollingRobot");
+      CartRobotCollisionMeshDescriptionDataHolder collisionMeshData = new CartRobotCollisionMeshDescriptionDataHolder();
+      robotDescription.addCollisionMeshDefinitionData(collisionMeshData);
       
       SimulationConstructionSetParameters parameters = new SimulationConstructionSetParameters();
       parameters.setCreateGUI(true);

@@ -30,6 +30,8 @@ public class CartRobotEnvironmentSimulation
       List<Robot> allSimulatedRobotList = new ArrayList<Robot>();
 
       CartRobotDescription robotDescription = new CartRobotDescription("rollingRobot");
+      CartRobotCollisionMeshDescriptionDataHolder collisionMeshData = new CartRobotCollisionMeshDescriptionDataHolder();
+      robotDescription.addCollisionMeshDefinitionData(collisionMeshData);
 
       SimulationConstructionSetParameters parameters = new SimulationConstructionSetParameters();
       parameters.setCreateGUI(true);
