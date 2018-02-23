@@ -93,8 +93,8 @@ public class RobotDescriptionFromSDFLoader
       }
 
       // create ground contact points
-      if (contactPointHolder != null)
-         addGroundContactPoints(contactPointHolder);
+//      if (contactPointHolder != null)
+//         addGroundContactPoints(contactPointHolder);
 
       return robotDescription;
    }
