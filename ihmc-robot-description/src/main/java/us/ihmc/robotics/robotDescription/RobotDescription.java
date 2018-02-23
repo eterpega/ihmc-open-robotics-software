@@ -153,6 +153,7 @@ public class RobotDescription implements RobotDescriptionNode, GraphicsObjectsHo
          linkGraphics = linkDescription.getLinkGraphics();
          linkGraphics.identity();
          linkGraphics.transform(collisionMeshDefinitionData.getTransformToParentJoint());
+         linkGraphics.translate(0, 0, -0.5*collisionMeshDefinitionData.getHeight());
          linkGraphics.addCube(collisionMeshDefinitionData.getLength(), collisionMeshDefinitionData.getWidth(), collisionMeshDefinitionData.getHeight(),
                               collisionMeshDefinitionData.getYoAppearance());
       }
@@ -161,6 +162,7 @@ public class RobotDescription implements RobotDescriptionNode, GraphicsObjectsHo
          linkGraphics = new LinkGraphicsDescription();
          linkGraphics.identity();
          linkGraphics.transform(collisionMeshDefinitionData.getTransformToParentJoint());
+         linkGraphics.translate(0, 0, -0.5*collisionMeshDefinitionData.getHeight());
          linkGraphics.addCube(collisionMeshDefinitionData.getLength(), collisionMeshDefinitionData.getWidth(), collisionMeshDefinitionData.getHeight(),
                               collisionMeshDefinitionData.getYoAppearance());
          linkDescription.setLinkGraphics(linkGraphics);
