@@ -142,7 +142,7 @@ public class RobotDescription implements RobotDescriptionNode, GraphicsObjectsHo
       collisionMesh.identity();
       collisionMesh.transform(collisionMeshDefinitionData.getTransformToParentJoint());
       collisionMesh.addCubeReferencedAtCenter(collisionMeshDefinitionData.getLength(), collisionMeshDefinitionData.getWidth(),
-                                              collisionMeshDefinitionData.getWidth());
+                                              collisionMeshDefinitionData.getHeight());
       collisionMesh.setCollisionGroup(collisionMeshDefinitionData.getCollisionGroup());
       collisionMesh.setCollisionMask(collisionMeshDefinitionData.getCollisionMask());
       linkDescription.addCollisionMesh(collisionMesh);
@@ -153,7 +153,7 @@ public class RobotDescription implements RobotDescriptionNode, GraphicsObjectsHo
          linkGraphics = linkDescription.getLinkGraphics();
          linkGraphics.identity();
          linkGraphics.transform(collisionMeshDefinitionData.getTransformToParentJoint());
-         linkGraphics.addCube(collisionMeshDefinitionData.getLength(), collisionMeshDefinitionData.getWidth(), collisionMeshDefinitionData.getWidth(),
+         linkGraphics.addCube(collisionMeshDefinitionData.getLength(), collisionMeshDefinitionData.getWidth(), collisionMeshDefinitionData.getHeight(),
                               collisionMeshDefinitionData.getYoAppearance());
       }
       else
@@ -161,7 +161,7 @@ public class RobotDescription implements RobotDescriptionNode, GraphicsObjectsHo
          linkGraphics = new LinkGraphicsDescription();
          linkGraphics.identity();
          linkGraphics.transform(collisionMeshDefinitionData.getTransformToParentJoint());
-         linkGraphics.addCube(collisionMeshDefinitionData.getLength(), collisionMeshDefinitionData.getWidth(), collisionMeshDefinitionData.getWidth(),
+         linkGraphics.addCube(collisionMeshDefinitionData.getLength(), collisionMeshDefinitionData.getWidth(), collisionMeshDefinitionData.getHeight(),
                               collisionMeshDefinitionData.getYoAppearance());
          linkDescription.setLinkGraphics(linkGraphics);
       }
