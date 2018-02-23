@@ -116,6 +116,7 @@ public class RobotDescription implements RobotDescriptionNode, GraphicsObjectsHo
 
       for (int i = 0; i < numberOfDefinitionData; i++)
       {
+         // TODO : get rid of the field, type.
          switch (collisionMeshDefinitionDataList.get(i).getCollisionMeshType())
          {
          case SPHERE:
@@ -153,7 +154,7 @@ public class RobotDescription implements RobotDescriptionNode, GraphicsObjectsHo
          linkGraphics = linkDescription.getLinkGraphics();
          linkGraphics.identity();
          linkGraphics.transform(collisionMeshDefinitionData.getTransformToParentJoint());
-         linkGraphics.translate(0, 0, -0.5*collisionMeshDefinitionData.getHeight());
+         linkGraphics.translate(0, 0, -0.5 * collisionMeshDefinitionData.getHeight());
          linkGraphics.addCube(collisionMeshDefinitionData.getLength(), collisionMeshDefinitionData.getWidth(), collisionMeshDefinitionData.getHeight(),
                               collisionMeshDefinitionData.getYoAppearance());
       }
@@ -162,7 +163,7 @@ public class RobotDescription implements RobotDescriptionNode, GraphicsObjectsHo
          linkGraphics = new LinkGraphicsDescription();
          linkGraphics.identity();
          linkGraphics.transform(collisionMeshDefinitionData.getTransformToParentJoint());
-         linkGraphics.translate(0, 0, -0.5*collisionMeshDefinitionData.getHeight());
+         linkGraphics.translate(0, 0, -0.5 * collisionMeshDefinitionData.getHeight());
          linkGraphics.addCube(collisionMeshDefinitionData.getLength(), collisionMeshDefinitionData.getWidth(), collisionMeshDefinitionData.getHeight(),
                               collisionMeshDefinitionData.getYoAppearance());
          linkDescription.setLinkGraphics(linkGraphics);
