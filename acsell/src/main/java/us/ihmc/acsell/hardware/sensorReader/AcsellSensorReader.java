@@ -16,7 +16,7 @@ import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
 import us.ihmc.robotics.sensors.ForceSensorDefinition;
 import us.ihmc.robotics.sensors.IMUDefinition;
-import us.ihmc.sensorProcessing.communication.packets.dataobjects.AuxiliaryRobotData;
+import us.ihmc.sensorProcessing.communication.packets.dataobjects.AtlasAuxiliaryRobotData;
 import us.ihmc.sensorProcessing.outputData.JointDesiredOutputList;
 import us.ihmc.sensorProcessing.parameters.DRCRobotSensorInformation;
 import us.ihmc.sensorProcessing.sensorProcessors.SensorOutputMapReadOnly;
@@ -167,7 +167,7 @@ public class AcsellSensorReader<JOINT extends Enum<JOINT> & AcsellJoint> impleme
       return sensorProcessing;
    }
 
-   @Override public AuxiliaryRobotData newAuxiliaryRobotDataInstance()
+   @Override public AtlasAuxiliaryRobotData newAuxiliaryRobotDataInstance()
    {
       return null;
    }
