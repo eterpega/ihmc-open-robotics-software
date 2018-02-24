@@ -1,7 +1,6 @@
 package us.ihmc.humanoidRobotics.communication.packets.manipulation;
 
 import us.ihmc.communication.packets.Packet;
-import us.ihmc.communication.packets.QueueableMessage;
 import us.ihmc.communication.ros.generators.RosExportedField;
 import us.ihmc.communication.ros.generators.RosMessagePacket;
 import us.ihmc.humanoidRobotics.communication.packets.JointspaceTrajectoryMessage;
@@ -78,11 +77,6 @@ public class ArmTrajectoryMessage extends Packet<ArmTrajectoryMessage>
    public JointspaceTrajectoryMessage getJointspaceTrajectory()
    {
       return jointspaceTrajectory;
-   }
-
-   public QueueableMessage getQueueingProperties()
-   {
-      return jointspaceTrajectory.getQueueingProperties();
    }
 
    @Override

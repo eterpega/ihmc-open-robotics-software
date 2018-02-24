@@ -164,8 +164,8 @@ public class AtlasUpperBodyTrajectoriesWhileWalkingTest
             armTrajectoryMessage.setUniqueId(id);
             if (messageIndex > 0)
             {
-               armTrajectoryMessage.getQueueingProperties().setExecutionMode(ExecutionMode.QUEUE.toByte());
-               armTrajectoryMessage.getQueueingProperties().setPreviousMessageId(id - 1);
+               armTrajectoryMessage.jointspaceTrajectory.getQueueingProperties().setExecutionMode(ExecutionMode.QUEUE.toByte());
+               armTrajectoryMessage.jointspaceTrajectory.getQueueingProperties().setPreviousMessageId(id - 1);
             }
             id++;
 

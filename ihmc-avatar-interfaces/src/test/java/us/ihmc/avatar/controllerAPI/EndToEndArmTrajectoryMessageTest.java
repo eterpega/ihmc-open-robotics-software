@@ -278,8 +278,8 @@ public abstract class EndToEndArmTrajectoryMessageTest implements MultiRobotTest
          trajectoryMessage.setUniqueId(id);
          if (messageIndex > 0)
          {
-            trajectoryMessage.getQueueingProperties().setExecutionMode(ExecutionMode.QUEUE.toByte());
-            trajectoryMessage.getQueueingProperties().setPreviousMessageId(id - 1);
+            trajectoryMessage.jointspaceTrajectory.getQueueingProperties().setExecutionMode(ExecutionMode.QUEUE.toByte());
+            trajectoryMessage.jointspaceTrajectory.getQueueingProperties().setPreviousMessageId(id - 1);
          }
          id++;
 
@@ -407,8 +407,8 @@ public abstract class EndToEndArmTrajectoryMessageTest implements MultiRobotTest
                if (messageIndex == numberOfMessages - 1)
                   previousMessageId = id + 100; // Bad ID
 
-               armTrajectoryMessage.getQueueingProperties().setExecutionMode(ExecutionMode.QUEUE.toByte());
-               armTrajectoryMessage.getQueueingProperties().setPreviousMessageId(previousMessageId);
+               armTrajectoryMessage.jointspaceTrajectory.getQueueingProperties().setExecutionMode(ExecutionMode.QUEUE.toByte());
+               armTrajectoryMessage.jointspaceTrajectory.getQueueingProperties().setPreviousMessageId(previousMessageId);
             }
             id++;
 
@@ -513,8 +513,8 @@ public abstract class EndToEndArmTrajectoryMessageTest implements MultiRobotTest
             armTrajectoryMessage.setUniqueId(id);
             if (messageIndex > 0)
             {
-               armTrajectoryMessage.getQueueingProperties().setExecutionMode(ExecutionMode.QUEUE.toByte());
-               armTrajectoryMessage.getQueueingProperties().setPreviousMessageId(id - 1);
+               armTrajectoryMessage.jointspaceTrajectory.getQueueingProperties().setExecutionMode(ExecutionMode.QUEUE.toByte());
+               armTrajectoryMessage.jointspaceTrajectory.getQueueingProperties().setPreviousMessageId(id - 1);
             }
             id++;
 
