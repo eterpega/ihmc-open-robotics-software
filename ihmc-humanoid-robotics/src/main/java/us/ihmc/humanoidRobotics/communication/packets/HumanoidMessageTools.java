@@ -81,6 +81,7 @@ import us.ihmc.humanoidRobotics.communication.packets.momentum.MomentumTrajector
 import us.ihmc.humanoidRobotics.communication.packets.sensing.BlackFlyParameterPacket;
 import us.ihmc.humanoidRobotics.communication.packets.sensing.FisheyePacket;
 import us.ihmc.humanoidRobotics.communication.packets.sensing.LocalizationPacket;
+import us.ihmc.humanoidRobotics.communication.packets.sensing.LocalizationPointMapPacket;
 import us.ihmc.humanoidRobotics.communication.packets.sensing.LocalizationStatusPacket;
 import us.ihmc.humanoidRobotics.communication.packets.sensing.MultisenseParameterPacket;
 import us.ihmc.humanoidRobotics.communication.packets.sensing.PelvisPoseErrorPacket;
@@ -2153,5 +2154,35 @@ public class HumanoidMessageTools
       requestMessage.requestClearQuadTree = false;
       requestMessage.requestQuadTreeUpdate = true;
       return requestMessage;
+   }
+
+   public static void packLocalizationPointMap(LocalizationPointMapPacket localizationPointMapPacket, Point3DReadOnly[] pointCloud)
+   {
+      localizationPointMapPacket.localizationPointMap.reset();
+      
+      for (int i = 0; i < pointCloud.length; i++)
+      {
+         Point3DReadOnly point = pointCloud[i];
+         localizationPointMapPacket.localizationPointMap.add((float) point.getX());
+         localizationPointMapPacket.localizationPointMap.add((float) point.getY());
+         localizationPointMapPacket.localizationPointMap.add((float) point.getZ());
+      }
+   }
+
+   public static Point3D32[] unpackLocalizationPointMap(LocalizationPointMapPacket localizationPointMapPacket)
+   {
+      int numberOfPoints = localizationPointMapPacket.localizationPointMap.size() / 3;
+      
+      Point3D32[] points = new Point3D32[numberOfPoints];
+      for (int i = 0; i < numberOfPoints; i++)
+      {
+         Point3D32 point = new Point3D32();
+         point.setX(localizationPointMapPacket.localizationPointMap.get(3 * i));
+         point.setY(localizationPointMapPacket.localizationPointMap.get(3 * i + 1));
+         point.setZ(localizationPointMapPacket.localizationPointMap.get(3 * i + 2));
+         points[i] = point;
+      }
+      
+      return points;
    }
 }
