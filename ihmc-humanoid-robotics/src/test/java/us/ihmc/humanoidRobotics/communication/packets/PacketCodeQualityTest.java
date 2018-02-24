@@ -77,6 +77,7 @@ public class PacketCodeQualityTest
 
       Reflections reflections = new Reflections("us.ihmc");
       Set<Class<? extends Packet>> allPacketTypes = reflections.getSubTypesOf(Packet.class);
+      allPacketTypes.removeAll(reaInternalComms);
 
       Map<Class<? extends Packet>, List<Method>> packetTypesWithConvenienceMethods = new HashMap<>();
 
