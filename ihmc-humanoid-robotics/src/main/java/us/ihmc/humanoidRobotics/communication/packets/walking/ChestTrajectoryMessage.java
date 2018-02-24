@@ -52,7 +52,7 @@ public class ChestTrajectoryMessage extends Packet<ChestTrajectoryMessage>
          so3Trajectory.setUniqueId(uniqueId);
    }
 
-   public SO3TrajectoryMessage getSO3Trajectory()
+   public SO3TrajectoryMessage getSo3Trajectory()
    {
       return so3Trajectory;
    }

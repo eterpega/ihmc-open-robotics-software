@@ -104,7 +104,7 @@ public abstract class DRCChestTrajectoryBehaviorTest implements MultiRobotTestIn
       chestTrajectoryBehavior.setInput(chestTrajectoryMessage);
       assertTrue(chestTrajectoryBehavior.hasInputBeenSet());
 
-      double totalSimTime = chestTrajectoryMessage.getSO3Trajectory().getTrajectoryTime();
+      double totalSimTime = chestTrajectoryMessage.getSo3Trajectory().getTrajectoryTime();
       totalSimTime += 1.0;
 
       FramePose3D initialChestPose = getCurrentChestPose();
@@ -115,7 +115,7 @@ public abstract class DRCChestTrajectoryBehaviorTest implements MultiRobotTestIn
       PrintTools.debug(this, " final Chest Pose :\n" + finalChestPose);
       FramePose3D desiredChestPose = new FramePose3D();
 
-      desiredChestPose.set(initialChestPose.getPosition(), chestTrajectoryMessage.getSO3Trajectory().getLastTrajectoryPoint().orientation);
+      desiredChestPose.set(initialChestPose.getPosition(), chestTrajectoryMessage.getSo3Trajectory().getLastTrajectoryPoint().orientation);
       assertPosesAreWithinThresholds(desiredChestPose, finalChestPose);
 
       assertTrue(success);
