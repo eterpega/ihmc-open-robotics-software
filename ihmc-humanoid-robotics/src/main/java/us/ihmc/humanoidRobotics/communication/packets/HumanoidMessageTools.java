@@ -54,6 +54,7 @@ import us.ihmc.humanoidRobotics.communication.packets.behaviors.WalkToGoalAction
 import us.ihmc.humanoidRobotics.communication.packets.behaviors.WalkToGoalBehaviorPacket;
 import us.ihmc.humanoidRobotics.communication.packets.behaviors.WallPosePacket;
 import us.ihmc.humanoidRobotics.communication.packets.dataobjects.HandConfiguration;
+import us.ihmc.humanoidRobotics.communication.packets.dataobjects.HandJointName;
 import us.ihmc.humanoidRobotics.communication.packets.dataobjects.HighLevelControllerName;
 import us.ihmc.humanoidRobotics.communication.packets.driving.VehiclePosePacket;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.ArmDesiredAccelerationsMessage;
@@ -2248,5 +2249,16 @@ public class HumanoidMessageTools
          dataId = frameInformation.getTrajectoryReferenceFrameId();
       }
       return dataId;
+   }
+
+   public static double unpackJointAngle(HandJointAnglePacket handJointAnglePacket, HandJointName jointName)
+   {
+      int index = jointName.getIndex(RobotSide.fromByte(handJointAnglePacket.robotSide));
+      if (index == -1)
+      {
+         return 0;
+      }
+      
+      return handJointAnglePacket.jointAngles.get(index);
    }
 }
