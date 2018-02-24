@@ -47,7 +47,7 @@ public class PelvisHeightTrajectoryMessage extends Packet<PelvisHeightTrajectory
       setDestination(other.getDestination());
 
       enableUserPelvisControl = other.enableUserPelvisControl;
-      enableUserPelvisControlDuringWalking = other.isEnableUserPelvisControlDuringWalking();
+      enableUserPelvisControlDuringWalking = other.getEnableUserPelvisControlDuringWalking();
    }
 
    @Override
@@ -66,7 +66,7 @@ public class PelvisHeightTrajectoryMessage extends Packet<PelvisHeightTrajectory
     * 
     * @return whether or not user mode is enabled.
     */
-   public boolean isEnableUserPelvisControl()
+   public boolean getEnableUserPelvisControl()
    {
       return enableUserPelvisControl;
    }
@@ -87,7 +87,7 @@ public class PelvisHeightTrajectoryMessage extends Packet<PelvisHeightTrajectory
     * 
     * @return whether or not user mode is enabled while walking
     **/
-   public boolean isEnableUserPelvisControlDuringWalking()
+   public boolean getEnableUserPelvisControlDuringWalking()
    {
       return enableUserPelvisControlDuringWalking;
    }
