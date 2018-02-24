@@ -225,7 +225,7 @@ public abstract class EndToEndPelvisTrajectoryMessageTest implements MultiRobotT
       }
 
       PelvisTrajectoryMessage pelvisTrajectoryMessage = HumanoidMessageTools.createPelvisTrajectoryMessage(1);
-      pelvisTrajectoryMessage.setTrajectoryPoint(0, 1.0, desiredPosition, desiredOrientation, new Vector3D(), new Vector3D());
+      pelvisTrajectoryMessage.se3Trajectory.setTrajectoryPoint(0, 1.0, desiredPosition, desiredOrientation, new Vector3D(), new Vector3D(), ReferenceFrame.getWorldFrame().getNameBasedHashCode());
 
       drcSimulationTestHelper.send(pelvisTrajectoryMessage);
 
@@ -780,7 +780,7 @@ public abstract class EndToEndPelvisTrajectoryMessageTest implements MultiRobotT
          desiredAngularVelocity.changeFrame(worldFrame);
          angularVelocity.set(desiredAngularVelocity);
 
-         pelvisTrajectoryMessage.setTrajectoryPoint(i, t + 2.0, position, orientation, linearVelocity, angularVelocity);
+         pelvisTrajectoryMessage.se3Trajectory.setTrajectoryPoint(i, t + 2.0, position, orientation, linearVelocity, angularVelocity, ReferenceFrame.getWorldFrame().getNameBasedHashCode());
 
          Graphics3DObject sphere = new Graphics3DObject();
          sphere.translate(position);
@@ -954,7 +954,7 @@ public abstract class EndToEndPelvisTrajectoryMessageTest implements MultiRobotT
 
          Point3D position = new Point3D(x, y, z);
          Vector3D linearVelocity = new Vector3D(dx, dy, dz);
-         pelvisTrajectoryMessage.setTrajectoryPoint(index, time, position, orientation, linearVelocity, angularVelocity);
+         pelvisTrajectoryMessage.se3Trajectory.setTrajectoryPoint(index, time, position, orientation, linearVelocity, angularVelocity, ReferenceFrame.getWorldFrame().getNameBasedHashCode());
          index++;
 
          finalHeight = z;

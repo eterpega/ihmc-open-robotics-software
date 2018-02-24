@@ -453,11 +453,11 @@ public abstract class EndToEndWholeBodyTrajectoryMessageTest implements MultiRob
 
       WholeBodyTrajectoryMessage wholeBodyTrajectoryMessage = new WholeBodyTrajectoryMessage();
       PelvisTrajectoryMessage pelvisTrajectoryMessage = HumanoidMessageTools.createPelvisTrajectoryMessage(5);
-      pelvisTrajectoryMessage.setTrajectoryPoint(0, 0.00, new Point3D(), new Quaternion(), new Vector3D(), new Vector3D());
-      pelvisTrajectoryMessage.setTrajectoryPoint(1, 0.10, new Point3D(), new Quaternion(), new Vector3D(), new Vector3D());
-      pelvisTrajectoryMessage.setTrajectoryPoint(2, 0.20, new Point3D(), new Quaternion(), new Vector3D(), new Vector3D());
-      pelvisTrajectoryMessage.setTrajectoryPoint(3, 0.10, new Point3D(), new Quaternion(), new Vector3D(), new Vector3D());
-      pelvisTrajectoryMessage.setTrajectoryPoint(4, 0.00, new Point3D(), new Quaternion(), new Vector3D(), new Vector3D());
+      pelvisTrajectoryMessage.se3Trajectory.setTrajectoryPoint(0, 0.00, new Point3D(), new Quaternion(), new Vector3D(), new Vector3D(), ReferenceFrame.getWorldFrame().getNameBasedHashCode());
+      pelvisTrajectoryMessage.se3Trajectory.setTrajectoryPoint(1, 0.10, new Point3D(), new Quaternion(), new Vector3D(), new Vector3D(), ReferenceFrame.getWorldFrame().getNameBasedHashCode());
+      pelvisTrajectoryMessage.se3Trajectory.setTrajectoryPoint(2, 0.20, new Point3D(), new Quaternion(), new Vector3D(), new Vector3D(), ReferenceFrame.getWorldFrame().getNameBasedHashCode());
+      pelvisTrajectoryMessage.se3Trajectory.setTrajectoryPoint(3, 0.10, new Point3D(), new Quaternion(), new Vector3D(), new Vector3D(), ReferenceFrame.getWorldFrame().getNameBasedHashCode());
+      pelvisTrajectoryMessage.se3Trajectory.setTrajectoryPoint(4, 0.00, new Point3D(), new Quaternion(), new Vector3D(), new Vector3D(), ReferenceFrame.getWorldFrame().getNameBasedHashCode());
       wholeBodyTrajectoryMessage.setPelvisTrajectoryMessage(pelvisTrajectoryMessage);
       drcSimulationTestHelper.send(wholeBodyTrajectoryMessage);
 
