@@ -97,13 +97,13 @@ public class KinematicsToolboxMessageFactory
       KinematicsToolboxCenterOfMassMessage message = new KinematicsToolboxCenterOfMassMessage();
       CenterOfMassCalculator calculator = new CenterOfMassCalculator(rootBody, worldFrame);
       calculator.compute();
-      message.setDesiredPosition(calculator.getCenterOfMass());
-      message.setWeight(DEFAULT_CENTER_OF_MASS_WEIGHT);
+      message.desiredPositionInWorld.set(calculator.getCenterOfMass());
+      message.getWeights().set(MessageTools.createWeightMatrix3DMessage(DEFAULT_CENTER_OF_MASS_WEIGHT));
 
       SelectionMatrix3D selectionMatrix3D = new SelectionMatrix3D();
       selectionMatrix3D.setAxisSelection(holdX, holdY, holdZ);
 
-      message.setSelectionMatrix(selectionMatrix3D);
+      message.getSelectionMatrix().set(MessageTools.createSelectionMatrix3DMessage(selectionMatrix3D));
       message.setDestination(PacketDestination.KINEMATICS_TOOLBOX_MODULE);
 
       return message;

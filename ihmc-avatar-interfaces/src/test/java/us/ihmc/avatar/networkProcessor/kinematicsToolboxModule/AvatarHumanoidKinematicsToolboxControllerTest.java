@@ -231,8 +231,8 @@ public abstract class AvatarHumanoidKinematicsToolboxControllerTest implements M
             KinematicsToolboxCenterOfMassMessage message = MessageTools.createKinematicsToolboxCenterOfMassMessage(computeCenterOfMass3D(randomizedFullRobotModel));
             SelectionMatrix3D selectionMatrix = new SelectionMatrix3D();
             selectionMatrix.selectZAxis(false);
-            message.setSelectionMatrix(selectionMatrix);
-            message.setWeight(1.0);
+            message.getSelectionMatrix().set(MessageTools.createSelectionMatrix3DMessage(selectionMatrix));
+            message.getWeights().set(MessageTools.createWeightMatrix3DMessage(1.0));
             commandInputManager.submitMessage(message);
          }
 
@@ -282,8 +282,8 @@ public abstract class AvatarHumanoidKinematicsToolboxControllerTest implements M
             KinematicsToolboxCenterOfMassMessage message = MessageTools.createKinematicsToolboxCenterOfMassMessage(computeCenterOfMass3D(randomizedFullRobotModel));
             SelectionMatrix3D selectionMatrix = new SelectionMatrix3D();
             selectionMatrix.selectZAxis(false);
-            message.setSelectionMatrix(selectionMatrix);
-            message.setWeight(1.0);
+            message.getSelectionMatrix().set(MessageTools.createSelectionMatrix3DMessage(selectionMatrix));
+            message.getWeights().set(MessageTools.createWeightMatrix3DMessage(1.0));
             commandInputManager.submitMessage(message);
          }
 
@@ -360,8 +360,8 @@ public abstract class AvatarHumanoidKinematicsToolboxControllerTest implements M
             KinematicsToolboxCenterOfMassMessage message = MessageTools.createKinematicsToolboxCenterOfMassMessage(computeCenterOfMass3D(randomizedFullRobotModel));
             SelectionMatrix3D selectionMatrix = new SelectionMatrix3D();
             selectionMatrix.selectZAxis(false);
-            message.setSelectionMatrix(selectionMatrix);
-            message.setWeight(1.0);
+            message.getSelectionMatrix().set(MessageTools.createSelectionMatrix3DMessage(selectionMatrix));
+            message.getWeights().set(MessageTools.createWeightMatrix3DMessage(1.0));
             commandInputManager.submitMessage(message);
          }
 

@@ -133,7 +133,7 @@ public class MessageTools
    public static KinematicsToolboxCenterOfMassMessage createKinematicsToolboxCenterOfMassMessage(Point3DReadOnly desiredPosition)
    {
       KinematicsToolboxCenterOfMassMessage message = new KinematicsToolboxCenterOfMassMessage();
-      message.setDesiredPosition(desiredPosition);
+      message.desiredPositionInWorld.set(desiredPosition);
       return message;
    }
 
@@ -299,6 +299,16 @@ public class MessageTools
       message.xWeight = weightMatrix.getXAxisWeight();
       message.yWeight = weightMatrix.getYAxisWeight();
       message.zWeight = weightMatrix.getZAxisWeight();
+      return message;
+   }
+
+   public static WeightMatrix3DMessage createWeightMatrix3DMessage(double weight)
+   {
+      WeightMatrix3DMessage message = new WeightMatrix3DMessage();
+      message.weightFrameId = MessageTools.toFrameId(null);
+      message.xWeight = weight;
+      message.yWeight = weight;
+      message.zWeight = weight;
       return message;
    }
 
