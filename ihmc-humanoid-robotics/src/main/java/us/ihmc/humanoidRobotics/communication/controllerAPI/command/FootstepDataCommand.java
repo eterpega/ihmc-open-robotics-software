@@ -32,7 +32,8 @@ public class FootstepDataCommand implements Command<FootstepDataCommand, Footste
    private final RecyclingArrayList<Point2D> predictedContactPoints = new RecyclingArrayList<>(4, Point2D.class);
 
    private final RecyclingArrayList<FramePoint3D> customPositionWaypoints = new RecyclingArrayList<>(2, FramePoint3D.class);
-   private final RecyclingArrayList<FrameSE3TrajectoryPoint> swingTrajectory = new RecyclingArrayList<>(Footstep.maxNumberOfSwingWaypoints, FrameSE3TrajectoryPoint.class);
+   private final RecyclingArrayList<FrameSE3TrajectoryPoint> swingTrajectory = new RecyclingArrayList<>(Footstep.maxNumberOfSwingWaypoints,
+                                                                                                        FrameSE3TrajectoryPoint.class);
 
    private double swingTrajectoryBlendDuration = 0.0;
    private double swingDuration = Double.NaN;
@@ -40,10 +41,10 @@ public class FootstepDataCommand implements Command<FootstepDataCommand, Footste
    private double touchdownDuration = Double.NaN;
 
    private ReferenceFrame trajectoryFrame;
-   
+
    /** the time to delay this command on the controller side before being executed **/
    private double executionDelayTime;
-   /** the execution time. This number is set if the execution delay is non zero**/
+   /** the execution time. This number is set if the execution delay is non zero **/
    public double adjustedExecutionTime;
 
    public FootstepDataCommand()
@@ -94,7 +95,9 @@ public class FootstepDataCommand implements Command<FootstepDataCommand, Footste
          {
             FrameSE3TrajectoryPoint point = swingTrajectory.add();
             point.setToZero(trajectoryFrame);
-            messageSwingTrajectory.get(i).packData(point);
+            SE3TrajectoryPointMessage trajectoryPoint = messageSwingTrajectory.get(i);
+            point.set(trajectoryPoint.time, trajectoryPoint.position, trajectoryPoint.orientation, trajectoryPoint.linearVelocity,
+                      trajectoryPoint.angularVelocity);
          }
       }
 
@@ -109,7 +112,7 @@ public class FootstepDataCommand implements Command<FootstepDataCommand, Footste
       swingDuration = message.swingDuration;
       touchdownDuration = message.touchdownDuration;
       transferDuration = message.transferDuration;
-      
+
       this.executionDelayTime = message.executionDelayTime;
    }
 
@@ -242,7 +245,7 @@ public class FootstepDataCommand implements Command<FootstepDataCommand, Footste
    {
       return transferDuration;
    }
-   
+
    public double getTouchdownDuration()
    {
       return touchdownDuration;
@@ -259,9 +262,10 @@ public class FootstepDataCommand implements Command<FootstepDataCommand, Footste
    {
       return robotSide != null;
    }
-   
+
    /**
     * returns the amount of time this command is delayed on the controller side before executing
+    * 
     * @return the time to delay this command in seconds
     */
    @Override
@@ -269,9 +273,10 @@ public class FootstepDataCommand implements Command<FootstepDataCommand, Footste
    {
       return executionDelayTime;
    }
-   
+
    /**
     * sets the amount of time this command is delayed on the controller side before executing
+    * 
     * @param delayTime the time in seconds to delay after receiving the command before executing
     */
    @Override
@@ -279,10 +284,10 @@ public class FootstepDataCommand implements Command<FootstepDataCommand, Footste
    {
       this.executionDelayTime = delayTime;
    }
-   
+
    /**
-    * returns the expected execution time of this command. The execution time will be computed when the controller 
-    * receives the command using the controllers time plus the execution delay time.
+    * returns the expected execution time of this command. The execution time will be computed when
+    * the controller receives the command using the controllers time plus the execution delay time.
     * This is used when {@code getExecutionDelayTime} is non-zero
     */
    @Override
@@ -292,17 +297,18 @@ public class FootstepDataCommand implements Command<FootstepDataCommand, Footste
    }
 
    /**
-    * sets the execution time for this command. This is called by the controller when the command is received.
+    * sets the execution time for this command. This is called by the controller when the command is
+    * received.
     */
    @Override
    public void setExecutionTime(double adjustedExecutionTime)
    {
       this.adjustedExecutionTime = adjustedExecutionTime;
    }
-   
+
    /**
-    * tells the controller if this command supports delayed execution
-    * (Spoiler alert: It does)
+    * tells the controller if this command supports delayed execution (Spoiler alert: It does)
+    * 
     * @return
     */
    @Override
