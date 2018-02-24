@@ -441,8 +441,7 @@ public abstract class EndToEndSpineJointTrajectoryMessageTest implements MultiRo
       double trajectoryTime = message.getSo3Trajectory().getLastTrajectoryPoint().getTime();
       assertTrue(drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(trajectoryTime + 5.0 * controllerDT));
 
-      Quaternion desired = new Quaternion();
-      message.getSo3Trajectory().getLastTrajectoryPoint().getOrientation(desired);
+      Quaternion desired = new Quaternion(message.getSo3Trajectory().getLastTrajectoryPoint().getOrientation());
       assertChestDesired(drcSimulationTestHelper.getSimulationConstructionSet(), desired, chest);
    }
 
