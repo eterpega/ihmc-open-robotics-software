@@ -588,7 +588,7 @@ public abstract class PacketValidityChecker
 
       ObjectErrorType errorType;
 
-      errorType = ObjectValidityChecker.validateEnum(HumanoidBodyPart.fromByte(message.getBodyPart()));
+      errorType = ObjectValidityChecker.validateEnum(HumanoidBodyPart.fromByte(message.getHumanoidBodyPart()));
       if (errorType != null)
       {
          String messageClassName = message.getClass().getSimpleName();
@@ -596,13 +596,13 @@ public abstract class PacketValidityChecker
          return errorMessage;
       }
 
-      if (HumanoidBodyPart.fromByte(message.getBodyPart()).isRobotSideNeeded())
+      if (HumanoidBodyPart.fromByte(message.getHumanoidBodyPart()).isRobotSideNeeded())
       {
          errorType = ObjectValidityChecker.validateEnum(RobotSide.fromByte(message.getRobotSide()));
          if (RobotSide.fromByte(message.getRobotSide()) == null)
          {
             String messageClassName = message.getClass().getSimpleName();
-            errorMessage = messageClassName + "'s robotSide field is null. It is required for the bodyPart " + message.getBodyPart();
+            errorMessage = messageClassName + "'s robotSide field is null. It is required for the bodyPart " + message.getHumanoidBodyPart();
             return errorMessage;
          }
       }
