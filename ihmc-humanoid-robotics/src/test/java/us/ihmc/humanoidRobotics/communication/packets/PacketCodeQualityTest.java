@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -79,7 +80,7 @@ public class PacketCodeQualityTest
       Set<Class<? extends Packet>> allPacketTypes = reflections.getSubTypesOf(Packet.class);
       allPacketTypes.removeAll(reaInternalComms);
 
-      Map<Class<? extends Packet>, List<Method>> packetTypesWithConvenienceMethods = new HashMap<>();
+      Map<Class<? extends Packet>, List<Method>> packetTypesWithConvenienceMethods = new TreeMap<>((o1, o2) -> o1.getSimpleName().compareTo(o2.getSimpleName()));
 
       for (Class<? extends Packet> packetType : allPacketTypes)
       {
