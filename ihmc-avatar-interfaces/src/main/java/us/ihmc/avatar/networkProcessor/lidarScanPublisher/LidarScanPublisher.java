@@ -296,12 +296,12 @@ public class LidarScanPublisher
 
                PriorityQueue<Integer> indicesToRemove = new PriorityQueue<>();
 
-               if (requestLidarScanMessage.isRemoveSelfCollisions())
+               if (requestLidarScanMessage.getRemoveSelfCollisions())
                {
                   indicesToRemove.addAll(selfCollisionRemovalIndices);
                }
 
-               if (requestLidarScanMessage.isRemoveShadows())
+               if (requestLidarScanMessage.getRemoveShadows())
                {
                   indicesToRemove.addAll(shadowRemovalIndices);
                }
