@@ -5,7 +5,6 @@ import us.ihmc.euclid.referenceFrame.interfaces.FramePoint3DReadOnly;
 import us.ihmc.quadrupedRobotics.controller.force.QuadrupedForceControllerToolbox;
 import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedSolePositionController;
 import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedStepTransitionCallback;
-import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedTaskSpaceEstimates;
 import us.ihmc.quadrupedRobotics.controller.force.toolbox.QuadrupedWaypointCallback;
 import us.ihmc.quadrupedRobotics.planning.ContactState;
 import us.ihmc.quadrupedRobotics.planning.QuadrupedSoleWaypointList;
@@ -34,8 +33,12 @@ public class QuadrupedFootControlModule
    private final QuadrupedMoveViaWaypointsState moveViaWaypointsState;
    private final FiniteStateMachine<QuadrupedFootStates, FootEvent, QuadrupedFootState> footStateMachine;
 
+   private final QuadrupedForceControllerToolbox controllerToolbox;
+
    public QuadrupedFootControlModule(RobotQuadrant robotQuadrant, QuadrupedForceControllerToolbox toolbox, YoVariableRegistry parentRegistry)
    {
+      this.controllerToolbox = toolbox;
+
       // control variables
       String prefix = robotQuadrant.getCamelCaseName();
       this.registry = new YoVariableRegistry(robotQuadrant.getPascalCaseName() + getClass().getSimpleName());
@@ -108,11 +111,10 @@ public class QuadrupedFootControlModule
       footStateMachine.attachStateChangedListener(stateChangedListener);
    }
 
-   public void initializeWaypointTrajectory(QuadrupedSoleWaypointList quadrupedSoleWaypointList, QuadrupedTaskSpaceEstimates taskSpaceEstimates,
-                                            boolean useInitialSoleForceAsFeedforwardTerm)
+   public void initializeWaypointTrajectory(QuadrupedSoleWaypointList quadrupedSoleWaypointList, boolean useInitialSoleForceAsFeedforwardTerm)
    {
       moveViaWaypointsState.handleWaypointList(quadrupedSoleWaypointList);
-      moveViaWaypointsState.updateEstimates(taskSpaceEstimates);
+      moveViaWaypointsState.updateEstimates(controllerToolbox.getTaskSpaceEstimates());
       moveViaWaypointsState.initialize(useInitialSoleForceAsFeedforwardTerm);
    }
 
@@ -164,10 +166,10 @@ public class QuadrupedFootControlModule
          return ContactState.NO_CONTACT;
    }
 
-   public void compute(FrameVector3D soleForceCommandToPack, QuadrupedTaskSpaceEstimates taskSpaceEstimates)
+   public void compute(FrameVector3D soleForceCommandToPack)
    {
       // Update estimates.
-      footStateMachine.getCurrentState().updateEstimates(taskSpaceEstimates);
+      footStateMachine.getCurrentState().updateEstimates(controllerToolbox.getTaskSpaceEstimates());
 
       // Update foot state machine.
       footStateMachine.process();
