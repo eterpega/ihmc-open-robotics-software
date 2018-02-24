@@ -72,7 +72,7 @@ public class PacketCodeQualityTest
    @ContinuousIntegrationTest(estimatedDuration = 4.0, categoriesOverride = IntegrationCategory.FAST)
    @Test(timeout = Integer.MAX_VALUE)
    public void testPacketsHaveNoConvenienceMethod()
-   { // This test won't fail on Arrays or Lists
+   { // This test won't fail for setUniqueId(long) or validateMessage()
       boolean verbose = true;
 
       Reflections reflections = new Reflections("us.ihmc");
@@ -107,6 +107,10 @@ public class PacketCodeQualityTest
             {
                String methodName = method.getName();
                if (methodName.equals("toString") && method.getParameterCount() == 0 && method.getReturnType() == String.class)
+                  continue;
+               if (methodName.equals("validateMessage") && method.getParameterCount() == 0 && method.getReturnType() == String.class)
+                  continue;
+               if (methodName.equals("setUniqueId") && method.getParameterCount() == 1 && method.getReturnType() == void.class && method.getParameterTypes()[0] == long.class)
                   continue;
                if (methodName.equals("epsilonEquals") && method.getParameterCount() == 2 && method.getReturnType() == boolean.class)
                {
