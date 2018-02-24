@@ -30,6 +30,7 @@ import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.euclid.tuple4D.Quaternion32;
 import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
 import us.ihmc.footstepPlanning.FootstepPlannerType;
 import us.ihmc.humanoidRobotics.communication.packets.atlas.AtlasLowLevelControlMode;
@@ -760,16 +761,32 @@ public class HumanoidMessageTools
    public static FootstepPlanningRequestPacket createFootstepPlanningRequestPacket(FramePose3D initialStanceFootPose, RobotSide initialStanceSide,
                                                                                    FramePose3D goalPose)
    {
-      FootstepPlanningRequestPacket message = new FootstepPlanningRequestPacket();
-      message.set(initialStanceFootPose, initialStanceSide.toByte(), goalPose, FootstepPlannerType.PLANAR_REGION_BIPEDAL.toByte());
-      return message;
+      return createFootstepPlanningRequestPacket(initialStanceFootPose, initialStanceSide, goalPose, FootstepPlannerType.PLANAR_REGION_BIPEDAL);
    }
 
    public static FootstepPlanningRequestPacket createFootstepPlanningRequestPacket(FramePose3D initialStanceFootPose, RobotSide initialStanceSide,
                                                                                    FramePose3D goalPose, FootstepPlannerType requestedPlannerType)
    {
       FootstepPlanningRequestPacket message = new FootstepPlanningRequestPacket();
-      message.set(initialStanceFootPose, initialStanceSide.toByte(), goalPose, requestedPlannerType.toByte());
+      message.initialStanceRobotSide = initialStanceSide.toByte();
+      
+      FramePoint3D initialFramePoint = new FramePoint3D(initialStanceFootPose.getPosition());
+      initialFramePoint.changeFrame(ReferenceFrame.getWorldFrame());
+      message.stanceFootPositionInWorld = new Point3D32(initialFramePoint);
+      
+      FrameQuaternion initialFrameOrientation = new FrameQuaternion(initialStanceFootPose.getOrientation());
+      initialFrameOrientation.changeFrame(ReferenceFrame.getWorldFrame());
+      message.stanceFootOrientationInWorld = new Quaternion32(initialFrameOrientation);
+      
+      FramePoint3D goalFramePoint = new FramePoint3D(goalPose.getPosition());
+      goalFramePoint.changeFrame(ReferenceFrame.getWorldFrame());
+      message.goalPositionInWorld = new Point3D32(goalFramePoint);
+      
+      FrameQuaternion goalFrameOrientation = new FrameQuaternion(goalPose.getOrientation());
+      goalFrameOrientation.changeFrame(ReferenceFrame.getWorldFrame());
+      message.goalOrientationInWorld = new Quaternion32(goalFrameOrientation);
+      
+      message.requestedFootstepPlannerType = requestedPlannerType.toByte();
       return message;
    }
 

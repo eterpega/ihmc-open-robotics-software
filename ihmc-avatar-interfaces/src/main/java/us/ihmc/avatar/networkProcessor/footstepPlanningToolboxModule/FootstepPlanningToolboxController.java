@@ -178,12 +178,12 @@ public class FootstepPlanningToolboxController extends ToolboxController
       if (request == null)
          return false;
 
-      planId.set(request.planId);
+      planId.set(request.plannerRequestId);
       FootstepPlannerType requestedPlannerType = FootstepPlannerType.fromByte(request.requestedFootstepPlannerType);
 
       if (debug)
       {
-         PrintTools.info("Starting to plan. Plan id: " + request.planId + ". Timeout: " + request.timeout);
+         PrintTools.info("Starting to plan. Plan id: " + request.plannerRequestId + ". Timeout: " + request.timeout);
       }
 
       if (requestedPlannerType != null)

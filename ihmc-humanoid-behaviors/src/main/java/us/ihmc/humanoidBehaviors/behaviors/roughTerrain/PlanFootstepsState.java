@@ -123,7 +123,7 @@ class PlanFootstepsState extends State<WalkOverTerrainStateMachineBehavior.WalkO
       FootstepPlanningRequestPacket planningRequestPacket = HumanoidMessageTools.createFootstepPlanningRequestPacket(stanceFootPose, stanceSide, goalPose, FootstepPlannerType.VIS_GRAPH_WITH_A_STAR);
       planningRequestPacket.planarRegionsListMessage = planarRegionsListMessage.get();
       planningRequestPacket.timeout = swingTime.getValue() - 0.25;
-      planningRequestPacket.planId = planId.getIntegerValue();
+      planningRequestPacket.plannerRequestId = planId.getIntegerValue();
 
       nextSideToSwing.set(stanceSide);
 
