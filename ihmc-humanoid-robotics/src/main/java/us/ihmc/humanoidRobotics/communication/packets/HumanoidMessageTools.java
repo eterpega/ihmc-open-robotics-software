@@ -473,7 +473,8 @@ public class HumanoidMessageTools
                                                                                            HighLevelControllerName endState)
    {
       HighLevelStateChangeStatusMessage message = new HighLevelStateChangeStatusMessage();
-      message.setStateChange(initialState == null ? -1 : initialState.toByte(), endState == null ? -1 : endState.toByte());
+      message.setInitialHighLevelControllerName(initialState == null ? -1 : initialState.toByte());
+      message.setEndHighLevelControllerName(endState == null ? -1 : endState.toByte());
       return message;
    }
 

@@ -215,7 +215,8 @@ public class HumanoidHighLevelControllerManager implements RobotController
          {
             byte oldStateEnum = oldState == null ? -1 : oldState.getStateEnum().toByte();
             byte newStateEnum = newState == null ? -1 : newState.getStateEnum().toByte();
-            highLevelStateChangeStatusMessage.setStateChange(oldStateEnum, newStateEnum);
+            highLevelStateChangeStatusMessage.setInitialHighLevelControllerName(oldStateEnum);
+            highLevelStateChangeStatusMessage.setEndHighLevelControllerName(newStateEnum);
             statusMessageOutputManager.reportStatusMessage(highLevelStateChangeStatusMessage);
          }
       });
