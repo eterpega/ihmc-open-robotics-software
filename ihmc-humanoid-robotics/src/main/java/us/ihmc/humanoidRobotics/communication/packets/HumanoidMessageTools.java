@@ -122,6 +122,7 @@ import us.ihmc.humanoidRobotics.communication.packets.walking.hybridRigidBodyMan
 import us.ihmc.humanoidRobotics.communication.packets.walking.hybridRigidBodyManager.HeadHybridJointspaceTaskspaceTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.wholebody.ClearDelayQueueMessage;
 import us.ihmc.humanoidRobotics.communication.packets.wholebody.MessageOfMessages;
+import us.ihmc.humanoidRobotics.communication.toolbox.heightQuadTree.command.HeightQuadTreeToolboxRequestMessage;
 import us.ihmc.humanoidRobotics.footstep.Footstep;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotModels.FullRobotModelUtils;
@@ -2134,5 +2135,23 @@ public class HumanoidMessageTools
       }
 
       return points;
+   }
+
+   public static HeightQuadTreeToolboxRequestMessage clearRequest(PacketDestination destination)
+   {
+      HeightQuadTreeToolboxRequestMessage clearMessage = new HeightQuadTreeToolboxRequestMessage();
+      clearMessage.setDestination(destination);
+      clearMessage.requestClearQuadTree = true;
+      clearMessage.requestQuadTreeUpdate = false;
+      return clearMessage;
+   }
+
+   public static HeightQuadTreeToolboxRequestMessage requestQuadTreeUpdate(PacketDestination destination)
+   {
+      HeightQuadTreeToolboxRequestMessage requestMessage = new HeightQuadTreeToolboxRequestMessage();
+      requestMessage.setDestination(destination);
+      requestMessage.requestClearQuadTree = false;
+      requestMessage.requestQuadTreeUpdate = true;
+      return requestMessage;
    }
 }
