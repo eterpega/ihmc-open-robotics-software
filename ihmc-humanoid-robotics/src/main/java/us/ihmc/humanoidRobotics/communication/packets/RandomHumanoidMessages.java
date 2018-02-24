@@ -714,7 +714,9 @@ public final class RandomHumanoidMessages
       next.enableUserPelvisControl = random.nextBoolean();
       next.enableUserPelvisControlDuringWalking = random.nextBoolean();
       next.euclideanTrajectory.selectionMatrix = new SelectionMatrix3DMessage();
-      next.euclideanTrajectory.selectionMatrix.setAxisSelection(false, false, true);
+      next.euclideanTrajectory.selectionMatrix.xSelected = false;
+      next.euclideanTrajectory.selectionMatrix.ySelected = false;
+      next.euclideanTrajectory.selectionMatrix.zSelected = true;
       return next;
    }
 

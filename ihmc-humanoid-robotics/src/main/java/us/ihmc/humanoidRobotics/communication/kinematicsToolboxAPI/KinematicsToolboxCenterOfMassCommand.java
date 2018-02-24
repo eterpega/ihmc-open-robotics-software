@@ -40,7 +40,10 @@ public class KinematicsToolboxCenterOfMassCommand implements Command<KinematicsT
       }
       desiredPosition.setIncludingFrame(ReferenceFrame.getWorldFrame(), message.desiredPositionInWorld);
       selectionMatrix.clearSelection();
-      message.selectionMatrix.getSelectionMatrix(selectionMatrix);
+      selectionMatrix.clearSelection();
+      selectionMatrix.selectXAxis(message.selectionMatrix.xSelected);
+      selectionMatrix.selectYAxis(message.selectionMatrix.ySelected);
+      selectionMatrix.selectZAxis(message.selectionMatrix.zSelected);
       weightVector.reshape(3, 1);
       if (message.weights == null)
       {

@@ -30,7 +30,9 @@ public class PelvisHeightTrajectoryMessage extends Packet<PelvisHeightTrajectory
       euclideanTrajectory = new EuclideanTrajectoryMessage();
       setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       euclideanTrajectory.selectionMatrix = new SelectionMatrix3DMessage();
-      euclideanTrajectory.selectionMatrix.setAxisSelection(false, false, true);
+      euclideanTrajectory.selectionMatrix.xSelected = false;
+      euclideanTrajectory.selectionMatrix.ySelected = false;
+      euclideanTrajectory.selectionMatrix.zSelected = true;
    }
 
    /**

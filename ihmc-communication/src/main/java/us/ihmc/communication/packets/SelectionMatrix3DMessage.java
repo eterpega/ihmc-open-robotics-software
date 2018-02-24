@@ -50,24 +50,6 @@ public class SelectionMatrix3DMessage extends Packet<SelectionMatrix3DMessage>
    }
 
    /**
-    * Updates the selection of the axes of interest.
-    * <p>
-    * Note that it is preferable to also set selection frame to which this selection is referring
-    * to.
-    * </p>
-    * 
-    * @param xSelected whether the x-axis is an axis of interest.
-    * @param ySelected whether the y-axis is an axis of interest.
-    * @param zSelected whether the z-axis is an axis of interest.
-    */
-   public void setAxisSelection(boolean xSelected, boolean ySelected, boolean zSelected)
-   {
-      this.xSelected = xSelected;
-      this.ySelected = ySelected;
-      this.zSelected = zSelected;
-   }
-
-   /**
     * Sets the ID of the selection frame to use. The selection of the axes of interest refers to the
     * axes of the selection frame.
     * 
@@ -76,23 +58,6 @@ public class SelectionMatrix3DMessage extends Packet<SelectionMatrix3DMessage>
    public void setSelectionFrameId(long selectionFrameId)
    {
       this.selectionFrameId = selectionFrameId;
-   }
-
-   /**
-    * Unpacks this message into the given {@code selectionMatrix3D}.
-    * <p>
-    * Note that the selection frame can not be retrieved here, it has to be set afterwards.
-    * </p>
-    * 
-    * @param selectionMatrix3D the selection matrix into which this message is being unpacked.
-    *           Modified.
-    */
-   public void getSelectionMatrix(SelectionMatrix3D selectionMatrix3D)
-   {
-      selectionMatrix3D.clearSelection();
-      selectionMatrix3D.selectXAxis(xSelected);
-      selectionMatrix3D.selectYAxis(ySelected);
-      selectionMatrix3D.selectZAxis(zSelected);
    }
 
    public void setXSelected(boolean xSelected)

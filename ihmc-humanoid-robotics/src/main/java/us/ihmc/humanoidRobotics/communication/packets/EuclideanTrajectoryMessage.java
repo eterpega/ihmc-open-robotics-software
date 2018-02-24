@@ -241,7 +241,12 @@ public final class EuclideanTrajectoryMessage extends Packet<EuclideanTrajectory
    {
       selectionMatrixToPack.resetSelection();
       if (selectionMatrix != null)
-         selectionMatrix.getSelectionMatrix(selectionMatrixToPack);
+      {
+         selectionMatrixToPack.clearSelection();
+         selectionMatrixToPack.selectXAxis(selectionMatrix.xSelected);
+         selectionMatrixToPack.selectYAxis(selectionMatrix.ySelected);
+         selectionMatrixToPack.selectZAxis(selectionMatrix.zSelected);
+      }
    }
 
    public boolean hasWeightMatrix()

@@ -16,6 +16,7 @@ import us.ihmc.euclid.tuple4D.Quaternion32;
 import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
 import us.ihmc.euclid.utils.NameBasedHashCodeTools;
 import us.ihmc.robotics.screwTheory.RigidBody;
+import us.ihmc.robotics.screwTheory.SelectionMatrix3D;
 import us.ihmc.robotics.screwTheory.SelectionMatrix6D;
 import us.ihmc.robotics.weightMatrices.WeightMatrix3D;
 import us.ihmc.robotics.weightMatrices.WeightMatrix6D;
@@ -337,7 +338,9 @@ public class KinematicsToolboxRigidBodyMessage extends Packet<KinematicsToolboxR
    public void setSelectionMatrixForLinearControl()
    {
       angularSelectionMatrix = new SelectionMatrix3DMessage();
-      angularSelectionMatrix.setAxisSelection(false, false, false);
+      angularSelectionMatrix.xSelected = false;
+      angularSelectionMatrix.ySelected = false;
+      angularSelectionMatrix.zSelected = false;
       linearSelectionMatrix = new SelectionMatrix3DMessage();
    }
 
@@ -349,7 +352,9 @@ public class KinematicsToolboxRigidBodyMessage extends Packet<KinematicsToolboxR
    {
       angularSelectionMatrix = new SelectionMatrix3DMessage();
       linearSelectionMatrix = new SelectionMatrix3DMessage();
-      linearSelectionMatrix.setAxisSelection(false, false, false);
+      linearSelectionMatrix.xSelected = false;
+      linearSelectionMatrix.ySelected = false;
+      linearSelectionMatrix.zSelected = false;
    }
 
    /**
@@ -523,9 +528,21 @@ public class KinematicsToolboxRigidBodyMessage extends Packet<KinematicsToolboxR
    {
       selectionMatrixToPack.resetSelection();
       if (angularSelectionMatrix != null)
-         angularSelectionMatrix.getSelectionMatrix(selectionMatrixToPack.getAngularPart());
+      {
+         SelectionMatrix3D selectionMatrix3D = selectionMatrixToPack.getAngularPart();
+         selectionMatrix3D.clearSelection();
+         selectionMatrix3D.selectXAxis(angularSelectionMatrix.xSelected);
+         selectionMatrix3D.selectYAxis(angularSelectionMatrix.ySelected);
+         selectionMatrix3D.selectZAxis(angularSelectionMatrix.zSelected);
+      }
       if (linearSelectionMatrix != null)
-         linearSelectionMatrix.getSelectionMatrix(selectionMatrixToPack.getLinearPart());
+      {
+         SelectionMatrix3D selectionMatrix3D1 = selectionMatrixToPack.getLinearPart();
+         selectionMatrix3D1.clearSelection();
+         selectionMatrix3D1.selectXAxis(linearSelectionMatrix.xSelected);
+         selectionMatrix3D1.selectYAxis(linearSelectionMatrix.ySelected);
+         selectionMatrix3D1.selectZAxis(linearSelectionMatrix.zSelected);
+      }
    }
 
    public void getWeightMatrix(WeightMatrix6D weightMatrixToPack)

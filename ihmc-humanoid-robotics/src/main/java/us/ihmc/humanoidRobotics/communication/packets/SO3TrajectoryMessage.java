@@ -217,7 +217,12 @@ public final class SO3TrajectoryMessage extends Packet<SO3TrajectoryMessage>
    {
       selectionMatrixToPack.resetSelection();
       if (selectionMatrix != null)
-         selectionMatrix.getSelectionMatrix(selectionMatrixToPack);
+      {
+         selectionMatrixToPack.clearSelection();
+         selectionMatrixToPack.selectXAxis(selectionMatrix.xSelected);
+         selectionMatrixToPack.selectYAxis(selectionMatrix.ySelected);
+         selectionMatrixToPack.selectZAxis(selectionMatrix.zSelected);
+      }
    }
 
    public boolean hasWeightMatrix()

@@ -1071,7 +1071,9 @@ public class HumanoidMessageTools
                                                                                           trajectoryReferenceFrame.getNameBasedHashCode());
       message.euclideanTrajectory.frameInformation.setDataReferenceFrame(dataReferenceFrame);
       message.euclideanTrajectory.selectionMatrix = new SelectionMatrix3DMessage();
-      message.euclideanTrajectory.selectionMatrix.setAxisSelection(false, false, true);
+      message.euclideanTrajectory.selectionMatrix.xSelected = false;
+      message.euclideanTrajectory.selectionMatrix.ySelected = false;
+      message.euclideanTrajectory.selectionMatrix.zSelected = true;
       return message;
    }
 
@@ -1089,7 +1091,9 @@ public class HumanoidMessageTools
                                                                                           ReferenceFrame.getWorldFrame());
       message.euclideanTrajectory.frameInformation.setDataReferenceFrame(ReferenceFrame.getWorldFrame());
       message.euclideanTrajectory.selectionMatrix = new SelectionMatrix3DMessage();
-      message.euclideanTrajectory.selectionMatrix.setAxisSelection(false, false, true);
+      message.euclideanTrajectory.selectionMatrix.xSelected = false;
+      message.euclideanTrajectory.selectionMatrix.ySelected = false;
+      message.euclideanTrajectory.selectionMatrix.zSelected = true;
       return message;
    }
 
@@ -1107,7 +1111,9 @@ public class HumanoidMessageTools
       PelvisHeightTrajectoryMessage message = new PelvisHeightTrajectoryMessage();
       message.euclideanTrajectory = HumanoidMessageTools.createEuclideanTrajectoryMessage(numberOfTrajectoryPoints);
       message.euclideanTrajectory.selectionMatrix = new SelectionMatrix3DMessage();
-      message.euclideanTrajectory.selectionMatrix.setAxisSelection(false, false, true);
+      message.euclideanTrajectory.selectionMatrix.xSelected = false;
+      message.euclideanTrajectory.selectionMatrix.ySelected = false;
+      message.euclideanTrajectory.selectionMatrix.zSelected = true;
       return message;
    }
 
