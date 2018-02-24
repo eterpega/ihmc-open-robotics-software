@@ -2,9 +2,7 @@ package us.ihmc.communication.packets;
 
 import us.ihmc.communication.ros.generators.RosExportedField;
 import us.ihmc.communication.ros.generators.RosMessagePacket;
-import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.utils.NameBasedHashCodeTools;
-import us.ihmc.robotics.screwTheory.SelectionMatrix3D;
 
 @RosMessagePacket(documentation = "", rosPackage = RosMessagePacket.CORE_IHMC_PACKAGE, topic = "/control/selection_matrix")
 public class SelectionMatrix3DMessage extends Packet<SelectionMatrix3DMessage>
