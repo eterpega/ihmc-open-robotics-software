@@ -1,6 +1,7 @@
 package us.ihmc.humanoidRobotics.communication.packets;
 
 import us.ihmc.communication.packets.KinematicsToolboxOutputStatus;
+import us.ihmc.communication.packets.MessageTools;
 import us.ihmc.euclid.referenceFrame.FramePose3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.Point3D;
@@ -76,8 +77,8 @@ public class WholeBodyTrajectoryToolboxOutputConverter
       int numberOfTrajectoryPoints = solution.getRobotConfigurations().size();
       HandTrajectoryMessage trajectoryMessage = HumanoidMessageTools.createHandTrajectoryMessage(robotSide, numberOfTrajectoryPoints);
 
-      trajectoryMessage.getSe3Trajectory().getFrameInformation().setTrajectoryReferenceFrame(worldFrame);
-      trajectoryMessage.getSe3Trajectory().getFrameInformation().setDataReferenceFrame(worldFrame);
+      trajectoryMessage.getSe3Trajectory().getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(worldFrame));
+      trajectoryMessage.getSe3Trajectory().getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(worldFrame));
 
       // message params.
       ReferenceFrame trajectoryFrame = worldFrame;
@@ -135,8 +136,8 @@ public class WholeBodyTrajectoryToolboxOutputConverter
       int numberOfTrajectoryPoints = solution.getRobotConfigurations().size();
       ChestTrajectoryMessage trajectoryMessage = HumanoidMessageTools.createChestTrajectoryMessage(numberOfTrajectoryPoints);
 
-      trajectoryMessage.getSo3Trajectory().getFrameInformation().setTrajectoryReferenceFrame(worldFrame);
-      trajectoryMessage.getSo3Trajectory().getFrameInformation().setDataReferenceFrame(worldFrame);
+      trajectoryMessage.getSo3Trajectory().getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(worldFrame));
+      trajectoryMessage.getSo3Trajectory().getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(worldFrame));
 
       // message params.
       ReferenceFrame trajectoryFrame = worldFrame;
@@ -184,8 +185,8 @@ public class WholeBodyTrajectoryToolboxOutputConverter
       int numberOfTrajectoryPoints = solution.getRobotConfigurations().size();
       PelvisTrajectoryMessage trajectoryMessage = HumanoidMessageTools.createPelvisTrajectoryMessage(numberOfTrajectoryPoints);
 
-      trajectoryMessage.getSe3Trajectory().getFrameInformation().setTrajectoryReferenceFrame(worldFrame);
-      trajectoryMessage.getSe3Trajectory().getFrameInformation().setDataReferenceFrame(worldFrame);
+      trajectoryMessage.getSe3Trajectory().getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(worldFrame));
+      trajectoryMessage.getSe3Trajectory().getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(worldFrame));
 
       // message params.
       ReferenceFrame trajectoryFrame = worldFrame;

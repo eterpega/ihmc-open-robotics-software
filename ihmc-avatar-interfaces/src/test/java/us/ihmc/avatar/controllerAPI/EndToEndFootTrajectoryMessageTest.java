@@ -27,6 +27,7 @@ import us.ihmc.commonWalkingControlModules.controllerCore.FeedbackControllerTool
 import us.ihmc.commonWalkingControlModules.desiredFootStep.FootstepListVisualizer;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.communication.packets.ExecutionMode;
+import us.ihmc.communication.packets.MessageTools;
 import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FramePose3D;
@@ -360,7 +361,7 @@ public abstract class EndToEndFootTrajectoryMessageTest implements MultiRobotTes
       footTrajectoryMessage.getSe3Trajectory().setUseCustomControlFrame(true);
       footTrajectoryMessage.getSe3Trajectory().setControlFrameOrientation(new Quaternion(controlFrameTransform.getRotationMatrix()));
       footTrajectoryMessage.getSe3Trajectory().setControlFramePosition(new Point3D(controlFrameTransform.getTranslationVector()));
-      footTrajectoryMessage.getSe3Trajectory().getFrameInformation().setTrajectoryReferenceFrame(trajectoryFrame);
+      footTrajectoryMessage.getSe3Trajectory().getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(trajectoryFrame));
 
       drcSimulationTestHelper.send(footTrajectoryMessage);
       assertTrue(drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(trajectoryTime));

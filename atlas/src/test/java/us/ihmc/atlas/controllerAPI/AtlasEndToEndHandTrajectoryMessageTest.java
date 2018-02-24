@@ -13,6 +13,7 @@ import us.ihmc.avatar.drcRobot.RobotTarget;
 import us.ihmc.avatar.testTools.DRCSimulationTestHelper;
 import us.ihmc.commonWalkingControlModules.controllerCore.FeedbackControllerToolbox;
 import us.ihmc.commons.thread.ThreadTools;
+import us.ihmc.communication.packets.MessageTools;
 import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
 import us.ihmc.euclid.referenceFrame.FramePose3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
@@ -138,8 +139,8 @@ public class AtlasEndToEndHandTrajectoryMessageTest extends EndToEndHandTrajecto
       waypoint0.get(waypointPosition0, waypointOrientation0);
       waypoint1.get(waypointPosition1, waypointOrientation1);
       HandTrajectoryMessage handTrajectoryMessage = HumanoidMessageTools.createHandTrajectoryMessage(robotSide, 2);
-      handTrajectoryMessage.getSe3Trajectory().getFrameInformation().setTrajectoryReferenceFrame(chest.getBodyFixedFrame());
-      handTrajectoryMessage.getSe3Trajectory().getFrameInformation().setDataReferenceFrame(worldFrame);
+      handTrajectoryMessage.getSe3Trajectory().getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(chest.getBodyFixedFrame()));
+      handTrajectoryMessage.getSe3Trajectory().getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(worldFrame));
       handTrajectoryMessage.getSe3Trajectory().setTrajectoryPoint(0, trajectoryTime, waypointPosition0, waypointOrientation0, new Vector3D(), new Vector3D(), worldFrame);
       handTrajectoryMessage.getSe3Trajectory().setTrajectoryPoint(1, 2.0 * trajectoryTime, waypointPosition1, waypointOrientation1, new Vector3D(), new Vector3D(), worldFrame);
 

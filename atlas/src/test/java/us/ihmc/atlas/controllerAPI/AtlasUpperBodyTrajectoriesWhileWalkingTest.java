@@ -23,6 +23,7 @@ import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.Co
 import us.ihmc.commons.RandomNumbers;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.communication.packets.ExecutionMode;
+import us.ihmc.communication.packets.MessageTools;
 import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
 import us.ihmc.continuousIntegration.IntegrationCategory;
 import us.ihmc.euclid.referenceFrame.FramePose3D;
@@ -125,8 +126,8 @@ public class AtlasUpperBodyTrajectoriesWhileWalkingTest
          Quaternion orientation = new Quaternion(handPosition.getOrientation());
 
          HandTrajectoryMessage handHoldMessage = HumanoidMessageTools.createHandTrajectoryMessage(robotSide, 1);
-         handHoldMessage.getSe3Trajectory().getFrameInformation().setTrajectoryReferenceFrame(referenceFrames.getAnkleZUpFrame(robotSide.getOppositeSide()));
-         handHoldMessage.getSe3Trajectory().getFrameInformation().setDataReferenceFrame(worldFrame);
+         handHoldMessage.getSe3Trajectory().getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(referenceFrames.getAnkleZUpFrame(robotSide.getOppositeSide())));
+         handHoldMessage.getSe3Trajectory().getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(worldFrame));
          Vector3D zeroVelocity = new Vector3D();
          handHoldMessage.getSe3Trajectory().setTrajectoryPoint(0, 11.0, position, orientation, zeroVelocity, zeroVelocity, worldFrame);
          drcSimulationTestHelper.send(handHoldMessage);

@@ -2,6 +2,7 @@ package us.ihmc.humanoidRobotics.communication.packets;
 
 import us.ihmc.commons.MathTools;
 import us.ihmc.communication.packets.KinematicsToolboxOutputStatus;
+import us.ihmc.communication.packets.MessageTools;
 import us.ihmc.euclid.referenceFrame.FramePose3D;
 import us.ihmc.euclid.referenceFrame.FrameQuaternion;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
@@ -118,7 +119,7 @@ public class KinematicsToolboxOutputConverter
       desiredHandPose.changeFrame(worldFrame);
       desiredHandPose.get(desiredPosition, desiredOrientation);
       HandTrajectoryMessage handTrajectoryMessage = HumanoidMessageTools.createHandTrajectoryMessage(robotSide, trajectoryTime, desiredPosition, desiredOrientation, trajectoryFrame);
-      handTrajectoryMessage.getSe3Trajectory().getFrameInformation().setDataReferenceFrame(worldFrame);
+      handTrajectoryMessage.getSe3Trajectory().getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(worldFrame));
       output.setHandTrajectoryMessage(handTrajectoryMessage);
    }
 

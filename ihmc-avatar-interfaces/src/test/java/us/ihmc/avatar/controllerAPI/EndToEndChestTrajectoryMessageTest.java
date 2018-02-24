@@ -22,6 +22,7 @@ import us.ihmc.commonWalkingControlModules.controlModules.rigidBody.RigidBodyTas
 import us.ihmc.commonWalkingControlModules.controllerCore.FeedbackControllerToolbox;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.communication.packets.ExecutionMode;
+import us.ihmc.communication.packets.MessageTools;
 import us.ihmc.euclid.matrix.RotationMatrix;
 import us.ihmc.euclid.referenceFrame.FrameQuaternion;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
@@ -453,8 +454,8 @@ public abstract class EndToEndChestTrajectoryMessageTest implements MultiRobotTe
       RigidBody chest = fullRobotModel.getChest();
 
       ChestTrajectoryMessage chestTrajectoryMessage = HumanoidMessageTools.createChestTrajectoryMessage(numberOfTrajectoryPoints);
-      chestTrajectoryMessage.getSo3Trajectory().getFrameInformation().setTrajectoryReferenceFrame(pelvisZUpFrame);
-      chestTrajectoryMessage.getSo3Trajectory().getFrameInformation().setDataReferenceFrame(ReferenceFrame.getWorldFrame());
+      chestTrajectoryMessage.getSo3Trajectory().getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(pelvisZUpFrame));
+      chestTrajectoryMessage.getSo3Trajectory().getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(ReferenceFrame.getWorldFrame()));
 
       FrameQuaternion[] desiredChestOrientations = new FrameQuaternion[numberOfTrajectoryPoints];
       FrameVector3D[] desiredChestAngularVelocities = new FrameVector3D[numberOfTrajectoryPoints];
@@ -542,8 +543,8 @@ public abstract class EndToEndChestTrajectoryMessageTest implements MultiRobotTe
       ReferenceFrame pelvisZUpFrame = humanoidReferenceFrames.getPelvisZUpFrame();
 
       ChestTrajectoryMessage chestTrajectoryMessage = HumanoidMessageTools.createChestTrajectoryMessage(numberOfTrajectoryPoints);
-      chestTrajectoryMessage.getSo3Trajectory().getFrameInformation().setTrajectoryReferenceFrame(pelvisZUpFrame);
-      chestTrajectoryMessage.getSo3Trajectory().getFrameInformation().setDataReferenceFrame(ReferenceFrame.getWorldFrame());
+      chestTrajectoryMessage.getSo3Trajectory().getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(pelvisZUpFrame));
+      chestTrajectoryMessage.getSo3Trajectory().getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(ReferenceFrame.getWorldFrame()));
 
       FrameQuaternion[] desiredChestOrientations = new FrameQuaternion[numberOfTrajectoryPoints];
       FrameVector3D[] desiredChestAngularVelocities = new FrameVector3D[numberOfTrajectoryPoints];
@@ -647,7 +648,7 @@ public abstract class EndToEndChestTrajectoryMessageTest implements MultiRobotTe
       ReferenceFrame pelvisZUpFrame = humanoidReferenceFrames.getPelvisZUpFrame();
 
       ChestTrajectoryMessage chestTrajectoryMessage = HumanoidMessageTools.createChestTrajectoryMessage(numberOfTrajectoryPoints);
-      chestTrajectoryMessage.getSo3Trajectory().getFrameInformation().setTrajectoryReferenceFrame(pelvisZUpFrame);
+      chestTrajectoryMessage.getSo3Trajectory().getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(pelvisZUpFrame));
 
       FrameQuaternion[] desiredChestOrientations = new FrameQuaternion[numberOfTrajectoryPoints];
       FrameVector3D[] desiredChestAngularVelocities = new FrameVector3D[numberOfTrajectoryPoints];
@@ -774,8 +775,8 @@ public abstract class EndToEndChestTrajectoryMessageTest implements MultiRobotTe
          FrameQuaternion[] desiredChestOrientations = new FrameQuaternion[numberOfTrajectoryPoints];
          FrameVector3D[] desiredChestAngularVelocities = new FrameVector3D[numberOfTrajectoryPoints];
          ChestTrajectoryMessage chestTrajectoryMessage = HumanoidMessageTools.createChestTrajectoryMessage(numberOfTrajectoryPoints);
-         chestTrajectoryMessage.getSo3Trajectory().getFrameInformation().setTrajectoryReferenceFrame(pelvisZUpFrame);
-         chestTrajectoryMessage.getSo3Trajectory().getFrameInformation().setDataReferenceFrame(ReferenceFrame.getWorldFrame());
+         chestTrajectoryMessage.getSo3Trajectory().getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(pelvisZUpFrame));
+         chestTrajectoryMessage.getSo3Trajectory().getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(ReferenceFrame.getWorldFrame()));
 
          chestTrajectoryMessage.setUniqueId(id);
          if (messageIndex > 0)
@@ -899,8 +900,8 @@ public abstract class EndToEndChestTrajectoryMessageTest implements MultiRobotTe
          FrameQuaternion[] desiredChestOrientations = new FrameQuaternion[numberOfTrajectoryPoints];
          FrameVector3D[] desiredChestAngularVelocities = new FrameVector3D[numberOfTrajectoryPoints];
          ChestTrajectoryMessage chestTrajectoryMessage = HumanoidMessageTools.createChestTrajectoryMessage(numberOfTrajectoryPoints);
-         chestTrajectoryMessage.getSo3Trajectory().getFrameInformation().setTrajectoryReferenceFrame(pelvisZUpFrame);
-         chestTrajectoryMessage.getSo3Trajectory().getFrameInformation().setDataReferenceFrame(ReferenceFrame.getWorldFrame());
+         chestTrajectoryMessage.getSo3Trajectory().getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(pelvisZUpFrame));
+         chestTrajectoryMessage.getSo3Trajectory().getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(ReferenceFrame.getWorldFrame()));
          chestTrajectoryMessage.setUniqueId(id);
          if (messageIndex > 0)
          {
@@ -1146,8 +1147,8 @@ public abstract class EndToEndChestTrajectoryMessageTest implements MultiRobotTe
          FrameQuaternion[] desiredChestOrientations = new FrameQuaternion[numberOfTrajectoryPoints];
          FrameVector3D[] desiredChestAngularVelocities = new FrameVector3D[numberOfTrajectoryPoints];
          ChestTrajectoryMessage chestTrajectoryMessage = HumanoidMessageTools.createChestTrajectoryMessage(numberOfTrajectoryPoints);
-         chestTrajectoryMessage.getSo3Trajectory().getFrameInformation().setTrajectoryReferenceFrame(pelvisZUpFrame);
-         chestTrajectoryMessage.getSo3Trajectory().getFrameInformation().setDataReferenceFrame(ReferenceFrame.getWorldFrame());
+         chestTrajectoryMessage.getSo3Trajectory().getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(pelvisZUpFrame));
+         chestTrajectoryMessage.getSo3Trajectory().getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(ReferenceFrame.getWorldFrame()));
 
          chestTrajectoryMessage.setUniqueId(id);
          if (messageIndex > 0)

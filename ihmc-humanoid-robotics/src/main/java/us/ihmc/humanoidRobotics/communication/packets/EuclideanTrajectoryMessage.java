@@ -91,7 +91,7 @@ public final class EuclideanTrajectoryMessage extends Packet<EuclideanTrajectory
     */
    public void getTrajectoryPoints(FrameEuclideanTrajectoryPointList trajectoryPointListToPack)
    {
-      FrameInformation.checkIfDataFrameIdsMatch(frameInformation, trajectoryPointListToPack.getReferenceFrame());
+      HumanoidMessageTools.checkIfDataFrameIdsMatch(frameInformation, trajectoryPointListToPack.getReferenceFrame());
       TempPreallocatedList<EuclideanTrajectoryPointMessage> trajectoryPointMessages = getTrajectoryPoints();
       int numberOfPoints = trajectoryPointMessages.size();
 
@@ -117,7 +117,7 @@ public final class EuclideanTrajectoryMessage extends Packet<EuclideanTrajectory
    public final void setTrajectoryPoint(int trajectoryPointIndex, double time, Point3DReadOnly position, Vector3DReadOnly linearVelocity,
                                         ReferenceFrame expressedInReferenceFrame)
    {
-      FrameInformation.checkIfDataFrameIdsMatch(frameInformation, expressedInReferenceFrame);
+      HumanoidMessageTools.checkIfDataFrameIdsMatch(frameInformation, expressedInReferenceFrame);
       rangeCheck(trajectoryPointIndex);
       taskspaceTrajectoryPoints.get(trajectoryPointIndex).set(HumanoidMessageTools.createEuclideanTrajectoryPointMessage(time, position, linearVelocity));
    }
@@ -136,7 +136,7 @@ public final class EuclideanTrajectoryMessage extends Packet<EuclideanTrajectory
    public final void setTrajectoryPoint(int trajectoryPointIndex, double time, Point3DReadOnly position, Vector3DReadOnly linearVelocity,
                                         long expressedInReferenceFrameId)
    {
-      FrameInformation.checkIfDataFrameIdsMatch(frameInformation, expressedInReferenceFrameId);
+      HumanoidMessageTools.checkIfDataFrameIdsMatch(frameInformation, expressedInReferenceFrameId);
       rangeCheck(trajectoryPointIndex);
       taskspaceTrajectoryPoints.get(trajectoryPointIndex).set(HumanoidMessageTools.createEuclideanTrajectoryPointMessage(time, position, linearVelocity));
    }

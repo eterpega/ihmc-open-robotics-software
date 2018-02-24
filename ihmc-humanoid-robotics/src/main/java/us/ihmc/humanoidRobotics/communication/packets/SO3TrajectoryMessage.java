@@ -63,7 +63,7 @@ public final class SO3TrajectoryMessage extends Packet<SO3TrajectoryMessage>
 
    public void getTrajectoryPoints(FrameSO3TrajectoryPointList trajectoryPointListToPack)
    {
-      FrameInformation.checkIfDataFrameIdsMatch(frameInformation, trajectoryPointListToPack.getReferenceFrame());
+      HumanoidMessageTools.checkIfDataFrameIdsMatch(frameInformation, trajectoryPointListToPack.getReferenceFrame());
 
       TempPreallocatedList<SO3TrajectoryPointMessage> trajectoryPointMessages = getTrajectoryPoints();
       int numberOfPoints = trajectoryPointMessages.size();
@@ -97,7 +97,7 @@ public final class SO3TrajectoryMessage extends Packet<SO3TrajectoryMessage>
    public final void setTrajectoryPoint(int trajectoryPointIndex, double time, QuaternionReadOnly orientation, Vector3DReadOnly angularVelocity,
                                         ReferenceFrame expressedInReferenceFrame)
    {
-      FrameInformation.checkIfDataFrameIdsMatch(frameInformation, expressedInReferenceFrame);
+      HumanoidMessageTools.checkIfDataFrameIdsMatch(frameInformation, expressedInReferenceFrame);
       rangeCheck(trajectoryPointIndex);
       taskspaceTrajectoryPoints.get(trajectoryPointIndex).set(HumanoidMessageTools.createSO3TrajectoryPointMessage(time, orientation, angularVelocity));
    }
@@ -116,7 +116,7 @@ public final class SO3TrajectoryMessage extends Packet<SO3TrajectoryMessage>
    public final void setTrajectoryPoint(int trajectoryPointIndex, double time, QuaternionReadOnly orientation, Vector3DReadOnly angularVelocity,
                                         long expressedInReferenceFrameId)
    {
-      FrameInformation.checkIfDataFrameIdsMatch(frameInformation, expressedInReferenceFrameId);
+      HumanoidMessageTools.checkIfDataFrameIdsMatch(frameInformation, expressedInReferenceFrameId);
       rangeCheck(trajectoryPointIndex);
       taskspaceTrajectoryPoints.get(trajectoryPointIndex).set(HumanoidMessageTools.createSO3TrajectoryPointMessage(time, orientation, angularVelocity));
    }

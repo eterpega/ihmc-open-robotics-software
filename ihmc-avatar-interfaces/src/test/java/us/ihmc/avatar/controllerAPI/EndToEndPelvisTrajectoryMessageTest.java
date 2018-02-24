@@ -31,6 +31,7 @@ import us.ihmc.commonWalkingControlModules.referenceFrames.CommonHumanoidReferen
 import us.ihmc.commonWalkingControlModules.trajectories.LookAheadCoMHeightTrajectoryGenerator;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.communication.packets.ExecutionMode;
+import us.ihmc.communication.packets.MessageTools;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FramePose3D;
 import us.ihmc.euclid.referenceFrame.FrameVector2D;
@@ -355,8 +356,8 @@ public abstract class EndToEndPelvisTrajectoryMessageTest implements MultiRobotT
       pelvisTrajectoryMessage.getSe3Trajectory().setSelectionMatrix(selectionMatrix6D);
 
       FrameInformation frameInformation = pelvisTrajectoryMessage.getSe3Trajectory().getFrameInformation();
-      frameInformation.setTrajectoryReferenceFrame(midFootZUpGroundFrame);
-      frameInformation.setDataReferenceFrame(midFootZUpGroundFrame);
+      frameInformation.setTrajectoryReferenceFrameId(MessageTools.toFrameId(midFootZUpGroundFrame));
+      frameInformation.setDataReferenceFrameId(MessageTools.toFrameId(midFootZUpGroundFrame));
 
       pelvisTrajectoryMessage.setEnableUserPelvisControl(true);
 
@@ -501,8 +502,8 @@ public abstract class EndToEndPelvisTrajectoryMessageTest implements MultiRobotT
       pelvisTrajectoryMessage.getSe3Trajectory().setSelectionMatrix(selectionMatrix6D);
 
       FrameInformation frameInformation = pelvisTrajectoryMessage.getSe3Trajectory().getFrameInformation();
-      frameInformation.setTrajectoryReferenceFrame(midFootZUpGroundFrame);
-      frameInformation.setDataReferenceFrame(midFootZUpGroundFrame);
+      frameInformation.setTrajectoryReferenceFrameId(MessageTools.toFrameId(midFootZUpGroundFrame));
+      frameInformation.setDataReferenceFrameId(MessageTools.toFrameId(midFootZUpGroundFrame));
 
       pelvisTrajectoryMessage.setEnableUserPelvisControl(true);
 
@@ -624,8 +625,8 @@ public abstract class EndToEndPelvisTrajectoryMessageTest implements MultiRobotT
       pelvisTrajectoryMessage.getSe3Trajectory().setSelectionMatrix(selectionMatrix6D);
 
       FrameInformation frameInformation = pelvisTrajectoryMessage.getSe3Trajectory().getFrameInformation();
-      frameInformation.setTrajectoryReferenceFrame(midFootZUpGroundFrame);
-      frameInformation.setDataReferenceFrame(midFootZUpGroundFrame);
+      frameInformation.setTrajectoryReferenceFrameId(MessageTools.toFrameId(midFootZUpGroundFrame));
+      frameInformation.setDataReferenceFrameId(MessageTools.toFrameId(midFootZUpGroundFrame));
 
       pelvisTrajectoryMessage.setEnableUserPelvisControl(true);
 

@@ -31,6 +31,7 @@ import us.ihmc.simulationconstructionset.util.simulationRunner.BlockingSimulatio
 import us.ihmc.simulationconstructionset.util.simulationTesting.SimulationTestingParameters;
 import us.ihmc.tools.MemoryTools;
 import us.ihmc.commons.thread.ThreadTools;
+import us.ihmc.communication.packets.MessageTools;
 
 public abstract class DRCHeadTrajectoryBehaviorTest implements MultiRobotTestInterface
 {
@@ -135,7 +136,7 @@ public abstract class DRCHeadTrajectoryBehaviorTest implements MultiRobotTestInt
       double trajectoryTime = 4.0;
       Quaternion desiredHeadQuat = new Quaternion(RandomGeometry.nextQuaternion(new Random(), MAX_ANGLE_TO_TEST_RAD));
       HeadTrajectoryMessage message = HumanoidMessageTools.createHeadTrajectoryMessage(trajectoryTime, desiredHeadQuat, chestCoMFrame);
-      message.getSo3Trajectory().getFrameInformation().setDataReferenceFrame(ReferenceFrame.getWorldFrame());
+      message.getSo3Trajectory().getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(ReferenceFrame.getWorldFrame()));
       testHeadOrientationBehavior(message, trajectoryTime + EXTRA_SIM_TIME_FOR_SETTLING);
       BambooTools.reportTestFinishedMessage(simulationTestingParameters.getShowWindows());
    }
@@ -151,7 +152,7 @@ public abstract class DRCHeadTrajectoryBehaviorTest implements MultiRobotTestInt
       ReferenceFrame chestCoMFrame = controllerFullRobotModel.getChest().getBodyFixedFrame();
 
       HeadTrajectoryMessage message = HumanoidMessageTools.createHeadTrajectoryMessage(trajectoryTime, desiredHeadQuat, chestCoMFrame);
-      message.getSo3Trajectory().getFrameInformation().setDataReferenceFrame(ReferenceFrame.getWorldFrame());
+      message.getSo3Trajectory().getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(ReferenceFrame.getWorldFrame()));
       return message;
    }
 

@@ -68,8 +68,8 @@ public class TestGarbageGenerationBehavior extends AbstractBehavior
    {
       ReferenceFrame pelvisZUp = referenceFrames.getPelvisZUpFrame();
       ChestTrajectoryMessage chestTrajectory = HumanoidMessageTools.createChestTrajectoryMessage(trajectoryPoints);
-      chestTrajectory.getSo3Trajectory().getFrameInformation().setTrajectoryReferenceFrame(pelvisZUp);
-      chestTrajectory.getSo3Trajectory().getFrameInformation().setDataReferenceFrame(pelvisZUp);
+      chestTrajectory.getSo3Trajectory().getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(pelvisZUp));
+      chestTrajectory.getSo3Trajectory().getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(pelvisZUp));
 
       for (int i = 0; i < trajectoryPoints; i++)
       {

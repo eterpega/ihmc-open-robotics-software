@@ -19,6 +19,7 @@ import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FramePose3D;
 import us.ihmc.euclid.referenceFrame.FrameQuaternion;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.referenceFrame.exceptions.ReferenceFrameMismatchException;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.euclid.tuple2D.Vector2D;
@@ -32,6 +33,7 @@ import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.euclid.tuple4D.Quaternion32;
 import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
+import us.ihmc.euclid.utils.NameBasedHashCodeTools;
 import us.ihmc.footstepPlanning.FootstepPlannerType;
 import us.ihmc.humanoidRobotics.communication.packets.atlas.AtlasLowLevelControlMode;
 import us.ihmc.humanoidRobotics.communication.packets.atlas.AtlasLowLevelControlModeMessage;
@@ -905,7 +907,7 @@ public class HumanoidMessageTools
                                                                      ReferenceFrame trajectoryFrame)
    {
       ChestTrajectoryMessage message = createChestTrajectoryMessage(trajectoryTime, quaternion, trajectoryFrame);
-      message.so3Trajectory.getFrameInformation().setDataReferenceFrame(dataFrame);
+      message.so3Trajectory.getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(dataFrame));
       return message;
    }
 
@@ -931,7 +933,7 @@ public class HumanoidMessageTools
    {
       HeadTrajectoryMessage message = new HeadTrajectoryMessage();
       message.so3Trajectory = createSO3TrajectoryMessage(trajectoryTime, desiredOrientation, trajectoryFrame);
-      message.so3Trajectory.getFrameInformation().setDataReferenceFrame(dataFrame);
+      message.so3Trajectory.getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(dataFrame));
       return message;
    }
 
@@ -1069,7 +1071,7 @@ public class HumanoidMessageTools
       PelvisHeightTrajectoryMessage message = new PelvisHeightTrajectoryMessage();
       message.euclideanTrajectory = HumanoidMessageTools.createEuclideanTrajectoryMessage(trajectoryTime, new Point3D(0.0, 0.0, desiredHeight),
                                                                                           trajectoryReferenceFrame.getNameBasedHashCode());
-      message.euclideanTrajectory.frameInformation.setDataReferenceFrame(dataReferenceFrame);
+      message.euclideanTrajectory.frameInformation.setDataReferenceFrameId(MessageTools.toFrameId(dataReferenceFrame));
       message.euclideanTrajectory.selectionMatrix = new SelectionMatrix3DMessage();
       message.euclideanTrajectory.selectionMatrix.xSelected = false;
       message.euclideanTrajectory.selectionMatrix.ySelected = false;
@@ -1089,7 +1091,7 @@ public class HumanoidMessageTools
       PelvisHeightTrajectoryMessage message = new PelvisHeightTrajectoryMessage();
       message.euclideanTrajectory = HumanoidMessageTools.createEuclideanTrajectoryMessage(trajectoryTime, new Point3D(0.0, 0.0, desiredHeight),
                                                                                           ReferenceFrame.getWorldFrame());
-      message.euclideanTrajectory.frameInformation.setDataReferenceFrame(ReferenceFrame.getWorldFrame());
+      message.euclideanTrajectory.frameInformation.setDataReferenceFrameId(MessageTools.toFrameId(ReferenceFrame.getWorldFrame()));
       message.euclideanTrajectory.selectionMatrix = new SelectionMatrix3DMessage();
       message.euclideanTrajectory.selectionMatrix.xSelected = false;
       message.euclideanTrajectory.selectionMatrix.ySelected = false;
@@ -1859,7 +1861,7 @@ public class HumanoidMessageTools
    public static SE3TrajectoryMessage createSE3TrajectoryMessage(int numberOfPoints, ReferenceFrame trajectoryFrame)
    {
       SE3TrajectoryMessage message = createSE3TrajectoryMessage(numberOfPoints);
-      message.getFrameInformation().setTrajectoryReferenceFrame(trajectoryFrame);
+      message.getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(trajectoryFrame));
       return message;
    }
 
@@ -2214,5 +2216,37 @@ public class HumanoidMessageTools
       }
       
       return points;
+   }
+
+   public static void checkIfDataFrameIdsMatch(FrameInformation frameInformation, ReferenceFrame referenceFrame)
+   {
+      long expectedId = HumanoidMessageTools.getDataFrameIDConsideringDefault(frameInformation);
+   
+      if (expectedId != referenceFrame.getNameBasedHashCode() && expectedId != referenceFrame.getAdditionalNameBasedHashCode())
+      {
+         String msg = "Argument's hashcode " + referenceFrame + " " + referenceFrame.getNameBasedHashCode() + " does not match " + expectedId;
+         throw new ReferenceFrameMismatchException(msg);
+      }
+   }
+
+   public static void checkIfDataFrameIdsMatch(FrameInformation frameInformation, long otherReferenceFrameId)
+   {
+      long expectedId = HumanoidMessageTools.getDataFrameIDConsideringDefault(frameInformation);
+   
+      if (expectedId != otherReferenceFrameId)
+      {
+         String msg = "Argument's hashcode " + otherReferenceFrameId + " does not match " + expectedId;
+         throw new ReferenceFrameMismatchException(msg);
+      }
+   }
+
+   public static long getDataFrameIDConsideringDefault(FrameInformation frameInformation)
+   {
+      long dataId = frameInformation.getDataReferenceFrameId();
+      if (dataId == NameBasedHashCodeTools.DEFAULT_HASHCODE)
+      {
+         dataId = frameInformation.getTrajectoryReferenceFrameId();
+      }
+      return dataId;
    }
 }

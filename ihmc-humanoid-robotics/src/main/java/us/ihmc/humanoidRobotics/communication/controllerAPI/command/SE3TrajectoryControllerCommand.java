@@ -13,6 +13,7 @@ import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.converter.FrameBasedCommand;
 import us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.FrameInformation;
+import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.robotics.math.trajectories.waypoints.FrameSE3TrajectoryPoint;
 import us.ihmc.robotics.math.trajectories.waypoints.FrameSE3TrajectoryPointList;
 import us.ihmc.robotics.random.RandomGeometry;
@@ -89,7 +90,7 @@ public final class SE3TrajectoryControllerCommand extends QueueableCommand<SE3Tr
    {
       FrameInformation frameInformation = message.getFrameInformation();
       long trajectoryFrameId = frameInformation.getTrajectoryReferenceFrameId();
-      long dataFrameId = FrameInformation.getDataFrameIDConsideringDefault(frameInformation);
+      long dataFrameId = HumanoidMessageTools.getDataFrameIDConsideringDefault(frameInformation);
       this.trajectoryFrame = resolver.getReferenceFrameFromNameBaseHashCode(trajectoryFrameId);
       ReferenceFrame dataFrame = resolver.getReferenceFrameFromNameBaseHashCode(dataFrameId);
 

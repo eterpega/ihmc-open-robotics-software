@@ -11,6 +11,7 @@ import us.ihmc.avatar.MultiRobotTestInterface;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
 import us.ihmc.avatar.testTools.DRCSimulationTestHelper;
 import us.ihmc.commons.thread.ThreadTools;
+import us.ihmc.communication.packets.MessageTools;
 import us.ihmc.euclid.geometry.Pose3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.Point3D;
@@ -84,16 +85,16 @@ public abstract class EndToEndHandLoadBearingTest implements MultiRobotTestInter
       handOrientation.appendPitchRotation(Math.PI / 2.0);
 
       HandTrajectoryMessage handTrajectoryMessage1 = HumanoidMessageTools.createHandTrajectoryMessage(RobotSide.LEFT, 1);
-      handTrajectoryMessage1.getSe3Trajectory().getFrameInformation().setTrajectoryReferenceFrame(chestFrame);
-      handTrajectoryMessage1.getSe3Trajectory().getFrameInformation().setDataReferenceFrame(worldFrame);
+      handTrajectoryMessage1.getSe3Trajectory().getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(chestFrame));
+      handTrajectoryMessage1.getSe3Trajectory().getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(worldFrame));
       handTrajectoryMessage1.getSe3Trajectory().setTrajectoryPoint(0, 1.0, new Point3D(0.45, 0.3, 0.6), handOrientation, new Vector3D(), new Vector3D(), worldFrame);
       drcSimulationTestHelper.send(handTrajectoryMessage1);
       success = drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(2.0);
       assertTrue(success);
 
       HandTrajectoryMessage handTrajectoryMessage2 = HumanoidMessageTools.createHandTrajectoryMessage(RobotSide.LEFT, 1);
-      handTrajectoryMessage2.getSe3Trajectory().getFrameInformation().setTrajectoryReferenceFrame(chestFrame);
-      handTrajectoryMessage2.getSe3Trajectory().getFrameInformation().setDataReferenceFrame(worldFrame);
+      handTrajectoryMessage2.getSe3Trajectory().getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(chestFrame));
+      handTrajectoryMessage2.getSe3Trajectory().getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(worldFrame));
       handTrajectoryMessage2.getSe3Trajectory().setTrajectoryPoint(0, 1.0, new Point3D(0.45, 0.3, 0.55), handOrientation, new Vector3D(), new Vector3D(), worldFrame);
       drcSimulationTestHelper.send(handTrajectoryMessage2);
       success = drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(1.5);

@@ -101,7 +101,7 @@ public final class SE3TrajectoryMessage extends Packet<SE3TrajectoryMessage>
 
    public void getTrajectoryPoints(FrameSE3TrajectoryPointList trajectoryPointListToPack)
    {
-      FrameInformation.checkIfDataFrameIdsMatch(frameInformation, trajectoryPointListToPack.getReferenceFrame());
+      HumanoidMessageTools.checkIfDataFrameIdsMatch(frameInformation, trajectoryPointListToPack.getReferenceFrame());
       TempPreallocatedList<SE3TrajectoryPointMessage> trajectoryPointMessages = getTrajectoryPoints();
       int numberOfPoints = trajectoryPointMessages.size();
 
@@ -131,7 +131,7 @@ public final class SE3TrajectoryMessage extends Packet<SE3TrajectoryMessage>
    public final void setTrajectoryPoint(int trajectoryPointIndex, double time, Point3DReadOnly position, QuaternionReadOnly orientation,
                                         Vector3DReadOnly linearVelocity, Vector3DReadOnly angularVelocity, ReferenceFrame expressedInReferenceFrame)
    {
-      FrameInformation.checkIfDataFrameIdsMatch(frameInformation, expressedInReferenceFrame);
+      HumanoidMessageTools.checkIfDataFrameIdsMatch(frameInformation, expressedInReferenceFrame);
       rangeCheck(trajectoryPointIndex);
       taskspaceTrajectoryPoints.get(trajectoryPointIndex).set(HumanoidMessageTools.createSE3TrajectoryPointMessage(time, position, orientation, linearVelocity, angularVelocity));
    }
@@ -154,7 +154,7 @@ public final class SE3TrajectoryMessage extends Packet<SE3TrajectoryMessage>
    public final void setTrajectoryPoint(int trajectoryPointIndex, double time, Point3DReadOnly position, QuaternionReadOnly orientation,
                                         Vector3DReadOnly linearVelocity, Vector3DReadOnly angularVelocity, long expressedInReferenceFrameId)
    {
-      FrameInformation.checkIfDataFrameIdsMatch(frameInformation, expressedInReferenceFrameId);
+      HumanoidMessageTools.checkIfDataFrameIdsMatch(frameInformation, expressedInReferenceFrameId);
       rangeCheck(trajectoryPointIndex);
       taskspaceTrajectoryPoints.get(trajectoryPointIndex).set(HumanoidMessageTools.createSE3TrajectoryPointMessage(time, position, orientation, linearVelocity, angularVelocity));
    }

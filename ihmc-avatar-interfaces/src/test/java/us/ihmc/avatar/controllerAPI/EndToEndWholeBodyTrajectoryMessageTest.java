@@ -11,6 +11,7 @@ import us.ihmc.avatar.MultiRobotTestInterface;
 import us.ihmc.avatar.testTools.DRCSimulationTestHelper;
 import us.ihmc.commons.RandomNumbers;
 import us.ihmc.commons.thread.ThreadTools;
+import us.ihmc.communication.packets.MessageTools;
 import us.ihmc.euclid.referenceFrame.FramePose3D;
 import us.ihmc.euclid.referenceFrame.FrameQuaternion;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
@@ -130,7 +131,7 @@ public abstract class EndToEndWholeBodyTrajectoryMessageTest implements MultiRob
       desiredChestOrientation.changeFrame(worldFrame);
       desiredOrientation = new Quaternion(desiredChestOrientation);
       ChestTrajectoryMessage chestTrajectoryMessage = HumanoidMessageTools.createChestTrajectoryMessage(trajectoryTime, desiredOrientation, pelvisZUpFrame);
-      chestTrajectoryMessage.getSo3Trajectory().getFrameInformation().setDataReferenceFrame(ReferenceFrame.getWorldFrame());
+      chestTrajectoryMessage.getSo3Trajectory().getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(ReferenceFrame.getWorldFrame()));
       wholeBodyTrajectoryMessage.setChestTrajectoryMessage(chestTrajectoryMessage);
 
       drcSimulationTestHelper.send(wholeBodyTrajectoryMessage);
@@ -250,7 +251,7 @@ public abstract class EndToEndWholeBodyTrajectoryMessageTest implements MultiRob
       desiredChestOrientation.changeFrame(worldFrame);
       desiredOrientation = new Quaternion(desiredChestOrientation);
       ChestTrajectoryMessage chestTrajectoryMessage = HumanoidMessageTools.createChestTrajectoryMessage(trajectoryTime, desiredOrientation, pelvisZUpFrame);
-      chestTrajectoryMessage.getSo3Trajectory().getFrameInformation().setDataReferenceFrame(ReferenceFrame.getWorldFrame());
+      chestTrajectoryMessage.getSo3Trajectory().getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(ReferenceFrame.getWorldFrame()));
       messageOfMessages.addPacket(chestTrajectoryMessage);
 
       drcSimulationTestHelper.send(messageOfMessages);
@@ -371,7 +372,7 @@ public abstract class EndToEndWholeBodyTrajectoryMessageTest implements MultiRob
       desiredChestOrientation.changeFrame(worldFrame);
       desiredOrientation = new Quaternion(desiredChestOrientation);
       ChestTrajectoryMessage chestTrajectoryMessage = HumanoidMessageTools.createChestTrajectoryMessage(trajectoryTime, desiredOrientation, pelvisZUpFrame);
-      chestTrajectoryMessage.getSo3Trajectory().getFrameInformation().setDataReferenceFrame(ReferenceFrame.getWorldFrame());
+      chestTrajectoryMessage.getSo3Trajectory().getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(ReferenceFrame.getWorldFrame()));
       messageOfMessages.addPacket(chestTrajectoryMessage);
 
       drcSimulationTestHelper.send(messageOfMessages);
@@ -423,8 +424,8 @@ public abstract class EndToEndWholeBodyTrajectoryMessageTest implements MultiRob
 
       WholeBodyTrajectoryMessage wholeBodyTrajectoryMessage = new WholeBodyTrajectoryMessage();
       ChestTrajectoryMessage chestTrajectoryMessage = HumanoidMessageTools.createChestTrajectoryMessage(5);
-      chestTrajectoryMessage.getSo3Trajectory().getFrameInformation().setTrajectoryReferenceFrame(pelvisZUpFrame);
-      chestTrajectoryMessage.getSo3Trajectory().getFrameInformation().setDataReferenceFrame(ReferenceFrame.getWorldFrame());
+      chestTrajectoryMessage.getSo3Trajectory().getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(pelvisZUpFrame));
+      chestTrajectoryMessage.getSo3Trajectory().getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(ReferenceFrame.getWorldFrame()));
       chestTrajectoryMessage.getSo3Trajectory().setTrajectoryPoint(0, 0.00, new Quaternion(), new Vector3D(), ReferenceFrame.getWorldFrame());
       chestTrajectoryMessage.getSo3Trajectory().setTrajectoryPoint(1, 0.10, new Quaternion(), new Vector3D(), ReferenceFrame.getWorldFrame());
       chestTrajectoryMessage.getSo3Trajectory().setTrajectoryPoint(2, 0.20, new Quaternion(), new Vector3D(), ReferenceFrame.getWorldFrame());

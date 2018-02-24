@@ -35,6 +35,7 @@ import us.ihmc.commons.PrintTools;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.communication.controllerAPI.CommandInputManager;
 import us.ihmc.communication.controllerAPI.StatusMessageOutputManager;
+import us.ihmc.communication.packets.MessageTools;
 import us.ihmc.euclid.geometry.BoundingBox3D;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FrameQuaternion;
@@ -233,7 +234,7 @@ public class WalkingControllerTest
       Quaternion orientation = new Quaternion();
       orientation.appendYawRotation(Math.toRadians(-10.0));
       orientation.appendRollRotation(Math.toRadians(10.0));
-      message.getSo3Trajectory().getFrameInformation().setTrajectoryReferenceFrame(referenceFrames.getPelvisZUpFrame());
+      message.getSo3Trajectory().getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(referenceFrames.getPelvisZUpFrame()));
       message.getSo3Trajectory().setTrajectoryPoint(0, 0.5, orientation, new Vector3D(), referenceFrames.getPelvisZUpFrame());
       message.getSo3Trajectory().setTrajectoryPoint(1, 1.0, new Quaternion(), new Vector3D(), referenceFrames.getPelvisZUpFrame());
       commandInputManager.submitMessage(message);

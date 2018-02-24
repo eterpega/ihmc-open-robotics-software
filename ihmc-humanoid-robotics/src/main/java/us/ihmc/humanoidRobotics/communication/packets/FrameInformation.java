@@ -1,11 +1,11 @@
 package us.ihmc.humanoidRobotics.communication.packets;
 
+import us.ihmc.communication.packets.MessageTools;
 import us.ihmc.communication.packets.Packet;
 import us.ihmc.communication.ros.generators.RosExportedField;
 import us.ihmc.communication.ros.generators.RosMessagePacket;
 import us.ihmc.euclid.referenceFrame.FrameGeometryObject;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
-import us.ihmc.euclid.referenceFrame.exceptions.ReferenceFrameMismatchException;
 import us.ihmc.euclid.utils.NameBasedHashCodeTools;
 
 /**
@@ -88,16 +88,6 @@ public class FrameInformation extends Packet<FrameInformation>
       setPacketInformation(other);
    }
 
-   public void setTrajectoryReferenceFrame(ReferenceFrame trajectoryFrame)
-   {
-      setTrajectoryReferenceFrameId(trajectoryFrame.getNameBasedHashCode());
-   }
-
-   public void setDataReferenceFrame(ReferenceFrame dataFrame)
-   {
-      setDataReferenceFrameId(dataFrame.getNameBasedHashCode());
-   }
-
    @Override
    public boolean epsilonEquals(FrameInformation other, double epsilon)
    {
@@ -116,37 +106,5 @@ public class FrameInformation extends Packet<FrameInformation>
          return "Trajectory Frame: " + trajectoryReferenceFrameId;
       else
          return "Trajectory Frame: " + trajectoryReferenceFrameId + ", DataFrame: " + dataReferenceFrameId;
-   }
-
-   public static void checkIfDataFrameIdsMatch(FrameInformation frameInformation, ReferenceFrame referenceFrame)
-   {
-      long expectedId = getDataFrameIDConsideringDefault(frameInformation);
-
-      if (expectedId != referenceFrame.getNameBasedHashCode() && expectedId != referenceFrame.getAdditionalNameBasedHashCode())
-      {
-         String msg = "Argument's hashcode " + referenceFrame + " " + referenceFrame.getNameBasedHashCode() + " does not match " + expectedId;
-         throw new ReferenceFrameMismatchException(msg);
-      }
-   }
-
-   public static void checkIfDataFrameIdsMatch(FrameInformation frameInformation, long otherReferenceFrameId)
-   {
-      long expectedId = getDataFrameIDConsideringDefault(frameInformation);
-
-      if (expectedId != otherReferenceFrameId)
-      {
-         String msg = "Argument's hashcode " + otherReferenceFrameId + " does not match " + expectedId;
-         throw new ReferenceFrameMismatchException(msg);
-      }
-   }
-
-   public static long getDataFrameIDConsideringDefault(FrameInformation frameInformation)
-   {
-      long dataId = frameInformation.getDataReferenceFrameId();
-      if (dataId == NameBasedHashCodeTools.DEFAULT_HASHCODE)
-      {
-         dataId = frameInformation.getTrajectoryReferenceFrameId();
-      }
-      return dataId;
    }
 }

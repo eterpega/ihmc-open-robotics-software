@@ -40,6 +40,7 @@ import us.ihmc.simulationconstructionset.util.simulationRunner.BlockingSimulatio
 import us.ihmc.simulationconstructionset.util.simulationTesting.SimulationTestingParameters;
 import us.ihmc.tools.MemoryTools;
 import us.ihmc.commons.thread.ThreadTools;
+import us.ihmc.communication.packets.MessageTools;
 import us.ihmc.yoVariables.variable.YoEnum;
 import us.ihmc.yoVariables.variable.YoVariable;
 
@@ -191,7 +192,7 @@ public abstract class EndToEndPelvisOrientationTest implements MultiRobotTestInt
       initialOrientation.changeFrame(worldFrame);
 
       PelvisOrientationTrajectoryMessage message = HumanoidMessageTools.createPelvisOrientationTrajectoryMessage(numberOfPoints);
-      message.getSo3Trajectory().getFrameInformation().setTrajectoryReferenceFrame(worldFrame);
+      message.getSo3Trajectory().getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(worldFrame));
 
       for (int point = 0; point < numberOfPoints; point++)
       {
