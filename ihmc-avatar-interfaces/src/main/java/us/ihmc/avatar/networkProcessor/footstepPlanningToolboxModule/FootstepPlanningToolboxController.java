@@ -271,7 +271,7 @@ public class FootstepPlanningToolboxController extends ToolboxController
          setOutputStatusOfVisibilityGraph(result);
       }
 
-      planarRegionsList.ifPresent(result::setPlanarRegionsList);
+      planarRegionsList.ifPresent(regions -> result.planarRegionsList.set(PlanarRegionMessageConverter.convertToPlanarRegionsListMessage(regions)));
       result.setPlanId(planId.getIntegerValue());
       result.footstepPlanningResult = status.toByte();
       return result;
