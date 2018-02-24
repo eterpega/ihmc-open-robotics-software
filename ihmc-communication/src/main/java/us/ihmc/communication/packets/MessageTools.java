@@ -69,6 +69,14 @@ public class MessageTools
       return message;
    }
 
+   public static InvalidPacketNotificationPacket createInvalidPacketNotificationPacket(Class<? extends Packet<?>> packetClass, String errorMessage)
+   {
+      InvalidPacketNotificationPacket message = new InvalidPacketNotificationPacket();
+      message.setPacketClassSimpleName(packetClass.getSimpleName());
+      message.setErrorMessage(errorMessage);
+      return message;
+   }
+
    public static LidarScanMessage createLidarScanMessage(long timestamp, Point3D32 lidarPosition, Quaternion32 lidarOrientation, float[] scan)
    {
       LidarScanMessage message = new LidarScanMessage();
