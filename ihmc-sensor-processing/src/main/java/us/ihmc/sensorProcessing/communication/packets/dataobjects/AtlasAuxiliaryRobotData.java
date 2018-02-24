@@ -1,7 +1,5 @@
 package us.ihmc.sensorProcessing.communication.packets.dataobjects;
 
-import java.util.Arrays;
-
 import gnu.trove.list.array.TByteArrayList;
 import gnu.trove.list.array.TFloatArrayList;
 import gnu.trove.list.array.TLongArrayList;
@@ -10,7 +8,6 @@ import us.ihmc.communication.packets.MessageTools;
 import us.ihmc.communication.packets.Packet;
 import us.ihmc.euclid.tuple3D.Vector3D32;
 import us.ihmc.idl.TempPreallocatedList;
-import us.ihmc.tools.ArrayTools;
 
 /**
  *
@@ -47,37 +44,6 @@ public class AtlasAuxiliaryRobotData extends Packet<AtlasAuxiliaryRobotData>
    {
    }
 
-   public void clearRawImuData()
-   {
-      rawImuTimestamps.reset();
-      rawImuPacketCounts.reset();
-      rawImuRates.clear();
-      rawImuDeltas.clear();
-   }
-
-   public void addRawImuData(long timestamp, long packetCount, float dax, float day, float daz, float ddx, float ddy, float ddz)
-   {
-      rawImuTimestamps.add(timestamp);
-      rawImuPacketCounts.add(packetCount);
-
-      rawImuRates.add().set(dax, day, daz);
-      rawImuDeltas.add().set(ddx, ddy, ddz);
-   }
-
-   public void clearElectricJointStatus()
-   {
-      electricJointEnabledArray.reset();
-      electricJointTemperatures.reset();
-      electricJointCurrents.reset();
-   }
-
-   public void addElectricJointStatus(boolean enabled, float driveCurrent, float driveTemperature)
-   {
-      electricJointEnabledArray.add((byte) (enabled ? 1 : 0));
-      electricJointTemperatures.add(driveTemperature);
-      electricJointCurrents.add(driveCurrent);
-   }
-
    @Override
    public void set(AtlasAuxiliaryRobotData other)
    {
@@ -105,7 +71,7 @@ public class AtlasAuxiliaryRobotData extends Packet<AtlasAuxiliaryRobotData>
       MessageTools.copyData(other.rawImuDeltas, rawImuDeltas);
    }
 
-   public boolean isBatteryCharging()
+   public boolean getBatteryCharging()
    {
       return batteryCharging;
    }
