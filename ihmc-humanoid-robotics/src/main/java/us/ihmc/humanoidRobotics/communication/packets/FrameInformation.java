@@ -1,6 +1,5 @@
 package us.ihmc.humanoidRobotics.communication.packets;
 
-import us.ihmc.communication.packets.MessageTools;
 import us.ihmc.communication.packets.Packet;
 import us.ihmc.communication.ros.generators.RosExportedField;
 import us.ihmc.communication.ros.generators.RosMessagePacket;
