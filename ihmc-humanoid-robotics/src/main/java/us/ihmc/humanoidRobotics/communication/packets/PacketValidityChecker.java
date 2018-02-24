@@ -569,7 +569,7 @@ public abstract class PacketValidityChecker
 
       ObjectErrorType errorType;
 
-      errorType = ObjectValidityChecker.validateEnum(LoadBearingRequest.fromByte(message.getRequest()));
+      errorType = ObjectValidityChecker.validateEnum(LoadBearingRequest.fromByte(message.getLoadBearingRequest()));
       if (errorType != null)
       {
          String messageClassName = message.getClass().getSimpleName();
