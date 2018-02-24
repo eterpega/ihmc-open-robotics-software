@@ -165,7 +165,12 @@ public final class EuclideanTrajectoryMessage extends Packet<EuclideanTrajectory
       if (selectionMatrix == null)
          selectionMatrix = MessageTools.createSelectionMatrix3DMessage(selectionMatrix3D);
       else
-         selectionMatrix.set(selectionMatrix3D);
+      {
+         selectionMatrix.selectionFrameId = MessageTools.toFrameId(selectionMatrix3D.getSelectionFrame());
+         selectionMatrix.xSelected = selectionMatrix3D.isXSelected();
+         selectionMatrix.ySelected = selectionMatrix3D.isYSelected();
+         selectionMatrix.zSelected = selectionMatrix3D.isZSelected();
+      }
    }
 
    /**

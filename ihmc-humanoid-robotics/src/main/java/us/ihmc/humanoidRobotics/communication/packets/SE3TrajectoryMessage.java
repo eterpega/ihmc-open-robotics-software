@@ -182,12 +182,22 @@ public final class SE3TrajectoryMessage extends Packet<SE3TrajectoryMessage>
       if (angularSelectionMatrix == null)
          angularSelectionMatrix = MessageTools.createSelectionMatrix3DMessage(selectionMatrix6D.getAngularPart());
       else
-         angularSelectionMatrix.set(selectionMatrix6D.getAngularPart());
+      {
+         angularSelectionMatrix.selectionFrameId = MessageTools.toFrameId(selectionMatrix6D.getAngularSelectionFrame());
+         angularSelectionMatrix.xSelected = selectionMatrix6D.isAngularXSelected();
+         angularSelectionMatrix.ySelected = selectionMatrix6D.isAngularYSelected();
+         angularSelectionMatrix.zSelected = selectionMatrix6D.isAngularZSelected();
+      }
 
       if (linearSelectionMatrix == null)
          linearSelectionMatrix = MessageTools.createSelectionMatrix3DMessage(selectionMatrix6D.getLinearPart());
       else
-         linearSelectionMatrix.set(selectionMatrix6D.getLinearPart());
+      {
+         linearSelectionMatrix.selectionFrameId = MessageTools.toFrameId(selectionMatrix6D.getLinearSelectionFrame());
+         linearSelectionMatrix.xSelected = selectionMatrix6D.isLinearXSelected();
+         linearSelectionMatrix.ySelected = selectionMatrix6D.isLinearYSelected();
+         linearSelectionMatrix.zSelected = selectionMatrix6D.isLinearZSelected();
+      }
    }
 
    /**

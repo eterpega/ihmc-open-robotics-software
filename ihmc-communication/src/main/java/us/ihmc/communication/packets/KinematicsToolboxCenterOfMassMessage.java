@@ -136,7 +136,12 @@ public class KinematicsToolboxCenterOfMassMessage extends Packet<KinematicsToolb
       if (this.selectionMatrix == null)
          this.selectionMatrix = MessageTools.createSelectionMatrix3DMessage(selectionMatrix);
       else
-         this.selectionMatrix.set(selectionMatrix);
+      {
+         this.selectionMatrix.selectionFrameId = MessageTools.toFrameId(selectionMatrix.getSelectionFrame());
+         this.selectionMatrix.xSelected = selectionMatrix.isXSelected();
+         this.selectionMatrix.ySelected = selectionMatrix.isYSelected();
+         this.selectionMatrix.zSelected = selectionMatrix.isZSelected();
+      }
    }
 
    public void getDesiredPosition(FramePoint3D desiredPositionToPack)

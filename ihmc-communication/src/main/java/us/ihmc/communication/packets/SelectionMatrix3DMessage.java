@@ -29,7 +29,6 @@ public class SelectionMatrix3DMessage extends Packet<SelectionMatrix3DMessage>
    {
    }
 
-
    /**
     * Copy constructor.
     * 
@@ -38,19 +37,6 @@ public class SelectionMatrix3DMessage extends Packet<SelectionMatrix3DMessage>
    public SelectionMatrix3DMessage(SelectionMatrix3DMessage selectionMatrix3D)
    {
       set(selectionMatrix3D);
-   }
-
-   /**
-    * Sets this selection matrix message to {@code selectionMatrix3D}.
-    * 
-    * @param selectionMatrix3D the selection matrix to copy the data of. Not modified.
-    */
-   public void set(SelectionMatrix3D selectionMatrix3D)
-   {
-      setSelectionFrame(selectionMatrix3D.getSelectionFrame());
-      xSelected = selectionMatrix3D.isXSelected();
-      ySelected = selectionMatrix3D.isYSelected();
-      zSelected = selectionMatrix3D.isZSelected();
    }
 
    @Override
@@ -79,20 +65,6 @@ public class SelectionMatrix3DMessage extends Packet<SelectionMatrix3DMessage>
       this.xSelected = xSelected;
       this.ySelected = ySelected;
       this.zSelected = zSelected;
-   }
-
-   /**
-    * Sets the selection frame such that the selection of the axes of interest now refers to the
-    * axes of the given frame.
-    * 
-    * @param selectionFrame the new frame to which the axes selection is referring to.
-    */
-   public void setSelectionFrame(ReferenceFrame selectionFrame)
-   {
-      if (selectionFrame == null)
-         selectionFrameId = NameBasedHashCodeTools.NULL_HASHCODE;
-      else
-         selectionFrameId = selectionFrame.getNameBasedHashCode();
    }
 
    /**

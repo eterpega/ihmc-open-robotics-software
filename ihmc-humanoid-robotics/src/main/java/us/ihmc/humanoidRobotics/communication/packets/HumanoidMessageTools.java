@@ -583,8 +583,14 @@ public class HumanoidMessageTools
       message.setWaypoints(waypointTimes, waypoints);
       if (selectionMatrix != null)
       {
-         message.angularSelectionMatrix.set(selectionMatrix.getAngularPart());
-         message.linearSelectionMatrix.set(selectionMatrix.getLinearPart());
+         message.angularSelectionMatrix.selectionFrameId = MessageTools.toFrameId(selectionMatrix.getAngularSelectionFrame());
+         message.angularSelectionMatrix.xSelected = selectionMatrix.isAngularXSelected();
+         message.angularSelectionMatrix.ySelected = selectionMatrix.isAngularYSelected();
+         message.angularSelectionMatrix.zSelected = selectionMatrix.isAngularZSelected();
+         message.linearSelectionMatrix.selectionFrameId = MessageTools.toFrameId(selectionMatrix.getLinearSelectionFrame());
+         message.linearSelectionMatrix.xSelected = selectionMatrix.isLinearXSelected();
+         message.linearSelectionMatrix.ySelected = selectionMatrix.isLinearYSelected();
+         message.linearSelectionMatrix.zSelected = selectionMatrix.isLinearZSelected();
       }
       return message;
    }

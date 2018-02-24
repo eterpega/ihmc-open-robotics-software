@@ -285,7 +285,10 @@ public class MessageTools
    public static SelectionMatrix3DMessage createSelectionMatrix3DMessage(SelectionMatrix3D selectionMatrix3D)
    {
       SelectionMatrix3DMessage message = new SelectionMatrix3DMessage();
-      message.set(selectionMatrix3D);
+      message.selectionFrameId = MessageTools.toFrameId(selectionMatrix3D.getSelectionFrame());
+      message.xSelected = selectionMatrix3D.isXSelected();
+      message.ySelected = selectionMatrix3D.isYSelected();
+      message.zSelected = selectionMatrix3D.isZSelected();
       return message;
    }
 
