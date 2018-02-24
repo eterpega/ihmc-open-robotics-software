@@ -114,7 +114,6 @@ public class QuadrupedFootControlModule
    public void initializeWaypointTrajectory(QuadrupedSoleWaypointList quadrupedSoleWaypointList, boolean useInitialSoleForceAsFeedforwardTerm)
    {
       moveViaWaypointsState.handleWaypointList(quadrupedSoleWaypointList);
-      moveViaWaypointsState.updateEstimates(controllerToolbox.getTaskSpaceEstimates());
       moveViaWaypointsState.initialize(useInitialSoleForceAsFeedforwardTerm);
    }
 
@@ -168,9 +167,6 @@ public class QuadrupedFootControlModule
 
    public void compute(FrameVector3D soleForceCommandToPack)
    {
-      // Update estimates.
-      footStateMachine.getCurrentState().updateEstimates(controllerToolbox.getTaskSpaceEstimates());
-
       // Update foot state machine.
       footStateMachine.process();
 
