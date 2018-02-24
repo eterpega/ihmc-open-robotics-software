@@ -1215,7 +1215,7 @@ public final class RandomHumanoidMessages
 
       next.sensorId = random.nextInt();
 
-      next.params = nextLidarScanParametersMessage(random);
+      next.lidarScanParameters = nextLidarScanParametersMessage(random);
       return next;
    }
 

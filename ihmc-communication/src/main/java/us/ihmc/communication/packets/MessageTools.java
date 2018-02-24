@@ -54,18 +54,18 @@ public class MessageTools
       SimulatedLidarScanPacket message = new SimulatedLidarScanPacket();
       message.ranges.add(ranges);
       message.sensorId = sensorId;
-      message.params = new LidarScanParametersMessage();
-      message.params.timestamp = params.timestamp;
-      message.params.sweepYawMax = params.sweepYawMax;
-      message.params.sweepYawMin = params.sweepYawMin;
-      message.params.heightPitchMax = params.heightPitchMax;
-      message.params.heightPitchMin = params.heightPitchMin;
-      message.params.timeIncrement = params.timeIncrement;
-      message.params.scanTime = params.scanTime;
-      message.params.minRange = params.minRange;
-      message.params.maxRange = params.maxRange;
-      message.params.pointsPerSweep = params.pointsPerSweep;
-      message.params.scanHeight = params.scanHeight;
+      message.lidarScanParameters = new LidarScanParametersMessage();
+      message.lidarScanParameters.timestamp = params.timestamp;
+      message.lidarScanParameters.sweepYawMax = params.sweepYawMax;
+      message.lidarScanParameters.sweepYawMin = params.sweepYawMin;
+      message.lidarScanParameters.heightPitchMax = params.heightPitchMax;
+      message.lidarScanParameters.heightPitchMin = params.heightPitchMin;
+      message.lidarScanParameters.timeIncrement = params.timeIncrement;
+      message.lidarScanParameters.scanTime = params.scanTime;
+      message.lidarScanParameters.minRange = params.minRange;
+      message.lidarScanParameters.maxRange = params.maxRange;
+      message.lidarScanParameters.pointsPerSweep = params.pointsPerSweep;
+      message.lidarScanParameters.scanHeight = params.scanHeight;
       return message;
    }
 
