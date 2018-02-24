@@ -21,6 +21,7 @@ import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D32;
 import us.ihmc.euclid.tuple4D.Quaternion32;
+import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.humanoidRobotics.communication.packets.walking.CapturabilityBasedStatus;
 import us.ihmc.humanoidRobotics.communication.toolbox.heightQuadTree.command.HeightQuadTreeToolboxRequestCommand;
 import us.ihmc.humanoidRobotics.communication.toolbox.heightQuadTree.command.LidarScanCommand;
@@ -216,7 +217,7 @@ public class HeightQuadTreeToolboxController extends ToolboxController
          for (RobotSide robotSide : RobotSide.values)
          {
             ReferenceFrame soleFrame = fullRobotModel.getSoleFrame(robotSide);
-            FrameConvexPolygon2d footSupportPolygon = capturabilityBasedStatus.getFootSupportPolygon(robotSide);
+            FrameConvexPolygon2d footSupportPolygon = HumanoidMessageTools.unpackFootSupportPolygon(capturabilityBasedStatus, robotSide);
             for (int contactPointIndex = 0; contactPointIndex < footSupportPolygon.getNumberOfVertices(); contactPointIndex++)
             {
                footSupportPolygon.getFrameVertex(contactPointIndex, contactPoint2d);

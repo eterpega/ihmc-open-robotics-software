@@ -95,6 +95,7 @@ import us.ihmc.humanoidRobotics.communication.packets.sensing.StateEstimatorMode
 import us.ihmc.humanoidRobotics.communication.packets.sensing.VideoPacket;
 import us.ihmc.humanoidRobotics.communication.packets.walking.AdjustFootstepMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.AutomaticManipulationAbortMessage;
+import us.ihmc.humanoidRobotics.communication.packets.walking.CapturabilityBasedStatus;
 import us.ihmc.humanoidRobotics.communication.packets.walking.ChestTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootLoadBearingMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootTrajectoryMessage;
@@ -131,6 +132,7 @@ import us.ihmc.humanoidRobotics.communication.toolbox.heightQuadTree.command.Hei
 import us.ihmc.humanoidRobotics.footstep.Footstep;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotModels.FullRobotModelUtils;
+import us.ihmc.robotics.geometry.FrameConvexPolygon2d;
 import us.ihmc.robotics.kinematics.TimeStampedTransform3D;
 import us.ihmc.robotics.math.trajectories.waypoints.SimpleTrajectoryPoint1D;
 import us.ihmc.robotics.math.trajectories.waypoints.SimpleTrajectoryPoint1DList;
@@ -2260,5 +2262,59 @@ public class HumanoidMessageTools
       }
       
       return handJointAnglePacket.jointAngles.get(index);
+   }
+
+   public static void packFootSupportPolygon(CapturabilityBasedStatus capturabilityBasedStatus, RobotSide robotSide, FrameConvexPolygon2d footPolygon)
+   {
+      int numberOfVertices = footPolygon.getNumberOfVertices();
+      
+      if (numberOfVertices > CapturabilityBasedStatus.MAXIMUM_NUMBER_OF_VERTICES)
+      {
+         numberOfVertices = CapturabilityBasedStatus.MAXIMUM_NUMBER_OF_VERTICES;
+      }
+      
+      if (robotSide == RobotSide.LEFT)
+      {
+         capturabilityBasedStatus.leftFootSupportPolygon.clear();
+      }
+      else
+      {
+         capturabilityBasedStatus.rightFootSupportPolygon.clear();
+      }
+      
+      for (int i = 0; i < numberOfVertices; i++)
+      {
+         if (robotSide == RobotSide.LEFT)
+         {
+            footPolygon.getVertex(i, capturabilityBasedStatus.leftFootSupportPolygon.add());
+         }
+         else
+         {
+            footPolygon.getVertex(i, capturabilityBasedStatus.rightFootSupportPolygon.add());
+         }
+      }
+   }
+
+   public static FrameConvexPolygon2d unpackFootSupportPolygon(CapturabilityBasedStatus capturabilityBasedStatus, RobotSide robotSide)
+   {
+      if (robotSide == RobotSide.LEFT && capturabilityBasedStatus.leftFootSupportPolygon.size() > 0)
+         return new FrameConvexPolygon2d(ReferenceFrame.getWorldFrame(), capturabilityBasedStatus.leftFootSupportPolygon.toArray());
+      else if (capturabilityBasedStatus.rightFootSupportPolygon != null)
+         return new FrameConvexPolygon2d(ReferenceFrame.getWorldFrame(), capturabilityBasedStatus.rightFootSupportPolygon.toArray());
+      else
+         return new FrameConvexPolygon2d(ReferenceFrame.getWorldFrame());
+   }
+
+   public static boolean unpackIsInDoubleSupport(CapturabilityBasedStatus capturabilityBasedStatus)
+   {
+      return capturabilityBasedStatus.leftFootSupportPolygon.size() != 0 & capturabilityBasedStatus.rightFootSupportPolygon.size() != 0;
+   }
+
+   public static boolean unpackIsSupportFoot(CapturabilityBasedStatus capturabilityBasedStatus, RobotSide robotside)
+   {
+      if (robotside == RobotSide.LEFT)
+         return capturabilityBasedStatus.leftFootSupportPolygon.size() != 0;
+      else
+         return capturabilityBasedStatus.rightFootSupportPolygon.size() != 0;
    }
 }
