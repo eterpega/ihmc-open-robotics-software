@@ -108,7 +108,7 @@ public abstract class EndToEndMessageDelayTest implements MultiRobotTestInterfac
 
       SpineJointName[] spineJointNames = jointMap.getSpineJointNames();
       SpineTrajectoryMessage zeroSpineJointMessage = HumanoidMessageTools.createSpineTrajectoryMessage(spineJointNames.length, 1);
-      zeroSpineJointMessage.getQueueingProperties().setExecutionDelayTime(5.0);
+      zeroSpineJointMessage.jointspaceTrajectory.getQueueingProperties().setExecutionDelayTime(5.0);
       for(int i = 0; i < spineJointNames.length; i++)
       {
          zeroSpineJointMessage.getJointspaceTrajectory().setTrajectory1DMessage(i, HumanoidMessageTools.createOneDoFJointTrajectoryMessage(1.0, 0.0));
