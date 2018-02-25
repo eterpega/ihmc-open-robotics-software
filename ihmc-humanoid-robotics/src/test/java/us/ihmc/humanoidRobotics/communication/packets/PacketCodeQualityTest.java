@@ -37,6 +37,7 @@ import gnu.trove.map.hash.TIntObjectHashMap;
 import us.ihmc.commons.PrintTools;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.communication.packets.Packet;
+import us.ihmc.communication.packets.ParameterListPacket;
 import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationPlan;
 import us.ihmc.continuousIntegration.ContinuousIntegrationAnnotations.ContinuousIntegrationTest;
 import us.ihmc.continuousIntegration.IntegrationCategory;
@@ -55,6 +56,7 @@ import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.euclid.tuple4D.Quaternion32;
 import us.ihmc.humanoidRobotics.communication.packets.sensing.VideoPacket;
 import us.ihmc.humanoidRobotics.communication.packets.walking.SnapFootstepPacket;
+import us.ihmc.humanoidRobotics.communication.packets.wholebody.MessageOfMessages;
 import us.ihmc.humanoidRobotics.kryo.IHMCCommunicationKryoNetClassList;
 import us.ihmc.idl.TempPreallocatedList;
 import us.ihmc.sensorProcessing.communication.packets.dataobjects.AtlasAuxiliaryRobotData;
@@ -75,6 +77,8 @@ public class PacketCodeQualityTest
       Reflections reflections = new Reflections("us.ihmc");
       Set<Class<? extends Packet>> allPacketTypes = reflections.getSubTypesOf(Packet.class);
       allPacketTypes.removeAll(reaInternalComms);
+      allPacketTypes.remove(ParameterListPacket.class);
+      allPacketTypes.remove(MessageOfMessages.class);
 
       Map<Class<? extends Packet>, List<Class>> packetTypesWithIterableOrArrayField = new HashMap<>();
 
