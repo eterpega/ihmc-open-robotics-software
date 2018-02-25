@@ -10,6 +10,7 @@ import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataListMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
@@ -44,7 +45,7 @@ public abstract class HumanoidAngularMomentumTest implements MultiRobotTestInter
       double stepLength = getStepLength();
       double stepWidth = getStepWidth();
       RobotSide side = RobotSide.LEFT;
-      FootstepDataListMessage footMessage = new FootstepDataListMessage();
+      FootstepDataListMessage footMessage = HumanoidMessageTools.createFootstepDataListMessage();
       int numberOfFootstepsToTake = getNumberOfStepsToTake();
       Quaternion footOrientation = new Quaternion(0.0, 0.0, 0.0, 1.0);
       Point3D footLocation = new Point3D();
@@ -100,7 +101,7 @@ public abstract class HumanoidAngularMomentumTest implements MultiRobotTestInter
    private void addFootstep(Point3D stepLocation, Quaternion orient, RobotSide robotSide, double swingTime, double transferTime,
                             FootstepDataListMessage message)
    {
-      FootstepDataMessage footstepData = new FootstepDataMessage();
+      FootstepDataMessage footstepData = HumanoidMessageTools.createFootstepDataMessage();
       footstepData.setLocation(stepLocation);
       footstepData.setOrientation(orient);
       footstepData.setRobotSide(robotSide.toByte());

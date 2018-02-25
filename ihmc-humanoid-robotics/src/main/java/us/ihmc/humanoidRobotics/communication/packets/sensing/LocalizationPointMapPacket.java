@@ -12,7 +12,6 @@ public class LocalizationPointMapPacket extends Packet<LocalizationPointMapPacke
 
    public LocalizationPointMapPacket()
    {
-      setDestination(PacketDestination.UI);
    }
 
    @Override

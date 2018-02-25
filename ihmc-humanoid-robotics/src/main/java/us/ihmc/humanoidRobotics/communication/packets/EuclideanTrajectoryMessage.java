@@ -15,14 +15,14 @@ public final class EuclideanTrajectoryMessage extends Packet<EuclideanTrajectory
 {
    @RosExportedField(documentation = "List of trajectory points (in taskpsace) to go through while executing the trajectory.")
    public TempPreallocatedList<EuclideanTrajectoryPointMessage> taskspaceTrajectoryPoints = new TempPreallocatedList<>(EuclideanTrajectoryPointMessage.class,
-                                                                                                                       EuclideanTrajectoryPointMessage::new,
+                                                                                                                       HumanoidMessageTools::createEuclideanTrajectoryPointMessage,
                                                                                                                        2000);
 
    @RosExportedField(documentation = "The selection matrix for each axis.")
    public SelectionMatrix3DMessage selectionMatrix = new SelectionMatrix3DMessage();
 
    @RosExportedField(documentation = "Frame information for this message.")
-   public FrameInformation frameInformation = new FrameInformation();
+   public FrameInformation frameInformation = HumanoidMessageTools.createFrameInformation();
 
    @RosExportedField(documentation = "The weight matrix for each axis.")
    public WeightMatrix3DMessage weightMatrix = new WeightMatrix3DMessage();
@@ -38,8 +38,6 @@ public final class EuclideanTrajectoryMessage extends Packet<EuclideanTrajectory
 
    public EuclideanTrajectoryMessage()
    {
-      super();
-      setUniqueId(VALID_MESSAGE_DEFAULT_ID);
    }
 
    public EuclideanTrajectoryMessage(EuclideanTrajectoryMessage other)

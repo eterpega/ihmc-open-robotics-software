@@ -391,14 +391,14 @@ public abstract class AvatarICPPlannerFlatGroundTest implements MultiRobotTestIn
 
    private FootstepDataListMessage createForwardWalkingFootsteps(int numberOfSteps, double length, double stanceWidth, double swingDuration, double transferDuration)
    {
-      FootstepDataListMessage footstepListMessage = new FootstepDataListMessage();
+      FootstepDataListMessage footstepListMessage = HumanoidMessageTools.createFootstepDataListMessage();
 
       double xLocation = 0.0;
       RobotSide robotSide = RobotSide.LEFT;
       for (int i = 0; i < numberOfSteps - 1; i++)
       {
          xLocation += length;
-         FootstepDataMessage footstepMessage = new FootstepDataMessage();
+         FootstepDataMessage footstepMessage = HumanoidMessageTools.createFootstepDataMessage();
          footstepMessage.setSwingDuration(swingDuration);
          footstepMessage.setTransferDuration(transferDuration);
          footstepMessage.setLocation(new Point3D(xLocation, robotSide.negateIfRightSide(stanceWidth / 2.0), 0.0));
@@ -409,7 +409,7 @@ public abstract class AvatarICPPlannerFlatGroundTest implements MultiRobotTestIn
          robotSide = robotSide.getOppositeSide();
       }
 
-      FootstepDataMessage footstepMessage = new FootstepDataMessage();
+      FootstepDataMessage footstepMessage = HumanoidMessageTools.createFootstepDataMessage();
       footstepMessage.setSwingDuration(swingDuration);
       footstepMessage.setTransferDuration(transferDuration);
       footstepMessage.setLocation(new Point3D(xLocation, robotSide.negateIfRightSide(stanceWidth / 2.0), 0.0));
@@ -528,7 +528,7 @@ public abstract class AvatarICPPlannerFlatGroundTest implements MultiRobotTestIn
       ReferenceFrame ankleFrame = fullRobotModel.getEndEffectorFrame(robotSide, LimbName.LEG);
       ReferenceFrame soleFrame = fullRobotModel.getSoleFrame(robotSide);
 
-      FootstepDataMessage footstepData = new FootstepDataMessage();
+      FootstepDataMessage footstepData = HumanoidMessageTools.createFootstepDataMessage();
 
       FramePoint3D placeToStepInWorld = new FramePoint3D(placeToStep);
       placeToStepInWorld.changeFrame(worldFrame);

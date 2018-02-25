@@ -28,6 +28,7 @@ import us.ihmc.communication.ros.generators.RosMessagePacket;
 import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.humanoidRobotics.communication.packets.FrameInformation;
+import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.ArmTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.HandTrajectoryMessage;
@@ -112,7 +113,7 @@ public class IHMCROSTranslationRuntimeTools
 
    private static Packet customConvertToIHMCMessage(FootstepDataListRosMessage message)
    {
-      FootstepDataListMessage footsteps = new FootstepDataListMessage();
+      FootstepDataListMessage footsteps = HumanoidMessageTools.createFootstepDataListMessage();
 
       footsteps.defaultSwingDuration = message.getDefaultSwingDuration();
       footsteps.defaultTransferDuration = message.getDefaultTransferDuration();
@@ -151,7 +152,7 @@ public class IHMCROSTranslationRuntimeTools
 
    private static Packet customConvertToIHMCMessage(FootstepDataRosMessage message)
    {
-      FootstepDataMessage ihmcMessage = new FootstepDataMessage();
+      FootstepDataMessage ihmcMessage = HumanoidMessageTools.createFootstepDataMessage();
 
       ihmcMessage.setRobotSide(message.getRobotSide());
       ihmcMessage.setLocation(new Point3D(GenericROSTranslationTools.convertPoint(message.getLocation())));
@@ -197,7 +198,7 @@ public class IHMCROSTranslationRuntimeTools
 
    private static Packet customConvertToIHMCMessage(WholeBodyTrajectoryRosMessage message)
    {
-      WholeBodyTrajectoryMessage wholeBodyTrajectoryMessage = new WholeBodyTrajectoryMessage();
+      WholeBodyTrajectoryMessage wholeBodyTrajectoryMessage = HumanoidMessageTools.createWholeBodyTrajectoryMessage();
 
       wholeBodyTrajectoryMessage.setUniqueId(message.getUniqueId());
       try
@@ -255,61 +256,55 @@ public class IHMCROSTranslationRuntimeTools
    {
       if (wholeBodyTrajectoryMessage.getChestTrajectoryMessage() == null)
       {
-         ChestTrajectoryMessage component = new ChestTrajectoryMessage();
+         ChestTrajectoryMessage component = HumanoidMessageTools.createChestTrajectoryMessage();
          component.setUniqueId(Packet.INVALID_MESSAGE_ID);
          wholeBodyTrajectoryMessage.setChestTrajectoryMessage(component);
       }
       if (wholeBodyTrajectoryMessage.getLeftArmTrajectoryMessage() == null)
       {
-         ArmTrajectoryMessage component = new ArmTrajectoryMessage();
-         component.robotSide = RobotSide.LEFT.toByte();
+         ArmTrajectoryMessage component = HumanoidMessageTools.createArmTrajectoryMessage(RobotSide.LEFT);
          component.setUniqueId(Packet.INVALID_MESSAGE_ID);
          wholeBodyTrajectoryMessage.setLeftArmTrajectoryMessage(component);
       }
       if (wholeBodyTrajectoryMessage.getRightArmTrajectoryMessage() == null)
       {
-         ArmTrajectoryMessage component = new ArmTrajectoryMessage();
-         component.robotSide = RobotSide.RIGHT.toByte();
+         ArmTrajectoryMessage component = HumanoidMessageTools.createArmTrajectoryMessage(RobotSide.RIGHT);
          component.setUniqueId(Packet.INVALID_MESSAGE_ID);
          wholeBodyTrajectoryMessage.setRightArmTrajectoryMessage(component);
       }
       if (wholeBodyTrajectoryMessage.getPelvisTrajectoryMessage() == null)
       {
-         PelvisTrajectoryMessage component = new PelvisTrajectoryMessage();
+         PelvisTrajectoryMessage component = HumanoidMessageTools.createPelvisTrajectoryMessage();
          component.setUniqueId(Packet.INVALID_MESSAGE_ID);
          wholeBodyTrajectoryMessage.setPelvisTrajectoryMessage(component);
       }
       if (wholeBodyTrajectoryMessage.getLeftFootTrajectoryMessage() == null)
       {
-         FootTrajectoryMessage component = new FootTrajectoryMessage();
-         component.robotSide = RobotSide.LEFT.toByte();
+         FootTrajectoryMessage component = HumanoidMessageTools.createFootTrajectoryMessage(RobotSide.LEFT);
          component.setUniqueId(Packet.INVALID_MESSAGE_ID);
          wholeBodyTrajectoryMessage.setLeftFootTrajectoryMessage(component);
       }
       if (wholeBodyTrajectoryMessage.getRightFootTrajectoryMessage() == null)
       {
-         FootTrajectoryMessage component = new FootTrajectoryMessage();
-         component.robotSide = RobotSide.RIGHT.toByte();
+         FootTrajectoryMessage component = HumanoidMessageTools.createFootTrajectoryMessage(RobotSide.RIGHT);
          component.setUniqueId(Packet.INVALID_MESSAGE_ID);
          wholeBodyTrajectoryMessage.setRightFootTrajectoryMessage(component);
       }
       if (wholeBodyTrajectoryMessage.getLeftHandTrajectoryMessage() == null)
       {
-         HandTrajectoryMessage component = new HandTrajectoryMessage();
-         component.robotSide = RobotSide.LEFT.toByte();
+         HandTrajectoryMessage component = HumanoidMessageTools.createHandTrajectoryMessage(RobotSide.LEFT);
          component.setUniqueId(Packet.INVALID_MESSAGE_ID);
          wholeBodyTrajectoryMessage.setLeftHandTrajectoryMessage(component);
       }
       if (wholeBodyTrajectoryMessage.getRightHandTrajectoryMessage() == null)
       {
-         HandTrajectoryMessage component = new HandTrajectoryMessage();
-         component.robotSide = RobotSide.RIGHT.toByte();
+         HandTrajectoryMessage component = HumanoidMessageTools.createHandTrajectoryMessage(RobotSide.RIGHT);
          component.setUniqueId(Packet.INVALID_MESSAGE_ID);
          wholeBodyTrajectoryMessage.setRightHandTrajectoryMessage(component);
       }
       if (wholeBodyTrajectoryMessage.getHeadTrajectoryMessage() == null)
       {
-         HeadTrajectoryMessage component = new HeadTrajectoryMessage();
+         HeadTrajectoryMessage component = HumanoidMessageTools.createHeadTrajectoryMessage();
          component.setUniqueId(Packet.INVALID_MESSAGE_ID);
          wholeBodyTrajectoryMessage.setHeadTrajectoryMessage(component);
       }
@@ -431,7 +426,7 @@ public class IHMCROSTranslationRuntimeTools
 
    private static FrameInformation convertFrameInformationRosMessage(FrameInformationRosMessage message)
    {
-      FrameInformation frameInformation = new FrameInformation();
+      FrameInformation frameInformation = HumanoidMessageTools.createFrameInformation();
 
       frameInformation.setDataReferenceFrameId(message.getDataReferenceFrameId());
       frameInformation.setTrajectoryReferenceFrameId(message.getTrajectoryReferenceFrameId());

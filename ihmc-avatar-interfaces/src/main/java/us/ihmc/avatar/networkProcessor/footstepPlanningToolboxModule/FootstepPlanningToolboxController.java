@@ -43,6 +43,7 @@ import us.ihmc.footstepPlanning.simplePlanners.PlanThenSnapPlanner;
 import us.ihmc.footstepPlanning.simplePlanners.TurnWalkTurnPlanner;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPlanarRegionsList;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataListMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessageConverter;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepPlanningRequestPacket;
@@ -256,10 +257,10 @@ public class FootstepPlanningToolboxController extends ToolboxController
          PrintTools.info("Finished planning. Result: " + status);
       }
 
-      FootstepPlanningToolboxOutputStatus result = new FootstepPlanningToolboxOutputStatus();
+      FootstepPlanningToolboxOutputStatus result = HumanoidMessageTools.createFootstepPlanningToolboxOutputStatus();
       if (footstepPlan == null)
       {
-         result.footstepDataList = new FootstepDataListMessage();
+         result.footstepDataList = HumanoidMessageTools.createFootstepDataListMessage();
       }
       else
       {

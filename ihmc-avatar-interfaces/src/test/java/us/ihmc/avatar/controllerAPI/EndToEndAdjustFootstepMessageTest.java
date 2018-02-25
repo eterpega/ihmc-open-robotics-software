@@ -148,7 +148,7 @@ public abstract class EndToEndAdjustFootstepMessageTest implements MultiRobotTes
 
    private FootstepDataListMessage createFootsteps(SideDependentList<? extends ReferenceFrame> soleFrames)
    {
-      FootstepDataListMessage footstepDataListMessage = new FootstepDataListMessage();
+      FootstepDataListMessage footstepDataListMessage = HumanoidMessageTools.createFootstepDataListMessage();
 
       int numberOfFootsteps = 6;
       SteppingParameters steppingParameters = getRobotModel().getWalkingControllerParameters().getSteppingParameters();

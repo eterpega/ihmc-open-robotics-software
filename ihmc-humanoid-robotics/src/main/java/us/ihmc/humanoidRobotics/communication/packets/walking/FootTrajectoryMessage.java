@@ -3,6 +3,7 @@ package us.ihmc.humanoidRobotics.communication.packets.walking;
 import us.ihmc.communication.packets.Packet;
 import us.ihmc.communication.ros.generators.RosExportedField;
 import us.ihmc.communication.ros.generators.RosMessagePacket;
+import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.humanoidRobotics.communication.packets.PacketValidityChecker;
 import us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryMessage;
 
@@ -21,7 +22,7 @@ public class FootTrajectoryMessage extends Packet<FootTrajectoryMessage>
    @RosExportedField(documentation = "Specifies which foot will execute the trajectory.")
    public byte robotSide;
    @RosExportedField(documentation = "The position/orientation trajectory information.")
-   public SE3TrajectoryMessage se3Trajectory = new SE3TrajectoryMessage();
+   public SE3TrajectoryMessage se3Trajectory = HumanoidMessageTools.createSE3TrajectoryMessage();
 
    /**
     * Empty constructor for serialization.

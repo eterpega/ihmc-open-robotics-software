@@ -56,7 +56,6 @@ public class FrameInformation extends Packet<FrameInformation>
 
    public FrameInformation()
    {
-      trajectoryReferenceFrameId = ReferenceFrame.getWorldFrame().getNameBasedHashCode();
    }
 
    public long getTrajectoryReferenceFrameId()

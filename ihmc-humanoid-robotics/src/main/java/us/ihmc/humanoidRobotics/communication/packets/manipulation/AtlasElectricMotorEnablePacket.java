@@ -26,7 +26,6 @@ public class AtlasElectricMotorEnablePacket extends Packet<AtlasElectricMotorEna
 
    public AtlasElectricMotorEnablePacket()
    {
-      setDestination(PacketDestination.CONTROLLER.ordinal());
    }
 
    public byte getAtlasElectricMotorPacketEnumEnable()

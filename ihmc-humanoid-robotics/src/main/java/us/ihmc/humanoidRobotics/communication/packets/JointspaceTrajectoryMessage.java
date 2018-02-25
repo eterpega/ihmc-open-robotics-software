@@ -23,7 +23,6 @@ public final class JointspaceTrajectoryMessage extends Packet<JointspaceTrajecto
     */
    public JointspaceTrajectoryMessage()
    {
-      setUniqueId(VALID_MESSAGE_DEFAULT_ID);
    }
 
    /**

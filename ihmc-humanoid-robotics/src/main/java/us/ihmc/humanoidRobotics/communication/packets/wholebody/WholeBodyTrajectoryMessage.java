@@ -3,6 +3,7 @@ package us.ihmc.humanoidRobotics.communication.packets.wholebody;
 import us.ihmc.communication.packets.Packet;
 import us.ihmc.communication.ros.generators.RosExportedField;
 import us.ihmc.communication.ros.generators.RosMessagePacket;
+import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.humanoidRobotics.communication.packets.PacketValidityChecker;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.ArmTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.HandTrajectoryMessage;
@@ -18,28 +19,28 @@ import us.ihmc.robotics.robotSide.RobotSide;
 public class WholeBodyTrajectoryMessage extends Packet<WholeBodyTrajectoryMessage>
 {
    @RosExportedField(documentation = "Trajectory for the left hand")
-   public HandTrajectoryMessage leftHandTrajectoryMessage = new HandTrajectoryMessage();
+   public HandTrajectoryMessage leftHandTrajectoryMessage = HumanoidMessageTools.createHandTrajectoryMessage();
    @RosExportedField(documentation = "Trajectory for the right hand")
-   public HandTrajectoryMessage rightHandTrajectoryMessage = new HandTrajectoryMessage();
+   public HandTrajectoryMessage rightHandTrajectoryMessage = HumanoidMessageTools.createHandTrajectoryMessage();
 
    @RosExportedField(documentation = "Trajectory for the left arm joints")
-   public ArmTrajectoryMessage leftArmTrajectoryMessage = new ArmTrajectoryMessage();
+   public ArmTrajectoryMessage leftArmTrajectoryMessage = HumanoidMessageTools.createArmTrajectoryMessage();
    @RosExportedField(documentation = "Trajectory for the right arm joints")
-   public ArmTrajectoryMessage rightArmTrajectoryMessage = new ArmTrajectoryMessage();
+   public ArmTrajectoryMessage rightArmTrajectoryMessage = HumanoidMessageTools.createArmTrajectoryMessage();
 
    @RosExportedField(documentation = "Trajectory for the chest")
-   public ChestTrajectoryMessage chestTrajectoryMessage = new ChestTrajectoryMessage();
+   public ChestTrajectoryMessage chestTrajectoryMessage = HumanoidMessageTools.createChestTrajectoryMessage();
 
    @RosExportedField(documentation = "Trajectory for the pelvis")
-   public PelvisTrajectoryMessage pelvisTrajectoryMessage = new PelvisTrajectoryMessage();
+   public PelvisTrajectoryMessage pelvisTrajectoryMessage = HumanoidMessageTools.createPelvisTrajectoryMessage();
 
    @RosExportedField(documentation = "Trajectory for the left foot")
-   public FootTrajectoryMessage leftFootTrajectoryMessage = new FootTrajectoryMessage();
+   public FootTrajectoryMessage leftFootTrajectoryMessage = HumanoidMessageTools.createFootTrajectoryMessage();
    @RosExportedField(documentation = "Trajectory for the right foot")
-   public FootTrajectoryMessage rightFootTrajectoryMessage = new FootTrajectoryMessage();
+   public FootTrajectoryMessage rightFootTrajectoryMessage = HumanoidMessageTools.createFootTrajectoryMessage();
 
    @RosExportedField(documentation = "Trajectory for the head")
-   public HeadTrajectoryMessage headTrajectoryMessage = new HeadTrajectoryMessage();
+   public HeadTrajectoryMessage headTrajectoryMessage = HumanoidMessageTools.createHeadTrajectoryMessage();
 
    /** the time to delay this command on the controller side before being executed **/
    public double executionDelayTime;
@@ -50,7 +51,6 @@ public class WholeBodyTrajectoryMessage extends Packet<WholeBodyTrajectoryMessag
     */
    public WholeBodyTrajectoryMessage()
    {
-      setUniqueId(VALID_MESSAGE_DEFAULT_ID);
    }
 
    public WholeBodyTrajectoryMessage(WholeBodyTrajectoryMessage other)

@@ -28,7 +28,6 @@ public class GoHomeMessage extends Packet<GoHomeMessage>
 
    public GoHomeMessage()
    {
-      setUniqueId(VALID_MESSAGE_DEFAULT_ID);
    }
 
    @Override

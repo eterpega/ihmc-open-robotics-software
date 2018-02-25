@@ -15,10 +15,11 @@ public final class SO3TrajectoryMessage extends Packet<SO3TrajectoryMessage>
 {
    @RosExportedField(documentation = "List of trajectory points (in taskpsace) to go through while executing the trajectory. Use dataFrame to define what frame the points are expressed in")
    public TempPreallocatedList<SO3TrajectoryPointMessage> taskspaceTrajectoryPoints = new TempPreallocatedList<>(SO3TrajectoryPointMessage.class,
-                                                                                                                 SO3TrajectoryPointMessage::new, 2000);
+                                                                                                                 HumanoidMessageTools::createSO3TrajectoryPointMessage,
+                                                                                                                 2000);
 
    @RosExportedField(documentation = "Frame information for this message.")
-   public FrameInformation frameInformation = new FrameInformation();
+   public FrameInformation frameInformation = HumanoidMessageTools.createFrameInformation();
 
    @RosExportedField(documentation = "The selection matrix for each axis.")
    public SelectionMatrix3DMessage selectionMatrix = new SelectionMatrix3DMessage();
@@ -40,8 +41,6 @@ public final class SO3TrajectoryMessage extends Packet<SO3TrajectoryMessage>
     */
    public SO3TrajectoryMessage()
    {
-      super();
-      setUniqueId(VALID_MESSAGE_DEFAULT_ID);
    }
 
    public SO3TrajectoryMessage(SO3TrajectoryMessage other)

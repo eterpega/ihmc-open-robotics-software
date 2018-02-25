@@ -29,7 +29,6 @@ public class ReachingManifoldMessage extends Packet<ReachingManifoldMessage>
 
    public ReachingManifoldMessage()
    {
-      setUniqueId(VALID_MESSAGE_DEFAULT_ID);
    }
 
    @Override

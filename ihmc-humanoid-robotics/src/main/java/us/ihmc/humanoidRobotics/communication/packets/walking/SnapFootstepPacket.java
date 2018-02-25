@@ -4,6 +4,7 @@ import gnu.trove.list.array.TByteArrayList;
 import gnu.trove.list.array.TIntArrayList;
 import us.ihmc.communication.packets.MessageTools;
 import us.ihmc.communication.packets.Packet;
+import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.idl.TempPreallocatedList;
 
 public class SnapFootstepPacket extends Packet<SnapFootstepPacket>
@@ -12,7 +13,7 @@ public class SnapFootstepPacket extends Packet<SnapFootstepPacket>
    //   public static final byte VALID_UNCHANGED_STEP = 1;
    //   public static final byte VALID_SNAPPED_STEP = 2;
    //   public static final byte BAD_STEP = 3;
-   public TempPreallocatedList<FootstepDataMessage> footstepData = new TempPreallocatedList<>(FootstepDataMessage.class, FootstepDataMessage::new, 10);
+   public TempPreallocatedList<FootstepDataMessage> footstepData = new TempPreallocatedList<>(FootstepDataMessage.class, HumanoidMessageTools::createFootstepDataMessage, 10);
    public TIntArrayList footstepOrder = new TIntArrayList();
    public TByteArrayList flag = new TByteArrayList();
 

@@ -3,6 +3,7 @@ package us.ihmc.humanoidRobotics.communication.packets.manipulation;
 import us.ihmc.communication.packets.Packet;
 import us.ihmc.communication.ros.generators.RosExportedField;
 import us.ihmc.communication.ros.generators.RosMessagePacket;
+import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.humanoidRobotics.communication.packets.JointspaceTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.PacketValidityChecker;
 
@@ -22,7 +23,7 @@ public class ArmTrajectoryMessage extends Packet<ArmTrajectoryMessage>
    @RosExportedField(documentation = "Specifies the side of the robot that will execute the trajectory.")
    public byte robotSide;
    @RosExportedField(documentation = "Trajectories for each joint.")
-   public JointspaceTrajectoryMessage jointspaceTrajectory = new JointspaceTrajectoryMessage();
+   public JointspaceTrajectoryMessage jointspaceTrajectory = HumanoidMessageTools.createJointspaceTrajectoryMessage();
 
    /**
     * Empty constructor for serialization.
@@ -30,7 +31,7 @@ public class ArmTrajectoryMessage extends Packet<ArmTrajectoryMessage>
     */
    public ArmTrajectoryMessage()
    {
-      jointspaceTrajectory = new JointspaceTrajectoryMessage();
+      jointspaceTrajectory = HumanoidMessageTools.createJointspaceTrajectoryMessage();
       setUniqueId(VALID_MESSAGE_DEFAULT_ID);
    }
 

@@ -2,6 +2,7 @@ package us.ihmc.humanoidRobotics.footstep.footstepGenerator;
 
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage;
 import us.ihmc.robotics.robotSide.RobotSide;
 
@@ -20,7 +21,7 @@ public class FootstepPlanState implements Comparable<FootstepPlanState>
    static double thetaResolution = Math.PI / 16;
 
    //position information
-   public FootstepDataMessage footstepData = new FootstepDataMessage();
+   public FootstepDataMessage footstepData = HumanoidMessageTools.createFootstepDataMessage();
    public double theta;
    public TerrainType terrainType = TerrainType.UNKNOWN;
    public double supportPolygonArea = 0;

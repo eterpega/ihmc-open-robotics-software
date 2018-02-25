@@ -92,7 +92,7 @@ public abstract class AvatarFootstepDataMessageSwingTrajectoryTest implements Mu
       FramePoint3D footPosition = new FramePoint3D(soleFrame);
       FrameQuaternion footOrientation = new FrameQuaternion(soleFrame);
 
-      FootstepDataMessage footstep = new FootstepDataMessage();
+      FootstepDataMessage footstep = HumanoidMessageTools.createFootstepDataMessage();
       footstep.setRobotSide(robotSide.toByte());
       footstep.setTrajectoryType(TrajectoryType.WAYPOINTS.toByte());
       footstep.setSwingDuration(swingTime);
@@ -138,7 +138,7 @@ public abstract class AvatarFootstepDataMessageSwingTrajectoryTest implements Mu
          }
          waypointOrientation.changeFrame(worldFrame);
 
-         SE3TrajectoryPointMessage waypoint = new SE3TrajectoryPointMessage();
+         SE3TrajectoryPointMessage waypoint = HumanoidMessageTools.createSE3TrajectoryPointMessage();
          waypoint.setTime(percentInSwing * swingTime);
          waypoint.setPosition(waypointPosition);
          waypoint.setLinearVelocity(waypointLinearVelocity);

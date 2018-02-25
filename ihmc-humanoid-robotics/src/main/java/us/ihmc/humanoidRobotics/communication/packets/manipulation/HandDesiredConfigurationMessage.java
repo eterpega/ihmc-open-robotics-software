@@ -56,7 +56,6 @@ public class HandDesiredConfigurationMessage extends Packet<HandDesiredConfigura
     */
    public HandDesiredConfigurationMessage()
    {
-      setUniqueId(VALID_MESSAGE_DEFAULT_ID);
    }
 
    @Override

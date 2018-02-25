@@ -34,45 +34,21 @@ public class SE3TrajectoryPointMessage extends Packet<SE3TrajectoryPointMessage>
     */
    public SE3TrajectoryPointMessage()
    {
-      position = new Point3D();
-      orientation = new Quaternion();
-      linearVelocity = new Vector3D();
-      angularVelocity = new Vector3D();
    }
 
    public SE3TrajectoryPointMessage(SE3TrajectoryPointMessage other)
    {
-      time = other.time;
-      if (other.position != null)
-         position = new Point3D(other.position);
-      if (other.orientation != null)
-         orientation = new Quaternion(other.orientation);
-      if (other.linearVelocity != null)
-         linearVelocity = new Vector3D(other.linearVelocity);
-      if (other.angularVelocity != null)
-         angularVelocity = new Vector3D(other.angularVelocity);
+      set(other);
    }
 
    @Override
    public void set(SE3TrajectoryPointMessage other)
    {
       time = other.time;
-      if (other.position != null)
-         position.set(other.position);
-      else
-         position.setToZero();
-      if (other.orientation != null)
-         orientation.set(other.orientation);
-      else
-         orientation.setToZero();
-      if (other.linearVelocity != null)
-         linearVelocity.set(other.linearVelocity);
-      else
-         linearVelocity.setToZero();
-      if (other.angularVelocity != null)
-         angularVelocity.set(other.angularVelocity);
-      else
-         angularVelocity.setToZero();
+      position.set(other.position);
+      orientation.set(other.orientation);
+      linearVelocity.set(other.linearVelocity);
+      angularVelocity.set(other.angularVelocity);
       setPacketInformation(other);
    }
 

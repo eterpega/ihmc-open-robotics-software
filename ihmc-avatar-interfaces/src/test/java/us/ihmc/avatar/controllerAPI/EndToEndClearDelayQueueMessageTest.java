@@ -56,9 +56,8 @@ public abstract class EndToEndClearDelayQueueMessageTest implements MultiRobotTe
       YoVariable<?> handTrajectoryPoints = scs.getVariable(handName + "TaskspaceControlModule", handName + "TaskspaceNumberOfPoints");
 
       // send hand trajectory and footstep list
-      HandTrajectoryMessage handTrajectoryMessage = new HandTrajectoryMessage();
-      handTrajectoryMessage.setRobotSide(RobotSide.LEFT.toByte());
-      FootstepDataListMessage footstepDataListMessage = new FootstepDataListMessage();
+      HandTrajectoryMessage handTrajectoryMessage = HumanoidMessageTools.createHandTrajectoryMessage(RobotSide.LEFT);
+      FootstepDataListMessage footstepDataListMessage = HumanoidMessageTools.createFootstepDataListMessage();
       for (int i = 0; i < 10; i++)
       {
          handTrajectoryMessage.getSe3Trajectory().taskspaceTrajectoryPoints.add().set(HumanoidMessageTools.createSE3TrajectoryPointMessage((double) i, new Point3D(), new Quaternion(), new Vector3D(), new Vector3D()));

@@ -124,7 +124,7 @@ public class CreateFootstepScript
       addFootsteps(footsteps);
       scriptObjects.add(footsteps);
       scriptObjects.add(HumanoidMessageTools.createPauseWalkingMessage(true));
-      scriptObjects.add(new EndOfScriptCommand());
+      scriptObjects.add(HumanoidMessageTools.createEndOfScriptCommand());
    }
 
    private void addFootsteps(FootstepDataListMessage footsteps)
@@ -141,7 +141,7 @@ public class CreateFootstepScript
 
    private FootstepDataMessage createFootstep(ContactType contactType, int idx)
    {
-      FootstepDataMessage footstep = new FootstepDataMessage();
+      FootstepDataMessage footstep = HumanoidMessageTools.createFootstepDataMessage();
       RobotSide robotSide = idx%2 == 0 ? RobotSide.LEFT : RobotSide.RIGHT;
       double x = Math.floor((double)(idx+2) / 2.0) * stepLength;
       double y = robotSide == RobotSide.RIGHT ? -stepWidth : 0.0;

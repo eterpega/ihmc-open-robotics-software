@@ -128,7 +128,7 @@ public class SphereDetectionBehavior extends AbstractBehavior
          ballZ.set(0);
       }
 
-      PointCloudWorldPacket pointCloudWorldPacket = new PointCloudWorldPacket();
+      PointCloudWorldPacket pointCloudWorldPacket = HumanoidMessageTools.createPointCloudWorldPacket();
       pointCloudWorldPacket.setDestination(PacketDestination.UI);
       pointCloudWorldPacket.setTimestamp(System.nanoTime());
       Point3D[] points3d = new Point3D[points.length];

@@ -107,7 +107,7 @@ public abstract class HumanoidLineContactWalkingTest implements MultiRobotTestIn
          contactPointController.setNewContacts(newContactPoints, robotSide, true);
 
          FootstepDataListMessage message = HumanoidMessageTools.createFootstepDataListMessage(0.6, 0.15);
-         FootstepDataMessage footstepData = new FootstepDataMessage();
+         FootstepDataMessage footstepData = HumanoidMessageTools.createFootstepDataMessage();
 
          ReferenceFrame soleFrame = drcSimulationTestHelper.getControllerFullRobotModel().getSoleFrame(robotSide);
          FramePoint3D placeToStepInWorld = new FramePoint3D(soleFrame, 0.0, 0.0, 0.0);
@@ -153,7 +153,7 @@ public abstract class HumanoidLineContactWalkingTest implements MultiRobotTestIn
          contactPointController.setNewContacts(newContactPoints, robotSide, true);
 
          FootstepDataListMessage message = HumanoidMessageTools.createFootstepDataListMessage(0.6, 0.15);
-         FootstepDataMessage footstepData = new FootstepDataMessage();
+         FootstepDataMessage footstepData = HumanoidMessageTools.createFootstepDataMessage();
 
          ReferenceFrame soleFrame = drcSimulationTestHelper.getControllerFullRobotModel().getSoleFrame(robotSide);
          FramePoint3D placeToStepInWorld = new FramePoint3D(soleFrame, 0.0, 0.0, 0.0);
@@ -201,7 +201,7 @@ public abstract class HumanoidLineContactWalkingTest implements MultiRobotTestIn
          contactPointController.setNewContacts(newContactPoints, robotSide, true);
 
          FootstepDataListMessage message = HumanoidMessageTools.createFootstepDataListMessage(0.8, 0.15);
-         FootstepDataMessage footstepData = new FootstepDataMessage();
+         FootstepDataMessage footstepData = HumanoidMessageTools.createFootstepDataMessage();
 
          ReferenceFrame soleFrame = drcSimulationTestHelper.getControllerFullRobotModel().getSoleFrame(robotSide);
          FramePoint3D placeToStepInWorld = new FramePoint3D(soleFrame, 0.0, 0.0, 0.0);
@@ -381,12 +381,11 @@ public abstract class HumanoidLineContactWalkingTest implements MultiRobotTestIn
       // bring the arms in a stretched position
       for (RobotSide robotSide : RobotSide.values)
       {
-         ArmTrajectoryMessage armTrajectoryMessage = new ArmTrajectoryMessage();
-         armTrajectoryMessage.robotSide = robotSide.toByte();
+         ArmTrajectoryMessage armTrajectoryMessage = HumanoidMessageTools.createArmTrajectoryMessage(robotSide);
          double[] armConfig = straightArmConfigs.get(robotSide);
          for (int i = 0; i < armConfig.length; i++)
          {
-            TrajectoryPoint1DMessage trajectoryPoint = new TrajectoryPoint1DMessage();
+            TrajectoryPoint1DMessage trajectoryPoint = HumanoidMessageTools.createTrajectoryPoint1DMessage();
             trajectoryPoint.position = armConfig[i];
             trajectoryPoint.time = 0.5;
             OneDoFJointTrajectoryMessage jointTrajectory = new OneDoFJointTrajectoryMessage();

@@ -257,7 +257,7 @@ public abstract class AvatarICPOptimizationPushRecoveryTestSetup
 
    private FootstepDataMessage createFootstepDataMessage(RobotSide robotSide, FramePoint3D placeToStep, FrameQuaternion orientation)
    {
-      FootstepDataMessage footstepData = new FootstepDataMessage();
+      FootstepDataMessage footstepData = HumanoidMessageTools.createFootstepDataMessage();
 
       FramePoint3D placeToStepInWorld = new FramePoint3D(placeToStep);
       placeToStepInWorld.changeFrame(worldFrame);

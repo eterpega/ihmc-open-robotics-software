@@ -2,6 +2,7 @@ package us.ihmc.humanoidRobotics.communication.packets.walking;
 
 import us.ihmc.communication.packets.MessageTools;
 import us.ihmc.communication.packets.Packet;
+import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.idl.TempPreallocatedList;
 
 public class FootstepPlanRequestPacket extends Packet<FootstepPlanRequestPacket>
@@ -10,11 +11,11 @@ public class FootstepPlanRequestPacket extends Packet<FootstepPlanRequestPacket>
    public static final byte FOOTSTEP_PLAN_REQUEST_TYPE_STOP_SEARCH = 1;
    public static final byte FOOTSTEP_PLAN_REQUEST_TYPE_UPDATE_START = 2;
 
-   public FootstepDataMessage startFootstep = new FootstepDataMessage();
+   public FootstepDataMessage startFootstep = HumanoidMessageTools.createFootstepDataMessage();
    public double thetaStart;
    public double maxSuboptimality = 1;
 
-   public TempPreallocatedList<FootstepDataMessage> goals = new TempPreallocatedList<>(FootstepDataMessage.class, FootstepDataMessage::new, 20);
+   public TempPreallocatedList<FootstepDataMessage> goals = new TempPreallocatedList<>(FootstepDataMessage.class, HumanoidMessageTools::createFootstepDataMessage, 20);
 
    public byte footstepPlanRequestType;
 

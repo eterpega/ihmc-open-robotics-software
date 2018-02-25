@@ -5,6 +5,7 @@ import java.util.List;
 
 import us.ihmc.communication.packets.MessageTools;
 import us.ihmc.euclid.tuple2D.Point2D;
+import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.humanoidRobotics.communication.packets.heightQuadTree.HeightQuadTreeLeafMessage;
 import us.ihmc.humanoidRobotics.communication.packets.heightQuadTree.HeightQuadTreeMessage;
 import us.ihmc.robotics.quadTree.Box;
@@ -25,7 +26,7 @@ public class HeightQuadTreeMessageConverter
       List<HeightQuadTreeLeafMessage> leaves = new ArrayList<>();
       fullDepthCopy(rootNode, boundingCircleCenter, boundingCircleRadius, leaves);
 
-      HeightQuadTreeMessage heightQuadTreeMessage = new HeightQuadTreeMessage();
+      HeightQuadTreeMessage heightQuadTreeMessage = HumanoidMessageTools.createHeightQuadTreeMessage();
       MessageTools.copyData(leaves, heightQuadTreeMessage.leaves);
       heightQuadTreeMessage.defaultHeight = (float) rootNode.getDefaultHeightWhenNoPoints();
       heightQuadTreeMessage.resolution = (float) quadTreeToConvert.getQuadTreeParameters().getResolution();
@@ -42,7 +43,7 @@ public class HeightQuadTreeMessageConverter
 
       if (isLeaf)
       {
-         HeightQuadTreeLeafMessage leaf = new HeightQuadTreeLeafMessage();
+         HeightQuadTreeLeafMessage leaf = HumanoidMessageTools.createHeightQuadTreeLeafMessage();
          Box bounds = original.getBounds();
          leaf.center.set(bounds.centreX, bounds.centreY);
          leaf.height = (float) original.getLeaf().getAveragePoint().getZ();

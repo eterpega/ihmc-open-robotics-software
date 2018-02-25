@@ -185,7 +185,7 @@ public abstract class DRCObstacleCourseRampFootstepSnapperTest implements MultiR
       double boundingBoxDimension = 0.3;
       footstepSnapper.setUseMask(true, maskSafetyBuffer, boundingBoxDimension);
 
-      FootstepDataListMessage snappedFootstepDataList = new FootstepDataListMessage();
+      FootstepDataListMessage snappedFootstepDataList = HumanoidMessageTools.createFootstepDataListMessage();
       for (int i = 0; i < corruptedFootstepList.size(); i++)
       {
          Footstep footstep = corruptedFootstepList.get(i);

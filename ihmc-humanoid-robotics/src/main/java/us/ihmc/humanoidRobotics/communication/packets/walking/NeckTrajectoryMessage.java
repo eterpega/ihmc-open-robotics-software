@@ -3,6 +3,7 @@ package us.ihmc.humanoidRobotics.communication.packets.walking;
 import us.ihmc.communication.packets.Packet;
 import us.ihmc.communication.ros.generators.RosExportedField;
 import us.ihmc.communication.ros.generators.RosMessagePacket;
+import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.humanoidRobotics.communication.packets.JointspaceTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.PacketValidityChecker;
 
@@ -15,7 +16,7 @@ import us.ihmc.humanoidRobotics.communication.packets.PacketValidityChecker;
 public class NeckTrajectoryMessage extends Packet<NeckTrajectoryMessage>
 {
    @RosExportedField(documentation = "Trajectories for each joint.")
-   public JointspaceTrajectoryMessage jointspaceTrajectory = new JointspaceTrajectoryMessage();
+   public JointspaceTrajectoryMessage jointspaceTrajectory = HumanoidMessageTools.createJointspaceTrajectoryMessage();
 
    /**
     * Empty constructor for serialization.
@@ -23,7 +24,6 @@ public class NeckTrajectoryMessage extends Packet<NeckTrajectoryMessage>
     */
    public NeckTrajectoryMessage()
    {
-      setUniqueId(VALID_MESSAGE_DEFAULT_ID);
    }
 
    /**
@@ -39,7 +39,7 @@ public class NeckTrajectoryMessage extends Packet<NeckTrajectoryMessage>
    @Override
    public void set(NeckTrajectoryMessage other)
    {
-      jointspaceTrajectory = new JointspaceTrajectoryMessage();
+      jointspaceTrajectory = HumanoidMessageTools.createJointspaceTrajectoryMessage();
       jointspaceTrajectory.set(other.jointspaceTrajectory);
       setPacketInformation(other);
    }

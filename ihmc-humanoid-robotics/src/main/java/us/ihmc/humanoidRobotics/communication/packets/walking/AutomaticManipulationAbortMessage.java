@@ -8,7 +8,6 @@ public class AutomaticManipulationAbortMessage extends Packet<AutomaticManipulat
 
    public AutomaticManipulationAbortMessage()
    {
-      setUniqueId(VALID_MESSAGE_DEFAULT_ID);
    }
 
    @Override

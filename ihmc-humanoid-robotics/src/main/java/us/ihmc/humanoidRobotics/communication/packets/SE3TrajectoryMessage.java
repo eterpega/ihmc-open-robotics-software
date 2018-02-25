@@ -15,14 +15,15 @@ public final class SE3TrajectoryMessage extends Packet<SE3TrajectoryMessage>
 {
    @RosExportedField(documentation = "List of trajectory points (in taskpsace) to go through while executing the trajectory. All the information contained in these trajectory points needs to be expressed in world frame.")
    public TempPreallocatedList<SE3TrajectoryPointMessage> taskspaceTrajectoryPoints = new TempPreallocatedList<>(SE3TrajectoryPointMessage.class,
-                                                                                                                 SE3TrajectoryPointMessage::new, 2000);
+                                                                                                                 HumanoidMessageTools::createSE3TrajectoryPointMessage,
+                                                                                                                 2000);
    @RosExportedField(documentation = "The selection matrix for each axis of the angular part.")
    public SelectionMatrix3DMessage angularSelectionMatrix = new SelectionMatrix3DMessage();
    @RosExportedField(documentation = "The selection matrix for each axis of the linear part.")
    public SelectionMatrix3DMessage linearSelectionMatrix = new SelectionMatrix3DMessage();
 
    @RosExportedField(documentation = "Frame information for this message.")
-   public FrameInformation frameInformation = new FrameInformation();
+   public FrameInformation frameInformation = HumanoidMessageTools.createFrameInformation();
 
    @RosExportedField(documentation = "The weight matrix for each axis of the angular part.")
    public WeightMatrix3DMessage angularWeightMatrix = new WeightMatrix3DMessage();

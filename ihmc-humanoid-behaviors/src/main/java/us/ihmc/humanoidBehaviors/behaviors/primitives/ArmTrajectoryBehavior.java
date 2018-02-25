@@ -105,7 +105,7 @@ public class ArmTrajectoryBehavior extends AbstractBehavior
    {
       if (outgoingMessage != null)
       {
-         StopAllTrajectoryMessage pausePacket = new StopAllTrajectoryMessage();
+         StopAllTrajectoryMessage pausePacket = HumanoidMessageTools.createStopAllTrajectoryMessage();
          pausePacket.setDestination(PacketDestination.CONTROLLER);
          sendPacketToController(pausePacket);
       }

@@ -101,7 +101,7 @@ public abstract class EndToEndFootstepDataListMessageTest implements MultiRobotT
       int stepsPackedInMessage = 0;
       while (stepsPackedInMessage < footstepList.size())
       {
-         FootstepDataListMessage message = new FootstepDataListMessage();
+         FootstepDataListMessage message = HumanoidMessageTools.createFootstepDataListMessage();
          for (int footstepIdx = 0; footstepIdx < stepsPerMessage; footstepIdx++)
          {
             if (stepsPackedInMessage == footstepList.size())

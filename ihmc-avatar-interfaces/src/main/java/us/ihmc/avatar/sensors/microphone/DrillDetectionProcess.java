@@ -6,6 +6,7 @@ import us.ihmc.communication.net.ConnectionStateListener;
 import us.ihmc.communication.packetCommunicator.PacketCommunicator;
 import us.ihmc.communication.packets.PacketDestination;
 import us.ihmc.communication.util.NetworkPorts;
+import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.humanoidRobotics.communication.packets.sensing.DrillDetectionPacket;
 import us.ihmc.humanoidRobotics.kryo.IHMCCommunicationKryoNetClassList;
 import us.ihmc.commons.thread.ThreadTools;
@@ -42,7 +43,7 @@ public class DrillDetectionProcess extends DrillDetectionThread implements Conne
       long now = System.currentTimeMillis();
       if (now - lastSentPacketTimestamp < SEND_PERIOD_MS) { return; }
 
-      DrillDetectionPacket packet = new DrillDetectionPacket();
+      DrillDetectionPacket packet = HumanoidMessageTools.createDrillDetectionPacket();
       packet.setDestination(PacketDestination.UI);
       packet.isDrillOn = result.isOn;
 //      packet.averageValues = result.averageValues;

@@ -3,6 +3,7 @@ package us.ihmc.humanoidRobotics.communication.packets.walking;
 import us.ihmc.communication.packets.Packet;
 import us.ihmc.communication.ros.generators.RosExportedField;
 import us.ihmc.communication.ros.generators.RosMessagePacket;
+import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.humanoidRobotics.communication.packets.PacketValidityChecker;
 import us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryMessage;
 
@@ -19,7 +20,7 @@ public class PelvisTrajectoryMessage extends Packet<PelvisTrajectoryMessage>
    public boolean enableUserPelvisControl = false;
    public boolean enableUserPelvisControlDuringWalking = false;
    @RosExportedField(documentation = "The position/orientation trajectory information.")
-   public SE3TrajectoryMessage se3Trajectory = new SE3TrajectoryMessage();
+   public SE3TrajectoryMessage se3Trajectory = HumanoidMessageTools.createSE3TrajectoryMessage();
 
    /**
     * Empty constructor for serialization.
@@ -27,7 +28,6 @@ public class PelvisTrajectoryMessage extends Packet<PelvisTrajectoryMessage>
     */
    public PelvisTrajectoryMessage()
    {
-      setUniqueId(VALID_MESSAGE_DEFAULT_ID);
    }
 
    /**
@@ -44,7 +44,6 @@ public class PelvisTrajectoryMessage extends Packet<PelvisTrajectoryMessage>
    {
       enableUserPelvisControl = other.enableUserPelvisControl;
       enableUserPelvisControlDuringWalking = other.enableUserPelvisControlDuringWalking;
-      se3Trajectory = new SE3TrajectoryMessage();
       se3Trajectory.set(other.se3Trajectory);
       setPacketInformation(other);
    }

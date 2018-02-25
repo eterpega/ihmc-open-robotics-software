@@ -113,7 +113,7 @@ public class ValkyrieWholeBodyTrajectoryToolboxControllerTest extends AvatarWhol
 
       // wbt toolbox configuration message
       FullHumanoidRobotModel fullRobotModel = createFullRobotModelAtInitialConfiguration();
-      WholeBodyTrajectoryToolboxConfigurationMessage configuration = new WholeBodyTrajectoryToolboxConfigurationMessage();
+      WholeBodyTrajectoryToolboxConfigurationMessage configuration = HumanoidMessageTools.createWholeBodyTrajectoryToolboxConfigurationMessage();
       configuration.initialConfiguration = HumanoidMessageTools.createKinematicsToolboxOutputStatus(fullRobotModel);
       configuration.setMaximumExpansionSize(500);
 
@@ -167,7 +167,7 @@ public class ValkyrieWholeBodyTrajectoryToolboxControllerTest extends AvatarWhol
 
       // wbt toolbox configuration message
       FullHumanoidRobotModel fullRobotModel = createFullRobotModelAtInitialConfiguration();
-      WholeBodyTrajectoryToolboxConfigurationMessage configuration = new WholeBodyTrajectoryToolboxConfigurationMessage();
+      WholeBodyTrajectoryToolboxConfigurationMessage configuration = HumanoidMessageTools.createWholeBodyTrajectoryToolboxConfigurationMessage();
       configuration.initialConfiguration = HumanoidMessageTools.createKinematicsToolboxOutputStatus(fullRobotModel);
       configuration.setMaximumExpansionSize(1000);
 
@@ -237,7 +237,7 @@ public class ValkyrieWholeBodyTrajectoryToolboxControllerTest extends AvatarWhol
 
       // wbt toolbox configuration message
       FullHumanoidRobotModel fullRobotModel = createFullRobotModelAtInitialConfiguration();
-      WholeBodyTrajectoryToolboxConfigurationMessage configuration = new WholeBodyTrajectoryToolboxConfigurationMessage();
+      WholeBodyTrajectoryToolboxConfigurationMessage configuration = HumanoidMessageTools.createWholeBodyTrajectoryToolboxConfigurationMessage();
       configuration.initialConfiguration = HumanoidMessageTools.createKinematicsToolboxOutputStatus(fullRobotModel);
       configuration.setMaximumExpansionSize(1000);
 
@@ -284,7 +284,7 @@ public class ValkyrieWholeBodyTrajectoryToolboxControllerTest extends AvatarWhol
       handControlFrames = WholeBodyTrajectoryToolboxSettings.getValkyrieHandControlFrames();
       FullHumanoidRobotModel fullRobotModel = createFullRobotModelAtInitialConfiguration();
 
-      WholeBodyTrajectoryToolboxConfigurationMessage configuration = new WholeBodyTrajectoryToolboxConfigurationMessage();
+      WholeBodyTrajectoryToolboxConfigurationMessage configuration = HumanoidMessageTools.createWholeBodyTrajectoryToolboxConfigurationMessage();
       configuration.initialConfiguration = HumanoidMessageTools.createKinematicsToolboxOutputStatus(fullRobotModel);
       configuration.setMaximumExpansionSize(2300);
 

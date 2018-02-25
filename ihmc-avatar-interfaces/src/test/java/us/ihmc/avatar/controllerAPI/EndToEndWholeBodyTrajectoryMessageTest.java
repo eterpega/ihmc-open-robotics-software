@@ -59,7 +59,7 @@ public abstract class EndToEndWholeBodyTrajectoryMessageTest implements MultiRob
       boolean success = drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(0.5);
       assertTrue(success);
 
-      WholeBodyTrajectoryMessage wholeBodyTrajectoryMessage = new WholeBodyTrajectoryMessage();
+      WholeBodyTrajectoryMessage wholeBodyTrajectoryMessage = HumanoidMessageTools.createWholeBodyTrajectoryMessage();
 
       FullHumanoidRobotModel fullRobotModel = drcSimulationTestHelper.getControllerFullRobotModel();
 
@@ -428,8 +428,8 @@ public abstract class EndToEndWholeBodyTrajectoryMessageTest implements MultiRob
       HumanoidReferenceFrames referenceFrames = new HumanoidReferenceFrames(fullRobotModel);
       ReferenceFrame pelvisZUpFrame = referenceFrames.getPelvisZUpFrame();
 
-      WholeBodyTrajectoryMessage wholeBodyTrajectoryMessage = new WholeBodyTrajectoryMessage();
-      ChestTrajectoryMessage chestTrajectoryMessage = new ChestTrajectoryMessage();
+      WholeBodyTrajectoryMessage wholeBodyTrajectoryMessage = HumanoidMessageTools.createWholeBodyTrajectoryMessage();
+      ChestTrajectoryMessage chestTrajectoryMessage = HumanoidMessageTools.createChestTrajectoryMessage();
       SO3TrajectoryMessage so3Trajectory = chestTrajectoryMessage.getSo3Trajectory();
       so3Trajectory.getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(pelvisZUpFrame));
       so3Trajectory.getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(ReferenceFrame.getWorldFrame()));
@@ -458,8 +458,8 @@ public abstract class EndToEndWholeBodyTrajectoryMessageTest implements MultiRob
 
       ThreadTools.sleep(1000);
 
-      WholeBodyTrajectoryMessage wholeBodyTrajectoryMessage = new WholeBodyTrajectoryMessage();
-      PelvisTrajectoryMessage pelvisTrajectoryMessage = new PelvisTrajectoryMessage();
+      WholeBodyTrajectoryMessage wholeBodyTrajectoryMessage = HumanoidMessageTools.createWholeBodyTrajectoryMessage();
+      PelvisTrajectoryMessage pelvisTrajectoryMessage = HumanoidMessageTools.createPelvisTrajectoryMessage();
       pelvisTrajectoryMessage.se3Trajectory.taskspaceTrajectoryPoints.add().set(HumanoidMessageTools.createSE3TrajectoryPointMessage(0.00, new Point3D(), new Quaternion(), new Vector3D(), new Vector3D()));
       pelvisTrajectoryMessage.se3Trajectory.taskspaceTrajectoryPoints.add().set(HumanoidMessageTools.createSE3TrajectoryPointMessage(0.10, new Point3D(), new Quaternion(), new Vector3D(), new Vector3D()));
       pelvisTrajectoryMessage.se3Trajectory.taskspaceTrajectoryPoints.add().set(HumanoidMessageTools.createSE3TrajectoryPointMessage(0.20, new Point3D(), new Quaternion(), new Vector3D(), new Vector3D()));

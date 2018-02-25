@@ -5,6 +5,7 @@ import us.ihmc.communication.packets.SelectionMatrix3DMessage;
 import us.ihmc.communication.ros.generators.RosExportedField;
 import us.ihmc.communication.ros.generators.RosMessagePacket;
 import us.ihmc.humanoidRobotics.communication.packets.EuclideanTrajectoryMessage;
+import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.humanoidRobotics.communication.packets.PacketValidityChecker;
 
 @RosMessagePacket(documentation = "This mesage commands the controller to move the pelvis to a new height in the trajectory frame while going through the specified trajectory points."
@@ -19,7 +20,7 @@ public class PelvisHeightTrajectoryMessage extends Packet<PelvisHeightTrajectory
          + " will keep the height manager in user mode while walking. If this is false the height manager will switch to controller mode when walking.")
    public boolean enableUserPelvisControlDuringWalking = false;
    @RosExportedField(documentation = "The position trajectory information.")
-   public EuclideanTrajectoryMessage euclideanTrajectory = new EuclideanTrajectoryMessage();
+   public EuclideanTrajectoryMessage euclideanTrajectory = HumanoidMessageTools.createEuclideanTrajectoryMessage();
 
    /**
     * Empty constructor for serialization. Set the id of the message to
@@ -27,7 +28,7 @@ public class PelvisHeightTrajectoryMessage extends Packet<PelvisHeightTrajectory
     */
    public PelvisHeightTrajectoryMessage()
    {
-      euclideanTrajectory = new EuclideanTrajectoryMessage();
+      euclideanTrajectory = HumanoidMessageTools.createEuclideanTrajectoryMessage();
       setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       euclideanTrajectory.selectionMatrix = new SelectionMatrix3DMessage();
       euclideanTrajectory.selectionMatrix.xSelected = false;
@@ -55,7 +56,7 @@ public class PelvisHeightTrajectoryMessage extends Packet<PelvisHeightTrajectory
    {
       enableUserPelvisControl = other.enableUserPelvisControl;
       enableUserPelvisControlDuringWalking = other.enableUserPelvisControlDuringWalking;
-      euclideanTrajectory = new EuclideanTrajectoryMessage();
+      euclideanTrajectory = HumanoidMessageTools.createEuclideanTrajectoryMessage();
       euclideanTrajectory.set(other.euclideanTrajectory);
    }
 

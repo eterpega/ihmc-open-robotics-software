@@ -21,6 +21,7 @@ import us.ihmc.communication.configuration.NetworkParameterKeys;
 import us.ihmc.communication.configuration.NetworkParameters;
 import us.ihmc.communication.packetCommunicator.PacketCommunicator;
 import us.ihmc.communication.util.NetworkPorts;
+import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.humanoidRobotics.communication.packets.sensing.DrillDetectionPacket;
 import us.ihmc.humanoidRobotics.kryo.IHMCCommunicationKryoNetClassList;
 
@@ -192,7 +193,7 @@ public class SoundDetector implements Runnable
          if (runningTheRealSchebang)
          {
 
-            DrillDetectionPacket drillDetectionPacket = new DrillDetectionPacket();
+            DrillDetectionPacket drillDetectionPacket = HumanoidMessageTools.createDrillDetectionPacket();
             drillDetectionPacket.isDrillOn = detectDrillFrequency(audioBytes);
             if(drillDetectionPacket.isDrillOn){
                System.out.println("isDrillOn = true");

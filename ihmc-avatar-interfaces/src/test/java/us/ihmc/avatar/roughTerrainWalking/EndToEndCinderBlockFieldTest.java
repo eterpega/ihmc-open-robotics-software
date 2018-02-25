@@ -98,7 +98,7 @@ public abstract class EndToEndCinderBlockFieldTest implements MultiRobotTestInte
 
    private static FootstepDataListMessage generateFootstepsForCinderBlockField(List<List<FramePose3D>> cinderBlockPoses, double zOffset)
    {
-      FootstepDataListMessage footsteps = new FootstepDataListMessage();
+      FootstepDataListMessage footsteps = HumanoidMessageTools.createFootstepDataListMessage();
 
       int numberOfColumns = cinderBlockPoses.get(0).size();
 

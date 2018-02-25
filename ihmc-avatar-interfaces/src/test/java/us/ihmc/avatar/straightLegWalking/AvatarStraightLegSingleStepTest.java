@@ -76,7 +76,7 @@ public abstract class AvatarStraightLegSingleStepTest implements MultiRobotTestI
    {
       setupTest();
 
-      FootstepDataListMessage footstepDataListMessage = new FootstepDataListMessage();
+      FootstepDataListMessage footstepDataListMessage = HumanoidMessageTools.createFootstepDataListMessage();
       footstepDataListMessage.footstepDataList.add().set(HumanoidMessageTools.createFootstepDataMessage(RobotSide.LEFT, new Point3D(stepLength, stepWidth / 2.0, 0.0), new FrameQuaternion()));
       footstepDataListMessage.footstepDataList.add().set(HumanoidMessageTools.createFootstepDataMessage(RobotSide.RIGHT, new Point3D(stepLength, -stepWidth / 2.0, 0.0), new FrameQuaternion()));
 
@@ -94,7 +94,7 @@ public abstract class AvatarStraightLegSingleStepTest implements MultiRobotTestI
    {
       setupTest();
 
-      FootstepDataListMessage footstepDataListMessage = new FootstepDataListMessage();
+      FootstepDataListMessage footstepDataListMessage = HumanoidMessageTools.createFootstepDataListMessage();
       footstepDataListMessage.footstepDataList.add().set(HumanoidMessageTools.createFootstepDataMessage(RobotSide.RIGHT, new Point3D(0.0, -stepWidth, 0.0), new FrameQuaternion()));
       footstepDataListMessage.footstepDataList.add().set(HumanoidMessageTools.createFootstepDataMessage(RobotSide.LEFT, new Point3D(0.0, stanceWidth - stepWidth, 0.0), new FrameQuaternion()));
 
@@ -132,7 +132,7 @@ public abstract class AvatarStraightLegSingleStepTest implements MultiRobotTestI
 
       assertTrue(drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(1.0));
 
-      FootstepDataListMessage message = new FootstepDataListMessage();
+      FootstepDataListMessage message = HumanoidMessageTools.createFootstepDataListMessage();
 
       message.footstepDataList.add().set(HumanoidMessageTools.createFootstepDataMessage(RobotSide.LEFT, new Point3D(stepLength, 0.5 * stanceWidth, dropHeight), new Quaternion()));
 
@@ -167,7 +167,7 @@ public abstract class AvatarStraightLegSingleStepTest implements MultiRobotTestI
 
       assertTrue(drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(1.0));
 
-      FootstepDataListMessage message = new FootstepDataListMessage();
+      FootstepDataListMessage message = HumanoidMessageTools.createFootstepDataListMessage();
 
       message.footstepDataList.add().set(HumanoidMessageTools.createFootstepDataMessage(RobotSide.LEFT, new Point3D(stepLength, 0.5 * stanceWidth, dropHeight), new Quaternion()));
       message.footstepDataList.add().set(HumanoidMessageTools.createFootstepDataMessage(RobotSide.RIGHT, new Point3D(stepLength, -0.5 * stanceWidth, dropHeight), new Quaternion()));

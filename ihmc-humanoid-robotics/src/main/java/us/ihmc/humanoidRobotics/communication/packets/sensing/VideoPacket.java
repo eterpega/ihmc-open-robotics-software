@@ -8,6 +8,7 @@ import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
+import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.humanoidRobotics.communication.packets.IntrinsicParametersMessage;
 import us.ihmc.robotics.geometry.RotationTools;
 
@@ -27,7 +28,7 @@ public class VideoPacket extends Packet<VideoPacket>
    public TByteArrayList data = new TByteArrayList();
    public Point3D position = new Point3D();
    public Quaternion orientation = new Quaternion();
-   public IntrinsicParametersMessage intrinsicParameters = new IntrinsicParametersMessage();
+   public IntrinsicParametersMessage intrinsicParameters = HumanoidMessageTools.createIntrinsicParametersMessage();
 
    public VideoPacket()
    {

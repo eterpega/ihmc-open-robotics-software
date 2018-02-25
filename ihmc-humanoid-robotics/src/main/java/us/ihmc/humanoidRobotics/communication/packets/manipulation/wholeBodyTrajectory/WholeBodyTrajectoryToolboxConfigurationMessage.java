@@ -13,7 +13,6 @@ public class WholeBodyTrajectoryToolboxConfigurationMessage extends Packet<Whole
    public WholeBodyTrajectoryToolboxConfigurationMessage()
    {
       // empty constructor for deserialization
-      setUniqueId(Packet.VALID_MESSAGE_DEFAULT_ID);
    }
 
    @Override

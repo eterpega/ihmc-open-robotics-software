@@ -560,7 +560,7 @@ public abstract class AvatarLeapOfFaithTest implements MultiRobotTestInterface
 
    private FootstepDataMessage createFootstepDataMessage(RobotSide robotSide, FramePoint3D placeToStep)
    {
-      FootstepDataMessage footstepData = new FootstepDataMessage();
+      FootstepDataMessage footstepData = HumanoidMessageTools.createFootstepDataMessage();
 
       FramePoint3D placeToStepInWorld = new FramePoint3D(placeToStep);
       placeToStepInWorld.changeFrame(worldFrame);

@@ -654,7 +654,7 @@ public abstract class EndToEndArmTrajectoryMessageTest implements MultiRobotTest
             actualJointPositions[i] = armJoints[i].getQ();
          }
 
-         drcSimulationTestHelper.send(new StopAllTrajectoryMessage());
+         drcSimulationTestHelper.send(HumanoidMessageTools.createStopAllTrajectoryMessage());
 
          success = drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(0.05);
          assertTrue(success);

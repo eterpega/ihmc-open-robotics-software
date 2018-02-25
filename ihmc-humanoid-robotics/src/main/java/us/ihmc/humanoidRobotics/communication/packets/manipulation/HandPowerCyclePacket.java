@@ -12,8 +12,6 @@ public class HandPowerCyclePacket extends Packet<HandPowerCyclePacket>
 
    public HandPowerCyclePacket()
    {
-      setDestination(PacketDestination.CONTROLLER.ordinal());
-      // Empty constructor for deserialization
    }
 
    @Override

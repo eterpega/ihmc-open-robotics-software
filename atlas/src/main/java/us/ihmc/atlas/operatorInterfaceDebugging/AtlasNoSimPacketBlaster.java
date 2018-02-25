@@ -133,7 +133,7 @@ public class AtlasNoSimPacketBlaster implements Runnable
          wrench.linearPart.set(EuclidCoreRandomTools.nextVector3D(random, -forceFixedPointMax, forceFixedPointMax));
       }
 
-      PointCloudWorldPacket pointCloudWorldPacket = new PointCloudWorldPacket();
+      PointCloudWorldPacket pointCloudWorldPacket = HumanoidMessageTools.createPointCloudWorldPacket();
       pointCloudWorldPacket.setTimestamp(1);
       //      pointCloudWorldPacket.setDecayingWorldScan(new Point3D[100]);
       //      pointCloudWorldPacket.setGroundQuadTreeSupport(new Point3D[100]);

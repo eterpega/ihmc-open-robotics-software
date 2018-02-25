@@ -25,7 +25,6 @@ public class HighLevelStateChangeStatusMessage extends Packet<HighLevelStateChan
 
    public HighLevelStateChangeStatusMessage()
    {
-      this.destination = (byte) PacketDestination.ROS_API.ordinal();
    }
 
    @Override

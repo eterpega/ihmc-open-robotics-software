@@ -9,7 +9,6 @@ public class PrepareForLocomotionMessage extends Packet<PrepareForLocomotionMess
 
    public PrepareForLocomotionMessage()
    {
-      setUniqueId(VALID_MESSAGE_DEFAULT_ID);
    }
 
    @Override

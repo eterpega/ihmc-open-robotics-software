@@ -9,7 +9,6 @@ public class PlanOffsetStatus extends Packet<PlanOffsetStatus>
 
    public PlanOffsetStatus()
    {
-      this.offsetVector.setToZero();
    }
 
    public Vector3D getOffsetVector()

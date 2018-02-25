@@ -127,13 +127,12 @@ public abstract class HumanoidPointyRocksTest implements MultiRobotTestInterface
       // bring the arms in a stretched position
       for (RobotSide robotSide : RobotSide.values)
       {
-         ArmTrajectoryMessage armTrajectoryMessage = new ArmTrajectoryMessage();
-         armTrajectoryMessage.robotSide = robotSide.toByte();
+         ArmTrajectoryMessage armTrajectoryMessage = HumanoidMessageTools.createArmTrajectoryMessage(robotSide);
          double[] armConfig = straightArmConfigs.get(robotSide);
 
          for (int i = 0; i < armConfig.length; i++)
          {
-            TrajectoryPoint1DMessage trajectoryPoint = new TrajectoryPoint1DMessage();
+            TrajectoryPoint1DMessage trajectoryPoint = HumanoidMessageTools.createTrajectoryPoint1DMessage();
             trajectoryPoint.position = armConfig[i];
             trajectoryPoint.time = 1.0;
             OneDoFJointTrajectoryMessage jointTrajectory = new OneDoFJointTrajectoryMessage();
@@ -718,7 +717,7 @@ public abstract class HumanoidPointyRocksTest implements MultiRobotTestInterface
 
       int numberOfSteps = 5;
       RobotSide robotSide = RobotSide.LEFT;
-      FootstepDataListMessage message = new FootstepDataListMessage();
+      FootstepDataListMessage message = HumanoidMessageTools.createFootstepDataListMessage();
       stepLength = 0.5;
 
       for (int i=0; i<numberOfSteps; i++)
@@ -889,7 +888,7 @@ public abstract class HumanoidPointyRocksTest implements MultiRobotTestInterface
       RobotSide robotSide;
 
       FootstepDataListMessage message = HumanoidMessageTools.createFootstepDataListMessage(swingTime, transferTime);
-      FootstepDataMessage footstepData = new FootstepDataMessage();
+      FootstepDataMessage footstepData = HumanoidMessageTools.createFootstepDataMessage();
       footstepData.setLocation(new Point3D(0.50, 0.10, 0.0));
       footstepData.setOrientation(new Quaternion(0.0, 0.0, 0.0, 1.0));
       robotSide = RobotSide.LEFT;
@@ -901,7 +900,7 @@ public abstract class HumanoidPointyRocksTest implements MultiRobotTestInterface
       messages.add(message);
 
       message = HumanoidMessageTools.createFootstepDataListMessage(swingTime, transferTime);
-      footstepData = new FootstepDataMessage();
+      footstepData = HumanoidMessageTools.createFootstepDataMessage();
       footstepData.setLocation(new Point3D(1.0, -0.10, 0.0));
       footstepData.setOrientation(new Quaternion(0.0, 0.0, 0.0, 1.0));
       robotSide = RobotSide.RIGHT;
@@ -913,7 +912,7 @@ public abstract class HumanoidPointyRocksTest implements MultiRobotTestInterface
       messages.add(message);
 
       message = HumanoidMessageTools.createFootstepDataListMessage(swingTime, transferTime);
-      footstepData = new FootstepDataMessage();
+      footstepData = HumanoidMessageTools.createFootstepDataMessage();
       footstepData.setLocation(new Point3D(1.5, 0.10, 0.0));
       footstepData.setOrientation(new Quaternion(0.0, 0.0, 0.0, 1.0));
       robotSide = RobotSide.LEFT;
@@ -925,7 +924,7 @@ public abstract class HumanoidPointyRocksTest implements MultiRobotTestInterface
       messages.add(message);
 
       message = HumanoidMessageTools.createFootstepDataListMessage(swingTime, transferTime);
-      footstepData = new FootstepDataMessage();
+      footstepData = HumanoidMessageTools.createFootstepDataMessage();
       footstepData.setLocation(new Point3D(1.5, -0.1, 0.0));
       footstepData.setOrientation(new Quaternion(0.0, 0.0, 0.0, 1.0));
       robotSide = RobotSide.RIGHT;
@@ -937,7 +936,7 @@ public abstract class HumanoidPointyRocksTest implements MultiRobotTestInterface
       messages.add(message);
 
       message = HumanoidMessageTools.createFootstepDataListMessage(swingTime, transferTime);
-      footstepData = new FootstepDataMessage();
+      footstepData = HumanoidMessageTools.createFootstepDataMessage();
       footstepData.setLocation(new Point3D(1.5, 0.4, 0.0));
       footstepData.setOrientation(new Quaternion(0.0, 0.0, 0.0, 1.0));
       robotSide = RobotSide.LEFT;
@@ -949,7 +948,7 @@ public abstract class HumanoidPointyRocksTest implements MultiRobotTestInterface
       messages.add(message);
 
       message = HumanoidMessageTools.createFootstepDataListMessage(swingTime, transferTime);
-      footstepData = new FootstepDataMessage();
+      footstepData = HumanoidMessageTools.createFootstepDataMessage();
       footstepData.setLocation(new Point3D(1.5, 0.2, 0.0));
       footstepData.setOrientation(new Quaternion(0.0, 0.0, 0.0, 1.0));
       robotSide = RobotSide.RIGHT;
@@ -1011,7 +1010,7 @@ public abstract class HumanoidPointyRocksTest implements MultiRobotTestInterface
       ReferenceFrame ankleFrame = fullRobotModel.getEndEffectorFrame(robotSide, LimbName.LEG);
       ReferenceFrame soleFrame = fullRobotModel.getSoleFrame(robotSide);
 
-      FootstepDataMessage footstepData = new FootstepDataMessage();
+      FootstepDataMessage footstepData = HumanoidMessageTools.createFootstepDataMessage();
 
       FramePoint3D placeToStepInWorld = new FramePoint3D(placeToStep);
       placeToStepInWorld.changeFrame(worldFrame);

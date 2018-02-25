@@ -5,6 +5,7 @@ import us.ihmc.communication.packets.MessageTools;
 import us.ihmc.communication.packets.Packet;
 import us.ihmc.communication.ros.generators.RosExportedField;
 import us.ihmc.communication.ros.generators.RosMessagePacket;
+import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.humanoidRobotics.communication.packets.TrajectoryPoint1DMessage;
 import us.ihmc.idl.TempPreallocatedList;
 
@@ -14,7 +15,8 @@ public class OneDoFJointTrajectoryMessage extends Packet<OneDoFJointTrajectoryMe
 {
    @RosExportedField(documentation = "List of trajectory points to go through while executing the trajectory.")
    public TempPreallocatedList<TrajectoryPoint1DMessage> trajectoryPoints = new TempPreallocatedList<>(TrajectoryPoint1DMessage.class,
-                                                                                                       TrajectoryPoint1DMessage::new, 2000);
+                                                                                                       HumanoidMessageTools::createTrajectoryPoint1DMessage,
+                                                                                                       2000);
    @RosExportedField(documentation = "QP Weight, if Too low, in the event the qp can't achieve all of the objectives it may stop trying to achieve the desireds, if too high, it will favor this joint over other objectives. If set to NaN it will use the default weight for that joint")
    public double weight = Double.NaN;
 

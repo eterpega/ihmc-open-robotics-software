@@ -62,7 +62,7 @@ public class FootstepDataListWithSwingOverTrajectoriesAssembler
    public FootstepDataListMessage assemble(FootstepPlan footstepPlan, double swingTime, double transferTime, ExecutionMode executionMode,
                                            PlanarRegionsList planarRegionsList)
    {
-      FootstepDataListMessage footstepDataListMessage = new FootstepDataListMessage();
+      FootstepDataListMessage footstepDataListMessage = HumanoidMessageTools.createFootstepDataListMessage();
       footstepDataListMessage.setDefaultSwingDuration(swingTime);
       footstepDataListMessage.setDefaultTransferDuration(transferTime);
 
@@ -127,7 +127,7 @@ public class FootstepDataListWithSwingOverTrajectoriesAssembler
    public FootstepDataListMessage assemble(List<Footstep> footstepList, double swingTime, double transferTime, ExecutionMode executionMode,
                                            PlanarRegionsList planarRegionsList)
    {
-      FootstepDataListMessage footstepDataListMessage = new FootstepDataListMessage();
+      FootstepDataListMessage footstepDataListMessage = HumanoidMessageTools.createFootstepDataListMessage();
       footstepDataListMessage.setDefaultSwingDuration(swingTime);
       footstepDataListMessage.setDefaultTransferDuration(transferTime);
 

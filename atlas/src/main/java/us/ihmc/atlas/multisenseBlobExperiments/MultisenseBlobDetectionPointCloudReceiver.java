@@ -29,7 +29,7 @@ public class MultisenseBlobDetectionPointCloudReceiver extends RosPointCloudSubs
       UnpackedPointCloud pointCloudData = unpackPointsAndIntensities(pointCloud);
       Point3D[] points = pointCloudData.getPoints();
 
-      PointCloudWorldPacket pointCloudWorldPacket = new PointCloudWorldPacket();
+      PointCloudWorldPacket pointCloudWorldPacket = HumanoidMessageTools.createPointCloudWorldPacket();
       HumanoidMessageTools.setDecayingWorldScan(pointCloudWorldPacket, points);
       pointCloudWorldPacket.setDestination(PacketDestination.BROADCAST);
 

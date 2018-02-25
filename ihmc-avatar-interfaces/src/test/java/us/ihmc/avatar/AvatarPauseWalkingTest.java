@@ -107,7 +107,7 @@ public abstract class AvatarPauseWalkingTest implements MultiRobotTestInterface
 
    private void addFootstep(Point3D stepLocation, Quaternion orient, RobotSide robotSide, FootstepDataListMessage message)
    {
-      FootstepDataMessage footstepData = new FootstepDataMessage();
+      FootstepDataMessage footstepData = HumanoidMessageTools.createFootstepDataMessage();
       footstepData.setLocation(stepLocation);
       footstepData.setOrientation(orient);
       footstepData.setRobotSide(robotSide.toByte());

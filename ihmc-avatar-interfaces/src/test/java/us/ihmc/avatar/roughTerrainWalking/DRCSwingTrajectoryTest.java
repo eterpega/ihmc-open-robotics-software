@@ -334,7 +334,7 @@ public abstract class DRCSwingTrajectoryTest implements MultiRobotTestInterface
       FrameQuaternion stepOrientation = new FrameQuaternion(stanceFrame);
       stepOrientation.changeFrame(ReferenceFrame.getWorldFrame());
 
-      FootstepDataListMessage message = new FootstepDataListMessage();
+      FootstepDataListMessage message = HumanoidMessageTools.createFootstepDataListMessage();
       for (int i = 0; i < steps; i++)
       {
          FramePoint3D stepLocation = new FramePoint3D(ReferenceFrame.getWorldFrame());

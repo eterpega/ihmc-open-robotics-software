@@ -6,6 +6,7 @@ import us.ihmc.commons.PrintTools;
 import us.ihmc.communication.packets.PacketDestination;
 import us.ihmc.humanoidBehaviors.behaviors.AbstractBehavior;
 import us.ihmc.humanoidBehaviors.communication.CommunicationBridgeInterface;
+import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.HandTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.StopAllTrajectoryMessage;
 import us.ihmc.robotics.robotSide.RobotSide;
@@ -104,7 +105,7 @@ public class HandTrajectoryBehavior extends AbstractBehavior
    {
       if (outgoingMessage != null)
       {
-         StopAllTrajectoryMessage pausePacket = new StopAllTrajectoryMessage();
+         StopAllTrajectoryMessage pausePacket = HumanoidMessageTools.createStopAllTrajectoryMessage();
          pausePacket.setDestination(PacketDestination.CONTROLLER);
          sendPacketToController(pausePacket);
       }

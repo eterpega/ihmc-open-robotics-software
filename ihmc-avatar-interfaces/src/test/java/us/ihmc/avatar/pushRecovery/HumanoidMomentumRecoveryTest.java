@@ -154,7 +154,7 @@ public abstract class HumanoidMomentumRecoveryTest implements MultiRobotTestInte
       double yOffset = getYOffsetForSteps();
       double xOffset = getXOffsetForSteps();
       
-      FootstepDataListMessage message = new FootstepDataListMessage();
+      FootstepDataListMessage message = HumanoidMessageTools.createFootstepDataListMessage();
       addFootstep(new Point3D(xOffset / 2.0, yOffset, -0.02), RobotSide.LEFT, message);
       addFootstep(new Point3D(xOffset, -yOffset, -0.02), RobotSide.RIGHT, message);
       addFootstep(new Point3D(xOffset, yOffset * 2.0, -0.02), RobotSide.LEFT, message);
@@ -170,7 +170,7 @@ public abstract class HumanoidMomentumRecoveryTest implements MultiRobotTestInte
 
    private void addFootstep(Point3D stepLocation, RobotSide robotSide, FootstepDataListMessage message)
    {
-      FootstepDataMessage footstepData = new FootstepDataMessage();
+      FootstepDataMessage footstepData = HumanoidMessageTools.createFootstepDataMessage();
       footstepData.setLocation(stepLocation);
       footstepData.setOrientation(new Quaternion(0.0, 0.0, 0.0, 1.0));
       footstepData.setRobotSide(robotSide.toByte());
@@ -189,7 +189,7 @@ public abstract class HumanoidMomentumRecoveryTest implements MultiRobotTestInte
       assertTrue(drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(1.0));
 
       FootstepDataListMessage message = HumanoidMessageTools.createFootstepDataListMessage(3.0, 0.3);
-      FootstepDataMessage footstepData = new FootstepDataMessage();
+      FootstepDataMessage footstepData = HumanoidMessageTools.createFootstepDataMessage();
       RobotSide stepSide = RobotSide.LEFT;
 
       double xOffset = getXOffsetForSteps();

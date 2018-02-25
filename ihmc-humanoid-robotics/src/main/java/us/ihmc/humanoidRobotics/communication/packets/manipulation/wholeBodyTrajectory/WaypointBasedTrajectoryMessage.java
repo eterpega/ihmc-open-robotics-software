@@ -42,7 +42,6 @@ public class WaypointBasedTrajectoryMessage extends Packet<WaypointBasedTrajecto
    public WaypointBasedTrajectoryMessage()
    {
       // empty constructor for deserialization
-      setUniqueId(Packet.VALID_MESSAGE_DEFAULT_ID);
    }
 
    @Override

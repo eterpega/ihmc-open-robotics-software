@@ -2,25 +2,25 @@ package us.ihmc.humanoidRobotics.communication.packets.manipulation.wholeBodyTra
 
 import us.ihmc.communication.packets.MessageTools;
 import us.ihmc.communication.packets.Packet;
+import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.idl.TempPreallocatedList;
 
 public class WholeBodyTrajectoryToolboxMessage extends Packet<WholeBodyTrajectoryToolboxMessage>
 {
-   public WholeBodyTrajectoryToolboxConfigurationMessage configuration = new WholeBodyTrajectoryToolboxConfigurationMessage();
-   public TempPreallocatedList<WaypointBasedTrajectoryMessage> endEffectorTrajectories = new TempPreallocatedList<>(WaypointBasedTrajectoryMessage.class, WaypointBasedTrajectoryMessage::new, 10);
-   public TempPreallocatedList<RigidBodyExplorationConfigurationMessage> explorationConfigurations = new TempPreallocatedList<>(RigidBodyExplorationConfigurationMessage.class, RigidBodyExplorationConfigurationMessage::new, 10);
-   public TempPreallocatedList<ReachingManifoldMessage> reachingManifolds = new TempPreallocatedList<>(ReachingManifoldMessage.class, ReachingManifoldMessage::new, 10);
+   public WholeBodyTrajectoryToolboxConfigurationMessage configuration = HumanoidMessageTools.createWholeBodyTrajectoryToolboxConfigurationMessage();
+   public TempPreallocatedList<WaypointBasedTrajectoryMessage> endEffectorTrajectories = new TempPreallocatedList<>(WaypointBasedTrajectoryMessage.class, HumanoidMessageTools::createWaypointBasedTrajectoryMessage, 10);
+   public TempPreallocatedList<RigidBodyExplorationConfigurationMessage> explorationConfigurations = new TempPreallocatedList<>(RigidBodyExplorationConfigurationMessage.class, HumanoidMessageTools::createRigidBodyExplorationConfigurationMessage, 10);
+   public TempPreallocatedList<ReachingManifoldMessage> reachingManifolds = new TempPreallocatedList<>(ReachingManifoldMessage.class, HumanoidMessageTools::createReachingManifoldMessage, 10);
 
    public WholeBodyTrajectoryToolboxMessage()
    {
       // empty constructor for deserialization
-      setUniqueId(Packet.VALID_MESSAGE_DEFAULT_ID);
    }
 
    @Override
    public void set(WholeBodyTrajectoryToolboxMessage other)
    {
-      configuration = new WholeBodyTrajectoryToolboxConfigurationMessage();
+      configuration = HumanoidMessageTools.createWholeBodyTrajectoryToolboxConfigurationMessage();
       configuration.set(other.configuration);
       MessageTools.copyData(other.endEffectorTrajectories, endEffectorTrajectories);
       MessageTools.copyData(other.explorationConfigurations, explorationConfigurations);

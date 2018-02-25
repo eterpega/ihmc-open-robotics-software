@@ -508,8 +508,8 @@ public class WalkingMessageHandler
    private final Point3D actualFootPositionInWorld = new Point3D();
    private final Quaternion actualFootOrientationInWorld = new Quaternion();
    private final TextToSpeechPacket reusableSpeechPacket = MessageTools.createTextToSpeechPacket();
-   private final WalkingControllerFailureStatusMessage failureStatusMessage = new WalkingControllerFailureStatusMessage();
-   private final FootstepStatusMessage footstepStatus = new FootstepStatusMessage();
+   private final WalkingControllerFailureStatusMessage failureStatusMessage = HumanoidMessageTools.createWalkingControllerFailureStatusMessage();
+   private final FootstepStatusMessage footstepStatus = HumanoidMessageTools.createFootstepStatusMessage();
 
    public void reportFootstepStarted(RobotSide robotSide, FramePose3D desiredFootPoseInWorld, FramePose3D actualFootPoseInWorld)
    {
@@ -551,7 +551,7 @@ public class WalkingMessageHandler
       executingFootstep.set(false);
    }
 
-   private final WalkingStatusMessage walkingStatusMessage = new WalkingStatusMessage();
+   private final WalkingStatusMessage walkingStatusMessage = HumanoidMessageTools.createWalkingStatusMessage();
 
    public void reportWalkingStarted()
    {
@@ -573,7 +573,7 @@ public class WalkingMessageHandler
 
    public void reportWalkingAbortRequested()
    {
-      WalkingStatusMessage walkingStatusMessage = new WalkingStatusMessage();
+      WalkingStatusMessage walkingStatusMessage = HumanoidMessageTools.createWalkingStatusMessage();
       walkingStatusMessage.setWalkingStatus(WalkingStatus.ABORT_REQUESTED.toByte());
       statusOutputManager.reportStatusMessage(walkingStatusMessage);
 //      reusableSpeechPacket.setTextToSpeak(TextToSpeechPacket.WALKING_ABORTED);

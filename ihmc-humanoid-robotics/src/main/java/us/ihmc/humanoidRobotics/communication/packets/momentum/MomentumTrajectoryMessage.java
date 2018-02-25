@@ -2,6 +2,7 @@ package us.ihmc.humanoidRobotics.communication.packets.momentum;
 
 import us.ihmc.communication.packets.Packet;
 import us.ihmc.humanoidRobotics.communication.packets.EuclideanTrajectoryMessage;
+import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 
 /**
  * This message can be used to send a predefined angular momentum trajectory to the controller. This trajectory
@@ -13,18 +14,16 @@ public class MomentumTrajectoryMessage extends Packet<MomentumTrajectoryMessage>
     * List of angular momentum trajectory waypoints. Each waypoint contains the angular momentum and the
     * angular momentum rate at a given time.
     */
-   public EuclideanTrajectoryMessage angularMomentumTrajectory;
+   public EuclideanTrajectoryMessage angularMomentumTrajectory = new EuclideanTrajectoryMessage();
 
    public MomentumTrajectoryMessage()
    {
-      angularMomentumTrajectory = new EuclideanTrajectoryMessage();
-      setUniqueId(Packet.VALID_MESSAGE_DEFAULT_ID);
    }
 
    @Override
    public void set(MomentumTrajectoryMessage other)
    {
-      angularMomentumTrajectory = new EuclideanTrajectoryMessage();
+      angularMomentumTrajectory = HumanoidMessageTools.createEuclideanTrajectoryMessage();
       angularMomentumTrajectory.set(other.angularMomentumTrajectory);
       setPacketInformation(other);
    }

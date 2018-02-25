@@ -245,7 +245,7 @@ public abstract class DRCFootstepListBehaviorTest implements MultiRobotTestInter
 
    private FootstepDataListMessage createFootstepDataList(ArrayList<Footstep> desiredFootsteps)
    {
-      FootstepDataListMessage ret = new FootstepDataListMessage();
+      FootstepDataListMessage ret = HumanoidMessageTools.createFootstepDataListMessage();
 
       for (int i = 0; i < desiredFootsteps.size(); i++)
       {

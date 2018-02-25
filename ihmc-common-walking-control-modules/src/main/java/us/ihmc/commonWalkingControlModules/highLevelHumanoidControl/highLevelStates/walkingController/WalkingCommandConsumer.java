@@ -45,6 +45,7 @@ import us.ihmc.humanoidRobotics.communication.controllerAPI.command.PlanarRegion
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.SpineDesiredAccelerationsCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.SpineTrajectoryCommand;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.command.StopAllTrajectoryCommand;
+import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.humanoidRobotics.communication.packets.walking.HumanoidBodyPart;
 import us.ihmc.humanoidRobotics.communication.packets.walking.ManipulationAbortedStatus;
 import us.ihmc.robotics.robotSide.RobotSide;
@@ -81,7 +82,7 @@ public class WalkingCommandConsumer
    private final RigidBodyControlManager headManager;
    private final SideDependentList<RigidBodyControlManager> handManagers = new SideDependentList<>();
 
-   private final ManipulationAbortedStatus manipulationAbortedStatus = new ManipulationAbortedStatus();
+   private final ManipulationAbortedStatus manipulationAbortedStatus = HumanoidMessageTools.createManipulationAbortedStatus();
 
    public WalkingCommandConsumer(CommandInputManager commandInputManager, StatusMessageOutputManager statusMessageOutputManager, HighLevelHumanoidControllerToolbox controllerToolbox, HighLevelControlManagerFactory managerFactory,
          WalkingControllerParameters walkingControllerParameters, YoVariableRegistry parentRegistry)

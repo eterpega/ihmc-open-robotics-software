@@ -16,7 +16,6 @@ public class StopAllTrajectoryMessage extends Packet<StopAllTrajectoryMessage>
     */
    public StopAllTrajectoryMessage()
    {
-      setUniqueId(VALID_MESSAGE_DEFAULT_ID);
    }
 
    @Override

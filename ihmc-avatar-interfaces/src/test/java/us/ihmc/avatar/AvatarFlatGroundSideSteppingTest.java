@@ -19,6 +19,7 @@ import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataListMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
@@ -126,7 +127,7 @@ public abstract class AvatarFlatGroundSideSteppingTest implements MultiRobotTest
 
    protected FootstepDataListMessage getFootstepDataListMessage()
    {
-      return new FootstepDataListMessage();
+      return HumanoidMessageTools.createFootstepDataListMessage();
    }
 
    @Test(timeout = 30000)
@@ -229,7 +230,7 @@ public abstract class AvatarFlatGroundSideSteppingTest implements MultiRobotTest
 
    private void addFootstep(Point3D stepLocation, Quaternion orient, RobotSide robotSide, FootstepDataListMessage message)
    {
-      FootstepDataMessage footstepData = new FootstepDataMessage();
+      FootstepDataMessage footstepData = HumanoidMessageTools.createFootstepDataMessage();
       footstepData.setLocation(stepLocation);
       footstepData.setOrientation(orient);
       footstepData.setRobotSide(robotSide.toByte());

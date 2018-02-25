@@ -4,6 +4,7 @@ import us.ihmc.communication.packets.Packet;
 import us.ihmc.communication.ros.generators.RosExportedField;
 import us.ihmc.communication.ros.generators.RosMessagePacket;
 import us.ihmc.humanoidRobotics.communication.packets.DesiredAccelerationsMessage;
+import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.humanoidRobotics.communication.packets.PacketValidityChecker;
 
 @RosMessagePacket(documentation = "This message gives the user the option to bypass IHMC feedback controllers for the arm joints by sending desired arm joint accelerations."
@@ -17,12 +18,10 @@ public class ArmDesiredAccelerationsMessage extends Packet<ArmDesiredAcceleratio
    @RosExportedField(documentation = "Specifies the side of the robot that will execute the trajectory.")
    public byte robotSide;
    @RosExportedField(documentation = "The desired joint acceleration information.")
-   public DesiredAccelerationsMessage desiredAccelerations;
+   public DesiredAccelerationsMessage desiredAccelerations = new DesiredAccelerationsMessage();
 
    public ArmDesiredAccelerationsMessage()
    {
-      desiredAccelerations = new DesiredAccelerationsMessage();
-      setUniqueId(VALID_MESSAGE_DEFAULT_ID);
    }
 
    public byte getRobotSide()
@@ -43,7 +42,7 @@ public class ArmDesiredAccelerationsMessage extends Packet<ArmDesiredAcceleratio
    @Override
    public void set(ArmDesiredAccelerationsMessage other)
    {
-      desiredAccelerations = new DesiredAccelerationsMessage();
+      desiredAccelerations = HumanoidMessageTools.createDesiredAccelerationsMessage();
       desiredAccelerations.set(other.desiredAccelerations);
       robotSide = other.robotSide;
       setPacketInformation(other);

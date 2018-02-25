@@ -9,18 +9,15 @@ public class CenterOfMassTrajectoryMessage extends Packet<CenterOfMassTrajectory
     * List of center of mass trajectory waypoints. Each waypoint contains the center of mass position and
     * velocity at a given time.
     */
-   public EuclideanTrajectoryMessage euclideanTrajectory;
+   public EuclideanTrajectoryMessage euclideanTrajectory = new EuclideanTrajectoryMessage();
 
    public CenterOfMassTrajectoryMessage()
    {
-      euclideanTrajectory = new EuclideanTrajectoryMessage();
-      setUniqueId(Packet.VALID_MESSAGE_DEFAULT_ID);
    }
 
    @Override
    public void set(CenterOfMassTrajectoryMessage other)
    {
-      euclideanTrajectory = new EuclideanTrajectoryMessage();
       euclideanTrajectory.set(other.euclideanTrajectory);
       setPacketInformation(other);
    }

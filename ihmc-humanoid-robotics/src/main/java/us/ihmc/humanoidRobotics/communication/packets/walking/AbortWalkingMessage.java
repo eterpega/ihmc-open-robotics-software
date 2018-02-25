@@ -14,7 +14,6 @@ public class AbortWalkingMessage extends Packet<AbortWalkingMessage>
 {
    public AbortWalkingMessage()
    {
-      setUniqueId(VALID_MESSAGE_DEFAULT_ID);
    }
 
    @Override

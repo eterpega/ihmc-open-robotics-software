@@ -1,6 +1,7 @@
 package us.ihmc.humanoidRobotics.communication.packets.manipulation;
 
 import us.ihmc.communication.packets.Packet;
+import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.humanoidRobotics.communication.packets.JointspaceTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.LoadBearingMessage;
 
@@ -19,17 +20,15 @@ public class HandLoadBearingMessage extends Packet<HandLoadBearingMessage>
     * The jointspace arm trajectory message that will be used for the hybrid control if
     * {@link #useJointspaceCommand} is true.
     */
-   public JointspaceTrajectoryMessage jointspaceTrajectory = new JointspaceTrajectoryMessage();
+   public JointspaceTrajectoryMessage jointspaceTrajectory = HumanoidMessageTools.createJointspaceTrajectoryMessage();
 
    /** the time to delay this command on the controller side before being executed **/
    public double executionDelayTime;
 
-   public LoadBearingMessage loadBearingMessage = new LoadBearingMessage();
+   public LoadBearingMessage loadBearingMessage = HumanoidMessageTools.createLoadBearingMessage();
 
    public HandLoadBearingMessage()
    {
-      loadBearingMessage = new LoadBearingMessage();
-      setUniqueId(VALID_MESSAGE_DEFAULT_ID);
    }
 
    @Override
@@ -37,7 +36,6 @@ public class HandLoadBearingMessage extends Packet<HandLoadBearingMessage>
    {
       robotSide = other.robotSide;
       useJointspaceCommand = other.useJointspaceCommand;
-      jointspaceTrajectory = new JointspaceTrajectoryMessage();
       jointspaceTrajectory.set(other.jointspaceTrajectory);
       executionDelayTime = other.executionDelayTime;
       loadBearingMessage = other.loadBearingMessage;

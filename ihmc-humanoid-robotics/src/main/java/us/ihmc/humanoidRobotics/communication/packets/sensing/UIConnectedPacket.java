@@ -4,6 +4,9 @@ import us.ihmc.communication.packets.Packet;
 
 public class UIConnectedPacket extends Packet<UIConnectedPacket>
 {
+   public UIConnectedPacket()
+   {
+   }
 
    @Override
    public void set(UIConnectedPacket other)

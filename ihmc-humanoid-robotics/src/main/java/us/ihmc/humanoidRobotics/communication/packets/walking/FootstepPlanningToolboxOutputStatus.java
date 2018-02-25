@@ -6,6 +6,7 @@ import us.ihmc.communication.packets.PlanarRegionMessageConverter;
 import us.ihmc.communication.packets.PlanarRegionsListMessage;
 import us.ihmc.euclid.geometry.Pose2D;
 import us.ihmc.euclid.tuple2D.Point2D;
+import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.idl.TempPreallocatedList;
 import us.ihmc.robotics.geometry.PlanarRegionsList;
 
@@ -18,7 +19,7 @@ public class FootstepPlanningToolboxOutputStatus extends Packet<FootstepPlanning
    public static final byte FOOTSTEP_PLANNING_RESULT_SNAPPING_FAILED = 4;
    public static final byte FOOTSTEP_PLANNING_RESULT_PLANNER_FAILED = 5;
 
-   public FootstepDataListMessage footstepDataList = new FootstepDataListMessage();
+   public FootstepDataListMessage footstepDataList = HumanoidMessageTools.createFootstepDataListMessage();
    public byte footstepPlanningResult;
    public int planId = FootstepPlanningRequestPacket.NO_PLAN_ID;
 

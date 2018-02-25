@@ -123,7 +123,7 @@ public class BalanceManager
    private final YoDouble maxICPErrorBeforeSingleSupportX = new YoDouble("maxICPErrorBeforeSingleSupportX", registry);
    private final YoDouble maxICPErrorBeforeSingleSupportY = new YoDouble("maxICPErrorBeforeSingleSupportY", registry);
 
-   private final CapturabilityBasedStatus capturabilityBasedStatus = new CapturabilityBasedStatus();
+   private final CapturabilityBasedStatus capturabilityBasedStatus = HumanoidMessageTools.createCapturabilityBasedStatus();
 
    private final FrameConvexPolygon2d areaToProjectInto = new FrameConvexPolygon2d();
    private final FrameConvexPolygon2d safeArea = new FrameConvexPolygon2d();

@@ -233,7 +233,7 @@ public class WalkingControllerTest
 
    private void sendChestTrajectory()
    {
-      ChestTrajectoryMessage message = new ChestTrajectoryMessage();
+      ChestTrajectoryMessage message = HumanoidMessageTools.createChestTrajectoryMessage();
       Quaternion orientation = new Quaternion();
       orientation.appendYawRotation(Math.toRadians(-10.0));
       orientation.appendRollRotation(Math.toRadians(10.0));

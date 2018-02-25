@@ -3,6 +3,7 @@ package us.ihmc.humanoidRobotics.communication.packets.walking.hybridRigidBodyMa
 import us.ihmc.communication.packets.Packet;
 import us.ihmc.communication.ros.generators.RosExportedField;
 import us.ihmc.communication.ros.generators.RosMessagePacket;
+import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.humanoidRobotics.communication.packets.JointspaceTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.SO3TrajectoryMessage;
 
@@ -13,9 +14,9 @@ import us.ihmc.humanoidRobotics.communication.packets.SO3TrajectoryMessage;
 public class HeadHybridJointspaceTaskspaceTrajectoryMessage extends Packet<HeadHybridJointspaceTaskspaceTrajectoryMessage>
 {
    @RosExportedField(documentation = "The taskspace trajectory information.")
-   public SO3TrajectoryMessage taskspaceTrajectoryMessage = new SO3TrajectoryMessage();
+   public SO3TrajectoryMessage taskspaceTrajectoryMessage = HumanoidMessageTools.createSO3TrajectoryMessage();
    @RosExportedField(documentation = "The jointspace trajectory information.")
-   public JointspaceTrajectoryMessage jointspaceTrajectoryMessage = new JointspaceTrajectoryMessage();
+   public JointspaceTrajectoryMessage jointspaceTrajectoryMessage = HumanoidMessageTools.createJointspaceTrajectoryMessage();
 
    /**
     * Empty constructor for serialization.
@@ -23,8 +24,6 @@ public class HeadHybridJointspaceTaskspaceTrajectoryMessage extends Packet<HeadH
     */
    public HeadHybridJointspaceTaskspaceTrajectoryMessage()
    {
-      super();
-      setUniqueId(VALID_MESSAGE_DEFAULT_ID);
    }
 
    /**
@@ -39,9 +38,9 @@ public class HeadHybridJointspaceTaskspaceTrajectoryMessage extends Packet<HeadH
    @Override
    public void set(HeadHybridJointspaceTaskspaceTrajectoryMessage other)
    {
-      taskspaceTrajectoryMessage = new SO3TrajectoryMessage();
+      taskspaceTrajectoryMessage = HumanoidMessageTools.createSO3TrajectoryMessage();
       taskspaceTrajectoryMessage.set(other.taskspaceTrajectoryMessage);
-      jointspaceTrajectoryMessage = new JointspaceTrajectoryMessage();
+      jointspaceTrajectoryMessage = HumanoidMessageTools.createJointspaceTrajectoryMessage();
       jointspaceTrajectoryMessage.set(other.jointspaceTrajectoryMessage);
       setPacketInformation(other);
    }

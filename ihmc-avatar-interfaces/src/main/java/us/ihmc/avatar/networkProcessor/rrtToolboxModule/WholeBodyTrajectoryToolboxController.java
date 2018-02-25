@@ -20,6 +20,7 @@ import us.ihmc.euclid.geometry.Pose3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicCoordinateSystem;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.humanoidRobotics.communication.packets.KinematicsToolboxOutputConverter;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.wholeBodyTrajectory.WholeBodyTrajectoryToolboxOutputStatus;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.wholeBodyTrajectory.WholeBodyTrajectoryToolboxSettings;
@@ -188,7 +189,7 @@ public class WholeBodyTrajectoryToolboxController extends ToolboxController
 
       humanoidKinematicsSolver = new HumanoidKinematicsSolver(drcRobotModel, yoGraphicsListRegistry, registry);
 
-      toolboxSolution = new WholeBodyTrajectoryToolboxOutputStatus();
+      toolboxSolution = HumanoidMessageTools.createWholeBodyTrajectoryToolboxOutputStatus();
       toolboxSolution.setDestination(-1);
 
       configurationConverter = new KinematicsToolboxOutputConverter(drcRobotModel);

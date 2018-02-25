@@ -125,7 +125,7 @@ public abstract class EndToEndPelvisOrientationTest implements MultiRobotTestInt
       double epsilon = 3.0e-3;
       int steps = 4;
 
-      FootstepDataListMessage footsteps = new FootstepDataListMessage();
+      FootstepDataListMessage footsteps = HumanoidMessageTools.createFootstepDataListMessage();
       double walkingTime = createWalkingMessage(steps, footsteps, true);
       drcSimulationTestHelper.send(footsteps);
       drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(walkingTime + 1.0);
@@ -164,7 +164,7 @@ public abstract class EndToEndPelvisOrientationTest implements MultiRobotTestInt
       desiredAfterTrajectory.changeFrame(midFeetZUpGroundFrame);
 
       int steps = 2;
-      FootstepDataListMessage footsteps = new FootstepDataListMessage();
+      FootstepDataListMessage footsteps = HumanoidMessageTools.createFootstepDataListMessage();
       double walkingTime = createWalkingMessage(steps, footsteps, false);
       drcSimulationTestHelper.send(footsteps);
       drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(walkingTime + 1.5);
@@ -192,7 +192,7 @@ public abstract class EndToEndPelvisOrientationTest implements MultiRobotTestInt
       FrameQuaternion initialOrientation = new FrameQuaternion(pelvisFrame);
       initialOrientation.changeFrame(worldFrame);
 
-      PelvisOrientationTrajectoryMessage message = new PelvisOrientationTrajectoryMessage();
+      PelvisOrientationTrajectoryMessage message = HumanoidMessageTools.createPelvisOrientationTrajectoryMessage();
       SO3TrajectoryMessage so3Trajectory = message.getSo3Trajectory();
       so3Trajectory.getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(worldFrame));
 
@@ -265,7 +265,7 @@ public abstract class EndToEndPelvisOrientationTest implements MultiRobotTestInt
       drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(trajectoryTime);
       assertEquals("Control Mode", PelvisOrientationControlMode.USER, findCurrentControlMode());
 
-      FootstepDataListMessage footsteps = new FootstepDataListMessage();
+      FootstepDataListMessage footsteps = HumanoidMessageTools.createFootstepDataListMessage();
       double walkingTime = createWalkingMessage(4, footsteps, true);
       drcSimulationTestHelper.send(footsteps);
       drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(walkingTime / 2.0);

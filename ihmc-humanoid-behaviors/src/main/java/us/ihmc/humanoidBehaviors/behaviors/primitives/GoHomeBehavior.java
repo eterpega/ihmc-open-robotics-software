@@ -6,6 +6,7 @@ import us.ihmc.commons.PrintTools;
 import us.ihmc.communication.packets.PacketDestination;
 import us.ihmc.humanoidBehaviors.behaviors.AbstractBehavior;
 import us.ihmc.humanoidBehaviors.communication.CommunicationBridgeInterface;
+import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.StopAllTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.HumanoidBodyPart;
 import us.ihmc.humanoidRobotics.communication.packets.walking.GoHomeMessage;
@@ -103,7 +104,7 @@ public class GoHomeBehavior extends AbstractBehavior
    {
       if (outgoingMessage != null)
       {
-         StopAllTrajectoryMessage pausePacket = new StopAllTrajectoryMessage();
+         StopAllTrajectoryMessage pausePacket = HumanoidMessageTools.createStopAllTrajectoryMessage();
          pausePacket.setDestination(PacketDestination.CONTROLLER);
          sendPacketToController(pausePacket);
       }

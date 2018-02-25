@@ -141,7 +141,7 @@ public abstract class HumanoidCircleWalkTest implements MultiRobotTestInterface
       }
 
       RobotSide side = RobotSide.LEFT;
-      FootstepDataListMessage footMessage = new FootstepDataListMessage();
+      FootstepDataListMessage footMessage = HumanoidMessageTools.createFootstepDataListMessage();
       ArrayList<Point3D> rootLocations = new ArrayList<>();
       ArrayList<OneDoFJointTrajectoryMessage> leftArmTrajectory = new ArrayList<>();
       ArrayList<OneDoFJointTrajectoryMessage> rightArmTrajectory = new ArrayList<>();
@@ -213,7 +213,7 @@ public abstract class HumanoidCircleWalkTest implements MultiRobotTestInterface
 
    private void addFootstep(Point3D stepLocation, Quaternion orient, RobotSide robotSide, FootstepDataListMessage message)
    {
-      FootstepDataMessage footstepData = new FootstepDataMessage();
+      FootstepDataMessage footstepData = HumanoidMessageTools.createFootstepDataMessage();
       footstepData.setLocation(stepLocation);
       footstepData.setOrientation(orient);
       footstepData.setRobotSide(robotSide.toByte());

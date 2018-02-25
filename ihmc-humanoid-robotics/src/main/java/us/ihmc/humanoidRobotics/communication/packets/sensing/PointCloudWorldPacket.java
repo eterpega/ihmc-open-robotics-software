@@ -4,7 +4,6 @@ import gnu.trove.list.array.TFloatArrayList;
 import us.ihmc.communication.packets.HighBandwidthPacket;
 import us.ihmc.communication.packets.MessageTools;
 import us.ihmc.communication.packets.Packet;
-import us.ihmc.communication.packets.PacketDestination;
 
 @HighBandwidthPacket
 public class PointCloudWorldPacket extends Packet<PointCloudWorldPacket>
@@ -20,8 +19,6 @@ public class PointCloudWorldPacket extends Packet<PointCloudWorldPacket>
 
    public PointCloudWorldPacket()
    {
-      this.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
-      this.setDestination(PacketDestination.BROADCAST);
    }
 
    @Override

@@ -75,8 +75,7 @@ public class WholeBodyTrajectoryToolboxOutputConverter
    private void computHandTrajectoryMessage(WholeBodyTrajectoryToolboxOutputStatus solution, RobotSide robotSide)
    {
       int numberOfTrajectoryPoints = solution.getRobotConfigurations().size();
-      HandTrajectoryMessage trajectoryMessage = new HandTrajectoryMessage();
-      trajectoryMessage.setRobotSide(robotSide.toByte());
+      HandTrajectoryMessage trajectoryMessage = HumanoidMessageTools.createHandTrajectoryMessage(robotSide);
 
       trajectoryMessage.getSe3Trajectory().getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(worldFrame));
       trajectoryMessage.getSe3Trajectory().getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(worldFrame));
@@ -137,7 +136,7 @@ public class WholeBodyTrajectoryToolboxOutputConverter
    private void computeChestTrajectoryMessage(WholeBodyTrajectoryToolboxOutputStatus solution)
    {
       int numberOfTrajectoryPoints = solution.getRobotConfigurations().size();
-      ChestTrajectoryMessage trajectoryMessage = new ChestTrajectoryMessage();
+      ChestTrajectoryMessage trajectoryMessage = HumanoidMessageTools.createChestTrajectoryMessage();
 
       SO3TrajectoryMessage so3Trajectory = trajectoryMessage.getSo3Trajectory();
       so3Trajectory.getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(worldFrame));
@@ -190,7 +189,7 @@ public class WholeBodyTrajectoryToolboxOutputConverter
    private void computePelvisTrajectoryMessage(WholeBodyTrajectoryToolboxOutputStatus solution)
    {
       int numberOfTrajectoryPoints = solution.getRobotConfigurations().size();
-      PelvisTrajectoryMessage trajectoryMessage = new PelvisTrajectoryMessage();
+      PelvisTrajectoryMessage trajectoryMessage = HumanoidMessageTools.createPelvisTrajectoryMessage();
 
       trajectoryMessage.getSe3Trajectory().getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(worldFrame));
       trajectoryMessage.getSe3Trajectory().getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(worldFrame));

@@ -3,6 +3,7 @@ package us.ihmc.humanoidRobotics.communication.packets.walking;
 import us.ihmc.communication.packets.Packet;
 import us.ihmc.communication.ros.generators.RosExportedField;
 import us.ihmc.communication.ros.generators.RosMessagePacket;
+import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.humanoidRobotics.communication.packets.PacketValidityChecker;
 import us.ihmc.humanoidRobotics.communication.packets.SO3TrajectoryMessage;
 
@@ -16,7 +17,7 @@ public class PelvisOrientationTrajectoryMessage extends Packet<PelvisOrientation
    @RosExportedField(documentation = "Whether the pelvis orientation is allowed to controlled by the user when the robot is walking.")
    public boolean enableUserPelvisControlDuringWalking = false;
    @RosExportedField(documentation = "The orientation trajectory information.")
-   public SO3TrajectoryMessage so3Trajectory = new SO3TrajectoryMessage();
+   public SO3TrajectoryMessage so3Trajectory = HumanoidMessageTools.createSO3TrajectoryMessage();
 
    /**
     * Empty constructor for serialization. Set the id of the message to
@@ -24,7 +25,6 @@ public class PelvisOrientationTrajectoryMessage extends Packet<PelvisOrientation
     */
    public PelvisOrientationTrajectoryMessage()
    {
-      setUniqueId(VALID_MESSAGE_DEFAULT_ID);
    }
 
    /**
@@ -34,7 +34,7 @@ public class PelvisOrientationTrajectoryMessage extends Packet<PelvisOrientation
     */
    public PelvisOrientationTrajectoryMessage(PelvisOrientationTrajectoryMessage pelvisOrientationTrajectoryMessage)
    {
-      so3Trajectory = new SO3TrajectoryMessage(pelvisOrientationTrajectoryMessage.so3Trajectory);
+      so3Trajectory.set(pelvisOrientationTrajectoryMessage.so3Trajectory);
       setUniqueId(pelvisOrientationTrajectoryMessage.getUniqueId());
       setDestination(pelvisOrientationTrajectoryMessage.getDestination());
    }
@@ -52,7 +52,7 @@ public class PelvisOrientationTrajectoryMessage extends Packet<PelvisOrientation
    @Override
    public void set(PelvisOrientationTrajectoryMessage other)
    {
-      so3Trajectory = new SO3TrajectoryMessage(other.so3Trajectory);
+      so3Trajectory.set(other.so3Trajectory);
       enableUserPelvisControlDuringWalking = other.enableUserPelvisControlDuringWalking;
       setPacketInformation(other);
    }

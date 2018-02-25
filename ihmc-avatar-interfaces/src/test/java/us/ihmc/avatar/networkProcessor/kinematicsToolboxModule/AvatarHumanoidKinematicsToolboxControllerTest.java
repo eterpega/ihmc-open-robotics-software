@@ -30,6 +30,7 @@ import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.graphicsDescription.appearance.YoAppearanceRGBColor;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.humanoidRobotics.communication.packets.walking.CapturabilityBasedStatus;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotModels.FullRobotModelUtils;
@@ -525,7 +526,7 @@ public abstract class AvatarHumanoidKinematicsToolboxControllerTest implements M
 
    public static CapturabilityBasedStatus createCapturabilityBasedStatus(boolean isLeftFootInSupport, boolean isRightFootInSupport)
    {
-      CapturabilityBasedStatus capturabilityBasedStatus = new CapturabilityBasedStatus();
+      CapturabilityBasedStatus capturabilityBasedStatus = HumanoidMessageTools.createCapturabilityBasedStatus();
       if (isLeftFootInSupport)
          capturabilityBasedStatus.leftFootSupportPolygon.add();
       if (isRightFootInSupport)

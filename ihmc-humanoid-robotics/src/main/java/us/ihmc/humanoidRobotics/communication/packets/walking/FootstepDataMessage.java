@@ -14,6 +14,7 @@ import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
+import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.humanoidRobotics.communication.packets.PacketValidityChecker;
 import us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage;
 import us.ihmc.idl.TempPreallocatedList;
@@ -57,7 +58,7 @@ public class FootstepDataMessage extends Packet<FootstepDataMessage>
          + "start point (which is set to the current foot state at lift-off) and the touch down point (which is specified by the location and orientation fields)."
          + "All waypoints are for the sole frame and expressed in the trajectory frame. The maximum number of points can be found in the Footstep class.")
    public TempPreallocatedList<SE3TrajectoryPointMessage> swingTrajectory = new TempPreallocatedList<>(SE3TrajectoryPointMessage.class,
-                                                                                                       SE3TrajectoryPointMessage::new, 50);
+                                                                                                       HumanoidMessageTools::createSE3TrajectoryPointMessage, 50);
    @RosExportedField(documentation = "In case the trajectory type is set to WAYPOINTS, this value can be used to specify the trajectory blend duration "
          + " in seconds. If greater than zero, waypoints that fall within the valid time window (beginning at the start of the swing phase and spanning "
          + " the desired blend duration) will be adjusted to account for the initial error between the actual and expected position and orientation of the "

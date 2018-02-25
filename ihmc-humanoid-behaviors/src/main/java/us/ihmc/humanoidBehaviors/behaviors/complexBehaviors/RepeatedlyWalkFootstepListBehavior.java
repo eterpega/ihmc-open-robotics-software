@@ -9,6 +9,7 @@ import us.ihmc.euclid.referenceFrame.FramePose3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.humanoidBehaviors.behaviors.AbstractBehavior;
 import us.ihmc.humanoidBehaviors.communication.CommunicationBridgeInterface;
+import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataListMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepStatus;
@@ -41,8 +42,8 @@ public class RepeatedlyWalkFootstepListBehavior extends AbstractBehavior
    private final YoInteger stepsAlongPath = new YoInteger("stepsAlongPath", registry);
    private final YoEnum<RobotSide> initialSwingSide = YoEnum.create("initialSwingSide", RobotSide.class, registry);
 
-   private final FootstepDataListMessage forwardFootstepList = new FootstepDataListMessage();
-   private final FootstepDataListMessage backwardFootstepList = new FootstepDataListMessage();
+   private final FootstepDataListMessage forwardFootstepList = HumanoidMessageTools.createFootstepDataListMessage();
+   private final FootstepDataListMessage backwardFootstepList = HumanoidMessageTools.createFootstepDataListMessage();
 
    private final AtomicReference<FootstepStatusMessage> footstepStatusMessage = new AtomicReference<>(null);
    private final SideDependentList<MovingReferenceFrame> soleFrames;
@@ -126,7 +127,7 @@ public class RepeatedlyWalkFootstepListBehavior extends AbstractBehavior
 
    private static FootstepDataMessage constructFootstepDataMessage(ReferenceFrame frame, double xOffset, double yOffset, RobotSide side)
    {
-      FootstepDataMessage footstepDataMessage = new FootstepDataMessage();
+      FootstepDataMessage footstepDataMessage = HumanoidMessageTools.createFootstepDataMessage();
 
       FramePose3D footstepPose = new FramePose3D();
       footstepPose.setToZero(frame);

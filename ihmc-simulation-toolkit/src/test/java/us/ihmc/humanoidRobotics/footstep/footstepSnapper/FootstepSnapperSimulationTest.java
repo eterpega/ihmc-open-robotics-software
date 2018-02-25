@@ -34,6 +34,7 @@ import us.ihmc.graphicsDescription.yoGraphics.BagOfBalls;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.humanoidRobotics.bipedSupportPolygons.ContactablePlaneBody;
+import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage;
 import us.ihmc.humanoidRobotics.footstep.FootSpoof;
 import us.ihmc.humanoidRobotics.footstep.Footstep;
@@ -74,7 +75,7 @@ public class FootstepSnapperSimulationTest
       InputStream resourceAsStream = getClass().getClassLoader().getResourceAsStream(resourceName);
 
       FootstepPointsDataReader dataReader = new FootstepPointsDataReader(resourceAsStream);
-      FootstepDataMessage footstepData = new FootstepDataMessage();
+      FootstepDataMessage footstepData = HumanoidMessageTools.createFootstepDataMessage();
       FootSpoof spoof = new FootSpoof("basicSpoof");
       FramePose2D desiredPose = new FramePose2D(ReferenceFrame.getWorldFrame());
 

@@ -198,7 +198,7 @@ public abstract class AvatarStraightLegWalkingTest implements MultiRobotTestInte
 
       ThreadTools.sleep(1000);
 
-      FootstepDataListMessage message = new FootstepDataListMessage();
+      FootstepDataListMessage message = HumanoidMessageTools.createFootstepDataListMessage();
       RobotSide robotSide = RobotSide.LEFT;
 
       double distanceTraveled = 0.5 * stepLength;
@@ -279,7 +279,7 @@ public abstract class AvatarStraightLegWalkingTest implements MultiRobotTestInte
 
       double distanceTraveled = 0.5 * starterLength;
 
-      FootstepDataListMessage message = new FootstepDataListMessage();
+      FootstepDataListMessage message = HumanoidMessageTools.createFootstepDataListMessage();
       RobotSide robotSide = RobotSide.LEFT;
 
       int numberOfSteps = stepLengths.size();
@@ -372,7 +372,7 @@ public abstract class AvatarStraightLegWalkingTest implements MultiRobotTestInte
 
       double distanceTraveled = 0.5 * starterLength;
 
-      FootstepDataListMessage message = new FootstepDataListMessage();
+      FootstepDataListMessage message = HumanoidMessageTools.createFootstepDataListMessage();
       RobotSide robotSide = RobotSide.LEFT;
 
       int numberOfSteps = stepLengths.size();
@@ -474,7 +474,7 @@ public abstract class AvatarStraightLegWalkingTest implements MultiRobotTestInte
 
       double distanceTraveled = 0.5 * starterLength;
 
-      FootstepDataListMessage message = new FootstepDataListMessage();
+      FootstepDataListMessage message = HumanoidMessageTools.createFootstepDataListMessage();
       RobotSide robotSide = RobotSide.LEFT;
       // take care of random steps
       for (int stepNumber = 0; stepNumber < numberOfSteps; stepNumber++)
@@ -520,7 +520,7 @@ public abstract class AvatarStraightLegWalkingTest implements MultiRobotTestInte
 
    private FootstepDataMessage createFootstepDataMessage(RobotSide robotSide, FramePoint3D placeToStep)
    {
-      FootstepDataMessage footstepData = new FootstepDataMessage();
+      FootstepDataMessage footstepData = HumanoidMessageTools.createFootstepDataMessage();
 
       FramePoint3D placeToStepInWorld = new FramePoint3D(placeToStep);
       placeToStepInWorld.changeFrame(worldFrame);
@@ -534,7 +534,7 @@ public abstract class AvatarStraightLegWalkingTest implements MultiRobotTestInte
 
    private static FootstepDataListMessage generateFootstepsForCinderBlockField(List<List<FramePose3D>> cinderBlockPoses)
    {
-      FootstepDataListMessage footsteps = new FootstepDataListMessage();
+      FootstepDataListMessage footsteps = HumanoidMessageTools.createFootstepDataListMessage();
 
       int numberOfColumns = cinderBlockPoses.get(0).size();
 
@@ -561,7 +561,7 @@ public abstract class AvatarStraightLegWalkingTest implements MultiRobotTestInte
 
    private static FootstepDataListMessage generateFootstepsForStairs(List<List<FramePose3D>> stepPoses)
    {
-      FootstepDataListMessage footsteps = new FootstepDataListMessage();
+      FootstepDataListMessage footsteps = HumanoidMessageTools.createFootstepDataListMessage();
 
       double stepWidth = 0.275;
       int numberOfStartingSteps = 3;

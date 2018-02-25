@@ -135,7 +135,7 @@ public abstract class EndToEndSpineJointTrajectoryMessageTest implements MultiRo
       double totalTime = 10.0;
       int waypoints = 20;
 
-      SpineTrajectoryMessage message = new SpineTrajectoryMessage();
+      SpineTrajectoryMessage message = HumanoidMessageTools.createSpineTrajectoryMessage();
       for (int jointIdx = 0; jointIdx < numberOfJoints; jointIdx++)
          message.jointspaceTrajectory.jointTrajectoryMessages.add();
 
@@ -174,7 +174,7 @@ public abstract class EndToEndSpineJointTrajectoryMessageTest implements MultiRo
       setupTest();
 
       int waypoints = 100;
-      SpineTrajectoryMessage message = new SpineTrajectoryMessage();
+      SpineTrajectoryMessage message = HumanoidMessageTools.createSpineTrajectoryMessage();
       for (int jointIdx = 0; jointIdx < numberOfJoints; jointIdx++)
       {
          OneDoFJointTrajectoryMessage jointTrajectoryMessage = message.jointspaceTrajectory.jointTrajectoryMessages.add();
@@ -213,7 +213,7 @@ public abstract class EndToEndSpineJointTrajectoryMessageTest implements MultiRo
       SpineTrajectoryMessage[] messages = new SpineTrajectoryMessage[numberOfMessages];
       for (int msgIdx = 0; msgIdx < numberOfMessages; msgIdx++)
       {
-         SpineTrajectoryMessage message = new SpineTrajectoryMessage();
+         SpineTrajectoryMessage message = HumanoidMessageTools.createSpineTrajectoryMessage();
          double timeInMessage = timePerWaypoint;
 
          for (int jointIdx = 0; jointIdx < numberOfJoints; jointIdx++)
@@ -295,7 +295,7 @@ public abstract class EndToEndSpineJointTrajectoryMessageTest implements MultiRo
          trajectoryTime[jointIdx] = random.nextDouble() * maxTime;
       }
 
-      SpineTrajectoryMessage message = new SpineTrajectoryMessage();
+      SpineTrajectoryMessage message = HumanoidMessageTools.createSpineTrajectoryMessage();
       for (int jointIdx = 0; jointIdx < numberOfJoints; jointIdx++)
       {
          int numberOfPoinsForJoint = numberOfPoints[jointIdx];

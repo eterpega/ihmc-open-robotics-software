@@ -24,7 +24,6 @@ public class HighLevelStateMessage extends Packet<HighLevelStateMessage>
 
    public HighLevelStateMessage()
    {
-      setUniqueId(VALID_MESSAGE_DEFAULT_ID);
    }
 
    public byte getHighLevelControllerName()

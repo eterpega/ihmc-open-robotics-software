@@ -85,8 +85,7 @@ public abstract class EndToEndHandLoadBearingTest implements MultiRobotTestInter
       handOrientation.appendYawRotation(-Math.PI / 2.0);
       handOrientation.appendPitchRotation(Math.PI / 2.0);
 
-      HandTrajectoryMessage handTrajectoryMessage1 = new HandTrajectoryMessage();
-      handTrajectoryMessage1.setRobotSide(RobotSide.LEFT.toByte());
+      HandTrajectoryMessage handTrajectoryMessage1 = HumanoidMessageTools.createHandTrajectoryMessage(RobotSide.LEFT);
       SE3TrajectoryMessage se3Trajectory1 = handTrajectoryMessage1.getSe3Trajectory();
       se3Trajectory1.getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(chestFrame));
       se3Trajectory1.getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(worldFrame));
@@ -95,8 +94,7 @@ public abstract class EndToEndHandLoadBearingTest implements MultiRobotTestInter
       success = drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(2.0);
       assertTrue(success);
 
-      HandTrajectoryMessage handTrajectoryMessage2 = new HandTrajectoryMessage();
-      handTrajectoryMessage2.setRobotSide(RobotSide.LEFT.toByte());
+      HandTrajectoryMessage handTrajectoryMessage2 = HumanoidMessageTools.createHandTrajectoryMessage(RobotSide.LEFT);
       SE3TrajectoryMessage se3Trajectory2 = handTrajectoryMessage2.getSe3Trajectory();
       se3Trajectory2.getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(chestFrame));
       se3Trajectory2.getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(worldFrame));

@@ -8,6 +8,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import us.ihmc.communication.packetCommunicator.PacketCommunicator;
 import us.ihmc.concurrent.Builder;
 import us.ihmc.concurrent.ConcurrentCopier;
+import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.HandJointAnglePacket;
 import us.ihmc.humanoidRobotics.communication.streamingData.HumanoidGlobalDataProducer;
 import us.ihmc.robotics.robotSide.RobotSide;
@@ -118,7 +119,7 @@ public class HandJointAngleCommunicator implements CloseableAndDisposable
       @Override
       public HandJointAnglePacket newInstance()
       {
-         return new HandJointAnglePacket();
+         return HumanoidMessageTools.createHandJointAnglePacket();
       }
    };
 

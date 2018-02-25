@@ -147,7 +147,7 @@ public class RigidBodyControlManagerTest
       Vector3D linearVelocity = EuclidCoreRandomTools.nextVector3D(random);
       Vector3D angularVelocity = EuclidCoreRandomTools.nextVector3D(random);
 
-      SE3TrajectoryMessage message = new SE3TrajectoryMessage();
+      SE3TrajectoryMessage message = HumanoidMessageTools.createSE3TrajectoryMessage();
       message.getFrameInformation().setTrajectoryReferenceFrameId(worldFrame.getNameBasedHashCode());
       message.taskspaceTrajectoryPoints.add().set(HumanoidMessageTools.createSE3TrajectoryPointMessage(trajectoryTime, position, orientation, linearVelocity, angularVelocity));
 
@@ -299,7 +299,7 @@ public class RigidBodyControlManagerTest
          Vector3D linearVelocity = EuclidCoreRandomTools.nextVector3D(random);
          Vector3D angularVelocity = EuclidCoreRandomTools.nextVector3D(random);
 
-         SE3TrajectoryMessage message = new SE3TrajectoryMessage();
+         SE3TrajectoryMessage message = HumanoidMessageTools.createSE3TrajectoryMessage();
          message.getFrameInformation().setTrajectoryReferenceFrameId(worldFrame.getNameBasedHashCode());
          message.taskspaceTrajectoryPoints.add().set(HumanoidMessageTools.createSE3TrajectoryPointMessage(trajectoryTime, position, orientation, linearVelocity, angularVelocity));
          message.getQueueingProperties().setExecutionMode(ExecutionMode.OVERRIDE.toByte());
@@ -413,7 +413,7 @@ public class RigidBodyControlManagerTest
       Point3D controlFramePosition = EuclidCoreRandomTools.nextPoint3D(random);
       Quaternion controlFrameOrientation = EuclidCoreRandomTools.nextQuaternion(random);
 
-      SE3TrajectoryMessage message = new SE3TrajectoryMessage();
+      SE3TrajectoryMessage message = HumanoidMessageTools.createSE3TrajectoryMessage();
       message.getFrameInformation().setTrajectoryReferenceFrameId(worldFrame.getNameBasedHashCode());
       message.controlFramePose.setPosition(controlFramePosition);
       message.controlFramePose.setOrientation(controlFrameOrientation);

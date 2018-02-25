@@ -15,6 +15,7 @@ import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.humanoidBehaviors.behaviors.AbstractBehavior;
 import us.ihmc.humanoidBehaviors.communication.CommunicationBridgeInterface;
 import us.ihmc.humanoidBehaviors.communication.ConcurrentListeningQueue;
+import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.humanoidRobotics.communication.packets.KinematicsToolboxOutputConverter;
 import us.ihmc.humanoidRobotics.communication.packets.wholebody.WholeBodyTrajectoryMessage;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
@@ -358,7 +359,7 @@ public class WholeBodyInverseKinematicsBehavior extends AbstractBehavior
             {
                solutionSentToController = newestSolution;
                outputConverter.setTrajectoryTime(trajectoryTime.getDoubleValue());
-               WholeBodyTrajectoryMessage message = new WholeBodyTrajectoryMessage();
+               WholeBodyTrajectoryMessage message = HumanoidMessageTools.createWholeBodyTrajectoryMessage();
                message.setDestination(PacketDestination.CONTROLLER);
                outputConverter.updateFullRobotModel(newestSolution);
                outputConverter.setMessageToCreate(message);

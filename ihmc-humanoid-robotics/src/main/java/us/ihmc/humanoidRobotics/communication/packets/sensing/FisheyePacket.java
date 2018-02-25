@@ -2,11 +2,12 @@ package us.ihmc.humanoidRobotics.communication.packets.sensing;
 
 import us.ihmc.communication.packets.HighBandwidthPacket;
 import us.ihmc.communication.packets.Packet;
+import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 
 @HighBandwidthPacket
 public class FisheyePacket extends Packet<FisheyePacket>
 {
-   public VideoPacket videoPacket = new VideoPacket();
+   public VideoPacket videoPacket = HumanoidMessageTools.createVideoPacket();
 
    public FisheyePacket()
    {

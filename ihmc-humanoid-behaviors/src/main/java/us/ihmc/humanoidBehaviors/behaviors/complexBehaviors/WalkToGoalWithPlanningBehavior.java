@@ -166,7 +166,7 @@ public class WalkToGoalWithPlanningBehavior extends AbstractBehavior
       if (plan.pathPlan == null || plan.pathPlan.isEmpty())
          return;
       int size = plan.pathPlan.size();
-      SnapFootstepPacket planVisualizationPacket = new SnapFootstepPacket();
+      SnapFootstepPacket planVisualizationPacket = HumanoidMessageTools.createSnapFootstepPacket();
 
       for (int i = 0; i < size; i++)
       {
@@ -313,7 +313,7 @@ public class WalkToGoalWithPlanningBehavior extends AbstractBehavior
 
    private void requestSearchStop()
    {
-      FootstepPlanRequestPacket stopSearchRequestPacket = HumanoidMessageTools.createFootstepPlanRequestPacket(FootstepPlanRequestType.STOP_SEARCH, new FootstepDataMessage(), 0.0, null);
+      FootstepPlanRequestPacket stopSearchRequestPacket = HumanoidMessageTools.createFootstepPlanRequestPacket(FootstepPlanRequestType.STOP_SEARCH, HumanoidMessageTools.createFootstepDataMessage(), 0.0, null);
       communicationBridge.sendPacket(stopSearchRequestPacket);
       waitingForValidPlan.set(false);
    }
@@ -329,7 +329,7 @@ public class WalkToGoalWithPlanningBehavior extends AbstractBehavior
    private void sendStepsToController()
    {
       int size = currentPlan.footstepUnknown.size();
-      FootstepDataListMessage outgoingFootsteps = new FootstepDataListMessage();
+      FootstepDataListMessage outgoingFootsteps = HumanoidMessageTools.createFootstepDataListMessage();
       for (int i = 0; i < size; i++)
       {
          if (executeUnknownFirstStep.getBooleanValue() && i == 0)

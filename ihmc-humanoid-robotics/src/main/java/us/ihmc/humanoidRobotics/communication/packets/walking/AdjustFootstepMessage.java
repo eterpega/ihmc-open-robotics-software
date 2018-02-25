@@ -42,7 +42,6 @@ public class AdjustFootstepMessage extends Packet<AdjustFootstepMessage>
     */
    public AdjustFootstepMessage()
    {
-      uniqueId = VALID_MESSAGE_DEFAULT_ID;
    }
 
    public AdjustFootstepMessage(AdjustFootstepMessage other)

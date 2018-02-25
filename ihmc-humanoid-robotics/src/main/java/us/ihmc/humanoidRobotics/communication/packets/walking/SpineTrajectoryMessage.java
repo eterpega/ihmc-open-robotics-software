@@ -2,13 +2,14 @@ package us.ihmc.humanoidRobotics.communication.packets.walking;
 
 import us.ihmc.communication.packets.Packet;
 import us.ihmc.communication.ros.generators.RosExportedField;
+import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.humanoidRobotics.communication.packets.JointspaceTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.PacketValidityChecker;
 
 public class SpineTrajectoryMessage extends Packet<SpineTrajectoryMessage>
 {
    @RosExportedField(documentation = "Trajectories for each joint.")
-   public JointspaceTrajectoryMessage jointspaceTrajectory = new JointspaceTrajectoryMessage();
+   public JointspaceTrajectoryMessage jointspaceTrajectory = HumanoidMessageTools.createJointspaceTrajectoryMessage();
 
    /**
     * Empty constructor for serialization. Set the id of the message to
@@ -16,7 +17,6 @@ public class SpineTrajectoryMessage extends Packet<SpineTrajectoryMessage>
     */
    public SpineTrajectoryMessage()
    {
-      setUniqueId(VALID_MESSAGE_DEFAULT_ID);
    }
 
    /**
@@ -33,7 +33,7 @@ public class SpineTrajectoryMessage extends Packet<SpineTrajectoryMessage>
    @Override
    public void set(SpineTrajectoryMessage other)
    {
-      jointspaceTrajectory = new JointspaceTrajectoryMessage();
+      jointspaceTrajectory = HumanoidMessageTools.createJointspaceTrajectoryMessage();
       jointspaceTrajectory.set(other.jointspaceTrajectory);
       setPacketInformation(other);
    }

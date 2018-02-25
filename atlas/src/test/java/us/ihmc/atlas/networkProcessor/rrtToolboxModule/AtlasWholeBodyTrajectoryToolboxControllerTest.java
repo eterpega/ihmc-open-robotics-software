@@ -73,7 +73,7 @@ public class AtlasWholeBodyTrajectoryToolboxControllerTest extends AvatarWholeBo
 
       // WBT toolbox configuration message
       FullHumanoidRobotModel fullRobotModel = createFullRobotModelAtInitialConfiguration();
-      WholeBodyTrajectoryToolboxConfigurationMessage configuration = new WholeBodyTrajectoryToolboxConfigurationMessage();
+      WholeBodyTrajectoryToolboxConfigurationMessage configuration = HumanoidMessageTools.createWholeBodyTrajectoryToolboxConfigurationMessage();
       configuration.initialConfiguration = HumanoidMessageTools.createKinematicsToolboxOutputStatus(fullRobotModel);
       configuration.setMaximumExpansionSize(1000);
 

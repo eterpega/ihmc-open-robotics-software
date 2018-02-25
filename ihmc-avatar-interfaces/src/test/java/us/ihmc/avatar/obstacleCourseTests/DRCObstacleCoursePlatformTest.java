@@ -482,7 +482,7 @@ public abstract class DRCObstacleCoursePlatformTest implements MultiRobotTestInt
    {
       Quaternion orientation = new Quaternion();
       Vector3D verticalVector = new Vector3D(0.0, 0.0, 1.0);
-      FootstepDataListMessage footstepDataList = new FootstepDataListMessage();
+      FootstepDataListMessage footstepDataList = HumanoidMessageTools.createFootstepDataListMessage();
       RotationTools.computeQuaternionFromYawAndZNormal(3.0/4.0*Math.PI, verticalVector, orientation);
       footstepDataList.footstepDataList.add().set(HumanoidMessageTools.createFootstepDataMessage(RobotSide.LEFT, new Point3D(-3.418, -5.012, 0.156), new Quaternion(orientation)));
       footstepDataList.footstepDataList.add().set(HumanoidMessageTools.createFootstepDataMessage(RobotSide.RIGHT, new Point3D(-3.238, -4.832, 0.0), new Quaternion(orientation)));
@@ -499,7 +499,7 @@ public abstract class DRCObstacleCoursePlatformTest implements MultiRobotTestInt
    {
       Quaternion orientation = new Quaternion();
       Vector3D verticalVector = new Vector3D(0.0, 0.0, 1.0);
-      FootstepDataListMessage footstepDataList = new FootstepDataListMessage();
+      FootstepDataListMessage footstepDataList = HumanoidMessageTools.createFootstepDataListMessage();
       RotationTools.computeQuaternionFromYawAndZNormal(3.0/4.0*Math.PI, verticalVector, orientation);
       footstepDataList.footstepDataList.add().set(HumanoidMessageTools.createFootstepDataMessage(RobotSide.LEFT, new Point3D(-4.318, -3.912, 0.0), new Quaternion(orientation)));
       footstepDataList.footstepDataList.add().set(HumanoidMessageTools.createFootstepDataMessage(RobotSide.RIGHT, new Point3D(-4.198, -3.792, 0.0), new Quaternion(orientation)));

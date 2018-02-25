@@ -19,7 +19,6 @@ public class ClearDelayQueueMessage extends Packet<ClearDelayQueueMessage>
     */
    public ClearDelayQueueMessage()
    {
-      uniqueId = VALID_MESSAGE_DEFAULT_ID;
    }
 
    @Override

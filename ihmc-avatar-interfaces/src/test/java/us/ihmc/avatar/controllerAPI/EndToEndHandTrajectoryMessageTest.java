@@ -197,8 +197,7 @@ public abstract class EndToEndHandTrajectoryMessageTest implements MultiRobotTes
       position.scale(scale);
 
       {
-         HandTrajectoryMessage handTrajectoryMessage = new HandTrajectoryMessage();
-         handTrajectoryMessage.setRobotSide(robotSide.toByte());
+         HandTrajectoryMessage handTrajectoryMessage = HumanoidMessageTools.createHandTrajectoryMessage(robotSide);
          handTrajectoryMessage.getSe3Trajectory().controlFramePose.setPosition(new Point3D(0.0, 0.0, 0.0));
          handTrajectoryMessage.getSe3Trajectory().setUseCustomControlFrame(true);
          handTrajectoryMessage.getSe3Trajectory().taskspaceTrajectoryPoints.add().set(HumanoidMessageTools.createSE3TrajectoryPointMessage(trajectoryTime, position, orientation, new Vector3D(), new Vector3D()));
@@ -218,8 +217,7 @@ public abstract class EndToEndHandTrajectoryMessageTest implements MultiRobotTes
 
       // This should not change the hand pose since the control frame change is compensated by a desireds change.
       {
-         HandTrajectoryMessage handTrajectoryMessage = new HandTrajectoryMessage();
-         handTrajectoryMessage.setRobotSide(robotSide.toByte());
+         HandTrajectoryMessage handTrajectoryMessage = HumanoidMessageTools.createHandTrajectoryMessage(robotSide);
 
          handTrajectoryMessage.getSe3Trajectory().setUseCustomControlFrame(true);
          Point3D framePosition = EuclidCoreRandomTools.nextPoint3D(random, -0.1, 0.1);
@@ -292,8 +290,7 @@ public abstract class EndToEndHandTrajectoryMessageTest implements MultiRobotTes
          TaskspaceToJointspaceCalculator taskspaceToJointspaceCalculator = createTaskspaceToJointspaceCalculator(fullRobotModel, robotSide);
          FrameQuaternion tempOrientation = computeBestOrientationForDesiredPosition(fullRobotModel, robotSide, circleCenter, taskspaceToJointspaceCalculator, 500);
 
-         HandTrajectoryMessage handTrajectoryMessage = new HandTrajectoryMessage();
-         handTrajectoryMessage.setRobotSide(robotSide.toByte());
+         HandTrajectoryMessage handTrajectoryMessage = HumanoidMessageTools.createHandTrajectoryMessage(robotSide);
          handTrajectoryMessage.getSe3Trajectory().getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(chestFrame));
          handTrajectoryMessage.getSe3Trajectory().getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(worldFrame));
 
@@ -415,8 +412,7 @@ public abstract class EndToEndHandTrajectoryMessageTest implements MultiRobotTes
 
       {
          int numberOfPoints = RigidBodyTaskspaceControlState.maxPoints;
-         HandTrajectoryMessage message = new HandTrajectoryMessage();
-         message.setRobotSide(robotSide.toByte());
+         HandTrajectoryMessage message = HumanoidMessageTools.createHandTrajectoryMessage(robotSide);
          ReferenceFrame chestFrame = fullRobotModel.getChest().getBodyFixedFrame();
          message.getSe3Trajectory().getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(chestFrame));
          message.getSe3Trajectory().getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(worldFrame));
@@ -438,8 +434,7 @@ public abstract class EndToEndHandTrajectoryMessageTest implements MultiRobotTes
 
       {
          int numberOfPoints = RigidBodyTaskspaceControlState.maxPoints - 1;
-         HandTrajectoryMessage message = new HandTrajectoryMessage();
-         message.setRobotSide(robotSide.toByte());
+         HandTrajectoryMessage message = HumanoidMessageTools.createHandTrajectoryMessage(robotSide);
          ReferenceFrame chestFrame = fullRobotModel.getChest().getBodyFixedFrame();
          message.getSe3Trajectory().getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(chestFrame));
          message.getSe3Trajectory().getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(worldFrame));
@@ -528,8 +523,7 @@ public abstract class EndToEndHandTrajectoryMessageTest implements MultiRobotTes
 
       for (int messageIndex = 0; messageIndex < numberOfMessages; messageIndex++)
       {
-         HandTrajectoryMessage handTrajectoryMessage = new HandTrajectoryMessage();
-         handTrajectoryMessage.setRobotSide(robotSide.toByte());
+         HandTrajectoryMessage handTrajectoryMessage = HumanoidMessageTools.createHandTrajectoryMessage(robotSide);
          handTrajectoryMessage.getSe3Trajectory().getFrameInformation().setTrajectoryReferenceFrameId(CommonReferenceFrameIds.CHEST_FRAME.getHashId());
          handTrajectoryMessage.getSe3Trajectory().getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(worldFrame));
 
@@ -717,8 +711,7 @@ public abstract class EndToEndHandTrajectoryMessageTest implements MultiRobotTes
 
          for (int messageIndex = 0; messageIndex < numberOfMessages; messageIndex++)
          {
-            HandTrajectoryMessage handTrajectoryMessage = new HandTrajectoryMessage();
-            handTrajectoryMessage.setRobotSide(robotSide.toByte());
+            HandTrajectoryMessage handTrajectoryMessage = HumanoidMessageTools.createHandTrajectoryMessage(robotSide);
             handTrajectoryMessage.getSe3Trajectory().getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(chestFrame));
             handTrajectoryMessage.getSe3Trajectory().getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(worldFrame));
             handTrajectoryMessage.setUniqueId(id);
@@ -838,8 +831,7 @@ public abstract class EndToEndHandTrajectoryMessageTest implements MultiRobotTes
 
          for (int messageIndex = 0; messageIndex < numberOfMessages; messageIndex++)
          {
-            HandTrajectoryMessage handTrajectoryMessage = new HandTrajectoryMessage();
-            handTrajectoryMessage.setRobotSide(robotSide.toByte());
+            HandTrajectoryMessage handTrajectoryMessage = HumanoidMessageTools.createHandTrajectoryMessage(robotSide);
             handTrajectoryMessage.setUniqueId(id);
 
             if (messageIndex > 0)
@@ -1022,7 +1014,7 @@ public abstract class EndToEndHandTrajectoryMessageTest implements MultiRobotTes
             actualJointPositions[i] = armJoints[i].getQ();
          }
 
-         drcSimulationTestHelper.send(new StopAllTrajectoryMessage());
+         drcSimulationTestHelper.send(HumanoidMessageTools.createStopAllTrajectoryMessage());
 
          success = drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(0.05);
          assertTrue(success);

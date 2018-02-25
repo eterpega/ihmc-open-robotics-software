@@ -11,6 +11,7 @@ import us.ihmc.communication.ros.generators.RosMessagePacket;
 import us.ihmc.euclid.referenceFrame.FrameQuaternion;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.humanoidRobotics.communication.packets.PacketValidityChecker;
 import us.ihmc.idl.TempPreallocatedList;
 import us.ihmc.robotics.robotSide.RobotSide;
@@ -23,7 +24,7 @@ public class FootstepDataListMessage extends Packet<FootstepDataListMessage>
    public static final byte EXECUTION_TIMING_CONTROL_ABSOLUTE_TIMINGS = 1;
 
    @RosExportedField(documentation = "Defines the list of footstep to perform.")
-   public TempPreallocatedList<FootstepDataMessage> footstepDataList = new TempPreallocatedList<>(FootstepDataMessage.class, FootstepDataMessage::new, 100);
+   public TempPreallocatedList<FootstepDataMessage> footstepDataList = new TempPreallocatedList<>(FootstepDataMessage.class, HumanoidMessageTools::createFootstepDataMessage, 100);
 
    @RosExportedField(documentation = "When CONTROL_DURATIONS is chosen:"
          + "\n The controller will try to achieve the swingDuration and the transferDuration specified in the message. If a"
@@ -64,7 +65,6 @@ public class FootstepDataListMessage extends Packet<FootstepDataListMessage>
     */
    public FootstepDataListMessage()
    {
-      setUniqueId(VALID_MESSAGE_DEFAULT_ID);
    }
 
    public FootstepDataListMessage(FootstepDataListMessage other)

@@ -4,6 +4,7 @@ import us.ihmc.communication.packets.Packet;
 import us.ihmc.communication.ros.generators.RosExportedField;
 import us.ihmc.communication.ros.generators.RosMessagePacket;
 import us.ihmc.humanoidRobotics.communication.packets.DesiredAccelerationsMessage;
+import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.humanoidRobotics.communication.packets.PacketValidityChecker;
 
 @RosMessagePacket(documentation = "This message gives the user the option to bypass IHMC feedback controllers for the spine joints by sending desired joint accelerations."
@@ -12,7 +13,7 @@ import us.ihmc.humanoidRobotics.communication.packets.PacketValidityChecker;
 public class SpineDesiredAccelerationsMessage extends Packet<SpineDesiredAccelerationsMessage>
 {
    @RosExportedField(documentation = "The desired joint acceleration information.")
-   public DesiredAccelerationsMessage desiredAccelerations;
+   public DesiredAccelerationsMessage desiredAccelerations = HumanoidMessageTools.createDesiredAccelerationsMessage();
 
    /**
     * Empty constructor for serialization. Set the id of the message to
@@ -20,21 +21,18 @@ public class SpineDesiredAccelerationsMessage extends Packet<SpineDesiredAcceler
     */
    public SpineDesiredAccelerationsMessage()
    {
-      desiredAccelerations = new DesiredAccelerationsMessage();
-      setUniqueId(VALID_MESSAGE_DEFAULT_ID);
    }
 
    @Override
    public void set(SpineDesiredAccelerationsMessage other)
    {
-      desiredAccelerations = new DesiredAccelerationsMessage();
       desiredAccelerations.set(other.desiredAccelerations);
       setPacketInformation(other);
    }
 
    public void setDesiredAccelerations(DesiredAccelerationsMessage desiredAccelerations)
    {
-      this.desiredAccelerations = desiredAccelerations;
+      this.desiredAccelerations.set(desiredAccelerations);
    }
 
    public DesiredAccelerationsMessage getDesiredAccelerations()
@@ -46,8 +44,7 @@ public class SpineDesiredAccelerationsMessage extends Packet<SpineDesiredAcceler
    public void setUniqueId(long uniqueId)
    {
       super.setUniqueId(uniqueId);
-      if (desiredAccelerations != null)
-         desiredAccelerations.setUniqueId(uniqueId);
+      desiredAccelerations.setUniqueId(uniqueId);
    }
 
    @Override

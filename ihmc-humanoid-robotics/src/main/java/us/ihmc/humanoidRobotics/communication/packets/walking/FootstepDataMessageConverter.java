@@ -22,7 +22,7 @@ public class FootstepDataMessageConverter
       if (footstepPlan == null)
          return null;
 
-      FootstepDataListMessage footstepDataListMessage = new FootstepDataListMessage();
+      FootstepDataListMessage footstepDataListMessage = HumanoidMessageTools.createFootstepDataListMessage();
       footstepDataListMessage.setDefaultSwingDuration(swingTime);
       footstepDataListMessage.setDefaultTransferDuration(transferTime);
 

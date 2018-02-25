@@ -190,7 +190,7 @@ public class AtlasFinalsWorldStairsTest
    {
       Quaternion orientation = new Quaternion();
       Vector3D verticalVector = new Vector3D(0.0, 0.0, 1.0);
-      FootstepDataListMessage footstepDataList = new FootstepDataListMessage();
+      FootstepDataListMessage footstepDataList = HumanoidMessageTools.createFootstepDataListMessage();
 
       Point3D startingLocation = new Point3D(1.0, -13.53, 0.0);
       double directionYaw = -90.0;

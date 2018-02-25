@@ -1,7 +1,6 @@
 package us.ihmc.humanoidRobotics.communication.packets.manipulation;
 
 import us.ihmc.communication.packets.Packet;
-import us.ihmc.communication.packets.PacketDestination;
 
 /**
  *
@@ -13,7 +12,6 @@ public class AtlasElectricMotorAutoEnableFlagPacket extends Packet<AtlasElectric
 
    public AtlasElectricMotorAutoEnableFlagPacket()
    {
-      setDestination(PacketDestination.CONTROLLER.ordinal());
    }
 
    @Override

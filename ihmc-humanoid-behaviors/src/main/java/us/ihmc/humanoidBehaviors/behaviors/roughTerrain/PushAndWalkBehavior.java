@@ -209,7 +209,7 @@ public class PushAndWalkBehavior extends AbstractBehavior
       FrameQuaternion orientation = new FrameQuaternion(stanceSoleFrame, yawAngleChange, 0.0, 0.0);
       orientation.changeFrame(ReferenceFrame.getWorldFrame());
 
-      FootstepDataListMessage footsteps = new FootstepDataListMessage();
+      FootstepDataListMessage footsteps = HumanoidMessageTools.createFootstepDataListMessage();
       FootstepDataMessage footstep = HumanoidMessageTools.createFootstepDataMessage(swingSide, location, orientation);
       footsteps.footstepDataList.add().set(footstep);
       sendPacketToController(footsteps);

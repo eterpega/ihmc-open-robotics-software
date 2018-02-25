@@ -1,7 +1,6 @@
 package us.ihmc.humanoidRobotics.communication.packets.manipulation;
 
 import us.ihmc.communication.packets.Packet;
-import us.ihmc.communication.packets.PacketDestination;
 import us.ihmc.communication.ros.generators.RosExportedField;
 import us.ihmc.communication.ros.generators.RosMessagePacket;
 
@@ -18,8 +17,6 @@ public class AtlasWristSensorCalibrationRequestPacket extends Packet<AtlasWristS
 
    public AtlasWristSensorCalibrationRequestPacket()
    {
-      setDestination(PacketDestination.CONTROLLER.ordinal());
-      // Empty constructor for deserialization
    }
 
    @Override

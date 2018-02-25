@@ -25,7 +25,6 @@ public class RigidBodyExplorationConfigurationMessage extends Packet<RigidBodyEx
     */
    public RigidBodyExplorationConfigurationMessage()
    {
-      setUniqueId(VALID_MESSAGE_DEFAULT_ID);
    }
 
    @Override

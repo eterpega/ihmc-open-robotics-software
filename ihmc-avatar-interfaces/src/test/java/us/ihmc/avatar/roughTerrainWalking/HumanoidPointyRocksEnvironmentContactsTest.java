@@ -98,7 +98,7 @@ public abstract class HumanoidPointyRocksEnvironmentContactsTest implements Mult
          }
 
          FootstepDataListMessage message = HumanoidMessageTools.createFootstepDataListMessage(swingTime, transferTime);
-         FootstepDataMessage footstepData = new FootstepDataMessage();
+         FootstepDataMessage footstepData = HumanoidMessageTools.createFootstepDataMessage();
 
          Point3D position = new Point3D(stepLocations.get(i));
          RobotSide robotSide = position.getY() > 0.0 ? RobotSide.LEFT : RobotSide.RIGHT;
@@ -160,7 +160,7 @@ public abstract class HumanoidPointyRocksEnvironmentContactsTest implements Mult
          }
 
          FootstepDataListMessage message = HumanoidMessageTools.createFootstepDataListMessage(swingTime, transferTime);
-         FootstepDataMessage footstepData = new FootstepDataMessage();
+         FootstepDataMessage footstepData = HumanoidMessageTools.createFootstepDataMessage();
 
          Point3D position = new Point3D(stepLocations.get(i));
          RobotSide robotSide = position.getY() > 0.0 ? RobotSide.LEFT : RobotSide.RIGHT;
@@ -271,12 +271,11 @@ public abstract class HumanoidPointyRocksEnvironmentContactsTest implements Mult
       // bring the arms in a stretched position
       for (RobotSide robotSide : RobotSide.values)
       {
-         ArmTrajectoryMessage armTrajectoryMessage = new ArmTrajectoryMessage();
-         armTrajectoryMessage.robotSide = robotSide.toByte();
+         ArmTrajectoryMessage armTrajectoryMessage = HumanoidMessageTools.createArmTrajectoryMessage(robotSide);
          double[] armConfig = straightArmConfigs.get(robotSide);
          for (int i = 0; i < armConfig.length; i++)
          {
-            TrajectoryPoint1DMessage trajectoryPoint = new TrajectoryPoint1DMessage();
+            TrajectoryPoint1DMessage trajectoryPoint = HumanoidMessageTools.createTrajectoryPoint1DMessage();
             trajectoryPoint.position = armConfig[i];
             trajectoryPoint.time = 0.5;
             OneDoFJointTrajectoryMessage jointTrajectory = new OneDoFJointTrajectoryMessage();
