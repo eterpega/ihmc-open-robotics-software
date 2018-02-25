@@ -488,15 +488,11 @@ public class HumanoidMessageTools
     */
    public static RigidBodyExplorationConfigurationMessage createRigidBodyExplorationConfigurationMessage(RigidBody rigidBody)
    {
-      RigidBodyExplorationConfigurationMessage message = new RigidBodyExplorationConfigurationMessage();
-      message.rigidBodyNameBasedHashCode = rigidBody.getNameBasedHashCode();
-
       ConfigurationSpaceName[] configurations = {ConfigurationSpaceName.X, ConfigurationSpaceName.Y, ConfigurationSpaceName.Z, ConfigurationSpaceName.YAW,
             ConfigurationSpaceName.PITCH, ConfigurationSpaceName.ROLL};
       double[] regionAmplitude = new double[] {0, 0, 0, 0, 0, 0};
-      message.setExplorationConfigurationSpaces(ConfigurationSpaceName.toBytes(configurations), regionAmplitude);
 
-      return message;
+      return createRigidBodyExplorationConfigurationMessage(rigidBody, configurations, regionAmplitude);
    }
 
    /**
@@ -518,7 +514,22 @@ public class HumanoidMessageTools
          throw new RuntimeException("Inconsistent array lengths: unconstrainedDegreesOfFreedom.length = " + degreesOfFreedomToExplore.length);
 
       message.rigidBodyNameBasedHashCode = rigidBody.getNameBasedHashCode();
-      message.setExplorationConfigurationSpaces(ConfigurationSpaceName.toBytes(degreesOfFreedomToExplore), explorationRangeAmplitudes);
+      byte[] degreesOfFreedomToExplore1 = ConfigurationSpaceName.toBytes(degreesOfFreedomToExplore);
+      if (degreesOfFreedomToExplore1.length != explorationRangeAmplitudes.length)
+         throw new RuntimeException("Inconsistent array lengths: unconstrainedDegreesOfFreedom.length = " + degreesOfFreedomToExplore1.length
+               + ", explorationRangeLowerLimits.length = ");
+
+      message.configurationSpaceNamesToExplore.reset();
+      message.explorationRangeUpperLimits.reset();
+      message.explorationRangeLowerLimits.reset();
+
+      message.configurationSpaceNamesToExplore.add(degreesOfFreedomToExplore1);
+
+      for (int i = 0; i < degreesOfFreedomToExplore1.length; i++)
+      {
+         message.explorationRangeUpperLimits.add(explorationRangeAmplitudes[i]);
+         message.explorationRangeLowerLimits.add(-explorationRangeAmplitudes[i]);
+      }
 
       return message;
    }
@@ -533,8 +544,18 @@ public class HumanoidMessageTools
          throw new RuntimeException("Inconsistent array lengths: unconstrainedDegreesOfFreedom.length = " + degreesOfFreedomToExplore.length);
 
       message.rigidBodyNameBasedHashCode = rigidBody.getNameBasedHashCode();
-      message.setExplorationConfigurationSpaces(ConfigurationSpaceName.toBytes(degreesOfFreedomToExplore), explorationRangeUpperLimits,
-                                                explorationRangeLowerLimits);
+      byte[] degreesOfFreedomToExplore1 = ConfigurationSpaceName.toBytes(degreesOfFreedomToExplore);
+      if (degreesOfFreedomToExplore1.length != explorationRangeUpperLimits.length || degreesOfFreedomToExplore1.length != explorationRangeLowerLimits.length)
+         throw new RuntimeException("Inconsistent array lengths: unconstrainedDegreesOfFreedom.length = " + degreesOfFreedomToExplore1.length
+               + ", explorationRangeLowerLimits.length = ");
+      
+      message.configurationSpaceNamesToExplore.reset();
+      message.explorationRangeUpperLimits.reset();
+      message.explorationRangeLowerLimits.reset();
+      
+      message.configurationSpaceNamesToExplore.add(degreesOfFreedomToExplore1);
+      message.explorationRangeUpperLimits.add(explorationRangeUpperLimits);
+      message.explorationRangeLowerLimits.add(explorationRangeLowerLimits);
 
       return message;
    }
@@ -588,7 +609,7 @@ public class HumanoidMessageTools
       message.endEffectorNameBasedHashCode = endEffector.getNameBasedHashCode();
       if (waypointTimes.length != waypoints.length)
          throw new RuntimeException("Inconsistent array lengths.");
-      
+
       message.waypointTimes.reset();
       message.waypointTimes.add(waypointTimes);
       MessageTools.copyData(waypoints, message.waypoints);
@@ -786,23 +807,23 @@ public class HumanoidMessageTools
    {
       FootstepPlanningRequestPacket message = new FootstepPlanningRequestPacket();
       message.initialStanceRobotSide = initialStanceSide.toByte();
-      
+
       FramePoint3D initialFramePoint = new FramePoint3D(initialStanceFootPose.getPosition());
       initialFramePoint.changeFrame(ReferenceFrame.getWorldFrame());
       message.stanceFootPositionInWorld = new Point3D32(initialFramePoint);
-      
+
       FrameQuaternion initialFrameOrientation = new FrameQuaternion(initialStanceFootPose.getOrientation());
       initialFrameOrientation.changeFrame(ReferenceFrame.getWorldFrame());
       message.stanceFootOrientationInWorld = new Quaternion32(initialFrameOrientation);
-      
+
       FramePoint3D goalFramePoint = new FramePoint3D(goalPose.getPosition());
       goalFramePoint.changeFrame(ReferenceFrame.getWorldFrame());
       message.goalPositionInWorld = new Point3D32(goalFramePoint);
-      
+
       FrameQuaternion goalFrameOrientation = new FrameQuaternion(goalPose.getOrientation());
       goalFrameOrientation.changeFrame(ReferenceFrame.getWorldFrame());
       message.goalOrientationInWorld = new Quaternion32(goalFrameOrientation);
-      
+
       message.requestedFootstepPlannerType = requestedPlannerType.toByte();
       return message;
    }
@@ -1030,7 +1051,8 @@ public class HumanoidMessageTools
    {
       EuclideanTrajectoryMessage message = new EuclideanTrajectoryMessage();
       if (numberOfTrajectoryPoints > message.taskspaceTrajectoryPoints.capacity())
-         throw new ArrayIndexOutOfBoundsException("Attempted to add " + numberOfTrajectoryPoints + " elements while max capacity is " + message.taskspaceTrajectoryPoints.capacity());
+         throw new ArrayIndexOutOfBoundsException("Attempted to add " + numberOfTrajectoryPoints + " elements while max capacity is "
+               + message.taskspaceTrajectoryPoints.capacity());
       for (int i = 0; i < numberOfTrajectoryPoints; i++)
          message.taskspaceTrajectoryPoints.add();
       return message;
@@ -1202,7 +1224,8 @@ public class HumanoidMessageTools
    {
       SO3TrajectoryMessage message = new SO3TrajectoryMessage();
       if (numberOfTrajectoryPoints > message.taskspaceTrajectoryPoints.capacity())
-         throw new ArrayIndexOutOfBoundsException("Attempted to add " + numberOfTrajectoryPoints + " elements while max capacity is " + message.taskspaceTrajectoryPoints.capacity());
+         throw new ArrayIndexOutOfBoundsException("Attempted to add " + numberOfTrajectoryPoints + " elements while max capacity is "
+               + message.taskspaceTrajectoryPoints.capacity());
       for (int i = 0; i < numberOfTrajectoryPoints; i++)
          message.taskspaceTrajectoryPoints.add();
       return message;
@@ -1331,7 +1354,8 @@ public class HumanoidMessageTools
 
    public static KinematicsToolboxOutputStatus createKinematicsToolboxOutputStatus(FullHumanoidRobotModel fullRobotModel)
    {
-      return MessageTools.createKinematicsToolboxOutputStatus(fullRobotModel.getRootJoint(), FullRobotModelUtils.getAllJointsExcludingHands(fullRobotModel), false);
+      return MessageTools.createKinematicsToolboxOutputStatus(fullRobotModel.getRootJoint(), FullRobotModelUtils.getAllJointsExcludingHands(fullRobotModel),
+                                                              false);
    }
 
    public static HumanoidBehaviorTypePacket createHumanoidBehaviorTypePacket(HumanoidBehaviorType behaviorType)
@@ -1584,7 +1608,8 @@ public class HumanoidMessageTools
    {
       JointspaceTrajectoryMessage message = new JointspaceTrajectoryMessage();
       if (numberOfJoints > message.jointTrajectoryMessages.capacity())
-         throw new ArrayIndexOutOfBoundsException("Attempted to add " + numberOfJoints + " elements while max capacity is " + message.jointTrajectoryMessages.capacity());
+         throw new ArrayIndexOutOfBoundsException("Attempted to add " + numberOfJoints + " elements while max capacity is "
+               + message.jointTrajectoryMessages.capacity());
       for (int i = 0; i < numberOfJoints; i++)
          message.jointTrajectoryMessages.add();
       return message;
@@ -1688,7 +1713,8 @@ public class HumanoidMessageTools
    {
       OneDoFJointTrajectoryMessage message = new OneDoFJointTrajectoryMessage();
       if (numberOfTrajectoryPoints > message.trajectoryPoints.capacity())
-         throw new ArrayIndexOutOfBoundsException("Attempted to add " + numberOfTrajectoryPoints + " elements while max capacity is " + message.trajectoryPoints.capacity());
+         throw new ArrayIndexOutOfBoundsException("Attempted to add " + numberOfTrajectoryPoints + " elements while max capacity is "
+               + message.trajectoryPoints.capacity());
       while (message.trajectoryPoints.size() < numberOfTrajectoryPoints)
          message.trajectoryPoints.add();
       return message;
@@ -1860,7 +1886,8 @@ public class HumanoidMessageTools
    {
       SE3TrajectoryMessage message = new SE3TrajectoryMessage();
       if (numberOfTrajectoryPoints > message.taskspaceTrajectoryPoints.capacity())
-         throw new ArrayIndexOutOfBoundsException("Attempted to add " + numberOfTrajectoryPoints + " elements while max capacity is " + message.taskspaceTrajectoryPoints.capacity());
+         throw new ArrayIndexOutOfBoundsException("Attempted to add " + numberOfTrajectoryPoints + " elements while max capacity is "
+               + message.taskspaceTrajectoryPoints.capacity());
       for (int i = 0; i < numberOfTrajectoryPoints; i++)
          message.taskspaceTrajectoryPoints.add();
       return message;
@@ -2199,7 +2226,7 @@ public class HumanoidMessageTools
    public static void packLocalizationPointMap(LocalizationPointMapPacket localizationPointMapPacket, Point3DReadOnly[] pointCloud)
    {
       localizationPointMapPacket.localizationPointMap.reset();
-      
+
       for (int i = 0; i < pointCloud.length; i++)
       {
          Point3DReadOnly point = pointCloud[i];
@@ -2212,7 +2239,7 @@ public class HumanoidMessageTools
    public static Point3D32[] unpackLocalizationPointMap(LocalizationPointMapPacket localizationPointMapPacket)
    {
       int numberOfPoints = localizationPointMapPacket.localizationPointMap.size() / 3;
-      
+
       Point3D32[] points = new Point3D32[numberOfPoints];
       for (int i = 0; i < numberOfPoints; i++)
       {
@@ -2222,14 +2249,14 @@ public class HumanoidMessageTools
          point.setZ(localizationPointMapPacket.localizationPointMap.get(3 * i + 2));
          points[i] = point;
       }
-      
+
       return points;
    }
 
    public static void checkIfDataFrameIdsMatch(FrameInformation frameInformation, ReferenceFrame referenceFrame)
    {
       long expectedId = HumanoidMessageTools.getDataFrameIDConsideringDefault(frameInformation);
-   
+
       if (expectedId != referenceFrame.getNameBasedHashCode() && expectedId != referenceFrame.getAdditionalNameBasedHashCode())
       {
          String msg = "Argument's hashcode " + referenceFrame + " " + referenceFrame.getNameBasedHashCode() + " does not match " + expectedId;
@@ -2240,7 +2267,7 @@ public class HumanoidMessageTools
    public static void checkIfDataFrameIdsMatch(FrameInformation frameInformation, long otherReferenceFrameId)
    {
       long expectedId = HumanoidMessageTools.getDataFrameIDConsideringDefault(frameInformation);
-   
+
       if (expectedId != otherReferenceFrameId)
       {
          String msg = "Argument's hashcode " + otherReferenceFrameId + " does not match " + expectedId;
@@ -2265,19 +2292,19 @@ public class HumanoidMessageTools
       {
          return 0;
       }
-      
+
       return handJointAnglePacket.jointAngles.get(index);
    }
 
    public static void packFootSupportPolygon(CapturabilityBasedStatus capturabilityBasedStatus, RobotSide robotSide, FrameConvexPolygon2d footPolygon)
    {
       int numberOfVertices = footPolygon.getNumberOfVertices();
-      
+
       if (numberOfVertices > CapturabilityBasedStatus.MAXIMUM_NUMBER_OF_VERTICES)
       {
          numberOfVertices = CapturabilityBasedStatus.MAXIMUM_NUMBER_OF_VERTICES;
       }
-      
+
       if (robotSide == RobotSide.LEFT)
       {
          capturabilityBasedStatus.leftFootSupportPolygon.clear();
@@ -2286,7 +2313,7 @@ public class HumanoidMessageTools
       {
          capturabilityBasedStatus.rightFootSupportPolygon.clear();
       }
-      
+
       for (int i = 0; i < numberOfVertices; i++)
       {
          if (robotSide == RobotSide.LEFT)
@@ -2327,7 +2354,7 @@ public class HumanoidMessageTools
    {
       if (configurationSpaces.length != lowerLimits.length || configurationSpaces.length != upperLimits.length || lowerLimits.length != upperLimits.length)
          throw new RuntimeException("Inconsistent array lengths: configurationSpaces = " + configurationSpaces.length);
-      
+
       reachingManifoldMessage.manifoldConfigurationSpaceNames.reset();
       reachingManifoldMessage.manifoldLowerLimits.reset();
       reachingManifoldMessage.manifoldUpperLimits.reset();
@@ -2340,17 +2367,17 @@ public class HumanoidMessageTools
    {
       if (time <= 0.0)
          return waypointBasedTrajectoryMessage.waypoints.get(0);
-      
+
       else if (time >= waypointBasedTrajectoryMessage.waypointTimes.get(waypointBasedTrajectoryMessage.waypointTimes.size() - 1))
-         return waypointBasedTrajectoryMessage.waypoints.getLast();
-      
+         return waypointBasedTrajectoryMessage.waypoints.get(waypointBasedTrajectoryMessage.waypoints.size() - 1);
+
       else
       {
          double timeGap = 0.0;
-      
+
          int indexOfFrame = 0;
          int numberOfTrajectoryTimes = waypointBasedTrajectoryMessage.waypointTimes.size();
-      
+
          for (int i = 0; i < numberOfTrajectoryTimes; i++)
          {
             timeGap = time - waypointBasedTrajectoryMessage.waypointTimes.get(i);
@@ -2360,18 +2387,18 @@ public class HumanoidMessageTools
                break;
             }
          }
-      
+
          Pose3D poseOne = waypointBasedTrajectoryMessage.waypoints.get(indexOfFrame - 1);
          Pose3D poseTwo = waypointBasedTrajectoryMessage.waypoints.get(indexOfFrame);
-      
+
          double timeOne = waypointBasedTrajectoryMessage.waypointTimes.get(indexOfFrame - 1);
          double timeTwo = waypointBasedTrajectoryMessage.waypointTimes.get(indexOfFrame);
-      
+
          double alpha = (time - timeOne) / (timeTwo - timeOne);
-      
+
          Pose3D ret = new Pose3D();
          ret.interpolate(poseOne, poseTwo, alpha);
-      
+
          return ret;
       }
    }
