@@ -287,12 +287,13 @@ public class ValkyrieWholeBodyTrajectoryToolboxControllerTest extends AvatarWhol
 
       ReachingManifoldMessage reachingManifold = HumanoidMessageTools.createReachingManifoldMessage(hand);
 
-      reachingManifold.setOrigin(new Point3D(0.7, -0.2, 1.0), new Quaternion());
+      reachingManifold.setManifoldOriginPosition(new Point3D(0.7, -0.2, 1.0));
+      reachingManifold.setManifoldOriginOrientation(new Quaternion());
 
       ConfigurationSpaceName[] manifoldSpaces = {YAW, PITCH, ConfigurationSpaceName.X};
       double[] lowerLimits = new double[] {-Math.PI * 0.5, -Math.PI * 0.5, -0.1};
       double[] upperLimits = new double[] {Math.PI * 0.5, Math.PI * 0.5, 0.0};
-      reachingManifold.setManifold(ConfigurationSpaceName.toBytes(manifoldSpaces), lowerLimits, upperLimits);
+      HumanoidMessageTools.packManifold(reachingManifold, ConfigurationSpaceName.toBytes(manifoldSpaces), lowerLimits, upperLimits);
       reachingManifolds.add(reachingManifold);
 
       List<RigidBodyExplorationConfigurationMessage> rigidBodyConfigurations = new ArrayList<>();

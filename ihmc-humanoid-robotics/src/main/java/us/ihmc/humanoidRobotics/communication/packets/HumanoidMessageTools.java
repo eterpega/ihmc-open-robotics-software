@@ -2317,4 +2317,17 @@ public class HumanoidMessageTools
       else
          return capturabilityBasedStatus.rightFootSupportPolygon.size() != 0;
    }
+
+   public static void packManifold(ReachingManifoldMessage reachingManifoldMessage, byte[] configurationSpaces, double[] lowerLimits, double[] upperLimits)
+   {
+      if (configurationSpaces.length != lowerLimits.length || configurationSpaces.length != upperLimits.length || lowerLimits.length != upperLimits.length)
+         throw new RuntimeException("Inconsistent array lengths: configurationSpaces = " + configurationSpaces.length);
+      
+      reachingManifoldMessage.manifoldConfigurationSpaceNames.reset();
+      reachingManifoldMessage.manifoldLowerLimits.reset();
+      reachingManifoldMessage.manifoldUpperLimits.reset();
+      reachingManifoldMessage.manifoldConfigurationSpaceNames.add(configurationSpaces);
+      reachingManifoldMessage.manifoldLowerLimits.add(lowerLimits);
+      reachingManifoldMessage.manifoldUpperLimits.add(upperLimits);
+   }
 }
