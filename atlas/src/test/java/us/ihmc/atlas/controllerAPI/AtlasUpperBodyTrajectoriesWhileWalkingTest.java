@@ -36,6 +36,7 @@ import us.ihmc.humanoidRobotics.bipedSupportPolygons.ContactableFoot;
 import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.ArmTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.HandTrajectoryMessage;
+import us.ihmc.humanoidRobotics.communication.packets.manipulation.OneDoFJointTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataListMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage;
 import us.ihmc.humanoidRobotics.frames.HumanoidReferenceFrames;
@@ -162,8 +163,9 @@ public class AtlasUpperBodyTrajectoriesWhileWalkingTest
 
          for (int messageIndex = 0; messageIndex < numberOfMessages; messageIndex++)
          {
-            ArmTrajectoryMessage armTrajectoryMessage = HumanoidMessageTools.createArmTrajectoryMessage(robotSide, numberOfJoints, numberOfTrajectoryPoints);
+            ArmTrajectoryMessage armTrajectoryMessage = HumanoidMessageTools.createArmTrajectoryMessage(robotSide);
             armTrajectoryMessage.setUniqueId(id);
+
             if (messageIndex > 0)
             {
                armTrajectoryMessage.jointspaceTrajectory.getQueueingProperties().setExecutionMode(ExecutionMode.QUEUE.toByte());
@@ -176,6 +178,7 @@ public class AtlasUpperBodyTrajectoriesWhileWalkingTest
             for (int jointIndex = 0; jointIndex < numberOfJoints; jointIndex++)
             {
                OneDoFJoint joint = armJoints[jointIndex];
+               OneDoFJointTrajectoryMessage jointTrajectoryMessage = armTrajectoryMessage.jointspaceTrajectory.jointTrajectoryMessages.add();
 
                trajectoryPoint1DCalculator.clear();
 
@@ -192,8 +195,8 @@ public class AtlasUpperBodyTrajectoriesWhileWalkingTest
                for (int trajectoryPointIndex = 0; trajectoryPointIndex < numberOfTrajectoryPoints; trajectoryPointIndex++)
                {
                   SimpleTrajectoryPoint1D trajectoryPoint = trajectoryData.getTrajectoryPoint(trajectoryPointIndex);
-                  armTrajectoryMessage.getJointspaceTrajectory().setTrajectoryPoint(jointIndex, trajectoryPointIndex, trajectoryPoint.getTime(), trajectoryPoint.getPosition(),
-                        trajectoryPoint.getVelocity());
+                  jointTrajectoryMessage.trajectoryPoints.add().set(HumanoidMessageTools.createTrajectoryPoint1DMessage(trajectoryPoint.getTime(), trajectoryPoint.getPosition(),
+                                                                                                                        trajectoryPoint.getVelocity()));
                }
             }
             messageList.add(armTrajectoryMessage);

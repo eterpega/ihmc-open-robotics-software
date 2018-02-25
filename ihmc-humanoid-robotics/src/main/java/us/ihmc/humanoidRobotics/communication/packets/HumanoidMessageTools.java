@@ -272,31 +272,10 @@ public class HumanoidMessageTools
     * Set the id of the message to {@link Packet#VALID_MESSAGE_DEFAULT_ID}.
     * 
     * @param robotSide is used to define which arm is performing the trajectory.
-    * @param numberOfJoints number of joints that will be executing the message.
     */
-   public static ArmTrajectoryMessage createArmTrajectoryMessage(RobotSide robotSide, int numberOfJoints)
+   public static ArmTrajectoryMessage createArmTrajectoryMessage(RobotSide robotSide)
    {
       ArmTrajectoryMessage message = new ArmTrajectoryMessage();
-      message.jointspaceTrajectory = createJointspaceTrajectoryMessage(numberOfJoints);
-      message.robotSide = robotSide.toByte();
-      return message;
-   }
-
-   /**
-    * Use this constructor to build a message with more than one trajectory points. This constructor
-    * only allocates memory for the trajectories, you need to call
-    * {@link #setTrajectoryPoint(int, double, double)} for each joint and trajectory
-    * point afterwards. Set the id of the message to {@link Packet#VALID_MESSAGE_DEFAULT_ID}.
-    * 
-    * @param robotSide is used to define which arm is performing the trajectory.
-    * @param numberOfJoints number of joints that will be executing the message.
-    * @param numberOfTrajectoryPoints number of trajectory points that will be sent to the
-    *           controller.
-    */
-   public static ArmTrajectoryMessage createArmTrajectoryMessage(RobotSide robotSide, int numberOfJoints, int numberOfTrajectoryPoints)
-   {
-      ArmTrajectoryMessage message = new ArmTrajectoryMessage();
-      message.jointspaceTrajectory = createJointspaceTrajectoryMessage(numberOfJoints, numberOfTrajectoryPoints);
       message.robotSide = robotSide.toByte();
       return message;
    }
@@ -713,38 +692,6 @@ public class HumanoidMessageTools
    {
       NeckTrajectoryMessage message = new NeckTrajectoryMessage();
       message.jointspaceTrajectory = createJointspaceTrajectoryMessage(jointTrajectory1DListMessages);
-      return message;
-   }
-
-   /**
-    * Use this constructor to build a message with more than one trajectory point. This constructor
-    * only allocates memory for the trajectories, you need to call
-    * {@link #setTrajectory1DMessage(int, OneDoFJointTrajectoryMessage)} for each joint afterwards.
-    * Set the id of the message to {@link Packet#VALID_MESSAGE_DEFAULT_ID}.
-    * 
-    * @param numberOfJoints number of joints that will be executing the message.
-    */
-   public static NeckTrajectoryMessage createNeckTrajectoryMessage(int numberOfJoints)
-   {
-      NeckTrajectoryMessage message = new NeckTrajectoryMessage();
-      message.jointspaceTrajectory = createJointspaceTrajectoryMessage(numberOfJoints);
-      return message;
-   }
-
-   /**
-    * Use this constructor to build a message with more than one trajectory points. This constructor
-    * only allocates memory for the trajectories, you need to call
-    * {@link #setTrajectoryPoint(int, double, double)} for each joint and trajectory
-    * point afterwards. Set the id of the message to {@link Packet#VALID_MESSAGE_DEFAULT_ID}.
-    * 
-    * @param numberOfJoints number of joints that will be executing the message.
-    * @param numberOfTrajectoryPoints number of trajectory points that will be sent to the
-    *           controller.
-    */
-   public static NeckTrajectoryMessage createNeckTrajectoryMessage(int numberOfJoints, int numberOfTrajectoryPoints)
-   {
-      NeckTrajectoryMessage message = new NeckTrajectoryMessage();
-      message.jointspaceTrajectory = createJointspaceTrajectoryMessage(numberOfJoints, numberOfTrajectoryPoints);
       return message;
    }
 
@@ -1466,43 +1413,6 @@ public class HumanoidMessageTools
    }
 
    /**
-    * Use this constructor to build a message with more than one trajectory point. This constructor
-    * only allocates memory for the trajectories, you need to call
-    * {@link #setTrajectory1DMessage(int, OneDoFJointTrajectoryMessage)} for each joint afterwards.
-    * Set the id of the message to {@link Packet#VALID_MESSAGE_DEFAULT_ID}.
-    * 
-    * @param numberOfJoints number of joints that will be executing the message.
-    */
-   public static JointspaceTrajectoryMessage createJointspaceTrajectoryMessage(int numberOfJoints)
-   {
-      JointspaceTrajectoryMessage message = new JointspaceTrajectoryMessage();
-      if (numberOfJoints > message.jointTrajectoryMessages.capacity())
-         throw new ArrayIndexOutOfBoundsException("Attempted to add " + numberOfJoints + " elements while max capacity is "
-               + message.jointTrajectoryMessages.capacity());
-      for (int i = 0; i < numberOfJoints; i++)
-         message.jointTrajectoryMessages.add();
-      return message;
-   }
-
-   /**
-    * Use this constructor to build a message with more than one trajectory points. This constructor
-    * only allocates memory for the trajectories, you need to call
-    * {@link #setTrajectoryPoint(int, double, double)} for each joint and trajectory
-    * point afterwards. Set the id of the message to {@link Packet#VALID_MESSAGE_DEFAULT_ID}.
-    * 
-    * @param numberOfJoints number of joints that will be executing the message.
-    * @param numberOfTrajectoryPoints number of trajectory points that will be sent to the
-    *           controller.
-    */
-   public static JointspaceTrajectoryMessage createJointspaceTrajectoryMessage(int numberOfJoints, int numberOfTrajectoryPoints)
-   {
-      JointspaceTrajectoryMessage message = new JointspaceTrajectoryMessage();
-      for (int i = 0; i < numberOfJoints; i++)
-         message.jointTrajectoryMessages.add().set(createOneDoFJointTrajectoryMessage(numberOfTrajectoryPoints));
-      return message;
-   }
-
-   /**
     * Create a message using the given joint trajectory points. Set the id of the message to
     * {@link Packet#VALID_MESSAGE_DEFAULT_ID}.
     * 
@@ -1570,25 +1480,6 @@ public class HumanoidMessageTools
       return message;
    }
 
-   /**
-    * Use this constructor to build a message with more than one trajectory points. This constructor
-    * only allocates memory for the trajectory points, you need to call
-    * {@link #setTrajectoryPoint(int, double, double, double)} for each trajectory point afterwards.
-    * 
-    * @param numberOfTrajectoryPoints number of trajectory points that will be sent to the
-    *           controller.
-    */
-   public static OneDoFJointTrajectoryMessage createOneDoFJointTrajectoryMessage(int numberOfTrajectoryPoints)
-   {
-      OneDoFJointTrajectoryMessage message = new OneDoFJointTrajectoryMessage();
-      if (numberOfTrajectoryPoints > message.trajectoryPoints.capacity())
-         throw new ArrayIndexOutOfBoundsException("Attempted to add " + numberOfTrajectoryPoints + " elements while max capacity is "
-               + message.trajectoryPoints.capacity());
-      while (message.trajectoryPoints.size() < numberOfTrajectoryPoints)
-         message.trajectoryPoints.add();
-      return message;
-   }
-
    public static AtlasDesiredPumpPSIPacket createAtlasDesiredPumpPSIPacket(int desiredPumpPsi)
    {
       AtlasDesiredPumpPSIPacket message = new AtlasDesiredPumpPSIPacket();
@@ -1642,38 +1533,6 @@ public class HumanoidMessageTools
       SpineTrajectoryMessage message = new SpineTrajectoryMessage();
       message.jointspaceTrajectory = new JointspaceTrajectoryMessage(jointspaceTrajectoryMessage);
       message.setUniqueId(jointspaceTrajectoryMessage.getUniqueId());
-      return message;
-   }
-
-   /**
-    * Use this constructor to build a message with more than one trajectory points. This constructor
-    * only allocates memory for the trajectories, you need to call
-    * {@link #setTrajectoryPoint(int, double, double)} for each joint and trajectory
-    * point afterwards. Set the id of the message to {@link Packet#VALID_MESSAGE_DEFAULT_ID}.
-    * 
-    * @param numberOfJoints number of joints that will be executing the message.
-    * @param numberOfTrajectoryPoints number of trajectory points that will be sent to the
-    *           controller.
-    */
-   public static SpineTrajectoryMessage createSpineTrajectoryMessage(int numberOfJoints, int numberOfTrajectoryPoints)
-   {
-      SpineTrajectoryMessage message = new SpineTrajectoryMessage();
-      message.jointspaceTrajectory = HumanoidMessageTools.createJointspaceTrajectoryMessage(numberOfJoints, numberOfTrajectoryPoints);
-      return message;
-   }
-
-   /**
-    * Use this constructor to build a message with more than one trajectory point. This constructor
-    * only allocates memory for the trajectories, you need to call
-    * {@link #setTrajectory1DMessage(int, OneDoFJointTrajectoryMessage)} for each joint afterwards.
-    * Set the id of the message to {@link Packet#VALID_MESSAGE_DEFAULT_ID}.
-    * 
-    * @param numberOfJoints number of joints that will be executing the message.
-    */
-   public static SpineTrajectoryMessage createSpineTrajectoryMessage(int numberOfJoints)
-   {
-      SpineTrajectoryMessage message = new SpineTrajectoryMessage();
-      message.jointspaceTrajectory = HumanoidMessageTools.createJointspaceTrajectoryMessage(numberOfJoints);
       return message;
    }
 
@@ -2226,5 +2085,19 @@ public class HumanoidMessageTools
 
          return ret;
       }
+   }
+
+   public static double unpackTrajectoryTime(JointspaceTrajectoryMessage jointspaceTrajectoryMessage)
+   {
+      double trajectoryTime = 0.0;
+      for (int i = 0; i < jointspaceTrajectoryMessage.jointTrajectoryMessages.size(); i++)
+      {
+         OneDoFJointTrajectoryMessage oneDoFJointTrajectoryMessage = jointspaceTrajectoryMessage.jointTrajectoryMessages.get(i);
+         if(oneDoFJointTrajectoryMessage != null)
+         {
+            trajectoryTime = Math.max(trajectoryTime, oneDoFJointTrajectoryMessage.trajectoryPoints.getLast().time);
+         }
+      }
+      return trajectoryTime;
    }
 }

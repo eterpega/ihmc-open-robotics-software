@@ -11,6 +11,7 @@ import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.humanoidRobotics.communication.packets.SO3TrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.SO3TrajectoryPointMessage;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.ArmTrajectoryMessage;
+import us.ihmc.humanoidRobotics.communication.packets.manipulation.OneDoFJointTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.ChestTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataListMessage;
 import us.ihmc.humanoidRobotics.frames.HumanoidReferenceFrames;
@@ -52,13 +53,16 @@ public class TestGarbageGenerationBehavior extends AbstractBehavior
    private void sendArmTrajectory()
    {
       double[] leftArmHome = new double[] {0.78, -0.1, 3.0, 1.8, -0.3, 0.7, 0.15};
-      ArmTrajectoryMessage armTrajectory = HumanoidMessageTools.createArmTrajectoryMessage(RobotSide.LEFT, leftArmHome.length, trajectoryPoints);
-      for (int i = 0; i < trajectoryPoints; i++)
+      ArmTrajectoryMessage armTrajectory = HumanoidMessageTools.createArmTrajectoryMessage(RobotSide.LEFT);
+
+      for (int jointIdx = 0; jointIdx < leftArmHome.length; jointIdx++)
       {
-         double percent = i / (double) (trajectoryPoints - 1);
-         for (int jointIdx = 0; jointIdx < leftArmHome.length; jointIdx++)
+         OneDoFJointTrajectoryMessage jointTrajectoryMessage = armTrajectory.jointspaceTrajectory.jointTrajectoryMessages.add();
+
+         for (int i = 0; i < trajectoryPoints; i++)
          {
-            armTrajectory.getJointspaceTrajectory().setTrajectoryPoint(jointIdx, i, percent, leftArmHome[jointIdx], 0.0);
+            double percent = i / (double) (trajectoryPoints - 1);
+            jointTrajectoryMessage.trajectoryPoints.add().set(HumanoidMessageTools.createTrajectoryPoint1DMessage(percent, leftArmHome[jointIdx], 0.0));
          }
       }
 

@@ -399,7 +399,7 @@ public abstract class PacketValidityChecker
          return errorMessage;
       }
 
-      int numberOfJoints = message.getNumberOfJoints();
+      int numberOfJoints = message.jointTrajectoryMessages.size();
       if (numberOfJoints == 0)
       {
          String messageClassName = message.getClass().getSimpleName();
@@ -409,7 +409,7 @@ public abstract class PacketValidityChecker
 
       for (int jointIndex = 0; jointIndex < numberOfJoints; jointIndex++)
       {
-         OneDoFJointTrajectoryMessage oneJointTrajectoryMessage = message.getTrajectoryPointLists().get(jointIndex);
+         OneDoFJointTrajectoryMessage oneJointTrajectoryMessage = message.getJointTrajectoryMessages().get(jointIndex);
          if(oneJointTrajectoryMessage != null)
          {
             errorMessage = validateOneJointTrajectoryMessage(oneJointTrajectoryMessage, false);
@@ -814,21 +814,21 @@ public abstract class PacketValidityChecker
 
       TrajectoryPoint1DMessage previousTrajectoryPoint = null;
 
-      if (message.getNumberOfTrajectoryPoints() == 0)
+      if (message.trajectoryPoints.size() == 0)
          return "The joint trajectory message has no waypoint.";
 
-      for (int i = 0; i < message.getNumberOfTrajectoryPoints(); i++)
+      for (int i = 0; i < message.trajectoryPoints.size(); i++)
       {
-         TrajectoryPoint1DMessage waypoint = message.getTrajectoryPoint(i);
+         TrajectoryPoint1DMessage waypoint = message.trajectoryPoints.get(i);
          errorMessage = validateTrajectoryPoint1DMessage(waypoint, previousTrajectoryPoint, false);
          if (errorMessage != null)
             return "The " + i + "th " + errorMessage;
          previousTrajectoryPoint = waypoint;
       }
 
-      for (int waypointIndex = 0; waypointIndex < message.getNumberOfTrajectoryPoints(); waypointIndex++)
+      for (int waypointIndex = 0; waypointIndex < message.trajectoryPoints.size(); waypointIndex++)
       {
-         TrajectoryPoint1DMessage waypoint = message.getTrajectoryPoint(waypointIndex);
+         TrajectoryPoint1DMessage waypoint = message.trajectoryPoints.get(waypointIndex);
          double waypointPosition = waypoint.getPosition();
 
          if (Math.abs(waypointPosition) > Math.PI)

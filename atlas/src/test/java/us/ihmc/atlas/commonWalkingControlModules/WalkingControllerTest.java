@@ -54,6 +54,7 @@ import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.humanoidRobotics.communication.packets.SO3TrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.SO3TrajectoryPointMessage;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.ArmTrajectoryMessage;
+import us.ihmc.humanoidRobotics.communication.packets.manipulation.OneDoFJointTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.ChestTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataListMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage;
@@ -256,14 +257,16 @@ public class WalkingControllerTest
          RigidBody chest = fullRobotModel.getChest();
          RigidBody hand = fullRobotModel.getHand(robotSide);
          OneDoFJoint[] joints = ScrewTools.createOneDoFJointPath(chest, hand);
-         ArmTrajectoryMessage message = HumanoidMessageTools.createArmTrajectoryMessage(robotSide, joints.length, 2);
+         ArmTrajectoryMessage message = HumanoidMessageTools.createArmTrajectoryMessage(robotSide);
+
          for (int jointIdx = 0; jointIdx < joints.length; jointIdx++)
          {
             OneDoFJoint joint = joints[jointIdx];
             double angle1 = MathTools.clamp(Math.toRadians(45.0), joint.getJointLimitLower() + 0.05, joint.getJointLimitUpper() - 0.05);
             double angle2 = MathTools.clamp(0.0, joint.getJointLimitLower() + 0.05, joint.getJointLimitUpper() - 0.05);
-            message.getJointspaceTrajectory().setTrajectoryPoint(jointIdx, 0, 0.5, angle1, 0.0);
-            message.getJointspaceTrajectory().setTrajectoryPoint(jointIdx, 1, 1.0, angle2, 0.0);
+            OneDoFJointTrajectoryMessage jointTrajectoryMessage = message.jointspaceTrajectory.jointTrajectoryMessages.add();
+            jointTrajectoryMessage.trajectoryPoints.add().set(HumanoidMessageTools.createTrajectoryPoint1DMessage(0.5, angle1, 0.0));
+            jointTrajectoryMessage.trajectoryPoints.add().set(HumanoidMessageTools.createTrajectoryPoint1DMessage(1.0, angle2, 0.0));
          }
          commandInputManager.submitMessage(message);
       }

@@ -93,7 +93,7 @@ public class ArmTrajectoryMessage extends Packet<ArmTrajectoryMessage>
    public String toString()
    {
       if (jointspaceTrajectory.jointTrajectoryMessages != null)
-         return "Arm 1D trajectories: number of joints = " + jointspaceTrajectory.getNumberOfJoints() + ", robotSide = " + robotSide;
+         return "Arm 1D trajectories: number of joints = " + jointspaceTrajectory.jointTrajectoryMessages.size() + ", robotSide = " + robotSide;
       else
          return "Arm 1D trajectories: no joint trajectory, robotSide = " + robotSide;
    }
