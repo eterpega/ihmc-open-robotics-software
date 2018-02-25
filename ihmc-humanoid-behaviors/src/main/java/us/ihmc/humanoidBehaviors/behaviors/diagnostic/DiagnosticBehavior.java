@@ -1692,7 +1692,7 @@ public class DiagnosticBehavior extends AbstractBehavior
 
             FootstepDataMessage footstepData = HumanoidMessageTools.createFootstepDataMessage(robotSide, footLocation, footOrientation);
 
-            footstepDataList.add(footstepData);
+            footstepDataList.footstepDataList.add().set(footstepData);
          }
       }
       pipeLine.submitSingleTaskStage(new FootstepListTask(footstepListBehavior, footstepDataList));
@@ -1718,7 +1718,7 @@ public class DiagnosticBehavior extends AbstractBehavior
 
          FootstepDataMessage footstepData = HumanoidMessageTools.createFootstepDataMessage(robotSide, footLocation, footOrientation);
 
-         footstepDataList.add(footstepData);
+         footstepDataList.footstepDataList.add().set(footstepData);
          pipeLine.submitSingleTaskStage(new FootstepListTask(footstepListBehavior, footstepDataList));
       }
 

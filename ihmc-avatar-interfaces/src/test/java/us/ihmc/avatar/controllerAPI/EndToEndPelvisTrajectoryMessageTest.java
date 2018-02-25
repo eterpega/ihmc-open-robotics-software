@@ -297,7 +297,7 @@ public abstract class EndToEndPelvisTrajectoryMessageTest implements MultiRobotT
       footsteps.setDefaultSwingDuration(swingTime);
       footsteps.setDefaultTransferDuration(transferTime);
 
-      int numberOfSteps = footsteps.getDataList().size();
+      int numberOfSteps = footsteps.getFootstepDataList().size();
       drcSimulationTestHelper.send(footsteps);
 
       int timeWalking = numberOfSteps;
@@ -316,11 +316,12 @@ public abstract class EndToEndPelvisTrajectoryMessageTest implements MultiRobotT
       for (int i = 0; i < 10; i++)
       {
          footStep = componentBasedDesiredFootstepCalculator.predictFootstepAfterDesiredFootstep(robotSide, previousFootStep, stepTime * i, stepTime);
-         footsteps.add(footStep);
+         footsteps.footstepDataList.add().set(footStep);
          robotSide = robotSide.getOppositeSide();
          previousFootStep = footStep;
       }
-      footsteps.setExecutionMode(ExecutionMode.OVERRIDE);
+      footsteps.queueingProperties.setExecutionMode(ExecutionMode.OVERRIDE.toByte());
+      footsteps.queueingProperties.setPreviousMessageId(FootstepDataListMessage.VALID_MESSAGE_DEFAULT_ID);
 
       return footsteps;
    }

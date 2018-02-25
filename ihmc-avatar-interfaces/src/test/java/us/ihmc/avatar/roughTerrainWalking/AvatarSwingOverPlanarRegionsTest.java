@@ -141,7 +141,7 @@ public abstract class AvatarSwingOverPlanarRegionsTest implements MultiRobotTest
          else
             simulationTime += swingTime;
 
-         footsteps.add(footstepData);
+         footsteps.footstepDataList.add().set(footstepData);
       }
 
       drcSimulationTestHelper.send(footsteps);

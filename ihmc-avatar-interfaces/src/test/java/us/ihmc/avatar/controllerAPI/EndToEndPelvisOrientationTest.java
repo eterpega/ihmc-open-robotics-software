@@ -323,7 +323,7 @@ public abstract class EndToEndPelvisOrientationTest implements MultiRobotTestInt
       RobotSide robotSide = RobotSide.LEFT;
       ReferenceFrame midFootZUpGroundFrame = humanoidReferenceFrames.getMidFootZUpGroundFrame();
       double time = walkingControllerParameters.getDefaultInitialTransferTime();
-      messageToPack.clear();
+      messageToPack.footstepDataList.clear();
       messageToPack.setDefaultSwingDuration(swingDuration);
       messageToPack.setDefaultTransferDuration(transferDuration);
       for (int step = 0; step < steps; step++)
@@ -338,7 +338,7 @@ public abstract class EndToEndPelvisOrientationTest implements MultiRobotTestInt
          FrameQuaternion orientation = new FrameQuaternion(midFootZUpGroundFrame);
          orientation.changeFrame(worldFrame);
          FootstepDataMessage footstep = HumanoidMessageTools.createFootstepDataMessage(robotSide, location, orientation);
-         messageToPack.add(footstep);
+         messageToPack.footstepDataList.add().set(footstep);
          robotSide = robotSide.getOppositeSide();
          time += swingDuration + transferDuration;
       }

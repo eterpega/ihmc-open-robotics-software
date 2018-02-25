@@ -106,8 +106,8 @@ public class TestGarbageGenerationBehavior extends AbstractBehavior
       FootstepDataListMessage footsteps = HumanoidMessageTools.createFootstepDataListMessage(1.2, 0.8);
       for (int i = 0; i < steps / 2; i++)
       {
-         footsteps.add(HumanoidMessageTools.createFootstepDataMessage(RobotSide.LEFT, stepPoseLeft.getPosition(), stepPoseLeft.getOrientation()));
-         footsteps.add(HumanoidMessageTools.createFootstepDataMessage(RobotSide.RIGHT, stepPoseRight.getPosition(), stepPoseRight.getOrientation()));
+         footsteps.footstepDataList.add().set(HumanoidMessageTools.createFootstepDataMessage(RobotSide.LEFT, stepPoseLeft.getPosition(), stepPoseLeft.getOrientation()));
+         footsteps.footstepDataList.add().set(HumanoidMessageTools.createFootstepDataMessage(RobotSide.RIGHT, stepPoseRight.getPosition(), stepPoseRight.getOrientation()));
       }
 
       sendPacketToController(footsteps);

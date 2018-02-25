@@ -63,10 +63,10 @@ public abstract class EndToEndClearDelayQueueMessageTest implements MultiRobotTe
       for (int i = 0; i < 10; i++)
       {
          handTrajectoryMessage.getSe3Trajectory().setTrajectoryPoint(i, i, new Point3D(), new Quaternion(), new Vector3D(), new Vector3D(), ReferenceFrame.getWorldFrame());
-         footstepDataListMessage.add(HumanoidMessageTools.createFootstepDataMessage(RobotSide.LEFT, new Point3D(), new Quaternion()));
+         footstepDataListMessage.footstepDataList.add().set(HumanoidMessageTools.createFootstepDataMessage(RobotSide.LEFT, new Point3D(), new Quaternion()));
       }
       handTrajectoryMessage.getSe3Trajectory().getQueueingProperties().setExecutionDelayTime(0.1);
-      footstepDataListMessage.setExecutionDelayTime(0.1);
+      footstepDataListMessage.queueingProperties.setExecutionDelayTime(0.1);
       drcSimulationTestHelper.send(handTrajectoryMessage);
       drcSimulationTestHelper.send(footstepDataListMessage);
       assertTrue(drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(0.05));

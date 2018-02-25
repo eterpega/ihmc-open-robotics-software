@@ -190,11 +190,11 @@ public abstract class PacketValidityChecker
          return errorMessage;
       }
 
-      if (message.getDataList() != null)
+      if (message.getFootstepDataList() != null)
       {
-         for (int arrayListIndex = 0; arrayListIndex < message.getDataList().size(); arrayListIndex++)
+         for (int arrayListIndex = 0; arrayListIndex < message.getFootstepDataList().size(); arrayListIndex++)
          {
-            FootstepDataMessage footstepData = message.getDataList().get(arrayListIndex);
+            FootstepDataMessage footstepData = message.getFootstepDataList().get(arrayListIndex);
             String footstepDataListErrorMessage = validateFootstepDataMessage(footstepData);
 
             if (footstepDataListErrorMessage != null)

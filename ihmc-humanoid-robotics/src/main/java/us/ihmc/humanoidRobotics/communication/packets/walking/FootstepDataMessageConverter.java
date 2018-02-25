@@ -51,10 +51,11 @@ public class FootstepDataMessageConverter
             MessageTools.copyData(contactPoints, footstepData.predictedContactPoints);
          }
 
-         footstepDataListMessage.add(footstepData);
+         footstepDataListMessage.footstepDataList.add().set(footstepData);
       }
 
-      footstepDataListMessage.setExecutionMode(executionMode);
+      footstepDataListMessage.queueingProperties.setExecutionMode(executionMode.toByte());
+      footstepDataListMessage.queueingProperties.setPreviousMessageId(FootstepDataListMessage.VALID_MESSAGE_DEFAULT_ID);
       return footstepDataListMessage;
    }
    
@@ -85,7 +86,7 @@ public class FootstepDataMessageConverter
             MessageTools.copyData(contactPoints, footstepData.predictedContactPoints);
          }
 
-         footstepDataListMessage.add(footstepData);
+         footstepDataListMessage.footstepDataList.add().set(footstepData);
       }
    }
 }

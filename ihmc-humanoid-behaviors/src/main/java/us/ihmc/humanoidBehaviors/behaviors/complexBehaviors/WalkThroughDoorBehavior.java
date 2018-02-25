@@ -275,11 +275,11 @@ public class WalkThroughDoorBehavior extends StateMachineBehavior<WalkThroughDoo
       FootstepDataMessage fs5 = createRelativeFootStep(doorPose, startStep, new Point3D(0.5896714303877739, -0.7199905519593679, 0.11830896252393555),
             new Quaternion(2.5501844493298926E-13, -3.0463423083022023E-13, -0.7043243760613419, 0.7098782806128114));
 
-      message.add(fs1);
-      message.add(fs2);
-      message.add(fs3);
-      message.add(fs4);
-      message.add(fs5);
+      message.footstepDataList.add().set(fs1);
+      message.footstepDataList.add().set(fs2);
+      message.footstepDataList.add().set(fs3);
+      message.footstepDataList.add().set(fs4);
+      message.footstepDataList.add().set(fs5);
 
       return message;
 

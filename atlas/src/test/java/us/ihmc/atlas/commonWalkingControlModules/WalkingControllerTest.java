@@ -223,7 +223,7 @@ public class WalkingControllerTest
          location.changeFrame(ReferenceFrame.getWorldFrame());
          orientation.changeFrame(ReferenceFrame.getWorldFrame());
          FootstepDataMessage footstep = HumanoidMessageTools.createFootstepDataMessage(robotSide, location, orientation);
-         footsteps.add(footstep);
+         footsteps.footstepDataList.add().set(footstep);
       }
       commandInputManager.submitMessage(footsteps);
    }

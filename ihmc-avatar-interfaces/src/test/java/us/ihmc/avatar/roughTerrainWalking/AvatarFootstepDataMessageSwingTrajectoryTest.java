@@ -158,7 +158,7 @@ public abstract class AvatarFootstepDataMessageSwingTrajectoryTest implements Mu
       footstep.setOrientation(footOrientation);
       MessageTools.copyData(waypoints, footstep.swingTrajectory);
 
-      footstepDataList.add(footstep);
+      footstepDataList.footstepDataList.add().set(footstep);
       drcSimulationTestHelper.send(footstepDataList);
       assertTrue(drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(initialTransferTime + getRobotModel().getControllerDT() * 4.0));
 

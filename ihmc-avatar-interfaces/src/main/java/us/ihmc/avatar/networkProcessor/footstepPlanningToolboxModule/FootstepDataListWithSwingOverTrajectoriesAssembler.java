@@ -113,13 +113,14 @@ public class FootstepDataListWithSwingOverTrajectoriesAssembler
             footstepDataMessage.setTransferDuration(transferTime);
          }
 
-         footstepDataListMessage.add(footstepDataMessage);
+         footstepDataListMessage.footstepDataList.add().set(footstepDataMessage);
 
          swingStartPose.setIncludingFrame(stanceFootPose);
          stanceFootPose.setIncludingFrame(swingEndPose);
       }
 
-      footstepDataListMessage.setExecutionMode(executionMode);
+      footstepDataListMessage.queueingProperties.setExecutionMode(executionMode.toByte());
+      footstepDataListMessage.queueingProperties.setPreviousMessageId(FootstepDataListMessage.VALID_MESSAGE_DEFAULT_ID);
       return footstepDataListMessage;
    }
 
@@ -170,13 +171,14 @@ public class FootstepDataListWithSwingOverTrajectoriesAssembler
             MessageTools.copyData(fourPartialFootholdCorners, footstepDataMessage.predictedContactPoints);
          }
 
-         footstepDataListMessage.add(footstepDataMessage);
+         footstepDataListMessage.footstepDataList.add().set(footstepDataMessage);
 
          swingStartPose.setIncludingFrame(stanceFootPose);
          stanceFootPose.setIncludingFrame(swingEndPose);
       }
 
-      footstepDataListMessage.setExecutionMode(executionMode);
+      footstepDataListMessage.queueingProperties.setExecutionMode(executionMode.toByte());
+      footstepDataListMessage.queueingProperties.setPreviousMessageId(FootstepDataListMessage.VALID_MESSAGE_DEFAULT_ID);
       return footstepDataListMessage;
    }
 

@@ -236,10 +236,11 @@ public class TakeSomeStepsBehavior extends AbstractBehavior
 
          FootstepDataMessage firstFootstepMessage = HumanoidMessageTools.createFootstepDataMessage(footstep.getRobotSide(), new Point3D(tempFootstepPosePosition), new Quaternion(tempFirstFootstepPoseOrientation));
 
-         footstepDataListMessage.add(firstFootstepMessage);
+         footstepDataListMessage.footstepDataList.add().set(firstFootstepMessage);
       }
 
-      footstepDataListMessage.setExecutionMode(ExecutionMode.OVERRIDE);
+      footstepDataListMessage.queueingProperties.setExecutionMode(ExecutionMode.OVERRIDE.toByte());
+      footstepDataListMessage.queueingProperties.setPreviousMessageId(FootstepDataListMessage.VALID_MESSAGE_DEFAULT_ID);
       return footstepDataListMessage;
    }
 

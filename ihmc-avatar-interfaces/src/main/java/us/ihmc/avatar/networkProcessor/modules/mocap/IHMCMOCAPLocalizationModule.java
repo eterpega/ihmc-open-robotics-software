@@ -350,7 +350,7 @@ public class IHMCMOCAPLocalizationModule implements MocapRigidbodiesListener, Pa
       
       public void sendFootstepList(FootstepDataListMessage footstepDataListMessage)
       {
-         numberOfFootstepsToTake.set(footstepDataListMessage.getDataList().size());
+         numberOfFootstepsToTake.set(footstepDataListMessage.getFootstepDataList().size());
          footstepsCompleted.set(0);
          packetCommunicator.send(footstepDataListMessage);
       }

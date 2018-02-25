@@ -157,12 +157,12 @@ public abstract class AvatarICPOptimizationPushRecoveryTestSetup
       transferTime = getRobotModel().getWalkingControllerParameters().getDefaultTransferTime();
 
       FootstepDataListMessage message = HumanoidMessageTools.createFootstepDataListMessage(swingTime, transferTime);
-      message.add(message1);
-      message.add(message2);
-      message.add(message3);
-      message.add(message4);
-      message.add(message5);
-      message.add(message6);
+      message.footstepDataList.add().set(message1);
+      message.footstepDataList.add().set(message2);
+      message.footstepDataList.add().set(message3);
+      message.footstepDataList.add().set(message4);
+      message.footstepDataList.add().set(message5);
+      message.footstepDataList.add().set(message6);
 
       return message;
    }
@@ -195,12 +195,12 @@ public abstract class AvatarICPOptimizationPushRecoveryTestSetup
       swingTime = 1.2;
       transferTime = 0.8;
       FootstepDataListMessage message = HumanoidMessageTools.createFootstepDataListMessage(swingTime, transferTime);
-      message.add(message1);
-      message.add(message2);
-      message.add(message3);
-      message.add(message4);
-      message.add(message5);
-      message.add(message6);
+      message.footstepDataList.add().set(message1);
+      message.footstepDataList.add().set(message2);
+      message.footstepDataList.add().set(message3);
+      message.footstepDataList.add().set(message4);
+      message.footstepDataList.add().set(message5);
+      message.footstepDataList.add().set(message6);
 
       return message;
    }
@@ -240,12 +240,12 @@ public abstract class AvatarICPOptimizationPushRecoveryTestSetup
       transferTime = getRobotModel().getWalkingControllerParameters().getDefaultTransferTime();
 
       FootstepDataListMessage message = HumanoidMessageTools.createFootstepDataListMessage(swingTime, transferTime);
-      message.add(message1);
-      message.add(message2);
-      message.add(message3);
-      message.add(message4);
-      message.add(message5);
-      message.add(message6);
+      message.footstepDataList.add().set(message1);
+      message.footstepDataList.add().set(message2);
+      message.footstepDataList.add().set(message3);
+      message.footstepDataList.add().set(message4);
+      message.footstepDataList.add().set(message5);
+      message.footstepDataList.add().set(message6);
 
       return message;
    }

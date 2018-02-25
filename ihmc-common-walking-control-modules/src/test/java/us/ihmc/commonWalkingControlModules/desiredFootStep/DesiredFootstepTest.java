@@ -404,7 +404,7 @@ public class DesiredFootstepTest
 
       for (Footstep footstep : footsteps)
       {
-         footstepsData.add(HumanoidMessageTools.createFootstepDataMessage(footstep));
+         footstepsData.footstepDataList.add().set(HumanoidMessageTools.createFootstepDataMessage(footstep));
       }
 
       return footstepsData;

@@ -30,7 +30,7 @@ public class FootstepDataListCorruptor
       
       for (int i = 0; i < footstepDataList.footstepDataList.size(); i++)
       {
-         ret.add(corruptFootstepData(footstepDataList.get(i)));
+         ret.footstepDataList.add().set(corruptFootstepData(footstepDataList.footstepDataList.get(i)));
       }
       
       return ret;

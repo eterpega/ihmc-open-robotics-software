@@ -211,7 +211,7 @@ public class PushAndWalkBehavior extends AbstractBehavior
 
       FootstepDataListMessage footsteps = new FootstepDataListMessage();
       FootstepDataMessage footstep = HumanoidMessageTools.createFootstepDataMessage(swingSide, location, orientation);
-      footsteps.add(footstep);
+      footsteps.footstepDataList.add().set(footstep);
       sendPacketToController(footsteps);
    }
 

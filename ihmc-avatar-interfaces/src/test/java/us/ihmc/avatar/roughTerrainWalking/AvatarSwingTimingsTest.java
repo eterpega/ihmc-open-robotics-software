@@ -114,7 +114,7 @@ public abstract class AvatarSwingTimingsTest implements MultiRobotTestInterface
             break;
          }
 
-         footsteps.add(footstepData);
+         footsteps.footstepDataList.add().set(footstepData);
       }
 
       drcSimulationTestHelper.send(footsteps);
