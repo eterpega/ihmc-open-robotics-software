@@ -21,7 +21,7 @@ public class WholeBodyTrajectoryToolboxOutputStatus extends Packet<WholeBodyTraj
 
    public TDoubleArrayList trajectoryTimes = new TDoubleArrayList();
    public TempPreallocatedList<KinematicsToolboxOutputStatus> robotConfigurations = new TempPreallocatedList<>(KinematicsToolboxOutputStatus.class,
-                                                                                                       KinematicsToolboxOutputStatus::new, 50);
+                                                                                                               KinematicsToolboxOutputStatus::new, 50);
 
    public WholeBodyTrajectoryToolboxOutputStatus()
    {
@@ -58,30 +58,9 @@ public class WholeBodyTrajectoryToolboxOutputStatus extends Packet<WholeBodyTraj
       return robotConfigurations;
    }
 
-   public void setRobotConfigurations(KinematicsToolboxOutputStatus[] robotConfigurations)
-   {
-      MessageTools.copyData(robotConfigurations, this.robotConfigurations);
-   }
-
    public TDoubleArrayList getTrajectoryTimes()
    {
       return trajectoryTimes;
-   }
-
-   public void setTrajectoryTimes(double[] trajectoryTimes)
-   {
-      this.trajectoryTimes.reset();
-      this.trajectoryTimes.add(trajectoryTimes);
-   }
-
-   public double getTrajectoryTime()
-   {
-      return trajectoryTimes.get(trajectoryTimes.size() - 1);
-   }
-
-   public KinematicsToolboxOutputStatus getLastRobotConfiguration()
-   {
-      return robotConfigurations.getLast();
    }
 
    @Override

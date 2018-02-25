@@ -2369,7 +2369,7 @@ public class HumanoidMessageTools
          return waypointBasedTrajectoryMessage.waypoints.get(0);
 
       else if (time >= waypointBasedTrajectoryMessage.waypointTimes.get(waypointBasedTrajectoryMessage.waypointTimes.size() - 1))
-         return waypointBasedTrajectoryMessage.waypoints.get(waypointBasedTrajectoryMessage.waypoints.size() - 1);
+         return waypointBasedTrajectoryMessage.waypoints.getLast();
 
       else
       {

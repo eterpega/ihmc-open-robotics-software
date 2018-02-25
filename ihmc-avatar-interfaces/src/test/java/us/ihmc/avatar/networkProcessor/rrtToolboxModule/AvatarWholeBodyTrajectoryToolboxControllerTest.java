@@ -756,7 +756,7 @@ public abstract class AvatarWholeBodyTrajectoryToolboxControllerTest implements 
       FloatingInverseDynamicsJoint rootJoint = robotForViz.getRootJoint();
       OneDoFJoint[] joints = FullRobotModelUtils.getAllJointsExcludingHands(robotForViz);
 
-      double trajectoryTime = solution.getTrajectoryTime();
+      double trajectoryTime = solution.trajectoryTimes.get(solution.trajectoryTimes.size() - 1);
 
       double t = 0.0;
 
@@ -777,9 +777,8 @@ public abstract class AvatarWholeBodyTrajectoryToolboxControllerTest implements 
       if (time <= 0.0)
          return outputStatus.getRobotConfigurations().get(0);
 
-      else if (time >= outputStatus.getTrajectoryTime())
-         return outputStatus.getLastRobotConfiguration();
-
+      else if (time >= outputStatus.trajectoryTimes.get(outputStatus.trajectoryTimes.size() - 1))
+         return outputStatus.robotConfigurations.get(outputStatus.robotConfigurations.size() - 1);
       else
       {
          double timeGap = 0.0;

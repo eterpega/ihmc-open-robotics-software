@@ -254,8 +254,9 @@ public class WholeBodyTrajectoryToolboxController extends ToolboxController
    {
       if (outputStatusToPack.getPlanningResult() == 4)
       {
-         outputStatusToPack.setRobotConfigurations(path.stream().map(SpatialNode::getConfiguration).toArray(size -> new KinematicsToolboxOutputStatus[size]));
-         outputStatusToPack.setTrajectoryTimes(path.stream().mapToDouble(SpatialNode::getTime).toArray());
+         MessageTools.copyData(path.stream().map(SpatialNode::getConfiguration).toArray(size -> new KinematicsToolboxOutputStatus[size]), outputStatusToPack.robotConfigurations);
+         outputStatusToPack.trajectoryTimes.reset();
+         outputStatusToPack.trajectoryTimes.add(path.stream().mapToDouble(SpatialNode::getTime).toArray());
 
          //if (VERBOSE)
          //   for (int i = 0; i < path.size(); i++)
