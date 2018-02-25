@@ -84,7 +84,7 @@ public class PelvisOrientationTrajectoryMessage extends Packet<PelvisOrientation
    public String toString()
    {
       if (so3Trajectory.taskspaceTrajectoryPoints != null)
-         return "Pelvis SO3 trajectory: number of SO3 trajectory points = " + so3Trajectory.getNumberOfTrajectoryPoints();
+         return "Pelvis SO3 trajectory: number of SO3 trajectory points = " + so3Trajectory.taskspaceTrajectoryPoints.size();
       else
          return "Pelvis SO3 trajectory: no SO3 trajectory points";
    }

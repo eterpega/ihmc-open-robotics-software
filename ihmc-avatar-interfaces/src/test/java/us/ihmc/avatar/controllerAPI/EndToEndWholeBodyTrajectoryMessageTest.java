@@ -20,6 +20,7 @@ import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
+import us.ihmc.humanoidRobotics.communication.packets.SO3TrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.HandTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.ChestTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootTrajectoryMessage;
@@ -428,14 +429,15 @@ public abstract class EndToEndWholeBodyTrajectoryMessageTest implements MultiRob
       ReferenceFrame pelvisZUpFrame = referenceFrames.getPelvisZUpFrame();
 
       WholeBodyTrajectoryMessage wholeBodyTrajectoryMessage = new WholeBodyTrajectoryMessage();
-      ChestTrajectoryMessage chestTrajectoryMessage = HumanoidMessageTools.createChestTrajectoryMessage(5);
-      chestTrajectoryMessage.getSo3Trajectory().getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(pelvisZUpFrame));
-      chestTrajectoryMessage.getSo3Trajectory().getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(ReferenceFrame.getWorldFrame()));
-      chestTrajectoryMessage.getSo3Trajectory().setTrajectoryPoint(0, 0.00, new Quaternion(), new Vector3D(), ReferenceFrame.getWorldFrame());
-      chestTrajectoryMessage.getSo3Trajectory().setTrajectoryPoint(1, 0.10, new Quaternion(), new Vector3D(), ReferenceFrame.getWorldFrame());
-      chestTrajectoryMessage.getSo3Trajectory().setTrajectoryPoint(2, 0.20, new Quaternion(), new Vector3D(), ReferenceFrame.getWorldFrame());
-      chestTrajectoryMessage.getSo3Trajectory().setTrajectoryPoint(3, 0.10, new Quaternion(), new Vector3D(), ReferenceFrame.getWorldFrame());
-      chestTrajectoryMessage.getSo3Trajectory().setTrajectoryPoint(4, 0.00, new Quaternion(), new Vector3D(), ReferenceFrame.getWorldFrame());
+      ChestTrajectoryMessage chestTrajectoryMessage = new ChestTrajectoryMessage();
+      SO3TrajectoryMessage so3Trajectory = chestTrajectoryMessage.getSo3Trajectory();
+      so3Trajectory.getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(pelvisZUpFrame));
+      so3Trajectory.getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(ReferenceFrame.getWorldFrame()));
+      so3Trajectory.taskspaceTrajectoryPoints.add().set(HumanoidMessageTools.createSO3TrajectoryPointMessage(0.00, new Quaternion(), new Vector3D()));
+      so3Trajectory.taskspaceTrajectoryPoints.add().set(HumanoidMessageTools.createSO3TrajectoryPointMessage(0.10, new Quaternion(), new Vector3D()));
+      so3Trajectory.taskspaceTrajectoryPoints.add().set(HumanoidMessageTools.createSO3TrajectoryPointMessage(0.20, new Quaternion(), new Vector3D()));
+      so3Trajectory.taskspaceTrajectoryPoints.add().set(HumanoidMessageTools.createSO3TrajectoryPointMessage(0.10, new Quaternion(), new Vector3D()));
+      so3Trajectory.taskspaceTrajectoryPoints.add().set(HumanoidMessageTools.createSO3TrajectoryPointMessage(0.00, new Quaternion(), new Vector3D()));
 
 
 

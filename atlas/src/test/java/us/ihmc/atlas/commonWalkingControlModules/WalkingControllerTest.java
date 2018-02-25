@@ -51,6 +51,8 @@ import us.ihmc.humanoidRobotics.bipedSupportPolygons.ContactableFoot;
 import us.ihmc.humanoidRobotics.bipedSupportPolygons.ContactablePlaneBody;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.converter.FrameMessageCommandConverter;
 import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
+import us.ihmc.humanoidRobotics.communication.packets.SO3TrajectoryMessage;
+import us.ihmc.humanoidRobotics.communication.packets.SO3TrajectoryPointMessage;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.ArmTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.ChestTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataListMessage;
@@ -230,13 +232,20 @@ public class WalkingControllerTest
 
    private void sendChestTrajectory()
    {
-      ChestTrajectoryMessage message = HumanoidMessageTools.createChestTrajectoryMessage(2);
+      ChestTrajectoryMessage message = new ChestTrajectoryMessage();
       Quaternion orientation = new Quaternion();
       orientation.appendYawRotation(Math.toRadians(-10.0));
       orientation.appendRollRotation(Math.toRadians(10.0));
-      message.getSo3Trajectory().getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(referenceFrames.getPelvisZUpFrame()));
-      message.getSo3Trajectory().setTrajectoryPoint(0, 0.5, orientation, new Vector3D(), referenceFrames.getPelvisZUpFrame());
-      message.getSo3Trajectory().setTrajectoryPoint(1, 1.0, new Quaternion(), new Vector3D(), referenceFrames.getPelvisZUpFrame());
+      SO3TrajectoryMessage so3Trajectory = message.getSo3Trajectory();
+      so3Trajectory.getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(referenceFrames.getPelvisZUpFrame()));
+      SO3TrajectoryPointMessage trajectoryPoint = so3Trajectory.taskspaceTrajectoryPoints.add();
+      trajectoryPoint.setTime(0.5);
+      trajectoryPoint.setOrientation(orientation);
+      trajectoryPoint.setAngularVelocity(new Vector3D());
+      trajectoryPoint = so3Trajectory.taskspaceTrajectoryPoints.add();
+      trajectoryPoint.setTime(1.0);
+      trajectoryPoint.setOrientation(new Quaternion());
+      trajectoryPoint.setAngularVelocity(new Vector3D());
       commandInputManager.submitMessage(message);
    }
 

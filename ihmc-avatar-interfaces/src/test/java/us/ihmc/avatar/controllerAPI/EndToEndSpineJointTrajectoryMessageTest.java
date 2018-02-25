@@ -26,6 +26,7 @@ import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.euclid.tuple4D.Vector4D;
 import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
+import us.ihmc.humanoidRobotics.communication.packets.SO3TrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.OneDoFJointTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.ChestTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.SpineTrajectoryMessage;
@@ -438,10 +439,10 @@ public abstract class EndToEndSpineJointTrajectoryMessageTest implements MultiRo
       double controllerDT = getRobotModel().getControllerDT();
       drcSimulationTestHelper.send(message);
 
-      double trajectoryTime = message.getSo3Trajectory().getLastTrajectoryPoint().getTime();
+      double trajectoryTime = message.getSo3Trajectory().taskspaceTrajectoryPoints.getLast().getTime();
       assertTrue(drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(trajectoryTime + 5.0 * controllerDT));
 
-      Quaternion desired = new Quaternion(message.getSo3Trajectory().getLastTrajectoryPoint().getOrientation());
+      Quaternion desired = new Quaternion(message.getSo3Trajectory().taskspaceTrajectoryPoints.getLast().getOrientation());
       assertChestDesired(drcSimulationTestHelper.getSimulationConstructionSet(), desired, chest);
    }
 

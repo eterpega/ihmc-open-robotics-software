@@ -14,6 +14,8 @@ import us.ihmc.avatar.MultiRobotTestInterface;
 import us.ihmc.avatar.testTools.DRCBehaviorTestHelper;
 import us.ihmc.commons.PrintTools;
 import us.ihmc.commons.RandomNumbers;
+import us.ihmc.commons.thread.ThreadTools;
+import us.ihmc.communication.packets.MessageTools;
 import us.ihmc.euclid.axisAngle.AxisAngle;
 import us.ihmc.euclid.referenceFrame.FramePose3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
@@ -30,8 +32,6 @@ import us.ihmc.simulationConstructionSetTools.util.environments.DefaultCommonAva
 import us.ihmc.simulationconstructionset.util.simulationRunner.BlockingSimulationRunner.SimulationExceededMaximumTimeException;
 import us.ihmc.simulationconstructionset.util.simulationTesting.SimulationTestingParameters;
 import us.ihmc.tools.MemoryTools;
-import us.ihmc.commons.thread.ThreadTools;
-import us.ihmc.communication.packets.MessageTools;
 
 public abstract class DRCHeadTrajectoryBehaviorTest implements MultiRobotTestInterface
 {
@@ -179,7 +179,7 @@ public abstract class DRCHeadTrajectoryBehaviorTest implements MultiRobotTestInt
       }
 
       FramePose3D desiredHeadPose = new FramePose3D();
-      desiredHeadPose.set(initialHeadPose.getPosition(), headTrajectoryMessage.getSo3Trajectory().getLastTrajectoryPoint().orientation);
+      desiredHeadPose.set(initialHeadPose.getPosition(), headTrajectoryMessage.getSo3Trajectory().taskspaceTrajectoryPoints.getLast().orientation);
       assertPosesAreWithinThresholds(desiredHeadPose, finalHeadPose);
       assertTrue(headTrajectoryBehavior.isDone());
    }

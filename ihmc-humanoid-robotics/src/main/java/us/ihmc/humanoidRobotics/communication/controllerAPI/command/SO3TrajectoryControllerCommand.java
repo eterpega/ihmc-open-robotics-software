@@ -10,9 +10,11 @@ import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.converter.FrameBasedCommand;
-import us.ihmc.humanoidRobotics.communication.packets.SO3TrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.FrameInformation;
 import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
+import us.ihmc.humanoidRobotics.communication.packets.SO3TrajectoryMessage;
+import us.ihmc.humanoidRobotics.communication.packets.SO3TrajectoryPointMessage;
+import us.ihmc.idl.TempPreallocatedList;
 import us.ihmc.robotics.math.trajectories.waypoints.FrameSO3TrajectoryPoint;
 import us.ihmc.robotics.math.trajectories.waypoints.FrameSO3TrajectoryPointList;
 import us.ihmc.robotics.random.RandomGeometry;
@@ -99,21 +101,33 @@ public final class SO3TrajectoryControllerCommand extends QueueableCommand<SO3Tr
       clear(dataFrame);
       set(message);
 
-      ReferenceFrame selectionFrame = resolver.getReferenceFrameFromNameBaseHashCode(message.getSelectionFrameId());
+      ReferenceFrame selectionFrame = resolver.getReferenceFrameFromNameBaseHashCode(message.selectionMatrix.getSelectionFrameId());
       selectionMatrix.setSelectionFrame(selectionFrame);
-      ReferenceFrame weightSelectionFrame = resolver.getReferenceFrameFromNameBaseHashCode(message.getWeightMatrixFrameId());
+      ReferenceFrame weightSelectionFrame = resolver.getReferenceFrameFromNameBaseHashCode(message.weightMatrix.getWeightFrameId());
       weightMatrix.setWeightFrame(weightSelectionFrame);
    }
 
    @Override
    public void set(SO3TrajectoryMessage message)
    {
-      message.getTrajectoryPoints(trajectoryPointList);
+      HumanoidMessageTools.checkIfDataFrameIdsMatch(message.frameInformation, trajectoryPointList.getReferenceFrame());
+
+      TempPreallocatedList<SO3TrajectoryPointMessage> trajectoryPointMessages = message.getTaskspaceTrajectoryPoints();
+      int numberOfPoints = trajectoryPointMessages.size();
+
+      for (int i = 0; i < numberOfPoints; i++)
+      {
+         SO3TrajectoryPointMessage so3TrajectoryPointMessage = trajectoryPointMessages.get(i);
+         trajectoryPointList.addTrajectoryPoint(so3TrajectoryPointMessage.time, so3TrajectoryPointMessage.orientation,
+                                                so3TrajectoryPointMessage.angularVelocity);
+      }
       setQueueableCommandVariables(message.getUniqueId(), message.getQueueingProperties());
-      message.getSelectionMatrix(selectionMatrix);
-      message.getWeightMatrix(weightMatrix);
-      useCustomControlFrame = message.useCustomControlFrame();
-      message.getControlFramePose(controlFramePoseInBodyFrame);
+      selectionMatrix.resetSelection();
+      selectionMatrix.setAxisSelection(message.selectionMatrix.xSelected, message.selectionMatrix.ySelected, message.selectionMatrix.zSelected);
+      weightMatrix.clear();
+      weightMatrix.setWeights(message.weightMatrix.xWeight, message.weightMatrix.yWeight, message.weightMatrix.zWeight);
+      useCustomControlFrame = message.getUseCustomControlFrame();
+      message.controlFramePose.get(controlFramePoseInBodyFrame);
    }
 
    /**

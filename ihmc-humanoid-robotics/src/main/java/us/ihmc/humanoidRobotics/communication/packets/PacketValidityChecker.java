@@ -480,7 +480,7 @@ public abstract class PacketValidityChecker
 
       SO3TrajectoryPointMessage previousTrajectoryPoint = null;
 
-      if (message.getNumberOfTrajectoryPoints() == 0)
+      if (message.taskspaceTrajectoryPoints.size() == 0)
       {
          String messageClassName = message.getClass().getSimpleName();
          errorMessage = "Received " + messageClassName + " with no waypoint.";
@@ -497,9 +497,9 @@ public abstract class PacketValidityChecker
          return message.getClass().getSimpleName() + " Trajectory Reference Frame Id Not Set";
       }
 
-      for (int i = 0; i < message.getNumberOfTrajectoryPoints(); i++)
+      for (int i = 0; i < message.taskspaceTrajectoryPoints.size(); i++)
       {
-         SO3TrajectoryPointMessage waypoint = message.getTrajectoryPoint(i);
+         SO3TrajectoryPointMessage waypoint = message.taskspaceTrajectoryPoints.get(i);
          errorMessage = validateSO3TrajectoryPointMessage(waypoint, previousTrajectoryPoint, false);
          if (errorMessage != null)
          {
@@ -510,7 +510,7 @@ public abstract class PacketValidityChecker
          previousTrajectoryPoint = waypoint;
       }
 
-      if (message.useCustomControlFrame() && message.controlFramePose == null)
+      if (message.getUseCustomControlFrame() && message.controlFramePose == null)
       {
          String messageClassName = message.getClass().getSimpleName();
          return "The control frame pose for " + messageClassName + " has to be set to be able to use it.";

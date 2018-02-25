@@ -842,23 +842,6 @@ public class HumanoidMessageTools
       return message;
    }
 
-   /**
-    * Use this constructor to build a message with more than one trajectory point. Set the id of the
-    * message to {@link Packet#VALID_MESSAGE_DEFAULT_ID}. This constructor only allocates memory for
-    * the trajectory points, you need to call
-    * {@link #setTrajectoryPoint(int, double, Quaternion, Vector3D)} for each trajectory point
-    * afterwards.
-    * 
-    * @param numberOfTrajectoryPoints number of trajectory points that will be sent to the
-    *           controller.
-    */
-   public static PelvisOrientationTrajectoryMessage createPelvisOrientationTrajectoryMessage(int numberOfTrajectoryPoints)
-   {
-      PelvisOrientationTrajectoryMessage message = new PelvisOrientationTrajectoryMessage();
-      message.so3Trajectory = createSO3TrajectoryMessage(numberOfTrajectoryPoints);
-      return message;
-   }
-
    public static PelvisOrientationTrajectoryMessage createPelvisOrientationTrajectoryMessage(double trajectoryTime, QuaternionReadOnly desiredOrientation,
                                                                                              ReferenceFrame trajectoryFrame)
    {
@@ -940,23 +923,6 @@ public class HumanoidMessageTools
       return message;
    }
 
-   /**
-    * Use this constructor to build a message with more than one trajectory point. By default this
-    * constructor sets the trajectory frame to pelvis z up and the data frame to world This
-    * constructor only allocates memory for the trajectory points, you need to call
-    * {@link #setTrajectoryPoint(int, double, Quaternion, Vector3D)} for each trajectory point
-    * afterwards. Sets the frame to control in to world
-    * 
-    * @param numberOfTrajectoryPoints number of trajectory points that will be sent to the
-    *           controller.
-    */
-   public static ChestTrajectoryMessage createChestTrajectoryMessage(int numberOfTrajectoryPoints)
-   {
-      ChestTrajectoryMessage message = new ChestTrajectoryMessage();
-      message.so3Trajectory = createSO3TrajectoryMessage(numberOfTrajectoryPoints);
-      return message;
-   }
-
    public static HeadTrajectoryMessage createHeadTrajectoryMessage(double trajectoryTime, QuaternionReadOnly desiredOrientation, ReferenceFrame dataFrame,
                                                                    ReferenceFrame trajectoryFrame)
    {
@@ -992,23 +958,6 @@ public class HumanoidMessageTools
    {
       HeadTrajectoryMessage message = new HeadTrajectoryMessage();
       message.so3Trajectory = createSO3TrajectoryMessage(trajectoryTime, desiredOrientation, trajectoryReferenceFrameId);
-      return message;
-   }
-
-   /**
-    * Use this constructor to build a message with more than one trajectory point. By default this
-    * constructor sets the trajectory frame to chest Center of mass frame and the data frame to
-    * world This constructor only allocates memory for the trajectory points, you need to call
-    * {@link #setTrajectoryPoint(int, double, Quaternion, Vector3D)} for each trajectory point
-    * afterwards. Set the id of the message to {@link Packet#VALID_MESSAGE_DEFAULT_ID}.
-    * 
-    * @param numberOfTrajectoryPoints number of trajectory points that will be sent to the
-    *           controller.
-    */
-   public static HeadTrajectoryMessage createHeadTrajectoryMessage(int numberOfTrajectoryPoints)
-   {
-      HeadTrajectoryMessage message = new HeadTrajectoryMessage();
-      message.so3Trajectory = createSO3TrajectoryMessage(numberOfTrajectoryPoints);
       return message;
    }
 
@@ -1217,17 +1166,6 @@ public class HumanoidMessageTools
       Vector3D zeroAngularVelocity = new Vector3D();
       message.taskspaceTrajectoryPoints.add().set(createSO3TrajectoryPointMessage(trajectoryTime, desiredOrientation, zeroAngularVelocity));
       message.frameInformation.setTrajectoryReferenceFrameId(trajectoryReferenceFrameId);
-      return message;
-   }
-
-   public static SO3TrajectoryMessage createSO3TrajectoryMessage(int numberOfTrajectoryPoints)
-   {
-      SO3TrajectoryMessage message = new SO3TrajectoryMessage();
-      if (numberOfTrajectoryPoints > message.taskspaceTrajectoryPoints.capacity())
-         throw new ArrayIndexOutOfBoundsException("Attempted to add " + numberOfTrajectoryPoints + " elements while max capacity is "
-               + message.taskspaceTrajectoryPoints.capacity());
-      for (int i = 0; i < numberOfTrajectoryPoints; i++)
-         message.taskspaceTrajectoryPoints.add();
       return message;
    }
 

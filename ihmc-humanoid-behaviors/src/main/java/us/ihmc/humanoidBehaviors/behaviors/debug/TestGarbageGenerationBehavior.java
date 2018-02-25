@@ -8,10 +8,11 @@ import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.humanoidBehaviors.behaviors.AbstractBehavior;
 import us.ihmc.humanoidBehaviors.communication.CommunicationBridgeInterface;
 import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
+import us.ihmc.humanoidRobotics.communication.packets.SO3TrajectoryMessage;
+import us.ihmc.humanoidRobotics.communication.packets.SO3TrajectoryPointMessage;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.ArmTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.ChestTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataListMessage;
-import us.ihmc.humanoidRobotics.communication.packets.walking.FootstepDataMessage;
 import us.ihmc.humanoidRobotics.frames.HumanoidReferenceFrames;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.time.YoStopwatch;
@@ -67,14 +68,18 @@ public class TestGarbageGenerationBehavior extends AbstractBehavior
    private void sendChestTrajectory()
    {
       ReferenceFrame pelvisZUp = referenceFrames.getPelvisZUpFrame();
-      ChestTrajectoryMessage chestTrajectory = HumanoidMessageTools.createChestTrajectoryMessage(trajectoryPoints);
-      chestTrajectory.getSo3Trajectory().getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(pelvisZUp));
-      chestTrajectory.getSo3Trajectory().getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(pelvisZUp));
+      ChestTrajectoryMessage chestTrajectory = new ChestTrajectoryMessage();
+      SO3TrajectoryMessage so3Trajectory = chestTrajectory.getSo3Trajectory();
+      so3Trajectory.getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(pelvisZUp));
+      so3Trajectory.getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(pelvisZUp));
 
       for (int i = 0; i < trajectoryPoints; i++)
       {
          double percent = i / (double) (trajectoryPoints - 1);
-         chestTrajectory.getSo3Trajectory().setTrajectoryPoint(i, percent, new Quaternion(), new Vector3D(), pelvisZUp);
+         SO3TrajectoryPointMessage trajectoryPoint = so3Trajectory.taskspaceTrajectoryPoints.add();
+         trajectoryPoint.setTime(percent);
+         trajectoryPoint.setOrientation(new Quaternion());
+         trajectoryPoint.setAngularVelocity(new Vector3D());
       }
 
       sendPacketToController(chestTrajectory);

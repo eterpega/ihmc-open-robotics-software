@@ -32,6 +32,8 @@ import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
+import us.ihmc.humanoidRobotics.communication.packets.SO3TrajectoryMessage;
+import us.ihmc.humanoidRobotics.communication.packets.SO3TrajectoryPointMessage;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.StopAllTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.walking.ChestTrajectoryMessage;
 import us.ihmc.humanoidRobotics.frames.HumanoidReferenceFrames;
@@ -201,7 +203,7 @@ public abstract class EndToEndChestTrajectoryMessageTest implements MultiRobotTe
       selectionMatrix3D.selectYAxis(false);
       selectionMatrix3D.selectXAxis(false);
       selectionMatrix3D.setSelectionFrame(pelvisZUpFrame);
-      chestTrajectoryMessage.getSo3Trajectory().setSelectionMatrix(selectionMatrix3D);
+      chestTrajectoryMessage.getSo3Trajectory().selectionMatrix.set(MessageTools.createSelectionMatrix3DMessage(selectionMatrix3D));
       drcSimulationTestHelper.send(chestTrajectoryMessage);
 
       assertTrue(drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(getRobotModel().getControllerDT()));
@@ -288,7 +290,7 @@ public abstract class EndToEndChestTrajectoryMessageTest implements MultiRobotTe
          double zWeight = random.nextDouble();
 
          weightMatrix.setWeights(xWeight, yWeight, zWeight);
-         chestTrajectoryMessage.getSo3Trajectory().setWeightMatrix(weightMatrix);
+         chestTrajectoryMessage.getSo3Trajectory().weightMatrix.set(MessageTools.createWeightMatrix3DMessage(weightMatrix));
          drcSimulationTestHelper.send(chestTrajectoryMessage);
 
          assertTrue(drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(getRobotModel().getControllerDT() * 4.0));
@@ -313,7 +315,7 @@ public abstract class EndToEndChestTrajectoryMessageTest implements MultiRobotTe
       double zWeight = Double.NaN;
 
       weightMatrix.setWeights(xWeight, yWeight, zWeight);
-      chestTrajectoryMessage.getSo3Trajectory().setWeightMatrix(weightMatrix);
+      chestTrajectoryMessage.getSo3Trajectory().weightMatrix.set(MessageTools.createWeightMatrix3DMessage(weightMatrix));
       drcSimulationTestHelper.send(chestTrajectoryMessage);
 
       assertTrue(drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(getRobotModel().getControllerDT() * 4.0));
@@ -392,7 +394,7 @@ public abstract class EndToEndChestTrajectoryMessageTest implements MultiRobotTe
       selectionMatrix3D.selectYAxis(random.nextBoolean());
       selectionMatrix3D.selectXAxis(random.nextBoolean());
       selectionMatrix3D.setSelectionFrame(pelvisZUpFrame);
-      chestTrajectoryMessage.getSo3Trajectory().setSelectionMatrix(selectionMatrix3D);
+      chestTrajectoryMessage.getSo3Trajectory().selectionMatrix.set(MessageTools.createSelectionMatrix3DMessage(selectionMatrix3D));
       drcSimulationTestHelper.send(chestTrajectoryMessage);
 
       assertTrue(drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(getRobotModel().getControllerDT()));
@@ -453,9 +455,10 @@ public abstract class EndToEndChestTrajectoryMessageTest implements MultiRobotTe
       double trajectoryTime = numberOfTrajectoryPoints * timePerWaypoint;
       RigidBody chest = fullRobotModel.getChest();
 
-      ChestTrajectoryMessage chestTrajectoryMessage = HumanoidMessageTools.createChestTrajectoryMessage(numberOfTrajectoryPoints);
-      chestTrajectoryMessage.getSo3Trajectory().getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(pelvisZUpFrame));
-      chestTrajectoryMessage.getSo3Trajectory().getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(ReferenceFrame.getWorldFrame()));
+      ChestTrajectoryMessage chestTrajectoryMessage = new ChestTrajectoryMessage();
+      SO3TrajectoryMessage so3Trajectory = chestTrajectoryMessage.getSo3Trajectory();
+      so3Trajectory.getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(pelvisZUpFrame));
+      so3Trajectory.getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(ReferenceFrame.getWorldFrame()));
 
       FrameQuaternion[] desiredChestOrientations = new FrameQuaternion[numberOfTrajectoryPoints];
       FrameVector3D[] desiredChestAngularVelocities = new FrameVector3D[numberOfTrajectoryPoints];
@@ -476,10 +479,10 @@ public abstract class EndToEndChestTrajectoryMessageTest implements MultiRobotTe
          if (trajectoryPointIndex == numberOfTrajectoryPoints - 1)
             desiredChestAngularVelocities[trajectoryPointIndex].setToZero();
 
-         Quaternion desiredOrientation = new Quaternion(desiredChestOrientations[trajectoryPointIndex]);
-         Vector3D desiredAngularVelocity = new Vector3D(desiredChestAngularVelocities[trajectoryPointIndex]);
-
-         chestTrajectoryMessage.getSo3Trajectory().setTrajectoryPoint(trajectoryPointIndex, t, desiredOrientation, desiredAngularVelocity, ReferenceFrame.getWorldFrame());
+         SO3TrajectoryPointMessage trajectoryPoint = so3Trajectory.taskspaceTrajectoryPoints.add();
+         trajectoryPoint.setTime(t);
+         trajectoryPoint.setOrientation(desiredChestOrientations[trajectoryPointIndex]);
+         trajectoryPoint.setAngularVelocity(desiredChestAngularVelocities[trajectoryPointIndex]);
       }
 
       drcSimulationTestHelper.send(chestTrajectoryMessage);
@@ -501,7 +504,7 @@ public abstract class EndToEndChestTrajectoryMessageTest implements MultiRobotTe
 
       for (int trajectoryPointIndex = 0; trajectoryPointIndex < RigidBodyTaskspaceControlState.maxPointsInGenerator - 1; trajectoryPointIndex++)
       {
-         double time = chestTrajectoryMessage.getSo3Trajectory().getTrajectoryPoint(trajectoryPointIndex).getTime();
+         double time = so3Trajectory.taskspaceTrajectoryPoints.get(trajectoryPointIndex).getTime();
          SimpleSO3TrajectoryPoint controllerTrajectoryPoint = findTrajectoryPoint(trajectoryPointIndex + 1, scs, chest);
          assertEquals(time, controllerTrajectoryPoint.getTime(), EPSILON_FOR_DESIREDS);
          desiredChestOrientations[trajectoryPointIndex].epsilonEquals(controllerTrajectoryPoint.getOrientationCopy(), EPSILON_FOR_DESIREDS);
@@ -542,9 +545,10 @@ public abstract class EndToEndChestTrajectoryMessageTest implements MultiRobotTe
       HumanoidReferenceFrames humanoidReferenceFrames = new HumanoidReferenceFrames(fullRobotModel);
       ReferenceFrame pelvisZUpFrame = humanoidReferenceFrames.getPelvisZUpFrame();
 
-      ChestTrajectoryMessage chestTrajectoryMessage = HumanoidMessageTools.createChestTrajectoryMessage(numberOfTrajectoryPoints);
-      chestTrajectoryMessage.getSo3Trajectory().getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(pelvisZUpFrame));
-      chestTrajectoryMessage.getSo3Trajectory().getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(ReferenceFrame.getWorldFrame()));
+      ChestTrajectoryMessage chestTrajectoryMessage = new ChestTrajectoryMessage();
+      SO3TrajectoryMessage so3Trajectory = chestTrajectoryMessage.getSo3Trajectory();
+      so3Trajectory.getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(pelvisZUpFrame));
+      so3Trajectory.getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(ReferenceFrame.getWorldFrame()));
 
       FrameQuaternion[] desiredChestOrientations = new FrameQuaternion[numberOfTrajectoryPoints];
       FrameVector3D[] desiredChestAngularVelocities = new FrameVector3D[numberOfTrajectoryPoints];
@@ -567,10 +571,10 @@ public abstract class EndToEndChestTrajectoryMessageTest implements MultiRobotTe
          else
             desiredChestAngularVelocities[trajectoryPointIndex].set(rollDot, 0.0, 0.0);
 
-         Quaternion desiredOrientation = new Quaternion(desiredChestOrientations[trajectoryPointIndex]);
-         Vector3D desiredAngularVelocity = new Vector3D(desiredChestAngularVelocities[trajectoryPointIndex]);
-
-         chestTrajectoryMessage.getSo3Trajectory().setTrajectoryPoint(trajectoryPointIndex, t, desiredOrientation, desiredAngularVelocity, ReferenceFrame.getWorldFrame());
+         SO3TrajectoryPointMessage trajectoryPoint = so3Trajectory.taskspaceTrajectoryPoints.add();
+         trajectoryPoint.setTime(t);
+         trajectoryPoint.setOrientation(desiredChestOrientations[trajectoryPointIndex]);
+         trajectoryPoint.setAngularVelocity(desiredChestAngularVelocities[trajectoryPointIndex]);
       }
 
       drcSimulationTestHelper.send(chestTrajectoryMessage);
@@ -597,7 +601,7 @@ public abstract class EndToEndChestTrajectoryMessageTest implements MultiRobotTe
 
       for (int trajectoryPointIndex = 0; trajectoryPointIndex < RigidBodyTaskspaceControlState.maxPointsInGenerator - 1; trajectoryPointIndex++)
       {
-         double time = chestTrajectoryMessage.getSo3Trajectory().getTrajectoryPoint(expectedTrajectoryPointIndex).getTime();
+         double time = so3Trajectory.taskspaceTrajectoryPoints.get(expectedTrajectoryPointIndex).getTime();
          SimpleSO3TrajectoryPoint controllerTrajectoryPoint = findTrajectoryPoint(trajectoryPointIndex + 1, scs, chest);
          assertEquals(time, controllerTrajectoryPoint.getTime(), EPSILON_FOR_DESIREDS);
          desiredChestOrientations[expectedTrajectoryPointIndex].epsilonEquals(controllerTrajectoryPoint.getOrientationCopy(), EPSILON_FOR_DESIREDS);
@@ -647,8 +651,9 @@ public abstract class EndToEndChestTrajectoryMessageTest implements MultiRobotTe
       HumanoidReferenceFrames humanoidReferenceFrames = new HumanoidReferenceFrames(fullRobotModel);
       ReferenceFrame pelvisZUpFrame = humanoidReferenceFrames.getPelvisZUpFrame();
 
-      ChestTrajectoryMessage chestTrajectoryMessage = HumanoidMessageTools.createChestTrajectoryMessage(numberOfTrajectoryPoints);
-      chestTrajectoryMessage.getSo3Trajectory().getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(pelvisZUpFrame));
+      ChestTrajectoryMessage chestTrajectoryMessage = new ChestTrajectoryMessage();
+      SO3TrajectoryMessage so3Trajectory = chestTrajectoryMessage.getSo3Trajectory();
+      so3Trajectory.getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(pelvisZUpFrame));
 
       FrameQuaternion[] desiredChestOrientations = new FrameQuaternion[numberOfTrajectoryPoints];
       FrameVector3D[] desiredChestAngularVelocities = new FrameVector3D[numberOfTrajectoryPoints];
@@ -673,10 +678,10 @@ public abstract class EndToEndChestTrajectoryMessageTest implements MultiRobotTe
             desiredChestAngularVelocities[trajectoryPointIndex].set(rollDot, 0.0, 0.0);
          desiredChestAngularVelocities[trajectoryPointIndex].changeFrame(pelvisZUpFrame);
 
-         Quaternion desiredOrientation = new Quaternion(desiredChestOrientations[trajectoryPointIndex]);
-         Vector3D desiredAngularVelocity = new Vector3D(desiredChestAngularVelocities[trajectoryPointIndex]);
-
-         chestTrajectoryMessage.getSo3Trajectory().setTrajectoryPoint(trajectoryPointIndex, t, desiredOrientation, desiredAngularVelocity, pelvisZUpFrame);
+         SO3TrajectoryPointMessage trajectoryPoint = so3Trajectory.taskspaceTrajectoryPoints.add();
+         trajectoryPoint.setTime(t);
+         trajectoryPoint.setOrientation(desiredChestOrientations[trajectoryPointIndex]);
+         trajectoryPoint.setAngularVelocity(desiredChestAngularVelocities[trajectoryPointIndex]);
       }
 
       drcSimulationTestHelper.send(chestTrajectoryMessage);
@@ -703,7 +708,7 @@ public abstract class EndToEndChestTrajectoryMessageTest implements MultiRobotTe
 
       for (int trajectoryPointIndex = 0; trajectoryPointIndex < RigidBodyTaskspaceControlState.maxPointsInGenerator - 1; trajectoryPointIndex++)
       {
-         double time = chestTrajectoryMessage.getSo3Trajectory().getTrajectoryPoint(expectedTrajectoryPointIndex).getTime();
+         double time = so3Trajectory.taskspaceTrajectoryPoints.get(expectedTrajectoryPointIndex).getTime();
          SimpleSO3TrajectoryPoint controllerTrajectoryPoint = findTrajectoryPoint(trajectoryPointIndex + 1, scs, chest);
          assertEquals(time, controllerTrajectoryPoint.getTime(), EPSILON_FOR_DESIREDS);
          desiredChestOrientations[expectedTrajectoryPointIndex].epsilonEquals(controllerTrajectoryPoint.getOrientationCopy(), EPSILON_FOR_DESIREDS);
@@ -774,15 +779,16 @@ public abstract class EndToEndChestTrajectoryMessageTest implements MultiRobotTe
       {
          FrameQuaternion[] desiredChestOrientations = new FrameQuaternion[numberOfTrajectoryPoints];
          FrameVector3D[] desiredChestAngularVelocities = new FrameVector3D[numberOfTrajectoryPoints];
-         ChestTrajectoryMessage chestTrajectoryMessage = HumanoidMessageTools.createChestTrajectoryMessage(numberOfTrajectoryPoints);
-         chestTrajectoryMessage.getSo3Trajectory().getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(pelvisZUpFrame));
-         chestTrajectoryMessage.getSo3Trajectory().getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(ReferenceFrame.getWorldFrame()));
+         ChestTrajectoryMessage chestTrajectoryMessage = new ChestTrajectoryMessage();
+         SO3TrajectoryMessage so3Trajectory = chestTrajectoryMessage.getSo3Trajectory();
+         so3Trajectory.getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(pelvisZUpFrame));
+         so3Trajectory.getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(ReferenceFrame.getWorldFrame()));
 
          chestTrajectoryMessage.setUniqueId(id);
          if (messageIndex > 0)
          {
-            chestTrajectoryMessage.getSo3Trajectory().getQueueingProperties().setExecutionMode(ExecutionMode.QUEUE.toByte());
-            chestTrajectoryMessage.getSo3Trajectory().getQueueingProperties().setPreviousMessageId(id - 1);
+            so3Trajectory.getQueueingProperties().setExecutionMode(ExecutionMode.QUEUE.toByte());
+            so3Trajectory.getQueueingProperties().setPreviousMessageId(id - 1);
          }
          id++;
 
@@ -804,10 +810,10 @@ public abstract class EndToEndChestTrajectoryMessageTest implements MultiRobotTe
             if (messageIndex == 0 && trajectoryPointIndex == 0)
                desiredChestAngularVelocities[trajectoryPointIndex].setToZero();
 
-            Quaternion desiredOrientation = new Quaternion(desiredChestOrientations[trajectoryPointIndex]);
-            Vector3D desiredAngularVelocity = new Vector3D(desiredChestAngularVelocities[trajectoryPointIndex]);
-
-            chestTrajectoryMessage.getSo3Trajectory().setTrajectoryPoint(trajectoryPointIndex, t, desiredOrientation, desiredAngularVelocity, ReferenceFrame.getWorldFrame());
+            SO3TrajectoryPointMessage trajectoryPoint = so3Trajectory.taskspaceTrajectoryPoints.add();
+            trajectoryPoint.setTime(t);
+            trajectoryPoint.setOrientation(desiredChestOrientations[trajectoryPointIndex]);
+            trajectoryPoint.setAngularVelocity(desiredChestAngularVelocities[trajectoryPointIndex]);
          }
          drcSimulationTestHelper.send(chestTrajectoryMessage);
          success = drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(getRobotModel().getControllerDT()); // Trick to get frames synchronized with the controller.
@@ -835,7 +841,7 @@ public abstract class EndToEndChestTrajectoryMessageTest implements MultiRobotTe
       for (int messageIndex = 0; messageIndex < numberOfMessages; messageIndex++)
       {
          ChestTrajectoryMessage chestTrajectoryMessage = messageList.get(messageIndex);
-         double simulationTime = chestTrajectoryMessage.getSo3Trajectory().getLastTrajectoryPoint().getTime();
+         double simulationTime = chestTrajectoryMessage.getSo3Trajectory().taskspaceTrajectoryPoints.getLast().getTime();
          success = drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(simulationTime);
          assertTrue(success);
       }
@@ -899,9 +905,10 @@ public abstract class EndToEndChestTrajectoryMessageTest implements MultiRobotTe
       {
          FrameQuaternion[] desiredChestOrientations = new FrameQuaternion[numberOfTrajectoryPoints];
          FrameVector3D[] desiredChestAngularVelocities = new FrameVector3D[numberOfTrajectoryPoints];
-         ChestTrajectoryMessage chestTrajectoryMessage = HumanoidMessageTools.createChestTrajectoryMessage(numberOfTrajectoryPoints);
-         chestTrajectoryMessage.getSo3Trajectory().getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(pelvisZUpFrame));
-         chestTrajectoryMessage.getSo3Trajectory().getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(ReferenceFrame.getWorldFrame()));
+         ChestTrajectoryMessage chestTrajectoryMessage = new ChestTrajectoryMessage();
+         SO3TrajectoryMessage so3Trajectory = chestTrajectoryMessage.getSo3Trajectory();
+         so3Trajectory.getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(pelvisZUpFrame));
+         so3Trajectory.getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(ReferenceFrame.getWorldFrame()));
          chestTrajectoryMessage.setUniqueId(id);
          if (messageIndex > 0)
          {
@@ -909,8 +916,8 @@ public abstract class EndToEndChestTrajectoryMessageTest implements MultiRobotTe
             if (messageIndex == numberOfMessages - 1)
                previousMessageId = id + 100; // Bad ID
 
-            chestTrajectoryMessage.getSo3Trajectory().getQueueingProperties().setExecutionMode(ExecutionMode.QUEUE.toByte());
-            chestTrajectoryMessage.getSo3Trajectory().getQueueingProperties().setPreviousMessageId(previousMessageId);
+            so3Trajectory.getQueueingProperties().setExecutionMode(ExecutionMode.QUEUE.toByte());
+            so3Trajectory.getQueueingProperties().setPreviousMessageId(previousMessageId);
          }
          id++;
 
@@ -925,10 +932,10 @@ public abstract class EndToEndChestTrajectoryMessageTest implements MultiRobotTe
             desiredChestAngularVelocities[trajectoryPointIndex] = new FrameVector3D();
             desiredChestAngularVelocities[trajectoryPointIndex].set(0.0, pitchDot, 0.0);
 
-            Quaternion desiredOrientation = new Quaternion(desiredChestOrientations[trajectoryPointIndex]);
-            Vector3D desiredAngularVelocity = new Vector3D(desiredChestAngularVelocities[trajectoryPointIndex]);
-
-            chestTrajectoryMessage.getSo3Trajectory().setTrajectoryPoint(trajectoryPointIndex, t, desiredOrientation, desiredAngularVelocity, ReferenceFrame.getWorldFrame());
+            SO3TrajectoryPointMessage trajectoryPoint = so3Trajectory.taskspaceTrajectoryPoints.add();
+            trajectoryPoint.setTime(t);
+            trajectoryPoint.setOrientation(desiredChestOrientations[trajectoryPointIndex]);
+            trajectoryPoint.setAngularVelocity(desiredChestAngularVelocities[trajectoryPointIndex]);
          }
          drcSimulationTestHelper.send(chestTrajectoryMessage);
          success = drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(getRobotModel().getControllerDT()); // Trick to get frames synchronized with the controller.
@@ -1146,15 +1153,16 @@ public abstract class EndToEndChestTrajectoryMessageTest implements MultiRobotTe
       {
          FrameQuaternion[] desiredChestOrientations = new FrameQuaternion[numberOfTrajectoryPoints];
          FrameVector3D[] desiredChestAngularVelocities = new FrameVector3D[numberOfTrajectoryPoints];
-         ChestTrajectoryMessage chestTrajectoryMessage = HumanoidMessageTools.createChestTrajectoryMessage(numberOfTrajectoryPoints);
-         chestTrajectoryMessage.getSo3Trajectory().getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(pelvisZUpFrame));
-         chestTrajectoryMessage.getSo3Trajectory().getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(ReferenceFrame.getWorldFrame()));
+         ChestTrajectoryMessage chestTrajectoryMessage = new ChestTrajectoryMessage();
+         SO3TrajectoryMessage so3Trajectory = chestTrajectoryMessage.getSo3Trajectory();
+         so3Trajectory.getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(pelvisZUpFrame));
+         so3Trajectory.getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(ReferenceFrame.getWorldFrame()));
 
          chestTrajectoryMessage.setUniqueId(id);
          if (messageIndex > 0)
          {
-            chestTrajectoryMessage.getSo3Trajectory().getQueueingProperties().setExecutionMode(ExecutionMode.QUEUE.toByte());
-            chestTrajectoryMessage.getSo3Trajectory().getQueueingProperties().setPreviousMessageId(id - 1);
+            so3Trajectory.getQueueingProperties().setExecutionMode(ExecutionMode.QUEUE.toByte());
+            so3Trajectory.getQueueingProperties().setPreviousMessageId(id - 1);
          }
          id++;
 
@@ -1169,10 +1177,10 @@ public abstract class EndToEndChestTrajectoryMessageTest implements MultiRobotTe
             desiredChestAngularVelocities[trajectoryPointIndex] = new FrameVector3D();
             desiredChestAngularVelocities[trajectoryPointIndex].set(0.0, pitchDot, 0.0);
 
-            Quaternion desiredOrientation = new Quaternion(desiredChestOrientations[trajectoryPointIndex]);
-            Vector3D desiredAngularVelocity = new Vector3D(desiredChestAngularVelocities[trajectoryPointIndex]);
-
-            chestTrajectoryMessage.getSo3Trajectory().setTrajectoryPoint(trajectoryPointIndex, t, desiredOrientation, desiredAngularVelocity, ReferenceFrame.getWorldFrame());
+            SO3TrajectoryPointMessage trajectoryPoint = so3Trajectory.taskspaceTrajectoryPoints.add();
+            trajectoryPoint.setTime(t);
+            trajectoryPoint.setOrientation(desiredChestOrientations[trajectoryPointIndex]);
+            trajectoryPoint.setAngularVelocity(desiredChestAngularVelocities[trajectoryPointIndex]);
          }
          drcSimulationTestHelper.send(chestTrajectoryMessage);
          success = drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(getRobotModel().getControllerDT()); // Trick to get frames synchronized with the controller.
