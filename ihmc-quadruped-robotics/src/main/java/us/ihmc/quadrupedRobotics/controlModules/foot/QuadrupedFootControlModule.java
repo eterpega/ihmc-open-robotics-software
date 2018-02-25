@@ -21,7 +21,7 @@ public class QuadrupedFootControlModule
 {
    // control variables
    private final YoVariableRegistry registry;
-   private final YoQuadrupedTimedStep stepCommand;
+   private final YoQuadrupedTimedStep currentStepCommand;
    private final YoBoolean stepCommandIsValid;
 
    // foot state machine
@@ -33,26 +33,22 @@ public class QuadrupedFootControlModule
    private final QuadrupedMoveViaWaypointsState moveViaWaypointsState;
    private final FiniteStateMachine<QuadrupedFootStates, FootEvent, QuadrupedFootState> footStateMachine;
 
-   private final QuadrupedForceControllerToolbox controllerToolbox;
-
-   public QuadrupedFootControlModule(RobotQuadrant robotQuadrant, QuadrupedForceControllerToolbox toolbox, YoVariableRegistry parentRegistry)
+   public QuadrupedFootControlModule(RobotQuadrant robotQuadrant, QuadrupedForceControllerToolbox controllerToolbox, YoVariableRegistry parentRegistry)
    {
-      this.controllerToolbox = toolbox;
-
       // control variables
       String prefix = robotQuadrant.getCamelCaseName();
       this.registry = new YoVariableRegistry(robotQuadrant.getPascalCaseName() + getClass().getSimpleName());
-      this.stepCommand = new YoQuadrupedTimedStep(prefix + "StepCommand", registry);
+      this.currentStepCommand = new YoQuadrupedTimedStep(prefix + "CurrentStepCommand", registry);
       this.stepCommandIsValid = new YoBoolean(prefix + "StepCommandIsValid", registry);
 
       // position controller
-      solePositionController = new QuadrupedSolePositionController(robotQuadrant, toolbox, registry);
+      solePositionController = new QuadrupedSolePositionController(robotQuadrant, controllerToolbox, registry);
 
       // state machine
-      QuadrupedSupportState supportState = new QuadrupedSupportState(robotQuadrant, stepCommandIsValid, toolbox.getRuntimeEnvironment().getRobotTimestamp(), stepCommand);
-      QuadrupedSwingState swingState = new QuadrupedSwingState(robotQuadrant, toolbox, solePositionController, stepCommandIsValid, stepCommand, registry);
-      moveViaWaypointsState = new QuadrupedMoveViaWaypointsState(robotQuadrant, toolbox, solePositionController, registry);
-      QuadrupedHoldPositionState holdState = new QuadrupedHoldPositionState(robotQuadrant, toolbox, solePositionController, registry);
+      QuadrupedSupportState supportState = new QuadrupedSupportState(robotQuadrant, stepCommandIsValid, controllerToolbox.getRuntimeEnvironment().getRobotTimestamp(), currentStepCommand);
+      QuadrupedSwingState swingState = new QuadrupedSwingState(robotQuadrant, controllerToolbox, solePositionController, stepCommandIsValid, currentStepCommand, registry);
+      moveViaWaypointsState = new QuadrupedMoveViaWaypointsState(robotQuadrant, controllerToolbox, solePositionController, registry);
+      QuadrupedHoldPositionState holdState = new QuadrupedHoldPositionState(robotQuadrant, controllerToolbox, solePositionController, registry);
 
       FiniteStateMachineBuilder<QuadrupedFootStates, FootEvent, QuadrupedFootState> stateMachineBuilder = new FiniteStateMachineBuilder<>(QuadrupedFootStates.class, FootEvent.class,
                                                                                                                                           prefix + "QuadrupedFootStates", registry);
@@ -147,14 +143,14 @@ public class QuadrupedFootControlModule
    {
       if (footStateMachine.getCurrentStateEnum() == QuadrupedFootStates.SUPPORT)
       {
-         this.stepCommand.set(stepCommand);
+         this.currentStepCommand.set(stepCommand);
          this.stepCommandIsValid.set(true);
       }
    }
 
    public void adjustStep(FramePoint3DReadOnly newGoalPosition)
    {
-      this.stepCommand.setGoalPosition(newGoalPosition);
+      this.currentStepCommand.setGoalPosition(newGoalPosition);
    }
 
    public ContactState getContactState()
