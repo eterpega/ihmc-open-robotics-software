@@ -35,6 +35,7 @@ import us.ihmc.communication.packets.KinematicsToolboxOutputStatus;
 import us.ihmc.communication.packets.KinematicsToolboxRigidBodyMessage;
 import us.ihmc.communication.packets.MessageTools;
 import us.ihmc.communication.packets.PacketDestination;
+import us.ihmc.communication.packets.SelectionMatrix3DMessage;
 import us.ihmc.euclid.geometry.Pose3D;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Point3D;
@@ -260,8 +261,10 @@ public abstract class AvatarWholeBodyTrajectoryToolboxControllerTest implements 
             selectionMatrix.resetSelection();
             selectionMatrix.clearAngularSelection();
             WaypointBasedTrajectoryMessage trajectory = createTrajectoryMessage(hand, 0.0, trajectoryTime, timeResolution, handFunction, selectionMatrix);
+            Pose3D controlFramePose = handControlFrames.get(robotSide);
 
-            trajectory.setControlFramePose(handControlFrames.get(robotSide));
+            trajectory.setControlFramePositionInEndEffector(controlFramePose.getPosition());
+            trajectory.setControlFrameOrientationInEndEffector(controlFramePose.getOrientation());
 
             handTrajectories.add(trajectory);
             ConfigurationSpaceName[] handConfigurations = {};
@@ -321,8 +324,10 @@ public abstract class AvatarWholeBodyTrajectoryToolboxControllerTest implements 
          SelectionMatrix6D selectionMatrix = new SelectionMatrix6D();
          selectionMatrix.resetSelection();
          WaypointBasedTrajectoryMessage trajectory = createTrajectoryMessage(hand, 0.0, trajectoryTime, timeResolution, handFunction, selectionMatrix);
+         Pose3D controlFramePose = handControlFrames.get(robotSide);
 
-         trajectory.setControlFramePose(handControlFrames.get(robotSide));
+         trajectory.setControlFramePositionInEndEffector(controlFramePose.getPosition());
+         trajectory.setControlFrameOrientationInEndEffector(controlFramePose.getOrientation());
 
          handTrajectories.add(trajectory);
          ConfigurationSpaceName[] handConfigurations = {ConfigurationSpaceName.YAW};
@@ -381,8 +386,10 @@ public abstract class AvatarWholeBodyTrajectoryToolboxControllerTest implements 
          SelectionMatrix6D selectionMatrix = new SelectionMatrix6D();
          selectionMatrix.resetSelection();
          WaypointBasedTrajectoryMessage trajectory = createTrajectoryMessage(hand, 0.0, trajectoryTime, timeResolution, handFunction, selectionMatrix);
+         Pose3D controlFramePose = handControlFrames.get(robotSide);
 
-         trajectory.setControlFramePose(handControlFrames.get(robotSide));
+         trajectory.setControlFramePositionInEndEffector(controlFramePose.getPosition());
+         trajectory.setControlFrameOrientationInEndEffector(controlFramePose.getOrientation());
 
          handTrajectories.add(trajectory);
 
@@ -410,12 +417,16 @@ public abstract class AvatarWholeBodyTrajectoryToolboxControllerTest implements 
          for (int i = 0; i < endEffectorTrajectories.size(); i++)
          {
             WaypointBasedTrajectoryMessage trajectoryMessage = endEffectorTrajectories.get(i);
-            t0 = Math.min(t0, trajectoryMessage.getWaypointTime(0));
-            tf = Math.max(t0, trajectoryMessage.getLastWaypointTime());
+            t0 = Math.min(t0, trajectoryMessage.waypointTimes.get(0));
+            tf = Math.max(t0, trajectoryMessage.waypointTimes.get(trajectoryMessage.waypoints.size() - 1));
 
             SelectionMatrix6D selectionMatrix = new SelectionMatrix6D();
             // Visualize the position part if it is commanded
-            trajectoryMessage.getSelectionMatrix(selectionMatrix);
+            selectionMatrix.resetSelection();
+            SelectionMatrix3DMessage angularSelection = trajectoryMessage.getAngularSelectionMatrix();
+            SelectionMatrix3DMessage linearSelection = trajectoryMessage.getLinearSelectionMatrix();
+            selectionMatrix.setAngularAxisSelection(angularSelection.xSelected, angularSelection.ySelected, angularSelection.zSelected);
+            selectionMatrix.setLinearAxisSelection(linearSelection.xSelected, linearSelection.ySelected, linearSelection.zSelected);
 
             if (!selectionMatrix.isLinearXSelected() && !selectionMatrix.isLinearYSelected() && !selectionMatrix.isLinearZSelected())
                continue; // The position part is not dictated by trajectory, let's not visualize.
@@ -528,7 +539,7 @@ public abstract class AvatarWholeBodyTrajectoryToolboxControllerTest implements 
                if (trajectory.controlFrameOrientationInEndEffector != null)
                   solutionRigidBodyPose.appendTransform(new RigidBodyTransform(trajectory.controlFrameOrientationInEndEffector, new Point3D()));
 
-               Pose3D givenRigidBodyPose = trajectory.getPose(configurationTime);
+               Pose3D givenRigidBodyPose = HumanoidMessageTools.unpackPose(trajectory, configurationTime);
 
                double positionError = WholeBodyTrajectoryToolboxHelper.computeTrajectoryPositionError(solutionRigidBodyPose, givenRigidBodyPose,
                                                                                                       explorationMessage, trajectory);
@@ -663,9 +674,9 @@ public abstract class AvatarWholeBodyTrajectoryToolboxControllerTest implements 
    private static Graphics3DObject createTrajectoryMessageVisualization(WaypointBasedTrajectoryMessage trajectoryMessage, double radius,
                                                                         AppearanceDefinition appearance)
    {
-      double t0 = trajectoryMessage.getWaypointTime(0);
-      double tf = trajectoryMessage.getLastWaypointTime();
-      double timeResolution = (tf - t0) / trajectoryMessage.getNumberOfWaypoints();
+      double t0 = trajectoryMessage.waypointTimes.get(0);
+      double tf = trajectoryMessage.waypointTimes.get(trajectoryMessage.waypoints.size() - 1);
+      double timeResolution = (tf - t0) / trajectoryMessage.waypoints.size();
       FunctionTrajectory trajectoryToVisualize = WholeBodyTrajectoryToolboxMessageTools.createFunctionTrajectory(trajectoryMessage);
       return createFunctionTrajectoryVisualization(trajectoryToVisualize, t0, tf, timeResolution, radius, appearance);
    }

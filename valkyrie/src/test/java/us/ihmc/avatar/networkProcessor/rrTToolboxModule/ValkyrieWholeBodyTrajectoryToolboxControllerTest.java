@@ -134,8 +134,10 @@ public class ValkyrieWholeBodyTrajectoryToolboxControllerTest extends AvatarWhol
       selectionMatrix.resetSelection();
       WaypointBasedTrajectoryMessage trajectory = WholeBodyTrajectoryToolboxMessageTools.createTrajectoryMessage(hand, 0.0, trajectoryTime, timeResolution,
                                                                                                                  handFunction, selectionMatrix);
+      Pose3D controlFramePose = handControlFrames.get(robotSide);
 
-      trajectory.setControlFramePose(handControlFrames.get(robotSide));
+      trajectory.setControlFramePositionInEndEffector(controlFramePose.getPosition());
+      trajectory.setControlFrameOrientationInEndEffector(controlFramePose.getOrientation());
 
       handTrajectories.add(trajectory);
 
@@ -188,8 +190,10 @@ public class ValkyrieWholeBodyTrajectoryToolboxControllerTest extends AvatarWhol
       selectionMatrix.resetSelection();
       WaypointBasedTrajectoryMessage trajectoryHand = WholeBodyTrajectoryToolboxMessageTools.createTrajectoryMessage(hand, 0.0, trajectoryTime, timeResolution,
                                                                                                                      handFunction, selectionMatrix);
+      Pose3D controlFramePose = handControlFrames.get(robotSide);
 
-      trajectoryHand.setControlFramePose(handControlFrames.get(robotSide));
+      trajectoryHand.setControlFramePositionInEndEffector(controlFramePose.getPosition());
+      trajectoryHand.setControlFrameOrientationInEndEffector(controlFramePose.getOrientation());
 
       trajectories.add(trajectoryHand);
 
@@ -207,7 +211,7 @@ public class ValkyrieWholeBodyTrajectoryToolboxControllerTest extends AvatarWhol
       WaypointBasedTrajectoryMessage trajectoryHead = WholeBodyTrajectoryToolboxMessageTools.createTrajectoryMessage(head, 0.0, trajectoryTime, timeResolution,
                                                                                                                      handFunction, selectionMatrixHead);
 
-      trajectoryHead.setControlFramePosition(new Point3D(0.5, 0.0, 0.0));
+      trajectoryHead.setControlFramePositionInEndEffector(new Point3D(0.5, 0.0, 0.0));
       trajectoryHead.setWeight(0.01);
       trajectories.add(trajectoryHead);
 
@@ -253,8 +257,10 @@ public class ValkyrieWholeBodyTrajectoryToolboxControllerTest extends AvatarWhol
       selectionMatrix.resetSelection();
       WaypointBasedTrajectoryMessage trajectory = WholeBodyTrajectoryToolboxMessageTools.createTrajectoryMessage(hand, 0.0, trajectoryTime, timeResolution,
                                                                                                                  handFunction, selectionMatrix);
+      Pose3D controlFramePose = handControlFrames.get(robotSide);
 
-      trajectory.setControlFramePose(handControlFrames.get(robotSide));
+      trajectory.setControlFramePositionInEndEffector(controlFramePose.getPosition());
+      trajectory.setControlFrameOrientationInEndEffector(controlFramePose.getOrientation());
 
       handTrajectories.add(trajectory);
 

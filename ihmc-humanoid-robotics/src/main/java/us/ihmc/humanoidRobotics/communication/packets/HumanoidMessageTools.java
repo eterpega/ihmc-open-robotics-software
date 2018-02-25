@@ -586,7 +586,12 @@ public class HumanoidMessageTools
    {
       WaypointBasedTrajectoryMessage message = new WaypointBasedTrajectoryMessage();
       message.endEffectorNameBasedHashCode = endEffector.getNameBasedHashCode();
-      message.setWaypoints(waypointTimes, waypoints);
+      if (waypointTimes.length != waypoints.length)
+         throw new RuntimeException("Inconsistent array lengths.");
+      
+      message.waypointTimes.reset();
+      message.waypointTimes.add(waypointTimes);
+      MessageTools.copyData(waypoints, message.waypoints);
       if (selectionMatrix != null)
       {
          message.angularSelectionMatrix.selectionFrameId = MessageTools.toFrameId(selectionMatrix.getAngularSelectionFrame());
@@ -2329,5 +2334,45 @@ public class HumanoidMessageTools
       reachingManifoldMessage.manifoldConfigurationSpaceNames.add(configurationSpaces);
       reachingManifoldMessage.manifoldLowerLimits.add(lowerLimits);
       reachingManifoldMessage.manifoldUpperLimits.add(upperLimits);
+   }
+
+   public static Pose3D unpackPose(WaypointBasedTrajectoryMessage waypointBasedTrajectoryMessage, double time)
+   {
+      if (time <= 0.0)
+         return waypointBasedTrajectoryMessage.waypoints.get(0);
+      
+      else if (time >= waypointBasedTrajectoryMessage.waypointTimes.get(waypointBasedTrajectoryMessage.waypointTimes.size() - 1))
+         return waypointBasedTrajectoryMessage.waypoints.getLast();
+      
+      else
+      {
+         double timeGap = 0.0;
+      
+         int indexOfFrame = 0;
+         int numberOfTrajectoryTimes = waypointBasedTrajectoryMessage.waypointTimes.size();
+      
+         for (int i = 0; i < numberOfTrajectoryTimes; i++)
+         {
+            timeGap = time - waypointBasedTrajectoryMessage.waypointTimes.get(i);
+            if (timeGap < 0)
+            {
+               indexOfFrame = i;
+               break;
+            }
+         }
+      
+         Pose3D poseOne = waypointBasedTrajectoryMessage.waypoints.get(indexOfFrame - 1);
+         Pose3D poseTwo = waypointBasedTrajectoryMessage.waypoints.get(indexOfFrame);
+      
+         double timeOne = waypointBasedTrajectoryMessage.waypointTimes.get(indexOfFrame - 1);
+         double timeTwo = waypointBasedTrajectoryMessage.waypointTimes.get(indexOfFrame);
+      
+         double alpha = (time - timeOne) / (timeTwo - timeOne);
+      
+         Pose3D ret = new Pose3D();
+         ret.interpolate(poseOne, poseTwo, alpha);
+      
+         return ret;
+      }
    }
 }
