@@ -38,6 +38,7 @@ import us.ihmc.robotics.screwTheory.OneDoFJoint;
 import us.ihmc.robotics.sensors.ForceSensorDefinition;
 import us.ihmc.robotics.sensors.IMUDefinition;
 import us.ihmc.sensorProcessing.communication.packets.dataobjects.RobotConfigurationData;
+import us.ihmc.sensorProcessing.communication.packets.dataobjects.RobotConfigurationDataFactory;
 import us.ihmc.sensorProcessing.pointClouds.combinationQuadTreeOctTree.QuadTreeForGroundHeightMap;
 
 public class HeightQuadTreeToolboxController extends ToolboxController
@@ -84,7 +85,7 @@ public class HeightQuadTreeToolboxController extends ToolboxController
       oneDoFJoints = FullRobotModelUtils.getAllJointsExcludingHands(fullRobotModel);
       ForceSensorDefinition[] forceSensorDefinitions = fullRobotModel.getForceSensorDefinitions();
       IMUDefinition[] imuDefinitions = fullRobotModel.getIMUDefinitions();
-      expectedRobotConfigurationDataHash = RobotConfigurationData.calculateJointNameHash(oneDoFJoints, forceSensorDefinitions, imuDefinitions);
+      expectedRobotConfigurationDataHash = RobotConfigurationDataFactory.calculateJointNameHash(oneDoFJoints, forceSensorDefinitions, imuDefinitions);
 
       Box bounds = new Box(-QUAD_TREE_EXTENT, -QUAD_TREE_EXTENT, QUAD_TREE_EXTENT, QUAD_TREE_EXTENT);
       QuadTreeForGroundParameters quadTreeParameters = new QuadTreeForGroundParameters(RESOLUTION, quadtreeHeightThreshold,
@@ -202,9 +203,9 @@ public class HeightQuadTreeToolboxController extends ToolboxController
             oneDoFJoints[i].setQ(newJointAngles.get(i));
          }
 
-         Vector3D32 translation = robotConfigurationData.getPelvisTranslation();
+         Vector3D32 translation = robotConfigurationData.getRootTranslation();
          rootJoint.setPosition(translation.getX(), translation.getY(), translation.getZ());
-         Quaternion32 orientation = robotConfigurationData.getPelvisOrientation();
+         Quaternion32 orientation = robotConfigurationData.getRootOrientation();
          rootJoint.setRotation(orientation.getX(), orientation.getY(), orientation.getZ(), orientation.getS());
          rootJoint.getPredecessor().updateFramesRecursively();
       }

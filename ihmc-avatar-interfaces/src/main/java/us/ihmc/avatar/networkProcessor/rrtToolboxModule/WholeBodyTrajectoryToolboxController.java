@@ -753,8 +753,8 @@ public class WholeBodyTrajectoryToolboxController extends ToolboxController
          return false;
       }
 
-      initialConfiguration.desiredRootOrientation.set(currentRobotConfiguration.getPelvisOrientation());
-      initialConfiguration.desiredRootTranslation.set(currentRobotConfiguration.getPelvisTranslation());
+      initialConfiguration.desiredRootOrientation.set(currentRobotConfiguration.getRootOrientation());
+      initialConfiguration.desiredRootTranslation.set(currentRobotConfiguration.getRootTranslation());
 
       initialConfiguration.jointNameHash = currentRobotConfiguration.jointNameHash;
       int length = currentRobotConfiguration.jointAngles.size();
