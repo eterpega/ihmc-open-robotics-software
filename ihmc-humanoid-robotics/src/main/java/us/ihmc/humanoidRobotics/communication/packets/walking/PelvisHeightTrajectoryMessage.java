@@ -151,7 +151,7 @@ public class PelvisHeightTrajectoryMessage extends Packet<PelvisHeightTrajectory
    public String toString()
    {
       if (euclideanTrajectory.taskspaceTrajectoryPoints != null)
-         return "Pelvis height trajectory: number of trajectory points = " + euclideanTrajectory.getNumberOfTrajectoryPoints();
+         return "Pelvis height trajectory: number of trajectory points = " + euclideanTrajectory.taskspaceTrajectoryPoints.size();
       else
          return "Pelvis height trajectory: no trajectory points   .";
    }

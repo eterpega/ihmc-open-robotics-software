@@ -619,16 +619,16 @@ public abstract class PacketValidityChecker
 
       EuclideanTrajectoryPointMessage previousTrajectoryPoint = null;
 
-      if (message.getEuclideanTrajectory().getNumberOfTrajectoryPoints() == 0)
+      if (message.getEuclideanTrajectory().taskspaceTrajectoryPoints.isEmpty())
       {
          String messageClassName = message.getClass().getSimpleName();
          errorMessage = "Received " + messageClassName + " with no waypoint.";
          return errorMessage;
       }
 
-      for (int i = 0; i < message.getEuclideanTrajectory().getNumberOfTrajectoryPoints(); i++)
+      for (int i = 0; i < message.getEuclideanTrajectory().taskspaceTrajectoryPoints.size(); i++)
       {
-         EuclideanTrajectoryPointMessage waypoint = message.getEuclideanTrajectory().getTrajectoryPoint(i);
+         EuclideanTrajectoryPointMessage waypoint = message.getEuclideanTrajectory().taskspaceTrajectoryPoints.get(i);
          errorMessage = validateEuclideanTrajectoryPointMessage(waypoint, previousTrajectoryPoint, false);
          if (errorMessage != null)
          {

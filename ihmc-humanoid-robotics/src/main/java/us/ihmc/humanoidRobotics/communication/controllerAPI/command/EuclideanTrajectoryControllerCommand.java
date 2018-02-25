@@ -11,8 +11,10 @@ import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.humanoidRobotics.communication.controllerAPI.converter.FrameBasedCommand;
 import us.ihmc.humanoidRobotics.communication.packets.EuclideanTrajectoryMessage;
+import us.ihmc.humanoidRobotics.communication.packets.EuclideanTrajectoryPointMessage;
 import us.ihmc.humanoidRobotics.communication.packets.FrameInformation;
 import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
+import us.ihmc.idl.TempPreallocatedList;
 import us.ihmc.robotics.math.trajectories.waypoints.FrameEuclideanTrajectoryPoint;
 import us.ihmc.robotics.math.trajectories.waypoints.FrameEuclideanTrajectoryPointList;
 import us.ihmc.robotics.random.RandomGeometry;
@@ -95,22 +97,33 @@ public final class EuclideanTrajectoryControllerCommand extends QueueableCommand
       clear(dataFrame);
       set(message);
 
-      ReferenceFrame linearSelectionFrame = resolver.getReferenceFrameFromNameBaseHashCode(message.getLinearSelectionFrameId());
+      ReferenceFrame linearSelectionFrame = resolver.getReferenceFrameFromNameBaseHashCode(message.selectionMatrix.getSelectionFrameId());
       selectionMatrix.setSelectionFrame(linearSelectionFrame);
 
-      ReferenceFrame linearWeightFrame = resolver.getReferenceFrameFromNameBaseHashCode(message.getLinearWeightMatrixFrameId());
+      ReferenceFrame linearWeightFrame = resolver.getReferenceFrameFromNameBaseHashCode(message.weightMatrix.getWeightFrameId());
       weightMatrix.setWeightFrame(linearWeightFrame);
    }
 
    @Override
    public void set(EuclideanTrajectoryMessage message)
    {
-      message.getTrajectoryPoints(trajectoryPointList);
+      HumanoidMessageTools.checkIfDataFrameIdsMatch(message.frameInformation, trajectoryPointList.getReferenceFrame());
+      TempPreallocatedList<EuclideanTrajectoryPointMessage> trajectoryPointMessages = message.getTaskspaceTrajectoryPoints();
+      int numberOfPoints = trajectoryPointMessages.size();
+
+      for (int i = 0; i < numberOfPoints; i++)
+      {
+         EuclideanTrajectoryPointMessage euclideanTrajectoryPointMessage = trajectoryPointMessages.get(i);
+         trajectoryPointList.addTrajectoryPoint(euclideanTrajectoryPointMessage.time, euclideanTrajectoryPointMessage.position,
+                                                euclideanTrajectoryPointMessage.linearVelocity);
+      }
       setQueueableCommandVariables(message.getUniqueId(), message.getQueueingProperties());
-      message.getSelectionMatrix(selectionMatrix);
-      message.getWeightMatrix(weightMatrix);
-      useCustomControlFrame = message.useCustomControlFrame();
-      message.getControlFramePose(controlFramePoseInBodyFrame);
+      selectionMatrix.resetSelection();
+      selectionMatrix.setAxisSelection(message.selectionMatrix.xSelected, message.selectionMatrix.ySelected, message.selectionMatrix.zSelected);
+      weightMatrix.clear();
+      weightMatrix.setWeights(message.weightMatrix.xWeight, message.weightMatrix.yWeight, message.weightMatrix.zWeight);
+      useCustomControlFrame = message.getUseCustomControlFrame();
+      message.controlFramePose.get(controlFramePoseInBodyFrame);
    }
 
    public void set(ReferenceFrame dataFrame, ReferenceFrame trajectoryFrame, EuclideanTrajectoryMessage message)

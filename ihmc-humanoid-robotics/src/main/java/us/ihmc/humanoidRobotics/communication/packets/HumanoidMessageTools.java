@@ -80,8 +80,6 @@ import us.ihmc.humanoidRobotics.communication.packets.manipulation.wholeBodyTraj
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.wholeBodyTrajectory.WholeBodyTrajectoryToolboxConfigurationMessage;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.wholeBodyTrajectory.WholeBodyTrajectoryToolboxMessage;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.wholeBodyTrajectory.WholeBodyTrajectoryToolboxMessageTools;
-import us.ihmc.humanoidRobotics.communication.packets.momentum.CenterOfMassTrajectoryMessage;
-import us.ihmc.humanoidRobotics.communication.packets.momentum.MomentumTrajectoryMessage;
 import us.ihmc.humanoidRobotics.communication.packets.sensing.BlackFlyParameterPacket;
 import us.ihmc.humanoidRobotics.communication.packets.sensing.FisheyePacket;
 import us.ihmc.humanoidRobotics.communication.packets.sensing.LocalizationPacket;
@@ -287,7 +285,7 @@ public class HumanoidMessageTools
    /**
     * Use this constructor to build a message with more than one trajectory points. This constructor
     * only allocates memory for the trajectories, you need to call
-    * {@link #setTrajectoryPoint(int, int, double, double, double)} for each joint and trajectory
+    * {@link #setTrajectoryPoint(int, double, double)} for each joint and trajectory
     * point afterwards. Set the id of the message to {@link Packet#VALID_MESSAGE_DEFAULT_ID}.
     * 
     * @param robotSide is used to define which arm is performing the trajectory.
@@ -553,13 +551,6 @@ public class HumanoidMessageTools
       return message;
    }
 
-   public static MomentumTrajectoryMessage createMomentumTrajectoryMessage(int numberOfTrajectoryPoints)
-   {
-      MomentumTrajectoryMessage message = new MomentumTrajectoryMessage();
-      message.angularMomentumTrajectory = createEuclideanTrajectoryMessage(numberOfTrajectoryPoints);
-      return message;
-   }
-
    public static ObjectWeightPacket createObjectWeightPacket(RobotSide robotSide, double weight)
    {
       ObjectWeightPacket message = new ObjectWeightPacket();
@@ -743,7 +734,7 @@ public class HumanoidMessageTools
    /**
     * Use this constructor to build a message with more than one trajectory points. This constructor
     * only allocates memory for the trajectories, you need to call
-    * {@link #setTrajectoryPoint(int, int, double, double, double)} for each joint and trajectory
+    * {@link #setTrajectoryPoint(int, double, double)} for each joint and trajectory
     * point afterwards. Set the id of the message to {@link Packet#VALID_MESSAGE_DEFAULT_ID}.
     * 
     * @param numberOfJoints number of joints that will be executing the message.
@@ -952,22 +943,6 @@ public class HumanoidMessageTools
       return createEuclideanTrajectoryMessage(trajectoryTime, desiredPosition, trajectoryReferenceFrame.getNameBasedHashCode());
    }
 
-   /**
-    * creates a new empty message with a trajectory point list the size of numberOfTrajectoryPoints
-    * 
-    * @param numberOfTrajectoryPoints number of trajectory points in this message
-    */
-   public static EuclideanTrajectoryMessage createEuclideanTrajectoryMessage(int numberOfTrajectoryPoints)
-   {
-      EuclideanTrajectoryMessage message = new EuclideanTrajectoryMessage();
-      if (numberOfTrajectoryPoints > message.taskspaceTrajectoryPoints.capacity())
-         throw new ArrayIndexOutOfBoundsException("Attempted to add " + numberOfTrajectoryPoints + " elements while max capacity is "
-               + message.taskspaceTrajectoryPoints.capacity());
-      for (int i = 0; i < numberOfTrajectoryPoints; i++)
-         message.taskspaceTrajectoryPoints.add();
-      return message;
-   }
-
    public static MessageOfMessages createMessageOfMessages(List<Packet<?>> messages)
    {
       MessageOfMessages message = new MessageOfMessages();
@@ -1044,15 +1019,10 @@ public class HumanoidMessageTools
     * only allocates memory for the trajectory points, you need to call {@link #setTrajectoryPoint}
     * for each trajectory point afterwards. Set the id of the message to
     * {@link Packet#VALID_MESSAGE_DEFAULT_ID}.
-    * 
-    * @param numberOfTrajectoryPoints number of trajectory points that will be sent to the
-    *           controller.
     */
-   public static PelvisHeightTrajectoryMessage createPelvisHeightTrajectoryMessage(int numberOfTrajectoryPoints)
+   public static PelvisHeightTrajectoryMessage createPelvisHeightTrajectoryMessage()
    {
       PelvisHeightTrajectoryMessage message = new PelvisHeightTrajectoryMessage();
-      message.euclideanTrajectory = HumanoidMessageTools.createEuclideanTrajectoryMessage(numberOfTrajectoryPoints);
-      message.euclideanTrajectory.selectionMatrix = new SelectionMatrix3DMessage();
       message.euclideanTrajectory.selectionMatrix.xSelected = false;
       message.euclideanTrajectory.selectionMatrix.ySelected = false;
       message.euclideanTrajectory.selectionMatrix.zSelected = true;
@@ -1517,7 +1487,7 @@ public class HumanoidMessageTools
    /**
     * Use this constructor to build a message with more than one trajectory points. This constructor
     * only allocates memory for the trajectories, you need to call
-    * {@link #setTrajectoryPoint(int, int, double, double, double)} for each joint and trajectory
+    * {@link #setTrajectoryPoint(int, double, double)} for each joint and trajectory
     * point afterwards. Set the id of the message to {@link Packet#VALID_MESSAGE_DEFAULT_ID}.
     * 
     * @param numberOfJoints number of joints that will be executing the message.
@@ -1667,13 +1637,6 @@ public class HumanoidMessageTools
       return message;
    }
 
-   public static CenterOfMassTrajectoryMessage createCenterOfMassTrajectoryMessage(int numberOfTrajectoryPoints)
-   {
-      CenterOfMassTrajectoryMessage message = new CenterOfMassTrajectoryMessage();
-      message.euclideanTrajectory = HumanoidMessageTools.createEuclideanTrajectoryMessage(numberOfTrajectoryPoints);
-      return message;
-   }
-
    public static SpineTrajectoryMessage createSpineTrajectoryMessage(JointspaceTrajectoryMessage jointspaceTrajectoryMessage)
    {
       SpineTrajectoryMessage message = new SpineTrajectoryMessage();
@@ -1685,7 +1648,7 @@ public class HumanoidMessageTools
    /**
     * Use this constructor to build a message with more than one trajectory points. This constructor
     * only allocates memory for the trajectories, you need to call
-    * {@link #setTrajectoryPoint(int, int, double, double, double)} for each joint and trajectory
+    * {@link #setTrajectoryPoint(int, double, double)} for each joint and trajectory
     * point afterwards. Set the id of the message to {@link Packet#VALID_MESSAGE_DEFAULT_ID}.
     * 
     * @param numberOfJoints number of joints that will be executing the message.
