@@ -6,7 +6,7 @@ import us.ihmc.idl.TempPreallocatedList;
 
 public class WholeBodyTrajectoryToolboxMessage extends Packet<WholeBodyTrajectoryToolboxMessage>
 {
-   public WholeBodyTrajectoryToolboxConfigurationMessage configuration;
+   public WholeBodyTrajectoryToolboxConfigurationMessage configuration = new WholeBodyTrajectoryToolboxConfigurationMessage();
    public TempPreallocatedList<WaypointBasedTrajectoryMessage> endEffectorTrajectories = new TempPreallocatedList<>(WaypointBasedTrajectoryMessage.class, WaypointBasedTrajectoryMessage::new, 10);
    public TempPreallocatedList<RigidBodyExplorationConfigurationMessage> explorationConfigurations = new TempPreallocatedList<>(RigidBodyExplorationConfigurationMessage.class, RigidBodyExplorationConfigurationMessage::new, 10);
    public TempPreallocatedList<ReachingManifoldMessage> reachingManifolds = new TempPreallocatedList<>(ReachingManifoldMessage.class, ReachingManifoldMessage::new, 10);

@@ -35,7 +35,7 @@ public class RobotConfigurationData extends Packet<RobotConfigurationData>
    public TempPreallocatedList<SpatialVectorMessage> momentAndForceDataAllForceSensors = new TempPreallocatedList<>(SpatialVectorMessage.class, SpatialVectorMessage::new, 50);
    public TempPreallocatedList<IMUPacket> imuSensorData = new TempPreallocatedList<>(IMUPacket.class, IMUPacket::new, 10);
    public byte robotMotionStatus;
-   public AtlasAuxiliaryRobotData auxiliaryRobotData;
+   public AtlasAuxiliaryRobotData auxiliaryRobotData = new AtlasAuxiliaryRobotData();
 
    public int lastReceivedPacketTypeID;
    public long lastReceivedPacketUniqueId;

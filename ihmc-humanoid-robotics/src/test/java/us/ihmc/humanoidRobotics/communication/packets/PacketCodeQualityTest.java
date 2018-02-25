@@ -82,6 +82,7 @@ public class PacketCodeQualityTest
       allPacketTypes.removeAll(reaInternalComms);
       allPacketTypes.remove(ParameterListPacket.class);
       allPacketTypes.remove(MessageOfMessages.class);
+      allPacketTypes.remove(LocalVideoPacket.class);
 
       Set<Class<? extends Packet>> packetTypesWithNullFields = new TreeSet<>((o1, o2) -> o1.getSimpleName().compareTo(o2.getSimpleName()));
 

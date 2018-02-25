@@ -10,7 +10,7 @@ public class FootstepPathPlanPacket extends Packet<FootstepPathPlanPacket>
 {
 
    public boolean goalsValid;
-   public FootstepDataMessage start;
+   public FootstepDataMessage start = new FootstepDataMessage();
    public TempPreallocatedList<FootstepDataMessage> originalGoals = new TempPreallocatedList<>(FootstepDataMessage.class, FootstepDataMessage::new, 30);
    public TempPreallocatedList<FootstepDataMessage> pathPlan = new TempPreallocatedList<>(FootstepDataMessage.class, FootstepDataMessage::new, 30);
    public TIntArrayList footstepUnknown = new TIntArrayList(); // TODO change back to boolean list with moving to DDS
