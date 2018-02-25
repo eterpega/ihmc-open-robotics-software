@@ -443,16 +443,16 @@ public abstract class PacketValidityChecker
 
       SE3TrajectoryPointMessage previousTrajectoryPoint = null;
 
-      if (message.getNumberOfTrajectoryPoints() == 0)
+      if (message.taskspaceTrajectoryPoints.size() == 0)
       {
          String messageClassName = message.getClass().getSimpleName();
          errorMessage = "Received " + messageClassName + " with no waypoint.";
          return errorMessage;
       }
 
-      for (int i = 0; i < message.getNumberOfTrajectoryPoints(); i++)
+      for (int i = 0; i < message.taskspaceTrajectoryPoints.size(); i++)
       {
-         SE3TrajectoryPointMessage waypoint = message.getTrajectoryPoint(i);
+         SE3TrajectoryPointMessage waypoint = message.taskspaceTrajectoryPoints.get(i);
          errorMessage = validateSE3TrajectoryPointMessage(waypoint, previousTrajectoryPoint, false);
          if (errorMessage != null)
          {
@@ -463,7 +463,7 @@ public abstract class PacketValidityChecker
          previousTrajectoryPoint = waypoint;
       }
 
-      if (message.useCustomControlFrame() && message.controlFramePose == null)
+      if (message.getUseCustomControlFrame() && message.controlFramePose == null)
       {
          String messageClassName = message.getClass().getSimpleName();
          return "The control frame pose for " + messageClassName + " has to be set to be able to use it.";

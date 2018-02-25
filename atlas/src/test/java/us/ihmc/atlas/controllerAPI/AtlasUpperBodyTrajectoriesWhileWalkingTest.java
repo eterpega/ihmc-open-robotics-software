@@ -125,11 +125,12 @@ public class AtlasUpperBodyTrajectoriesWhileWalkingTest
          Point3D position = new Point3D(handPosition.getPosition());
          Quaternion orientation = new Quaternion(handPosition.getOrientation());
 
-         HandTrajectoryMessage handHoldMessage = HumanoidMessageTools.createHandTrajectoryMessage(robotSide, 1);
+         HandTrajectoryMessage handHoldMessage = new HandTrajectoryMessage();
+         handHoldMessage.setRobotSide(robotSide.toByte());
          handHoldMessage.getSe3Trajectory().getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(referenceFrames.getAnkleZUpFrame(robotSide.getOppositeSide())));
          handHoldMessage.getSe3Trajectory().getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(worldFrame));
          Vector3D zeroVelocity = new Vector3D();
-         handHoldMessage.getSe3Trajectory().setTrajectoryPoint(0, 11.0, position, orientation, zeroVelocity, zeroVelocity, worldFrame);
+         handHoldMessage.getSe3Trajectory().taskspaceTrajectoryPoints.add().set(HumanoidMessageTools.createSE3TrajectoryPointMessage(11.0, position, orientation, zeroVelocity, zeroVelocity));
          drcSimulationTestHelper.send(handHoldMessage);
       }
       success = drcSimulationTestHelper.simulateAndBlockAndCatchExceptions(timeToCompleteWalking);

@@ -97,7 +97,7 @@ public class PelvisTrajectoryMessage extends Packet<PelvisTrajectoryMessage>
    public String toString()
    {
       if (se3Trajectory.taskspaceTrajectoryPoints != null)
-         return "Pelvis SE3 trajectory: number of SE3 trajectory points = " + se3Trajectory.getNumberOfTrajectoryPoints();
+         return "Pelvis SE3 trajectory: number of SE3 trajectory points = " + se3Trajectory.taskspaceTrajectoryPoints.size();
       else
          return "Pelvis SE3 trajectory: no SE3 trajectory points";
    }

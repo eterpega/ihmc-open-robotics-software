@@ -141,7 +141,6 @@ import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.robotics.screwTheory.SelectionMatrix6D;
 import us.ihmc.robotics.trajectories.TrajectoryType;
-import us.ihmc.sensorProcessing.frames.CommonReferenceFrameIds;
 
 public class HumanoidMessageTools
 {
@@ -346,27 +345,6 @@ public class HumanoidMessageTools
    {
       HandTrajectoryMessage message = new HandTrajectoryMessage();
       message.se3Trajectory = createSE3TrajectoryMessage(trajectoryTime, desiredPosition, desiredOrientation, trajectoryReferenceFrame);
-      message.robotSide = robotSide.toByte();
-      return message;
-   }
-
-   /**
-    * Use this constructor to build a message with more than one trajectory point. By default this
-    * constructor sets the trajectory frame to {@link CommonReferenceFrameIds#CHEST_FRAME} and the
-    * data frame to World This constructor only allocates memory for the trajectory points, you need
-    * to call
-    * {@link #setTrajectoryPoint(int, double, Point3D, QuaternionReadOnly, Vector3D, Vector3D)} for
-    * each trajectory point afterwards. Set the id of the message to
-    * {@link Packet#VALID_MESSAGE_DEFAULT_ID}.
-    * 
-    * @param robotSide is used to define which hand is performing the trajectory.
-    * @param numberOfTrajectoryPoints number of trajectory points that will be sent to the
-    *           controller.
-    */
-   public static HandTrajectoryMessage createHandTrajectoryMessage(RobotSide robotSide, int numberOfTrajectoryPoints)
-   {
-      HandTrajectoryMessage message = new HandTrajectoryMessage();
-      message.se3Trajectory = createSE3TrajectoryMessage(numberOfTrajectoryPoints);
       message.robotSide = robotSide.toByte();
       return message;
    }
@@ -640,23 +618,6 @@ public class HumanoidMessageTools
    {
       PelvisTrajectoryMessage message = new PelvisTrajectoryMessage();
       message.se3Trajectory = createSE3TrajectoryMessage(trajectoryTime, desiredPosition, desiredOrientation, ReferenceFrame.getWorldFrame());
-      return message;
-   }
-
-   /**
-    * Use this constructor to build a message with more than one trajectory point. Set the id of the
-    * message to {@link Packet#VALID_MESSAGE_DEFAULT_ID}. This constructor only allocates memory for
-    * the trajectory points, you need to call
-    * {@link #setTrajectoryPoint(int, double, Point3DReadOnly, QuaternionReadOnly, Vector3DReadOnly, Vector3DReadOnly)}
-    * for each trajectory point afterwards.
-    * 
-    * @param numberOfTrajectoryPoints number of trajectory points that will be sent to the
-    *           controller.
-    */
-   public static PelvisTrajectoryMessage createPelvisTrajectoryMessage(int numberOfTrajectoryPoints)
-   {
-      PelvisTrajectoryMessage message = new PelvisTrajectoryMessage();
-      message.se3Trajectory = createSE3TrajectoryMessage(numberOfTrajectoryPoints);
       return message;
    }
 
@@ -1820,24 +1781,6 @@ public class HumanoidMessageTools
       return createSE3TrajectoryMessage(trajectoryTime, desiredPosition, desiredOrientation, trajectoryReferenceFrame.getNameBasedHashCode());
    }
 
-   public static SE3TrajectoryMessage createSE3TrajectoryMessage(int numberOfTrajectoryPoints)
-   {
-      SE3TrajectoryMessage message = new SE3TrajectoryMessage();
-      if (numberOfTrajectoryPoints > message.taskspaceTrajectoryPoints.capacity())
-         throw new ArrayIndexOutOfBoundsException("Attempted to add " + numberOfTrajectoryPoints + " elements while max capacity is "
-               + message.taskspaceTrajectoryPoints.capacity());
-      for (int i = 0; i < numberOfTrajectoryPoints; i++)
-         message.taskspaceTrajectoryPoints.add();
-      return message;
-   }
-
-   public static SE3TrajectoryMessage createSE3TrajectoryMessage(int numberOfPoints, ReferenceFrame trajectoryFrame)
-   {
-      SE3TrajectoryMessage message = createSE3TrajectoryMessage(numberOfPoints);
-      message.getFrameInformation().setTrajectoryReferenceFrameId(MessageTools.toFrameId(trajectoryFrame));
-      return message;
-   }
-
    public static DetectedObjectPacket createDetectedObjectPacket(Pose3D pose, int id)
    {
       DetectedObjectPacket message = new DetectedObjectPacket();
@@ -2024,25 +1967,6 @@ public class HumanoidMessageTools
       FootTrajectoryMessage message = new FootTrajectoryMessage();
       message.se3Trajectory = HumanoidMessageTools.createSE3TrajectoryMessage(trajectoryTime, desiredPosition, desiredOrientation,
                                                                               ReferenceFrame.getWorldFrame());
-      message.robotSide = robotSide.toByte();
-      return message;
-   }
-
-   /**
-    * Use this constructor to build a message with more than one trajectory point. This constructor
-    * only allocates memory for the trajectory points, you need to call
-    * {@link #setTrajectoryPoint(int, double, Point3D, Quaternion, Vector3D, Vector3D)} for each
-    * trajectory point afterwards. Set the id of the message to
-    * {@link Packet#VALID_MESSAGE_DEFAULT_ID}.
-    * 
-    * @param robotSide is used to define which foot is performing the trajectory.
-    * @param numberOfTrajectoryPoints number of trajectory points that will be sent to the
-    *           controller.
-    */
-   public static FootTrajectoryMessage createFootTrajectoryMessage(RobotSide robotSide, int numberOfTrajectoryPoints)
-   {
-      FootTrajectoryMessage message = new FootTrajectoryMessage();
-      message.se3Trajectory = HumanoidMessageTools.createSE3TrajectoryMessage(numberOfTrajectoryPoints);
       message.robotSide = robotSide.toByte();
       return message;
    }

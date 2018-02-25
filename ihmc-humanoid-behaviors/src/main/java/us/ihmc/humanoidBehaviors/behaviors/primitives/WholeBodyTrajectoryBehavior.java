@@ -7,7 +7,6 @@ import us.ihmc.humanoidBehaviors.communication.CommunicationBridgeInterface;
 import us.ihmc.humanoidRobotics.communication.packets.wholebody.WholeBodyTrajectoryMessage;
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
-import us.ihmc.robotics.robotSide.RobotSide;
 
 public class WholeBodyTrajectoryBehavior extends AbstractBehavior
 {
@@ -64,9 +63,9 @@ public class WholeBodyTrajectoryBehavior extends AbstractBehavior
          
          double getTrajectoryTime = 0;
          if(outgoingMessage.getRightHandTrajectoryMessage() != null)
-            getTrajectoryTime = outgoingMessage.getRightHandTrajectoryMessage().getSe3Trajectory().getTrajectoryTime();
+            getTrajectoryTime = outgoingMessage.getRightHandTrajectoryMessage().getSe3Trajectory().taskspaceTrajectoryPoints.getLast().time;
          if(outgoingMessage.getLeftHandTrajectoryMessage() != null)
-            getTrajectoryTime = outgoingMessage.getLeftHandTrajectoryMessage().getSe3Trajectory().getTrajectoryTime();
+            getTrajectoryTime = outgoingMessage.getLeftHandTrajectoryMessage().getSe3Trajectory().taskspaceTrajectoryPoints.getLast().time;
          
          trajectoryTime.set(getTrajectoryTime);
       }
