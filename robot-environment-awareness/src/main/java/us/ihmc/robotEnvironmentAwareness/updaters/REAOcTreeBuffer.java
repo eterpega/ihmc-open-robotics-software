@@ -5,6 +5,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import us.ihmc.communication.packetCommunicator.PacketCommunicator;
 import us.ihmc.communication.packets.LidarScanMessage;
+import us.ihmc.communication.packets.MessageTools;
 import us.ihmc.communication.packets.RequestLidarScanMessage;
 import us.ihmc.jOctoMap.ocTree.NormalOcTree;
 import us.ihmc.jOctoMap.pointCloud.ScanCollection;
@@ -78,7 +79,7 @@ public class REAOcTreeBuffer
          @Override
          public void run()
          {
-            publicPacketCommunicator.send(new RequestLidarScanMessage());
+            publicPacketCommunicator.send(MessageTools.createRequestLidarScanMessage());
 
             updateScanCollection();
             ScanCollection newScan = newFullScanReference.getAndSet(null);

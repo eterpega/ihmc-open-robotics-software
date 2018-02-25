@@ -33,7 +33,7 @@ public final class SO3TrajectoryMessage extends Packet<SO3TrajectoryMessage>
    public Pose3D controlFramePose = new Pose3D();
 
    @RosExportedField(documentation = "Properties for queueing trajectories.")
-   public QueueableMessage queueingProperties = new QueueableMessage();
+   public QueueableMessage queueingProperties = MessageTools.createQueueableMessage();
 
    /**
     * Empty constructor for serialization.

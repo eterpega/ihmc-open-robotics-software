@@ -15,7 +15,6 @@ public class HumanoidKinematicsToolboxConfigurationMessage extends Packet<Humano
 
    public HumanoidKinematicsToolboxConfigurationMessage()
    {
-      setUniqueId(VALID_MESSAGE_DEFAULT_ID);
    }
 
    @Override

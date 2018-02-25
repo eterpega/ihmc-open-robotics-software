@@ -56,7 +56,7 @@ public class FootstepDataListMessage extends Packet<FootstepDataListMessage>
    public boolean offsetFootstepsWithExecutionError = false;
 
    @RosExportedField(documentation = "Properties for queueing footstep lists.")
-   public QueueableMessage queueingProperties = new QueueableMessage();
+   public QueueableMessage queueingProperties = MessageTools.createQueueableMessage();
 
    /**
     * Empty constructor for serialization. Set the id of the message to

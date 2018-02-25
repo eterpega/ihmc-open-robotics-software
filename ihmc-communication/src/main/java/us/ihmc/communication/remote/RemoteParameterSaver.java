@@ -15,6 +15,7 @@ import java.util.concurrent.TimeoutException;
 import us.ihmc.communication.net.NetClassList;
 import us.ihmc.communication.net.PacketConsumer;
 import us.ihmc.communication.packetCommunicator.PacketCommunicator;
+import us.ihmc.communication.packets.MessageTools;
 import us.ihmc.communication.packets.ParameterListPacket;
 import us.ihmc.communication.packets.RequestParameterListPacket;
 import us.ihmc.communication.util.NetworkPorts;
@@ -66,7 +67,7 @@ public class RemoteParameterSaver
       System.out.println("Requesting parameter list");
 
       requestResponseLatch = new CountDownLatch(1);
-      packetCommunicator.send(new RequestParameterListPacket());
+      packetCommunicator.send(MessageTools.createRequestParameterListPacket());
    }
 
    private void writeParameters(List<Parameter> parameters)

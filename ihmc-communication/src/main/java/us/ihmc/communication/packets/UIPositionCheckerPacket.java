@@ -10,7 +10,6 @@ public class UIPositionCheckerPacket extends Packet<UIPositionCheckerPacket>
 
    public UIPositionCheckerPacket()
    {
-
    }
 
    @Override

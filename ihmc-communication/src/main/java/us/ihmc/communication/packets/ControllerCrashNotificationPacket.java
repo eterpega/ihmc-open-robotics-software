@@ -14,7 +14,6 @@ public class ControllerCrashNotificationPacket extends Packet<ControllerCrashNot
    
    public ControllerCrashNotificationPacket()
    {
-      setDestination(PacketDestination.BROADCAST);
    }
 
    @Override

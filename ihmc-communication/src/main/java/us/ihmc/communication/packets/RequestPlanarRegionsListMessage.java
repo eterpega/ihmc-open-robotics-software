@@ -8,7 +8,7 @@ public class RequestPlanarRegionsListMessage extends Packet<RequestPlanarRegions
    public static final byte CLEAR = 3;
 
    public byte planarRegionsRequestType;
-   public BoundingBox3DMessage boundingBoxInWorldForRequest = new BoundingBox3DMessage();
+   public BoundingBox3DMessage boundingBoxInWorldForRequest = MessageTools.createBoundingBox3DMessage();
 
    public RequestPlanarRegionsListMessage()
    {

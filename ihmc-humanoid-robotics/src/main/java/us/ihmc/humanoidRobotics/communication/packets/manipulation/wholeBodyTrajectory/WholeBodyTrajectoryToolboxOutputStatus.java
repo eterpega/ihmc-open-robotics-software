@@ -21,7 +21,7 @@ public class WholeBodyTrajectoryToolboxOutputStatus extends Packet<WholeBodyTraj
 
    public TDoubleArrayList trajectoryTimes = new TDoubleArrayList();
    public TempPreallocatedList<KinematicsToolboxOutputStatus> robotConfigurations = new TempPreallocatedList<>(KinematicsToolboxOutputStatus.class,
-                                                                                                               KinematicsToolboxOutputStatus::new, 50);
+                                                                                                               MessageTools::createKinematicsToolboxOutputStatus, 50);
 
    public WholeBodyTrajectoryToolboxOutputStatus()
    {

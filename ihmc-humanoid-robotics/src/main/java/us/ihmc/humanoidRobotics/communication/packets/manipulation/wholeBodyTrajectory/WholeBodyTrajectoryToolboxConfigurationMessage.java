@@ -1,13 +1,14 @@
 package us.ihmc.humanoidRobotics.communication.packets.manipulation.wholeBodyTrajectory;
 
 import us.ihmc.communication.packets.KinematicsToolboxOutputStatus;
+import us.ihmc.communication.packets.MessageTools;
 import us.ihmc.communication.packets.Packet;
 
 public class WholeBodyTrajectoryToolboxConfigurationMessage extends Packet<WholeBodyTrajectoryToolboxConfigurationMessage>
 {
    public int numberOfInitialGuesses = -1;
    public int maximumExpansionSize = -1;
-   public KinematicsToolboxOutputStatus initialConfiguration = new KinematicsToolboxOutputStatus();
+   public KinematicsToolboxOutputStatus initialConfiguration = MessageTools.createKinematicsToolboxOutputStatus();
 
    public WholeBodyTrajectoryToolboxConfigurationMessage()
    {
@@ -20,7 +21,6 @@ public class WholeBodyTrajectoryToolboxConfigurationMessage extends Packet<Whole
    {
       numberOfInitialGuesses = other.numberOfInitialGuesses;
       maximumExpansionSize = other.maximumExpansionSize;
-      initialConfiguration = new KinematicsToolboxOutputStatus();
       initialConfiguration.set(other.initialConfiguration);
       setPacketInformation(other);
    }

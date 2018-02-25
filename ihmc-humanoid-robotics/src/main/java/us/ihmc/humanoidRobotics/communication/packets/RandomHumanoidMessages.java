@@ -119,7 +119,7 @@ public final class RandomHumanoidMessages
 
    public static QueueableMessage nextQueueableMessage(Random random)
    {
-      QueueableMessage next = new QueueableMessage();
+      QueueableMessage next = MessageTools.createQueueableMessage();
       next.setUniqueId(Packet.VALID_MESSAGE_DEFAULT_ID);
       next.setExecutionMode(RandomNumbers.nextEnum(random, ExecutionMode.class).toByte());
       next.setPreviousMessageId(random.nextLong());
@@ -608,7 +608,7 @@ public final class RandomHumanoidMessages
 
    public static HeatMapPacket nextHeatMapPacket(Random random)
    {
-      HeatMapPacket next = new HeatMapPacket();
+      HeatMapPacket next = MessageTools.createHeatMapPacket();
       next.setUniqueId(Packet.VALID_MESSAGE_DEFAULT_ID);
       next.height = RandomNumbers.nextInt(random, -100, 100);
       next.width = RandomNumbers.nextInt(random, -100, 100);
@@ -619,7 +619,7 @@ public final class RandomHumanoidMessages
 
    public static BoundingBoxesPacket nextBoundingBoxesPacket(Random random)
    {
-      BoundingBoxesPacket next = new BoundingBoxesPacket();
+      BoundingBoxesPacket next = MessageTools.createBoundingBoxesPacket();
       next.setUniqueId(Packet.VALID_MESSAGE_DEFAULT_ID);
       int boxesToGenerate = random.nextInt(20);
 
@@ -636,7 +636,7 @@ public final class RandomHumanoidMessages
 
    public static ObjectDetectorResultPacket nextObjectDetectorResultPacket(Random random)
    {
-      ObjectDetectorResultPacket next = new ObjectDetectorResultPacket();
+      ObjectDetectorResultPacket next = MessageTools.createObjectDetectorResultPacket();
       next.setUniqueId(Packet.VALID_MESSAGE_DEFAULT_ID);
       next.heatMap = nextHeatMapPacket(random);
       next.boundingBoxes = nextBoundingBoxesPacket(random);
@@ -1205,7 +1205,7 @@ public final class RandomHumanoidMessages
 
    public static SimulatedLidarScanPacket nextSimulatedLidarScanPacket(Random random)
    {
-      SimulatedLidarScanPacket next = new SimulatedLidarScanPacket();
+      SimulatedLidarScanPacket next = MessageTools.createSimulatedLidarScanPacket();
       next.setUniqueId(Packet.VALID_MESSAGE_DEFAULT_ID);
       int size = Math.abs(random.nextInt(1000000));
       for (int i = 0; i < size; i++)
@@ -1221,7 +1221,7 @@ public final class RandomHumanoidMessages
 
    public static LidarScanParametersMessage nextLidarScanParametersMessage(Random random)
    {
-      LidarScanParametersMessage next = new LidarScanParametersMessage();
+      LidarScanParametersMessage next = MessageTools.createLidarScanParametersMessage();
       next.setUniqueId(Packet.VALID_MESSAGE_DEFAULT_ID);
       next.timestamp = random.nextLong();
       next.sweepYawMax = random.nextFloat();

@@ -107,7 +107,7 @@ public class KinematicsToolboxMessageFactory
     */
    public static KinematicsToolboxCenterOfMassMessage holdCenterOfMassCurrentPosition(RigidBody rootBody, boolean holdX, boolean holdY, boolean holdZ)
    {
-      KinematicsToolboxCenterOfMassMessage message = new KinematicsToolboxCenterOfMassMessage();
+      KinematicsToolboxCenterOfMassMessage message = MessageTools.createKinematicsToolboxCenterOfMassMessage();
       CenterOfMassCalculator calculator = new CenterOfMassCalculator(rootBody, worldFrame);
       calculator.compute();
       message.desiredPositionInWorld.set(calculator.getCenterOfMass());
@@ -148,7 +148,7 @@ public class KinematicsToolboxMessageFactory
     */
    public static KinematicsToolboxConfigurationMessage privilegedConfigurationFromFullRobotModel(FullRobotModel fullRobotModel, boolean useDesiredJointAngles)
    {
-      KinematicsToolboxConfigurationMessage message = new KinematicsToolboxConfigurationMessage();
+      KinematicsToolboxConfigurationMessage message = MessageTools.createKinematicsToolboxConfigurationMessage();
 
       OneDoFJoint[] oneDoFJoints = fullRobotModel.getOneDoFJoints();
 

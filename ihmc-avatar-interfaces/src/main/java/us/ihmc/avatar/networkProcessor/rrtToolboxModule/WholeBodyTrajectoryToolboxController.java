@@ -93,7 +93,7 @@ public class WholeBodyTrajectoryToolboxController extends ToolboxController
    private SpatialNode visualizedNode;
 
    private final KinematicsToolboxOutputConverter configurationConverter;
-   private final KinematicsToolboxOutputStatus initialConfiguration = new KinematicsToolboxOutputStatus();
+   private final KinematicsToolboxOutputStatus initialConfiguration = MessageTools.createKinematicsToolboxOutputStatus();
    private final AtomicReference<RobotConfigurationData> currentRobotConfigurationDataReference = new AtomicReference<>(null);
 
    private FullHumanoidRobotModel visualizedFullRobotModel;

@@ -146,7 +146,7 @@ public class SimpleLidarRobotController implements RobotController
             }
          }
 
-         LidarScanMessage lidarScanMessage = new LidarScanMessage();
+         LidarScanMessage lidarScanMessage = MessageTools.createLidarScanMessage();
          lidarScanMessage.robotTimestamp = -1L;
          lidarScanMessage.lidarPosition = lidarPosition;
          lidarScanMessage.lidarOrientation = lidarOrientation;

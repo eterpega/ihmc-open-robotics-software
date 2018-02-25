@@ -12,7 +12,6 @@ public class StereoVisionPointCloudMessage extends Packet<StereoVisionPointCloud
 
    public StereoVisionPointCloudMessage()
    {
-      setUniqueId(VALID_MESSAGE_DEFAULT_ID);
    }
 
    @Override

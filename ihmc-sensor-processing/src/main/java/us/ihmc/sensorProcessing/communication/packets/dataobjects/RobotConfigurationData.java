@@ -32,8 +32,8 @@ public class RobotConfigurationData extends Packet<RobotConfigurationData>
 
    public Vector3D32 pelvisLinearAcceleration = new Vector3D32();
    //   public DenseMatrix64F[] momentAndForceDataAllForceSensors;
-   public TempPreallocatedList<SpatialVectorMessage> momentAndForceDataAllForceSensors = new TempPreallocatedList<>(SpatialVectorMessage.class, SpatialVectorMessage::new, 50);
-   public TempPreallocatedList<IMUPacket> imuSensorData = new TempPreallocatedList<>(IMUPacket.class, IMUPacket::new, 10);
+   public TempPreallocatedList<SpatialVectorMessage> momentAndForceDataAllForceSensors = new TempPreallocatedList<>(SpatialVectorMessage.class, MessageTools::createSpatialVectorMessage, 50);
+   public TempPreallocatedList<IMUPacket> imuSensorData = new TempPreallocatedList<>(IMUPacket.class, MessageTools::createIMUPacket, 10);
    public byte robotMotionStatus;
    public AtlasAuxiliaryRobotData auxiliaryRobotData = new AtlasAuxiliaryRobotData();
 

@@ -56,7 +56,7 @@ public class ValveDetectorProcess implements PacketConsumer<VideoPacket>
 
                                 rectanglesAndHeatMaps.getLeft().sort((r1, r2) -> -Integer.compare(r1.width * r1.height, r2.width * r2.height));
 
-                                HeatMapPacket heatMapPacket = new HeatMapPacket();
+                                HeatMapPacket heatMapPacket = MessageTools.createHeatMapPacket();
                                 heatMapPacket.width = rectanglesAndHeatMaps.getRight().w;
                                 heatMapPacket.height = rectanglesAndHeatMaps.getRight().h;
                                 heatMapPacket.data.add(rectanglesAndHeatMaps.getRight().data);

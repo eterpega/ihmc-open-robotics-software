@@ -44,7 +44,6 @@ public class KinematicsToolboxConfigurationMessage extends Packet<KinematicsTool
 
    public KinematicsToolboxConfigurationMessage()
    {
-      setUniqueId(VALID_MESSAGE_DEFAULT_ID);
    }
 
    @Override

@@ -9,7 +9,6 @@ public class BoundingBox3DMessage extends Packet<BoundingBox3DMessage>
 
    public BoundingBox3DMessage()
    {
-      setUniqueId(VALID_MESSAGE_DEFAULT_ID);
    }
 
    @Override

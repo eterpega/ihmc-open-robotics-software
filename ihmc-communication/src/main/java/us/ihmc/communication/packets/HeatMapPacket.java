@@ -9,7 +9,8 @@ import us.ihmc.tools.ArrayTools;
 public class HeatMapPacket extends Packet<HeatMapPacket>
 {
    public TFloatArrayList data = new TFloatArrayList();
-   public int width, height;
+   public int width;
+   public int height;
    public StringBuilder name = new StringBuilder();
 
    public HeatMapPacket()

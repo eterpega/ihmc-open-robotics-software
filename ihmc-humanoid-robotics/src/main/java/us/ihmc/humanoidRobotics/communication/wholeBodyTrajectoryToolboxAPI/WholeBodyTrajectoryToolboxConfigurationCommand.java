@@ -2,6 +2,7 @@ package us.ihmc.humanoidRobotics.communication.wholeBodyTrajectoryToolboxAPI;
 
 import us.ihmc.communication.controllerAPI.command.Command;
 import us.ihmc.communication.packets.KinematicsToolboxOutputStatus;
+import us.ihmc.communication.packets.MessageTools;
 import us.ihmc.humanoidRobotics.communication.packets.manipulation.wholeBodyTrajectory.WholeBodyTrajectoryToolboxConfigurationMessage;
 
 public class WholeBodyTrajectoryToolboxConfigurationCommand
@@ -10,7 +11,7 @@ public class WholeBodyTrajectoryToolboxConfigurationCommand
    private int numberOfInitialGuesses = -1;
    private int maximumExpansionSize = -1;
    private boolean hasInitialConfiguration = false;
-   private final KinematicsToolboxOutputStatus initialConfiguration = new KinematicsToolboxOutputStatus();
+   private final KinematicsToolboxOutputStatus initialConfiguration = MessageTools.createKinematicsToolboxOutputStatus();
 
    public WholeBodyTrajectoryToolboxConfigurationCommand()
    {

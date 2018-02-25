@@ -31,6 +31,11 @@ public class MessageToolsTest
 
       Reflections reflections = new Reflections("us.ihmc.communication");
       Set<Class<? extends Packet>> allPacketTypes = reflections.getSubTypesOf(Packet.class);
+      allPacketTypes.remove(ParameterListPacket.class);
+      allPacketTypes.remove(SetBooleanParameterPacket.class);
+      allPacketTypes.remove(SetDoubleArrayParameterPacket.class);
+      allPacketTypes.remove(SetDoubleParameterPacket.class);
+      allPacketTypes.remove(SetStringParameterPacket.class);
 
       Set<Class<? extends Packet>> packetTypesWithoutFactory = new TreeSet<>((o1, o2) -> o1.getSimpleName().compareTo(o2.getSimpleName()));
 

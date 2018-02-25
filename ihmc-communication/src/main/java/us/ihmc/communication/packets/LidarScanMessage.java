@@ -15,7 +15,6 @@ public class LidarScanMessage extends Packet<LidarScanMessage>
 
    public LidarScanMessage()
    {
-      setUniqueId(VALID_MESSAGE_DEFAULT_ID);
    }
 
    @Override

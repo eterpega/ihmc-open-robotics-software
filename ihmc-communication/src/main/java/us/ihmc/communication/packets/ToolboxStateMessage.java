@@ -10,7 +10,6 @@ public class ToolboxStateMessage extends Packet<ToolboxStateMessage>
 
    public ToolboxStateMessage()
    {
-      // TODO Auto-generated constructor stub
    }
 
    @Override

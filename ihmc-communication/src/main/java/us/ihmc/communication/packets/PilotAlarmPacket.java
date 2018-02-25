@@ -7,6 +7,10 @@ public class PilotAlarmPacket extends Packet<PilotAlarmPacket>
    public double beepRate;
    public boolean enableTone;
 
+   public PilotAlarmPacket()
+   {
+   }
+
    @Override
    public void set(PilotAlarmPacket other)
    {

@@ -18,6 +18,7 @@ import us.ihmc.communication.net.NetClassList;
 import us.ihmc.communication.net.PacketConsumer;
 import us.ihmc.communication.packetCommunicator.PacketCommunicator;
 import us.ihmc.communication.packets.LidarScanMessage;
+import us.ihmc.communication.packets.MessageTools;
 import us.ihmc.communication.packets.RequestLidarScanMessage;
 import us.ihmc.communication.util.NetworkPorts;
 import us.ihmc.euclid.tuple3D.Point3D32;
@@ -210,7 +211,7 @@ public class LidarScanLogReader
 
       try
       {
-         LidarScanMessage lidarScanMessage = new LidarScanMessage();
+         LidarScanMessage lidarScanMessage = MessageTools.createLidarScanMessage();
          lidarScanMessage.robotTimestamp = logDataInputStream.readLong();
 
          lidarScanMessage.lidarPosition = new Point3D32();

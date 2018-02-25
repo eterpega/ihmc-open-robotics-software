@@ -15,7 +15,7 @@ public final class JointspaceTrajectoryMessage extends Packet<JointspaceTrajecto
    public TempPreallocatedList<OneDoFJointTrajectoryMessage> jointTrajectoryMessages = new TempPreallocatedList<>(OneDoFJointTrajectoryMessage.class,
                                                                                                                   OneDoFJointTrajectoryMessage::new, 10);
    @RosExportedField(documentation = "Properties for queueing trajectories.")
-   public QueueableMessage queueingProperties = new QueueableMessage();
+   public QueueableMessage queueingProperties = MessageTools.createQueueableMessage();
 
    /**
     * Empty constructor for serialization. Set the id of the message to

@@ -44,7 +44,7 @@ public class MultisensePointCloud2WithSourceReceiver extends AbstractRosTopicSub
       geometry_msgs.Quaternion orientation = cloudHolder.getOrientation();
       Quaternion lidarQuaternion = new Quaternion(orientation.getX(), orientation.getY(), orientation.getZ(), orientation.getW());
 
-      LidarScanMessage lidarScanMessage = new LidarScanMessage();
+      LidarScanMessage lidarScanMessage = MessageTools.createLidarScanMessage();
       lidarScanMessage.setLidarPosition(lidarPosition);
       lidarScanMessage.setLidarOrientation(lidarQuaternion);
       MessageTools.packScan(lidarScanMessage, points);

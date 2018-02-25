@@ -16,7 +16,7 @@ public final class DesiredAccelerationsMessage extends Packet<DesiredAcceleratio
    @RosExportedField(documentation = "Specifies the desired joint accelerations.")
    public TDoubleArrayList desiredJointAccelerations = new TDoubleArrayList();
    @RosExportedField(documentation = "Properties for queueing trajectories.")
-   public QueueableMessage queueingProperties = new QueueableMessage();
+   public QueueableMessage queueingProperties = MessageTools.createQueueableMessage();
 
    public DesiredAccelerationsMessage()
    {

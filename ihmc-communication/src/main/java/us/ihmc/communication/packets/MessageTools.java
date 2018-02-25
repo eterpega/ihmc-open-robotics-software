@@ -1,5 +1,7 @@
 package us.ihmc.communication.packets;
 
+import static us.ihmc.communication.packets.Packet.VALID_MESSAGE_DEFAULT_ID;
+
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +31,7 @@ import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
 import us.ihmc.euclid.utils.NameBasedHashCodeTools;
 import us.ihmc.idl.TempPreallocatedList;
 import us.ihmc.robotics.dataStructures.parameter.Parameter;
+import us.ihmc.robotics.geometry.PlanarRegion;
 import us.ihmc.robotics.lidar.LidarScanParameters;
 import us.ihmc.robotics.screwTheory.FloatingInverseDynamicsJoint;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
@@ -40,21 +43,298 @@ public class MessageTools
 {
    public static final boolean DEBUG = false;
 
+   public static BoundingBox3DMessage createBoundingBox3DMessage()
+   {
+      BoundingBox3DMessage message = new BoundingBox3DMessage();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
+      message.maxPoint.setToNaN();
+      message.minPoint.setToNaN();
+      return message;
+   }
+
+   public static BoundingBoxesPacket createBoundingBoxesPacket()
+   {
+      BoundingBoxesPacket message = new BoundingBoxesPacket();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
+      return message;
+   }
+
+   public static ControllerCrashNotificationPacket createControllerCrashNotificationPacket()
+   {
+      ControllerCrashNotificationPacket message = new ControllerCrashNotificationPacket();
+      message.controllerCrashLocation = -1;
+      message.setDestination(PacketDestination.BROADCAST);
+      return message;
+   }
+
+   public static DetectedFacesPacket createDetectedFacesPacket()
+   {
+      DetectedFacesPacket message = new DetectedFacesPacket();
+      return message;
+   }
+
+   public static HeatMapPacket createHeatMapPacket()
+   {
+      HeatMapPacket message = new HeatMapPacket();
+      return message;
+   }
+
+   public static HumanoidKinematicsToolboxConfigurationMessage createHumanoidKinematicsToolboxConfigurationMessage()
+   {
+      HumanoidKinematicsToolboxConfigurationMessage message = new HumanoidKinematicsToolboxConfigurationMessage();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
+      message.holdSupportFootPositions = true;
+      message.holdCurrentCenterOfMassXYPosition = true;
+      return message;
+   }
+
+   public static IMUPacket createIMUPacket()
+   {
+      IMUPacket message = new IMUPacket();
+      message.time = Double.NaN;
+      message.linearAcceleration.setToNaN();
+      message.orientation.setToNaN();
+      message.angularVelocity.setToNaN();
+      return message;
+   }
+
+   public static InvalidPacketNotificationPacket createInvalidPacketNotificationPacket()
+   {
+      InvalidPacketNotificationPacket message = new InvalidPacketNotificationPacket();
+      message.setDestination(PacketDestination.BROADCAST);
+      return message;
+   }
+
+   public static KinematicsToolboxCenterOfMassMessage createKinematicsToolboxCenterOfMassMessage()
+   {
+      KinematicsToolboxCenterOfMassMessage message = new KinematicsToolboxCenterOfMassMessage();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
+      message.desiredPositionInWorld.setToNaN();
+      message.selectionMatrix.set(createSelectionMatrix3DMessage());
+      message.weights.set(createWeightMatrix3DMessage());
+      return message;
+   }
+
+   public static KinematicsToolboxConfigurationMessage createKinematicsToolboxConfigurationMessage()
+   {
+      KinematicsToolboxConfigurationMessage message = new KinematicsToolboxConfigurationMessage();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
+      message.privilegedRootJointPosition.setToNaN();
+      message.privilegedRootJointOrientation.setToNaN();
+      return message;
+   }
+
+   public static KinematicsToolboxOutputStatus createKinematicsToolboxOutputStatus()
+   {
+      KinematicsToolboxOutputStatus message = new KinematicsToolboxOutputStatus();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
+      message.jointNameHash = -1;
+      message.desiredRootTranslation.setToNaN();
+      message.desiredRootOrientation.setToNaN();
+      message.solutionQuality = Double.NaN;
+      return message;
+   }
+
+   public static KinematicsToolboxRigidBodyMessage createKinematicsToolboxRigidBodyMessage()
+   {
+      KinematicsToolboxRigidBodyMessage message = new KinematicsToolboxRigidBodyMessage();
+      message.setUniqueId(Packet.VALID_MESSAGE_DEFAULT_ID);
+      message.endEffectorNameBasedHashCode = NameBasedHashCodeTools.NULL_HASHCODE;
+      message.desiredPositionInWorld.setToNaN();
+      message.desiredOrientationInWorld.setToNaN();
+      message.controlFramePositionInEndEffector.setToNaN();
+      message.controlFrameOrientationInEndEffector.setToNaN();
+      message.angularSelectionMatrix.set(createSelectionMatrix3DMessage());
+      message.linearSelectionMatrix.set(createSelectionMatrix3DMessage());
+      message.angularWeightMatrix.set(createWeightMatrix3DMessage());
+      message.linearWeightMatrix.set(createWeightMatrix3DMessage());
+      return message;
+   }
+
+   public static LidarScanMessage createLidarScanMessage()
+   {
+      LidarScanMessage message = new LidarScanMessage();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
+      message.lidarPosition.setToNaN();
+      message.lidarOrientation.setToNaN();
+      return message;
+   }
+
+   public static LidarScanParametersMessage createLidarScanParametersMessage()
+   {
+      LidarScanParametersMessage message = new LidarScanParametersMessage();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
+      message.timestamp = -1;
+      message.sweepYawMin = Float.NaN;
+      message.sweepYawMax = Float.NaN;
+      message.heightPitchMax = Float.NaN;
+      message.heightPitchMin = Float.NaN;
+      message.timeIncrement = Float.NaN;
+      message.scanTime = Float.NaN;
+      message.minRange = Float.NaN;
+      message.maxRange = Float.NaN;
+      message.pointsPerSweep = -1;
+      message.scanHeight = -1;
+      return message;
+   }
+
+   public static ObjectDetectorResultPacket createObjectDetectorResultPacket()
+   {
+      ObjectDetectorResultPacket message = new ObjectDetectorResultPacket();
+      message.heatMap = MessageTools.createHeatMapPacket();
+      message.boundingBoxes = MessageTools.createBoundingBoxesPacket();
+      return message;
+   }
+
+   public static PilotAlarmPacket createPilotAlarmPacket()
+   {
+      PilotAlarmPacket message = new PilotAlarmPacket();
+      message.beepRate = Double.NaN;
+      message.enableTone = false;
+      return message;
+   }
+
+   public static PlanarRegionMessage createPlanarRegionMessage()
+   {
+      PlanarRegionMessage message = new PlanarRegionMessage();
+      message.regionId = PlanarRegion.NO_REGION_ID;
+      message.regionOrigin.setToNaN();
+      message.regionNormal.setToNaN();
+      message.concaveHull.set(createPolygon2DMessage());
+      return message;
+   }
+
+   public static PlanarRegionsListMessage createPlanarRegionsListMessage()
+   {
+      PlanarRegionsListMessage message = new PlanarRegionsListMessage();
+      return message;
+   }
+
+   public static Polygon2DMessage createPolygon2DMessage()
+   {
+      Polygon2DMessage message = new Polygon2DMessage();
+      return message;
+   }
+
+   public static QueueableMessage createQueueableMessage()
+   {
+      QueueableMessage message = new QueueableMessage();
+      message.executionMode = ExecutionMode.OVERRIDE.toByte();
+      message.previousMessageId = Packet.INVALID_MESSAGE_ID;
+      message.executionDelayTime = 0.0;
+      return message;
+   }
+
+   public static RequestLidarScanMessage createRequestLidarScanMessage()
+   {
+      RequestLidarScanMessage message = new RequestLidarScanMessage();
+      message.removeShadows = true;
+      message.removeSelfCollisions = true;
+      return message;
+   }
+
+   public static RequestParameterListPacket createRequestParameterListPacket()
+   {
+      RequestParameterListPacket message = new RequestParameterListPacket();
+      return message;
+   }
+
+   public static RequestPlanarRegionsListMessage createRequestPlanarRegionsListMessage()
+   {
+      RequestPlanarRegionsListMessage message = new RequestPlanarRegionsListMessage();
+      message.planarRegionsRequestType = -1;
+      message.boundingBoxInWorldForRequest.set(createBoundingBox3DMessage());
+      return message;
+   }
+
+   public static RequestStereoPointCloudMessage createRequestStereoPointCloudMessage()
+   {
+      RequestStereoPointCloudMessage message = new RequestStereoPointCloudMessage();
+      return message;
+   }
+
+   public static SelectionMatrix3DMessage createSelectionMatrix3DMessage()
+   {
+      SelectionMatrix3DMessage message = new SelectionMatrix3DMessage();
+      message.selectionFrameId = toFrameId(null);
+      message.xSelected = true;
+      message.ySelected = true;
+      message.zSelected = true;
+      return message;
+   }
+
+   public static SimulatedLidarScanPacket createSimulatedLidarScanPacket()
+   {
+      SimulatedLidarScanPacket message = new SimulatedLidarScanPacket();
+      message.sensorId = -1;
+      message.lidarScanParameters.set(createLidarScanParametersMessage());
+      return message;
+   }
+
+   public static SpatialVectorMessage createSpatialVectorMessage()
+   {
+      SpatialVectorMessage message = new SpatialVectorMessage();
+      message.angularPart.setToNaN();
+      message.linearPart.setToNaN();
+      return message;
+   }
+
+   public static StereoVisionPointCloudMessage createStereoVisionPointCloudMessage()
+   {
+      StereoVisionPointCloudMessage message = new StereoVisionPointCloudMessage();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
+      message.robotTimestamp = -1;
+      return message;
+   }
+
+   public static TextToSpeechPacket createTextToSpeechPacket()
+   {
+      TextToSpeechPacket message = new TextToSpeechPacket();
+      message.speakPacket = false;
+      message.beep = true;
+      return message;
+   }
+
+   public static ToolboxStateMessage createToolboxStateMessage()
+   {
+      ToolboxStateMessage message = new ToolboxStateMessage();
+      message.requestedToolboxState = -1;
+      return message;
+   }
+
+   public static UIPositionCheckerPacket createUIPositionCheckerPacket()
+   {
+      UIPositionCheckerPacket message = new UIPositionCheckerPacket();
+      message.position.setToNaN();
+      message.orientation.setToNaN();
+      return message;
+   }
+
+   public static WeightMatrix3DMessage createWeightMatrix3DMessage()
+   {
+      WeightMatrix3DMessage message = new WeightMatrix3DMessage();
+      message.weightFrameId = toFrameId(null);
+      message.xWeight = Double.NaN;
+      message.yWeight = Double.NaN;
+      message.zWeight = Double.NaN;
+      return message;
+   }
+
    public static TextToSpeechPacket createTextToSpeechPacket(String textToSpeak)
    {
       if (DEBUG)
          System.out.println("created new TextToSpeechPacket " + textToSpeak);
-      TextToSpeechPacket message = new TextToSpeechPacket();
+      TextToSpeechPacket message = createTextToSpeechPacket();
       message.setTextToSpeak(textToSpeak);
       return message;
    }
 
    public static SimulatedLidarScanPacket createSimulatedLidarScanPacket(int sensorId, LidarScanParameters params, float[] ranges)
    {
-      SimulatedLidarScanPacket message = new SimulatedLidarScanPacket();
+      SimulatedLidarScanPacket message = createSimulatedLidarScanPacket();
       message.ranges.add(ranges);
       message.sensorId = sensorId;
-      message.lidarScanParameters = new LidarScanParametersMessage();
+      message.lidarScanParameters = createLidarScanParametersMessage();
       message.lidarScanParameters.timestamp = params.timestamp;
       message.lidarScanParameters.sweepYawMax = params.sweepYawMax;
       message.lidarScanParameters.sweepYawMin = params.sweepYawMin;
@@ -71,7 +351,7 @@ public class MessageTools
 
    public static InvalidPacketNotificationPacket createInvalidPacketNotificationPacket(Class<? extends Packet<?>> packetClass, String errorMessage)
    {
-      InvalidPacketNotificationPacket message = new InvalidPacketNotificationPacket();
+      InvalidPacketNotificationPacket message = createInvalidPacketNotificationPacket();
       message.setPacketClassSimpleName(packetClass.getSimpleName());
       message.setErrorMessage(errorMessage);
       return message;
@@ -79,7 +359,7 @@ public class MessageTools
 
    public static LidarScanMessage createLidarScanMessage(long timestamp, Point3D32 lidarPosition, Quaternion32 lidarOrientation, float[] scan)
    {
-      LidarScanMessage message = new LidarScanMessage();
+      LidarScanMessage message = createLidarScanMessage();
       message.robotTimestamp = timestamp;
       message.lidarPosition = lidarPosition;
       message.lidarOrientation = lidarOrientation;
@@ -89,7 +369,7 @@ public class MessageTools
 
    public static ObjectDetectorResultPacket createObjectDetectorResultPacket(HeatMapPacket heatMap, BoundingBoxesPacket boundingBoxes)
    {
-      ObjectDetectorResultPacket message = new ObjectDetectorResultPacket();
+      ObjectDetectorResultPacket message = createObjectDetectorResultPacket();
       message.heatMap = heatMap;
       message.boundingBoxes = boundingBoxes;
       return message;
@@ -97,7 +377,7 @@ public class MessageTools
 
    public static UIPositionCheckerPacket createUIPositionCheckerPacket(Point3DReadOnly position)
    {
-      UIPositionCheckerPacket message = new UIPositionCheckerPacket();
+      UIPositionCheckerPacket message = createUIPositionCheckerPacket();
       message.position = new Point3D(position);
       message.orientation = null;
       return message;
@@ -105,7 +385,7 @@ public class MessageTools
 
    public static UIPositionCheckerPacket createUIPositionCheckerPacket(Point3DReadOnly position, Quaternion orientation)
    {
-      UIPositionCheckerPacket message = new UIPositionCheckerPacket();
+      UIPositionCheckerPacket message = createUIPositionCheckerPacket();
       message.position = new Point3D(position);
       message.orientation = orientation;
       return message;
@@ -132,7 +412,7 @@ public class MessageTools
     */
    public static KinematicsToolboxCenterOfMassMessage createKinematicsToolboxCenterOfMassMessage(Point3DReadOnly desiredPosition)
    {
-      KinematicsToolboxCenterOfMassMessage message = new KinematicsToolboxCenterOfMassMessage();
+      KinematicsToolboxCenterOfMassMessage message = createKinematicsToolboxCenterOfMassMessage();
       message.desiredPositionInWorld.set(desiredPosition);
       return message;
    }
@@ -147,7 +427,7 @@ public class MessageTools
 
    public static DetectedFacesPacket createDetectedFacesPacket(String[] ids, Point3D[] positions)
    {
-      DetectedFacesPacket message = new DetectedFacesPacket();
+      DetectedFacesPacket message = createDetectedFacesPacket();
       copyData(ids, message.ids);
       copyData(positions, message.positions);
       return message;
@@ -164,7 +444,7 @@ public class MessageTools
     */
    public static KinematicsToolboxRigidBodyMessage createKinematicsToolboxRigidBodyMessage(RigidBody endEffector)
    {
-      KinematicsToolboxRigidBodyMessage message = new KinematicsToolboxRigidBodyMessage();
+      KinematicsToolboxRigidBodyMessage message = createKinematicsToolboxRigidBodyMessage();
       message.endEffectorNameBasedHashCode = endEffector.getNameBasedHashCode();
       return message;
    }
@@ -186,7 +466,7 @@ public class MessageTools
     */
    public static KinematicsToolboxRigidBodyMessage createKinematicsToolboxRigidBodyMessage(RigidBody endEffector, Point3DReadOnly desiredPosition)
    {
-      KinematicsToolboxRigidBodyMessage message = new KinematicsToolboxRigidBodyMessage();
+      KinematicsToolboxRigidBodyMessage message = createKinematicsToolboxRigidBodyMessage();
       message.endEffectorNameBasedHashCode = endEffector.getNameBasedHashCode();
       message.setDesiredPositionInWorld(desiredPosition);
       message.angularSelectionMatrix.xSelected = false;
@@ -215,7 +495,7 @@ public class MessageTools
     */
    public static KinematicsToolboxRigidBodyMessage createKinematicsToolboxRigidBodyMessage(RigidBody endEffector, QuaternionReadOnly desiredOrientation)
    {
-      KinematicsToolboxRigidBodyMessage message = new KinematicsToolboxRigidBodyMessage();
+      KinematicsToolboxRigidBodyMessage message = createKinematicsToolboxRigidBodyMessage();
       message.endEffectorNameBasedHashCode = endEffector.getNameBasedHashCode();
       message.setDesiredOrientationInWorld(desiredOrientation);
       message.angularSelectionMatrix.xSelected = true;
@@ -244,7 +524,7 @@ public class MessageTools
    public static KinematicsToolboxRigidBodyMessage createKinematicsToolboxRigidBodyMessage(RigidBody endEffector, Point3DReadOnly desiredPosition,
                                                                                            QuaternionReadOnly desiredOrientation)
    {
-      KinematicsToolboxRigidBodyMessage message = new KinematicsToolboxRigidBodyMessage();
+      KinematicsToolboxRigidBodyMessage message = createKinematicsToolboxRigidBodyMessage();
       message.endEffectorNameBasedHashCode = endEffector.getNameBasedHashCode();
       message.setDesiredPositionInWorld(desiredPosition);
       message.setDesiredOrientationInWorld(desiredOrientation);
@@ -271,7 +551,7 @@ public class MessageTools
                                                                                            Point3DReadOnly desiredPosition,
                                                                                            QuaternionReadOnly desiredOrientation)
    {
-      KinematicsToolboxRigidBodyMessage message = new KinematicsToolboxRigidBodyMessage();
+      KinematicsToolboxRigidBodyMessage message = createKinematicsToolboxRigidBodyMessage();
       message.endEffectorNameBasedHashCode = endEffector.getNameBasedHashCode();
       message.setDesiredPositionInWorld(desiredPosition);
       message.setDesiredOrientationInWorld(desiredOrientation);
@@ -358,7 +638,7 @@ public class MessageTools
 
    public static BoundingBoxesPacket createBoundingBoxesPacket(int[] packedBoxes, String[] labels)
    {
-      BoundingBoxesPacket message = new BoundingBoxesPacket();
+      BoundingBoxesPacket message = createBoundingBoxesPacket();
       MessageTools.copyData(labels, message.labels);
       int n = packedBoxes.length / 4;
 
@@ -374,7 +654,7 @@ public class MessageTools
 
    public static ControllerCrashNotificationPacket createControllerCrashNotificationPacket(ControllerCrashLocation location, String stackTrace)
    {
-      ControllerCrashNotificationPacket message = new ControllerCrashNotificationPacket();
+      ControllerCrashNotificationPacket message = createControllerCrashNotificationPacket();
       message.controllerCrashLocation = location.toByte();
       message.stacktrace.append(stackTrace);
       return message;
@@ -382,7 +662,7 @@ public class MessageTools
 
    public static StereoVisionPointCloudMessage createStereoVisionPointCloudMessage(long timestamp, float[] pointCloud, int[] colors)
    {
-      StereoVisionPointCloudMessage message = new StereoVisionPointCloudMessage();
+      StereoVisionPointCloudMessage message = createStereoVisionPointCloudMessage();
       message.robotTimestamp = timestamp;
       message.pointCloud.add(pointCloud);
       message.colors.add(colors);
@@ -391,7 +671,7 @@ public class MessageTools
 
    public static ToolboxStateMessage createToolboxStateMessage(ToolboxState requestedState)
    {
-      ToolboxStateMessage message = new ToolboxStateMessage();
+      ToolboxStateMessage message = createToolboxStateMessage();
       message.requestedToolboxState = requestedState.toByte();
       return message;
    }
@@ -416,9 +696,9 @@ public class MessageTools
                                                                                        BoundingBox3D boundingBoxInWorldForRequest,
                                                                                        PacketDestination destination)
    {
-      RequestPlanarRegionsListMessage message = new RequestPlanarRegionsListMessage();
+      RequestPlanarRegionsListMessage message = createRequestPlanarRegionsListMessage();
       message.planarRegionsRequestType = requestType.toByte();
-      message.boundingBoxInWorldForRequest = new BoundingBox3DMessage();
+      message.boundingBoxInWorldForRequest = createBoundingBox3DMessage();
       if (boundingBoxInWorldForRequest != null)
       {
          message.boundingBoxInWorldForRequest.minPoint.set(boundingBoxInWorldForRequest.getMinPoint());
@@ -802,12 +1082,12 @@ public class MessageTools
                                             OneDoFJoint[] newJointData, boolean useQDesired)
    {
       int jointNameHash = (int) NameBasedHashCodeTools.computeArrayHashCode(newJointData);
-      
+
       if (jointNameHash != kinematicsToolboxOutputStatus.jointNameHash)
          throw new RuntimeException("The robots are different.");
-      
+
       kinematicsToolboxOutputStatus.desiredJointAngles.reset();
-      
+
       if (useQDesired)
       {
          for (int i = 0; i < newJointData.length; i++)
@@ -822,7 +1102,7 @@ public class MessageTools
             kinematicsToolboxOutputStatus.desiredJointAngles.add((float) newJointData[i].getQ());
          }
       }
-      
+
       if (rootJoint != null)
       {
          rootJoint.getTranslation(kinematicsToolboxOutputStatus.desiredRootTranslation);
@@ -835,27 +1115,27 @@ public class MessageTools
    {
       if (outputStatusOne.jointNameHash != outputStatusTwo.jointNameHash)
          throw new RuntimeException("Output status are not compatible.");
-      
-      KinematicsToolboxOutputStatus interplateOutputStatus = new KinematicsToolboxOutputStatus();
-      
+
+      KinematicsToolboxOutputStatus interplateOutputStatus = MessageTools.createKinematicsToolboxOutputStatus();
+
       TFloatArrayList jointAngles1 = outputStatusOne.getDesiredJointAngles();
       TFloatArrayList jointAngles2 = outputStatusTwo.getDesiredJointAngles();
-      
+
       for (int i = 0; i < jointAngles1.size(); i++)
       {
          interplateOutputStatus.desiredJointAngles.add((float) EuclidCoreTools.interpolate(jointAngles1.get(i), jointAngles2.get(i), alpha));
       }
-      
+
       Vector3D32 rootTranslation1 = outputStatusOne.getDesiredRootTranslation();
       Vector3D32 rootTranslation2 = outputStatusTwo.getDesiredRootTranslation();
       Quaternion32 rootOrientation1 = outputStatusOne.getDesiredRootOrientation();
       Quaternion32 rootOrientation2 = outputStatusTwo.getDesiredRootOrientation();
-      
+
       interplateOutputStatus.desiredRootTranslation.interpolate(rootTranslation1, rootTranslation2, alpha);
       interplateOutputStatus.desiredRootOrientation.interpolate(rootOrientation1, rootOrientation2, alpha);
-      
+
       interplateOutputStatus.jointNameHash = outputStatusOne.jointNameHash;
-      
+
       return interplateOutputStatus;
    }
 
@@ -913,7 +1193,7 @@ public class MessageTools
    {
       if (jointNameBasedHashCodes.length != jointAngles.length)
          throw new IllegalArgumentException("The two arrays jointAngles and jointNameBasedHashCodes have to be of same length.");
-      
+
       kinematicsToolboxConfigurationMessage.privilegedJointNameBasedHashCodes.reset();
       kinematicsToolboxConfigurationMessage.privilegedJointNameBasedHashCodes.add(jointNameBasedHashCodes);
       kinematicsToolboxConfigurationMessage.privilegedJointAngles.reset();
@@ -923,7 +1203,7 @@ public class MessageTools
    public static void packScan(LidarScanMessage lidarScanMessage, Point3DReadOnly[] scan)
    {
       lidarScanMessage.scan.reset();
-      
+
       for (Point3DReadOnly scanPoint : scan)
       {
          lidarScanMessage.scan.add((float) scanPoint.getX());

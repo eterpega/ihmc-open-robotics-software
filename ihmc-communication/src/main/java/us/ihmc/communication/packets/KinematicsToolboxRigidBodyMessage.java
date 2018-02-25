@@ -98,8 +98,6 @@ public class KinematicsToolboxRigidBodyMessage extends Packet<KinematicsToolboxR
     */
    public KinematicsToolboxRigidBodyMessage()
    {
-      // empty constructor for deserialization
-      setUniqueId(Packet.VALID_MESSAGE_DEFAULT_ID);
    }
 
    @Override

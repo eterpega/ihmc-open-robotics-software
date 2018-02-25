@@ -9,6 +9,7 @@ import us.ihmc.commons.PrintTools;
 import us.ihmc.communication.controllerAPI.StatusMessageOutputManager;
 import us.ihmc.communication.packets.ExecutionMode;
 import us.ihmc.communication.packets.ExecutionTiming;
+import us.ihmc.communication.packets.MessageTools;
 import us.ihmc.communication.packets.TextToSpeechPacket;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FramePose3D;
@@ -506,7 +507,7 @@ public class WalkingMessageHandler
    private final Quaternion desiredFootOrientationInWorld = new Quaternion();
    private final Point3D actualFootPositionInWorld = new Point3D();
    private final Quaternion actualFootOrientationInWorld = new Quaternion();
-   private final TextToSpeechPacket reusableSpeechPacket = new TextToSpeechPacket();
+   private final TextToSpeechPacket reusableSpeechPacket = MessageTools.createTextToSpeechPacket();
    private final WalkingControllerFailureStatusMessage failureStatusMessage = new WalkingControllerFailureStatusMessage();
    private final FootstepStatusMessage footstepStatus = new FootstepStatusMessage();
 

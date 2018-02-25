@@ -26,7 +26,7 @@ public class PlanarRegionMessageConverter
       planarRegion.getPointInRegion(regionOrigin);
       planarRegion.getNormal(regionNormal);
 
-      PlanarRegionMessage planarRegionMessage = new PlanarRegionMessage();
+      PlanarRegionMessage planarRegionMessage = MessageTools.createPlanarRegionMessage();
       planarRegionMessage.setRegionId(regionId);
       planarRegionMessage.regionOrigin = regionOrigin;
       planarRegionMessage.regionNormal = regionNormal;

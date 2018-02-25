@@ -12,6 +12,7 @@ import us.ihmc.communication.controllerAPI.CommandInputManager;
 import us.ihmc.communication.controllerAPI.StatusMessageOutputManager;
 import us.ihmc.communication.net.PacketConsumer;
 import us.ihmc.communication.packetCommunicator.PacketCommunicator;
+import us.ihmc.communication.packets.MessageTools;
 import us.ihmc.communication.packets.RequestLidarScanMessage;
 import us.ihmc.euclid.referenceFrame.FramePoint2D;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
@@ -106,7 +107,7 @@ public class HeightQuadTreeToolboxController extends ToolboxController
    @Override
    protected void updateInternal()
    {
-      packetCommunicator.send(new RequestLidarScanMessage());
+      packetCommunicator.send(MessageTools.createRequestLidarScanMessage());
 
       updateRobotContactPoints();
 

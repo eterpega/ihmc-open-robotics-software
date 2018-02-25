@@ -6,7 +6,7 @@ public class SimulatedLidarScanPacket extends Packet<SimulatedLidarScanPacket>
 {
    public TFloatArrayList ranges = new TFloatArrayList();
    public int sensorId;
-   public LidarScanParametersMessage lidarScanParameters = new LidarScanParametersMessage();
+   public LidarScanParametersMessage lidarScanParameters = MessageTools.createLidarScanParametersMessage();
 
    public SimulatedLidarScanPacket()
    {

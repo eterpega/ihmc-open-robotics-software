@@ -34,7 +34,7 @@ public final class EuclideanTrajectoryMessage extends Packet<EuclideanTrajectory
    public Pose3D controlFramePose = new Pose3D();
 
    @RosExportedField(documentation = "Properties for queueing trajectories.")
-   public QueueableMessage queueingProperties = new QueueableMessage();
+   public QueueableMessage queueingProperties = MessageTools.createQueueableMessage();
 
    public EuclideanTrajectoryMessage()
    {

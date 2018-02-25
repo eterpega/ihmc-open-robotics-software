@@ -35,7 +35,7 @@ public final class SE3TrajectoryMessage extends Packet<SE3TrajectoryMessage>
    @RosExportedField(documentation = "Pose of custom control frame. This is the frame attached to the rigid body that the taskspace trajectory is defined for.")
    public Pose3D controlFramePose = new Pose3D();
    @RosExportedField(documentation = "Properties for queueing trajectories.")
-   public QueueableMessage queueingProperties = new QueueableMessage();
+   public QueueableMessage queueingProperties = MessageTools.createQueueableMessage();
 
    public SE3TrajectoryMessage()
    {

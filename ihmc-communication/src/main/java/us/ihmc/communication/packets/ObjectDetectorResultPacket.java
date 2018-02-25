@@ -5,12 +5,11 @@ package us.ihmc.communication.packets;
  */
 public class ObjectDetectorResultPacket extends Packet<ObjectDetectorResultPacket>
 {
-   public HeatMapPacket heatMap = new HeatMapPacket();
-   public BoundingBoxesPacket boundingBoxes = new BoundingBoxesPacket();
+   public HeatMapPacket heatMap = MessageTools.createHeatMapPacket();
+   public BoundingBoxesPacket boundingBoxes = MessageTools.createBoundingBoxesPacket();
 
    public ObjectDetectorResultPacket()
    {
-
    }
 
    @Override

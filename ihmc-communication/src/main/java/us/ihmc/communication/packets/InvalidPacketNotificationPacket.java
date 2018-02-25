@@ -7,7 +7,6 @@ public class InvalidPacketNotificationPacket extends Packet<InvalidPacketNotific
 
    public InvalidPacketNotificationPacket()
    {
-      setDestination(PacketDestination.BROADCAST);
    }
 
    public void setErrorMessage(String errorMessage)
