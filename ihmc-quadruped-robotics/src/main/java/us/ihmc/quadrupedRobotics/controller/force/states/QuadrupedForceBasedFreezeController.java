@@ -13,6 +13,8 @@ import us.ihmc.quadrupedRobotics.model.QuadrupedRuntimeEnvironment;
 import us.ihmc.robotics.dataStructures.parameter.DoubleParameter;
 import us.ihmc.robotics.dataStructures.parameter.ParameterFactory;
 import us.ihmc.quadrupedRobotics.planning.ContactState;
+import us.ihmc.sensorProcessing.outputData.JointDesiredControlMode;
+import us.ihmc.sensorProcessing.outputData.JointDesiredOutputList;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.robotics.robotSide.RobotQuadrant;
@@ -41,10 +43,13 @@ public class QuadrupedForceBasedFreezeController implements QuadrupedController
    private final FullQuadrupedRobotModel fullRobotModel;
    private final QuadrupedForceControllerToolbox controllerToolbox;
 
+   private final JointDesiredOutputList jointDesiredOutputList;
+
    public QuadrupedForceBasedFreezeController(QuadrupedForceControllerToolbox controllerToolbox, QuadrupedControlManagerFactory controlManagerFactory,
                                               YoVariableRegistry parentRegistry)
    {
       this.controllerToolbox = controllerToolbox;
+      this.jointDesiredOutputList = controllerToolbox.getRuntimeEnvironment().getJointDesiredOutputList();
 
       // Yo variables
       yoUseForceFeedbackControl = new YoBoolean("useForceFeedbackControl", registry);
@@ -77,13 +82,13 @@ public class QuadrupedForceBasedFreezeController implements QuadrupedController
       taskSpaceController.reset();
 
       // Initialize force feedback
-      for (QuadrupedJointName jointName : QuadrupedJointName.values())
+      for (QuadrupedJointName jointName : QuadrupedJointName.values)
       {
          OneDoFJoint oneDoFJoint = fullRobotModel.getOneDoFJointByName(jointName);
-         if (oneDoFJoint != null && jointName.getRole().equals(JointRole.LEG))
-         {
-            oneDoFJoint.setUseFeedBackForceControl(yoUseForceFeedbackControl.getBooleanValue());
-         }
+         if (yoUseForceFeedbackControl.getBooleanValue())
+            jointDesiredOutputList.getJointDesiredOutput(oneDoFJoint).setControlMode(JointDesiredControlMode.EFFORT);
+         else
+            jointDesiredOutputList.getJointDesiredOutput(oneDoFJoint).setControlMode(JointDesiredControlMode.POSITION);
       }
    }
 
@@ -106,12 +111,15 @@ public class QuadrupedForceBasedFreezeController implements QuadrupedController
    public void onExit()
    {
       yoUseForceFeedbackControl.set(true);
-      for (QuadrupedJointName jointName : QuadrupedJointName.values())
+      for (QuadrupedJointName jointName : QuadrupedJointName.values)
       {
          OneDoFJoint oneDoFJoint = fullRobotModel.getOneDoFJointByName(jointName);
          if (oneDoFJoint != null && jointName.getRole().equals(JointRole.LEG))
          {
-            oneDoFJoint.setUseFeedBackForceControl(yoUseForceFeedbackControl.getBooleanValue());
+            if (yoUseForceFeedbackControl.getBooleanValue())
+               jointDesiredOutputList.getJointDesiredOutput(oneDoFJoint).setControlMode(JointDesiredControlMode.EFFORT);
+            else
+               jointDesiredOutputList.getJointDesiredOutput(oneDoFJoint).setControlMode(JointDesiredControlMode.POSITION);
          }
       }
    }

@@ -3,6 +3,7 @@ package us.ihmc.quadrupedRobotics.model;
 import us.ihmc.communication.streamingData.GlobalDataProducer;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.robotModels.FullQuadrupedRobotModel;
+import us.ihmc.sensorProcessing.outputData.JointDesiredOutputList;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.robotics.robotSide.QuadrantDependentList;
@@ -17,13 +18,15 @@ public class QuadrupedRuntimeEnvironment
    private final YoGraphicsListRegistry graphicsListRegistry;
    private final YoGraphicsListRegistry graphicsListRegistryForDetachedOverhead;
    private final GlobalDataProducer globalDataProducer;
+   private final JointDesiredOutputList jointDesiredOutputList;
 
    // TODO: These are used to provide feedback from the controllers to the state estimator. Can they be moved somewhere else?
    private final QuadrantDependentList<FootSwitchInterface> footSwitches;
 
-   public QuadrupedRuntimeEnvironment(double controlDT, YoDouble robotTimestamp, FullQuadrupedRobotModel fullRobotModel, YoVariableRegistry parentRegistry,
-         YoGraphicsListRegistry graphicsListRegistry, YoGraphicsListRegistry graphicsListRegistryForDetachedOverhead, GlobalDataProducer globalDataProducer,
-         QuadrantDependentList<FootSwitchInterface> footSwitches)
+   public QuadrupedRuntimeEnvironment(double controlDT, YoDouble robotTimestamp, FullQuadrupedRobotModel fullRobotModel,
+                                      JointDesiredOutputList jointDesiredOutputList, YoVariableRegistry parentRegistry, YoGraphicsListRegistry graphicsListRegistry,
+                                      YoGraphicsListRegistry graphicsListRegistryForDetachedOverhead, GlobalDataProducer globalDataProducer,
+                                      QuadrantDependentList<FootSwitchInterface> footSwitches)
    {
       this.controlDT = controlDT;
       this.robotTimestamp = robotTimestamp;
@@ -33,6 +36,7 @@ public class QuadrupedRuntimeEnvironment
       this.graphicsListRegistryForDetachedOverhead = graphicsListRegistryForDetachedOverhead;
       this.globalDataProducer = globalDataProducer;
       this.footSwitches = footSwitches;
+      this.jointDesiredOutputList = jointDesiredOutputList;
    }
 
    public double getControlDT()
@@ -48,6 +52,11 @@ public class QuadrupedRuntimeEnvironment
    public FullQuadrupedRobotModel getFullRobotModel()
    {
       return fullRobotModel;
+   }
+
+   public JointDesiredOutputList getJointDesiredOutputList()
+   {
+      return jointDesiredOutputList;
    }
 
    public YoVariableRegistry getParentRegistry()
