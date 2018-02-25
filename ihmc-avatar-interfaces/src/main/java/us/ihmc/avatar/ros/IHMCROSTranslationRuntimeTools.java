@@ -189,8 +189,8 @@ public class IHMCROSTranslationRuntimeTools
          }
       }
 
-      ihmcMessage.setPredictedContactPoints(predictedContactPoints);
-      ihmcMessage.setCustomPositionWaypoints(trajectoryWaypoints);
+      MessageTools.copyData(predictedContactPoints, ihmcMessage.predictedContactPoints);
+      MessageTools.copyData(trajectoryWaypoints, ihmcMessage.customPositionWaypoints);
 
       return ihmcMessage;
    }

@@ -89,7 +89,8 @@ public abstract class EndToEndFootstepDataListMessageTest implements MultiRobotT
          // between 0.75 and 1.25 times the nominal time:
          double swingTime = (1.0 + 0.5 * (random.nextDouble() + 0.5)) * nominalSwingTime;
          double transferTime = (1.0 + 0.5 * (random.nextDouble() + 0.5)) * nominalTransferTime;
-         footstep.setTimings(swingTime, transferTime);
+         footstep.setSwingDuration(swingTime);
+         footstep.setTransferDuration(transferTime);
 
          footstepList.add(footstep);
          totalTime += swingTime + transferTime;

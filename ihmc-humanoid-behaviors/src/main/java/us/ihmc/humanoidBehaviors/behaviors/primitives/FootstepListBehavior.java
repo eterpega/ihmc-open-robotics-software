@@ -283,13 +283,13 @@ public class FootstepListBehavior extends AbstractBehavior
       firstSingleSupportFootTransformToWorld.getTranslation(firstSingleSupportFootTranslationFromWorld);
 
       previousFootStepLocation.set(firstSingleSupportFootTranslationFromWorld);
-      firstStepData.getLocation(nextFootStepLocation);
+      nextFootStepLocation.set(firstStepData.getLocation());
 
       while (!footstepDataList.isEmpty())
       {
          footStepLengths.add(previousFootStepLocation.distance(nextFootStepLocation));
          previousFootStepLocation.set(nextFootStepLocation);
-         footstepDataList.remove(footstepDataList.size() - 1).getLocation(nextFootStepLocation);
+         nextFootStepLocation.set(footstepDataList.remove(footstepDataList.size() - 1).getLocation());
       }
 
       double lastStepLength = previousFootStepLocation.distance(nextFootStepLocation);

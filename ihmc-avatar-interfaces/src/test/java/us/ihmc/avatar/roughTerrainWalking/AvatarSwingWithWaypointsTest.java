@@ -34,6 +34,7 @@ import us.ihmc.simulationconstructionset.util.ground.TerrainObject3D;
 import us.ihmc.simulationconstructionset.util.simulationRunner.BlockingSimulationRunner.SimulationExceededMaximumTimeException;
 import us.ihmc.simulationconstructionset.util.simulationTesting.SimulationTestingParameters;
 import us.ihmc.commons.thread.ThreadTools;
+import us.ihmc.communication.packets.MessageTools;
 
 public abstract class AvatarSwingWithWaypointsTest implements MultiRobotTestInterface
 {
@@ -81,9 +82,9 @@ public abstract class AvatarSwingWithWaypointsTest implements MultiRobotTestInte
 
          FootstepDataMessage footstep1 = footsteps.get(i-1);
          footstep1.setTrajectoryType(TrajectoryType.CUSTOM.toByte());
-         footstep1.setCustomPositionWaypoints(new Point3D[] {
-               new Point3D(footstepX - (stepLength * 0.85), footstepY, swingHeight),
-               new Point3D(footstepX - (stepLength * 0.15), footstepY, swingHeight)});
+         MessageTools.copyData(new Point3D[] {
+         new Point3D(footstepX - (stepLength * 0.85), footstepY, swingHeight),
+         new Point3D(footstepX - (stepLength * 0.15), footstepY, swingHeight)}, footstep1.customPositionWaypoints);
       }
 
       // straight up and down
@@ -95,9 +96,9 @@ public abstract class AvatarSwingWithWaypointsTest implements MultiRobotTestInte
 
          FootstepDataMessage footstep1 = footsteps.get(i-1);
          footstep1.setTrajectoryType(TrajectoryType.CUSTOM.toByte());
-         footstep1.setCustomPositionWaypoints(new Point3D[] {
-               new Point3D(footstepX - (stepLength * 2.0), footstepY, 0.25),
-               new Point3D(footstepX - (stepLength * 0.0), footstepY, 0.2)});
+         MessageTools.copyData(new Point3D[] {
+         new Point3D(footstepX - (stepLength * 2.0), footstepY, 0.25),
+         new Point3D(footstepX - (stepLength * 0.0), footstepY, 0.2)}, footstep1.customPositionWaypoints);
       }
 
       // overshoot
@@ -109,9 +110,9 @@ public abstract class AvatarSwingWithWaypointsTest implements MultiRobotTestInte
 
          FootstepDataMessage footstep1 = footsteps.get(i-1);
          footstep1.setTrajectoryType(TrajectoryType.CUSTOM.toByte());
-         footstep1.setCustomPositionWaypoints(new Point3D[] {
-               new Point3D(footstepX - (stepLength * 2.0 * 0.85), footstepY, 0.2),
-               new Point3D(footstepX + 0.1, footstepY, 0.125)});
+         MessageTools.copyData(new Point3D[] {
+         new Point3D(footstepX - (stepLength * 2.0 * 0.85), footstepY, 0.2),
+         new Point3D(footstepX + 0.1, footstepY, 0.125)}, footstep1.customPositionWaypoints);
       }
 
       // swing outward sideways
@@ -125,9 +126,9 @@ public abstract class AvatarSwingWithWaypointsTest implements MultiRobotTestInte
 
          FootstepDataMessage footstep1 = footsteps.get(i-1);
          footstep1.setTrajectoryType(TrajectoryType.CUSTOM.toByte());
-         footstep1.setCustomPositionWaypoints(new Point3D[] {
-               new Point3D(footstepX - (stepLength * 2.0 * 0.85), footstepY + offsetY, swingHeight),
-               new Point3D(footstepX - (stepLength * 2.0 * 0.15), footstepY + offsetY, swingHeight)});
+         MessageTools.copyData(new Point3D[] {
+         new Point3D(footstepX - (stepLength * 2.0 * 0.85), footstepY + offsetY, swingHeight),
+         new Point3D(footstepX - (stepLength * 2.0 * 0.15), footstepY + offsetY, swingHeight)}, footstep1.customPositionWaypoints);
       }
 
       // crazy
@@ -140,9 +141,9 @@ public abstract class AvatarSwingWithWaypointsTest implements MultiRobotTestInte
 
          FootstepDataMessage footstep1 = footsteps.get(i-1);
          footstep1.setTrajectoryType(TrajectoryType.CUSTOM.toByte());
-         footstep1.setCustomPositionWaypoints(new Point3D[] {
-               new Point3D(footstepX - (stepLength * 2.0 * 0.7), footstepY - 0.15, swingHeight + 0.04),
-               new Point3D(footstepX - (stepLength * 2.0 * 0.2), footstepY, swingHeight + 0.02)});
+         MessageTools.copyData(new Point3D[] {
+         new Point3D(footstepX - (stepLength * 2.0 * 0.7), footstepY - 0.15, swingHeight + 0.04),
+         new Point3D(footstepX - (stepLength * 2.0 * 0.2), footstepY, swingHeight + 0.02)}, footstep1.customPositionWaypoints);
       }
 
       // side to side
@@ -156,9 +157,9 @@ public abstract class AvatarSwingWithWaypointsTest implements MultiRobotTestInte
 
          FootstepDataMessage footstep1 = footsteps.get(i-1);
          footstep1.setTrajectoryType(TrajectoryType.CUSTOM.toByte());
-         footstep1.setCustomPositionWaypoints(new Point3D[] {
-               new Point3D(footstepX - (stepLength * 2.0 * 0.85), footstepY + offsetY, swingHeight),
-               new Point3D(footstepX - (stepLength * 2.0 * 0.15), footstepY - offsetY, swingHeight)});
+         MessageTools.copyData(new Point3D[] {
+         new Point3D(footstepX - (stepLength * 2.0 * 0.85), footstepY + offsetY, swingHeight),
+         new Point3D(footstepX - (stepLength * 2.0 * 0.15), footstepY - offsetY, swingHeight)}, footstep1.customPositionWaypoints);
       }
 
       drcSimulationTestHelper.send(footsteps);
@@ -217,7 +218,7 @@ public abstract class AvatarSwingWithWaypointsTest implements MultiRobotTestInte
       transform.transform(waypoint2);
 
       footstepData.setTrajectoryType(TrajectoryType.CUSTOM.toByte());
-      footstepData.setCustomPositionWaypoints(new Point3D[] {waypoint1, waypoint2});
+      MessageTools.copyData(new Point3D[] {waypoint1, waypoint2}, footstepData.customPositionWaypoints);
 
       drcSimulationTestHelper.send(footsteps);
       double simulationTime = swingTime + transferTime + 1.0;

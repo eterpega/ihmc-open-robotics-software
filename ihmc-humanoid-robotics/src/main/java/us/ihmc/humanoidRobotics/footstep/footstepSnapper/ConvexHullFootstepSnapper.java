@@ -439,7 +439,7 @@ public class ConvexHullFootstepSnapper implements QuadTreeFootstepSnapper
             continue;
          }
 
-         currentFaceFootstep.setPredictedContactPoints(currentPredictedContactPoints);
+         MessageTools.copyData(currentPredictedContactPoints, currentFaceFootstep.predictedContactPoints);
          valueOfCurrent = footstepValueFunction.getFootstepValue(currentFaceFootstep);
 
          if (valueOfCurrent > maxValue)

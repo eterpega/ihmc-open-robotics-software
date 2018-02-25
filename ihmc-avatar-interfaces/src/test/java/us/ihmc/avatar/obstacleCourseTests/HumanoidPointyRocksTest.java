@@ -18,6 +18,7 @@ import us.ihmc.commonWalkingControlModules.momentumBasedController.HighLevelHuma
 import us.ihmc.commons.RandomNumbers;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.communication.controllerAPI.command.Command;
+import us.ihmc.communication.packets.MessageTools;
 import us.ihmc.euclid.geometry.BoundingBox3D;
 import us.ihmc.euclid.geometry.ConvexPolygon2D;
 import us.ihmc.euclid.geometry.Line2D;
@@ -895,7 +896,7 @@ public abstract class HumanoidPointyRocksTest implements MultiRobotTestInterface
       footstepData.setRobotSide(robotSide.toByte());
       ankleFrame = fullRobotModel.getEndEffectorFrame(robotSide, LimbName.LEG);
       soleFrame = fullRobotModel.getSoleFrame(robotSide);
-      footstepData.setPredictedContactPoints(transformFromAnkleFrameToSoleFrame(generateContactPointsForRandomRotatedLineOfContact(random), ankleFrame, soleFrame));
+      MessageTools.copyData(transformFromAnkleFrameToSoleFrame(generateContactPointsForRandomRotatedLineOfContact(random), ankleFrame, soleFrame), footstepData.predictedContactPoints);
       message.add(footstepData);
       messages.add(message);
 
@@ -907,7 +908,7 @@ public abstract class HumanoidPointyRocksTest implements MultiRobotTestInterface
       footstepData.setRobotSide(robotSide.toByte());
       ankleFrame = fullRobotModel.getEndEffectorFrame(robotSide, LimbName.LEG);
       soleFrame = fullRobotModel.getSoleFrame(robotSide);
-      footstepData.setPredictedContactPoints(transformFromAnkleFrameToSoleFrame(generateContactPointsForRandomRotatedLineOfContact(random), ankleFrame, soleFrame));
+      MessageTools.copyData(transformFromAnkleFrameToSoleFrame(generateContactPointsForRandomRotatedLineOfContact(random), ankleFrame, soleFrame), footstepData.predictedContactPoints);
       message.add(footstepData);
       messages.add(message);
 
@@ -919,7 +920,7 @@ public abstract class HumanoidPointyRocksTest implements MultiRobotTestInterface
       footstepData.setRobotSide(robotSide.toByte());
       ankleFrame = fullRobotModel.getEndEffectorFrame(robotSide, LimbName.LEG);
       soleFrame = fullRobotModel.getSoleFrame(robotSide);
-      footstepData.setPredictedContactPoints(transformFromAnkleFrameToSoleFrame(generateContactPointsForRandomRotatedLineOfContact(random), ankleFrame, soleFrame));
+      MessageTools.copyData(transformFromAnkleFrameToSoleFrame(generateContactPointsForRandomRotatedLineOfContact(random), ankleFrame, soleFrame), footstepData.predictedContactPoints);
       message.add(footstepData);
       messages.add(message);
 
@@ -931,7 +932,7 @@ public abstract class HumanoidPointyRocksTest implements MultiRobotTestInterface
       footstepData.setRobotSide(robotSide.toByte());
       ankleFrame = fullRobotModel.getEndEffectorFrame(robotSide, LimbName.LEG);
       soleFrame = fullRobotModel.getSoleFrame(robotSide);
-      footstepData.setPredictedContactPoints(transformFromAnkleFrameToSoleFrame(generateContactPointsForRandomRotatedLineOfContact(random), ankleFrame, soleFrame));
+      MessageTools.copyData(transformFromAnkleFrameToSoleFrame(generateContactPointsForRandomRotatedLineOfContact(random), ankleFrame, soleFrame), footstepData.predictedContactPoints);
       message.add(footstepData);
       messages.add(message);
 
@@ -943,7 +944,7 @@ public abstract class HumanoidPointyRocksTest implements MultiRobotTestInterface
       footstepData.setRobotSide(robotSide.toByte());
       ankleFrame = fullRobotModel.getEndEffectorFrame(robotSide, LimbName.LEG);
       soleFrame = fullRobotModel.getSoleFrame(robotSide);
-      footstepData.setPredictedContactPoints(transformFromAnkleFrameToSoleFrame(generateContactPointsForRandomRotatedLineOfContact(random), ankleFrame, soleFrame));
+      MessageTools.copyData(transformFromAnkleFrameToSoleFrame(generateContactPointsForRandomRotatedLineOfContact(random), ankleFrame, soleFrame), footstepData.predictedContactPoints);
       message.add(footstepData);
       messages.add(message);
 
@@ -955,7 +956,7 @@ public abstract class HumanoidPointyRocksTest implements MultiRobotTestInterface
       footstepData.setRobotSide(robotSide.toByte());
       ankleFrame = fullRobotModel.getEndEffectorFrame(robotSide, LimbName.LEG);
       soleFrame = fullRobotModel.getSoleFrame(robotSide);
-      footstepData.setPredictedContactPoints(transformFromAnkleFrameToSoleFrame(generateContactPointsForRandomRotatedLineOfContact(random), ankleFrame, soleFrame));
+      MessageTools.copyData(transformFromAnkleFrameToSoleFrame(generateContactPointsForRandomRotatedLineOfContact(random), ankleFrame, soleFrame), footstepData.predictedContactPoints);
       message.add(footstepData);
       messages.add(message);
 
@@ -1022,7 +1023,7 @@ public abstract class HumanoidPointyRocksTest implements MultiRobotTestInterface
       if (setPredictedContactPoints && (contactPointsInAnkleFrame != null))
       {
          ArrayList<Point2D> contactPointsInSoleFrame = transformFromAnkleFrameToSoleFrame(contactPointsInAnkleFrame, ankleFrame, soleFrame);
-         footstepData.setPredictedContactPoints(contactPointsInSoleFrame);
+         MessageTools.copyData(contactPointsInSoleFrame, footstepData.predictedContactPoints);
       }
       return footstepData;
    }

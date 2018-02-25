@@ -1985,7 +1985,7 @@ public class HumanoidMessageTools
          {
             FramePoint3D framePoint = footstep.getCustomPositionWaypoints().get(i);
             framePoint.checkReferenceFrameMatch(ReferenceFrame.getWorldFrame());
-            message.positionWaypoints.add().set(framePoint);
+            message.customPositionWaypoints.add().set(framePoint);
          }
       }
 

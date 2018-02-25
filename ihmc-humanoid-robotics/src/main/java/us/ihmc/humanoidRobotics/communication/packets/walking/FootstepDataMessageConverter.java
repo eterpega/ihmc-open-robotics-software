@@ -11,6 +11,7 @@ import us.ihmc.footstepPlanning.FootstepPlan;
 import us.ihmc.footstepPlanning.SimpleFootstep;
 import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.communication.packets.ExecutionMode;
+import us.ihmc.communication.packets.MessageTools;
 import us.ihmc.robotics.geometry.ConvexPolygonTools;
 
 public class FootstepDataMessageConverter
@@ -47,7 +48,7 @@ public class FootstepDataMessageConverter
             ArrayList<Point2D> contactPoints = new ArrayList<>();
             for (int contactPointIdx = 0; contactPointIdx < 4; contactPointIdx++)
                contactPoints.add(new Point2D(foothold.getVertex(contactPointIdx)));
-            footstepData.setPredictedContactPoints(contactPoints);
+            MessageTools.copyData(contactPoints, footstepData.predictedContactPoints);
          }
 
          footstepDataListMessage.add(footstepData);
@@ -81,7 +82,7 @@ public class FootstepDataMessageConverter
             ArrayList<Point2D> contactPoints = new ArrayList<>();
             for (int contactPointIdx = 0; contactPointIdx < 4; contactPointIdx++)
                contactPoints.add(new Point2D(foothold.getVertex(contactPointIdx)));
-            footstepData.setPredictedContactPoints(contactPoints);
+            MessageTools.copyData(contactPoints, footstepData.predictedContactPoints);
          }
 
          footstepDataListMessage.add(footstepData);

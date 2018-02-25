@@ -469,8 +469,8 @@ public final class RandomHumanoidMessages
       next.swingHeight = RandomNumbers.nextDoubleWithEdgeCases(random, 0.1);
       if (next.trajectoryType == TrajectoryType.CUSTOM.toByte())
       {
-         next.positionWaypoints.add().set(RandomGeometry.nextPoint3D(random, -10.0, 10.0));
-         next.positionWaypoints.add().set(RandomGeometry.nextPoint3D(random, -10.0, 10.0));
+         next.customPositionWaypoints.add().set(RandomGeometry.nextPoint3D(random, -10.0, 10.0));
+         next.customPositionWaypoints.add().set(RandomGeometry.nextPoint3D(random, -10.0, 10.0));
       }
       else if (next.trajectoryType == TrajectoryType.WAYPOINTS.toByte())
       {
