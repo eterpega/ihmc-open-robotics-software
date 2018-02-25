@@ -97,8 +97,8 @@ public class KinematicsToolboxOutputConverter
          OneDoFJoint armJoint = armJoints[i];
          desiredJointPositions[i] = MathTools.clamp(armJoint.getQ(), armJoint.getJointLimitLower(), armJoint.getJointLimitUpper());
       }
-      ArmTrajectoryMessage armTrajectoryMessage = HumanoidMessageTools.createArmTrajectoryMessage(robotSide, trajectoryTime, desiredJointPositions);
-      output.setArmTrajectoryMessage(armTrajectoryMessage);
+      ArmTrajectoryMessage armTrajectoryMessage = robotSide == RobotSide.LEFT ? output.leftArmTrajectoryMessage : output.rightArmTrajectoryMessage;
+      armTrajectoryMessage.set(HumanoidMessageTools.createArmTrajectoryMessage(robotSide, trajectoryTime, desiredJointPositions));
    }
 
    public void computeHandTrajectoryMessages()
@@ -118,9 +118,9 @@ public class KinematicsToolboxOutputConverter
       FramePose3D desiredHandPose = new FramePose3D(handControlFrame);
       desiredHandPose.changeFrame(worldFrame);
       desiredHandPose.get(desiredPosition, desiredOrientation);
-      HandTrajectoryMessage handTrajectoryMessage = HumanoidMessageTools.createHandTrajectoryMessage(robotSide, trajectoryTime, desiredPosition, desiredOrientation, trajectoryFrame);
+      HandTrajectoryMessage handTrajectoryMessage = robotSide == RobotSide.LEFT ? output.leftHandTrajectoryMessage : output.rightHandTrajectoryMessage;
+      handTrajectoryMessage.set(HumanoidMessageTools.createHandTrajectoryMessage(robotSide, trajectoryTime, desiredPosition, desiredOrientation, trajectoryFrame));
       handTrajectoryMessage.getSe3Trajectory().getFrameInformation().setDataReferenceFrameId(MessageTools.toFrameId(worldFrame));
-      output.setHandTrajectoryMessage(handTrajectoryMessage);
    }
 
    public void computeChestTrajectoryMessage()
@@ -167,8 +167,8 @@ public class KinematicsToolboxOutputConverter
       FramePose3D desiredFootPose = new FramePose3D(footFrame);
       desiredFootPose.changeFrame(worldFrame);
       desiredFootPose.get(desiredPosition, desiredOrientation);
-      FootTrajectoryMessage footTrajectoryMessage = HumanoidMessageTools.createFootTrajectoryMessage(robotSide, trajectoryTime, desiredPosition, desiredOrientation);
-      output.setFootTrajectoryMessage(footTrajectoryMessage);
+      FootTrajectoryMessage footTrajectoryMessage = robotSide == RobotSide.LEFT ? output.leftFootTrajectoryMessage : output.rightFootTrajectoryMessage;
+      footTrajectoryMessage.set(HumanoidMessageTools.createFootTrajectoryMessage(robotSide, trajectoryTime, desiredPosition, desiredOrientation));
    }
 
    public FullHumanoidRobotModel getFullRobotModel()

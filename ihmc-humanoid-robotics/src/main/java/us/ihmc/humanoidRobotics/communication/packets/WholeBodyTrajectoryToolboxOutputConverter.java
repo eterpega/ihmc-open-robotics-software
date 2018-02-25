@@ -128,7 +128,10 @@ public class WholeBodyTrajectoryToolboxOutputConverter
                                               trajectoryFrame);
       }
 
-      wholeBodyTrajectoryMessage.setHandTrajectoryMessage(trajectoryMessage);
+      if (robotSide == RobotSide.LEFT)
+         wholeBodyTrajectoryMessage.setLeftHandTrajectoryMessage(trajectoryMessage);
+      else
+         wholeBodyTrajectoryMessage.setRightHandTrajectoryMessage(trajectoryMessage);
    }
 
    private void computeChestTrajectoryMessage(WholeBodyTrajectoryToolboxOutputStatus solution)
