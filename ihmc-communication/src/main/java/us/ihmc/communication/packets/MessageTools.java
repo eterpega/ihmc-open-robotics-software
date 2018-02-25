@@ -188,8 +188,13 @@ public class MessageTools
    {
       KinematicsToolboxRigidBodyMessage message = new KinematicsToolboxRigidBodyMessage();
       message.endEffectorNameBasedHashCode = endEffector.getNameBasedHashCode();
-      message.setDesiredPosition(desiredPosition);
-      message.setSelectionMatrixForLinearControl();
+      message.setDesiredPositionInWorld(desiredPosition);
+      message.angularSelectionMatrix.xSelected = false;
+      message.angularSelectionMatrix.ySelected = false;
+      message.angularSelectionMatrix.zSelected = false;
+      message.linearSelectionMatrix.xSelected = true;
+      message.linearSelectionMatrix.ySelected = true;
+      message.linearSelectionMatrix.zSelected = true;
       return message;
    }
 
@@ -212,8 +217,13 @@ public class MessageTools
    {
       KinematicsToolboxRigidBodyMessage message = new KinematicsToolboxRigidBodyMessage();
       message.endEffectorNameBasedHashCode = endEffector.getNameBasedHashCode();
-      message.setDesiredOrientation(desiredOrientation);
-      message.setSelectionMatrixForAngularControl();
+      message.setDesiredOrientationInWorld(desiredOrientation);
+      message.angularSelectionMatrix.xSelected = true;
+      message.angularSelectionMatrix.ySelected = true;
+      message.angularSelectionMatrix.zSelected = true;
+      message.linearSelectionMatrix.xSelected = false;
+      message.linearSelectionMatrix.ySelected = false;
+      message.linearSelectionMatrix.zSelected = false;
       return message;
    }
 
@@ -236,7 +246,8 @@ public class MessageTools
    {
       KinematicsToolboxRigidBodyMessage message = new KinematicsToolboxRigidBodyMessage();
       message.endEffectorNameBasedHashCode = endEffector.getNameBasedHashCode();
-      message.setDesiredPose(desiredPosition, desiredOrientation);
+      message.setDesiredPositionInWorld(desiredPosition);
+      message.setDesiredOrientationInWorld(desiredOrientation);
       return message;
    }
 
@@ -262,10 +273,12 @@ public class MessageTools
    {
       KinematicsToolboxRigidBodyMessage message = new KinematicsToolboxRigidBodyMessage();
       message.endEffectorNameBasedHashCode = endEffector.getNameBasedHashCode();
-      message.setDesiredPose(desiredPosition, desiredOrientation);
+      message.setDesiredPositionInWorld(desiredPosition);
+      message.setDesiredOrientationInWorld(desiredOrientation);
       RigidBodyTransform transformToBodyFixedFrame = new RigidBodyTransform();
       controlFrame.getTransformToDesiredFrame(transformToBodyFixedFrame, endEffector.getBodyFixedFrame());
-      message.setControlFramePose(transformToBodyFixedFrame.getTranslationVector(), transformToBodyFixedFrame.getRotationMatrix());
+      message.setControlFramePositionInEndEffector(transformToBodyFixedFrame.getTranslationVector());
+      message.controlFrameOrientationInEndEffector.set(transformToBodyFixedFrame.getRotationMatrix());
       return message;
    }
 

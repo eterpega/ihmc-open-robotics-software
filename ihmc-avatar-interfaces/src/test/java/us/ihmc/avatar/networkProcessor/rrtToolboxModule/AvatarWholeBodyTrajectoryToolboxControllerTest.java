@@ -592,7 +592,8 @@ public abstract class AvatarWholeBodyTrajectoryToolboxControllerTest implements 
       {
          RigidBody hand = desiredFullRobotModel.getHand(robotSide);
          KinematicsToolboxRigidBodyMessage message = MessageTools.createKinematicsToolboxRigidBodyMessage(hand, desiredPositions.get(robotSide));
-         message.setWeight(20.0);
+         message.getAngularWeightMatrix().set(MessageTools.createWeightMatrix3DMessage(20.0));
+         message.getLinearWeightMatrix().set(MessageTools.createWeightMatrix3DMessage(20.0));
          commandInputManager.submitMessage(message);
       }
 

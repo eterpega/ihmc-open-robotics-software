@@ -1,7 +1,5 @@
 package us.ihmc.communication.packets;
 
-import static us.ihmc.communication.packets.KinematicsToolboxRigidBodyMessage.nullEqualsAndEpsilonEquals;
-
 import us.ihmc.euclid.tuple3D.Point3D32;
 
 /**
@@ -89,10 +87,8 @@ public class KinematicsToolboxCenterOfMassMessage extends Packet<KinematicsToolb
    @Override
    public boolean epsilonEquals(KinematicsToolboxCenterOfMassMessage other, double epsilon)
    {
-      if (!nullEqualsAndEpsilonEquals(desiredPositionInWorld, desiredPositionInWorld, epsilon))
+      if (!desiredPositionInWorld.epsilonEquals(desiredPositionInWorld, epsilon))
          return false;
-
-      // TODO Add the selection matrix in there
 
       if (weights == null && other.weights == null)
          return true;
@@ -101,6 +97,8 @@ public class KinematicsToolboxCenterOfMassMessage extends Packet<KinematicsToolb
       if (weights != null && other.weights == null)
          return false;
       if (!weights.epsilonEquals(other.weights, epsilon))
+         return false;
+      if (!selectionMatrix.epsilonEquals(other.selectionMatrix, epsilon))
          return false;
       return true;
    }
