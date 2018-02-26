@@ -203,6 +203,7 @@ public class HumanoidMessageTools
    public static AtlasDesiredPumpPSIPacket createAtlasDesiredPumpPSIPacket()
    {
       AtlasDesiredPumpPSIPacket message = new AtlasDesiredPumpPSIPacket();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       message.desiredPumpPsi = -1;
       return message;
    }
@@ -210,6 +211,7 @@ public class HumanoidMessageTools
    public static AtlasElectricMotorAutoEnableFlagPacket createAtlasElectricMotorAutoEnableFlagPacket()
    {
       AtlasElectricMotorAutoEnableFlagPacket message = new AtlasElectricMotorAutoEnableFlagPacket();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       message.shouldAutoEnable = false;
       message.setDestination(PacketDestination.CONTROLLER);
       return message;
@@ -218,6 +220,7 @@ public class HumanoidMessageTools
    public static AtlasElectricMotorEnablePacket createAtlasElectricMotorEnablePacket()
    {
       AtlasElectricMotorEnablePacket message = new AtlasElectricMotorEnablePacket();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       message.enable = false;
       message.setDestination(PacketDestination.CONTROLLER);
       return message;
@@ -226,6 +229,7 @@ public class HumanoidMessageTools
    public static AtlasLowLevelControlModeMessage createAtlasLowLevelControlModeMessage()
    {
       AtlasLowLevelControlModeMessage message = new AtlasLowLevelControlModeMessage();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       message.requestedAtlasLowLevelControlMode = -1;
       return message;
    }
@@ -233,6 +237,7 @@ public class HumanoidMessageTools
    public static AtlasWristSensorCalibrationRequestPacket createAtlasWristSensorCalibrationRequestPacket()
    {
       AtlasWristSensorCalibrationRequestPacket message = new AtlasWristSensorCalibrationRequestPacket();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       message.setDestination(PacketDestination.CONTROLLER);
       return message;
    }
@@ -247,6 +252,7 @@ public class HumanoidMessageTools
    public static BDIBehaviorCommandPacket createBDIBehaviorCommandPacket()
    {
       BDIBehaviorCommandPacket message = new BDIBehaviorCommandPacket();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       message.stop = false;
       return message;
    }
@@ -254,36 +260,42 @@ public class HumanoidMessageTools
    public static BDIBehaviorStatusPacket createBDIBehaviorStatusPacket()
    {
       BDIBehaviorStatusPacket message = new BDIBehaviorStatusPacket();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       return message;
    }
 
    public static BehaviorControlModePacket createBehaviorControlModePacket()
    {
       BehaviorControlModePacket message = new BehaviorControlModePacket();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       return message;
    }
 
    public static BehaviorControlModeResponsePacket createBehaviorControlModeResponsePacket()
    {
       BehaviorControlModeResponsePacket message = new BehaviorControlModeResponsePacket();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       return message;
    }
 
    public static BehaviorStatusPacket createBehaviorStatusPacket()
    {
       BehaviorStatusPacket message = new BehaviorStatusPacket();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       return message;
    }
 
    public static BlackFlyParameterPacket createBlackFlyParameterPacket()
    {
       BlackFlyParameterPacket message = new BlackFlyParameterPacket();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       return message;
    }
 
    public static CapturabilityBasedStatus createCapturabilityBasedStatus()
    {
       CapturabilityBasedStatus message = new CapturabilityBasedStatus();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       message.capturePoint.setToNaN();
       message.desiredCapturePoint.setToNaN();
       message.centerOfMass.setToNaN();
@@ -301,6 +313,7 @@ public class HumanoidMessageTools
    public static ChestHybridJointspaceTaskspaceTrajectoryMessage createChestHybridJointspaceTaskspaceTrajectoryMessage()
    {
       ChestHybridJointspaceTaskspaceTrajectoryMessage message = new ChestHybridJointspaceTaskspaceTrajectoryMessage();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       message.taskspaceTrajectoryMessage.set(createSO3TrajectoryMessage());
       message.jointspaceTrajectoryMessage.set(createJointspaceTrajectoryMessage());
       return message;
@@ -332,6 +345,7 @@ public class HumanoidMessageTools
    public static DetectedObjectPacket createDetectedObjectPacket()
    {
       DetectedObjectPacket message = new DetectedObjectPacket();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       message.pose.setToNaN();
       return message;
    }
@@ -339,6 +353,7 @@ public class HumanoidMessageTools
    public static DoorLocationPacket createDoorLocationPacket()
    {
       DoorLocationPacket message = new DoorLocationPacket();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       message.doorTransformToWorld.setToNaN();
       return message;
    }
@@ -346,6 +361,7 @@ public class HumanoidMessageTools
    public static DrillDetectionPacket createDrillDetectionPacket()
    {
       DrillDetectionPacket message = new DrillDetectionPacket();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       message.isDrillOn = false;
       message.setDestination(PacketDestination.UI);
       return message;
@@ -354,6 +370,7 @@ public class HumanoidMessageTools
    public static EndOfScriptCommand createEndOfScriptCommand()
    {
       EndOfScriptCommand message = new EndOfScriptCommand();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       return message;
    }
 
@@ -383,6 +400,7 @@ public class HumanoidMessageTools
    public static FisheyePacket createFisheyePacket()
    {
       FisheyePacket message = new FisheyePacket();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       message.videoPacket.set(createVideoPacket());
       return message;
    }
@@ -441,6 +459,7 @@ public class HumanoidMessageTools
    public static FootstepPathPlanPacket createFootstepPathPlanPacket()
    {
       FootstepPathPlanPacket message = new FootstepPathPlanPacket();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       message.pathCost = Double.POSITIVE_INFINITY;
       return message;
    }
@@ -448,6 +467,7 @@ public class HumanoidMessageTools
    public static FootstepPlanRequestPacket createFootstepPlanRequestPacket()
    {
       FootstepPlanRequestPacket message = new FootstepPlanRequestPacket();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       message.maxSuboptimality = 1.0;
       return message;
    }
@@ -455,6 +475,7 @@ public class HumanoidMessageTools
    public static FootstepPlanningRequestPacket createFootstepPlanningRequestPacket()
    {
       FootstepPlanningRequestPacket message = new FootstepPlanningRequestPacket();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       message.stanceFootPositionInWorld.setToNaN();
       message.stanceFootOrientationInWorld.setToNaN();
       message.goalPositionInWorld.setToNaN();
@@ -467,6 +488,7 @@ public class HumanoidMessageTools
    public static FootstepPlanningToolboxOutputStatus createFootstepPlanningToolboxOutputStatus()
    {
       FootstepPlanningToolboxOutputStatus message = new FootstepPlanningToolboxOutputStatus();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       message.planId = FootstepPlanningRequestPacket.NO_PLAN_ID;
       message.planarRegionsList.set(MessageTools.createPlanarRegionsListMessage());
       message.lowLevelPlannerGoal.setToNaN();
@@ -476,6 +498,7 @@ public class HumanoidMessageTools
    public static FootstepStatusMessage createFootstepStatusMessage()
    {
       FootstepStatusMessage message = new FootstepStatusMessage();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       message.footstepStatus = -1;
       message.robotSide = -1;
       message.desiredFootPositionInWorld.setToNaN();
@@ -507,6 +530,7 @@ public class HumanoidMessageTools
    public static HandCollisionDetectedPacket createHandCollisionDetectedPacket()
    {
       HandCollisionDetectedPacket message = new HandCollisionDetectedPacket();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       message.robotSide = -1;
       message.collisionSeverityLevelOneToThree = -1;
       return message;
@@ -534,6 +558,7 @@ public class HumanoidMessageTools
    public static HandJointAnglePacket createHandJointAnglePacket()
    {
       HandJointAnglePacket message = new HandJointAnglePacket();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       message.robotSide = -1;
       return message;
    }
@@ -541,6 +566,7 @@ public class HumanoidMessageTools
    public static HandLoadBearingMessage createHandLoadBearingMessage()
    {
       HandLoadBearingMessage message = new HandLoadBearingMessage();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       message.robotSide = -1;
       message.jointspaceTrajectory.set(createJointspaceTrajectoryMessage());
       message.executionDelayTime = 0.0;
@@ -594,6 +620,7 @@ public class HumanoidMessageTools
    public static HeightQuadTreeMessage createHeightQuadTreeMessage()
    {
       HeightQuadTreeMessage message = new HeightQuadTreeMessage();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       message.defaultHeight = Float.NaN;
       message.resolution = Float.NaN;
       message.sizeX = Float.NaN;
@@ -611,6 +638,7 @@ public class HumanoidMessageTools
    public static HighLevelStateChangeStatusMessage createHighLevelStateChangeStatusMessage()
    {
       HighLevelStateChangeStatusMessage message = new HighLevelStateChangeStatusMessage();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       message.setDestination(PacketDestination.ROS_API);
       return message;
    }
@@ -625,6 +653,7 @@ public class HumanoidMessageTools
    public static HumanoidBehaviorTypePacket createHumanoidBehaviorTypePacket()
    {
       HumanoidBehaviorTypePacket message = new HumanoidBehaviorTypePacket();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       return message;
    }
 
@@ -646,6 +675,7 @@ public class HumanoidMessageTools
    public static LegCompliancePacket createLegCompliancePacket()
    {
       LegCompliancePacket message = new LegCompliancePacket();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       message.robotSide = -1;
       return message;
    }
@@ -653,6 +683,7 @@ public class HumanoidMessageTools
    public static LoadBearingMessage createLoadBearingMessage()
    {
       LoadBearingMessage message = new LoadBearingMessage();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       message.load = false;
       message.coefficientOfFriction = 0.0;
       message.bodyFrameToContactFrame.setToZero();
@@ -663,12 +694,14 @@ public class HumanoidMessageTools
    public static LocalizationPacket createLocalizationPacket()
    {
       LocalizationPacket message = new LocalizationPacket();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       return message;
    }
 
    public static LocalizationPointMapPacket createLocalizationPointMapPacket()
    {
       LocalizationPointMapPacket message = new LocalizationPointMapPacket();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       message.setDestination(PacketDestination.UI);
       return message;
    }
@@ -676,18 +709,21 @@ public class HumanoidMessageTools
    public static LocalizationStatusPacket createLocalizationStatusPacket()
    {
       LocalizationStatusPacket message = new LocalizationStatusPacket();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       return message;
    }
 
    public static ManipulationAbortedStatus createManipulationAbortedStatus()
    {
       ManipulationAbortedStatus message = new ManipulationAbortedStatus();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       return message;
    }
 
    public static ManualHandControlPacket createManualHandControlPacket()
    {
       ManualHandControlPacket message = new ManualHandControlPacket();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       message.robotSide = -1;
       message.controlType = -1;
       return message;
@@ -704,6 +740,7 @@ public class HumanoidMessageTools
    public static MultisenseParameterPacket createMultisenseParameterPacket()
    {
       MultisenseParameterPacket message = new MultisenseParameterPacket();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       return message;
    }
 
@@ -726,6 +763,7 @@ public class HumanoidMessageTools
    public static ObjectWeightPacket createObjectWeightPacket()
    {
       ObjectWeightPacket message = new ObjectWeightPacket();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       message.robotSide = -1;
       return message;
    }
@@ -757,12 +795,14 @@ public class HumanoidMessageTools
    public static PelvisPoseErrorPacket createPelvisPoseErrorPacket()
    {
       PelvisPoseErrorPacket message = new PelvisPoseErrorPacket();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       return message;
    }
 
    public static PelvisTrajectoryMessage createPelvisTrajectoryMessage()
    {
       PelvisTrajectoryMessage message = new PelvisTrajectoryMessage();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       message.enableUserPelvisControl = false;
       message.enableUserPelvisControlDuringWalking = false;
       message.se3Trajectory.set(createSE3TrajectoryMessage());
@@ -772,6 +812,7 @@ public class HumanoidMessageTools
    public static PlanOffsetStatus createPlanOffsetStatus()
    {
       PlanOffsetStatus message = new PlanOffsetStatus();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       message.offsetVector.setToZero();
       return message;
    }
@@ -804,6 +845,7 @@ public class HumanoidMessageTools
    public static RequestWristForceSensorCalibrationPacket createRequestWristForceSensorCalibrationPacket()
    {
       RequestWristForceSensorCalibrationPacket message = new RequestWristForceSensorCalibrationPacket();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       return message;
    }
 
@@ -817,6 +859,7 @@ public class HumanoidMessageTools
    public static SCSListenerPacket createSCSListenerPacket()
    {
       SCSListenerPacket message = new SCSListenerPacket();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       message.isStopped = true;
       return message;
    }
@@ -874,12 +917,14 @@ public class HumanoidMessageTools
    public static SimpleCoactiveBehaviorDataPacket createSimpleCoactiveBehaviorDataPacket()
    {
       SimpleCoactiveBehaviorDataPacket message = new SimpleCoactiveBehaviorDataPacket();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       return message;
    }
 
    public static SnapFootstepPacket createSnapFootstepPacket()
    {
       SnapFootstepPacket message = new SnapFootstepPacket();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       return message;
    }
 
@@ -902,6 +947,7 @@ public class HumanoidMessageTools
    public static StampedPosePacket createStampedPosePacket()
    {
       StampedPosePacket message = new StampedPosePacket();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       message.pose.setToNaN();
       message.timeStamp = -1;
       return message;
@@ -910,6 +956,7 @@ public class HumanoidMessageTools
    public static StateEstimatorModePacket createStateEstimatorModePacket()
    {
       StateEstimatorModePacket message = new StateEstimatorModePacket();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       message.requestedStateEstimatorMode = -1;
       return message;
    }
@@ -934,12 +981,14 @@ public class HumanoidMessageTools
    public static UIConnectedPacket createUIConnectedPacket()
    {
       UIConnectedPacket message = new UIConnectedPacket();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       return message;
    }
 
    public static ValveLocationPacket createValveLocationPacket()
    {
-      ValveLocationPacket message = createValveLocationPacket();
+      ValveLocationPacket message = new ValveLocationPacket();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       message.valvePoseInWorld.setToNaN();
       return message;
    }
@@ -947,6 +996,7 @@ public class HumanoidMessageTools
    public static VehiclePosePacket createVehiclePosePacket()
    {
       VehiclePosePacket message = new VehiclePosePacket();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       message.position.setToNaN();
       message.orientation.setToNaN();
       return message;
@@ -955,6 +1005,7 @@ public class HumanoidMessageTools
    public static VideoPacket createVideoPacket()
    {
       VideoPacket message = new VideoPacket();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       message.videoSource = -1;
       message.timeStamp = -1;
       message.position.setToNaN();
@@ -966,6 +1017,7 @@ public class HumanoidMessageTools
    public static WalkToGoalBehaviorPacket createWalkToGoalBehaviorPacket()
    {
       WalkToGoalBehaviorPacket message = new WalkToGoalBehaviorPacket();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       message.walkToGoalAction = -1;
       message.goalRobotSide = -1;
       return message;
@@ -974,6 +1026,7 @@ public class HumanoidMessageTools
    public static WalkingControllerFailureStatusMessage createWalkingControllerFailureStatusMessage()
    {
       WalkingControllerFailureStatusMessage message = new WalkingControllerFailureStatusMessage();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       message.fallingDirection.setToNaN();
       return message;
    }
@@ -981,6 +1034,7 @@ public class HumanoidMessageTools
    public static WalkingStatusMessage createWalkingStatusMessage()
    {
       WalkingStatusMessage message = new WalkingStatusMessage();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       message.walkingStatus = -1;
       return message;
    }
@@ -988,6 +1042,7 @@ public class HumanoidMessageTools
    public static WallPosePacket createWallPosePacket()
    {
       WallPosePacket message = new WallPosePacket();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       message.cuttingRadius = 0.20;
       message.centerPosition.setToNaN();
       message.centerOrientation.setToNaN();
@@ -1045,6 +1100,7 @@ public class HumanoidMessageTools
    public static WholeBodyTrajectoryToolboxOutputStatus createWholeBodyTrajectoryToolboxOutputStatus()
    {
       WholeBodyTrajectoryToolboxOutputStatus message = new WholeBodyTrajectoryToolboxOutputStatus();
+      message.setUniqueId(VALID_MESSAGE_DEFAULT_ID);
       message.planningResult = 0;
       return message;
    }
