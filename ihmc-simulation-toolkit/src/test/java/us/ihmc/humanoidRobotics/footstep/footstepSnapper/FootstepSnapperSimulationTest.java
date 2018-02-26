@@ -76,6 +76,7 @@ public class FootstepSnapperSimulationTest
 
       FootstepPointsDataReader dataReader = new FootstepPointsDataReader(resourceAsStream);
       FootstepDataMessage footstepData = HumanoidMessageTools.createFootstepDataMessage();
+      footstepData.setRobotSide(RobotSide.LEFT.toByte());
       FootSpoof spoof = new FootSpoof("basicSpoof");
       FramePose2D desiredPose = new FramePose2D(ReferenceFrame.getWorldFrame());
 
