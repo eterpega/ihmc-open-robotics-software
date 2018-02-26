@@ -365,7 +365,7 @@ public class HumanoidMessageTools
       message.frameInformation.set(createFrameInformation());
       message.weightMatrix.set(MessageTools.createWeightMatrix3DMessage());
       message.useCustomControlFrame = false;
-      message.controlFramePose.setToNaN();
+      message.controlFramePose.setToZero();
       message.queueingProperties.set(MessageTools.createQueueableMessage());
       return message;
    }
@@ -655,7 +655,7 @@ public class HumanoidMessageTools
       LoadBearingMessage message = new LoadBearingMessage();
       message.load = false;
       message.coefficientOfFriction = 0.0;
-      message.bodyFrameToContactFrame.setToNaN();
+      message.bodyFrameToContactFrame.setToZero();
       message.contactNormalInWorldFrame.setToNaN();
       return message;
    }
@@ -831,7 +831,7 @@ public class HumanoidMessageTools
       message.angularWeightMatrix.set(MessageTools.createWeightMatrix3DMessage());
       message.linearWeightMatrix.set(MessageTools.createWeightMatrix3DMessage());
       message.useCustomControlFrame = false;
-      message.controlFramePose.setToNaN();
+      message.controlFramePose.setToZero();
       message.queueingProperties.set(MessageTools.createQueueableMessage());
       return message;
    }
@@ -856,7 +856,7 @@ public class HumanoidMessageTools
       message.selectionMatrix.set(MessageTools.createSelectionMatrix3DMessage());
       message.weightMatrix.set(MessageTools.createWeightMatrix3DMessage());
       message.useCustomControlFrame = false;
-      message.controlFramePose.setToNaN();
+      message.controlFramePose.setToZero();
       message.queueingProperties.set(MessageTools.createQueueableMessage());
       return message;
    }
