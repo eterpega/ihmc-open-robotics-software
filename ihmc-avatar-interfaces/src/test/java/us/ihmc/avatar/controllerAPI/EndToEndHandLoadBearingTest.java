@@ -107,8 +107,8 @@ public abstract class EndToEndHandLoadBearingTest implements MultiRobotTestInter
 
       // Activate load bearing
       Pose3D transformToContactFrame = new Pose3D();
-      transformToContactFrame.setPosition(0.0, 0.09, 0.0);
       transformToContactFrame.appendRollRotation(Math.PI);
+      transformToContactFrame.setPosition(0.0, 0.09, 0.0);
 
       HandLoadBearingMessage loadBearingMessage = HumanoidMessageTools.createHandLoadBearingMessage(RobotSide.LEFT);
       loadBearingMessage.getLoadBearingMessage().setLoad(true);
