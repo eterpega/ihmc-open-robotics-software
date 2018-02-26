@@ -5,7 +5,6 @@ import us.ihmc.communication.ros.generators.RosExportedField;
 import us.ihmc.communication.ros.generators.RosMessagePacket;
 import us.ihmc.humanoidRobotics.communication.packets.DesiredAccelerationsMessage;
 import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
-import us.ihmc.humanoidRobotics.communication.packets.PacketValidityChecker;
 
 @RosMessagePacket(documentation = "This message gives the user the option to bypass IHMC feedback controllers for the spine joints by sending desired joint accelerations."
       + " One needs experience in control when activating the bypass as it can result in unexpected behaviors for unreasonable accelerations."
@@ -51,12 +50,5 @@ public class SpineDesiredAccelerationsMessage extends Packet<SpineDesiredAcceler
    public boolean epsilonEquals(SpineDesiredAccelerationsMessage other, double epsilon)
    {
       return desiredAccelerations.epsilonEquals(other.desiredAccelerations, epsilon);
-   }
-
-   /** {@inheritDoc} */
-   @Override
-   public String validateMessage()
-   {
-      return PacketValidityChecker.validateSpineDesiredAccelerationsMessage(this);
    }
 }

@@ -88,14 +88,4 @@ public abstract class Packet<T extends Packet<T>> implements EpsilonComparable<T
    {
       return notes;
    }
-
-   /**
-    * Check the data held in that message.
-    * It returns "null" if no error detected, otherwise it returns the error message.
-    * The controller uses this validation to detect bad messages to throw away and report the error to the user.
-    */
-   public String validateMessage()
-   {
-      return null;
-   }
 }

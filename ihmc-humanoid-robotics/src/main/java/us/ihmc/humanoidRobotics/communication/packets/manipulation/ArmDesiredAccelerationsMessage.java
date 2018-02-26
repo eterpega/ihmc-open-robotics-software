@@ -5,7 +5,6 @@ import us.ihmc.communication.ros.generators.RosExportedField;
 import us.ihmc.communication.ros.generators.RosMessagePacket;
 import us.ihmc.humanoidRobotics.communication.packets.DesiredAccelerationsMessage;
 import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
-import us.ihmc.humanoidRobotics.communication.packets.PacketValidityChecker;
 
 @RosMessagePacket(documentation = "This message gives the user the option to bypass IHMC feedback controllers for the arm joints by sending desired arm joint accelerations."
       + " One needs experience in control when activating the bypass as it can result in unexpected behaviors for unreasonable accelerations."
@@ -62,12 +61,5 @@ public class ArmDesiredAccelerationsMessage extends Packet<ArmDesiredAcceleratio
       if (robotSide != other.robotSide)
          return false;
       return desiredAccelerations.epsilonEquals(other.desiredAccelerations, epsilon);
-   }
-
-   /** {@inheritDoc} */
-   @Override
-   public String validateMessage()
-   {
-      return PacketValidityChecker.validateArmDesiredAccelerationsMessage(this);
    }
 }

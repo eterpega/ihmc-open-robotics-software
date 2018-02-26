@@ -4,7 +4,6 @@ import us.ihmc.communication.packets.Packet;
 import us.ihmc.communication.ros.generators.RosExportedField;
 import us.ihmc.communication.ros.generators.RosMessagePacket;
 import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
-import us.ihmc.humanoidRobotics.communication.packets.PacketValidityChecker;
 import us.ihmc.humanoidRobotics.communication.packets.SO3TrajectoryMessage;
 
 @RosMessagePacket(documentation =
@@ -69,11 +68,5 @@ public class HeadTrajectoryMessage extends Packet<HeadTrajectoryMessage>
       if (!so3Trajectory.epsilonEquals(other.so3Trajectory, epsilon))
          return false;
       return true;
-   }
-
-   @Override
-   public String validateMessage()
-   {
-      return PacketValidityChecker.validateHeadTrajectoryMessage(this);
    }
 }

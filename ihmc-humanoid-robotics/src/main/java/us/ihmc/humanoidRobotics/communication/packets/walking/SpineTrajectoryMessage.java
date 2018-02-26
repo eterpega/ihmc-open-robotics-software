@@ -4,7 +4,6 @@ import us.ihmc.communication.packets.Packet;
 import us.ihmc.communication.ros.generators.RosExportedField;
 import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.humanoidRobotics.communication.packets.JointspaceTrajectoryMessage;
-import us.ihmc.humanoidRobotics.communication.packets.PacketValidityChecker;
 
 public class SpineTrajectoryMessage extends Packet<SpineTrajectoryMessage>
 {
@@ -62,11 +61,5 @@ public class SpineTrajectoryMessage extends Packet<SpineTrajectoryMessage>
       if (!jointspaceTrajectory.epsilonEquals(other.jointspaceTrajectory, epsilon))
          return false;
       return true;
-   }
-
-   @Override
-   public String validateMessage()
-   {
-      return PacketValidityChecker.validateSpineTrajectoryMessage(this);
    }
 }

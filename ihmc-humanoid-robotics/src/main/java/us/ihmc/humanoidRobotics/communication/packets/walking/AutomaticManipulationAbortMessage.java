@@ -36,12 +36,4 @@ public class AutomaticManipulationAbortMessage extends Packet<AutomaticManipulat
          return false;
       return true;
    }
-
-   /** {@inheritDoc} */
-   @Override
-   public String validateMessage()
-   {
-      // No data besides a boolean, so always good.
-      return null;
-   }
 }

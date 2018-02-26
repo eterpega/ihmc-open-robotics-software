@@ -12,7 +12,6 @@ import us.ihmc.euclid.referenceFrame.FrameQuaternion;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
-import us.ihmc.humanoidRobotics.communication.packets.PacketValidityChecker;
 import us.ihmc.idl.TempPreallocatedList;
 import us.ihmc.robotics.robotSide.RobotSide;
 
@@ -220,12 +219,5 @@ public class FootstepDataListMessage extends Packet<FootstepDataListMessage>
    public QueueableMessage getQueueingProperties()
    {
       return queueingProperties;
-   }
-
-   /** {@inheritDoc} */
-   @Override
-   public String validateMessage()
-   {
-      return PacketValidityChecker.validateFootstepDataListMessage(this);
    }
 }

@@ -49,13 +49,6 @@ public final class DesiredAccelerationsMessage extends Packet<DesiredAcceleratio
       return true;
    }
 
-   /** {@inheritDoc} */
-   @Override
-   public String validateMessage()
-   {
-      return PacketValidityChecker.validateDesiredAccelerationsMessage(this, true);
-   }
-
    @Override
    public String toString()
    {
