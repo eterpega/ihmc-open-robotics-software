@@ -31,12 +31,12 @@
           </predictedContactPoints>
           <trajectoryType>0</trajectoryType>
           <swingHeight>0.0</swingHeight>
-          <positionWaypoints>
+          <customPositionWaypoints>
             <clazz>us.ihmc.euclid.tuple3D.Point3D</clazz>
             <values class="us.ihmc.euclid.tuple3D.Point3D-array"/>
             <pos>-1</pos>
             <isEnum>false</isEnum>
-          </positionWaypoints>
+          </customPositionWaypoints>
           <swingTrajectory>
             <clazz>us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage</clazz>
             <values class="us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage-array"/>
@@ -73,12 +73,12 @@
           </predictedContactPoints>
           <trajectoryType>0</trajectoryType>
           <swingHeight>0.0</swingHeight>
-          <positionWaypoints>
+          <customPositionWaypoints>
             <clazz>us.ihmc.euclid.tuple3D.Point3D</clazz>
             <values class="us.ihmc.euclid.tuple3D.Point3D-array"/>
             <pos>-1</pos>
             <isEnum>false</isEnum>
-          </positionWaypoints>
+          </customPositionWaypoints>
           <swingTrajectory>
             <clazz>us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage</clazz>
             <values class="us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage-array"/>
@@ -155,6 +155,24 @@
         <pos>0</pos>
         <isEnum>false</isEnum>
       </taskspaceTrajectoryPoints>
+      <angularSelectionMatrix>
+        <uniqueId>0</uniqueId>
+        <destination>0</destination>
+        <source>0</source>
+        <selectionFrameId>0</selectionFrameId>
+        <xSelected>true</xSelected>
+        <ySelected>true</ySelected>
+        <zSelected>true</zSelected>
+      </angularSelectionMatrix>
+      <linearSelectionMatrix>
+        <uniqueId>0</uniqueId>
+        <destination>0</destination>
+        <source>0</source>
+        <selectionFrameId>0</selectionFrameId>
+        <xSelected>true</xSelected>
+        <ySelected>true</ySelected>
+        <zSelected>true</zSelected>
+      </linearSelectionMatrix>
       <frameInformation>
         <uniqueId>0</uniqueId>
         <destination>0</destination>
@@ -162,7 +180,38 @@
         <trajectoryReferenceFrameId>83766130</trajectoryReferenceFrameId>
         <dataReferenceFrameId>1</dataReferenceFrameId>
       </frameInformation>
+      <angularWeightMatrix>
+        <uniqueId>0</uniqueId>
+        <destination>0</destination>
+        <source>0</source>
+        <weightFrameId>0</weightFrameId>
+        <xWeight>NaN</xWeight>
+        <yWeight>NaN</yWeight>
+        <zWeight>NaN</zWeight>
+      </angularWeightMatrix>
+      <linearWeightMatrix>
+        <uniqueId>0</uniqueId>
+        <destination>0</destination>
+        <source>0</source>
+        <weightFrameId>0</weightFrameId>
+        <xWeight>NaN</xWeight>
+        <yWeight>NaN</yWeight>
+        <zWeight>NaN</zWeight>
+      </linearWeightMatrix>
       <useCustomControlFrame>false</useCustomControlFrame>
+      <controlFramePose>
+        <position>
+          <x>0.0</x>
+          <y>0.0</y>
+          <z>0.0</z>
+        </position>
+        <orientation>
+          <x>0.0</x>
+          <y>0.0</y>
+          <z>0.0</z>
+          <s>1.0</s>
+        </orientation>
+      </controlFramePose>
       <queueingProperties>
         <uniqueId>0</uniqueId>
         <destination>0</destination>
@@ -217,6 +266,24 @@
         <pos>0</pos>
         <isEnum>false</isEnum>
       </taskspaceTrajectoryPoints>
+      <angularSelectionMatrix>
+        <uniqueId>0</uniqueId>
+        <destination>0</destination>
+        <source>0</source>
+        <selectionFrameId>0</selectionFrameId>
+        <xSelected>true</xSelected>
+        <ySelected>true</ySelected>
+        <zSelected>true</zSelected>
+      </angularSelectionMatrix>
+      <linearSelectionMatrix>
+        <uniqueId>0</uniqueId>
+        <destination>0</destination>
+        <source>0</source>
+        <selectionFrameId>0</selectionFrameId>
+        <xSelected>true</xSelected>
+        <ySelected>true</ySelected>
+        <zSelected>true</zSelected>
+      </linearSelectionMatrix>
       <frameInformation>
         <uniqueId>0</uniqueId>
         <destination>0</destination>
@@ -224,7 +291,38 @@
         <trajectoryReferenceFrameId>83766130</trajectoryReferenceFrameId>
         <dataReferenceFrameId>1</dataReferenceFrameId>
       </frameInformation>
+      <angularWeightMatrix>
+        <uniqueId>0</uniqueId>
+        <destination>0</destination>
+        <source>0</source>
+        <weightFrameId>0</weightFrameId>
+        <xWeight>NaN</xWeight>
+        <yWeight>NaN</yWeight>
+        <zWeight>NaN</zWeight>
+      </angularWeightMatrix>
+      <linearWeightMatrix>
+        <uniqueId>0</uniqueId>
+        <destination>0</destination>
+        <source>0</source>
+        <weightFrameId>0</weightFrameId>
+        <xWeight>NaN</xWeight>
+        <yWeight>NaN</yWeight>
+        <zWeight>NaN</zWeight>
+      </linearWeightMatrix>
       <useCustomControlFrame>false</useCustomControlFrame>
+      <controlFramePose>
+        <position>
+          <x>0.0</x>
+          <y>0.0</y>
+          <z>0.0</z>
+        </position>
+        <orientation>
+          <x>0.0</x>
+          <y>0.0</y>
+          <z>0.0</z>
+          <s>1.0</s>
+        </orientation>
+      </controlFramePose>
       <queueingProperties>
         <uniqueId>0</uniqueId>
         <destination>0</destination>
@@ -279,6 +377,24 @@
         <pos>0</pos>
         <isEnum>false</isEnum>
       </taskspaceTrajectoryPoints>
+      <angularSelectionMatrix>
+        <uniqueId>0</uniqueId>
+        <destination>0</destination>
+        <source>0</source>
+        <selectionFrameId>0</selectionFrameId>
+        <xSelected>true</xSelected>
+        <ySelected>true</ySelected>
+        <zSelected>true</zSelected>
+      </angularSelectionMatrix>
+      <linearSelectionMatrix>
+        <uniqueId>0</uniqueId>
+        <destination>0</destination>
+        <source>0</source>
+        <selectionFrameId>0</selectionFrameId>
+        <xSelected>true</xSelected>
+        <ySelected>true</ySelected>
+        <zSelected>true</zSelected>
+      </linearSelectionMatrix>
       <frameInformation>
         <uniqueId>0</uniqueId>
         <destination>0</destination>
@@ -286,7 +402,38 @@
         <trajectoryReferenceFrameId>83766130</trajectoryReferenceFrameId>
         <dataReferenceFrameId>1</dataReferenceFrameId>
       </frameInformation>
+      <angularWeightMatrix>
+        <uniqueId>0</uniqueId>
+        <destination>0</destination>
+        <source>0</source>
+        <weightFrameId>0</weightFrameId>
+        <xWeight>NaN</xWeight>
+        <yWeight>NaN</yWeight>
+        <zWeight>NaN</zWeight>
+      </angularWeightMatrix>
+      <linearWeightMatrix>
+        <uniqueId>0</uniqueId>
+        <destination>0</destination>
+        <source>0</source>
+        <weightFrameId>0</weightFrameId>
+        <xWeight>NaN</xWeight>
+        <yWeight>NaN</yWeight>
+        <zWeight>NaN</zWeight>
+      </linearWeightMatrix>
       <useCustomControlFrame>false</useCustomControlFrame>
+      <controlFramePose>
+        <position>
+          <x>0.0</x>
+          <y>0.0</y>
+          <z>0.0</z>
+        </position>
+        <orientation>
+          <x>0.0</x>
+          <y>0.0</y>
+          <z>0.0</z>
+          <s>1.0</s>
+        </orientation>
+      </controlFramePose>
       <queueingProperties>
         <uniqueId>0</uniqueId>
         <destination>0</destination>
@@ -341,6 +488,24 @@
         <pos>0</pos>
         <isEnum>false</isEnum>
       </taskspaceTrajectoryPoints>
+      <angularSelectionMatrix>
+        <uniqueId>0</uniqueId>
+        <destination>0</destination>
+        <source>0</source>
+        <selectionFrameId>0</selectionFrameId>
+        <xSelected>true</xSelected>
+        <ySelected>true</ySelected>
+        <zSelected>true</zSelected>
+      </angularSelectionMatrix>
+      <linearSelectionMatrix>
+        <uniqueId>0</uniqueId>
+        <destination>0</destination>
+        <source>0</source>
+        <selectionFrameId>0</selectionFrameId>
+        <xSelected>true</xSelected>
+        <ySelected>true</ySelected>
+        <zSelected>true</zSelected>
+      </linearSelectionMatrix>
       <frameInformation>
         <uniqueId>0</uniqueId>
         <destination>0</destination>
@@ -348,7 +513,38 @@
         <trajectoryReferenceFrameId>83766130</trajectoryReferenceFrameId>
         <dataReferenceFrameId>1</dataReferenceFrameId>
       </frameInformation>
+      <angularWeightMatrix>
+        <uniqueId>0</uniqueId>
+        <destination>0</destination>
+        <source>0</source>
+        <weightFrameId>0</weightFrameId>
+        <xWeight>NaN</xWeight>
+        <yWeight>NaN</yWeight>
+        <zWeight>NaN</zWeight>
+      </angularWeightMatrix>
+      <linearWeightMatrix>
+        <uniqueId>0</uniqueId>
+        <destination>0</destination>
+        <source>0</source>
+        <weightFrameId>0</weightFrameId>
+        <xWeight>NaN</xWeight>
+        <yWeight>NaN</yWeight>
+        <zWeight>NaN</zWeight>
+      </linearWeightMatrix>
       <useCustomControlFrame>false</useCustomControlFrame>
+      <controlFramePose>
+        <position>
+          <x>0.0</x>
+          <y>0.0</y>
+          <z>0.0</z>
+        </position>
+        <orientation>
+          <x>0.0</x>
+          <y>0.0</y>
+          <z>0.0</z>
+          <s>1.0</s>
+        </orientation>
+      </controlFramePose>
       <queueingProperties>
         <uniqueId>0</uniqueId>
         <destination>0</destination>
@@ -403,6 +599,24 @@
         <pos>0</pos>
         <isEnum>false</isEnum>
       </taskspaceTrajectoryPoints>
+      <angularSelectionMatrix>
+        <uniqueId>0</uniqueId>
+        <destination>0</destination>
+        <source>0</source>
+        <selectionFrameId>0</selectionFrameId>
+        <xSelected>true</xSelected>
+        <ySelected>true</ySelected>
+        <zSelected>true</zSelected>
+      </angularSelectionMatrix>
+      <linearSelectionMatrix>
+        <uniqueId>0</uniqueId>
+        <destination>0</destination>
+        <source>0</source>
+        <selectionFrameId>0</selectionFrameId>
+        <xSelected>true</xSelected>
+        <ySelected>true</ySelected>
+        <zSelected>true</zSelected>
+      </linearSelectionMatrix>
       <frameInformation>
         <uniqueId>0</uniqueId>
         <destination>0</destination>
@@ -410,7 +624,38 @@
         <trajectoryReferenceFrameId>83766130</trajectoryReferenceFrameId>
         <dataReferenceFrameId>1</dataReferenceFrameId>
       </frameInformation>
+      <angularWeightMatrix>
+        <uniqueId>0</uniqueId>
+        <destination>0</destination>
+        <source>0</source>
+        <weightFrameId>0</weightFrameId>
+        <xWeight>NaN</xWeight>
+        <yWeight>NaN</yWeight>
+        <zWeight>NaN</zWeight>
+      </angularWeightMatrix>
+      <linearWeightMatrix>
+        <uniqueId>0</uniqueId>
+        <destination>0</destination>
+        <source>0</source>
+        <weightFrameId>0</weightFrameId>
+        <xWeight>NaN</xWeight>
+        <yWeight>NaN</yWeight>
+        <zWeight>NaN</zWeight>
+      </linearWeightMatrix>
       <useCustomControlFrame>false</useCustomControlFrame>
+      <controlFramePose>
+        <position>
+          <x>0.0</x>
+          <y>0.0</y>
+          <z>0.0</z>
+        </position>
+        <orientation>
+          <x>0.0</x>
+          <y>0.0</y>
+          <z>0.0</z>
+          <s>1.0</s>
+        </orientation>
+      </controlFramePose>
       <queueingProperties>
         <uniqueId>0</uniqueId>
         <destination>0</destination>
@@ -465,6 +710,24 @@
         <pos>0</pos>
         <isEnum>false</isEnum>
       </taskspaceTrajectoryPoints>
+      <angularSelectionMatrix>
+        <uniqueId>0</uniqueId>
+        <destination>0</destination>
+        <source>0</source>
+        <selectionFrameId>0</selectionFrameId>
+        <xSelected>true</xSelected>
+        <ySelected>true</ySelected>
+        <zSelected>true</zSelected>
+      </angularSelectionMatrix>
+      <linearSelectionMatrix>
+        <uniqueId>0</uniqueId>
+        <destination>0</destination>
+        <source>0</source>
+        <selectionFrameId>0</selectionFrameId>
+        <xSelected>true</xSelected>
+        <ySelected>true</ySelected>
+        <zSelected>true</zSelected>
+      </linearSelectionMatrix>
       <frameInformation>
         <uniqueId>0</uniqueId>
         <destination>0</destination>
@@ -472,7 +735,38 @@
         <trajectoryReferenceFrameId>83766130</trajectoryReferenceFrameId>
         <dataReferenceFrameId>1</dataReferenceFrameId>
       </frameInformation>
+      <angularWeightMatrix>
+        <uniqueId>0</uniqueId>
+        <destination>0</destination>
+        <source>0</source>
+        <weightFrameId>0</weightFrameId>
+        <xWeight>NaN</xWeight>
+        <yWeight>NaN</yWeight>
+        <zWeight>NaN</zWeight>
+      </angularWeightMatrix>
+      <linearWeightMatrix>
+        <uniqueId>0</uniqueId>
+        <destination>0</destination>
+        <source>0</source>
+        <weightFrameId>0</weightFrameId>
+        <xWeight>NaN</xWeight>
+        <yWeight>NaN</yWeight>
+        <zWeight>NaN</zWeight>
+      </linearWeightMatrix>
       <useCustomControlFrame>false</useCustomControlFrame>
+      <controlFramePose>
+        <position>
+          <x>0.0</x>
+          <y>0.0</y>
+          <z>0.0</z>
+        </position>
+        <orientation>
+          <x>0.0</x>
+          <y>0.0</y>
+          <z>0.0</z>
+          <s>1.0</s>
+        </orientation>
+      </controlFramePose>
       <queueingProperties>
         <uniqueId>0</uniqueId>
         <destination>0</destination>
@@ -527,6 +821,24 @@
         <pos>0</pos>
         <isEnum>false</isEnum>
       </taskspaceTrajectoryPoints>
+      <angularSelectionMatrix>
+        <uniqueId>0</uniqueId>
+        <destination>0</destination>
+        <source>0</source>
+        <selectionFrameId>0</selectionFrameId>
+        <xSelected>true</xSelected>
+        <ySelected>true</ySelected>
+        <zSelected>true</zSelected>
+      </angularSelectionMatrix>
+      <linearSelectionMatrix>
+        <uniqueId>0</uniqueId>
+        <destination>0</destination>
+        <source>0</source>
+        <selectionFrameId>0</selectionFrameId>
+        <xSelected>true</xSelected>
+        <ySelected>true</ySelected>
+        <zSelected>true</zSelected>
+      </linearSelectionMatrix>
       <frameInformation>
         <uniqueId>0</uniqueId>
         <destination>0</destination>
@@ -534,7 +846,38 @@
         <trajectoryReferenceFrameId>83766130</trajectoryReferenceFrameId>
         <dataReferenceFrameId>1</dataReferenceFrameId>
       </frameInformation>
+      <angularWeightMatrix>
+        <uniqueId>0</uniqueId>
+        <destination>0</destination>
+        <source>0</source>
+        <weightFrameId>0</weightFrameId>
+        <xWeight>NaN</xWeight>
+        <yWeight>NaN</yWeight>
+        <zWeight>NaN</zWeight>
+      </angularWeightMatrix>
+      <linearWeightMatrix>
+        <uniqueId>0</uniqueId>
+        <destination>0</destination>
+        <source>0</source>
+        <weightFrameId>0</weightFrameId>
+        <xWeight>NaN</xWeight>
+        <yWeight>NaN</yWeight>
+        <zWeight>NaN</zWeight>
+      </linearWeightMatrix>
       <useCustomControlFrame>false</useCustomControlFrame>
+      <controlFramePose>
+        <position>
+          <x>0.0</x>
+          <y>0.0</y>
+          <z>0.0</z>
+        </position>
+        <orientation>
+          <x>0.0</x>
+          <y>0.0</y>
+          <z>0.0</z>
+          <s>1.0</s>
+        </orientation>
+      </controlFramePose>
       <queueingProperties>
         <uniqueId>0</uniqueId>
         <destination>0</destination>
@@ -589,6 +932,24 @@
         <pos>0</pos>
         <isEnum>false</isEnum>
       </taskspaceTrajectoryPoints>
+      <angularSelectionMatrix>
+        <uniqueId>0</uniqueId>
+        <destination>0</destination>
+        <source>0</source>
+        <selectionFrameId>0</selectionFrameId>
+        <xSelected>true</xSelected>
+        <ySelected>true</ySelected>
+        <zSelected>true</zSelected>
+      </angularSelectionMatrix>
+      <linearSelectionMatrix>
+        <uniqueId>0</uniqueId>
+        <destination>0</destination>
+        <source>0</source>
+        <selectionFrameId>0</selectionFrameId>
+        <xSelected>true</xSelected>
+        <ySelected>true</ySelected>
+        <zSelected>true</zSelected>
+      </linearSelectionMatrix>
       <frameInformation>
         <uniqueId>0</uniqueId>
         <destination>0</destination>
@@ -596,7 +957,38 @@
         <trajectoryReferenceFrameId>83766130</trajectoryReferenceFrameId>
         <dataReferenceFrameId>1</dataReferenceFrameId>
       </frameInformation>
+      <angularWeightMatrix>
+        <uniqueId>0</uniqueId>
+        <destination>0</destination>
+        <source>0</source>
+        <weightFrameId>0</weightFrameId>
+        <xWeight>NaN</xWeight>
+        <yWeight>NaN</yWeight>
+        <zWeight>NaN</zWeight>
+      </angularWeightMatrix>
+      <linearWeightMatrix>
+        <uniqueId>0</uniqueId>
+        <destination>0</destination>
+        <source>0</source>
+        <weightFrameId>0</weightFrameId>
+        <xWeight>NaN</xWeight>
+        <yWeight>NaN</yWeight>
+        <zWeight>NaN</zWeight>
+      </linearWeightMatrix>
       <useCustomControlFrame>false</useCustomControlFrame>
+      <controlFramePose>
+        <position>
+          <x>0.0</x>
+          <y>0.0</y>
+          <z>0.0</z>
+        </position>
+        <orientation>
+          <x>0.0</x>
+          <y>0.0</y>
+          <z>0.0</z>
+          <s>1.0</s>
+        </orientation>
+      </controlFramePose>
       <queueingProperties>
         <uniqueId>0</uniqueId>
         <destination>0</destination>
@@ -639,12 +1031,12 @@
           </predictedContactPoints>
           <trajectoryType>0</trajectoryType>
           <swingHeight>0.0</swingHeight>
-          <positionWaypoints>
+          <customPositionWaypoints>
             <clazz>us.ihmc.euclid.tuple3D.Point3D</clazz>
             <values class="us.ihmc.euclid.tuple3D.Point3D-array"/>
             <pos>-1</pos>
             <isEnum>false</isEnum>
-          </positionWaypoints>
+          </customPositionWaypoints>
           <swingTrajectory>
             <clazz>us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage</clazz>
             <values class="us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage-array"/>
@@ -681,12 +1073,12 @@
           </predictedContactPoints>
           <trajectoryType>0</trajectoryType>
           <swingHeight>0.0</swingHeight>
-          <positionWaypoints>
+          <customPositionWaypoints>
             <clazz>us.ihmc.euclid.tuple3D.Point3D</clazz>
             <values class="us.ihmc.euclid.tuple3D.Point3D-array"/>
             <pos>-1</pos>
             <isEnum>false</isEnum>
-          </positionWaypoints>
+          </customPositionWaypoints>
           <swingTrajectory>
             <clazz>us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage</clazz>
             <values class="us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage-array"/>
@@ -723,12 +1115,12 @@
           </predictedContactPoints>
           <trajectoryType>0</trajectoryType>
           <swingHeight>0.0</swingHeight>
-          <positionWaypoints>
+          <customPositionWaypoints>
             <clazz>us.ihmc.euclid.tuple3D.Point3D</clazz>
             <values class="us.ihmc.euclid.tuple3D.Point3D-array"/>
             <pos>-1</pos>
             <isEnum>false</isEnum>
-          </positionWaypoints>
+          </customPositionWaypoints>
           <swingTrajectory>
             <clazz>us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage</clazz>
             <values class="us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage-array"/>
@@ -812,6 +1204,24 @@
         <pos>0</pos>
         <isEnum>false</isEnum>
       </taskspaceTrajectoryPoints>
+      <angularSelectionMatrix>
+        <uniqueId>0</uniqueId>
+        <destination>0</destination>
+        <source>0</source>
+        <selectionFrameId>0</selectionFrameId>
+        <xSelected>true</xSelected>
+        <ySelected>true</ySelected>
+        <zSelected>true</zSelected>
+      </angularSelectionMatrix>
+      <linearSelectionMatrix>
+        <uniqueId>0</uniqueId>
+        <destination>0</destination>
+        <source>0</source>
+        <selectionFrameId>0</selectionFrameId>
+        <xSelected>true</xSelected>
+        <ySelected>true</ySelected>
+        <zSelected>true</zSelected>
+      </linearSelectionMatrix>
       <frameInformation>
         <uniqueId>0</uniqueId>
         <destination>0</destination>
@@ -819,7 +1229,38 @@
         <trajectoryReferenceFrameId>83766130</trajectoryReferenceFrameId>
         <dataReferenceFrameId>1</dataReferenceFrameId>
       </frameInformation>
+      <angularWeightMatrix>
+        <uniqueId>0</uniqueId>
+        <destination>0</destination>
+        <source>0</source>
+        <weightFrameId>0</weightFrameId>
+        <xWeight>NaN</xWeight>
+        <yWeight>NaN</yWeight>
+        <zWeight>NaN</zWeight>
+      </angularWeightMatrix>
+      <linearWeightMatrix>
+        <uniqueId>0</uniqueId>
+        <destination>0</destination>
+        <source>0</source>
+        <weightFrameId>0</weightFrameId>
+        <xWeight>NaN</xWeight>
+        <yWeight>NaN</yWeight>
+        <zWeight>NaN</zWeight>
+      </linearWeightMatrix>
       <useCustomControlFrame>false</useCustomControlFrame>
+      <controlFramePose>
+        <position>
+          <x>0.0</x>
+          <y>0.0</y>
+          <z>0.0</z>
+        </position>
+        <orientation>
+          <x>0.0</x>
+          <y>0.0</y>
+          <z>0.0</z>
+          <s>1.0</s>
+        </orientation>
+      </controlFramePose>
       <queueingProperties>
         <uniqueId>0</uniqueId>
         <destination>0</destination>
@@ -862,12 +1303,12 @@
           </predictedContactPoints>
           <trajectoryType>0</trajectoryType>
           <swingHeight>0.0</swingHeight>
-          <positionWaypoints>
+          <customPositionWaypoints>
             <clazz>us.ihmc.euclid.tuple3D.Point3D</clazz>
             <values class="us.ihmc.euclid.tuple3D.Point3D-array"/>
             <pos>-1</pos>
             <isEnum>false</isEnum>
-          </positionWaypoints>
+          </customPositionWaypoints>
           <swingTrajectory>
             <clazz>us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage</clazz>
             <values class="us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage-array"/>
@@ -904,12 +1345,12 @@
           </predictedContactPoints>
           <trajectoryType>0</trajectoryType>
           <swingHeight>0.0</swingHeight>
-          <positionWaypoints>
+          <customPositionWaypoints>
             <clazz>us.ihmc.euclid.tuple3D.Point3D</clazz>
             <values class="us.ihmc.euclid.tuple3D.Point3D-array"/>
             <pos>-1</pos>
             <isEnum>false</isEnum>
-          </positionWaypoints>
+          </customPositionWaypoints>
           <swingTrajectory>
             <clazz>us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage</clazz>
             <values class="us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage-array"/>
@@ -946,12 +1387,12 @@
           </predictedContactPoints>
           <trajectoryType>0</trajectoryType>
           <swingHeight>0.0</swingHeight>
-          <positionWaypoints>
+          <customPositionWaypoints>
             <clazz>us.ihmc.euclid.tuple3D.Point3D</clazz>
             <values class="us.ihmc.euclid.tuple3D.Point3D-array"/>
             <pos>-1</pos>
             <isEnum>false</isEnum>
-          </positionWaypoints>
+          </customPositionWaypoints>
           <swingTrajectory>
             <clazz>us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage</clazz>
             <values class="us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage-array"/>
@@ -1035,6 +1476,24 @@
         <pos>0</pos>
         <isEnum>false</isEnum>
       </taskspaceTrajectoryPoints>
+      <angularSelectionMatrix>
+        <uniqueId>0</uniqueId>
+        <destination>0</destination>
+        <source>0</source>
+        <selectionFrameId>0</selectionFrameId>
+        <xSelected>true</xSelected>
+        <ySelected>true</ySelected>
+        <zSelected>true</zSelected>
+      </angularSelectionMatrix>
+      <linearSelectionMatrix>
+        <uniqueId>0</uniqueId>
+        <destination>0</destination>
+        <source>0</source>
+        <selectionFrameId>0</selectionFrameId>
+        <xSelected>true</xSelected>
+        <ySelected>true</ySelected>
+        <zSelected>true</zSelected>
+      </linearSelectionMatrix>
       <frameInformation>
         <uniqueId>0</uniqueId>
         <destination>0</destination>
@@ -1042,7 +1501,38 @@
         <trajectoryReferenceFrameId>83766130</trajectoryReferenceFrameId>
         <dataReferenceFrameId>1</dataReferenceFrameId>
       </frameInformation>
+      <angularWeightMatrix>
+        <uniqueId>0</uniqueId>
+        <destination>0</destination>
+        <source>0</source>
+        <weightFrameId>0</weightFrameId>
+        <xWeight>NaN</xWeight>
+        <yWeight>NaN</yWeight>
+        <zWeight>NaN</zWeight>
+      </angularWeightMatrix>
+      <linearWeightMatrix>
+        <uniqueId>0</uniqueId>
+        <destination>0</destination>
+        <source>0</source>
+        <weightFrameId>0</weightFrameId>
+        <xWeight>NaN</xWeight>
+        <yWeight>NaN</yWeight>
+        <zWeight>NaN</zWeight>
+      </linearWeightMatrix>
       <useCustomControlFrame>false</useCustomControlFrame>
+      <controlFramePose>
+        <position>
+          <x>0.0</x>
+          <y>0.0</y>
+          <z>0.0</z>
+        </position>
+        <orientation>
+          <x>0.0</x>
+          <y>0.0</y>
+          <z>0.0</z>
+          <s>1.0</s>
+        </orientation>
+      </controlFramePose>
       <queueingProperties>
         <uniqueId>0</uniqueId>
         <destination>0</destination>
@@ -1097,6 +1587,24 @@
         <pos>0</pos>
         <isEnum>false</isEnum>
       </taskspaceTrajectoryPoints>
+      <angularSelectionMatrix>
+        <uniqueId>0</uniqueId>
+        <destination>0</destination>
+        <source>0</source>
+        <selectionFrameId>0</selectionFrameId>
+        <xSelected>true</xSelected>
+        <ySelected>true</ySelected>
+        <zSelected>true</zSelected>
+      </angularSelectionMatrix>
+      <linearSelectionMatrix>
+        <uniqueId>0</uniqueId>
+        <destination>0</destination>
+        <source>0</source>
+        <selectionFrameId>0</selectionFrameId>
+        <xSelected>true</xSelected>
+        <ySelected>true</ySelected>
+        <zSelected>true</zSelected>
+      </linearSelectionMatrix>
       <frameInformation>
         <uniqueId>0</uniqueId>
         <destination>0</destination>
@@ -1104,7 +1612,38 @@
         <trajectoryReferenceFrameId>83766130</trajectoryReferenceFrameId>
         <dataReferenceFrameId>1</dataReferenceFrameId>
       </frameInformation>
+      <angularWeightMatrix>
+        <uniqueId>0</uniqueId>
+        <destination>0</destination>
+        <source>0</source>
+        <weightFrameId>0</weightFrameId>
+        <xWeight>NaN</xWeight>
+        <yWeight>NaN</yWeight>
+        <zWeight>NaN</zWeight>
+      </angularWeightMatrix>
+      <linearWeightMatrix>
+        <uniqueId>0</uniqueId>
+        <destination>0</destination>
+        <source>0</source>
+        <weightFrameId>0</weightFrameId>
+        <xWeight>NaN</xWeight>
+        <yWeight>NaN</yWeight>
+        <zWeight>NaN</zWeight>
+      </linearWeightMatrix>
       <useCustomControlFrame>false</useCustomControlFrame>
+      <controlFramePose>
+        <position>
+          <x>0.0</x>
+          <y>0.0</y>
+          <z>0.0</z>
+        </position>
+        <orientation>
+          <x>0.0</x>
+          <y>0.0</y>
+          <z>0.0</z>
+          <s>1.0</s>
+        </orientation>
+      </controlFramePose>
       <queueingProperties>
         <uniqueId>0</uniqueId>
         <destination>0</destination>
@@ -1147,12 +1686,12 @@
           </predictedContactPoints>
           <trajectoryType>0</trajectoryType>
           <swingHeight>0.0</swingHeight>
-          <positionWaypoints>
+          <customPositionWaypoints>
             <clazz>us.ihmc.euclid.tuple3D.Point3D</clazz>
             <values class="us.ihmc.euclid.tuple3D.Point3D-array"/>
             <pos>-1</pos>
             <isEnum>false</isEnum>
-          </positionWaypoints>
+          </customPositionWaypoints>
           <swingTrajectory>
             <clazz>us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage</clazz>
             <values class="us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage-array"/>
@@ -1189,12 +1728,12 @@
           </predictedContactPoints>
           <trajectoryType>0</trajectoryType>
           <swingHeight>0.0</swingHeight>
-          <positionWaypoints>
+          <customPositionWaypoints>
             <clazz>us.ihmc.euclid.tuple3D.Point3D</clazz>
             <values class="us.ihmc.euclid.tuple3D.Point3D-array"/>
             <pos>-1</pos>
             <isEnum>false</isEnum>
-          </positionWaypoints>
+          </customPositionWaypoints>
           <swingTrajectory>
             <clazz>us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage</clazz>
             <values class="us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage-array"/>
@@ -1231,12 +1770,12 @@
           </predictedContactPoints>
           <trajectoryType>0</trajectoryType>
           <swingHeight>0.0</swingHeight>
-          <positionWaypoints>
+          <customPositionWaypoints>
             <clazz>us.ihmc.euclid.tuple3D.Point3D</clazz>
             <values class="us.ihmc.euclid.tuple3D.Point3D-array"/>
             <pos>-1</pos>
             <isEnum>false</isEnum>
-          </positionWaypoints>
+          </customPositionWaypoints>
           <swingTrajectory>
             <clazz>us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage</clazz>
             <values class="us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage-array"/>

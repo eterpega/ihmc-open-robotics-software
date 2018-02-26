@@ -31,12 +31,12 @@
           </predictedContactPoints>
           <trajectoryType>0</trajectoryType>
           <swingHeight>0.0</swingHeight>
-          <positionWaypoints>
+          <customPositionWaypoints>
             <clazz>us.ihmc.euclid.tuple3D.Point3D</clazz>
             <values class="us.ihmc.euclid.tuple3D.Point3D-array"/>
             <pos>-1</pos>
             <isEnum>false</isEnum>
-          </positionWaypoints>
+          </customPositionWaypoints>
           <swingTrajectory>
             <clazz>us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage</clazz>
             <values class="us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage-array"/>
@@ -73,12 +73,12 @@
           </predictedContactPoints>
           <trajectoryType>0</trajectoryType>
           <swingHeight>0.0</swingHeight>
-          <positionWaypoints>
+          <customPositionWaypoints>
             <clazz>us.ihmc.euclid.tuple3D.Point3D</clazz>
             <values class="us.ihmc.euclid.tuple3D.Point3D-array"/>
             <pos>-1</pos>
             <isEnum>false</isEnum>
-          </positionWaypoints>
+          </customPositionWaypoints>
           <swingTrajectory>
             <clazz>us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage</clazz>
             <values class="us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage-array"/>
@@ -115,12 +115,12 @@
           </predictedContactPoints>
           <trajectoryType>0</trajectoryType>
           <swingHeight>0.0</swingHeight>
-          <positionWaypoints>
+          <customPositionWaypoints>
             <clazz>us.ihmc.euclid.tuple3D.Point3D</clazz>
             <values class="us.ihmc.euclid.tuple3D.Point3D-array"/>
             <pos>-1</pos>
             <isEnum>false</isEnum>
-          </positionWaypoints>
+          </customPositionWaypoints>
           <swingTrajectory>
             <clazz>us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage</clazz>
             <values class="us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage-array"/>
@@ -192,12 +192,12 @@
           </predictedContactPoints>
           <trajectoryType>0</trajectoryType>
           <swingHeight>0.0</swingHeight>
-          <positionWaypoints>
+          <customPositionWaypoints>
             <clazz>us.ihmc.euclid.tuple3D.Point3D</clazz>
             <values class="us.ihmc.euclid.tuple3D.Point3D-array"/>
             <pos>-1</pos>
             <isEnum>false</isEnum>
-          </positionWaypoints>
+          </customPositionWaypoints>
           <swingTrajectory>
             <clazz>us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage</clazz>
             <values class="us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage-array"/>
@@ -234,12 +234,12 @@
           </predictedContactPoints>
           <trajectoryType>0</trajectoryType>
           <swingHeight>0.0</swingHeight>
-          <positionWaypoints>
+          <customPositionWaypoints>
             <clazz>us.ihmc.euclid.tuple3D.Point3D</clazz>
             <values class="us.ihmc.euclid.tuple3D.Point3D-array"/>
             <pos>-1</pos>
             <isEnum>false</isEnum>
-          </positionWaypoints>
+          </customPositionWaypoints>
           <swingTrajectory>
             <clazz>us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage</clazz>
             <values class="us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage-array"/>
@@ -276,12 +276,12 @@
           </predictedContactPoints>
           <trajectoryType>0</trajectoryType>
           <swingHeight>0.0</swingHeight>
-          <positionWaypoints>
+          <customPositionWaypoints>
             <clazz>us.ihmc.euclid.tuple3D.Point3D</clazz>
             <values class="us.ihmc.euclid.tuple3D.Point3D-array"/>
             <pos>-1</pos>
             <isEnum>false</isEnum>
-          </positionWaypoints>
+          </customPositionWaypoints>
           <swingTrajectory>
             <clazz>us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage</clazz>
             <values class="us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage-array"/>
@@ -318,12 +318,12 @@
           </predictedContactPoints>
           <trajectoryType>0</trajectoryType>
           <swingHeight>0.0</swingHeight>
-          <positionWaypoints>
+          <customPositionWaypoints>
             <clazz>us.ihmc.euclid.tuple3D.Point3D</clazz>
             <values class="us.ihmc.euclid.tuple3D.Point3D-array"/>
             <pos>-1</pos>
             <isEnum>false</isEnum>
-          </positionWaypoints>
+          </customPositionWaypoints>
           <swingTrajectory>
             <clazz>us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage</clazz>
             <values class="us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage-array"/>
@@ -360,12 +360,12 @@
           </predictedContactPoints>
           <trajectoryType>0</trajectoryType>
           <swingHeight>0.0</swingHeight>
-          <positionWaypoints>
+          <customPositionWaypoints>
             <clazz>us.ihmc.euclid.tuple3D.Point3D</clazz>
             <values class="us.ihmc.euclid.tuple3D.Point3D-array"/>
             <pos>-1</pos>
             <isEnum>false</isEnum>
-          </positionWaypoints>
+          </customPositionWaypoints>
           <swingTrajectory>
             <clazz>us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage</clazz>
             <values class="us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage-array"/>
@@ -402,12 +402,12 @@
           </predictedContactPoints>
           <trajectoryType>0</trajectoryType>
           <swingHeight>0.0</swingHeight>
-          <positionWaypoints>
+          <customPositionWaypoints>
             <clazz>us.ihmc.euclid.tuple3D.Point3D</clazz>
             <values class="us.ihmc.euclid.tuple3D.Point3D-array"/>
             <pos>-1</pos>
             <isEnum>false</isEnum>
-          </positionWaypoints>
+          </customPositionWaypoints>
           <swingTrajectory>
             <clazz>us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage</clazz>
             <values class="us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage-array"/>
@@ -479,12 +479,12 @@
           </predictedContactPoints>
           <trajectoryType>0</trajectoryType>
           <swingHeight>0.0</swingHeight>
-          <positionWaypoints>
+          <customPositionWaypoints>
             <clazz>us.ihmc.euclid.tuple3D.Point3D</clazz>
             <values class="us.ihmc.euclid.tuple3D.Point3D-array"/>
             <pos>-1</pos>
             <isEnum>false</isEnum>
-          </positionWaypoints>
+          </customPositionWaypoints>
           <swingTrajectory>
             <clazz>us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage</clazz>
             <values class="us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage-array"/>
@@ -521,12 +521,12 @@
           </predictedContactPoints>
           <trajectoryType>0</trajectoryType>
           <swingHeight>0.0</swingHeight>
-          <positionWaypoints>
+          <customPositionWaypoints>
             <clazz>us.ihmc.euclid.tuple3D.Point3D</clazz>
             <values class="us.ihmc.euclid.tuple3D.Point3D-array"/>
             <pos>-1</pos>
             <isEnum>false</isEnum>
-          </positionWaypoints>
+          </customPositionWaypoints>
           <swingTrajectory>
             <clazz>us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage</clazz>
             <values class="us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage-array"/>
@@ -563,12 +563,12 @@
           </predictedContactPoints>
           <trajectoryType>0</trajectoryType>
           <swingHeight>0.0</swingHeight>
-          <positionWaypoints>
+          <customPositionWaypoints>
             <clazz>us.ihmc.euclid.tuple3D.Point3D</clazz>
             <values class="us.ihmc.euclid.tuple3D.Point3D-array"/>
             <pos>-1</pos>
             <isEnum>false</isEnum>
-          </positionWaypoints>
+          </customPositionWaypoints>
           <swingTrajectory>
             <clazz>us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage</clazz>
             <values class="us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage-array"/>
@@ -605,12 +605,12 @@
           </predictedContactPoints>
           <trajectoryType>0</trajectoryType>
           <swingHeight>0.0</swingHeight>
-          <positionWaypoints>
+          <customPositionWaypoints>
             <clazz>us.ihmc.euclid.tuple3D.Point3D</clazz>
             <values class="us.ihmc.euclid.tuple3D.Point3D-array"/>
             <pos>-1</pos>
             <isEnum>false</isEnum>
-          </positionWaypoints>
+          </customPositionWaypoints>
           <swingTrajectory>
             <clazz>us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage</clazz>
             <values class="us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage-array"/>
@@ -647,12 +647,12 @@
           </predictedContactPoints>
           <trajectoryType>0</trajectoryType>
           <swingHeight>0.0</swingHeight>
-          <positionWaypoints>
+          <customPositionWaypoints>
             <clazz>us.ihmc.euclid.tuple3D.Point3D</clazz>
             <values class="us.ihmc.euclid.tuple3D.Point3D-array"/>
             <pos>-1</pos>
             <isEnum>false</isEnum>
-          </positionWaypoints>
+          </customPositionWaypoints>
           <swingTrajectory>
             <clazz>us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage</clazz>
             <values class="us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage-array"/>
@@ -724,12 +724,12 @@
           </predictedContactPoints>
           <trajectoryType>0</trajectoryType>
           <swingHeight>0.0</swingHeight>
-          <positionWaypoints>
+          <customPositionWaypoints>
             <clazz>us.ihmc.euclid.tuple3D.Point3D</clazz>
             <values class="us.ihmc.euclid.tuple3D.Point3D-array"/>
             <pos>-1</pos>
             <isEnum>false</isEnum>
-          </positionWaypoints>
+          </customPositionWaypoints>
           <swingTrajectory>
             <clazz>us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage</clazz>
             <values class="us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage-array"/>
@@ -766,12 +766,12 @@
           </predictedContactPoints>
           <trajectoryType>0</trajectoryType>
           <swingHeight>0.0</swingHeight>
-          <positionWaypoints>
+          <customPositionWaypoints>
             <clazz>us.ihmc.euclid.tuple3D.Point3D</clazz>
             <values class="us.ihmc.euclid.tuple3D.Point3D-array"/>
             <pos>-1</pos>
             <isEnum>false</isEnum>
-          </positionWaypoints>
+          </customPositionWaypoints>
           <swingTrajectory>
             <clazz>us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage</clazz>
             <values class="us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage-array"/>
@@ -808,12 +808,12 @@
           </predictedContactPoints>
           <trajectoryType>0</trajectoryType>
           <swingHeight>0.0</swingHeight>
-          <positionWaypoints>
+          <customPositionWaypoints>
             <clazz>us.ihmc.euclid.tuple3D.Point3D</clazz>
             <values class="us.ihmc.euclid.tuple3D.Point3D-array"/>
             <pos>-1</pos>
             <isEnum>false</isEnum>
-          </positionWaypoints>
+          </customPositionWaypoints>
           <swingTrajectory>
             <clazz>us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage</clazz>
             <values class="us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage-array"/>
@@ -850,12 +850,12 @@
           </predictedContactPoints>
           <trajectoryType>0</trajectoryType>
           <swingHeight>0.0</swingHeight>
-          <positionWaypoints>
+          <customPositionWaypoints>
             <clazz>us.ihmc.euclid.tuple3D.Point3D</clazz>
             <values class="us.ihmc.euclid.tuple3D.Point3D-array"/>
             <pos>-1</pos>
             <isEnum>false</isEnum>
-          </positionWaypoints>
+          </customPositionWaypoints>
           <swingTrajectory>
             <clazz>us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage</clazz>
             <values class="us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage-array"/>
@@ -892,12 +892,12 @@
           </predictedContactPoints>
           <trajectoryType>0</trajectoryType>
           <swingHeight>0.0</swingHeight>
-          <positionWaypoints>
+          <customPositionWaypoints>
             <clazz>us.ihmc.euclid.tuple3D.Point3D</clazz>
             <values class="us.ihmc.euclid.tuple3D.Point3D-array"/>
             <pos>-1</pos>
             <isEnum>false</isEnum>
-          </positionWaypoints>
+          </customPositionWaypoints>
           <swingTrajectory>
             <clazz>us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage</clazz>
             <values class="us.ihmc.humanoidRobotics.communication.packets.SE3TrajectoryPointMessage-array"/>
